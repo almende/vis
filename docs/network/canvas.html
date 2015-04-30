@@ -92,7 +92,8 @@
 var options = {
   canvas:{
     width:'100%',  // other format: '400px'
-    height:'100%'
+    height:'100%',
+    autoResize: true
   }
 }
 
@@ -117,6 +118,14 @@ network.setOptions(options);
             <td class="mid">String</td>
             <td class="mid"><code>'100%'</code></td>
             <td>the height of the canvas. Can be in percentages or pixels (ie. <code>'400px'</code>).</td>
+        </tr>
+        <tr>
+            <td>autoResize</td>
+            <td class="mid">Boolean</td>
+            <td class="mid"><code>true</code></td>
+            <td>If true, the Network will automatically detect when its container is resized, and redraw itself
+                accordingly. If false, the Network can be forced to repaint after its container has been resized
+                using the function redraw() and setSize().</td>
         </tr>
     </table>
 

@@ -49,7 +49,7 @@
         {x: '2014-06-12', y: 15, group:1},
         {x: '2014-06-13', y: 34, group:1},
         {x: '2014-06-14', y: 24, group:1},
-        {x: '2014-06-15', y: 5, group:1},
+        {x: '2014-06-15', y: 5,  group:1},
         {x: '2014-06-16', y: 12, group:1},
         {x: '2014-06-11', y: 22, group:2},
         {x: '2014-06-12', y: 14, group:2},
@@ -62,7 +62,8 @@
     var dataset = new vis.DataSet(items);
     var options = {
         style:'bar',
-        barChart: {width:50, align:'center', handleOverlap:'sideBySide'}, // align: left, center, right
+        stack:true,
+        barChart: {width:50, align:'center', sideBySide:true}, // align: left, center, right
         drawPoints: false,
         dataAxis: {
             icons:true

@@ -92,6 +92,23 @@
             The other options are explained in the <code>moveTo()</code> description above.
             All options are optional for zoomExtent.
         </td></tr>
+        <tr><td>focus(<br>
+            &nbsp;&nbsp;&nbsp;<code>String nodeId</code>,<br>
+            &nbsp;&nbsp;&nbsp;<code>[Object options]</code><br>)</td><td class="mid">none</td>
+            <td>You can focus on a node with this function. What that means is the view will lock onto that node, if it is moving, the view will also move accordingly. If the view is dragged by the user, the focus is broken.
+                You can supply options to customize the effect:
+<pre class="code">
+{
+  scale: Number,
+  offset: {x:Number, y:Number}
+  locked: boolean
+  animation: { // -------------------> can be a boolean too!
+    duration: Number
+    easingFunction: String
+  }
+}
+</pre>
+        All options except for locked are explained in the <code>moveTo()</code> description below. Locked denotes whether or not the view remains locked to the node once the zoom-in animation is finished. Default value is true. The options object is optional in the focus method.</td></tr>
         <tr><td>moveTo(<code>Object options</code>)</td>      <td class="mid">none</td><td>You can animate or move the camera using the moveTo method. Options are:
 <pre class="code">
 {
@@ -113,23 +130,7 @@
         </td></tr>
 
 
-        <tr><td>focusOnNode(<br>
-            &nbsp;&nbsp;&nbsp;<code>String nodeId</code>,<br>
-            &nbsp;&nbsp;&nbsp;<code>[Object options]</code><br>)</td><td class="mid">none</td>
-        <td>You can focus on a node with this function. What that means is the view will lock onto that node, if it is moving, the view will also move accordingly. If the view is dragged by the user, the focus is broken.
-        You can supply options to customize the effect:
-<pre class="code">
-{
-  scale: Number,
-  offset: {x:Number, y:Number}
-  locked: boolean
-  animation: { // -------------------> can be a boolean too!
-    duration: Number
-    easingFunction: String
-  }
-}
-</pre>
-        All options except for locked are explained in the <code>moveTo()</code> description above. Locked denotes whether or not the view remains locked to the node once the zoom-in animation is finished. Default value is true. The options object is optional in focusOnNode.</td></tr>
+
     <tr><td>releaseNode()</td><td class="mid">none</td><td>Programatically release the focussed node.</td></tr>
 
 

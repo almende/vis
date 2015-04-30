@@ -120,7 +120,7 @@ network.setOptions(options);
         <tr><td>zoomView</td>               <td class="mid">Boolean</td>            <td class="mid"><code>true</code></td>      <td>When true, the user can zoom in.</td></tr>
         <tr><td>hoverEnabled</td>           <td class="mid">Boolean</td>            <td class="mid"><code>false</code></td>     <td>When true, the nodes use their hover colors when the mouse moves over them.</td></tr>
         <tr><td>navigationButtons</td>      <td class="mid">Boolean</td>            <td class="mid"><code>false</code></td>     <td>When true, navigation buttons are drawn on the network canvas. These are HTML buttons and can be completely customized using CSS.</td></tr>
-        <tr><td>tooltipDelay</td>           <td class="mid">Object</td>             <td class="mid"><code>Object</code></td>    <td>When nodes or edges have a defined <code>'title'</code> field, this can be shown as a pop-up tooltip. The tooltip itself is an HTML element that can be fully styled using CSS. The delay is the amount of time in milliseconds it takes before the tooltip is shown.</td></tr>
+        <tr><td>tooltipDelay</td>           <td class="mid">Number</td>             <td class="mid"><code>Object</code></td>    <td>When nodes or edges have a defined <code>'title'</code> field, this can be shown as a pop-up tooltip. The tooltip itself is an HTML element that can be fully styled using CSS. The delay is the amount of time in milliseconds it takes before the tooltip is shown.</td></tr>
         <tr class='toggle collapsible' onclick="toggleTable('optionTable','keyboard', this);"><td><span parent="keyboard" class="right-caret"></span> keyboard</td>               <td class="mid">Object or Boolean</td>   <td class="mid"><code>Object</code></td>    <td>When true, the keyboard shortcuts are enabled with the default settings. For further customization, you can supply an object.</td></tr>
         <tr parent="keyboard" class="hidden"><td class="indent">keyboard.enabled</td>       <td class="mid">Boolean</td>            <td class="mid"><code>false</code></td>     <td>Toggle the usage of the keyboard shortcuts. If this option is not defined, it is set to true if any of the properties in this object are defined.</td></tr>
         <tr parent="keyboard" class="hidden"><td class="indent">keyboard.speed.x</td>       <td class="mid">Number</td>             <td class="mid"><code>1</code></td>         <td>The speed at which the view moves in the x direction on pressing a key or pressing a navigation button.</td></tr>
@@ -141,6 +141,7 @@ network.setOptions(options);
 {
   nodes: [Array of selected nodeIds],
   edges: [Array of selected edgeIds],
+  event: [Object] original click event,
   pointer: {
     DOM: {x:pointer_x, y:pointer_y},
     canvas: {x:canvas_x, y:canvas_y}
@@ -149,7 +150,7 @@ network.setOptions(options);
 </pre>
         </td><td>Fired when the user clicks the mouse or taps on a touchscreen device.</td></tr>
         <tr><td>doubleClick</td> <td class="mid">same as <code>click</code>.</td><td>Fired when the user double clicks the mouse or double taps on a touchscreen device. Since a double click is in fact 2 clicks, 2 click events are fired, followed by a double click event. If you do not want to use the click events if a double click event is fired, just check the time between click events before processing them.</td></tr>
-        <tr><td>rightClick</td>  <td class="mid">same as <code>click</code>.</td><td>Fired when the user click on the canvas with the right mouse button. The right mouse button does not select by default. You can use <a href="./selection.html">getNodeAt</a> to select the node if you want.</td></tr>
+        <tr><td>oncontext</td>  <td class="mid">same as <code>click</code>.</td><td>Fired when the user click on the canvas with the right mouse button. The right mouse button does not select by default. You can use <a href="./selection.html">getNodeAt</a> to select the node if you want.</td></tr>
         <tr><td>hold</td>        <td class="mid">same as <code>click</code>.</td><td>Fired when the user clicks and holds the mouse or taps and holds on a touchscreen device. A click event is also fired in this case.</td></tr>
         <tr><td>release</td>     <td class="mid">same as <code>click</code>.</td><td>Fired after drawing on the canvas has been completed. Can be used to draw on top of the network.</td></tr>
         <tr><td>select</td>      <td class="mid">same as <code>click</code>.</td><td>Fired when the selection has changed by user action. This means a node or edge has been selected, added to the selection or deselected. <b>All select events are only triggerd on click and hold</b>.</td></tr>
@@ -159,6 +160,7 @@ network.setOptions(options);
 {
   nodes: [Array of selected nodeIds],
   edges: [Array of selected edgeIds],
+  event: [Object] original click event,
   pointer: {
     DOM: {x:pointer_x, y:pointer_y},
     canvas: {x:canvas_x, y:canvas_y}
@@ -172,6 +174,7 @@ network.setOptions(options);
 </pre></td><td>Fired when a node (or nodes) has (or have) been deselected by the user. The previous selection is the list of nodes and edges that were selected before the last user event.</td></tr>
         <tr><td>deselectEdge</td><td class="mid">same as <code>deselectNode</code>.</td><td>Fired when a edge (or edges) has (or have) been deselected by the user. The previous selection is the list of nodes and edges that were selected before the last user event.</td></tr>
         <tr><td>dragStart</td>   <td class="mid">same as <code>click</code>.</td><td>Fired when starting a drag.</td></tr>
+        <tr><td>dragging</td>    <td class="mid">same as <code>click</code>.</td><td>Fired when dragging node(s) or the view.</td></tr>
         <tr><td>dragEnd</td>     <td class="mid">same as <code>click</code>.</td><td>Fired when the drag has finished.</td></tr>
         <tr><td>zoom</td>        <td class="mid"><code>{direction:'+'/'-'}</code></td><td>Fired when the user zooms in or out. The properties tell you which direction the zoom is in.</td></tr>
         <tr><td>showPopup</td>   <td class="mid"><code>id of item corresponding to popup</code></td><td>Fired when the popup is shown.</td></tr>
