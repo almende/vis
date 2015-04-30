@@ -89,6 +89,9 @@
 
     <p>The options for the edges have to be contained in an object titled 'edges'. All of these options can be supplied per edge as well. Obviously, 'id' should not be defined globally but per edge. Options defined
     in the global edges object, are applied to all edges. If an edge has options of its own, those will be used instead of the global options.</p>
+    <p><b><i>When you have given an edge an option, you will override the global option for that property. If you then set that option to <code>undefined</code> or <code>null</code>,
+        it will revert back to the default value.</i></b>
+    </p>
     <p>Click on the full options or shorthand options to show how these options are supposed to be used.</p>
     <ul class="nav nav-tabs">
         <li role="presentation" class="active" onclick="hideOptions('fullTab','fullOptions','shortTab','shortOptions');" id="hiddenTab"><a href="#">options hidden</a></li>
