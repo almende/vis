@@ -30,15 +30,15 @@
 
 
         var data = '<svg xmlns="http://www.w3.org/2000/svg" width="243" height="65">' +
-                '<rect x="0" y="0" width="100%" height="100%" fill="#7890A7" stroke-width="20" stroke="#ffffff" ></rect>' +
-                '<foreignObject x="15" y="10" width="100%" height="100%">' +
-                '<div xmlns="http://www.w3.org/1999/xhtml" style="font-size:40px">' +
-                '<em>I</em> like' +
-                '<span style="color:white; text-shadow:0 0 20px #000000;">' +
-                'cheese</span>' +
-                '</div>' +
-                '</foreignObject>' +
-                '</svg>';
+            '<rect x="0" y="0" width="100%" height="100%" fill="#7890A7" stroke-width="20" stroke="#ffffff" ></rect>' +
+            '<foreignObject x="15" y="10" width="100%" height="100%">' +
+            '<div xmlns="http://www.w3.org/1999/xhtml" style="font-size:40px">' +
+            '<em>I</em> like' +
+            '<span style="color:white; text-shadow:0 0 20px #000000;">' +
+            'cheese</span>' +
+            '</div>' +
+            '</foreignObject>' +
+            '</svg>';
 
         var DOMURL = window.URL || window.webkitURL || window;
 
@@ -65,13 +65,14 @@
                 edges: edges
             };
             var options = {
-                stabilize: false,
-                smoothCurves:false
+                physics: {stabilization: false},
+                edges: {smooth: false}
             };
             network = new vis.Network(container, data, options);
         }
     </script>
-<script>(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)})(window,document,'script','//www.google-analytics.com/analytics.js','ga');ga('create', 'UA-61231638-1', 'auto');ga('send', 'pageview');</script></head>
+    <script src="../googleAnalytics.js"></script>
+</head>
 
 <body onload="draw()">
 <p>
