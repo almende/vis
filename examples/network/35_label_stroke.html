@@ -25,7 +25,7 @@
 <script type="text/javascript">
   // create an array with nodes
   var nodes = [
-    {id: 1, label: 'Node 1', font: {stroke: 5, strokeColor: 'white'}},
+    {id: 1, label: 'Node 1', font: {strokeWidth: 3, strokeColor: 'white'}},
     {id: 2, label: 'Node 2'},
     {id: 3, label: 'Node 3'},
     {id: 4, label: 'Node 4'},
@@ -34,7 +34,7 @@
 
   // create an array with edges
   var edges = [
-    {from: 1, to: 2, label: 'edgeLabel', font: {stroke: 2, strokeColor : '#00ff00'}},
+    {from: 1, to: 2, label: 'edgeLabel', font: {strokeWidth: 2, strokeColor : '#00ff00'}},
     {from: 1, to: 3, label: 'edgeLabel'},
     {from: 2, to: 4},
     {from: 2, to: 5}
@@ -49,17 +49,7 @@
   var options = {
     nodes : {
       shape: 'dot',
-      font: {
-        stroke: 1,
-        strokeColor: '#d1d1d1'
-      }
-    },
-    edges: {
-      font: {
-        stroke: 1,
-        strokeColor: '#d1d1d1',
-        //fill: 'none'  // TODO: what is the replacement for fill?
-      }
+      size: 10
     }
   };
   var network = new vis.Network(container, data, options);

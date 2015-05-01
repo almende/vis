@@ -5,7 +5,7 @@
  * A dynamic, browser-based visualization library.
  *
  * @version 4.0.0-SNAPSHOT
- * @date    2015-04-30
+ * @date    2015-05-01
  *
  * @license
  * Copyright (C) 2011-2014 Almende B.V, http://almende.com
@@ -673,6 +673,21 @@ return /******/ (function(modules) { // webpackBootstrap
       newArr.push(arr[i]);
     }
     newArr.push(newValue);
+    return newArr;
+  };
+
+  /**
+   * Used to extend an array and copy it. This is used to propagate paths recursively.
+   *
+   * @param arr
+   * @param newValue
+   * @returns {Array}
+   */
+  exports.copyArray = function (arr) {
+    var newArr = [];
+    for (var i = 0; i < arr.length; i++) {
+      newArr.push(arr[i]);
+    }
     return newArr;
   };
 
@@ -15827,6 +15842,8 @@ return /******/ (function(modules) { // webpackBootstrap
         console.log('%cErrors have been found in the supplied options object. None of the options will be used.', _Validator.printStyle);
       }
 
+      //this.placeConvenienceOptions(options);
+
       // the hierarchical system can adapt the edges and the physics to it's own options because not all combinations work with the hierarichical system.
       options = this.layoutEngine.setOptions(options.layout, options);
 
@@ -15883,6 +15900,24 @@ return /******/ (function(modules) { // webpackBootstrap
       this.body.emitter.emit('startSimulation');
     }
   };
+
+  //
+  ///**
+  // *
+  // */
+  //Network.prototype.placeConvenienceOptions = function (options) {
+  //  if (options.locale !== undefined) {
+  //    if (options.manipulation === undefined) {
+  //      options.manipulation = {enabled:false, locale:options.locale};
+  //    }
+  //    else if (typeof options.manipulation === 'boolean') {
+  //      options.manipulation = {enabled: options.manipulation, locale:options.locale};
+  //    }
+  //    else {
+  //      options.manipulation.locale = options.locale;
+  //    }
+  //  }
+  //}
 
   /**
    * Update the this.body.nodeIndices with the most recent node index list
@@ -19467,7 +19502,7 @@ return /******/ (function(modules) { // webpackBootstrap
           size: 14, // px
           face: 'arial',
           background: 'none',
-          stroke: 0, // px
+          strokeWidth: 0, // px
           strokeColor: '#ffffff',
           align: 'horizontal'
         },
@@ -19933,7 +19968,7 @@ return /******/ (function(modules) { // webpackBootstrap
           size: 14, // px
           face: 'arial',
           background: 'none',
-          stroke: 1, // px
+          strokeWidth: 0, // px
           strokeColor: '#ffffff',
           align: 'horizontal'
         },
@@ -20418,17 +20453,18 @@ return /******/ (function(modules) { // webpackBootstrap
     }, {
       key: 'setOptions',
       value: function setOptions(options) {
-        if (options === false) {
-          this.physicsEnabled = false;
-          this.stopSimulation();
-        } else {
-          this.physicsEnabled = true;
-          if (options !== undefined) {
+        if (options !== undefined) {
+          if (options === false) {
+            this.physicsEnabled = false;
+            this.stopSimulation();
+          } else {
+            this.physicsEnabled = true;
             util.selectiveNotDeepExtend(['stabilization'], this.options, options);
             util.mergeOptions(this.options, options, 'stabilization');
           }
-          this.init();
         }
+
+        this.init();
       }
     }, {
       key: 'init',
@@ -20461,12 +20497,12 @@ return /******/ (function(modules) { // webpackBootstrap
           } else {
             this.stabilized = false;
             this.ready = true;
-            this.body.emitter.emit('fit', { duration: 0 }, true);
+            this.body.emitter.emit('fit', {}, true);
             this.startSimulation();
           }
         } else {
           this.ready = true;
-          this.body.emitter.emit('_redraw');
+          this.body.emitter.emit('fit');
         }
       }
     }, {
@@ -20835,7 +20871,7 @@ return /******/ (function(modules) { // webpackBootstrap
       value: function _finalizeStabilization() {
         this.body.emitter.emit('_allowRedrawRequests');
         if (this.options.stabilization.fit === true) {
-          this.body.emitter.emit('fit', { duration: 0 });
+          this.body.emitter.emit('fit');
         }
 
         if (this.options.stabilization.onlyDynamicEdges === true) {
@@ -22382,7 +22418,7 @@ return /******/ (function(modules) { // webpackBootstrap
         }
 
         var center = this._findCenter(range);
-        var animationOptions = { position: center, scale: zoomLevel, animation: options };
+        var animationOptions = { position: center, scale: zoomLevel, animation: options.animation };
         this.moveTo(animationOptions);
       }
     }, {
@@ -24094,6 +24130,7 @@ return /******/ (function(modules) { // webpackBootstrap
               }
             }
 
+            this.body.emitter.emit('_resetHierarchicalLayout');
             // because the hierarchical system needs it's own physics and smooth curve settings, we adapt the other options if needed.
             return this.adaptAllOptions(allOptions);
           } else {
@@ -24774,7 +24811,7 @@ return /******/ (function(modules) { // webpackBootstrap
           this.manipulationDOM = {};
           this._createBackButton(locale);
           this._createSeperator();
-          this._createDescription(locale.addDescription);
+          this._createDescription(locale.addDescription || this.options.locales.en.addDescription);
 
           // bind the close button
           this._bindHammerToDiv(this.closeDiv, this.toggleEditMode.bind(this));
@@ -24821,7 +24858,7 @@ return /******/ (function(modules) { // webpackBootstrap
               throw new Error('The function for edit does not support two arguments (data, callback)');
             }
           } else {
-            alert(this.options.locales[this.options.locale].editClusterError);
+            alert(this.options.locales[this.options.locale].editClusterError || this.options.locales.en.editClusterError);
           }
         } else {
           throw new Error('No function has been configured to handle the editing of nodes.');
@@ -24850,7 +24887,7 @@ return /******/ (function(modules) { // webpackBootstrap
           this.manipulationDOM = {};
           this._createBackButton(locale);
           this._createSeperator();
-          this._createDescription(locale.edgeDescription);
+          this._createDescription(locale.edgeDescription || this.options.locales.en.edgeDescription);
 
           // bind the close button
           this._bindHammerToDiv(this.closeDiv, this.toggleEditMode.bind(this));
@@ -24888,7 +24925,7 @@ return /******/ (function(modules) { // webpackBootstrap
           this.manipulationDOM = {};
           this._createBackButton(locale);
           this._createSeperator();
-          this._createDescription(locale.editEdgeDescription);
+          this._createDescription(locale.editEdgeDescription || this.options.locales.en.editEdgeDescription);
 
           // bind the close button
           this._bindHammerToDiv(this.closeDiv, this.toggleEditMode.bind(this));
@@ -24960,7 +24997,7 @@ return /******/ (function(modules) { // webpackBootstrap
         if (selectedNodes.length > 0) {
           for (var i = 0; i < selectedNodes.length; i++) {
             if (this.body.nodes[selectedNodes[i]].isCluster === true) {
-              alert(this.options.locales[this.options.locale].deleteClusterError);
+              alert(this.options.locales[this.options.locale].deleteClusterError || this.options.locales.en.deleteClusterError);
               return;
             }
           }
@@ -25100,7 +25137,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
         // create the contents for the editMode button
         var locale = this.options.locales[this.options.locale];
-        var button = this._createButton('editMode', 'vis-button vis-edit vis-edit-mode', locale.edit);
+        var button = this._createButton('editMode', 'vis-button vis-edit vis-edit-mode', locale.edit || this.options.locales.en.edit);
         this.editModeDiv.appendChild(button);
 
         // bind a hammer listener to the button, calling the function toggleEditMode.
@@ -25201,42 +25238,42 @@ return /******/ (function(modules) { // webpackBootstrap
       // ----------------------    DOM functions for buttons    --------------------------//
 
       value: function _createAddNodeButton(locale) {
-        var button = this._createButton('addNode', 'vis-button vis-add', locale.addNode);
+        var button = this._createButton('addNode', 'vis-button vis-add', locale.addNode || this.options.locales.en.addNode);
         this.manipulationDiv.appendChild(button);
         this._bindHammerToDiv(button, this.addNodeMode.bind(this));
       }
     }, {
       key: '_createAddEdgeButton',
       value: function _createAddEdgeButton(locale) {
-        var button = this._createButton('addEdge', 'vis-button vis-connect', locale.addEdge);
+        var button = this._createButton('addEdge', 'vis-button vis-connect', locale.addEdge || this.options.locales.en.addEdge);
         this.manipulationDiv.appendChild(button);
         this._bindHammerToDiv(button, this.addEdgeMode.bind(this));
       }
     }, {
       key: '_createEditNodeButton',
       value: function _createEditNodeButton(locale) {
-        var button = this._createButton('editNodeMode', 'vis-button vis-edit', locale.editNodeMode);
+        var button = this._createButton('editNodeMode', 'vis-button vis-edit', locale.editNode || this.options.locales.en.editNode);
         this.manipulationDiv.appendChild(button);
         this._bindHammerToDiv(button, this.editNodeMode.bind(this));
       }
     }, {
       key: '_createEditEdgeButton',
       value: function _createEditEdgeButton(locale) {
-        var button = this._createButton('editEdge', 'vis-button vis-edit', locale.editEdge);
+        var button = this._createButton('editEdge', 'vis-button vis-edit', locale.editEdge || this.options.locales.en.editEdge);
         this.manipulationDiv.appendChild(button);
         this._bindHammerToDiv(button, this.editEdgeMode.bind(this));
       }
     }, {
       key: '_createDeleteButton',
       value: function _createDeleteButton(locale) {
-        var button = this._createButton('delete', 'vis-button vis-delete', locale.del);
+        var button = this._createButton('delete', 'vis-button vis-delete', locale.del || this.options.locales.en.del);
         this.manipulationDiv.appendChild(button);
         this._bindHammerToDiv(button, this.deleteSelected.bind(this));
       }
     }, {
       key: '_createBackButton',
       value: function _createBackButton(locale) {
-        var button = this._createButton('back', 'vis-button vis-back', locale.back);
+        var button = this._createButton('back', 'vis-button vis-back', locale.back || this.options.locales.en.back);
         this.manipulationDiv.appendChild(button);
         this._bindHammerToDiv(button, this.showManipulatorToolbar.bind(this));
       }
@@ -25457,7 +25494,7 @@ return /******/ (function(modules) { // webpackBootstrap
         // perform the connection
         if (node !== undefined && this.selectedControlNode !== undefined) {
           if (node.isCluster === true) {
-            alert(this.options.locales[this.options.locale].createEdgeError);
+            alert(this.options.locales[this.options.locale].createEdgeError || this.options.locales.en.createEdgeError);
           } else {
             var from = this.body.nodes[this.temporaryIds.nodes[0]];
             if (this.selectedControlNode.id === from.id) {
@@ -25495,7 +25532,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
           if (node !== undefined) {
             if (node.isCluster === true) {
-              alert(this.options.locales[this.options.locale].createEdgeError);
+              alert(this.options.locales[this.options.locale].createEdgeError || this.options.locales.en.createEdgeError);
             } else {
               // create a node the temporary line can look at
               var targetNode = this._getNewTargetNode(node.x, node.y);
@@ -25575,7 +25612,7 @@ return /******/ (function(modules) { // webpackBootstrap
         // perform the connection
         if (node !== undefined) {
           if (node.isCluster === true) {
-            alert(this.options.locales[this.options.locale].createEdgeError);
+            alert(this.options.locales[this.options.locale].createEdgeError || this.options.locales.en.createEdgeError);
           } else {
             if (this.body.nodes[connectFromId] !== undefined && this.body.nodes[node.id] !== undefined) {
               this._performAddEdge(connectFromId, node.id);
@@ -26307,6 +26344,7 @@ return /******/ (function(modules) { // webpackBootstrap
   var util = __webpack_require__(1);
 
   var errorFound = false;
+  var allOptions = undefined;
   var printStyle = 'background: #FFeeee; color: #dd0000';
   /**
    *  Used to validate options.
@@ -26328,6 +26366,7 @@ return /******/ (function(modules) { // webpackBootstrap
        */
       value: function validate(options, referenceOptions, subObject) {
         errorFound = false;
+        allOptions = referenceOptions;
         var usedOptions = referenceOptions;
         if (subObject !== undefined) {
           usedOptions = referenceOptions[subObject];
@@ -26367,13 +26406,11 @@ return /******/ (function(modules) { // webpackBootstrap
         } else if (referenceOptions[option] === undefined && referenceOptions.__any__ !== undefined) {
           // __any__ is a wildcard. Any value is accepted and will be further analysed by reference.
           if (Validator.getType(options[option]) === 'object') {
-            util.copyAndExtendArray(path, option);
             Validator.checkFields(option, options, referenceOptions, '__any__', referenceOptions.__any__.__type__, path);
           }
         } else {
           // Since all options in the reference are objects, we can check whether they are supposed to be object to look for the __type__ field.
           if (referenceOptions[option].__type__ !== undefined) {
-            util.copyAndExtendArray(path, option);
             // if this should be an object, we check if the correct type has been supplied to account for shorthand options.
             Validator.checkFields(option, options, referenceOptions, option, referenceOptions[option].__type__, path);
           } else {
@@ -26403,9 +26440,11 @@ return /******/ (function(modules) { // webpackBootstrap
               console.log('%cInvalid option detected in "' + option + '".' + ' Allowed values are:' + Validator.print(refOptionType) + ' not "' + options[option] + '". ' + Validator.printLocation(path, option), printStyle);
               errorFound = true;
             } else if (optionType === 'object') {
+              path = util.copyAndExtendArray(path, option);
               Validator.parse(options[option], referenceOptions[referenceOption], path);
             }
           } else if (optionType === 'object') {
+            path = util.copyAndExtendArray(path, option);
             Validator.parse(options[option], referenceOptions[referenceOption], path);
           }
         } else {
@@ -26458,30 +26497,66 @@ return /******/ (function(modules) { // webpackBootstrap
     }, {
       key: 'getSuggestion',
       value: function getSuggestion(option, options, path) {
-        var closestMatch = '';
-        var min = 1000000000;
-        var threshold = 8;
-        for (var op in options) {
-          var distance = Validator.levenshteinDistance(option, op);
-          if (min > distance && distance < threshold) {
-            closestMatch = op;
-            min = distance;
-          }
-        }
+        var localSearch = Validator.findInOptions(option, options, path, false);
+        var globalSearch = Validator.findInOptions(option, allOptions, [], true);
 
-        if (min < threshold) {
-          console.log('%cUnknown option detected: "' + option + '". Did you mean "' + closestMatch + '"?' + Validator.printLocation(path, option), printStyle);
+        var localSearchThreshold = 8;
+        var globalSearchThreshold = 5;
+
+        if (globalSearch.distance <= globalSearchThreshold && localSearch.distance > globalSearch.distance) {
+          console.log('%cUnknown option detected: "' + option + '" in ' + Validator.printLocation(localSearch.path, option, '') + 'Perhaps it was misplaced? Matching option found at: ' + Validator.printLocation(globalSearch.path, option, ''), printStyle);
+        } else if (localSearch.distance <= localSearchThreshold) {
+          console.log('%cUnknown option detected: "' + option + '". Did you mean "' + localSearch.closestMatch + '"?' + Validator.printLocation(localSearch.path, option), printStyle);
         } else {
           console.log('%cUnknown option detected: "' + option + '". Did you mean one of these: ' + Validator.print(Object.keys(options)) + Validator.printLocation(path, option), printStyle);
         }
 
         errorFound = true;
-        return closestMatch;
+      }
+    }, {
+      key: 'findInOptions',
+
+      /**
+       * traverse the options in search for a match.
+       * @param option
+       * @param options
+       * @param path
+       * @param recursive
+       * @returns {{closestMatch: string, path: Array, distance: number}}
+       */
+      value: function findInOptions(option, options, path) {
+        var recursive = arguments[3] === undefined ? false : arguments[3];
+
+        var min = 1000000000;
+        var closestMatch = '';
+        var closestMatchPath = [];
+        for (var op in options) {
+          var type = Validator.getType(options[op]);
+          var distance = undefined;
+          if (type === 'object' && recursive === true) {
+            var result = Validator.findInOptions(option, options[op], util.copyAndExtendArray(path, op));
+            if (min > result.distance) {
+              closestMatch = result.closestMatch;
+              closestMatchPath = result.path;
+              min = result.distance;
+            }
+          } else {
+            distance = Validator.levenshteinDistance(option, op);
+            if (min > distance) {
+              closestMatch = op;
+              closestMatchPath = util.copyArray(path);
+              min = distance;
+            }
+          }
+        }
+        return { closestMatch: closestMatch, path: closestMatchPath, distance: min };
       }
     }, {
       key: 'printLocation',
       value: function printLocation(path, option) {
-        var str = '\n\nProblem value found at: \noptions = {\n';
+        var prefix = arguments[2] === undefined ? 'Problem value found at: \n' : arguments[2];
+
+        var str = '\n\n' + prefix + 'options = {\n';
         for (var i = 0; i < path.length; i++) {
           for (var j = 0; j < i + 1; j++) {
             str += '  ';
@@ -26608,9 +26683,9 @@ return /******/ (function(modules) { // webpackBootstrap
     },
     edges: {
       arrows: {
-        to: { enabled: { boolean: boolean }, scaleFactor: { number: number }, __type__: { object: object } },
-        middle: { enabled: { boolean: boolean }, scaleFactor: { number: number }, __type__: { object: object } },
-        from: { enabled: { boolean: boolean }, scaleFactor: { number: number }, __type__: { object: object } },
+        to: { enabled: { boolean: boolean }, scaleFactor: { number: number }, __type__: { object: object, boolean: boolean } },
+        middle: { enabled: { boolean: boolean }, scaleFactor: { number: number }, __type__: { object: object, boolean: boolean } },
+        from: { enabled: { boolean: boolean }, scaleFactor: { number: number }, __type__: { object: object, boolean: boolean } },
         __type__: { string: ['from', 'to', 'middle'], object: object }
       },
       color: {
@@ -26627,7 +26702,7 @@ return /******/ (function(modules) { // webpackBootstrap
         size: { number: number }, // px
         face: { string: string },
         background: { string: string },
-        stroke: { number: number }, // px
+        strokeWidth: { number: number }, // px
         strokeColor: { string: string },
         align: { string: ['horizontal', 'top', 'middle', 'bottom'] },
         __type__: { object: object, string: string }
@@ -26844,6 +26919,8 @@ return /******/ (function(modules) { // webpackBootstrap
 
   allOptions.groups.__any__ = allOptions.nodes;
   allOptions.manipulation.controlNodeStyle = allOptions.nodes;
+  //allOptions.locale = allOptions.manipulation.locale;
+  //allOptions.locales = allOptions.manipulation.locales;
 
   var configureOptions = {
     nodes: {
@@ -26870,7 +26947,7 @@ return /******/ (function(modules) { // webpackBootstrap
         size: [14, 0, 100, 1], // px
         face: ['arial', 'verdana', 'tahoma'],
         background: ['color', 'none'],
-        stroke: [0, 0, 50, 1], // px
+        strokeWidth: [0, 0, 50, 1], // px
         strokeColor: ['color', '#ffffff']
       },
       //group: 'string',
@@ -26922,7 +26999,7 @@ return /******/ (function(modules) { // webpackBootstrap
         size: [14, 0, 100, 1], // px
         face: ['arial', 'verdana', 'tahoma'],
         background: ['color', 'none'],
-        stroke: [1, 0, 50, 1], // px
+        strokeWidth: [1, 0, 50, 1], // px
         strokeColor: ['color', '#ffffff'],
         align: ['horizontal', 'top', 'middle', 'bottom']
       },
@@ -33694,7 +33771,7 @@ return /******/ (function(modules) { // webpackBootstrap
       value: function parseOptions(parentOptions, newOptions) {
         var allowDeletion = arguments[2] === undefined ? false : arguments[2];
 
-        var fields = ['color', 'fixed', 'font', 'shadow'];
+        var fields = ['color', 'fixed', 'shadow'];
         util.selectiveNotDeepExtend(fields, parentOptions, newOptions);
 
         // merge the shadow options into the parent.
@@ -33882,15 +33959,15 @@ return /******/ (function(modules) { // webpackBootstrap
         ctx.textAlign = 'center';
 
         // set the strokeWidth
-        if (this.options.font.stroke > 0) {
-          ctx.lineWidth = this.options.font.stroke;
+        if (this.options.font.strokeWidth > 0) {
+          ctx.lineWidth = this.options.font.strokeWidth;
           ctx.strokeStyle = strokeColor;
           ctx.lineJoin = 'round';
         }
 
         // draw the text
         for (var i = 0; i < this.lineCount; i++) {
-          if (this.options.font.stroke > 0) {
+          if (this.options.font.strokeWidth > 0) {
             ctx.strokeText(this.lines[i], x, yLine);
           }
           ctx.fillText(this.lines[i], x, yLine);

@@ -84,13 +84,15 @@
 <pre class="code">
 {
   nodes:[Array of nodeIds],
-  duration: Number,
-  easingFunction: String
+  animation: { // -------------------> can be a boolean too!
+    duration: Number
+    easingFunction: String
+  }
 }
 </pre>
             The nodes can be used to zoom to fit only specific nodes in the view. <br /><br />
-            The other options are explained in the <code>moveTo()</code> description above.
-            All options are optional for zoomExtent.
+            The other options are explained in the <code>moveTo()</code> description below.
+            All options are optional for the fit method.
         </td></tr>
         <tr><td>focus(<br>
             &nbsp;&nbsp;&nbsp;<code>String nodeId</code>,<br>
