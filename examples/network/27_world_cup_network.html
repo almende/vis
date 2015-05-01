@@ -63,8 +63,8 @@ Roundness (0..1): <input type="range" min="0" max="1" value="0.5" step="0.05"
 for the others)
 <br/>
 Hide edges on drag: <input type="checkbox" checked="checked"
-                           id="hideEdgesOnDrag"><br/>
-Hide nodes on drag: <input type="checkbox" id="hideNodesOnDrag">
+                           id="hideEdgesOnDrag" /><br/>
+Hide nodes on drag: <input type="checkbox" id="hideNodesOnDrag" />
 
 <div id="mynetwork"></div>
 
@@ -101,17 +101,17 @@ Hide nodes on drag: <input type="checkbox" id="hideNodesOnDrag">
         },
         font: {
           size: 12,
-          face: "Tahoma"
+          face: 'Tahoma'
         }
       },
       edges: {
         width: 0.15,
         color: {
-          inherit: (inheritColorVal == "false") ? false : inheritColorVal
+          inherit: (inheritColorVal == 'false') ? false : inheritColorVal
         },
         smooth: {
           dynamic: false,
-          type: "continuous"
+          type: 'continuous'
         }
       },
       interaction: {
@@ -125,23 +125,26 @@ Hide nodes on drag: <input type="checkbox" id="hideNodesOnDrag">
 
     // Note: data is coming from ./data/WorldCup2014.js
     network = new vis.Network(container, data, options);
-    network.fit({animation: false});
+    network.fit({duration: 0});
   }
 
   function update() {
     var type = dropdown.value;
-    var roundness = roundnessSlider.value;
+    var roundness = parseFloat(roundnessSlider.value);
     roundnessScreen.value = roundness;
+
     var options = {
       edges: {
         smooth: {
           type: type,
           roundness: roundness
         }
+      },
+      rendering: {
+        hideEdgesOnDrag: hideEdgesOnDrag.checked,
+        hideNodesOnDrag: hideNodesOnDrag.checked
       }
     };
-    options.rendering.hideEdgesOnDrag = hideEdgesOnDrag.checked;
-    options.rendering.hideNodesOnDrag = hideNodesOnDrag.checked;
 
     network.setOptions(options);
   }

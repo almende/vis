@@ -84,15 +84,15 @@
   var nodes = new vis.DataSet();
   var edges = new vis.DataSet();
   var gephiImported;
-  var allowedToMoveCheckbox = document.getElementById("allowedToMove");
+  var allowedToMoveCheckbox = document.getElementById('allowedToMove');
   allowedToMoveCheckbox.onchange = redrawAll;
 
-  var parseColorCheckbox = document.getElementById("parseColor");
+  var parseColorCheckbox = document.getElementById('parseColor');
   parseColorCheckbox.onchange = redrawAll;
 
-  var nodeContent = document.getElementById("nodeContent");
+  var nodeContent = document.getElementById('nodeContent');
 
-  loadJSON("./data/WorldCup2014.json", redrawAll);
+  loadJSON('./data/WorldCup2014.json', redrawAll);
 
   var container = document.getElementById('mynetwork');
   var data = {
@@ -103,17 +103,17 @@
     nodes: {
       shape: 'dot',
       font: {
-        face: "Tahoma"
+        face: 'Tahoma'
       }
     },
     edges: {
       width: 0.15,
       color: {
-        inherit: "from"
+        inherit: 'from'
       },
       smooth: {
         dynamic: false,
-        type: "continuous"
+        type: 'continuous'
       }
     },
     interaction: {
@@ -199,7 +199,7 @@
         }
       }
     };
-    xhr.open("GET", path, true);
+    xhr.open('GET', path, true);
     xhr.send();
   }
 

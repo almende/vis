@@ -54,32 +54,37 @@
     var options = {
       nodes: {
         shape: 'dot',
-        radiusMin: 10,
-        radiusMax: 30,
-        fontSize: 12,
-        fontFace: "Tahoma"
+        scaling: {
+          min: 10,
+          max: 30
+        },
+        font: {
+          size: 12,
+          face: 'Tahoma'
+        }
       },
       edges: {
         width: 0.15,
-        inheritColor: "from"
-      },
-      tooltip: {
-        delay: 200,
-        fontSize: 12,
-        color: {
-          background: "#fff"
+        color: {inherit: 'from'},
+        smooth: {
+          dynamic: false,
+          type: 'continuous'
         }
       },
-      stabilize: false,
-      smoothCurves: {dynamic: false, type: "continuous"},
       physics: {
+        stabilization: false,
         barnesHut: {
           gravitationalConstant: -80000,
           springConstant: 0.001,
           springLength: 200
         }
       },
-      hideEdgesOnDrag: true
+      interaction: {
+        tooltipDelay: 200
+      },
+      rendering: {
+        hideEdgesOnDrag: true
+      }
     };
 
     // Note: data is coming from ./data/WorldCup2014.js
