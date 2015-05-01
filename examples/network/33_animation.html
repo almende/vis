@@ -8,30 +8,30 @@
       font: 10pt sans;
     }
     #mynetwork {
-        width: 600px;
-        height: 600px;
+      width: 600px;
+      height: 600px;
       border: 1px solid lightgray;
     }
 
-      div.left {
-          position:relative;
-          float:left;
-          width:300px;
-          border: 1px #c7c7c7 solid;
-          height:590px;
-          padding:5px;
-      }
+    div.left {
+      position:relative;
+      float:left;
+      width:300px;
+      border: 1px #c7c7c7 solid;
+      height:590px;
+      padding:5px;
+    }
 
-      div.right {
-          padding-left:10px;
-          float:left;
-          width:600px;
-      }
+    div.right {
+      padding-left:10px;
+      float:left;
+      width:600px;
+    }
 
-      div.bottom {
-          position:absolute;
-          bottom:5px;
-      }
+    div.bottom {
+      position:absolute;
+      bottom:5px;
+    }
   </style>
 
   <script type="text/javascript" src="../../dist/vis.js"></script>
@@ -44,21 +44,21 @@
 
     var doButton, focusButton, showButton;
     var statusUpdateSpan;
-    var finishMessage = "";
+    var finishMessage = '';
 
     function destroy() {
-        if (network !== null) {
-            network.destroy();
-            network = null;
-        }
+      if (network !== null) {
+        network.destroy();
+        network = null;
+      }
     }
 
     function draw() {
       destroy();
-      statusUpdateSpan = document.getElementById("statusUpdate");
-      doButton = document.getElementById("btnDo");
-      focusButton = document.getElementById("btnFocus");
-      showButton = document.getElementById("btnShow");
+      statusUpdateSpan = document.getElementById('statusUpdate');
+      doButton = document.getElementById('btnDo');
+      focusButton = document.getElementById('btnFocus');
+      showButton = document.getElementById('btnShow');
       nodes = [];
       edges = [];
       var connectionCount = [];
@@ -112,7 +112,13 @@
         nodes: nodes,
         edges: edges
       };
-      var options = {stabilizationIterations:1200};
+      var options = {
+        physics: {
+          stabilization: {
+            iterations: 1200
+          }
+        }
+      };
       network = new vis.Network(container, data, options);
 
       // add event listeners
@@ -120,138 +126,138 @@
         document.getElementById('selection').innerHTML = 'Selection: ' + params.nodes;
       });
       network.on('stabilized', function (params) {
-          document.getElementById('stabilization').innerHTML = 'Stabilization took ' + params.iterations + ' iterations.';
+        document.getElementById('stabilization').innerHTML = 'Stabilization took ' + params.iterations + ' iterations.';
       });
-      network.on("animationFinished", function() {
-          statusUpdateSpan.innerHTML = finishMessage;
+      network.on('animationFinished', function() {
+        statusUpdateSpan.innerHTML = finishMessage;
       })
-
     }
 
     function zoomExtentAnimated() {
-        var offsetx = parseInt(document.getElementById("offsetx").value);
-        var offsety = parseInt(document.getElementById("offsety").value);
-        var duration = parseInt(document.getElementById("duration").value);
-        var easingFunction = document.getElementById("easingFunction").value;
+      var offsetx = parseInt(document.getElementById('offsetx').value);
+      var offsety = parseInt(document.getElementById('offsety').value);
+      var duration = parseInt(document.getElementById('duration').value);
+      var easingFunction = document.getElementById('easingFunction').value;
 
-        var options = {offset: {x:offsetx,y:offsety},
-            duration: duration,
-            easingFunction: easingFunction
-        }
-        statusUpdateSpan.innerHTML = "Doing ZoomExtent() Animation.";
-        finishMessage = "Animation finished."
-        network.zoomExtent(options);
+      var options = {offset: {x:offsetx,y:offsety},
+        duration: duration,
+        easingFunction: easingFunction
+      };
+      statusUpdateSpan.innerHTML = 'Doing ZoomExtent() Animation.';
+      finishMessage = 'Animation finished.';
+      network.fit(options);
     }
 
     function doDefaultAnimation() {
-        var offsetx = parseInt(document.getElementById("offsetx").value);
-        var offsety = parseInt(document.getElementById("offsety").value);
-        var scale = parseFloat(document.getElementById("scale").value);
-        var positionx = parseInt(document.getElementById("positionx").value);
-        var positiony = parseInt(document.getElementById("positiony").value);
-        var easingFunction = document.getElementById("easingFunction").value;
+      var offsetx = parseInt(document.getElementById('offsetx').value);
+      var offsety = parseInt(document.getElementById('offsety').value);
+      var scale = parseFloat(document.getElementById('scale').value);
+      var positionx = parseInt(document.getElementById('positionx').value);
+      var positiony = parseInt(document.getElementById('positiony').value);
+      var easingFunction = document.getElementById('easingFunction').value;
 
-        var options = {
-            position: {x:positionx,y:positiony},
-            scale: scale,
-            offset: {x:offsetx,y:offsety},
-            animation: true // default duration is 1000ms and default easingFunction is easeInOutQuad.
-        }
-        statusUpdateSpan.innerHTML = "Doing Animation.";
-        finishMessage = "Animation finished."
-        network.moveTo(options);
+      var options = {
+        position: {x:positionx,y:positiony},
+        scale: scale,
+        offset: {x:offsetx,y:offsety},
+        animation: true // default duration is 1000ms and default easingFunction is easeInOutQuad.
+      };
+      statusUpdateSpan.innerHTML = 'Doing Animation.';
+      finishMessage = 'Animation finished.';
+      network.moveTo(options);
     }
 
     function doAnimation() {
-        var offsetx = parseInt(document.getElementById("offsetx").value);
-        var offsety = parseInt(document.getElementById("offsety").value);
-        var duration = parseInt(document.getElementById("duration").value);
-        var scale = parseFloat(document.getElementById("scale").value);
-        var positionx = parseInt(document.getElementById("positionx").value);
-        var positiony = parseInt(document.getElementById("positiony").value);
-        var easingFunction = document.getElementById("easingFunction").value;
+      var offsetx = parseInt(document.getElementById('offsetx').value);
+      var offsety = parseInt(document.getElementById('offsety').value);
+      var duration = parseInt(document.getElementById('duration').value);
+      var scale = parseFloat(document.getElementById('scale').value);
+      var positionx = parseInt(document.getElementById('positionx').value);
+      var positiony = parseInt(document.getElementById('positiony').value);
+      var easingFunction = document.getElementById('easingFunction').value;
 
-        var options = {
-            position: {x:positionx,y:positiony},
-            scale: scale,
-            offset: {x:offsetx,y:offsety},
-            animation: {
-                duration: duration,
-                easingFunction: easingFunction
-            }
+      var options = {
+        position: {x:positionx,y:positiony},
+        scale: scale,
+        offset: {x:offsetx,y:offsety},
+        animation: {
+          duration: duration,
+          easingFunction: easingFunction
         }
-        statusUpdateSpan.innerHTML = "Doing Animation.";
-        finishMessage = "Animation finished."
-        network.moveTo(options);
+      };
+      statusUpdateSpan.innerHTML = 'Doing Animation.';
+      finishMessage = 'Animation finished.';
+      network.moveTo(options);
     }
 
     function focusRandom() {
-        var nodeId = Math.floor(Math.random() * 25);
-        var offsetx = parseInt(document.getElementById("offsetx").value);
-        var offsety = parseInt(document.getElementById("offsety").value);
-        var duration = parseInt(document.getElementById("duration").value);
-        var scale = parseFloat(document.getElementById("scale").value);
-        var easingFunction = document.getElementById("easingFunction").value;
+      var nodeId = Math.floor(Math.random() * 25);
+      var offsetx = parseInt(document.getElementById('offsetx').value);
+      var offsety = parseInt(document.getElementById('offsety').value);
+      var duration = parseInt(document.getElementById('duration').value);
+      var scale = parseFloat(document.getElementById('scale').value);
+      var easingFunction = document.getElementById('easingFunction').value;
 
-        var options = {
-            // position: {x:positionx,y:positiony}, // this is not relevant when focusing on nodes
-            scale: scale,
-            offset: {x:offsetx,y:offsety},
-            animation: {
-                duration: duration,
-                easingFunction: easingFunction
-            }
+      var options = {
+        // position: {x:positionx,y:positiony}, // this is not relevant when focusing on nodes
+        scale: scale,
+        offset: {x:offsetx,y:offsety},
+        animation: {
+          duration: duration,
+          easingFunction: easingFunction
         }
-        statusUpdateSpan.innerHTML = "Focusing on node: " + nodeId;
-        finishMessage = "Node: " + nodeId + " in focus.";
-        network.focusOnNode(nodeId, options);
+      };
+      statusUpdateSpan.innerHTML = 'Focusing on node: ' + nodeId;
+      finishMessage = 'Node: ' + nodeId + ' in focus.';
+      network.focus(nodeId, options);
     }
 
 
     var showInterval = false;
     var showPhase = 1;
     function startShow() {
-        if (showInterval !== false) {
-            showInterval = false;
-            showButton.value = "Start a show!";
-            network.zoomExtent();
-        }
-        else {
-            showButton.value = "Stop the show!";
-            var duration = parseInt(document.getElementById("duration").value);
-            focusRandom();
-            window.setTimeout(doTheShow, duration);
-            showInterval = true;
-        }
+      if (showInterval !== false) {
+        showInterval = false;
+        showButton.value = 'Start a show!';
+        network.fit();
+      }
+      else {
+        showButton.value = 'Stop the show!';
+        var duration = parseInt(document.getElementById('duration').value);
+        focusRandom();
+        setTimeout(doTheShow, duration);
+        showInterval = true;
+      }
     }
 
     function doTheShow() {
-        if (showInterval == true) {
-            var duration = parseInt(document.getElementById("duration").value);
-            if (showPhase == 0) {
-                focusRandom();
-                showPhase = 1;
-            }
-            else {
-                zoomExtentAnimated();
-                showPhase = 0;
-            }
-            window.setTimeout(doTheShow, duration);
+      if (showInterval == true) {
+        var duration = parseInt(document.getElementById('duration').value);
+        if (showPhase == 0) {
+          focusRandom();
+          showPhase = 1;
         }
+        else {
+          zoomExtentAnimated();
+          showPhase = 0;
+        }
+        setTimeout(doTheShow, duration);
+      }
     }
   </script>
-<script>(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)})(window,document,'script','//www.google-analytics.com/analytics.js','ga');ga('create', 'UA-61231638-1', 'auto');ga('send', 'pageview');</script></head>
+  <script src="../googleAnalytics.js"></script>
+</head>
 
 <body onload="draw();">
 <h2>Camera animations</h2>
 <div style="width:700px; font-size:14px;">
-    You can move the view around programmatically using the .moveTo(options) function. The options supplied to this function can
-    also be (partially) supplied to the .zoomExtent() and .focusOnNode() methods. These are explained in the docs.
-    <br /><br/>
-    The buttons below take the fields from the table when they can. For instance, the "Animate with default settings." takes the position, scale and offset while using
-    the default animation values for duration and easing function. The focusOnNode takes everything except the position and the zoomExtent takes only the duration and easing function.
-    <br/><br/>
-    Here you can see a full description of the options you can supply to moveTo:
+  You can move the view around programmatically using the .moveTo(options) function. The options supplied to this function can
+  also be (partially) supplied to the .zoomExtent() and .focusOnNode() methods. These are explained in the docs.
+  <br /><br/>
+  The buttons below take the fields from the table when they can. For instance, the "Animate with default settings." takes the position, scale and offset while using
+  the default animation values for duration and easing function. The focusOnNode takes everything except the position and the zoomExtent takes only the duration and easing function.
+  <br/><br/>
+  Here you can see a full description of the options you can supply to moveTo:
 </div>
 <pre>
 var moveToOptions = {
@@ -267,60 +273,60 @@ var moveToOptions = {
                                         // easeInQuint, easeOutQuint, easeInOutQuint
 </pre>
 <div class="left">
-    <table>
-        <tr>
-            <td>position x</td><td><input type="text" value="300" id="positionx" style="width:170px;"></td>
-        </tr>
-        <tr>
-            <td>position y</td><td><input type="text" value="300" id="positiony" style="width:170px;"></td>
-        </tr>
-        <tr>
-            <td>scale</td><td><input type="text" value="1.0" id="scale" style="width:170px;"></td>
-        </tr>
-        <tr>
-            <td>offset x</td><td><input type="text" value="0" id="offsetx" style="width:170px;"> px</td>
-        </tr>
-        <tr>
-            <td>offset y</td><td><input type="text" value="0" id="offsety" style="width:170px;"> px</td>
-        </tr>
-        <tr>
-            <td>duration</td><td><input type="text" value="2500" id="duration" style="width:170px;"> ms</td>
-        </tr>
-        <tr>
-            <td>easingFunction</td><td>
-            <select id="easingFunction" style="width:174px;">
-                <option value="linear">linear</option>
-                <option value="easeInQuad">easeInQuad</option>
-                <option value="easeOutQuad">easeOutQuad</option>
-                <option value="easeInOutQuad" selected="selected">easeInOutQuad</option>
-                <option value="easeInCubic">easeInCubic</option>
-                <option value="easeOutCubic">easeOutCubic</option>
-                <option value="easeInOutCubic">easeInOutCubic</option>
-                <option value="easeInQuart">easeInQuart</option>
-                <option value="easeOutQuart">easeOutQuart</option>
-                <option value="easeInOutQuart">easeInOutQuart</option>
-                <option value="easeInQuint">easeInQuint</option>
-                <option value="easeOutQuint">easeOutQuint</option>
-                <option value="easeInOutQuint">easeInOutQuint</option>
-            </select>
-        </td>
-        </tr>
-    </table>
-    <div class="bottom">
-        <span id="statusUpdate"></span><br />
-        Examples:
-        <input type="button" onclick="doAnimation();" value="Animate with above settings." style="width:300px;" id="btnDo"> <br/>
-        <input type="button" onclick="doDefaultAnimation();" value="Animate with default settings." style="width:300px;" id="btnDoDefault"> <br/>
-        <input type="button" onclick="zoomExtentAnimated();" value="Animated ZoomExtent()." style="width:300px;" id="btnZoom"> <br/>
-        <input type="button" onclick="focusRandom();" value="Focus on random node." style="width:300px;" id="btnFocus"><br/>
-        <input type="button" onclick="startShow();" value="Start a show!" style="width:300px;" id="btnShow"><br/>
-    </div>
+  <table>
+    <tr>
+      <td>position x</td><td><input type="text" value="300" id="positionx" style="width:170px;"></td>
+    </tr>
+    <tr>
+      <td>position y</td><td><input type="text" value="300" id="positiony" style="width:170px;"></td>
+    </tr>
+    <tr>
+      <td>scale</td><td><input type="text" value="1.0" id="scale" style="width:170px;"></td>
+    </tr>
+    <tr>
+      <td>offset x</td><td><input type="text" value="0" id="offsetx" style="width:170px;"> px</td>
+    </tr>
+    <tr>
+      <td>offset y</td><td><input type="text" value="0" id="offsety" style="width:170px;"> px</td>
+    </tr>
+    <tr>
+      <td>duration</td><td><input type="text" value="2500" id="duration" style="width:170px;"> ms</td>
+    </tr>
+    <tr>
+      <td>easingFunction</td><td>
+      <select id="easingFunction" style="width:174px;">
+        <option value="linear">linear</option>
+        <option value="easeInQuad">easeInQuad</option>
+        <option value="easeOutQuad">easeOutQuad</option>
+        <option value="easeInOutQuad" selected="selected">easeInOutQuad</option>
+        <option value="easeInCubic">easeInCubic</option>
+        <option value="easeOutCubic">easeOutCubic</option>
+        <option value="easeInOutCubic">easeInOutCubic</option>
+        <option value="easeInQuart">easeInQuart</option>
+        <option value="easeOutQuart">easeOutQuart</option>
+        <option value="easeInOutQuart">easeInOutQuart</option>
+        <option value="easeInQuint">easeInQuint</option>
+        <option value="easeOutQuint">easeOutQuint</option>
+        <option value="easeInOutQuint">easeInOutQuint</option>
+      </select>
+    </td>
+    </tr>
+  </table>
+  <div class="bottom">
+    <span id="statusUpdate"></span><br />
+    Examples:
+    <input type="button" onclick="doAnimation();" value="Animate with above settings." style="width:300px;" id="btnDo"> <br/>
+    <input type="button" onclick="doDefaultAnimation();" value="Animate with default settings." style="width:300px;" id="btnDoDefault"> <br/>
+    <input type="button" onclick="zoomExtentAnimated();" value="Animated ZoomExtent()." style="width:300px;" id="btnZoom"> <br/>
+    <input type="button" onclick="focusRandom();" value="Focus on random node." style="width:300px;" id="btnFocus"><br/>
+    <input type="button" onclick="startShow();" value="Start a show!" style="width:300px;" id="btnShow"><br/>
+  </div>
 </div>
 <div class="right">
-<div id="mynetwork"></div>
+  <div id="mynetwork"></div>
 
-<p id="selection"></p>
-<p id="stabilization"></p>
+  <p id="selection"></p>
+  <p id="stabilization"></p>
 </div>
 </body>
 </html>
