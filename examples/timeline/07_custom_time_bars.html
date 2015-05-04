@@ -38,7 +38,6 @@
   var customDate = new Date();
   var options = {
     showCurrentTime: true,
-    showCustomTime: true,
     start: new Date(Date.now() - 1000 * 60 * 60 * 24),
     end: new Date(Date.now() + 1000 * 60 * 60 * 24 * 6)
   };
@@ -46,7 +45,7 @@
 
   // Set first time bar
   customDate = new Date(customDate.getFullYear(), customDate.getMonth(), customDate.getDate() + 1);
-  timeline.addCustomTime(customDate, 1);
+  timeline.addCustomTime(customDate, '1');
 
   document.getElementById('add').onclick = function () {
     customDate = new Date(customDate.getFullYear(), customDate.getMonth(), customDate.getDate() + 1);
@@ -56,8 +55,14 @@
   };
 
   document.getElementById('remove').onclick = function () {
-    timeline.removeCustomTime(document.getElementById('barIndex').value);
-    document.getElementById('barIndex').value = '';
+    try {
+      timeline.removeCustomTime(document.getElementById('barIndex').value);
+      document.getElementById('barIndex').value = '';
+    }
+    catch (err) {
+      console.log(err);
+      alert(err);
+    }
   };
 
   timeline.on('timechange', function (properties) {

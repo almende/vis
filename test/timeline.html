@@ -150,7 +150,6 @@
     //maxHeight: 200,
     //height: 200,
     showCurrentTime: true,
-    showCustomTime: true,
     format: {
       minorLabels: {
         'weekday':    'dddd D',
@@ -177,6 +176,8 @@
   console.time('create timeline');
   var timeline = new vis.Timeline(container, items, options);
   console.timeEnd('create timeline');
+
+  timeline.addCustomTime(moment().add(1, 'day'));
 
   timeline.on('select', function (selection) {
     console.log('select', selection);

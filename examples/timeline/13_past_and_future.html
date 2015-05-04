@@ -44,13 +44,14 @@
 
   // specify options
   var options = {
-    showCurrentTime: true,
-    showCustomTime: true
+    showCurrentTime: true
   };
 
   // create a timeline
   var container = document.getElementById('mytimeline');
   timeline = new vis.Timeline(container, data, options);
+
+  timeline.addCustomTime(new Date());
 
   // add event listener
   timeline.on('timechange', function (event) {

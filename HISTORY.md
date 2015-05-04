@@ -21,6 +21,7 @@ http://visjs.org
   See example 18_range_overflow.html.
 - Fixed invalid css names for time axis grid, renamed hours class names from
   `4-8h` to `h4-h8`.
+- Deprecated option `showCustomTime`. Use method `addCustomTime()` instead.
 
 ### Network
 

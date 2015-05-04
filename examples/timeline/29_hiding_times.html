@@ -38,13 +38,12 @@
         start: '2014-04-17',
         end: '2014-05-01',
         height: '200px',
-        editable: true,
-        showCustomTime: true
+        editable: true
     };
 
     // Create a Timeline
     var timeline = new vis.Timeline(container, items, options);
-    timeline.setCustomTime("2014-04-18 13:00:00");
+    timeline.addCustomTime("2014-04-18 13:00:00");
 </script>
 </body>
 </html>

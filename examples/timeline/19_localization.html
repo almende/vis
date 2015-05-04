@@ -43,12 +43,12 @@
 
   // Configuration for the Timeline
   var options = {
-    showCurrentTime: true,
-    showCustomTime: true
+    showCurrentTime: true
   };
 
   // Create a Timeline
   var timeline = new vis.Timeline(container, items, options);
+  timeline.addCustomTime(new Date());
 
   timeline.setCustomTime(new Date(new Date().valueOf() + DAY));
 
