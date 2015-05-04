@@ -31,6 +31,12 @@ http://visjs.org
 
 - Rebuilt the cluster system
 
+### DataSet
+
+- Dropped support for Google visualization DataTable.
+- Dropped support for appending data returned by `DataSet.get()` to an existing
+  Array or DataTable.
+
 
 ## not yet released, version 3.12.1-SNAPSHOT
 

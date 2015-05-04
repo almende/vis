@@ -118,8 +118,7 @@ var data = new vis.DataSet([data] [, options])
 </p>
 
 <p>
-  The parameter <code>data</code> is optional and can be an Array or
-  <a href="https://developers.google.com/chart/interactive/docs/reference#DataTable" target="_blank">Google DataTable</a> with items.
+  The parameter <code>data</code> is optional and is an Array with items.
 </p>
 
 <p>
@@ -245,10 +244,10 @@ var data = new vis.DataSet([data] [, options])
       get(id [,options] [, data])<br>
       get(ids [, options] [, data])
     </td>
-    <td>Object | Array | DataTable</td>
+    <td>Object | Array</td>
     <td>
       Get a single item, multiple items, or all items from the DataSet.
-      Usage examples can be found in section <a href="#Getting_Data">Getting Data</a>, and the available <code>options</code> are described in section <a href="#Data_Selection">Data Selection</a>. If parameter <code>data</code> is provided, items will be appended to this array or table, which is required in case of Google DataTable.
+      Usage examples can be found in section <a href="#Getting_Data">Getting Data</a>, and the available <code>options</code> are described in section <a href="#Data_Selection">Data Selection</a>.
     </td>
   </tr>
 
@@ -600,10 +599,7 @@ The argument <code>data</code> can contain:
     added. The item must contain an id.
   </li>
   <li>
-    An <code>Array</code> or
-    <code>google.visualization.DataTable</code> containing
-    a list with items to be added. Each item must contain
-    an id.
+    An <code>Array</code> containing a list with items to be added. Each item must contain an id.
   </li>
 </ul>
 
@@ -635,10 +631,7 @@ The argument <code>data</code> can contain:
     updated. The item must contain an id.
   </li>
   <li>
-    An <code>Array</code> or
-    <code>google.visualization.DataTable</code> containing
-    a list with items to be updated. Each item must contain
-    an id.
+    An <code>Array</code> containing a list with items to be updated. Each item must contain an id.
   </li>
 </ul>
 
@@ -720,7 +713,7 @@ Syntax:
 </p>
 
 <pre class="prettyprint lang-js">
-DataSet.get([id] [, options] [, data]);
+DataSet.get([id] [, options]);
 DataSet.getIds([options]);
 DataSet.forEach(callback [, options]);
 DataSet.map(callback [, options]);
@@ -786,8 +779,8 @@ DataSet.map(callback [, options]);
   <tr>
       <td>returnType</td>
       <td>String</td>
-      <td>Determine the type of output of the get function. Allowed values are <code>Array | Object | DataTable</code>.
-          The <code>DataTable</code> refers to a Google DataTable. The default returnType is an array. The object type will return a JSON object with the ID's as keys.</td>
+      <td>Determine the type of output of the get function. Allowed values are <code>'Array' | 'Object'</code>.
+          The default returnType is an Array. The Object type will return a JSON object with the ID's as keys.</td>
   </tr>
 
 </table>
