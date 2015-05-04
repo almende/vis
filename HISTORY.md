@@ -22,6 +22,7 @@ http://visjs.org
 - Fixed invalid css names for time axis grid, renamed hours class names from
   `4-8h` to `h4-h8`.
 - Deprecated option `showCustomTime`. Use method `addCustomTime()` instead.
+- Deprecated event `finishedRedraw` as it's redundant.
 
 ### Network
 
