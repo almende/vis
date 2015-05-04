@@ -880,7 +880,8 @@ var options = {
     <td>Adjust the visible window such that it fits all items. See also function <code>focus(id)</code>.
       Available options:
       <ul>
-        <li><code>animate: boolean | number</code><br>If true (default), the range is animated smoothly to the new window. If a number, the number is taken as duration for the animation. Default duration is 500 ms.</li>
+        <li><code>animation: boolean | {duration: number, easingFunction: string}</code><br>If true (default) or an Object, the range is animated smoothly to the new window. An object can be provided to specify duration and easing function. Default duration is 500 ms, and default easing function is <code>'easeInOutQuad'</code>. Available easing functions: <code>"linear"</code>, <code>"easeInQuad"</code>, <code>"easeOutQuad"</code>, <code>"easeInOutQuad"</code>, <code>"easeInCubic"</code>, <code>"easeOutCubic"</code>, <code>"easeInOutCubic"</code>, <code>"easeInQuart"</code>, <code>"easeOutQuart"</code>, <code>"easeInOutQuart"</code>, <code>"easeInQuint"</code>, <code>"easeOutQuint"</code>, <code>"easeInOutQuint"</code>.
+          </li>
       </ul>
     </td>
   </tr>
@@ -890,7 +891,7 @@ var options = {
     <td>none</td>
     <td>Adjust the visible window such that the selected item (or multiple items) are centered on screen. See also function <code>fit()</code>. Available options:
       <ul>
-        <li><code>animate: boolean | number</code><br>If true (default), the range is animated smoothly to the new window. If a number, the number is taken as duration for the animation. Default duration is 500 ms.</li>
+        <li><code>animation: boolean | {duration: number, easingFunction: string}</code><br>If true (default) or an Object, the range is animated smoothly to the new window. An object can be provided to specify duration and easing function. Default duration is 500 ms, and default easing function is <code>'easeInOutQuad'</code>. Available easing functions: <code>"linear"</code>, <code>"easeInQuad"</code>, <code>"easeOutQuad"</code>, <code>"easeInOutQuad"</code>, <code>"easeInCubic"</code>, <code>"easeOutCubic"</code>, <code>"easeInOutCubic"</code>, <code>"easeInQuart"</code>, <code>"easeOutQuart"</code>, <code>"easeInOutQuart"</code>, <code>"easeInQuint"</code>, <code>"easeOutQuint"</code>, <code>"easeInOutQuint"</code>.</li>
       </ul>
     </td>
   </tr>
@@ -952,7 +953,7 @@ var options = {
     <td>none</td>
     <td>Move the window such that given time is centered on screen. Parameter <code>time</code> can be a <code>Date</code>, <code>Number</code>, or <code>String</code>. Available options:
       <ul>
-        <li><code>animate: boolean | number</code><br>If true (default), the range is animated smoothly to the new window. If a number, the number is taken as duration for the animation. Default duration is 500 ms.</li>
+        <li><code>animation: boolean | {duration: number, easingFunction: string}</code><br>If true (default) or an Object, the range is animated smoothly to the new window. An object can be provided to specify duration and easing function. Default duration is 500 ms, and default easing function is <code>'easeInOutQuad'</code>. Available easing functions: <code>"linear"</code>, <code>"easeInQuad"</code>, <code>"easeOutQuad"</code>, <code>"easeInOutQuad"</code>, <code>"easeInCubic"</code>, <code>"easeOutCubic"</code>, <code>"easeInOutCubic"</code>, <code>"easeInQuart"</code>, <code>"easeOutQuart"</code>, <code>"easeInOutQuart"</code>, <code>"easeInQuint"</code>, <code>"easeOutQuint"</code>, <code>"easeInOutQuint"</code>.</li>
       </ul>
     </td>
   </tr>
@@ -1047,7 +1048,7 @@ var options = {
     <td>Select one or multiple items by their id. The currently selected items will be unselected. To unselect all selected items, call `setSelection([])`. Available options:
       <ul>
         <li><code>focus: boolean</code><br>If true, focus will be set to the selected item(s)</li>
-        <li><code>animate: boolean | number</code><br>If true (default), the range is animated smoothly to the new window. If a number, the number is taken as duration for the animation. Default duration is 500 ms. Only applicable when option focus is true.</li>
+        <li><code>animation: boolean | {duration: number, easingFunction: string}</code><br>If true (default) or an Object, the range is animated smoothly to the new window. An object can be provided to specify duration and easing function. Default duration is 500 ms, and default easing function is <code>'easeInOutQuad'</code>. Only applicable when option focus is true. Available easing functions: <code>"linear"</code>, <code>"easeInQuad"</code>, <code>"easeOutQuad"</code>, <code>"easeInOutQuad"</code>, <code>"easeInCubic"</code>, <code>"easeOutCubic"</code>, <code>"easeInOutCubic"</code>, <code>"easeInQuart"</code>, <code>"easeOutQuart"</code>, <code>"easeInOutQuart"</code>, <code>"easeInQuint"</code>, <code>"easeOutQuint"</code>, <code>"easeInOutQuint"</code>.</li>
       </ul>
     </td>
   </tr>
@@ -1057,12 +1058,13 @@ var options = {
     <td>none</td>
     <td>Set the current visible window. The parameters <code>start</code> and <code>end</code> can be a <code>Date</code>, <code>Number</code>, or <code>String</code>. If the parameter value of <code>start</code> or <code>end</code> is null, the parameter will be left unchanged. Available options:
       <ul>
-        <li><code>animate: boolean | number</code><br>If true (default), the range is animated smoothly to the new window. If a number, the number is taken as duration for the animation. Default duration is 500 ms.</li>
+        <li><code>animation: boolean | {duration: number, easingFunction: string}</code><br>If true (default) or an Object, the range is animated smoothly to the new window. An object can be provided to specify duration and easing function. Default duration is 500 ms, and default easing function is <code>'easeInOutQuad'</code>. Available easing functions: <code>"linear"</code>, <code>"easeInQuad"</code>, <code>"easeOutQuad"</code>, <code>"easeInOutQuad"</code>, <code>"easeInCubic"</code>, <code>"easeOutCubic"</code>, <code>"easeInOutCubic"</code>, <code>"easeInQuart"</code>, <code>"easeOutQuart"</code>, <code>"easeInOutQuart"</code>, <code>"easeInQuint"</code>, <code>"easeOutQuint"</code>, <code>"easeInOutQuint"</code>.</li>
       </ul>
     </td>
   </tr>
 
 </table>
+
 
 
 <h2 id="Events">Events</h2>

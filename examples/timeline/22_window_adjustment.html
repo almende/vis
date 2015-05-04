@@ -8,6 +8,9 @@
       font-family: arial, sans-serif;
       font-size: 11pt;
     }
+    input {
+      margin: 2px 0;
+    }
   </style>
 
   <script src="../../dist/vis.js"></script>
@@ -17,14 +20,16 @@
 
 <p>This example demonstrates functions to adjust the visible window of the Timeline.</p>
 
-<input type="button" id="window1" value="Set window from 2014-01-01 to 2014-04-01"><br>
-<input type="button" id="window2" value="Set window from 2014-01-01 to 2014-04-01 without animation"><br>
-<input type="button" id="fit" value="Fit all items"><br>
-<input type="button" id="select" value="Select & focus items 5 and 6"><br>
-<input type="button" id="focus1" value="Focus item 2"><br>
-<input type="button" id="focus2" value="Focus items 5 and 6 (slow animation)"><br>
-<input type="button" id="focus3" value="Focus current selection"><br>
-<input type="button" id="moveTo" value="Move to 2014-02-01"><br>
+<p>
+  <input type="button" id="window1" value="Set window from 2014-01-01 to 2014-04-01"><br>
+  <input type="button" id="window2" value="Set window from 2014-01-01 to 2014-04-01 without animation"><br>
+  <input type="button" id="moveTo" value="Move to 2014-02-01"><br>
+  <input type="button" id="fit" value="Fit all items"><br>
+  <input type="button" id="select" value="Select & focus items 5 and 6"><br>
+  <input type="button" id="focus1" value="Focus item 2"><br>
+  <input type="button" id="focus2" value="Focus items 5 and 6 (slow and linear animation)"><br>
+  <input type="button" id="focus3" value="Focus current selection"><br>
+</p>
 
 <div id="visualization"></div>
 
@@ -61,9 +66,7 @@
     timeline.setWindow('2014-01-01', '2014-04-01');
   };
   document.getElementById('window2').onclick = function() {
-    timeline.setWindow('2014-01-01', '2014-04-01', {
-      animate: false
-    });
+    timeline.setWindow('2014-01-01', '2014-04-01', {animation: false});
   };
   document.getElementById('fit').onclick = function() {
     timeline.fit();
@@ -77,9 +80,7 @@
     timeline.focus(2);
   };
   document.getElementById('focus2').onclick = function() {
-    timeline.focus([5, 6], {
-      animate: 3000 // ms
-    });
+    timeline.focus([5, 6], {animation: {duration: 3000, easingFunction: 'linear'}}); // ms
   };
   document.getElementById('focus3').onclick = function() {
     var selection = timeline.getSelection();
