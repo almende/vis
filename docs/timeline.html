@@ -1004,6 +1004,17 @@ var options = {
   </tr>
 
   <tr>
+    <td>setData({<br>&nbsp;&nbsp;groups: groups,<br>&nbsp;&nbsp;items: items<br>})</td>
+    <td>none</td>
+    <td>Set both groups and items at once. Both properties are optional. This is a convenience method for individually calling both <code>setItems(items)</code> and <code>setGroups(groups)</code>.
+      Both <code>items</code> and <code>groups</code> can be an Array with Objects,
+      a DataSet, or a DataView. For each of the groups, the items of the
+      timeline are filtered on the property <code>group</code>, which
+      must correspond with the id of the group.
+    </td>
+  </tr>
+
+  <tr>
     <td>setGroups(groups)</td>
     <td>none</td>
     <td>Set a data set with groups for the Timeline.
