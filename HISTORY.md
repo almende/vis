@@ -24,6 +24,8 @@ http://visjs.org
   `4-8h` to `h4-h8`.
 - Deprecated option `showCustomTime`. Use method `addCustomTime()` instead.
 - Deprecated event `finishedRedraw` as it's redundant.
+- Renamed option `animate` to `animation`, and changed it to be either a boolean
+  or an object `{duration: number, easingFunction: string}`.
 
 ### Network
 
