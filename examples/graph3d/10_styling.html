@@ -1,7 +1,7 @@
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<!doctype html>
 <html>
 <head>
-  <title>Graph 3D Axis Ticks</title>
+  <title>Graph 3D styles</title>
 
   <style>
     body {font: 10pt arial;}
@@ -14,16 +14,19 @@
     var graph = null;
 
     function custom(x, y) {
-      return (-Math.sin(x/Math.PI) * Math.cos(y/Math.PI) * 10 + 10) * 1000;
+      return (-Math.sin(x/Math.PI) * Math.cos(y/Math.PI) * 10 + 10);
     }
 
     // Called when the Visualization API is loaded.
     function drawVisualization() {
       var style = document.getElementById('style').value;
+      var showPerspective = document.getElementById('perspective').checked;
+      var xBarWidth = parseFloat(document.getElementById('xBarWidth').value) || undefined;
+      var yBarWidth = parseFloat(document.getElementById('yBarWidth').value) || undefined;
       var withValue = ['bar-color', 'bar-size', 'dot-size', 'dot-color'].indexOf(style) != -1;
 
       // Create and populate a data table.
-      data = new vis.DataSet();
+      data = [];
 
       // create some nice looking data with sin/cos
       var steps = 5;  // number of datapoints will be steps*steps
@@ -34,10 +37,10 @@
           var z = custom(x,y);
           if (withValue) {
             var value = (y - x);
-            data.add({x:x, y:y, z: z, style:value});
+            data.push({x:x, y:y, z: z, style:value});
           }
           else {
-            data.add({x:x, y:y, z: z});
+            data.push({x:x, y:y, z: z});
           }
         }
       }
@@ -47,29 +50,11 @@
         width:  '600px',
         height: '600px',
         style: style,
-        showPerspective: true,
+        xBarWidth: xBarWidth,
+        yBarWidth: yBarWidth,
+        showPerspective: showPerspective,
         showGrid: true,
         showShadow: false,
-
-        // Option tooltip can be true, false, or a function returning a string with HTML contents
-        //tooltip: true,
-        tooltip: function (point) {
-          // parameter point contains properties x, y, z
-          return 'value: <b>' + point.z + '</b>';
-        },
-        
-        xValueLabel: function(value) {
-            return vis.moment().add(value, 'days').format('DD MMM');
-        },
-        
-        yValueLabel: function(value) {
-            return value * 10 + '%';
-        },
-
-        zValueLabel: function(value) {
-            return value / 1000 + 'K';
-        },
-
         keepAspectRatio: true,
         verticalRatio: 0.5
       };
@@ -83,9 +68,13 @@
       if (camera) graph.setCameraPosition(camera); // restore camera position
 
       document.getElementById('style').onchange = drawVisualization;
+      document.getElementById('perspective').onchange = drawVisualization;
+      document.getElementById('xBarWidth').onchange = drawVisualization;
+      document.getElementById('yBarWidth').onchange = drawVisualization;
     }
   </script>
-<script>(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)})(window,document,'script','//www.google-analytics.com/analytics.js','ga');ga('create', 'UA-61231638-1', 'auto');ga('send', 'pageview');</script></head>
+  <script src="../googleAnalytics.js"></script>
+</head>
 
 <body onload="drawVisualization()">
 
@@ -105,6 +94,23 @@
       <option value="line">line</option>
       <option value="surface">surface</option>
     </select>
+  </label>
+</p>
+
+<p>
+  <label for="perspective">
+    <input type="checkbox" id="perspective" checked> Show perspective
+  </label>
+</p>
+
+<p>
+  <label for="xBarWidth"> Bar width X:
+    <input type="text" id="xBarWidth" value="" style="width:50px;"> (only applicable for styles "bar" and "bar-color")
+  </label>
+</p>
+<p>
+  <label for="yBarWidth"> Bar width Y:
+    <input type="text" id="yBarWidth" value="" style="width:50px;"> (only applicable for styles "bar" and "bar-color")
   </label>
 </p>
 
