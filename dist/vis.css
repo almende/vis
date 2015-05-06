@@ -222,7 +222,7 @@
   box-sizing: border-box;
 }
 
-.vis-item.background {
+.vis-item.vis-background {
   border: none;
   background-color: rgba(213, 221, 246, 0.4);
   box-sizing: border-box;
@@ -244,7 +244,7 @@
   display: inline-block;
 }
 
-.vis-item.background .vis-item-content {
+.vis-item.vis-background .vis-item-content {
   position: absolute;
   display: inline-block;
 }
