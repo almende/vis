@@ -27,6 +27,10 @@ http://visjs.org
 - Renamed option `animate` to `animation`, and changed it to be either a boolean
   or an object `{duration: number, easingFunction: string}`.
 
+### Graph2d
+
+- Fixed #716: Height of graph `2px` too large when configuring a fixed height.
+
 ### Network
 
 - Rebuilt the cluster system
