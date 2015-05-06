@@ -14,6 +14,7 @@ http://visjs.org
 
 ### Timeline
 
+- Implemented option `multiselect`, which is false by default.
 - Added method `setData({groups: groups, items: items})`.
 - Fixed range items not being displayed smaller than 10 pixels (twice the
   padding). In order to have overflowing text, one should now apply css style

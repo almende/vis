@@ -680,6 +680,16 @@ var options = {
     </tr>
 
     <tr>
+      <td>multiselect</td>
+      <td class="mid">boolean</td>
+      <td class="mid"><code>false</code></td>
+      <td>
+        If true, multiple items can be selected using ctrl+click, shift+click, or by holding items.
+        Only applicable when option <code>selectable</code> is <code>true</code>.
+      </td>
+    </tr>
+
+    <tr>
       <td>onAdd</td>
       <td class="mid">function</td>
       <td class="mid">none</td>
@@ -1275,7 +1285,7 @@ timeline.off('select', onSelect);
     When the Timeline is configured to be editable (both options <code>selectable</code> and <code>editable</code> are <code><code>true</code></code>), the user can:
   </p>
   <ul>
-    <li>Select an item by clicking it, and use ctrl+click to or shift+click to select multiple items</li>
+    <li>Select an item by clicking it, and use ctrl+click to or shift+click to select multiple items (when <code>multiselect: true</code>).</li>
     <li>Move selected items by dragging them.</li>
     <li>Create a new item by double tapping on an empty space.</li>
     <li>Create a new range item by dragging on an empty space with the ctrl key down.</li>
