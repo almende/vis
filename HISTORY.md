@@ -14,6 +14,7 @@ http://visjs.org
 
 ### Timeline
 
+- Implemented option `multiselect`, which is false by default.
 - Added method `setData({groups: groups, items: items})`.
 - Fixed range items not being displayed smaller than 10 pixels (twice the
   padding). In order to have overflowing text, one should now apply css style
@@ -26,6 +27,10 @@ http://visjs.org
 - Deprecated event `finishedRedraw` as it's redundant.
 - Renamed option `animate` to `animation`, and changed it to be either a boolean
   or an object `{duration: number, easingFunction: string}`.
+
+### Graph2d
+
+- Fixed #716: Height of graph `2px` too large when configuring a fixed height.
 
 ### Network
 
