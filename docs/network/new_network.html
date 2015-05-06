@@ -241,22 +241,22 @@ network.setOptions(options);
     <h3>All Methods</h3>
 
     <p>This is a list of all the methods in the public API. They have been grouped by category, which correspond to the
-        modules listed above.</p>
-    <table class="moduleTable">
+        modules listed above. They are initially collapsed and colored alternatively.</p>
+    <table class="moduleTable" id="moduleTable">
         <tr class="header">
             <td class="methodName">name</td>
             <td>returns</td>
             <td>description</td>
         </tr>
-        <tr class="subHeader evenRow">
-            <td colspan="3">Global methods for the network.</td>
+        <tr class="subHeader evenRow toggle collapsible" onclick="toggleTable('moduleTable','global', this);">
+            <td colspan="3"><span parent="color" class="right-caret"></span> Global methods for the network.</td>
         </tr>
-        <tr class="evenRow">
+        <tr class="evenRow hidden" parent="global">
             <td>destroy()</td>
             <td class="mid">none</td>
             <td>Remove the network from the DOM and remove all Hammer bindings and references.</td>
         </tr>
-        <tr class="evenRow">
+        <tr class="evenRow hidden" parent="global">
             <td>setData({<br><code><i>nodes: vis DataSet/Array</i></code>,<br><code><i>edges: vis
                 DataSet/Arary</i></code><br>})
             </td>
@@ -266,7 +266,7 @@ network.setOptions(options);
                 network.
             </td>
         </tr>
-        <tr class="evenRow">
+        <tr class="evenRow hidden" parent="global">
             <td>setOptions(<code>Object options</code>)</td>
             <td class="mid">none</td>
             <td>Set the options. All available options can be found in the modules above. Each module requires it's own
@@ -275,10 +275,10 @@ network.setOptions(options);
         </tr>
 
 
-        <tr class="subHeader oddRow">
-            <td colspan="3">Methods related to the canvas.</td>
+        <tr class="subHeader oddRow toggle collapsible" onclick="toggleTable('moduleTable','canvas', this);">
+            <td colspan="3"><span parent="color" class="right-caret"></span> Methods related to the canvas.</td>
         </tr>
-        <tr class="oddRow">
+        <tr class="oddRow hidden" parent="canvas">
             <td>canvasToDOM({<br>&nbsp;&nbsp;&nbsp;<code><i>x: Number</i></code>,<br>&nbsp;&nbsp;&nbsp;<code><i>y:
                 Number</i></code><br>})
             </td>
@@ -287,7 +287,7 @@ network.setOptions(options);
                 <code>{x:Number,y:Number}</code>. The DOM values are relative to the network container.
             </td>
         </tr>
-        <tr class="oddRow">
+        <tr class="oddRow hidden" parent="canvas">
             <td>DOMtoCanvas({<br>&nbsp;&nbsp;&nbsp;<code><i>x: Number</i></code>,<br>&nbsp;&nbsp;&nbsp;<code><i>y:
                 Number</i></code><br>})
             </td>
@@ -296,8 +296,12 @@ network.setOptions(options);
                 <code>{x:Number,y:Number}</code>. The DOM values are relative to the network container.
             </td>
         </tr>
-        <tr class="oddRow"><td>redraw()</td><td class="mid">none</td><td>Redraw the network.</td></tr>
-        <tr class="oddRow">
+        <tr class="oddRow hidden" parent="canvas">
+            <td>redraw()</td>
+            <td class="mid">none</td>
+            <td>Redraw the network.</td>
+        </tr>
+        <tr class="oddRow hidden" parent="canvas">
             <td>setSize(<br>&nbsp;&nbsp;&nbsp;<code><i>String width</i></code>,<br>&nbsp;&nbsp;&nbsp;<code><i>String
                 height</i></code><br>)
             </td>
@@ -305,10 +309,10 @@ network.setOptions(options);
             <td>Set the size of the canvas. This is automatically done on a window resize.</td>
         </tr>
 
-        <tr class="subHeader evenRow">
-            <td colspan="3">Clustering</td>
+        <tr class="subHeader evenRow toggle collapsible" onclick="toggleTable('moduleTable','clustering', this);">
+            <td colspan="3"><span parent="color" class="right-caret"></span> Clustering</td>
         </tr>
-        <tr class="evenRow">
+        <tr class="evenRow hidden" parent="clustering">
             <td>cluster(<br>&nbsp;&nbsp;
                 <code>Object options</code><br>)
             </td>
@@ -319,7 +323,7 @@ network.setOptions(options);
                 is presented with all nodes.
             </td>
         </tr>
-        <tr class="evenRow">
+        <tr class="evenRow hidden" parent="clustering">
             <td>clusterByConnection(<br>
                 &nbsp;&nbsp;<code>String nodeId</code>,<br>
                 &nbsp;&nbsp;<code>[Object options]</code><br>
@@ -332,7 +336,7 @@ network.setOptions(options);
                         href="#optionsObject">below</a>. The joinCondition is only presented with the connected nodes.
             </td>
         </tr>
-        <tr class="evenRow">
+        <tr class="evenRow hidden" parent="clustering">
             <td>clusterByHubsize(<br>
                 &nbsp;&nbsp;<code>Number hubsize</code>,<br>
                 &nbsp;&nbsp;<code>[Object options]</code><br>)
@@ -344,14 +348,14 @@ network.setOptions(options);
             </td>
         </tr>
 
-        <tr class="evenRow">
+        <tr class="evenRow hidden" parent="clustering">
             <td>clusterOutliers(<br>
                 &nbsp;&nbsp;<code>[Object options]</code><br>)
             </td>
             <td class="mid">none</td>
             <td>This method will cluster all nodes with 1 edge with their respective connected node.</td>
         </tr>
-        <tr class="evenRow">
+        <tr class="evenRow hidden" parent="clustering">
             <td>findNode(<br>
                 &nbsp;&nbsp;<code>String nodeId</code><br>)
             </td>
@@ -364,14 +368,14 @@ network.setOptions(options);
                 <code>network.clustering.findNode('fred')</code> will return <code>['A','B','C','fred']</code>.
             </td>
         </tr>
-        <tr class="evenRow">
+        <tr class="evenRow hidden" parent="clustering">
             <td>isCluster(<br>
                 &nbsp;&nbsp;<code>String nodeId</code><br>)
             </td>
             <td class="mid">Boolean</td>
             <td>Returns true if the node whose ID has been supplied is a cluster.</td>
         </tr>
-        <tr class="evenRow">
+        <tr class="evenRow hidden" parent="clustering">
             <td>openCluster(<br>&nbsp;&nbsp;
                 <code>String nodeId</code><br>)
             </td>
@@ -393,22 +397,24 @@ network.setOptions(options);
         </tr>
 
 
-        <tr class="subHeader evenRow">
-            <td colspan="3">Manipulation methods to use the manipulation system without GUI.</td>
+        <tr class="subHeader evenRow toggle collapsible" onclick="toggleTable('moduleTable','manipulation', this);">
+            <td colspan="3"><span parent="color" class="right-caret"></span> Manipulation methods to use the
+                manipulation system without GUI.
+            </td>
         </tr>
-        <tr class="evenRow">
+        <tr class="evenRow hidden" parent="manipulation">
             <td>enableEditMode()</td>
             <td class="mid">none</td>
             <td>Programatically enable the edit mode. Similar effect to pressing the edit button.</td>
         </tr>
-        <tr class="evenRow">
+        <tr class="evenRow hidden" parent="manipulation">
             <td>disableEditMode()</td>
             <td class="mid">none</td>
             <td>Programatically disable the edit mode. Similar effect to pressing the close icon (small cross in the
                 corner of the toolbar).
             </td>
         </tr>
-        <tr class="evenRow">
+        <tr class="evenRow hidden" parent="manipulation">
             <td>addNodeMode()</td>
             <td class="mid">none</td>
             <td>Go into addNode mode. Having edit mode or manipulation enabled is not required. To get out of this mode,
@@ -417,32 +423,32 @@ network.setOptions(options);
                 <code>enabled</code> to false.
             </td>
         </tr>
-        <tr class="evenRow">
+        <tr class="evenRow hidden" parent="manipulation">
             <td>editNodeMode()</td>
             <td class="mid">none</td>
             <td>Go into editNode mode. The explaination from <code>addNodeMode</code> applies here as well.</td>
         </tr>
-        <tr class="evenRow">
+        <tr class="evenRow hidden" parent="manipulation">
             <td>addEdgeMode()</td>
             <td class="mid">none</td>
             <td>Go into addEdge mode. The explaination from <code>addNodeMode</code> applies here as well.</td>
         </tr>
-        <tr class="evenRow">
+        <tr class="evenRow hidden" parent="manipulation">
             <td>editEdgeMode()</td>
             <td class="mid">none</td>
             <td>Go into editEdge mode. The explaination from <code>addNodeMode</code> applies here as well.</td>
         </tr>
-        <tr class="evenRow">
+        <tr class="evenRow hidden" parent="manipulation">
             <td>deleteSelected()</td>
             <td class="mid">none</td>
             <td>Delete selected. Having edit mode or manipulation enabled is not required.</td>
         </tr>
 
 
-        <tr class="subHeader oddRow">
-            <td colspan="3">Methods to get information on nodes.</td>
+        <tr class="subHeader oddRow toggle collapsible" onclick="toggleTable('moduleTable','nodes', this);">
+            <td colspan="3"><span parent="color" class="right-caret"></span> Methods to get information on nodes.</td>
         </tr>
-        <tr class="oddRow">
+        <tr class="oddRow hidden" parent="nodes">
             <td>getPositions(<br>&nbsp;&nbsp;&nbsp;<code><i>[Array of nodeIds]</i></code><br>)</td>
             <td class="mid">Object</td>
             <td>Returns the x y positions in canvas space of the nodes with the supplied nodeIds as an object:
@@ -458,7 +464,7 @@ network.setOptions(options);
                 are returned.
             </td>
         </tr>
-        <tr class="oddRow">
+        <tr class="oddRow hidden" parent="nodes">
             <td>storePositions()</td>
             <td class="mid">none</td>
             <td>When using the vis.DataSet to load your nodes into the network, this method will put the X and Y
@@ -480,7 +486,7 @@ network.setOptions(options);
 
 
         </tr>
-        <tr class="oddRow">
+        <tr class="oddRow hidden" parent="nodes">
             <td>getBoundingBox(<br>&nbsp;&nbsp;&nbsp;<code><i>String nodeId</i></code><br>)</td>
             <td class="mid">Object</td>
             <td> Returns a bounding box for the node including label in the format:
@@ -495,46 +501,48 @@ network.setOptions(options);
                 These values are in canvas space.
             </td>
         </tr>
-        <tr class="oddRow">
+        <tr class="oddRow hidden" parent="nodes">
             <td>getConnectedNodes(<br>&nbsp;&nbsp;&nbsp;<code><i>String nodeId</i></code><br>)</td>
             <td class="mid">Array</td>
             <td>Returns an array of nodeIds of the all the nodes that are directly connected to this node.</td>
         </tr>
-        <tr class="oddRow">
+        <tr class="oddRow hidden" parent="nodes">
             <td>getEdges(<br>&nbsp;&nbsp;&nbsp;<code><i>String nodeId</i></code><br>)</td>
             <td class="mid">Array</td>
             <td>Returns an array of edgeIds of the edges connected to this node.</td>
         </tr>
 
 
-        <tr class="subHeader evenRow">
-            <td colspan="3">Physics methods to control when the simulation should run.</td>
+        <tr class="subHeader evenRow toggle collapsible" onclick="toggleTable('moduleTable','physics', this);">
+            <td colspan="3"><span parent="color" class="right-caret"></span> Physics methods to control when the
+                simulation should run.
+            </td>
         </tr>
-        <tr class="evenRow">
+        <tr class="evenRow hidden" parent="physics">
             <td>startSimulation()</td>
             <td class="mid">none</td>
             <td>Start the physics simulation. This is normally done whenever needed and is only really useful if you
                 stop the simulation yourself and wish to continue it afterwards.
             </td>
             .</td></tr>
-        <tr class="evenRow">
+        <tr class="evenRow hidden" parent="physics">
             <td>stopSimulation()</td>
             <td class="mid">none</td>
             <td>This stops the physics simulation and triggers a <code>stabilized</code> event. It can be restarted by
                 dragging a node, altering the dataset or calling <code>startSimulation()</code>.
             </td>
         </tr>
-        <tr class="evenRow">
+        <tr class="evenRow hidden" parent="physics">
             <td>stabilize()</td>
             <td class="mid">none</td>
             <td>You can manually call stabilize at any time. All the stabilization options above are used.</td>
         </tr>
 
 
-        <tr class="subHeader oddRow">
-            <td colspan="3">Selection methods for nodes and edges.</td>
+        <tr class="subHeader oddRow toggle collapsible" onclick="toggleTable('moduleTable','selection', this);">
+            <td colspan="3"><span parent="color" class="right-caret"></span> Selection methods for nodes and edges.</td>
         </tr>
-        <tr class="oddRow">
+        <tr class="oddRow hidden" parent="selection">
             <td>getSelection()</td>
             <td class="mid">Object</td>
             <td>Returns an object with selected nodes and edges ids like this:
@@ -546,19 +554,19 @@ network.setOptions(options);
             </td>
         </tr>
 
-        <tr class="oddRow">
+        <tr class="oddRow hidden" parent="selection">
             <td>getSelectedNodes()</td>
             <td class="mid">Array</td>
             <td>Returns an array of selected node ids like so:
                 <code>[nodeId1, nodeId2, ..]</code>.
             </td>
         </tr>
-        <tr class="oddRow">
+        <tr class="oddRow hidden" parent="selection">
             <td>getSelectedEdges()</td>
             <td class="mid">Array</td>
             <td>Returns an array of selected edge ids like so: <code>[edgeId1, edgeId2, ..]</code>.</td>
         </tr>
-        <tr class="oddRow">
+        <tr class="oddRow hidden" parent="selection">
             <td>getNodeAt(<br>&nbsp;&nbsp;&nbsp;<code><i>{x: xPosition DOM,<br>&nbsp;&nbsp; y: yPosition DOM}</i></code><br>)
             </td>
             <td class="mid">String</td>
@@ -566,7 +574,7 @@ network.setOptions(options);
                 of the canvas.
             </td>
         </tr>
-        <tr class="oddRow">
+        <tr class="oddRow hidden" parent="selection">
             <td>getEdgeAt(<br>&nbsp;&nbsp;&nbsp;<code><i>{x: xPosition DOM,<br>&nbsp;&nbsp; y: yPosition DOM}</i></code><br>)
             </td>
             <td class="mid">String</code></td>
@@ -574,7 +582,7 @@ network.setOptions(options);
                 of the canvas..
             </td>
         </tr>
-        <tr class="oddRow">
+        <tr class="oddRow hidden" parent="selection">
             <td>selectNodes(<br>&nbsp;&nbsp;&nbsp;<code><i>Array with nodeIds</i></code>,<br>&nbsp;&nbsp;&nbsp;<code><i>[Boolean
                 highlightEdges]</i></code><br>)
             </td>
@@ -584,35 +592,37 @@ network.setOptions(options);
                 its own objects. <i>Does not fire events</i>.
             </td>
         </tr>
-        <tr class="oddRow">
+        <tr class="oddRow hidden" parent="selection">
             <td>selectEdges(<br>&nbsp;&nbsp;&nbsp;<code><i>Array with edgeIds</i></code><br>)</td>
             <td class="mid">none</td>
             <td>Selects the edges corresponding to the id's in the input array. This method unselects all other objects
                 before selecting its own objects. <i>Does not fire events</i>.
             </td>
         </tr>
-        <tr class="oddRow">
+        <tr class="oddRow hidden" parent="selection">
             <td>unselectAll()</td>
             <td class="mid">none</td>
             <td>Unselect all objects. <i>Does not fire events</i>.</td>
         </tr>
 
 
-        <tr class="subHeader evenRow">
-            <td colspan="3">Methods to control the viewport for zoom and animation.</td>
+        <tr class="subHeader evenRow toggle collapsible" onclick="toggleTable('moduleTable','view', this);">
+            <td colspan="3"><span parent="color" class="right-caret"></span> Methods to control the viewport for zoom
+                and animation.
+            </td>
         </tr>
-        <tr class="evenRow">
+        <tr class="evenRow hidden" parent="view">
             <td>getScale()</td>
             <td class="mid">Number</td>
             <td>Returns the current scale of the network. 1.0 is comparible to 100%, 0 is zoomed out infinitely.</td>
         </tr>
-        <tr class="evenRow">
+        <tr class="evenRow hidden" parent="view">
             <td>getPosition()</td>
             <td class="mid">Number</td>
             <td>Returns the current central focus point of the camera.</td>
         </tr>
 
-        <tr class="evenRow">
+        <tr class="evenRow hidden" parent="view">
             <td>fit(<code>[Object options]</code>)</td>
             <td class="mid">none</td>
             <td>Zooms out so all nodes fit on the canvas. You can supply options to customize this:
@@ -630,7 +640,7 @@ network.setOptions(options);
                 All options are optional for the fit method.
             </td>
         </tr>
-        <tr class="evenRow">
+        <tr class="evenRow hidden" parent="view">
             <td>focus(<br>
                 &nbsp;&nbsp;&nbsp;<code>String nodeId</code>,<br>
                 &nbsp;&nbsp;&nbsp;<code>[Object options]</code><br>)
@@ -655,7 +665,7 @@ network.setOptions(options);
                 Default value is true. The options object is optional in the focus method.
             </td>
         </tr>
-        <tr class="evenRow">
+        <tr class="evenRow hidden" parent="view">
             <td>moveTo(<code>Object options</code>)</td>
             <td class="mid">none</td>
             <td>You can animate or move the camera using the moveTo method. Options are:
@@ -684,7 +694,7 @@ network.setOptions(options);
         </tr>
 
 
-        <tr class="evenRow">
+        <tr class="evenRow hidden" parent="view">
             <td>releaseNode()</td>
             <td class="mid">none</td>
             <td>Programatically release the focussed node.</td>
@@ -1013,7 +1023,9 @@ var locales = {
 
         </tr>
         <tr class="subHeader oddRow">
-            <td colspan="3">Events triggered by the rendering module. Can be used to draw custom elements on the canvas.</td>
+            <td colspan="3">Events triggered by the rendering module. Can be used to draw custom elements on the
+                canvas.
+            </td>
         </tr>
         <tr class="oddRow">
             <td>initRedraw</td>
