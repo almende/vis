@@ -28,11 +28,13 @@ function toggleTable(tableId, parent, clickedRow) {
   var wasOpen = false;
   for (var i = 0, row; row = table.rows[i]; i++) {
     if (row.getAttribute('parent') === parent) {
-      if (row.className === 'hidden') {
-        row.className = 'visible';
+      if (row.className.indexOf('hidden') !== -1) {
+        row.className = row.className.replace(' hidden','').replace('hidden','');
+        row.className += ' visible';
       }
       else {
-        row.className = 'hidden';
+        row.className = row.className.replace(' visible','').replace('visible','');;
+        row.className += ' hidden';
         wasOpen = true;
       }
     }
@@ -41,11 +43,11 @@ function toggleTable(tableId, parent, clickedRow) {
   var spans;
   if (wasOpen === true) {
     spans = document.getElementsByClassName('caret');
-    clickedRow.className = 'toggle collapsible';
+    clickedRow.className += ' collapsible';
   }
   else {
     spans = document.getElementsByClassName('right-caret')
-    clickedRow.className = 'toggle';
+    clickedRow.className = clickedRow.className.replace(' collapsible','');
   }
 
   for (var i = 0; i < spans.length; i++) {

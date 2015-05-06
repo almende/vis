@@ -168,37 +168,6 @@ network.setOptions(options);
         <tr><td>timestep</td>                               <td class="mid">Number</td>         <td class="mid"><code>0.5</code></td>        <td>The physics simulation is discrete. This means we take a step in time, calculate the forces, move the nodes and take another step. If you increase this number the steps will be too large and the network can get unstable. If you see a lot of jittery movement in the network, you may want to reduce this value a little.</td></tr>
     </table>
 
-    <h3>Methods</h3>
-    <p>This is a list of all the methods in the public API. Options can be set directly to the module or you can use the setOptions method of the network itself and use the module name as an object name.</p>
-    <table class="moduleTable">
-        <tr class="header"><td>name</td><td>returns</td><td>description</td></tr>
-        <tr><td>startSimulation()</td>  <td class="mid">none</td><td>Start the physics simulation. This is normally done whenever needed and is only really useful if you stop the simulation yourself and wish to continue it afterwards.</td>.</td></tr>
-        <tr><td>stopSimulation()</td>   <td class="mid">none</td><td>This stops the physics simulation and triggers a <code>stabilized</code> event. It can be restarted by dragging a node, altering the dataset or calling <code>startSimulation()</code>.</td></tr>
-        <tr><td>stabilize()</td>        <td class="mid">none</td><td>You can manually call stabilize at any time. All the stabilization options above are used.</td></tr>
-    </table>
-
-    <h3>Events</h3>
-    <p>This is a list of all the events in the public API. They are collected here from all individual modules.</p>
-    <table class="moduleTable">
-        <tr class="header"><td>name</td><td class="properties">properties</td><td>description</td></tr>
-        <tr><td>startStabilizing</td><td class="mid">none</td><td>Fired when stabilization starts. This is also the case when you drag a node and the physics simulation restarts to stabilize again. Stabilization does not neccesarily imply 'without showing'.</td>
-        <tr><td>stabilizationProgress</td><td class="mid">
-<pre class="code">
-{
-  iterations: Number // iterations so far,
-  total: Number // total iterations in options
-}
-</pre></td><td>Fired when a multiple of the <code>updateInterval</code> number of iterations is reached. This only occurs in the 'hidden' stabilization.</td></tr>
-        <tr><td>stabilizationIterationsDone</td><td class="mid">none</td><td>Fired when the 'hidden' stabilization finishes. This does not necessarily mean the network is stabilized; it could also mean that the amount of iterations defined in the options has been reached.</td>
-        <tr><td>stabilized</td><td class="mid">
-<pre class="code">
-{
-  iterations: Number // iterations it took
-}
-</pre>
-    </td><td>Fired when the network has stabilized or when the <code>stopSimulation()</code> has been called. The amount of iterations it took could be used to tweak the maximum amount of iterations needed to stabilize the network.</td>
-
-    </table>
 
     <br />
     <br />

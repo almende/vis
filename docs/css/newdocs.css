@@ -71,7 +71,8 @@ tr.header {
 }
 
 td.mid {
-    background-color: #f7f7f7;
+    background-color: rgba(0,0,0,0.035);
+
     font-style:italic;
 }
 

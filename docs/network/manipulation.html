@@ -86,8 +86,6 @@ var options = {
   manipulation: {
     enabled: false,
     initiallyActive: false,
-    locale: 'en',
-    locales: locales,
     addNode: true,
     addEdge: true,
     editNode: undefined,
@@ -115,8 +113,6 @@ network.setOptions(options);
         <tr class="header"><td class="name">name</td><td class="type">type</td><td class="default">default</td><td class="description">description</td></tr>
         <tr><td>enabled</td>                    <td class="mid">Boolean</td>                <td class="mid"><code>false</code></td>     <td>Toggle the manipulation system on or off. This property is optional. If you define any of the options below and enabled is undefined, this will be set to true.</td></tr>
         <tr><td>initiallyActive</td>            <td class="mid">Boolean</td>                <td class="mid"><code>true</code></td>      <td>Toggle whether the toolbar is visible initially or if only the edit button is visible initially.</td></tr>
-        <tr><td>locale</td>                     <td class="mid">String</td>                 <td class="mid"><code>'en'</code></td>      <td>Select the locale. By default, the language is English. If you want to use another language, you will need to define your own locale and refer to it here.</td></tr>
-        <tr><td>locales</td>                    <td class="mid">Object</td>                 <td class="mid">defaultLocales</td>         <td>Locales object. By default only <code>'en'</code> and <code>'nl'</code> are supported. Take a look at the <a href="#locales" data-scroll="" data-options="{ &quot;easing&quot;: &quot;easeInCubic&quot; }">locales section below</a> for more explaination on how to customize this.</td></tr>
         <tr><td>addNode</td>                    <td class="mid">Boolean or Function</td>    <td class="mid"><code>true</code></td>      <td>You can use these options to switch certain functionalities on or off of attach
             a handler function to them. These functions are called before the action is performed. If a node is going to be added through the manipulation system,
             the addNode function will be called first. With this, you can provide a gui for your users, abort the process or anything else you want to do. For all except the editNode functionality, these handler functions are optional.
@@ -178,43 +174,7 @@ var options = {
 </pre></td></tr>
     </table>
 
-    <h3>Methods</h3>
-    <p>This is a list of all the methods in the public API. Options can be set directly to the module or you can use the setOptions method of the network itself and use the module name as an object name.</p>
-    <table class="moduleTable">
-        <tr class="header">       <td class="method">name</td><td>returns</td><td>description</td></tr>
-        <tr><td>enableEditMode()</td> <td class="mid">none</td><td>Programatically enable the edit mode. Similar effect to pressing the edit button.</td></tr>
-        <tr><td>disableEditMode()</td><td class="mid">none</td><td>Programatically disable the edit mode. Similar effect to pressing the close icon (small cross in the corner of the toolbar).</td></tr>
-        <tr><td>addNodeMode()</td>    <td class="mid">none</td><td>Go into addNode mode.  Having edit mode or manipulation enabled is not required. To get out of this mode, call <code>disableEditMode()</code>. The callback functions defined in <code>handlerFunctions</code> still apply. To use these methods without having the manipulation GUI, make sure you set <code>enabled</code> to false. </td></tr>
-        <tr><td>editNodeMode()</td>   <td class="mid">none</td><td>Go into editNode mode. The explaination from <code>addNodeMode</code> applies here as well.</td></tr>
-        <tr><td>addEdgeMode()</td>    <td class="mid">none</td><td>Go into addEdge mode.  The explaination from <code>addNodeMode</code> applies here as well.</td></tr>
-        <tr><td>editEdgeMode()</td>   <td class="mid">none</td><td>Go into editEdge mode. The explaination from <code>addNodeMode</code> applies here as well.</td></tr>
-        <tr><td>deleteSelected()</td> <td class="mid">none</td><td>Delete selected. Having edit mode or manipulation enabled is not required.</td></tr>
-    </table>
 
-    <h3>Events</h3>
-    <p>There are no events emitted by the layout module.</p>
-
-    <h3 id="locales">Locales</h3>
-    <p>The locales object has the following format:</p>
-    <pre class="code">
-var locales = {
-  en: {
-    edit: 'Edit',
-    del: 'Delete selected',
-    back: 'Back',
-    addNode: 'Add Node',
-    addEdge: 'Add Edge',
-    editNode: 'Edit Node',
-    editEdge: 'Edit Edge',
-    addDescription: 'Click in an empty space to place a new node.',
-    edgeDescription: 'Click on a node and drag the edge to another node to connect them.',
-    editEdgeDescription: 'Click on the control points and drag them to a node to connect to it.',
-    createEdgeError: 'Cannot link edges to a cluster.',
-    deleteClusterError: 'Clusters cannot be deleted.',
-    editClusterError: 'Clusters cannot be edited.'
-  }
-}</pre>
-    <p>If you want to define your own locale, you can change the key ('en' here) and change all the string. You can then use your new key in the locale option.</p>
     <br />
     <br />
     <br />

@@ -20,19 +20,49 @@
     <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
     <![endif]-->
 
+
+    <link href="../css/prettify.css" type="text/css" rel="stylesheet"/>
+    <script type="text/javascript" src="../js/googleAnalytics.js"></script>
+    <script type="text/javascript" src="../js/prettify/prettify.js"></script>
+
     <script src="../js/smooth-scroll.min.js"></script>
-    <script src="../js/googleAnalytics.js"></script>
     <script language="JavaScript">
         smoothScroll.init();
     </script>
 
     <style>
+        tr.evenRow {
+            background-color: #e6eff5;
+        }
+
+        tr.evenRow code {
+            background-color: #b3d2e6;
+            color: #282f33;
+        }
+
+        tr.evenRow pre {
+            background-color: #b3d2e6;
+            color: #282f33;
+        }
+
+        tr.subHeader {
+            font-weight: bold;
+            font-style: italic;
+        }
+
+        tr.subHeader td {
+            padding-top: 40px;
+        }
     </style>
+
+
+    <script type="text/javascript" src="../js/toggleTable.js"></script>
 </head>
+<body onload="prettyPrint();">
+
+
 <!-- NAVBAR
 ================================================== -->
-<body>
-
 <div class="navbar-wrapper">
     <div class="container">
         <nav class="navbar navbar-inverse navbar-static-top" role="navigation">
@@ -82,15 +112,7 @@
     <h3>Modules</h3>
     <table class="moduleTable">
         <tr>
-            <td width="120px" class="gren"><a href="./canvas.html">canvas</a></td>
-            <td>Handles the HTML part of the network.</td>
-        </tr>
-        <tr>
-            <td><a href="./clustering.html">clustering</a></td>
-            <td>Provides the clustering api, giving users full control over the formed clusters.</td>
-        </tr>
-        <tr>
-            <td><a href="./configure.html">configure</a></td>
+            <td width="120px"><a href="./configure.html">configure</a></td>
             <td>Generates an interactive option editor with filtering.</td>
         </tr>
         <tr>
@@ -103,7 +125,8 @@
         </tr>
         <tr>
             <td><a href="./interaction.html">interaction</a></td>
-            <td>Used for all user interaction with the network. Handles mouse and touch events as well as the navigation
+            <td>Used for all user interaction with the network. Handles mouse and touch events and selection as well as
+                the navigation
                 buttons and the popups.
             </td>
         </tr>
@@ -125,39 +148,115 @@
                 stabilization.
             </td>
         </tr>
+
+    </table>
+
+    <h3>Options</h3>
+
+    <p>Click on the options shown to show how these options are supposed to be used.</p>
+    <br>
+<pre class="prettyprint lang-js options">
+var options = {
+  autoResize: true,
+  height: '100%',
+  width: '100%'
+  locale: 'en',
+  locales: locales,
+  clickToUse: false,
+  configure: {...},    // defined in the configure module.
+  edges: {...},        // defined in the edges module.
+  nodes: {...},        // defined in the nodes module.
+  groups: {...},       // defined in the groups module.
+  layout: {...},       // defined in the layout module.
+  interaction: {...},  // defined in the interaction module.
+  manipulation: {...}, // defined in the manipulation module.
+  physics: {...},      // defined in the physics module.
+}
+
+network.setOptions(options);
+</pre>
+    <p>The individual options are explained below. The ones referring to modules are explained in the corresponding
+        module.</p>
+    <table class="moduleTable">
+        <tr class="header">
+            <td>name</td>
+            <td>type</td>
+            <td>default</td>
+            <td>description</td>
+        </tr>
         <tr>
-            <td><a href="./rendering.html">rendering</a></td>
-            <td>Handles the rendering aspect of vis. It governs the render loop, it draws the nodes and edges and
-                provides events to allow users to hook into the drawing.
+            <td>autoResize</td>
+            <td class="mid">Boolean</td>
+            <td class="mid"><code>true</code></td>
+            <td>If true, the Network will automatically detect when its container is resized, and redraw itself
+                accordingly. If false, the Network can be forced to repaint after its container has been resized
+                using the function redraw() and setSize().
             </td>
         </tr>
         <tr>
-            <td><a href="./selection.html">selection</a></td>
-            <td>Handles the selection of nodes and edges.</td>
+            <td>width</td>
+            <td class="mid">String</td>
+            <td class="mid"><code>'100%'</code></td>
+            <td>the width of the canvas. Can be in percentages or pixels (ie. <code>'400px'</code>).</td>
         </tr>
         <tr>
-            <td><a href="./view.html">view</a></td>
-            <td>Acts as the camera that looks on the canvas. Does the animation, zooming and focusing.</td>
+            <td>height</td>
+            <td class="mid">String</td>
+            <td class="mid"><code>'100%'</code></td>
+            <td>the height of the canvas. Can be in percentages or pixels (ie. <code>'400px'</code>).</td>
         </tr>
-
+        <tr>
+            <td>locale</td>
+            <td class="mid">String</td>
+            <td class="mid"><code>'en'</code></td>
+            <td>Select the locale. By default, the language is English. If you want to use another language, you will
+                need to define your own locale and refer to it here.
+            </td>
+        </tr>
+        <tr>
+            <td>locales</td>
+            <td class="mid">Object</td>
+            <td class="mid">defaultLocales</td>
+            <td>Locales object. By default only <code>'en'</code> and <code>'nl'</code> are supported. Take a look at
+                the <a href="#locales" data-scroll="" data-options="{ &quot;easing&quot;: &quot;easeInCubic&quot; }">locales
+                    section below</a> for more explaination on how to customize this.
+            </td>
+        </tr>
+        <tr>
+            <td>clickToUse</td>
+            <td class="mid">Boolean</td>
+            <td class="mid">false</td>
+            <td>Locales object. By default only <code>'en'</code> and <code>'nl'</code> are supported. Take a look at
+                the <a href="#locales" data-scroll="" data-options="{ &quot;easing&quot;: &quot;easeInCubic&quot; }">locales
+                    section below</a> for more explaination on how to customize this.
+            </td>
+        </tr>
     </table>
+
+
+    <br>
+    <br>
 
 
     <h3>All Methods</h3>
 
-    <p>This is a list of all the methods in the public API. They are collected here from all individual modules.</p>
+    <p>This is a list of all the methods in the public API. They have been grouped by category, which correspond to the
+        modules listed above.</p>
     <table class="moduleTable">
         <tr class="header">
             <td class="methodName">name</td>
             <td>returns</td>
             <td>description</td>
         </tr>
-        <tr>
+        <tr class="subHeader evenRow">
+            <td colspan="3">Global methods for the network.</td>
+        </tr>
+        <tr class="evenRow">
             <td>destroy()</td>
             <td class="mid">none</td>
             <td>Remove the network from the DOM and remove all Hammer bindings and references.</td>
         </tr>
-        <tr>
+        <tr class="evenRow">
             <td>setData({<br><code><i>nodes: vis DataSet/Array</i></code>,<br><code><i>edges: vis
                 DataSet/Arary</i></code><br>})
             </td>
@@ -167,19 +266,781 @@
                 network.
             </td>
         </tr>
-        <tr>
+        <tr class="evenRow">
             <td>setOptions(<code>Object options</code>)</td>
             <td class="mid">none</td>
             <td>Set the options. All available options can be found in the modules above. Each module requires it's own
                 container with the module name to contain its options.
             </td>
         </tr>
+
+
+        <tr class="subHeader oddRow">
+            <td colspan="3">Methods related to the canvas.</td>
+        </tr>
+        <tr class="oddRow">
+            <td>canvasToDOM({<br>&nbsp;&nbsp;&nbsp;<code><i>x: Number</i></code>,<br>&nbsp;&nbsp;&nbsp;<code><i>y:
+                Number</i></code><br>})
+            </td>
+            <td class="mid">Object</td>
+            <td>This function converts canvas coordinates to coordinates on the DOM. Input and output are in the form of
+                <code>{x:Number,y:Number}</code>. The DOM values are relative to the network container.
+            </td>
+        </tr>
+        <tr class="oddRow">
+            <td>DOMtoCanvas({<br>&nbsp;&nbsp;&nbsp;<code><i>x: Number</i></code>,<br>&nbsp;&nbsp;&nbsp;<code><i>y:
+                Number</i></code><br>})
+            </td>
+            <td class="mid">Object</td>
+            <td>This function converts DOM coordinates to coordinates on the canvas. Input and output are in the form of
+                <code>{x:Number,y:Number}</code>. The DOM values are relative to the network container.
+            </td>
+        </tr>
+        <tr class="oddRow"><td>redraw()</td><td class="mid">none</td><td>Redraw the network.</td></tr>
+        <tr class="oddRow">
+            <td>setSize(<br>&nbsp;&nbsp;&nbsp;<code><i>String width</i></code>,<br>&nbsp;&nbsp;&nbsp;<code><i>String
+                height</i></code><br>)
+            </td>
+            <td class="mid">none</td>
+            <td>Set the size of the canvas. This is automatically done on a window resize.</td>
+        </tr>
+
+        <tr class="subHeader evenRow">
+            <td colspan="3">Clustering</td>
+        </tr>
+        <tr class="evenRow">
+            <td>cluster(<br>&nbsp;&nbsp;
+                <code>Object options</code><br>)
+            </td>
+            <td class="mid">none</td>
+            <td>The options object is explained in full <a data-scroll=""
+                                                           data-options="{ &quot;easing&quot;: &quot;easeInCubic&quot; }"
+                                                           href="#optionsObject">below</a>. The joinCondition function
+                is presented with all nodes.
+            </td>
+        </tr>
+        <tr class="evenRow">
+            <td>clusterByConnection(<br>
+                &nbsp;&nbsp;<code>String nodeId</code>,<br>
+                &nbsp;&nbsp;<code>[Object options]</code><br>
+                )
+            </td>
+            <td class="mid">none</td>
+            <td>This method looks at the provided node and makes a cluster of it and all it's connected nodes. The
+                behaviour can be customized by proving the options object. All options of this object are explained <a
+                        data-scroll="" data-options="{ &quot;easing&quot;: &quot;easeInCubic&quot; }"
+                        href="#optionsObject">below</a>. The joinCondition is only presented with the connected nodes.
+            </td>
+        </tr>
+        <tr class="evenRow">
+            <td>clusterByHubsize(<br>
+                &nbsp;&nbsp;<code>Number hubsize</code>,<br>
+                &nbsp;&nbsp;<code>[Object options]</code><br>)
+            </td>
+            <td class="mid">none</td>
+            <td>This method checks all nodes in the network and those with a equal or higher amount of edges than
+                specified with the <code>hubsize</code> qualify. Cluster by connection is performed on each of them. The
+                options object is described for <code>clusterByConnection</code> and does the same here.
+            </td>
+        </tr>
+
+        <tr class="evenRow">
+            <td>clusterOutliers(<br>
+                &nbsp;&nbsp;<code>[Object options]</code><br>)
+            </td>
+            <td class="mid">none</td>
+            <td>This method will cluster all nodes with 1 edge with their respective connected node.</td>
+        </tr>
+        <tr class="evenRow">
+            <td>findNode(<br>
+                &nbsp;&nbsp;<code>String nodeId</code><br>)
+            </td>
+            <td class="mid">Array</td>
+            <td>Nodes can be in clusters. Clusters can also be in clusters. This function returns and array of nodeIds
+                showing where the node is. Example: <br>
+                cluster 'A' contains cluster 'B',<br>
+                cluster 'B' contains cluster 'C',<br>
+                cluster 'C' contains node 'fred'.<br>
+                <code>network.clustering.findNode('fred')</code> will return <code>['A','B','C','fred']</code>.
+            </td>
+        </tr>
+        <tr class="evenRow">
+            <td>isCluster(<br>
+                &nbsp;&nbsp;<code>String nodeId</code><br>)
+            </td>
+            <td class="mid">Boolean</td>
+            <td>Returns true if the node whose ID has been supplied is a cluster.</td>
+        </tr>
+        <tr class="evenRow">
+            <td>openCluster(<br>&nbsp;&nbsp;
+                <code>String nodeId</code><br>)
+            </td>
+            <td class="mid">none</td>
+            <td>Opens the cluster, releases the contained nodes and edges, removing the cluster node and cluster
+                edges.
+            </td>
+        </tr>
+
+        <tr class="subHeader oddRow">
+            <td colspan="3">Layout</td>
+        </tr>
+        <tr class="oddRow">
+            <td>getSeed()</td>
+            <td class="mid">Number</td>
+            <td>If you like the layout of your network and would like it to start in the same way next time, ask for the
+                seed using this method and put it in the <code>randomSeed</code> option.
+            </td>
+        </tr>
+
+
+        <tr class="subHeader evenRow">
+            <td colspan="3">Manipulation methods to use the manipulation system without GUI.</td>
+        </tr>
+        <tr class="evenRow">
+            <td>enableEditMode()</td>
+            <td class="mid">none</td>
+            <td>Programatically enable the edit mode. Similar effect to pressing the edit button.</td>
+        </tr>
+        <tr class="evenRow">
+            <td>disableEditMode()</td>
+            <td class="mid">none</td>
+            <td>Programatically disable the edit mode. Similar effect to pressing the close icon (small cross in the
+                corner of the toolbar).
+            </td>
+        </tr>
+        <tr class="evenRow">
+            <td>addNodeMode()</td>
+            <td class="mid">none</td>
+            <td>Go into addNode mode. Having edit mode or manipulation enabled is not required. To get out of this mode,
+                call <code>disableEditMode()</code>. The callback functions defined in <code>handlerFunctions</code>
+                still apply. To use these methods without having the manipulation GUI, make sure you set
+                <code>enabled</code> to false.
+            </td>
+        </tr>
+        <tr class="evenRow">
+            <td>editNodeMode()</td>
+            <td class="mid">none</td>
+            <td>Go into editNode mode. The explaination from <code>addNodeMode</code> applies here as well.</td>
+        </tr>
+        <tr class="evenRow">
+            <td>addEdgeMode()</td>
+            <td class="mid">none</td>
+            <td>Go into addEdge mode. The explaination from <code>addNodeMode</code> applies here as well.</td>
+        </tr>
+        <tr class="evenRow">
+            <td>editEdgeMode()</td>
+            <td class="mid">none</td>
+            <td>Go into editEdge mode. The explaination from <code>addNodeMode</code> applies here as well.</td>
+        </tr>
+        <tr class="evenRow">
+            <td>deleteSelected()</td>
+            <td class="mid">none</td>
+            <td>Delete selected. Having edit mode or manipulation enabled is not required.</td>
+        </tr>
+
+
+        <tr class="subHeader oddRow">
+            <td colspan="3">Methods to get information on nodes.</td>
+        </tr>
+        <tr class="oddRow">
+            <td>getPositions(<br>&nbsp;&nbsp;&nbsp;<code><i>[Array of nodeIds]</i></code><br>)</td>
+            <td class="mid">Object</td>
+            <td>Returns the x y positions in canvas space of the nodes with the supplied nodeIds as an object:
+<pre class="code">
+{
+  nodeId1: {x: xValue, y:yValue},
+  nodeId2: {x: xValue, y:yValue},
+  ...
+}
+</pre>
+                Alternative inputs are a String containing a nodeId or nothing. When a String is supplied, the position
+                of the node corresponding to the ID is returned. When nothing is supplied, the positions of all nodes
+                are returned.
+            </td>
+        </tr>
+        <tr class="oddRow">
+            <td>storePositions()</td>
+            <td class="mid">none</td>
+            <td>When using the vis.DataSet to load your nodes into the network, this method will put the X and Y
+                positions of all nodes into that dataset. <br><br> If you're loading your nodes from a database and have
+                this dynamically coupled with
+                the DataSet, you can
+                use this to stablize your network once, then save the positions in that database through the DataSet so
+                the next
+                time you load the nodes, stabilization will be near instantaneous.<br><br>
+                If the nodes are still moving and you're using dynamic smooth edges (which is on by default), you can
+                use the option <code>stabilization.onlyDynamicEdges</code> in the <a href="physics.html">physics
+                    module</a>
+                to improve initialization time.
+                <br><br>
+                <b>This method does not support clustering. At the moment it is not possible to cache
+                    positions when using clusters since they cannot be correctly initialized from just the
+                    positions.</b>
+            </td>
+
+
+        </tr>
+        <tr class="oddRow">
+            <td>getBoundingBox(<br>&nbsp;&nbsp;&nbsp;<code><i>String nodeId</i></code><br>)</td>
+            <td class="mid">Object</td>
+            <td> Returns a bounding box for the node including label in the format:
+<pre class="code">
+{
+  top: Number,
+  left: Number,
+  right: Number,
+  bottom: Number
+}
+</pre>
+                These values are in canvas space.
+            </td>
+        </tr>
+        <tr class="oddRow">
+            <td>getConnectedNodes(<br>&nbsp;&nbsp;&nbsp;<code><i>String nodeId</i></code><br>)</td>
+            <td class="mid">Array</td>
+            <td>Returns an array of nodeIds of the all the nodes that are directly connected to this node.</td>
+        </tr>
+        <tr class="oddRow">
+            <td>getEdges(<br>&nbsp;&nbsp;&nbsp;<code><i>String nodeId</i></code><br>)</td>
+            <td class="mid">Array</td>
+            <td>Returns an array of edgeIds of the edges connected to this node.</td>
+        </tr>
+
+
+        <tr class="subHeader evenRow">
+            <td colspan="3">Physics methods to control when the simulation should run.</td>
+        </tr>
+        <tr class="evenRow">
+            <td>startSimulation()</td>
+            <td class="mid">none</td>
+            <td>Start the physics simulation. This is normally done whenever needed and is only really useful if you
+                stop the simulation yourself and wish to continue it afterwards.
+            </td>
+            .</td></tr>
+        <tr class="evenRow">
+            <td>stopSimulation()</td>
+            <td class="mid">none</td>
+            <td>This stops the physics simulation and triggers a <code>stabilized</code> event. It can be restarted by
+                dragging a node, altering the dataset or calling <code>startSimulation()</code>.
+            </td>
+        </tr>
+        <tr class="evenRow">
+            <td>stabilize()</td>
+            <td class="mid">none</td>
+            <td>You can manually call stabilize at any time. All the stabilization options above are used.</td>
+        </tr>
+
+
+        <tr class="subHeader oddRow">
+            <td colspan="3">Selection methods for nodes and edges.</td>
+        </tr>
+        <tr class="oddRow">
+            <td>getSelection()</td>
+            <td class="mid">Object</td>
+            <td>Returns an object with selected nodes and edges ids like this:
+            <pre class="code">
+{
+  nodes: [Array of selected nodeIds],
+  edges: [Array of selected edgeIds]
+}</pre>
+            </td>
+        </tr>
+
+        <tr class="oddRow">
+            <td>getSelectedNodes()</td>
+            <td class="mid">Array</td>
+            <td>Returns an array of selected node ids like so:
+                <code>[nodeId1, nodeId2, ..]</code>.
+            </td>
+        </tr>
+        <tr class="oddRow">
+            <td>getSelectedEdges()</td>
+            <td class="mid">Array</td>
+            <td>Returns an array of selected edge ids like so: <code>[edgeId1, edgeId2, ..]</code>.</td>
+        </tr>
+        <tr class="oddRow">
+            <td>getNodeAt(<br>&nbsp;&nbsp;&nbsp;<code><i>{x: xPosition DOM,<br>&nbsp;&nbsp; y: yPosition DOM}</i></code><br>)
+            </td>
+            <td class="mid">String</td>
+            <td>Returns a nodeId or undefined. The DOM positions are expected to be in pixels from the top left corner
+                of the canvas.
+            </td>
+        </tr>
+        <tr class="oddRow">
+            <td>getEdgeAt(<br>&nbsp;&nbsp;&nbsp;<code><i>{x: xPosition DOM,<br>&nbsp;&nbsp; y: yPosition DOM}</i></code><br>)
+            </td>
+            <td class="mid">String</code></td>
+            <td>Returns a edgeId or undefined. The DOM positions are expected to be in pixels from the top left corner
+                of the canvas..
+            </td>
+        </tr>
+        <tr class="oddRow">
+            <td>selectNodes(<br>&nbsp;&nbsp;&nbsp;<code><i>Array with nodeIds</i></code>,<br>&nbsp;&nbsp;&nbsp;<code><i>[Boolean
+                highlightEdges]</i></code><br>)
+            </td>
+            <td class="mid">none</td>
+            <td>Selects the nodes corresponding to the id's in the input array. If highlightEdges is true or undefined,
+                the neighbouring edges will also be selected. This method unselects all other objects before selecting
+                its own objects. <i>Does not fire events</i>.
+            </td>
+        </tr>
+        <tr class="oddRow">
+            <td>selectEdges(<br>&nbsp;&nbsp;&nbsp;<code><i>Array with edgeIds</i></code><br>)</td>
+            <td class="mid">none</td>
+            <td>Selects the edges corresponding to the id's in the input array. This method unselects all other objects
+                before selecting its own objects. <i>Does not fire events</i>.
+            </td>
+        </tr>
+        <tr class="oddRow">
+            <td>unselectAll()</td>
+            <td class="mid">none</td>
+            <td>Unselect all objects. <i>Does not fire events</i>.</td>
+        </tr>
+
+
+        <tr class="subHeader evenRow">
+            <td colspan="3">Methods to control the viewport for zoom and animation.</td>
+        </tr>
+        <tr class="evenRow">
+            <td>getScale()</td>
+            <td class="mid">Number</td>
+            <td>Returns the current scale of the network. 1.0 is comparible to 100%, 0 is zoomed out infinitely.</td>
+        </tr>
+        <tr class="evenRow">
+            <td>getPosition()</td>
+            <td class="mid">Number</td>
+            <td>Returns the current central focus point of the camera.</td>
+        </tr>
+
+        <tr class="evenRow">
+            <td>fit(<code>[Object options]</code>)</td>
+            <td class="mid">none</td>
+            <td>Zooms out so all nodes fit on the canvas. You can supply options to customize this:
+<pre class="code">
+{
+  nodes:[Array of nodeIds],
+  animation: { // -------------------> can be a boolean too!
+    duration: Number
+    easingFunction: String
+  }
+}
+</pre>
+                The nodes can be used to zoom to fit only specific nodes in the view. <br/><br/>
+                The other options are explained in the <code>moveTo()</code> description below.
+                All options are optional for the fit method.
+            </td>
+        </tr>
+        <tr class="evenRow">
+            <td>focus(<br>
+                &nbsp;&nbsp;&nbsp;<code>String nodeId</code>,<br>
+                &nbsp;&nbsp;&nbsp;<code>[Object options]</code><br>)
+            </td>
+            <td class="mid">none</td>
+            <td>You can focus on a node with this function. What that means is the view will lock onto that node, if it
+                is moving, the view will also move accordingly. If the view is dragged by the user, the focus is broken.
+                You can supply options to customize the effect:
+<pre class="code">
+{
+  scale: Number,
+  offset: {x:Number, y:Number}
+  locked: boolean
+  animation: { // -------------------> can be a boolean too!
+    duration: Number
+    easingFunction: String
+  }
+}
+</pre>
+                All options except for locked are explained in the <code>moveTo()</code> description below. Locked
+                denotes whether or not the view remains locked to the node once the zoom-in animation is finished.
+                Default value is true. The options object is optional in the focus method.
+            </td>
+        </tr>
+        <tr class="evenRow">
+            <td>moveTo(<code>Object options</code>)</td>
+            <td class="mid">none</td>
+            <td>You can animate or move the camera using the moveTo method. Options are:
+<pre class="code">
+{
+  position: {x:Number, y:Number},
+  scale: Number,
+  offset: {x:Number, y:Number}
+  animation: { // -------------------> can be a boolean too!
+    duration: Number
+    easingFunction: String
+  }
+}
+</pre>
+                The position (in canvas units!) is the position of the central focus point of the camera. <br><br>
+                The scale is the target zoomlevel. Default value is 1.0. <br><br>
+                The offset (in DOM units) is how many pixels from the center the view is focussed. Default value is
+                {x:0,y:0}.<br><br>
+                For animation you can either use a Boolean to use it with the default options or disable it or you can
+                define the duration (in milliseconds) and easing function manually. Available are:
+                <code>linear, easeInQuad, easeOutQuad, easeInOutQuad, easeInCubic, easeOutCubic, easeInOutCubic,
+                    easeInQuart, easeOutQuart, easeInOutQuart, easeInQuint, easeOutQuint, easeInOutQuint</code>.
+                <br><br>
+                <i>You will have to define at least a scale or a position. Otherwise, there is nothing to move to.</i>
+            </td>
+        </tr>
+
+
+        <tr class="evenRow">
+            <td>releaseNode()</td>
+            <td class="mid">none</td>
+            <td>Programatically release the focussed node.</td>
+        </tr>
+
     </table>
 
+    <br>
+    <br>
+    <br>
+    <br>
+
+    <h4 id="optionsObject">Cluster options object</h4>
+
+    <p>The options object supplied to the cluster functions can contain these properties:</p>
+    <table class="moduleTable">
+        <tr class="header">
+            <td class="name">name</td>
+            <td>Type</td>
+            <td>description</td>
+        </tr>
+        <tr>
+            <td>joinCondition(<br>&nbsp;&nbsp;<code>Object nodeOptions</code><br>)</td>
+            <td class="mid">Function</td>
+            <td><i>Optional for all but the cluster method. </i> The cluster module loops over all nodes that are
+                selected to be in the cluster and calls this function with their data as argument.
+                If this function returns true, this node will be added to the cluster. You have access to all options
+                (including the default)
+                as well as any custom fields you may have added to the node to determine whether or not to include it in
+                the cluster. Example:
+<pre class="prettyprint lang-js">
+var nodes = [
+  {id: 4, label: 'Node 4'},
+  {id: 5, label: 'Node 5'},
+  {id: 6, label: 'Node 6', cid:1},
+  {id: 7, label: 'Node 7', cid:1}
+]
+
+var options = {
+  joinCondition:function(nodeOptions) {
+    return nodeOptions.cid === 1;
+  }
+}
+
+network.clustering.cluster(options);
+</pre>
+            </td>
+        </tr>
+        <tr>
+            <td>processProperties(<br>&nbsp;&nbsp;<code>Object nodeOptions</code><br>)</td>
+            <td class="mid">Function</td>
+            <td><i>Optional. </i> Before creating the new cluster node, this (optional) function will be called with the
+                properties supplied by you (<code>clusterNodeProperties</code>), all contained nodes and all contained
+                edges. You can use this to update the
+                properties of the cluster based on which items it contains. The function should return the properties to
+                create the cluster node. In the example below, we ensure preservation of mass and value when forming the
+                cluster:
+<pre class="prettyprint lang-js">
+var options = {
+  processProperties: function (clusterOptions, childNodes, childEdges) {
+    var totalMass = 0;
+    var totalValue = 0;
+    for (var i = 0; i < childNodes.length; i++) {
+        totalMass += childNodes[i].mass;
+        totalValue = childNodes[i].value ? totalValue + childNodes[i].value : totalValue;
+    }
+    clusterOptions.mass = totalMass;
+    if (totalValue > 0) {
+      clusterOptions.value = totalValue;
+    }
+    return clusterOptions;
+  },
+}
+</pre>
+            </td>
+        </tr>
+        <tr>
+            <td>clusterNodeProperties</td>
+            <td class="mid">Object</td>
+            <td><i>Optional. </i> This is an object containing the options for the cluster node. All options described
+                in the <a href="./nodes.html">nodes module</a> are allowed. This allows you to style your cluster node
+                any way you want. This is also the style object that is provided in the processProperties function for
+                fine tuning. If undefined, default node options will be used.
+            </td>
+        </tr>
+        <tr>
+            <td>clusterEdgeProperties</td>
+            <td class="mid">Object</td>
+            <td><i>Optional. </i> This is an object containing the options for the edges connected to the cluster. All
+                options described in the <a href="./edges.html">edges module</a> are allowed. Using this, you can style
+                the edges connecting to the cluster any way you want. If none are provided, the optoins from the edges
+                that are replaced are used. If undefined, default edge options will be used.
+            </td>
+        </tr>
+
+    </table>
+
+    <h4 id="locales">Locales</h4>
+
+    <p>The locales object has the following format:</p>
+    <pre class="prettyprint lang-js">
+var locales = {
+  en: {
+    edit: 'Edit',
+    del: 'Delete selected',
+    back: 'Back',
+    addNode: 'Add Node',
+    addEdge: 'Add Edge',
+    editNode: 'Edit Node',
+    editEdge: 'Edit Edge',
+    addDescription: 'Click in an empty space to place a new node.',
+    edgeDescription: 'Click on a node and drag the edge to another node to connect them.',
+    editEdgeDescription: 'Click on the control points and drag them to a node to connect to it.',
+    createEdgeError: 'Cannot link edges to a cluster.',
+    deleteClusterError: 'Clusters cannot be deleted.',
+    editClusterError: 'Clusters cannot be edited.'
+  }
+}</pre>
+    <p>If you want to define your own locale, you can change the key ('en' here) and change all the string. You can then
+        use your new key in the locale option.</p>
+
+    <br>
+    <br>
+    <br>
+    <br>
+    <br>
 
     <h3>All Events</h3>
 
     <p>This is a list of all the events in the public API. They are collected here from all individual modules.</p>
+
+    <p>These events are fired by the interaction module. They are related to user input.</p>
+    <table class="moduleTable">
+        <tr class="header">
+            <td class="eventName">name</td>
+            <td class="eventProperties">properties</td>
+            <td>description</td>
+        </tr>
+        <tr class="subHeader evenRow">
+            <td colspan="3">Events triggered by human interaction, selection, dragging etc.</td>
+        </tr>
+        <tr class="evenRow">
+            <td>click</td>
+            <td class="mid">
+<pre class="code">
+{
+  nodes: [Array of selected nodeIds],
+  edges: [Array of selected edgeIds],
+  event: [Object] original click event,
+  pointer: {
+    DOM: {x:pointer_x, y:pointer_y},
+    canvas: {x:canvas_x, y:canvas_y}
+  }
+}
+</pre>
+            </td>
+            <td>Fired when the user clicks the mouse or taps on a touchscreen device.</td>
+        </tr>
+        <tr class="evenRow">
+            <td>doubleClick</td>
+            <td class="mid">same as <code>click</code>.</td>
+            <td>Fired when the user double clicks the mouse or double taps on a touchscreen device. Since a double click
+                is in fact 2 clicks, 2 click events are fired, followed by a double click event. If you do not want to
+                use the click events if a double click event is fired, just check the time between click events before
+                processing them.
+            </td>
+        </tr>
+        <tr class="evenRow">
+            <td>oncontext</td>
+            <td class="mid">same as <code>click</code>.</td>
+            <td>Fired when the user click on the canvas with the right mouse button. The right mouse button does not
+                select by default. You can use <a href="./selection.html">getNodeAt</a> to select the node if you want.
+            </td>
+        </tr>
+        <tr class="evenRow">
+            <td>hold</td>
+            <td class="mid">same as <code>click</code>.</td>
+            <td>Fired when the user clicks and holds the mouse or taps and holds on a touchscreen device. A click event
+                is also fired in this case.
+            </td>
+        </tr>
+        <tr class="evenRow">
+            <td>release</td>
+            <td class="mid">same as <code>click</code>.</td>
+            <td>Fired after drawing on the canvas has been completed. Can be used to draw on top of the network.</td>
+        </tr>
+        <tr class="evenRow">
+            <td>select</td>
+            <td class="mid">same as <code>click</code>.</td>
+            <td>Fired when the selection has changed by user action. This means a node or edge has been selected, added
+                to the selection or deselected. <b>All select events are only triggerd on click and hold</b>.
+            </td>
+        </tr>
+        <tr class="evenRow">
+            <td>selectNode</td>
+            <td class="mid">same as <code>click</code>.</td>
+            <td>Fired when a node has been selected by the user.</td>
+        </tr>
+        <tr class="evenRow">
+            <td>selectEdge</td>
+            <td class="mid">same as <code>click</code>.</td>
+            <td>Fired when a edge has been selected by the user.</td>
+        </tr>
+        <tr class="evenRow">
+            <td>deselectNode</td>
+            <td class="mid"><pre class="code">
+{
+  nodes: [Array of selected nodeIds],
+  edges: [Array of selected edgeIds],
+  event: [Object] original click event,
+  pointer: {
+    DOM: {x:pointer_x, y:pointer_y},
+    canvas: {x:canvas_x, y:canvas_y}
+    }
+  },
+  previousSelection: {
+    nodes: [Array of previously selected nodeIds],
+    edges: [Array of previously selected edgeIds]
+  }
+}
+</pre>
+            </td>
+            <td>Fired when a node (or nodes) has (or have) been deselected by the user. The previous selection is the
+                list of nodes and edges that were selected before the last user event.
+            </td>
+        </tr>
+        <tr class="evenRow">
+            <td>deselectEdge</td>
+            <td class="mid">same as <code>deselectNode</code>.</td>
+            <td>Fired when a edge (or edges) has (or have) been deselected by the user. The previous selection is the
+                list of nodes and edges that were selected before the last user event.
+            </td>
+        </tr>
+        <tr class="evenRow">
+            <td>dragStart</td>
+            <td class="mid">same as <code>click</code>.</td>
+            <td>Fired when starting a drag.</td>
+        </tr>
+        <tr class="evenRow">
+            <td>dragging</td>
+            <td class="mid">same as <code>click</code>.</td>
+            <td>Fired when dragging node(s) or the view.</td>
+        </tr>
+        <tr class="evenRow">
+            <td>dragEnd</td>
+            <td class="mid">same as <code>click</code>.</td>
+            <td>Fired when the drag has finished.</td>
+        </tr>
+        <tr class="evenRow">
+            <td>zoom</td>
+            <td class="mid"><code>{direction:'+'/'-'}</code></td>
+            <td>Fired when the user zooms in or out. The properties tell you which direction the zoom is in.</td>
+        </tr>
+        <tr class="evenRow">
+            <td>showPopup</td>
+            <td class="mid"><code>id of item corresponding to popup</code></td>
+            <td>Fired when the popup is shown.</td>
+        </tr>
+        <tr class="evenRow">
+            <td>hidePopup</td>
+            <td class="mid">none</td>
+            <td>Fired when the popup is hidden.</td>
+        </tr>
+        <tr class="subHeader oddRow">
+            <td colspan="3">Events triggered the physics simulation. Can be used to trigger GUI updates.</td>
+        </tr>
+        <tr class="oddRow">
+            <td>startStabilizing</td>
+            <td class="mid">none</td>
+            <td>Fired when stabilization starts. This is also the case when you drag a node and the physics simulation
+                restarts to stabilize again. Stabilization does not neccesarily imply 'without showing'.
+            </td>
+        <tr class="oddRow">
+            <td>stabilizationProgress</td>
+            <td class="mid">
+<pre class="code">
+{
+  iterations: Number // iterations so far,
+  total: Number // total iterations in options
+}
+</pre>
+            </td>
+            <td>Fired when a multiple of the <code>updateInterval</code> number of iterations is reached. This only
+                occurs in the 'hidden' stabilization.
+            </td>
+        </tr>
+        <tr class="oddRow">
+            <td>stabilizationIterationsDone</td>
+            <td class="mid">none</td>
+            <td>Fired when the 'hidden' stabilization finishes. This does not necessarily mean the network is
+                stabilized; it could also mean that the amount of iterations defined in the options has been reached.
+            </td>
+        <tr class="oddRow">
+            <td>stabilized</td>
+            <td class="mid">
+<pre class="code">
+{
+  iterations: Number // iterations it took
+}
+</pre>
+            </td>
+            <td>Fired when the network has stabilized or when the <code>stopSimulation()</code> has been called. The
+                amount of iterations it took could be used to tweak the maximum amount of iterations needed to stabilize
+                the network.
+            </td>
+        <tr class="subHeader evenRow">
+            <td colspan="3">Event triggered by the canvas.</td>
+        </tr>
+        <tr class="evenRow">
+            <td>resize</td>
+            <td class="mid">
+<pre class="code">
+{
+  width: Number     // the new width  of the canvas
+  height: Number    // the new height of the canvas
+  oldWidth: Number  // the old width  of the canvas
+  oldHeight: Number // the old height of the canvas
+}
+</pre>
+                <ul>
+                </ul>
+            </td>
+            <td>Fired when the size of the canvas has been resized, either by a redraw call when the container div has
+                changed in size, a setSize() call with new values or a setOptions() with new width and/or height values.
+            </td>
+
+        </tr>
+        <tr class="subHeader oddRow">
+            <td colspan="3">Events triggered by the rendering module. Can be used to draw custom elements on the canvas.</td>
+        </tr>
+        <tr class="oddRow">
+            <td>initRedraw</td>
+            <td class="mid">none</td>
+            <td>Fired before the redrawing begins. The simulation step has completed at this point. Can be used to move
+                custom elements before starting drawing the new frame.
+            </td>
+        <tr class="oddRow">
+            <td>beforeDrawing</td>
+            <td class="mid"><code>canvas context</code></td>
+            <td>Fired after the canvas has been cleared, scaled and translated to the viewing position but before all
+                edges and nodes are drawn. Can be used to draw behind the network.
+            </td>
+        <tr class="oddRow">
+            <td>afterDrawing</td>
+            <td class="mid"><code>canvas context</code></td>
+            <td>Fired after drawing on the canvas has been completed. Can be used to draw on top of the network.</td>
+        </tr>
+        <tr class="subHeader evenRow">
+            <td colspan="3">Event triggered by the view module.</td>
+        </tr>
+        <tr class="evenRow">
+            <td>animationFinished</td>
+            <td class="mid">none</td>
+            <td>Fired when an animation is finished.</td>
+    </table>
+
 
     <br>
     <br>
