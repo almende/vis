@@ -447,7 +447,7 @@ var options = {
     The following options are available.
   </p>
 
-  <table class="moduleTable" >
+  <table class="moduleTable" id="optionTable">
     <tr class="header">
       <td>Name</td>
       <td>Type</td>
@@ -485,39 +485,34 @@ var options = {
         If value is <code>'all'</code> then each field defined on the timeline item will become a <code>data-</code> attribute.</td>
     </tr>
 
-
-    <tr>
-      <td>editable</td>
+    <tr class='toggle collapsible' onclick="toggleTable('optionTable','editable', this);">
+      <td><span parent="editable" class="right-caret"></span> editable</td>
       <td class="mid">boolean | Object</td>
       <td class="mid"><code>false</code></td>
       <td>If true, the items in the timeline can be manipulated. Only applicable when option <code>selectable</code> is <code><code>true</code></code>. See also the callbacks <code>onAdd</code>, <code>onUpdate</code>, <code>onMove</code>, and <code>onRemove</code>. When <code>editable</code> is an object, one can enable or disable individual manipulation actions.
         See section <a href="#Editing_Items">Editing Items</a> for a detailed explanation.
       </td>
     </tr>
-
-    <tr>
-      <td>editable.add</td>
+    <tr parent="editable" class="hidden">
+      <td class="indent">editable.add</td>
       <td class="mid">boolean</td>
       <td class="mid"><code>false</code></td>
       <td>If true, new items can be created by double tapping an empty space in the Timeline. See section <a href="#Editing_Items">Editing Items</a> for a detailed explanation.</td>
     </tr>
-
-    <tr>
-      <td>editable.remove</td>
+    <tr parent="editable" class="hidden">
+      <td class="indent">editable.remove</td>
       <td class="mid">boolean</td>
       <td class="mid"><code>false</code></td>
       <td>If true, items can be deleted by first selecting them, and then clicking the delete button on the top right of the item. See section <a href="#Editing_Items">Editing Items</a> for a detailed explanation.</td>
     </tr>
-
-    <tr>
-      <td>editable.updateGroup</td>
+    <tr parent="editable" class="hidden">
+      <td class="indent">editable.updateGroup</td>
       <td class="mid">boolean</td>
       <td class="mid"><code>false</code></td>
       <td>If true, items can be dragged from one group to another. Only applicable when the Timeline has groups. See section <a href="#Editing_Items">Editing Items</a> for a detailed explanation.</td>
     </tr>
-
-    <tr>
-      <td>editable.updateTime</td>
+    <tr parent="editable" class="hidden">
+      <td class="indent">editable.updateTime</td>
       <td class="mid">boolean</td>
       <td class="mid"><code>false</code></td>
       <td>If true, items can be dragged to another moment in time. See section <a href="#Editing_Items">Editing Items</a> for a detailed explanation.</td>
@@ -611,36 +606,32 @@ var options = {
       <td>A map with i18n locales. See section <a href="#Localization">Localization</a> for more information.</td>
     </tr>
 
-    <tr>
-      <td>margin</td>
+    <tr class='toggle collapsible' onclick="toggleTable('optionTable','margin', this);">
+      <td><span parent="margin" class="right-caret"></span> margin</td>
       <td class="mid">number | Object</td>
       <td class="mid">Object</td>
       <td>When a number, applies the margin to <code>margin.axis</code>, <code>margin.item.horizontal</code>, and <code>margin.item.vertical</code>.</td>
     </tr>
-
-    <tr>
-      <td>margin.axis</td>
+    <tr parent="margin" class="hidden">
+      <td class="indent">margin.axis</td>
       <td class="mid">number</td>
       <td class="mid"><code>20</code></td>
       <td>The minimal margin in pixels between items and the time axis.</td>
     </tr>
-
-    <tr>
-      <td>margin.item</td>
+    <tr parent="margin" class="hidden">
+      <td class="indent">margin.item</td>
       <td class="mid">number</td>
       <td class="mid"><code>10</code></td>
       <td>The minimal margin in pixels between items in both horizontal and vertical direction.</td>
     </tr>
-
-    <tr>
-      <td>margin.item.horizontal</td>
+    <tr parent="margin" class="hidden">
+      <td class="indent2">margin.item.horizontal</td>
       <td class="mid">number</td>
       <td class="mid"><code>10</code></td>
       <td>The minimal horizontal margin in pixels between items.</td>
     </tr>
-
-    <tr>
-      <td>margin.item.vertical</td>
+    <tr parent="margin" class="hidden">
+      <td class="indent2">margin.item.vertical</td>
       <td class="mid">number</td>
       <td class="mid"><code>10</code></td>
       <td>The minimal vertical margin in pixels between items.</td>
@@ -742,26 +733,25 @@ var options = {
       </td>
     </tr>
 
-    <tr>
-      <td>orientation</td>
+    <tr class='toggle collapsible' onclick="toggleTable('optionTable','orientation', this);">
+      <td><span parent="orientation" class="right-caret"></span> orientation</td>
       <td class="mid">String | Object</td>
       <td class="mid"><code>'bottom'</code></td>
       <td>Orientation of the timelines axis and items. When orientation is a string, the value is applied to both items and axis. Can be 'top', 'bottom' (default), or 'both'.</td>
     </tr>
-
-    <tr>
-      <td>orientation.axis</td>
+    <tr parent="orientation" class="hidden">
+      <td class="indent">orientation.axis</td>
       <td class="mid">String</td>
       <td class="mid"><code>'bottom'</code></td>
       <td>Orientation of the timeline axis: 'top', 'bottom' (default), or 'both'. If orientation is 'bottom', the time axis is drawn at the bottom. When 'top', the axis is drawn on top. When 'both', two axes are drawn, both on top and at the bottom.</td>
     </tr>
-
-    <tr>
-      <td>orientation.item</td>
+    <tr parent="orientation" class="hidden">
+      <td class="indent">orientation.item</td>
       <td class="mid">String</td>
       <td class="mid"><code>'bottom'</code></td>
       <td>Orientation of the timeline items: 'top' or 'bottom' (default). Determines whether items are aligned to the top or bottom of the Timeline.</td>
     </tr>
+
 
     <tr>
       <td>selectable</td>
@@ -834,8 +824,14 @@ var options = {
       <td>A template function used to generate the contents of the items. The function is called by the Timeline with an items data as argument, and must return HTML code as result. When the option template is specified, the items do not need to have a field <code>content</code>. See section <a href="#Templates">Templates</a> for a detailed explanation.</td>
     </tr>
 
-    <tr>
-      <td>timeAxis.scale</td>
+    <tr class='toggle collapsible' onclick="toggleTable('optionTable','timeAxis', this);">
+      <td><span parent="timeAxis" class="right-caret"></span> timeAxis</td>
+      <td class="mid">Object</td>
+      <td class="mid"><code>Object</code></td>
+      <td>Specify a fixed scale and step size for the time axis.</td>
+    </tr>
+    <tr parent="timeAxis" class="hidden">
+      <td class="indent">timeAxis.scale</td>
       <td class="mid">String</td>
       <td class="mid">none</td>
       <td>Set a fixed scale for the time axis of the Timeline. Choose from <code>'millisecond'</code>, <code>'second'</code>, <code>'minute'</code>, <code>'hour'</code>, <code>'weekday'</code>, <code>'day'</code>, <code>'month'</code>, <code>'year'</code>. Example usage:
@@ -844,9 +840,8 @@ var options = {
 }</pre>
       </td>
     </tr>
-
-    <tr>
-      <td>timeAxis.step</td>
+    <tr parent="timeAxis" class="hidden">
+      <td class="indent">timeAxis.step</td>
       <td class="mid">number</td>
       <td class="mid"><code>1</code></td>
       <td>
