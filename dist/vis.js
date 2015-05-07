@@ -257,7 +257,8 @@ return /******/ (function(modules) { // webpackBootstrap
   };
 
   /**
-   * Fill an object with a possibly partially defined other object. Only copies values.
+   * Fill an object with a possibly partially defined other object. Only copies values if the a object has an object requiring values.
+   * That means an object is not created on a property if only the b object has it.
    * @param obj
    * @param value
    */
@@ -271,6 +272,10 @@ return /******/ (function(modules) { // webpackBootstrap
             delete a[prop];
           } else {
             a[prop] = b[prop];
+          }
+        } else {
+          if (typeof a[prop] === 'object') {
+            exports.fillIfDefined(a[prop], b[prop], allowDeletion);
           }
         }
       }
@@ -1040,12 +1045,12 @@ return /******/ (function(modules) { // webpackBootstrap
    */
   exports.parseColor = function (color) {
     var c;
-    if (exports.isString(color)) {
-      if (exports.isValidRGB(color)) {
+    if (exports.isString(color) === true) {
+      if (exports.isValidRGB(color) === true) {
         var rgb = color.substr(4).substr(0, color.length - 5).split(',');
         color = exports.RGBToHex(rgb[0], rgb[1], rgb[2]);
       }
-      if (exports.isValidHex(color)) {
+      if (exports.isValidHex(color) === true) {
         var hsv = exports.hexToHSV(color);
         var lighterColorHSV = { h: hsv.h, s: hsv.s * 0.45, v: Math.min(1, hsv.v * 1.05) };
         var darkerColorHSV = { h: hsv.h, s: Math.min(1, hsv.v * 1.25), v: hsv.v * 0.6 };
@@ -3126,7 +3131,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   'use strict';
 
-  var Emitter = __webpack_require__(43);
+  var Emitter = __webpack_require__(68);
   var DataSet = __webpack_require__(3);
   var DataView = __webpack_require__(4);
   var util = __webpack_require__(1);
@@ -6289,13 +6294,13 @@ return /******/ (function(modules) { // webpackBootstrap
 
   'use strict';
 
-  var Emitter = __webpack_require__(43);
+  var Emitter = __webpack_require__(68);
   var Hammer = __webpack_require__(41);
   var util = __webpack_require__(1);
   var DataSet = __webpack_require__(3);
   var DataView = __webpack_require__(4);
   var Range = __webpack_require__(17);
-  var Core = __webpack_require__(44);
+  var Core = __webpack_require__(43);
   var TimeAxis = __webpack_require__(35);
   var CurrentTime = __webpack_require__(26);
   var CustomTime = __webpack_require__(27);
@@ -6729,13 +6734,13 @@ return /******/ (function(modules) { // webpackBootstrap
 
   'use strict';
 
-  var Emitter = __webpack_require__(43);
+  var Emitter = __webpack_require__(68);
   var Hammer = __webpack_require__(41);
   var util = __webpack_require__(1);
   var DataSet = __webpack_require__(3);
   var DataView = __webpack_require__(4);
   var Range = __webpack_require__(17);
-  var Core = __webpack_require__(44);
+  var Core = __webpack_require__(43);
   var TimeAxis = __webpack_require__(35);
   var CurrentTime = __webpack_require__(26);
   var CustomTime = __webpack_require__(27);
@@ -7728,7 +7733,7 @@ return /******/ (function(modules) { // webpackBootstrap
   'use strict';
 
   var util = __webpack_require__(1);
-  var hammerUtil = __webpack_require__(48);
+  var hammerUtil = __webpack_require__(44);
   var moment = __webpack_require__(40);
   var Component = __webpack_require__(25);
   var DateUtil = __webpack_require__(15);
@@ -10476,7 +10481,7 @@ return /******/ (function(modules) { // webpackBootstrap
   var util = __webpack_require__(1);
   var Component = __webpack_require__(25);
   var moment = __webpack_require__(40);
-  var locales = __webpack_require__(49);
+  var locales = __webpack_require__(48);
 
   /**
    * A current time bar
@@ -10653,7 +10658,7 @@ return /******/ (function(modules) { // webpackBootstrap
   var util = __webpack_require__(1);
   var Component = __webpack_require__(25);
   var moment = __webpack_require__(40);
-  var locales = __webpack_require__(49);
+  var locales = __webpack_require__(48);
 
   /**
    * A custom time bar
@@ -11494,9 +11499,9 @@ return /******/ (function(modules) { // webpackBootstrap
 
   var util = __webpack_require__(1);
   var DOMutil = __webpack_require__(2);
-  var Line = __webpack_require__(50);
-  var Bar = __webpack_require__(51);
-  var Points = __webpack_require__(52);
+  var Line = __webpack_require__(49);
+  var Bar = __webpack_require__(50);
+  var Points = __webpack_require__(51);
 
   /**
    * /**
@@ -14161,8 +14166,8 @@ return /******/ (function(modules) { // webpackBootstrap
   var DataAxis = __webpack_require__(28);
   var GraphGroup = __webpack_require__(29);
   var Legend = __webpack_require__(33);
-  var BarFunctions = __webpack_require__(51);
-  var LineFunctions = __webpack_require__(50);
+  var BarFunctions = __webpack_require__(50);
+  var LineFunctions = __webpack_require__(49);
 
   var UNGROUPED = '__ungrouped__'; // reserved group id for ungrouped items
 
@@ -15567,51 +15572,51 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
 
-  var _modulesGroups = __webpack_require__(53);
+  var _modulesGroups = __webpack_require__(52);
 
   var _modulesGroups2 = _interopRequireDefault(_modulesGroups);
 
-  var _modulesNodesHandler = __webpack_require__(54);
+  var _modulesNodesHandler = __webpack_require__(53);
 
   var _modulesNodesHandler2 = _interopRequireDefault(_modulesNodesHandler);
 
-  var _modulesEdgesHandler = __webpack_require__(55);
+  var _modulesEdgesHandler = __webpack_require__(54);
 
   var _modulesEdgesHandler2 = _interopRequireDefault(_modulesEdgesHandler);
 
-  var _modulesPhysicsEngine = __webpack_require__(56);
+  var _modulesPhysicsEngine = __webpack_require__(55);
 
   var _modulesPhysicsEngine2 = _interopRequireDefault(_modulesPhysicsEngine);
 
-  var _modulesClustering = __webpack_require__(57);
+  var _modulesClustering = __webpack_require__(56);
 
   var _modulesClustering2 = _interopRequireDefault(_modulesClustering);
 
-  var _modulesCanvasRenderer = __webpack_require__(58);
+  var _modulesCanvasRenderer = __webpack_require__(57);
 
   var _modulesCanvasRenderer2 = _interopRequireDefault(_modulesCanvasRenderer);
 
-  var _modulesCanvas = __webpack_require__(59);
+  var _modulesCanvas = __webpack_require__(58);
 
   var _modulesCanvas2 = _interopRequireDefault(_modulesCanvas);
 
-  var _modulesView = __webpack_require__(60);
+  var _modulesView = __webpack_require__(59);
 
   var _modulesView2 = _interopRequireDefault(_modulesView);
 
-  var _modulesInteractionHandler = __webpack_require__(61);
+  var _modulesInteractionHandler = __webpack_require__(60);
 
   var _modulesInteractionHandler2 = _interopRequireDefault(_modulesInteractionHandler);
 
-  var _modulesSelectionHandler = __webpack_require__(62);
+  var _modulesSelectionHandler = __webpack_require__(61);
 
   var _modulesSelectionHandler2 = _interopRequireDefault(_modulesSelectionHandler);
 
-  var _modulesLayoutEngine = __webpack_require__(63);
+  var _modulesLayoutEngine = __webpack_require__(62);
 
   var _modulesLayoutEngine2 = _interopRequireDefault(_modulesLayoutEngine);
 
-  var _modulesManipulationSystem = __webpack_require__(64);
+  var _modulesManipulationSystem = __webpack_require__(63);
 
   var _modulesManipulationSystem2 = _interopRequireDefault(_modulesManipulationSystem);
 
@@ -15623,12 +15628,12 @@ return /******/ (function(modules) { // webpackBootstrap
 
   var _modulesValidator2 = _interopRequireDefault(_modulesValidator);
 
-  var _modulesComponentsAllOptionsJs = __webpack_require__(65);
+  var _modulesComponentsAllOptionsJs = __webpack_require__(64);
 
   // Load custom shapes into CanvasRenderingContext2D
-  __webpack_require__(66);
+  __webpack_require__(65);
 
-  var Emitter = __webpack_require__(43);
+  var Emitter = __webpack_require__(68);
   var Hammer = __webpack_require__(41);
   var util = __webpack_require__(1);
   var DataSet = __webpack_require__(3);
@@ -15636,8 +15641,8 @@ return /******/ (function(modules) { // webpackBootstrap
   var dotparser = __webpack_require__(38);
   var gephiParser = __webpack_require__(39);
   var Images = __webpack_require__(37);
-  var Activator = __webpack_require__(67);
-  var locales = __webpack_require__(68);
+  var Activator = __webpack_require__(66);
+  var locales = __webpack_require__(67);
 
   /**
    * @constructor Network
@@ -16125,6 +16130,9 @@ return /******/ (function(modules) { // webpackBootstrap
   };
   Network.prototype.unselectAll = function () {
     this.selectionHandler.unselectAll.apply(this.selectionHandler, arguments);
+  };
+  Network.prototype.redraw = function () {
+    this.renderer.redraw.apply(this.renderer, arguments);
   };
   Network.prototype.getScale = function () {
     this.view.getScale.apply(this.view, arguments);
@@ -17127,8 +17135,8 @@ return /******/ (function(modules) { // webpackBootstrap
   'use strict';
 
   if (typeof window !== 'undefined') {
-    var propagating = __webpack_require__(70);
-    var Hammer = window['Hammer'] || __webpack_require__(71);
+    var propagating = __webpack_require__(83);
+    var Hammer = window['Hammer'] || __webpack_require__(82);
     module.exports = propagating(Hammer, {
       preventDefault: 'mouse'
     });
@@ -17358,188 +17366,18 @@ return /******/ (function(modules) { // webpackBootstrap
 /* 43 */
 /***/ function(module, exports, __webpack_require__) {
 
-  
-  /**
-   * Expose `Emitter`.
-   */
-
-  module.exports = Emitter;
-
-  /**
-   * Initialize a new `Emitter`.
-   *
-   * @api public
-   */
-
-  function Emitter(obj) {
-    if (obj) return mixin(obj);
-  };
-
-  /**
-   * Mixin the emitter properties.
-   *
-   * @param {Object} obj
-   * @return {Object}
-   * @api private
-   */
-
-  function mixin(obj) {
-    for (var key in Emitter.prototype) {
-      obj[key] = Emitter.prototype[key];
-    }
-    return obj;
-  }
-
-  /**
-   * Listen on the given `event` with `fn`.
-   *
-   * @param {String} event
-   * @param {Function} fn
-   * @return {Emitter}
-   * @api public
-   */
-
-  Emitter.prototype.on =
-  Emitter.prototype.addEventListener = function(event, fn){
-    this._callbacks = this._callbacks || {};
-    (this._callbacks[event] = this._callbacks[event] || [])
-      .push(fn);
-    return this;
-  };
-
-  /**
-   * Adds an `event` listener that will be invoked a single
-   * time then automatically removed.
-   *
-   * @param {String} event
-   * @param {Function} fn
-   * @return {Emitter}
-   * @api public
-   */
-
-  Emitter.prototype.once = function(event, fn){
-    var self = this;
-    this._callbacks = this._callbacks || {};
-
-    function on() {
-      self.off(event, on);
-      fn.apply(this, arguments);
-    }
-
-    on.fn = fn;
-    this.on(event, on);
-    return this;
-  };
-
-  /**
-   * Remove the given callback for `event` or all
-   * registered callbacks.
-   *
-   * @param {String} event
-   * @param {Function} fn
-   * @return {Emitter}
-   * @api public
-   */
-
-  Emitter.prototype.off =
-  Emitter.prototype.removeListener =
-  Emitter.prototype.removeAllListeners =
-  Emitter.prototype.removeEventListener = function(event, fn){
-    this._callbacks = this._callbacks || {};
-
-    // all
-    if (0 == arguments.length) {
-      this._callbacks = {};
-      return this;
-    }
-
-    // specific event
-    var callbacks = this._callbacks[event];
-    if (!callbacks) return this;
-
-    // remove all handlers
-    if (1 == arguments.length) {
-      delete this._callbacks[event];
-      return this;
-    }
-
-    // remove specific handler
-    var cb;
-    for (var i = 0; i < callbacks.length; i++) {
-      cb = callbacks[i];
-      if (cb === fn || cb.fn === fn) {
-        callbacks.splice(i, 1);
-        break;
-      }
-    }
-    return this;
-  };
-
-  /**
-   * Emit `event` with the given args.
-   *
-   * @param {String} event
-   * @param {Mixed} ...
-   * @return {Emitter}
-   */
-
-  Emitter.prototype.emit = function(event){
-    this._callbacks = this._callbacks || {};
-    var args = [].slice.call(arguments, 1)
-      , callbacks = this._callbacks[event];
-
-    if (callbacks) {
-      callbacks = callbacks.slice(0);
-      for (var i = 0, len = callbacks.length; i < len; ++i) {
-        callbacks[i].apply(this, args);
-      }
-    }
-
-    return this;
-  };
-
-  /**
-   * Return array of callbacks for `event`.
-   *
-   * @param {String} event
-   * @return {Array}
-   * @api public
-   */
-
-  Emitter.prototype.listeners = function(event){
-    this._callbacks = this._callbacks || {};
-    return this._callbacks[event] || [];
-  };
-
-  /**
-   * Check if this emitter has `event` handlers.
-   *
-   * @param {String} event
-   * @return {Boolean}
-   * @api public
-   */
-
-  Emitter.prototype.hasListeners = function(event){
-    return !! this.listeners(event).length;
-  };
-
-
-/***/ },
-/* 44 */
-/***/ function(module, exports, __webpack_require__) {
-
   'use strict';
 
-  var Emitter = __webpack_require__(43);
+  var Emitter = __webpack_require__(68);
   var Hammer = __webpack_require__(41);
-  var hammerUtil = __webpack_require__(48);
+  var hammerUtil = __webpack_require__(44);
   var util = __webpack_require__(1);
   var DataSet = __webpack_require__(3);
   var DataView = __webpack_require__(4);
   var Range = __webpack_require__(17);
   var ItemSet = __webpack_require__(32);
   var TimeAxis = __webpack_require__(35);
-  var Activator = __webpack_require__(67);
+  var Activator = __webpack_require__(66);
   var DateUtil = __webpack_require__(15);
   var CustomTime = __webpack_require__(27);
 
@@ -18492,6 +18330,78 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = Core;
 
 /***/ },
+/* 44 */
+/***/ function(module, exports, __webpack_require__) {
+
+  'use strict';
+
+  var Hammer = __webpack_require__(41);
+
+  /**
+   * Register a touch event, taking place before a gesture
+   * @param {Hammer} hammer       A hammer instance
+   * @param {function} callback   Callback, called as callback(event)
+   */
+  exports.onTouch = function (hammer, callback) {
+    callback.inputHandler = function (event) {
+      if (event.isFirst && !isTouching) {
+        callback(event);
+
+        isTouching = true;
+        setTimeout(function () {
+          isTouching = false;
+        }, 0);
+      }
+    };
+
+    hammer.on('hammer.input', callback.inputHandler);
+  };
+
+  // isTouching is true while a touch action is being emitted
+  // this is a hack to prevent `touch` from being fired twice
+  var isTouching = false;
+
+  /**
+   * Register a release event, taking place after a gesture
+   * @param {Hammer} hammer       A hammer instance
+   * @param {function} callback   Callback, called as callback(event)
+   */
+  exports.onRelease = function (hammer, callback) {
+    callback.inputHandler = function (event) {
+      if (event.isFinal && !isReleasing) {
+        callback(event);
+
+        isReleasing = true;
+        setTimeout(function () {
+          isReleasing = false;
+        }, 0);
+      }
+    };
+
+    return hammer.on('hammer.input', callback.inputHandler);
+  };
+
+  // isReleasing is true while a release action is being emitted
+  // this is a hack to prevent `release` from being fired twice
+  var isReleasing = false;
+
+  /**
+   * Unregister a touch event, taking place before a gesture
+   * @param {Hammer} hammer       A hammer instance
+   * @param {function} callback   Callback, called as callback(event)
+   */
+  exports.offTouch = function (hammer, callback) {
+    hammer.off('hammer.input', callback.inputHandler);
+  };
+
+  /**
+   * Unregister a release event, taking place before a gesture
+   * @param {Hammer} hammer       A hammer instance
+   * @param {function} callback   Callback, called as callback(event)
+   */
+  exports.offRelease = exports.offTouch;
+
+/***/ },
 /* 45 */
 /***/ function(module, exports, __webpack_require__) {
 
@@ -18507,7 +18417,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
 
-  var _componentsColorPicker = __webpack_require__(72);
+  var _componentsColorPicker = __webpack_require__(70);
 
   var _componentsColorPicker2 = _interopRequireDefault(_componentsColorPicker);
 
@@ -19296,9 +19206,9 @@ return /******/ (function(modules) { // webpackBootstrap
         var globalSearchThreshold = 5;
 
         if (globalSearch.distance <= globalSearchThreshold && localSearch.distance > globalSearch.distance) {
-          console.log('%cUnknown option detected: "' + option + '" in ' + Validator.printLocation(localSearch.path, option, '') + 'Perhaps it was misplaced? Matching option found at: ' + Validator.printLocation(globalSearch.path, option, ''), printStyle);
+          console.log('%cUnknown option detected: "' + option + '" in ' + Validator.printLocation(localSearch.path, option, '') + 'Perhaps it was misplaced? Matching option found at: ' + Validator.printLocation(globalSearch.path, globalSearch.closestMatch, ''), printStyle);
         } else if (localSearch.distance <= localSearchThreshold) {
-          console.log('%cUnknown option detected: "' + option + '". Did you mean "' + localSearch.closestMatch + '"?' + Validator.printLocation(localSearch.path, option), printStyle);
+          console.log('%cUnknown option detected: "' + option + '". Did you mean "' + localSearch.closestMatch + '"?' + Validator.printLocation(localSearch.path, localSearch.closestMatch), printStyle);
         } else {
           console.log('%cUnknown option detected: "' + option + '". Did you mean one of these: ' + Validator.print(Object.keys(options)) + Validator.printLocation(path, option), printStyle);
         }
@@ -19319,6 +19229,7 @@ return /******/ (function(modules) { // webpackBootstrap
       value: function findInOptions(option, options, path) {
         var recursive = arguments[3] === undefined ? false : arguments[3];
 
+        //console.log(option, options, path)
         var min = 1000000000;
         var closestMatch = '';
         var closestMatchPath = [];
@@ -19649,78 +19560,6 @@ return /******/ (function(modules) { // webpackBootstrap
 /* 48 */
 /***/ function(module, exports, __webpack_require__) {
 
-  'use strict';
-
-  var Hammer = __webpack_require__(41);
-
-  /**
-   * Register a touch event, taking place before a gesture
-   * @param {Hammer} hammer       A hammer instance
-   * @param {function} callback   Callback, called as callback(event)
-   */
-  exports.onTouch = function (hammer, callback) {
-    callback.inputHandler = function (event) {
-      if (event.isFirst && !isTouching) {
-        callback(event);
-
-        isTouching = true;
-        setTimeout(function () {
-          isTouching = false;
-        }, 0);
-      }
-    };
-
-    hammer.on('hammer.input', callback.inputHandler);
-  };
-
-  // isTouching is true while a touch action is being emitted
-  // this is a hack to prevent `touch` from being fired twice
-  var isTouching = false;
-
-  /**
-   * Register a release event, taking place after a gesture
-   * @param {Hammer} hammer       A hammer instance
-   * @param {function} callback   Callback, called as callback(event)
-   */
-  exports.onRelease = function (hammer, callback) {
-    callback.inputHandler = function (event) {
-      if (event.isFinal && !isReleasing) {
-        callback(event);
-
-        isReleasing = true;
-        setTimeout(function () {
-          isReleasing = false;
-        }, 0);
-      }
-    };
-
-    return hammer.on('hammer.input', callback.inputHandler);
-  };
-
-  // isReleasing is true while a release action is being emitted
-  // this is a hack to prevent `release` from being fired twice
-  var isReleasing = false;
-
-  /**
-   * Unregister a touch event, taking place before a gesture
-   * @param {Hammer} hammer       A hammer instance
-   * @param {function} callback   Callback, called as callback(event)
-   */
-  exports.offTouch = function (hammer, callback) {
-    hammer.off('hammer.input', callback.inputHandler);
-  };
-
-  /**
-   * Unregister a release event, taking place before a gesture
-   * @param {Hammer} hammer       A hammer instance
-   * @param {function} callback   Callback, called as callback(event)
-   */
-  exports.offRelease = exports.offTouch;
-
-/***/ },
-/* 49 */
-/***/ function(module, exports, __webpack_require__) {
-
   // English
   'use strict';
 
@@ -19740,13 +19579,13 @@ return /******/ (function(modules) { // webpackBootstrap
   exports['nl_BE'] = exports['nl'];
 
 /***/ },
-/* 50 */
+/* 49 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
 
   var DOMutil = __webpack_require__(2);
-  var Points = __webpack_require__(52);
+  var Points = __webpack_require__(51);
 
   function Line(groupId, options) {
     this.groupId = groupId;
@@ -20035,13 +19874,13 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = Line;
 
 /***/ },
-/* 51 */
+/* 50 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
 
   var DOMutil = __webpack_require__(2);
-  var Points = __webpack_require__(52);
+  var Points = __webpack_require__(51);
 
   function Bargraph(groupId, options) {
     this.groupId = groupId;
@@ -20283,7 +20122,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = Bargraph;
 
 /***/ },
-/* 52 */
+/* 51 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -20330,7 +20169,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = Points;
 
 /***/ },
-/* 53 */
+/* 52 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
@@ -20472,7 +20311,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports["default"];
 
 /***/ },
-/* 54 */
+/* 53 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -20487,11 +20326,11 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
 
-  var _componentsNode = __webpack_require__(73);
+  var _componentsNode = __webpack_require__(71);
 
   var _componentsNode2 = _interopRequireDefault(_componentsNode);
 
-  var _componentsSharedLabel = __webpack_require__(74);
+  var _componentsSharedLabel = __webpack_require__(72);
 
   var _componentsSharedLabel2 = _interopRequireDefault(_componentsSharedLabel);
 
@@ -20945,7 +20784,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 55 */
+/* 54 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -20960,11 +20799,11 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
 
-  var _componentsEdge = __webpack_require__(75);
+  var _componentsEdge = __webpack_require__(84);
 
   var _componentsEdge2 = _interopRequireDefault(_componentsEdge);
 
-  var _componentsSharedLabel = __webpack_require__(74);
+  var _componentsSharedLabel = __webpack_require__(72);
 
   var _componentsSharedLabel2 = _interopRequireDefault(_componentsSharedLabel);
 
@@ -21365,7 +21204,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 56 */
+/* 55 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -21380,27 +21219,27 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
 
-  var _componentsPhysicsBarnesHutSolver = __webpack_require__(76);
+  var _componentsPhysicsBarnesHutSolver = __webpack_require__(73);
 
   var _componentsPhysicsBarnesHutSolver2 = _interopRequireDefault(_componentsPhysicsBarnesHutSolver);
 
-  var _componentsPhysicsRepulsionSolver = __webpack_require__(77);
+  var _componentsPhysicsRepulsionSolver = __webpack_require__(74);
 
   var _componentsPhysicsRepulsionSolver2 = _interopRequireDefault(_componentsPhysicsRepulsionSolver);
 
-  var _componentsPhysicsHierarchicalRepulsionSolver = __webpack_require__(78);
+  var _componentsPhysicsHierarchicalRepulsionSolver = __webpack_require__(75);
 
   var _componentsPhysicsHierarchicalRepulsionSolver2 = _interopRequireDefault(_componentsPhysicsHierarchicalRepulsionSolver);
 
-  var _componentsPhysicsSpringSolver = __webpack_require__(79);
+  var _componentsPhysicsSpringSolver = __webpack_require__(76);
 
   var _componentsPhysicsSpringSolver2 = _interopRequireDefault(_componentsPhysicsSpringSolver);
 
-  var _componentsPhysicsHierarchicalSpringSolver = __webpack_require__(80);
+  var _componentsPhysicsHierarchicalSpringSolver = __webpack_require__(77);
 
   var _componentsPhysicsHierarchicalSpringSolver2 = _interopRequireDefault(_componentsPhysicsHierarchicalSpringSolver);
 
-  var _componentsPhysicsCentralGravitySolver = __webpack_require__(81);
+  var _componentsPhysicsCentralGravitySolver = __webpack_require__(78);
 
   var _componentsPhysicsCentralGravitySolver2 = _interopRequireDefault(_componentsPhysicsCentralGravitySolver);
 
@@ -21941,7 +21780,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 57 */
+/* 56 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
@@ -21956,7 +21795,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
-  var _componentsNodesCluster = __webpack_require__(82);
+  var _componentsNodesCluster = __webpack_require__(79);
 
   var _componentsNodesCluster2 = _interopRequireDefault(_componentsNodesCluster);
 
@@ -22593,7 +22432,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports["default"];
 
 /***/ },
-/* 58 */
+/* 57 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -22931,7 +22770,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 59 */
+/* 58 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -22945,7 +22784,7 @@ return /******/ (function(modules) { // webpackBootstrap
   function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
 
   var Hammer = __webpack_require__(41);
-  var hammerUtil = __webpack_require__(48);
+  var hammerUtil = __webpack_require__(44);
 
   var util = __webpack_require__(1);
 
@@ -23299,7 +23138,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 60 */
+/* 59 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
@@ -23701,7 +23540,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports["default"];
 
 /***/ },
-/* 61 */
+/* 60 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -23716,11 +23555,11 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
 
-  var _componentsNavigationHandler = __webpack_require__(83);
+  var _componentsNavigationHandler = __webpack_require__(80);
 
   var _componentsNavigationHandler2 = _interopRequireDefault(_componentsNavigationHandler);
 
-  var _componentsPopup = __webpack_require__(84);
+  var _componentsPopup = __webpack_require__(81);
 
   var _componentsPopup2 = _interopRequireDefault(_componentsPopup);
 
@@ -24429,7 +24268,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 62 */
+/* 61 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
@@ -24442,7 +24281,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
-  var Node = __webpack_require__(73);
+  var Node = __webpack_require__(71);
   var util = __webpack_require__(1);
 
   var SelectionHandler = (function () {
@@ -25117,7 +24956,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports["default"];
 
 /***/ },
-/* 63 */
+/* 62 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -25614,7 +25453,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 64 */
+/* 63 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -25629,7 +25468,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   var util = __webpack_require__(1);
   var Hammer = __webpack_require__(41);
-  var hammerUtil = __webpack_require__(48);
+  var hammerUtil = __webpack_require__(44);
 
   /**
    * clears the toolbar div element of children
@@ -26803,7 +26642,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 65 */
+/* 64 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -27261,7 +27100,7 @@ return /******/ (function(modules) { // webpackBootstrap
   exports.configureOptions = configureOptions;
 
 /***/ },
-/* 66 */
+/* 65 */
 /***/ function(module, exports, __webpack_require__) {
 
   /**
@@ -27545,13 +27384,13 @@ return /******/ (function(modules) { // webpackBootstrap
   }
 
 /***/ },
-/* 67 */
+/* 66 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
 
-  var keycharm = __webpack_require__(85);
-  var Emitter = __webpack_require__(43);
+  var keycharm = __webpack_require__(86);
+  var Emitter = __webpack_require__(68);
   var Hammer = __webpack_require__(41);
   var util = __webpack_require__(1);
 
@@ -27698,7 +27537,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = Activator;
 
 /***/ },
-/* 68 */
+/* 67 */
 /***/ function(module, exports, __webpack_require__) {
 
   // English
@@ -27740,6 +27579,176 @@ return /******/ (function(modules) { // webpackBootstrap
   };
   exports['nl_NL'] = exports['nl'];
   exports['nl_BE'] = exports['nl'];
+
+/***/ },
+/* 68 */
+/***/ function(module, exports, __webpack_require__) {
+
+  
+  /**
+   * Expose `Emitter`.
+   */
+
+  module.exports = Emitter;
+
+  /**
+   * Initialize a new `Emitter`.
+   *
+   * @api public
+   */
+
+  function Emitter(obj) {
+    if (obj) return mixin(obj);
+  };
+
+  /**
+   * Mixin the emitter properties.
+   *
+   * @param {Object} obj
+   * @return {Object}
+   * @api private
+   */
+
+  function mixin(obj) {
+    for (var key in Emitter.prototype) {
+      obj[key] = Emitter.prototype[key];
+    }
+    return obj;
+  }
+
+  /**
+   * Listen on the given `event` with `fn`.
+   *
+   * @param {String} event
+   * @param {Function} fn
+   * @return {Emitter}
+   * @api public
+   */
+
+  Emitter.prototype.on =
+  Emitter.prototype.addEventListener = function(event, fn){
+    this._callbacks = this._callbacks || {};
+    (this._callbacks[event] = this._callbacks[event] || [])
+      .push(fn);
+    return this;
+  };
+
+  /**
+   * Adds an `event` listener that will be invoked a single
+   * time then automatically removed.
+   *
+   * @param {String} event
+   * @param {Function} fn
+   * @return {Emitter}
+   * @api public
+   */
+
+  Emitter.prototype.once = function(event, fn){
+    var self = this;
+    this._callbacks = this._callbacks || {};
+
+    function on() {
+      self.off(event, on);
+      fn.apply(this, arguments);
+    }
+
+    on.fn = fn;
+    this.on(event, on);
+    return this;
+  };
+
+  /**
+   * Remove the given callback for `event` or all
+   * registered callbacks.
+   *
+   * @param {String} event
+   * @param {Function} fn
+   * @return {Emitter}
+   * @api public
+   */
+
+  Emitter.prototype.off =
+  Emitter.prototype.removeListener =
+  Emitter.prototype.removeAllListeners =
+  Emitter.prototype.removeEventListener = function(event, fn){
+    this._callbacks = this._callbacks || {};
+
+    // all
+    if (0 == arguments.length) {
+      this._callbacks = {};
+      return this;
+    }
+
+    // specific event
+    var callbacks = this._callbacks[event];
+    if (!callbacks) return this;
+
+    // remove all handlers
+    if (1 == arguments.length) {
+      delete this._callbacks[event];
+      return this;
+    }
+
+    // remove specific handler
+    var cb;
+    for (var i = 0; i < callbacks.length; i++) {
+      cb = callbacks[i];
+      if (cb === fn || cb.fn === fn) {
+        callbacks.splice(i, 1);
+        break;
+      }
+    }
+    return this;
+  };
+
+  /**
+   * Emit `event` with the given args.
+   *
+   * @param {String} event
+   * @param {Mixed} ...
+   * @return {Emitter}
+   */
+
+  Emitter.prototype.emit = function(event){
+    this._callbacks = this._callbacks || {};
+    var args = [].slice.call(arguments, 1)
+      , callbacks = this._callbacks[event];
+
+    if (callbacks) {
+      callbacks = callbacks.slice(0);
+      for (var i = 0, len = callbacks.length; i < len; ++i) {
+        callbacks[i].apply(this, args);
+      }
+    }
+
+    return this;
+  };
+
+  /**
+   * Return array of callbacks for `event`.
+   *
+   * @param {String} event
+   * @return {Array}
+   * @api public
+   */
+
+  Emitter.prototype.listeners = function(event){
+    this._callbacks = this._callbacks || {};
+    return this._callbacks[event] || [];
+  };
+
+  /**
+   * Check if this emitter has `event` handlers.
+   *
+   * @param {String} event
+   * @return {Boolean}
+   * @api public
+   */
+
+  Emitter.prototype.hasListeners = function(event){
+    return !! this.listeners(event).length;
+  };
+
 
 /***/ },
 /* 69 */
@@ -30828,238 +30837,2799 @@ return /******/ (function(modules) { // webpackBootstrap
       return _moment;
 
   }));
-  /* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(87)(module)))
+  /* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(104)(module)))
 
 /***/ },
 /* 70 */
 /***/ function(module, exports, __webpack_require__) {
 
-  var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;'use strict';
+  'use strict';
 
-  (function (factory) {
-    if (true) {
-      // AMD. Register as an anonymous module.
-      !(__WEBPACK_AMD_DEFINE_ARRAY__ = [], __WEBPACK_AMD_DEFINE_FACTORY__ = (factory), __WEBPACK_AMD_DEFINE_RESULT__ = (typeof __WEBPACK_AMD_DEFINE_FACTORY__ === 'function' ? (__WEBPACK_AMD_DEFINE_FACTORY__.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__)) : __WEBPACK_AMD_DEFINE_FACTORY__), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__));
-    } else if (typeof exports === 'object') {
-      // Node. Does not work with strict CommonJS, but
-      // only CommonJS-like environments that support module.exports,
-      // like Node.
-      module.exports = factory();
-    } else {
-      // Browser globals (root is window)
-      window.propagating = factory();
+  Object.defineProperty(exports, '__esModule', {
+    value: true
+  });
+
+  var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
+
+  function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
+
+  var Hammer = __webpack_require__(41);
+  var hammerUtil = __webpack_require__(44);
+  var util = __webpack_require__(1);
+
+  var ColorPicker = (function () {
+    function ColorPicker() {
+      var pixelRatio = arguments[0] === undefined ? 1 : arguments[0];
+
+      _classCallCheck(this, ColorPicker);
+
+      this.pixelRatio = pixelRatio;
+      this.generated = false;
+      this.centerCoordinates = { x: 289 / 2, y: 289 / 2 };
+      this.r = 289 * 0.49;
+      this.color = { r: 255, g: 255, b: 255, a: 1 };
+      this.hueCircle = undefined;
+      this.initialColor = { r: 255, g: 255, b: 255, a: 1 };
+      this.previousColor = undefined;
+      this.applied = false;
+
+      // bound by
+      this.updateCallback = function () {};
+
+      // create all DOM elements
+      this._create();
     }
-  }(function () {
-    var _firstTarget = null; // singleton, will contain the target element where the touch event started
-    var _processing = false; // singleton, true when a touch event is being handled
 
-    /**
-     * Extend an Hammer.js instance with event propagation.
-     *
-     * Features:
-     * - Events emitted by hammer will propagate in order from child to parent
-     *   elements.
-     * - Events are extended with a function `event.stopPropagation()` to stop
-     *   propagation to parent elements.
-     * - An option `preventDefault` to stop all default browser behavior.
-     *
-     * Usage:
-     *   var hammer = propagatingHammer(new Hammer(element));
-     *   var hammer = propagatingHammer(new Hammer(element), {preventDefault: true});
-     *
-     * @param {Hammer.Manager} hammer   An hammer instance.
-     * @param {Object} [options]        Available options:
-     *                                  - `preventDefault: true | 'mouse' | 'touch' | 'pen'`.
-     *                                    Enforce preventing the default browser behavior.
-     *                                    Cannot be set to `false`.
-     * @return {Hammer.Manager} Returns the same hammer instance with extended
-     *                          functionality
-     */
-    return function propagating(hammer, options) {
-      if (options && options.preventDefault === false) {
-        throw new Error('Only supports preventDefault == true');
-      }
-      var _options = options || {
-        preventDefault: false
-      };
-
-      if (hammer.Manager) {
-        // This looks like the Hammer constructor.
-        // Overload the constructors with our own.
-        var Hammer = hammer;
-
-        var PropagatingHammer = function(element, options) {
-          return propagating(new Hammer(element, options), _options);
-        };
-        Hammer.extend(PropagatingHammer, Hammer);
-        PropagatingHammer.Manager = function (element, options) {
-          return propagating(new Hammer.Manager(element, options), _options);
-        };
-
-        return PropagatingHammer;
-      }
-
-      // attach to DOM element
-      var element = hammer.element;
-      element.hammer = hammer;
-
-      // move the original functions that we will wrap
-      hammer._on = hammer.on;
-      hammer._off = hammer.off;
-      hammer._emit = hammer.emit;
-      hammer._destroy = hammer.destroy;
-
-      /** @type {Object.<String, Array.<function>>} */
-      hammer._handlers = {};
-
-      // register an event to catch the start of a gesture and store the
-      // target in a singleton
-      hammer._on('hammer.input', function (event) {
-        if (_options.preventDefault === true || (_options.preventDefault === event.pointerType)) {
-          event.preventDefault();
-        }
-        if (event.isFirst) {
-          _firstTarget = event.target;
-          _processing = true;
-        }
-        if (event.isFinal) {
-          _processing = false;
-        }
-      });
+    _createClass(ColorPicker, [{
+      key: 'insertTo',
 
       /**
-       * Register a handler for one or multiple events
-       * @param {String} events    A space separated string with events
-       * @param {function} handler A callback function, called as handler(event)
-       * @returns {Hammer.Manager} Returns the hammer instance
+       * this inserts the colorPicker into a div from the DOM
+       * @param container
        */
-      hammer.on = function (events, handler) {
-        // register the handler
-        split(events).forEach(function (event) {
-          var _handlers = hammer._handlers[event];
-          if (!_handlers) {
-            hammer._handlers[event] = _handlers = [];
+      value: function insertTo(container) {
+        if (this.hammer !== undefined) {
+          this.hammer.destroy();
+          this.hammer = undefined;
+        }
+        this.container = container;
+        this.container.appendChild(this.frame);
+        this._bindHammer();
 
-            // register the static, propagated handler
-            hammer._on(event, propagatedHandler);
+        this._setSize();
+      }
+    }, {
+      key: 'setCallback',
+
+      /**
+       * the callback is executed on apply and save. Bind it to the application
+       * @param callback
+       */
+      value: function setCallback(callback) {
+        if (typeof callback === 'function') {
+          this.updateCallback = callback;
+        } else {
+          throw new Error('Function attempted to set as colorPicker callback is not a function.');
+        }
+      }
+    }, {
+      key: '_isColorString',
+      value: function _isColorString(color) {
+        var htmlColors = { black: '#000000', navy: '#000080', darkblue: '#00008B', mediumblue: '#0000CD', blue: '#0000FF', darkgreen: '#006400', green: '#008000', teal: '#008080', darkcyan: '#008B8B', deepskyblue: '#00BFFF', darkturquoise: '#00CED1', mediumspringgreen: '#00FA9A', lime: '#00FF00', springgreen: '#00FF7F', aqua: '#00FFFF', cyan: '#00FFFF', midnightblue: '#191970', dodgerblue: '#1E90FF', lightseagreen: '#20B2AA', forestgreen: '#228B22', seagreen: '#2E8B57', darkslategray: '#2F4F4F', limegreen: '#32CD32', mediumseagreen: '#3CB371', turquoise: '#40E0D0', royalblue: '#4169E1', steelblue: '#4682B4', darkslateblue: '#483D8B', mediumturquoise: '#48D1CC', indigo: '#4B0082', darkolivegreen: '#556B2F', cadetblue: '#5F9EA0', cornflowerblue: '#6495ED', mediumaquamarine: '#66CDAA', dimgray: '#696969', slateblue: '#6A5ACD', olivedrab: '#6B8E23', slategray: '#708090', lightslategray: '#778899', mediumslateblue: '#7B68EE', lawngreen: '#7CFC00', chartreuse: '#7FFF00', aquamarine: '#7FFFD4', maroon: '#800000', purple: '#800080', olive: '#808000', gray: '#808080', skyblue: '#87CEEB', lightskyblue: '#87CEFA', blueviolet: '#8A2BE2', darkred: '#8B0000', darkmagenta: '#8B008B', saddlebrown: '#8B4513', darkseagreen: '#8FBC8F', lightgreen: '#90EE90', mediumpurple: '#9370D8', darkviolet: '#9400D3', palegreen: '#98FB98', darkorchid: '#9932CC', yellowgreen: '#9ACD32', sienna: '#A0522D', brown: '#A52A2A', darkgray: '#A9A9A9', lightblue: '#ADD8E6', greenyellow: '#ADFF2F', paleturquoise: '#AFEEEE', lightsteelblue: '#B0C4DE', powderblue: '#B0E0E6', firebrick: '#B22222', darkgoldenrod: '#B8860B', mediumorchid: '#BA55D3', rosybrown: '#BC8F8F', darkkhaki: '#BDB76B', silver: '#C0C0C0', mediumvioletred: '#C71585', indianred: '#CD5C5C', peru: '#CD853F', chocolate: '#D2691E', tan: '#D2B48C', lightgrey: '#D3D3D3', palevioletred: '#D87093', thistle: '#D8BFD8', orchid: '#DA70D6', goldenrod: '#DAA520', crimson: '#DC143C', gainsboro: '#DCDCDC', plum: '#DDA0DD', burlywood: '#DEB887', lightcyan: '#E0FFFF', lavender: '#E6E6FA', darksalmon: '#E9967A', violet: '#EE82EE', palegoldenrod: '#EEE8AA', lightcoral: '#F08080', khaki: '#F0E68C', aliceblue: '#F0F8FF', honeydew: '#F0FFF0', azure: '#F0FFFF', sandybrown: '#F4A460', wheat: '#F5DEB3', beige: '#F5F5DC', whitesmoke: '#F5F5F5', mintcream: '#F5FFFA', ghostwhite: '#F8F8FF', salmon: '#FA8072', antiquewhite: '#FAEBD7', linen: '#FAF0E6', lightgoldenrodyellow: '#FAFAD2', oldlace: '#FDF5E6', red: '#FF0000', fuchsia: '#FF00FF', magenta: '#FF00FF', deeppink: '#FF1493', orangered: '#FF4500', tomato: '#FF6347', hotpink: '#FF69B4', coral: '#FF7F50', darkorange: '#FF8C00', lightsalmon: '#FFA07A', orange: '#FFA500', lightpink: '#FFB6C1', pink: '#FFC0CB', gold: '#FFD700', peachpuff: '#FFDAB9', navajowhite: '#FFDEAD', moccasin: '#FFE4B5', bisque: '#FFE4C4', mistyrose: '#FFE4E1', blanchedalmond: '#FFEBCD', papayawhip: '#FFEFD5', lavenderblush: '#FFF0F5', seashell: '#FFF5EE', cornsilk: '#FFF8DC', lemonchiffon: '#FFFACD', floralwhite: '#FFFAF0', snow: '#FFFAFA', yellow: '#FFFF00', lightyellow: '#FFFFE0', ivory: '#FFFFF0', white: '#FFFFFF' };
+        if (typeof color === 'string') {
+          return htmlColors[color];
+        }
+      }
+    }, {
+      key: 'setColor',
+
+      /**
+       * Set the color of the colorPicker
+       * Supported formats:
+       * 'red'                   --> HTML color string
+       * '#ffffff'               --> hex string
+       * 'rbg(255,255,255)'      --> rgb string
+       * 'rgba(255,255,255,1.0)' --> rgba string
+       * {r:255,g:255,b:255}     --> rgb object
+       * {r:255,g:255,b:255,a:1.0} --> rgba object
+       * @param color
+       * @param setInitial
+       */
+      value: function setColor(color) {
+        var setInitial = arguments[1] === undefined ? true : arguments[1];
+
+        if (color === 'none') {
+          return;
+        }
+
+        var rgba = undefined;
+
+        // if a html color shorthand is used, convert to hex
+        var htmlColor = this._isColorString(color);
+        if (htmlColor !== undefined) {
+          color = htmlColor;
+        }
+
+        // check format
+        if (util.isString(color) === true) {
+          if (util.isValidRGB(color) === true) {
+            var rgbaArray = color.substr(4).substr(0, color.length - 5).split(',');
+            rgba = { r: rgbaArray[0], g: rgbaArray[1], b: rgbaArray[2], a: 1 };
+          } else if (util.isValidRGBA(color) === true) {
+            var rgbaArray = color.substr(5).substr(0, color.length - 6).split(',');
+            rgba = { r: rgbaArray[0], g: rgbaArray[1], b: rgbaArray[2], a: rgbaArray[3] };
+          } else if (util.isValidHex(color) === true) {
+            var rgbObj = util.hexToRGB(color);
+            rgba = { r: rgbObj.r, g: rgbObj.g, b: rgbObj.b, a: 1 };
           }
-          _handlers.push(handler);
+        } else {
+          if (color instanceof Object) {
+            if (color.r !== undefined && color.g !== undefined && color.b !== undefined) {
+              var alpha = color.a !== undefined ? color.a : '1.0';
+              rgba = { r: color.r, g: color.g, b: color.b, a: alpha };
+            }
+          }
+        }
+
+        // set color
+        if (rgba === undefined) {
+          throw new Error('Unknown color passed to the colorPicker. Supported are strings: rgb, hex, rgba. Object: rgb ({r:r,g:g,b:b,[a:a]}). Supplied: ' + JSON.stringify(color));
+        } else {
+          this._setColor(rgba, setInitial);
+        }
+      }
+    }, {
+      key: 'show',
+
+      /**
+       * this shows the color picker at a location. The hue circle is constructed once and stored.
+       * @param x
+       * @param y
+       */
+      value: function show(x, y) {
+        this.applied = false;
+        this.frame.style.display = 'block';
+        this.frame.style.top = y + 'px';
+        this.frame.style.left = x + 'px';
+        this._generateHueCircle();
+      }
+    }, {
+      key: '_hide',
+
+      // ------------------------------------------ PRIVATE ----------------------------- //
+
+      /**
+       * Hide the picker. Is called by the cancel button.
+       * Optional boolean to store the previous color for easy access later on.
+       * @param storePrevious
+       * @private
+       */
+      value: function _hide() {
+        var storePrevious = arguments[0] === undefined ? true : arguments[0];
+
+        // store the previous color for next time;
+        if (storePrevious === true) {
+          this.previousColor = util.extend({}, this.color);
+        }
+
+        if (this.applied === true) {
+          this.updateCallback(this.initialColor);
+        }
+
+        this.frame.style.display = 'none';
+      }
+    }, {
+      key: '_save',
+
+      /**
+       * bound to the save button. Saves and hides.
+       * @private
+       */
+      value: function _save() {
+        this.updateCallback(this.color);
+        this.applied = false;
+        this._hide();
+      }
+    }, {
+      key: '_apply',
+
+      /**
+       * Bound to apply button. Saves but does not close. Is undone by the cancel button.
+       * @private
+       */
+      value: function _apply() {
+        this.applied = true;
+        this.updateCallback(this.color);
+        this._updatePicker(this.color);
+      }
+    }, {
+      key: '_loadLast',
+
+      /**
+       * load the color from the previous session.
+       * @private
+       */
+      value: function _loadLast() {
+        if (this.previousColor !== undefined) {
+          this.setColor(this.previousColor, false);
+        } else {
+          alert('There is no last color to load...');
+        }
+      }
+    }, {
+      key: '_setColor',
+
+      /**
+       * set the color, place the picker
+       * @param rgba
+       * @param setInitial
+       * @private
+       */
+      value: function _setColor(rgba) {
+        var setInitial = arguments[1] === undefined ? true : arguments[1];
+
+        // store the initial color
+        if (setInitial === true) {
+          this.initialColor = util.extend({}, rgba);
+        }
+
+        this.color = rgba;
+        var hsv = util.RGBToHSV(rgba.r, rgba.g, rgba.b);
+
+        var angleConvert = 2 * Math.PI;
+        var radius = this.r * hsv.s;
+        var x = this.centerCoordinates.x + radius * Math.sin(angleConvert * hsv.h);
+        var y = this.centerCoordinates.y + radius * Math.cos(angleConvert * hsv.h);
+
+        this.colorPickerSelector.style.left = x - 0.5 * this.colorPickerSelector.clientWidth + 'px';
+        this.colorPickerSelector.style.top = y - 0.5 * this.colorPickerSelector.clientHeight + 'px';
+
+        this._updatePicker(rgba);
+      }
+    }, {
+      key: '_setOpacity',
+
+      /**
+       * bound to opacity control
+       * @param value
+       * @private
+       */
+      value: function _setOpacity(value) {
+        this.color.a = value / 100;
+        this._updatePicker(this.color);
+      }
+    }, {
+      key: '_setBrightness',
+
+      /**
+       * bound to brightness control
+       * @param value
+       * @private
+       */
+      value: function _setBrightness(value) {
+        var hsv = util.RGBToHSV(this.color.r, this.color.g, this.color.b);
+        hsv.v = value / 100;
+        var rgba = util.HSVToRGB(hsv.h, hsv.s, hsv.v);
+        rgba['a'] = this.color.a;
+        this.color = rgba;
+        this._updatePicker();
+      }
+    }, {
+      key: '_updatePicker',
+
+      /**
+       * update the colorpicker. A black circle overlays the hue circle to mimic the brightness decreasing.
+       * @param rgba
+       * @private
+       */
+      value: function _updatePicker() {
+        var rgba = arguments[0] === undefined ? this.color : arguments[0];
+
+        var hsv = util.RGBToHSV(rgba.r, rgba.g, rgba.b);
+        var ctx = this.colorPickerCanvas.getContext('2d');
+        if (this.pixelRation === undefined) {
+          this.pixelRatio = (window.devicePixelRatio || 1) / (ctx.webkitBackingStorePixelRatio || ctx.mozBackingStorePixelRatio || ctx.msBackingStorePixelRatio || ctx.oBackingStorePixelRatio || ctx.backingStorePixelRatio || 1);
+        }
+        ctx.setTransform(this.pixelRatio, 0, 0, this.pixelRatio, 0, 0);
+
+        // clear the canvas
+        var w = this.colorPickerCanvas.clientWidth;
+        var h = this.colorPickerCanvas.clientHeight;
+        ctx.clearRect(0, 0, w, h);
+
+        ctx.putImageData(this.hueCircle, 0, 0);
+        ctx.fillStyle = 'rgba(0,0,0,' + (1 - hsv.v) + ')';
+        ctx.circle(this.centerCoordinates.x, this.centerCoordinates.y, this.r);
+        ctx.fill();
+
+        this.brightnessRange.value = 100 * hsv.v;
+        this.opacityRange.value = 100 * rgba.a;
+
+        this.initialColorDiv.style.backgroundColor = 'rgba(' + this.initialColor.r + ',' + this.initialColor.g + ',' + this.initialColor.b + ',' + this.initialColor.a + ')';
+        this.newColorDiv.style.backgroundColor = 'rgba(' + this.color.r + ',' + this.color.g + ',' + this.color.b + ',' + this.color.a + ')';
+      }
+    }, {
+      key: '_setSize',
+
+      /**
+       * used by create to set the size of the canvas.
+       * @private
+       */
+      value: function _setSize() {
+        this.colorPickerCanvas.style.width = '100%';
+        this.colorPickerCanvas.style.height = '100%';
+
+        this.colorPickerCanvas.width = 289 * this.pixelRatio;
+        this.colorPickerCanvas.height = 289 * this.pixelRatio;
+      }
+    }, {
+      key: '_create',
+
+      /**
+       * create all dom elements
+       * TODO: cleanup, lots of similar dom elements
+       * @private
+       */
+      value: function _create() {
+        this.frame = document.createElement('div');
+        this.frame.className = 'vis-color-picker';
+
+        this.colorPickerDiv = document.createElement('div');
+        this.colorPickerSelector = document.createElement('div');
+        this.colorPickerSelector.className = 'vis-selector';
+        this.colorPickerDiv.appendChild(this.colorPickerSelector);
+
+        this.colorPickerCanvas = document.createElement('canvas');
+        this.colorPickerDiv.appendChild(this.colorPickerCanvas);
+
+        if (!this.colorPickerCanvas.getContext) {
+          var noCanvas = document.createElement('DIV');
+          noCanvas.style.color = 'red';
+          noCanvas.style.fontWeight = 'bold';
+          noCanvas.style.padding = '10px';
+          noCanvas.innerHTML = 'Error: your browser does not support HTML canvas';
+          this.colorPickerCanvas.appendChild(noCanvas);
+        } else {
+          var ctx = this.colorPickerCanvas.getContext('2d');
+          this.pixelRatio = (window.devicePixelRatio || 1) / (ctx.webkitBackingStorePixelRatio || ctx.mozBackingStorePixelRatio || ctx.msBackingStorePixelRatio || ctx.oBackingStorePixelRatio || ctx.backingStorePixelRatio || 1);
+
+          this.colorPickerCanvas.getContext('2d').setTransform(this.pixelRatio, 0, 0, this.pixelRatio, 0, 0);
+        }
+
+        this.colorPickerDiv.className = 'vis-color';
+
+        this.opacityDiv = document.createElement('div');
+        this.opacityDiv.className = 'vis-opacity';
+
+        this.brightnessDiv = document.createElement('div');
+        this.brightnessDiv.className = 'vis-brightness';
+
+        this.arrowDiv = document.createElement('div');
+        this.arrowDiv.className = 'vis-arrow';
+
+        this.opacityRange = document.createElement('input');
+        this.opacityRange.type = 'range';
+        this.opacityRange.min = '0';
+        this.opacityRange.max = '100';
+        this.opacityRange.value = '100';
+        this.opacityRange.className = 'vis-range';
+
+        this.brightnessRange = document.createElement('input');
+        this.brightnessRange.type = 'range';
+        this.brightnessRange.min = '0';
+        this.brightnessRange.max = '100';
+        this.brightnessRange.value = '100';
+        this.brightnessRange.className = 'vis-range';
+
+        this.opacityDiv.appendChild(this.opacityRange);
+        this.brightnessDiv.appendChild(this.brightnessRange);
+
+        var me = this;
+        this.opacityRange.onchange = function () {
+          me._setOpacity(this.value);
+        };
+        this.opacityRange.oninput = function () {
+          me._setOpacity(this.value);
+        };
+        this.brightnessRange.onchange = function () {
+          me._setBrightness(this.value);
+        };
+        this.brightnessRange.oninput = function () {
+          me._setBrightness(this.value);
+        };
+
+        this.brightnessLabel = document.createElement('div');
+        this.brightnessLabel.className = 'vis-label vis-brightness';
+        this.brightnessLabel.innerHTML = 'brightness:';
+
+        this.opacityLabel = document.createElement('div');
+        this.opacityLabel.className = 'vis-label vis-opacity';
+        this.opacityLabel.innerHTML = 'opacity:';
+
+        this.newColorDiv = document.createElement('div');
+        this.newColorDiv.className = 'vis-new-color';
+        this.newColorDiv.innerHTML = 'new';
+
+        this.initialColorDiv = document.createElement('div');
+        this.initialColorDiv.className = 'vis-initial-color';
+        this.initialColorDiv.innerHTML = 'initial';
+
+        this.cancelButton = document.createElement('div');
+        this.cancelButton.className = 'vis-button vis-cancel';
+        this.cancelButton.innerHTML = 'cancel';
+        this.cancelButton.onclick = this._hide.bind(this, false);
+
+        this.applyButton = document.createElement('div');
+        this.applyButton.className = 'vis-button vis-apply';
+        this.applyButton.innerHTML = 'apply';
+        this.applyButton.onclick = this._apply.bind(this);
+
+        this.saveButton = document.createElement('div');
+        this.saveButton.className = 'vis-button vis-save';
+        this.saveButton.innerHTML = 'save';
+        this.saveButton.onclick = this._save.bind(this);
+
+        this.loadButton = document.createElement('div');
+        this.loadButton.className = 'vis-button vis-load';
+        this.loadButton.innerHTML = 'load last';
+        this.loadButton.onclick = this._loadLast.bind(this);
+
+        this.frame.appendChild(this.colorPickerDiv);
+        this.frame.appendChild(this.arrowDiv);
+        this.frame.appendChild(this.brightnessLabel);
+        this.frame.appendChild(this.brightnessDiv);
+        this.frame.appendChild(this.opacityLabel);
+        this.frame.appendChild(this.opacityDiv);
+        this.frame.appendChild(this.newColorDiv);
+        this.frame.appendChild(this.initialColorDiv);
+
+        this.frame.appendChild(this.cancelButton);
+        this.frame.appendChild(this.applyButton);
+        this.frame.appendChild(this.saveButton);
+        this.frame.appendChild(this.loadButton);
+      }
+    }, {
+      key: '_bindHammer',
+
+      /**
+       * bind hammer to the color picker
+       * @private
+       */
+      value: function _bindHammer() {
+        var _this = this;
+
+        this.drag = {};
+        this.pinch = {};
+        this.hammer = new Hammer(this.colorPickerCanvas);
+        this.hammer.get('pinch').set({ enable: true });
+
+        hammerUtil.onTouch(this.hammer, function (event) {
+          _this._moveSelector(event);
         });
-
-        return hammer;
-      };
-
-      /**
-       * Unregister a handler for one or multiple events
-       * @param {String} events      A space separated string with events
-       * @param {function} [handler] Optional. The registered handler. If not
-       *                             provided, all handlers for given events
-       *                             are removed.
-       * @returns {Hammer.Manager}   Returns the hammer instance
-       */
-      hammer.off = function (events, handler) {
-        // unregister the handler
-        split(events).forEach(function (event) {
-          var _handlers = hammer._handlers[event];
-          if (_handlers) {
-            _handlers = handler ? _handlers.filter(function (h) {
-              return h !== handler;
-            }) : [];
-
-            if (_handlers.length > 0) {
-              hammer._handlers[event] = _handlers;
-            }
-            else {
-              // remove static, propagated handler
-              hammer._off(event, propagatedHandler);
-              delete hammer._handlers[event];
-            }
-          }
+        this.hammer.on('tap', function (event) {
+          _this._moveSelector(event);
         });
-
-        return hammer;
-      };
-
-      /**
-       * Emit to the event listeners
-       * @param {string} eventType
-       * @param {Event} event
-       */
-      hammer.emit = function(eventType, event) {
-        if (!_processing) {
-          _firstTarget = event.target;
-        }
-        hammer._emit(eventType, event);
-      };
-
-      hammer.destroy = function () {
-        // Detach from DOM element
-        var element = hammer.element;
-        delete element.hammer;
-
-        // clear all handlers
-        hammer._handlers = {};
-
-        // call original hammer destroy
-        hammer._destroy();
-      };
-
-      // split a string with space separated words
-      function split(events) {
-        return events.match(/[^ ]+/g);
+        this.hammer.on('panstart', function (event) {
+          _this._moveSelector(event);
+        });
+        this.hammer.on('panmove', function (event) {
+          _this._moveSelector(event);
+        });
+        this.hammer.on('panend', function (event) {
+          _this._moveSelector(event);
+        });
       }
+    }, {
+      key: '_generateHueCircle',
 
       /**
-       * A static event handler, applying event propagation.
-       * @param {Object} event
+       * generate the hue circle. This is relatively heavy (200ms) and is done only once on the first time it is shown.
+       * @private
        */
-      function propagatedHandler(event) {
-        // let only a single hammer instance handle this event
-        if (event.type !== 'hammer.input') {
-          // it is possible that the same srcEvent is used with multiple hammer events,
-          // we keep track on which events are handled in an object _handled
-          if (!event.srcEvent._handled) {
-            event.srcEvent._handled = {};
+      value: function _generateHueCircle() {
+        if (this.generated === false) {
+          var ctx = this.colorPickerCanvas.getContext('2d');
+          if (this.pixelRation === undefined) {
+            this.pixelRatio = (window.devicePixelRatio || 1) / (ctx.webkitBackingStorePixelRatio || ctx.mozBackingStorePixelRatio || ctx.msBackingStorePixelRatio || ctx.oBackingStorePixelRatio || ctx.backingStorePixelRatio || 1);
           }
+          ctx.setTransform(this.pixelRatio, 0, 0, this.pixelRatio, 0, 0);
 
-          if (event.srcEvent._handled[event.type]) {
-            return;
-          }
-          else {
-            event.srcEvent._handled[event.type] = true;
-          }
-        }
+          // clear the canvas
+          var w = this.colorPickerCanvas.clientWidth;
+          var h = this.colorPickerCanvas.clientHeight;
+          ctx.clearRect(0, 0, w, h);
 
-        // attach a stopPropagation function to the event
-        var stopped = false;
-        event.stopPropagation = function () {
-          stopped = true;
-        };
-
-        // attach firstTarget property to the event
-        event.firstTarget = _firstTarget;
-
-        // propagate over all elements (until stopped)
-        var elem = _firstTarget;
-        while (elem && !stopped) {
-          var _handlers = elem.hammer && elem.hammer._handlers[event.type];
-          if (_handlers) {
-            for (var i = 0; i < _handlers.length && !stopped; i++) {
-              _handlers[i](event);
+          // draw hue circle
+          var x = undefined,
+              y = undefined,
+              hue = undefined,
+              sat = undefined;
+          this.centerCoordinates = { x: w * 0.5, y: h * 0.5 };
+          this.r = 0.49 * w;
+          var angleConvert = 2 * Math.PI / 360;
+          var hfac = 1 / 360;
+          var sfac = 1 / this.r;
+          var rgb = undefined;
+          for (hue = 0; hue < 360; hue++) {
+            for (sat = 0; sat < this.r; sat++) {
+              x = this.centerCoordinates.x + sat * Math.sin(angleConvert * hue);
+              y = this.centerCoordinates.y + sat * Math.cos(angleConvert * hue);
+              rgb = util.HSVToRGB(hue * hfac, sat * sfac, 1);
+              ctx.fillStyle = 'rgb(' + rgb.r + ',' + rgb.g + ',' + rgb.b + ')';
+              ctx.fillRect(x - 0.5, y - 0.5, 2, 2);
             }
           }
+          ctx.strokeStyle = 'rgba(0,0,0,1)';
+          ctx.circle(this.centerCoordinates.x, this.centerCoordinates.y, this.r);
+          ctx.stroke();
 
-          elem = elem.parentNode;
+          this.hueCircle = ctx.getImageData(0, 0, w, h);
         }
+        this.generated = true;
       }
+    }, {
+      key: '_moveSelector',
 
-      return hammer;
-    };
-  }));
+      /**
+       * move the selector. This is called by hammer functions.
+       *
+       * @param event
+       * @private
+       */
+      value: function _moveSelector(event) {
+        var rect = this.colorPickerDiv.getBoundingClientRect();
+        var left = event.center.x - rect.left;
+        var top = event.center.y - rect.top;
 
+        var centerY = 0.5 * this.colorPickerDiv.clientHeight;
+        var centerX = 0.5 * this.colorPickerDiv.clientWidth;
+
+        var x = left - centerX;
+        var y = top - centerY;
+
+        var angle = Math.atan2(x, y);
+        var radius = 0.98 * Math.min(Math.sqrt(x * x + y * y), centerX);
+
+        var newTop = Math.cos(angle) * radius + centerY;
+        var newLeft = Math.sin(angle) * radius + centerX;
+
+        this.colorPickerSelector.style.top = newTop - 0.5 * this.colorPickerSelector.clientHeight + 'px';
+        this.colorPickerSelector.style.left = newLeft - 0.5 * this.colorPickerSelector.clientWidth + 'px';
+
+        // set color
+        var h = angle / (2 * Math.PI);
+        h = h < 0 ? h + 1 : h;
+        var s = radius / this.r;
+        var hsv = util.RGBToHSV(this.color.r, this.color.g, this.color.b);
+        hsv.h = h;
+        hsv.s = s;
+        var rgba = util.HSVToRGB(hsv.h, hsv.s, hsv.v);
+        rgba['a'] = this.color.a;
+        this.color = rgba;
+
+        // update previews
+        this.initialColorDiv.style.backgroundColor = 'rgba(' + this.initialColor.r + ',' + this.initialColor.g + ',' + this.initialColor.b + ',' + this.initialColor.a + ')';
+        this.newColorDiv.style.backgroundColor = 'rgba(' + this.color.r + ',' + this.color.g + ',' + this.color.b + ',' + this.color.a + ')';
+      }
+    }]);
+
+    return ColorPicker;
+  })();
+
+  exports['default'] = ColorPicker;
+  module.exports = exports['default'];
 
 /***/ },
 /* 71 */
+/***/ function(module, exports, __webpack_require__) {
+
+  'use strict';
+
+  Object.defineProperty(exports, '__esModule', {
+    value: true
+  });
+
+  var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
+
+  function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
+
+  function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
+
+  var _sharedLabel = __webpack_require__(72);
+
+  var _sharedLabel2 = _interopRequireDefault(_sharedLabel);
+
+  var _nodesShapesBox = __webpack_require__(87);
+
+  var _nodesShapesBox2 = _interopRequireDefault(_nodesShapesBox);
+
+  var _nodesShapesCircle = __webpack_require__(88);
+
+  var _nodesShapesCircle2 = _interopRequireDefault(_nodesShapesCircle);
+
+  var _nodesShapesCircularImage = __webpack_require__(89);
+
+  var _nodesShapesCircularImage2 = _interopRequireDefault(_nodesShapesCircularImage);
+
+  var _nodesShapesDatabase = __webpack_require__(90);
+
+  var _nodesShapesDatabase2 = _interopRequireDefault(_nodesShapesDatabase);
+
+  var _nodesShapesDiamond = __webpack_require__(91);
+
+  var _nodesShapesDiamond2 = _interopRequireDefault(_nodesShapesDiamond);
+
+  var _nodesShapesDot = __webpack_require__(92);
+
+  var _nodesShapesDot2 = _interopRequireDefault(_nodesShapesDot);
+
+  var _nodesShapesEllipse = __webpack_require__(93);
+
+  var _nodesShapesEllipse2 = _interopRequireDefault(_nodesShapesEllipse);
+
+  var _nodesShapesIcon = __webpack_require__(94);
+
+  var _nodesShapesIcon2 = _interopRequireDefault(_nodesShapesIcon);
+
+  var _nodesShapesImage = __webpack_require__(95);
+
+  var _nodesShapesImage2 = _interopRequireDefault(_nodesShapesImage);
+
+  var _nodesShapesSquare = __webpack_require__(96);
+
+  var _nodesShapesSquare2 = _interopRequireDefault(_nodesShapesSquare);
+
+  var _nodesShapesStar = __webpack_require__(97);
+
+  var _nodesShapesStar2 = _interopRequireDefault(_nodesShapesStar);
+
+  var _nodesShapesText = __webpack_require__(98);
+
+  var _nodesShapesText2 = _interopRequireDefault(_nodesShapesText);
+
+  var _nodesShapesTriangle = __webpack_require__(99);
+
+  var _nodesShapesTriangle2 = _interopRequireDefault(_nodesShapesTriangle);
+
+  var _nodesShapesTriangleDown = __webpack_require__(100);
+
+  var _nodesShapesTriangleDown2 = _interopRequireDefault(_nodesShapesTriangleDown);
+
+  var _Validator = __webpack_require__(46);
+
+  var _Validator2 = _interopRequireDefault(_Validator);
+
+  var util = __webpack_require__(1);
+
+  /**
+   * @class Node
+   * A node. A node can be connected to other nodes via one or multiple edges.
+   * @param {object} options An object containing options for the node. All
+   *                            options are optional, except for the id.
+   *                              {number} id     Id of the node. Required
+   *                              {string} label  Text label for the node
+   *                              {number} x      Horizontal position of the node
+   *                              {number} y      Vertical position of the node
+   *                              {string} shape  Node shape, available:
+   *                                              "database", "circle", "ellipse",
+   *                                              "box", "image", "text", "dot",
+   *                                              "star", "triangle", "triangleDown",
+   *                                              "square", "icon"
+   *                              {string} image  An image url
+   *                              {string} title  An title text, can be HTML
+   *                              {anytype} group A group name or number
+   * @param {Network.Images} imagelist    A list with images. Only needed
+   *                                            when the node has an image
+   * @param {Network.Groups} grouplist    A list with groups. Needed for
+   *                                            retrieving group options
+   * @param {Object}               constants    An object with default values for
+   *                                            example for the color
+   *
+   */
+
+  var Node = (function () {
+    function Node(options, body, imagelist, grouplist, globalOptions) {
+      _classCallCheck(this, Node);
+
+      this.options = util.bridgeObject(globalOptions);
+      this.body = body;
+
+      this.edges = []; // all edges connected to this node
+
+      // set defaults for the options
+      this.id = undefined;
+      this.imagelist = imagelist;
+      this.grouplist = grouplist;
+
+      // state options
+      this.x = undefined;
+      this.y = undefined;
+      this.baseSize = this.options.size;
+      this.baseFontSize = this.options.font.size;
+      this.predefinedPosition = false; // used to check if initial fit should just take the range or approximate
+      this.selected = false;
+      this.hover = false;
+
+      this.labelModule = new _sharedLabel2['default'](this.body, this.options);
+      this.setOptions(options);
+    }
+
+    _createClass(Node, [{
+      key: 'attachEdge',
+
+      /**
+       * Attach a edge to the node
+       * @param {Edge} edge
+       */
+      value: function attachEdge(edge) {
+        if (this.edges.indexOf(edge) === -1) {
+          this.edges.push(edge);
+        }
+      }
+    }, {
+      key: 'detachEdge',
+
+      /**
+       * Detach a edge from the node
+       * @param {Edge} edge
+       */
+      value: function detachEdge(edge) {
+        var index = this.edges.indexOf(edge);
+        if (index != -1) {
+          this.edges.splice(index, 1);
+        }
+      }
+    }, {
+      key: 'togglePhysics',
+
+      /**
+       * Enable or disable the physics.
+       * @param status
+       */
+      value: function togglePhysics(status) {
+        this.options.physics = status;
+      }
+    }, {
+      key: 'setOptions',
+
+      /**
+       * Set or overwrite options for the node
+       * @param {Object} options an object with options
+       * @param {Object} constants  and object with default, global options
+       */
+      value: function setOptions(options) {
+        if (!options) {
+          return;
+        }
+
+        // basic options
+        if (options.id !== undefined) {
+          this.id = options.id;
+        }
+
+        if (this.id === undefined) {
+          throw 'Node must have an id';
+        }
+
+        if (options.x !== undefined) {
+          this.x = parseInt(options.x);this.predefinedPosition = true;
+        }
+        if (options.y !== undefined) {
+          this.y = parseInt(options.y);this.predefinedPosition = true;
+        }
+        if (options.size !== undefined) {
+          this.baseSize = options.size;
+        }
+        if (options.value !== undefined) {
+          options.value = parseInt(options.value);
+        }
+
+        // this transforms all shorthands into fully defined options
+        Node.parseOptions(this.options, options, true);
+
+        // copy group options
+        if (typeof options.group === 'number' || typeof options.group === 'string' && options.group != '') {
+          var groupObj = this.grouplist.get(options.group);
+          util.deepExtend(this.options, groupObj);
+          // the color object needs to be completely defined. Since groups can partially overwrite the colors, we parse it again, just in case.
+          this.options.color = util.parseColor(this.options.color);
+        }
+
+        // load the images
+        if (this.options.image !== undefined && this.options.image != '') {
+          if (this.imagelist) {
+            this.imageObj = this.imagelist.load(this.options.image, this.options.brokenImage);
+          } else {
+            throw 'No imagelist provided';
+          }
+        }
+
+        this.updateShape();
+        this.updateLabelModule();
+
+        // reset the size of the node, this can be changed
+        this._reset();
+      }
+    }, {
+      key: 'updateLabelModule',
+      value: function updateLabelModule() {
+        if (this.options.label === undefined || this.options.label === null) {
+          this.options.label = '';
+        }
+        this.labelModule.setOptions(this.options, true);
+        if (this.labelModule.baseSize !== undefined) {
+          this.baseFontSize = this.labelModule.baseSize;
+        }
+      }
+    }, {
+      key: 'updateShape',
+      value: function updateShape() {
+        // choose draw method depending on the shape
+        switch (this.options.shape) {
+          case 'box':
+            this.shape = new _nodesShapesBox2['default'](this.options, this.body, this.labelModule);
+            break;
+          case 'circle':
+            this.shape = new _nodesShapesCircle2['default'](this.options, this.body, this.labelModule);
+            break;
+          case 'circularImage':
+            this.shape = new _nodesShapesCircularImage2['default'](this.options, this.body, this.labelModule, this.imageObj);
+            break;
+          case 'database':
+            this.shape = new _nodesShapesDatabase2['default'](this.options, this.body, this.labelModule);
+            break;
+          case 'diamond':
+            this.shape = new _nodesShapesDiamond2['default'](this.options, this.body, this.labelModule);
+            break;
+          case 'dot':
+            this.shape = new _nodesShapesDot2['default'](this.options, this.body, this.labelModule);
+            break;
+          case 'ellipse':
+            this.shape = new _nodesShapesEllipse2['default'](this.options, this.body, this.labelModule);
+            break;
+          case 'icon':
+            this.shape = new _nodesShapesIcon2['default'](this.options, this.body, this.labelModule);
+            break;
+          case 'image':
+            this.shape = new _nodesShapesImage2['default'](this.options, this.body, this.labelModule, this.imageObj);
+            break;
+          case 'square':
+            this.shape = new _nodesShapesSquare2['default'](this.options, this.body, this.labelModule);
+            break;
+          case 'star':
+            this.shape = new _nodesShapesStar2['default'](this.options, this.body, this.labelModule);
+            break;
+          case 'text':
+            this.shape = new _nodesShapesText2['default'](this.options, this.body, this.labelModule);
+            break;
+          case 'triangle':
+            this.shape = new _nodesShapesTriangle2['default'](this.options, this.body, this.labelModule);
+            break;
+          case 'triangleDown':
+            this.shape = new _nodesShapesTriangleDown2['default'](this.options, this.body, this.labelModule);
+            break;
+          default:
+            this.shape = new _nodesShapesEllipse2['default'](this.options, this.body, this.labelModule);
+            break;
+        }
+        this._reset();
+      }
+    }, {
+      key: 'select',
+
+      /**
+       * select this node
+       */
+      value: function select() {
+        this.selected = true;
+        this._reset();
+      }
+    }, {
+      key: 'unselect',
+
+      /**
+       * unselect this node
+       */
+      value: function unselect() {
+        this.selected = false;
+        this._reset();
+      }
+    }, {
+      key: '_reset',
+
+      /**
+       * Reset the calculated size of the node, forces it to recalculate its size
+       * @private
+       */
+      value: function _reset() {
+        this.shape.width = undefined;
+        this.shape.height = undefined;
+      }
+    }, {
+      key: 'getTitle',
+
+      /**
+       * get the title of this node.
+       * @return {string} title    The title of the node, or undefined when no title
+       *                           has been set.
+       */
+      value: function getTitle() {
+        return this.options.title;
+      }
+    }, {
+      key: 'distanceToBorder',
+
+      /**
+       * Calculate the distance to the border of the Node
+       * @param {CanvasRenderingContext2D}   ctx
+       * @param {Number} angle        Angle in radians
+       * @returns {number} distance   Distance to the border in pixels
+       */
+      value: function distanceToBorder(ctx, angle) {
+        return this.shape.distanceToBorder(ctx, angle);
+      }
+    }, {
+      key: 'isFixed',
+
+      /**
+       * Check if this node has a fixed x and y position
+       * @return {boolean}      true if fixed, false if not
+       */
+      value: function isFixed() {
+        return this.options.fixed.x && this.options.fixed.y;
+      }
+    }, {
+      key: 'isSelected',
+
+      /**
+       * check if this node is selecte
+       * @return {boolean} selected   True if node is selected, else false
+       */
+      value: function isSelected() {
+        return this.selected;
+      }
+    }, {
+      key: 'getValue',
+
+      /**
+       * Retrieve the value of the node. Can be undefined
+       * @return {Number} value
+       */
+      value: function getValue() {
+        return this.options.value;
+      }
+    }, {
+      key: 'setValueRange',
+
+      /**
+       * Adjust the value range of the node. The node will adjust it's size
+       * based on its value.
+       * @param {Number} min
+       * @param {Number} max
+       */
+      value: function setValueRange(min, max, total) {
+        if (this.options.value !== undefined) {
+          var scale = this.options.scaling.customScalingFunction(min, max, total, this.options.value);
+          var sizeDiff = this.options.scaling.max - this.options.scaling.min;
+          if (this.options.scaling.label.enabled === true) {
+            var fontDiff = this.options.scaling.label.max - this.options.scaling.label.min;
+            this.options.font.size = this.options.scaling.label.min + scale * fontDiff;
+          }
+          this.options.size = this.options.scaling.min + scale * sizeDiff;
+        } else {
+          this.options.size = this.baseSize;
+          this.options.font.size = this.baseFontSize;
+        }
+      }
+    }, {
+      key: 'draw',
+
+      /**
+       * Draw this node in the given canvas
+       * The 2d context of a HTML canvas can be retrieved by canvas.getContext("2d");
+       * @param {CanvasRenderingContext2D}   ctx
+       */
+      value: function draw(ctx) {
+        this.shape.draw(ctx, this.x, this.y, this.selected, this.hover);
+      }
+    }, {
+      key: 'resize',
+
+      /**
+       * Recalculate the size of this node in the given canvas
+       * The 2d context of a HTML canvas can be retrieved by canvas.getContext("2d");
+       * @param {CanvasRenderingContext2D}   ctx
+       */
+      value: function resize(ctx) {
+        this.shape.resize(ctx);
+      }
+    }, {
+      key: 'isOverlappingWith',
+
+      /**
+       * Check if this object is overlapping with the provided object
+       * @param {Object} obj   an object with parameters left, top, right, bottom
+       * @return {boolean}     True if location is located on node
+       */
+      value: function isOverlappingWith(obj) {
+        return this.shape.left < obj.right && this.shape.left + this.shape.width > obj.left && this.shape.top < obj.bottom && this.shape.top + this.shape.height > obj.top;
+      }
+    }, {
+      key: 'isBoundingBoxOverlappingWith',
+
+      /**
+       * Check if this object is overlapping with the provided object
+       * @param {Object} obj   an object with parameters left, top, right, bottom
+       * @return {boolean}     True if location is located on node
+       */
+      value: function isBoundingBoxOverlappingWith(obj) {
+        return this.shape.boundingBox.left < obj.right && this.shape.boundingBox.right > obj.left && this.shape.boundingBox.top < obj.bottom && this.shape.boundingBox.bottom > obj.top;
+      }
+    }], [{
+      key: 'parseOptions',
+
+      /**
+       * This process all possible shorthands in the new options and makes sure that the parentOptions are fully defined.
+       * Static so it can also be used by the handler.
+       * @param parentOptions
+       * @param newOptions
+       */
+      value: function parseOptions(parentOptions, newOptions) {
+        var allowDeletion = arguments[2] === undefined ? false : arguments[2];
+
+        var fields = ['color', 'fixed', 'shadow'];
+        util.selectiveNotDeepExtend(fields, parentOptions, newOptions);
+
+        // merge the shadow options into the parent.
+        util.mergeOptions(parentOptions, newOptions, 'shadow');
+
+        // individual shape newOptions
+        if (newOptions.color !== undefined && newOptions.color !== null) {
+          var parsedColor = util.parseColor(newOptions.color);
+          util.fillIfDefined(parentOptions.color, parsedColor);
+        } else if (allowDeletion === true) {
+          parentOptions.color = undefined;
+          delete parentOptions.color;
+        }
+
+        if (newOptions.fixed !== undefined && newOptions.fixed !== null) {
+          if (typeof newOptions.fixed === 'boolean') {
+            parentOptions.fixed.x = newOptions.fixed;
+            parentOptions.fixed.y = newOptions.fixed;
+          } else {
+            if (newOptions.fixed.x !== undefined && typeof newOptions.fixed.x === 'boolean') {
+              parentOptions.fixed.x = newOptions.fixed.x;
+            }
+            if (newOptions.fixed.y !== undefined && typeof newOptions.fixed.y === 'boolean') {
+              parentOptions.fixed.y = newOptions.fixed.y;
+            }
+          }
+        }
+      }
+    }]);
+
+    return Node;
+  })();
+
+  exports['default'] = Node;
+  module.exports = exports['default'];
+
+/***/ },
+/* 72 */
+/***/ function(module, exports, __webpack_require__) {
+
+  'use strict';
+
+  Object.defineProperty(exports, '__esModule', {
+    value: true
+  });
+
+  var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
+
+  function _slicedToArray(arr, i) { if (Array.isArray(arr)) { return arr; } else if (Symbol.iterator in Object(arr)) { var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i['return']) _i['return'](); } finally { if (_d) throw _e; } } return _arr; } else { throw new TypeError('Invalid attempt to destructure non-iterable instance'); } }
+
+  function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
+
+  var util = __webpack_require__(1);
+
+  var Label = (function () {
+    function Label(body, options) {
+      _classCallCheck(this, Label);
+
+      this.body = body;
+
+      this.baseSize = undefined;
+      this.setOptions(options);
+      this.size = { top: 0, left: 0, width: 0, height: 0, yLine: 0 }; // could be cached
+    }
+
+    _createClass(Label, [{
+      key: 'setOptions',
+      value: function setOptions(options) {
+        var allowDeletion = arguments[1] === undefined ? false : arguments[1];
+
+        this.options = options;
+
+        if (options.label !== undefined) {
+          this.labelDirty = true;
+        }
+
+        if (options.font !== undefined) {
+          Label.parseOptions(this.options.font, options, allowDeletion);
+          if (typeof options.font === 'string') {
+            this.baseSize = this.options.font.size;
+          } else if (typeof options.font === 'object') {
+            if (options.font.size !== undefined) {
+              this.baseSize = options.font.size;
+            }
+          }
+        }
+      }
+    }, {
+      key: 'draw',
+
+      /**
+       * Main function. This is called from anything that wants to draw a label.
+       * @param ctx
+       * @param x
+       * @param y
+       * @param selected
+       * @param baseline
+       */
+      value: function draw(ctx, x, y, selected) {
+        var baseline = arguments[4] === undefined ? 'middle' : arguments[4];
+
+        // if no label, return
+        if (this.options.label === undefined) return;
+
+        // check if we have to render the label
+        var viewFontSize = this.options.font.size * this.body.view.scale;
+        if (this.options.label && viewFontSize < this.options.scaling.label.drawThreshold - 1) return;
+
+        // update the size cache if required
+        this.calculateLabelSize(ctx, selected, x, y, baseline);
+
+        // create the fontfill background
+        this._drawBackground(ctx);
+        // draw text
+        this._drawText(ctx, selected, x, y, baseline);
+      }
+    }, {
+      key: '_drawBackground',
+
+      /**
+       * Draws the label background
+       * @param {CanvasRenderingContext2D} ctx
+       * @private
+       */
+      value: function _drawBackground(ctx) {
+        if (this.options.font.background !== undefined && this.options.font.background !== 'none') {
+          ctx.fillStyle = this.options.font.background;
+
+          var lineMargin = 2;
+
+          switch (this.options.font.align) {
+            case 'middle':
+              ctx.fillRect(-this.size.width * 0.5, -this.size.height * 0.5, this.size.width, this.size.height);
+              break;
+            case 'top':
+              ctx.fillRect(-this.size.width * 0.5, -(this.size.height + lineMargin), this.size.width, this.size.height);
+              break;
+            case 'bottom':
+              ctx.fillRect(-this.size.width * 0.5, lineMargin, this.size.width, this.size.height);
+              break;
+            default:
+              ctx.fillRect(this.size.left, this.size.top, this.size.width, this.size.height);
+              break;
+          }
+        }
+      }
+    }, {
+      key: '_drawText',
+
+      /**
+       *
+       * @param ctx
+       * @param x
+       * @param baseline
+       * @private
+       */
+      value: function _drawText(ctx, selected, x, y) {
+        var baseline = arguments[4] === undefined ? 'middle' : arguments[4];
+
+        var fontSize = this.options.font.size;
+        var viewFontSize = fontSize * this.body.view.scale;
+        // this ensures that there will not be HUGE letters on screen by setting an upper limit on the visible text size (regardless of zoomLevel)
+        if (viewFontSize >= this.options.scaling.label.maxVisible) {
+          fontSize = Number(this.options.scaling.label.maxVisible) / this.body.view.scale;
+        }
+
+        var yLine = this.size.yLine;
+
+        var _getColor = this._getColor(viewFontSize);
+
+        var _getColor2 = _slicedToArray(_getColor, 2);
+
+        var fontColor = _getColor2[0];
+        var strokeColor = _getColor2[1];
+
+        var _setAlignment = this._setAlignment(ctx, x, yLine, baseline);
+
+        var _setAlignment2 = _slicedToArray(_setAlignment, 2);
+
+        x = _setAlignment2[0];
+        yLine = _setAlignment2[1];
+
+        // configure context for drawing the text
+        ctx.font = (selected ? 'bold ' : '') + fontSize + 'px ' + this.options.font.face;
+        ctx.fillStyle = fontColor;
+        ctx.textAlign = 'center';
+
+        // set the strokeWidth
+        if (this.options.font.strokeWidth > 0) {
+          ctx.lineWidth = this.options.font.strokeWidth;
+          ctx.strokeStyle = strokeColor;
+          ctx.lineJoin = 'round';
+        }
+
+        // draw the text
+        for (var i = 0; i < this.lineCount; i++) {
+          if (this.options.font.strokeWidth > 0) {
+            ctx.strokeText(this.lines[i], x, yLine);
+          }
+          ctx.fillText(this.lines[i], x, yLine);
+          yLine += fontSize;
+        }
+      }
+    }, {
+      key: '_setAlignment',
+      value: function _setAlignment(ctx, x, yLine, baseline) {
+        // check for label alignment (for edges)
+        // TODO: make alignment for nodes
+        if (this.options.font.align !== 'horizontal') {
+          x = 0;
+          yLine = 0;
+
+          var lineMargin = 2;
+          if (this.options.font.align === 'top') {
+            ctx.textBaseline = 'alphabetic';
+            yLine -= 2 * lineMargin; // distance from edge, required because we use alphabetic. Alphabetic has less difference between browsers
+          } else if (this.options.font.align === 'bottom') {
+            ctx.textBaseline = 'hanging';
+            yLine += 2 * lineMargin; // distance from edge, required because we use hanging. Hanging has less difference between browsers
+          } else {
+            ctx.textBaseline = 'middle';
+          }
+        } else {
+          ctx.textBaseline = baseline;
+        }
+
+        return [x, yLine];
+      }
+    }, {
+      key: '_getColor',
+
+      /**
+       * fade in when relative scale is between threshold and threshold - 1.
+       * If the relative scale would be smaller than threshold -1 the draw function would have returned before coming here.
+       *
+       * @param viewFontSize
+       * @returns {*[]}
+       * @private
+       */
+      value: function _getColor(viewFontSize) {
+        var fontColor = this.options.font.color || '#000000';
+        var strokeColor = this.options.font.strokeColor || '#ffffff';
+        if (viewFontSize <= this.options.scaling.label.drawThreshold) {
+          var opacity = Math.max(0, Math.min(1, 1 - (this.options.scaling.label.drawThreshold - viewFontSize)));
+          fontColor = util.overrideOpacity(fontColor, opacity);
+          strokeColor = util.overrideOpacity(strokeColor, opacity);
+        }
+        return [fontColor, strokeColor];
+      }
+    }, {
+      key: 'getTextSize',
+
+      /**
+       *
+       * @param ctx
+       * @param selected
+       * @returns {{width: number, height: number}}
+       */
+      value: function getTextSize(ctx) {
+        var selected = arguments[1] === undefined ? false : arguments[1];
+
+        var size = {
+          width: this._processLabel(ctx, selected),
+          height: this.options.font.size * this.lineCount,
+          lineCount: this.lineCount
+        };
+        return size;
+      }
+    }, {
+      key: 'calculateLabelSize',
+
+      /**
+       *
+       * @param ctx
+       * @param selected
+       * @param x
+       * @param y
+       * @param baseline
+       */
+      value: function calculateLabelSize(ctx, selected) {
+        var x = arguments[2] === undefined ? 0 : arguments[2];
+        var y = arguments[3] === undefined ? 0 : arguments[3];
+        var baseline = arguments[4] === undefined ? 'middle' : arguments[4];
+
+        if (this.labelDirty === true) {
+          this.size.width = this._processLabel(ctx, selected);
+        }
+        this.size.height = this.options.font.size * this.lineCount;
+        this.size.left = x - this.size.width * 0.5;
+        this.size.top = y - this.size.height * 0.5;
+        this.size.yLine = y + (1 - this.lineCount) * 0.5 * this.options.font.size;
+        if (baseline === 'hanging') {
+          this.size.top += 0.5 * this.options.font.size;
+          this.size.top += 4; // distance from node, required because we use hanging. Hanging has less difference between browsers
+          this.size.yLine += 4; // distance from node
+        }
+
+        this.labelDirty = false;
+      }
+    }, {
+      key: '_processLabel',
+
+      /**
+       * This calculates the width as well as explodes the label string and calculates the amount of lines.
+       * @param ctx
+       * @param selected
+       * @returns {number}
+       * @private
+       */
+      value: function _processLabel(ctx, selected) {
+        var width = 0;
+        var lines = [''];
+        var lineCount = 0;
+        if (this.options.label !== undefined) {
+          lines = String(this.options.label).split('\n');
+          lineCount = lines.length;
+          ctx.font = (selected ? 'bold ' : '') + this.options.font.size + 'px ' + this.options.font.face;
+          width = ctx.measureText(lines[0]).width;
+          for (var i = 1; i < lineCount; i++) {
+            var lineWidth = ctx.measureText(lines[i]).width;
+            width = lineWidth > width ? lineWidth : width;
+          }
+        }
+        this.lines = lines;
+        this.lineCount = lineCount;
+
+        return width;
+      }
+    }], [{
+      key: 'parseOptions',
+      value: function parseOptions(parentOptions, newOptions) {
+        var allowDeletion = arguments[2] === undefined ? false : arguments[2];
+
+        if (typeof newOptions.font === 'string') {
+          var newOptionsArray = newOptions.font.split(' ');
+          parentOptions.size = newOptionsArray[0].replace('px', '');
+          parentOptions.face = newOptionsArray[1];
+          parentOptions.color = newOptionsArray[2];
+        } else if (typeof newOptions.font === 'object') {
+          util.fillIfDefined(parentOptions, newOptions.font, allowDeletion);
+        }
+        parentOptions.size = Number(parentOptions.size);
+      }
+    }]);
+
+    return Label;
+  })();
+
+  exports['default'] = Label;
+  module.exports = exports['default'];
+
+/***/ },
+/* 73 */
+/***/ function(module, exports, __webpack_require__) {
+
+  "use strict";
+
+  Object.defineProperty(exports, "__esModule", {
+    value: true
+  });
+
+  var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
+
+  function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+  var BarnesHutSolver = (function () {
+    function BarnesHutSolver(body, physicsBody, options) {
+      _classCallCheck(this, BarnesHutSolver);
+
+      this.body = body;
+      this.physicsBody = physicsBody;
+      this.barnesHutTree;
+      this.setOptions(options);
+    }
+
+    _createClass(BarnesHutSolver, [{
+      key: "setOptions",
+      value: function setOptions(options) {
+        this.options = options;
+        this.thetaInversed = 1 / this.options.theta;
+      }
+    }, {
+      key: "solve",
+
+      /**
+       * This function calculates the forces the nodes apply on eachother based on a gravitational model.
+       * The Barnes Hut method is used to speed up this N-body simulation.
+       *
+       * @private
+       */
+      value: function solve() {
+        if (this.options.gravitationalConstant != 0) {
+          var node;
+          var nodes = this.body.nodes;
+          var nodeIndices = this.physicsBody.physicsNodeIndices;
+          var nodeCount = nodeIndices.length;
+
+          // create the tree
+          var barnesHutTree = this._formBarnesHutTree(nodes, nodeIndices);
+
+          // for debugging
+          this.barnesHutTree = barnesHutTree;
+
+          // place the nodes one by one recursively
+          for (var i = 0; i < nodeCount; i++) {
+            node = nodes[nodeIndices[i]];
+            if (node.options.mass > 0) {
+              // starting with root is irrelevant, it never passes the BarnesHutSolver condition
+              this._getForceContribution(barnesHutTree.root.children.NW, node);
+              this._getForceContribution(barnesHutTree.root.children.NE, node);
+              this._getForceContribution(barnesHutTree.root.children.SW, node);
+              this._getForceContribution(barnesHutTree.root.children.SE, node);
+            }
+          }
+        }
+      }
+    }, {
+      key: "_getForceContribution",
+
+      /**
+       * This function traverses the barnesHutTree. It checks when it can approximate distant nodes with their center of mass.
+       * If a region contains a single node, we check if it is not itself, then we apply the force.
+       *
+       * @param parentBranch
+       * @param node
+       * @private
+       */
+      value: function _getForceContribution(parentBranch, node) {
+        // we get no force contribution from an empty region
+        if (parentBranch.childrenCount > 0) {
+          var dx, dy, distance;
+
+          // get the distance from the center of mass to the node.
+          dx = parentBranch.centerOfMass.x - node.x;
+          dy = parentBranch.centerOfMass.y - node.y;
+          distance = Math.sqrt(dx * dx + dy * dy);
+
+          // BarnesHutSolver condition
+          // original condition : s/d < theta = passed  ===  d/s > 1/theta = passed
+          // calcSize = 1/s --> d * 1/s > 1/theta = passed
+          if (distance * parentBranch.calcSize > this.thetaInversed) {
+            this._calculateForces(distance, dx, dy, node, parentBranch);
+          } else {
+            // Did not pass the condition, go into children if available
+            if (parentBranch.childrenCount === 4) {
+              this._getForceContribution(parentBranch.children.NW, node);
+              this._getForceContribution(parentBranch.children.NE, node);
+              this._getForceContribution(parentBranch.children.SW, node);
+              this._getForceContribution(parentBranch.children.SE, node);
+            } else {
+              // parentBranch must have only one node, if it was empty we wouldnt be here
+              if (parentBranch.children.data.id != node.id) {
+                // if it is not self
+                this._calculateForces(distance, dx, dy, node, parentBranch);
+              }
+            }
+          }
+        }
+      }
+    }, {
+      key: "_calculateForces",
+
+      /**
+       * Calculate the forces based on the distance.
+       *
+       * @param distance
+       * @param dx
+       * @param dy
+       * @param node
+       * @param parentBranch
+       * @private
+       */
+      value: function _calculateForces(distance, dx, dy, node, parentBranch) {
+        // duplicate code to reduce function calls to speed up program
+        if (distance === 0) {
+          distance = 0.1 * Math.random();
+          dx = distance;
+        }
+        var gravityForce = this.options.gravitationalConstant * parentBranch.mass * node.options.mass / (distance * distance * distance);
+        var fx = dx * gravityForce;
+        var fy = dy * gravityForce;
+
+        this.physicsBody.forces[node.id].x += fx;
+        this.physicsBody.forces[node.id].y += fy;
+      }
+    }, {
+      key: "_formBarnesHutTree",
+
+      /**
+       * This function constructs the barnesHut tree recursively. It creates the root, splits it and starts placing the nodes.
+       *
+       * @param nodes
+       * @param nodeIndices
+       * @private
+       */
+      value: function _formBarnesHutTree(nodes, nodeIndices) {
+        var node;
+        var nodeCount = nodeIndices.length;
+
+        var minX = Number.MAX_VALUE,
+            minY = Number.MAX_VALUE,
+            maxX = -Number.MAX_VALUE,
+            maxY = -Number.MAX_VALUE;
+
+        // get the range of the nodes
+        for (var i = 0; i < nodeCount; i++) {
+          var x = nodes[nodeIndices[i]].x;
+          var y = nodes[nodeIndices[i]].y;
+          if (nodes[nodeIndices[i]].options.mass > 0) {
+            if (x < minX) {
+              minX = x;
+            }
+            if (x > maxX) {
+              maxX = x;
+            }
+            if (y < minY) {
+              minY = y;
+            }
+            if (y > maxY) {
+              maxY = y;
+            }
+          }
+        }
+        // make the range a square
+        var sizeDiff = Math.abs(maxX - minX) - Math.abs(maxY - minY); // difference between X and Y
+        if (sizeDiff > 0) {
+          minY -= 0.5 * sizeDiff;
+          maxY += 0.5 * sizeDiff;
+        } // xSize > ySize
+        else {
+          minX += 0.5 * sizeDiff;
+          maxX -= 0.5 * sizeDiff;
+        } // xSize < ySize
+
+        var minimumTreeSize = 0.00001;
+        var rootSize = Math.max(minimumTreeSize, Math.abs(maxX - minX));
+        var halfRootSize = 0.5 * rootSize;
+        var centerX = 0.5 * (minX + maxX),
+            centerY = 0.5 * (minY + maxY);
+
+        // construct the barnesHutTree
+        var barnesHutTree = {
+          root: {
+            centerOfMass: { x: 0, y: 0 },
+            mass: 0,
+            range: {
+              minX: centerX - halfRootSize, maxX: centerX + halfRootSize,
+              minY: centerY - halfRootSize, maxY: centerY + halfRootSize
+            },
+            size: rootSize,
+            calcSize: 1 / rootSize,
+            children: { data: null },
+            maxWidth: 0,
+            level: 0,
+            childrenCount: 4
+          }
+        };
+        this._splitBranch(barnesHutTree.root);
+
+        // place the nodes one by one recursively
+        for (i = 0; i < nodeCount; i++) {
+          node = nodes[nodeIndices[i]];
+          if (node.options.mass > 0) {
+            this._placeInTree(barnesHutTree.root, node);
+          }
+        }
+
+        // make global
+        return barnesHutTree;
+      }
+    }, {
+      key: "_updateBranchMass",
+
+      /**
+       * this updates the mass of a branch. this is increased by adding a node.
+       *
+       * @param parentBranch
+       * @param node
+       * @private
+       */
+      value: function _updateBranchMass(parentBranch, node) {
+        var totalMass = parentBranch.mass + node.options.mass;
+        var totalMassInv = 1 / totalMass;
+
+        parentBranch.centerOfMass.x = parentBranch.centerOfMass.x * parentBranch.mass + node.x * node.options.mass;
+        parentBranch.centerOfMass.x *= totalMassInv;
+
+        parentBranch.centerOfMass.y = parentBranch.centerOfMass.y * parentBranch.mass + node.y * node.options.mass;
+        parentBranch.centerOfMass.y *= totalMassInv;
+
+        parentBranch.mass = totalMass;
+        var biggestSize = Math.max(Math.max(node.height, node.radius), node.width);
+        parentBranch.maxWidth = parentBranch.maxWidth < biggestSize ? biggestSize : parentBranch.maxWidth;
+      }
+    }, {
+      key: "_placeInTree",
+
+      /**
+       * determine in which branch the node will be placed.
+       *
+       * @param parentBranch
+       * @param node
+       * @param skipMassUpdate
+       * @private
+       */
+      value: function _placeInTree(parentBranch, node, skipMassUpdate) {
+        if (skipMassUpdate != true || skipMassUpdate === undefined) {
+          // update the mass of the branch.
+          this._updateBranchMass(parentBranch, node);
+        }
+
+        if (parentBranch.children.NW.range.maxX > node.x) {
+          // in NW or SW
+          if (parentBranch.children.NW.range.maxY > node.y) {
+            // in NW
+            this._placeInRegion(parentBranch, node, "NW");
+          } else {
+            // in SW
+            this._placeInRegion(parentBranch, node, "SW");
+          }
+        } else {
+          // in NE or SE
+          if (parentBranch.children.NW.range.maxY > node.y) {
+            // in NE
+            this._placeInRegion(parentBranch, node, "NE");
+          } else {
+            // in SE
+            this._placeInRegion(parentBranch, node, "SE");
+          }
+        }
+      }
+    }, {
+      key: "_placeInRegion",
+
+      /**
+       * actually place the node in a region (or branch)
+       *
+       * @param parentBranch
+       * @param node
+       * @param region
+       * @private
+       */
+      value: function _placeInRegion(parentBranch, node, region) {
+        switch (parentBranch.children[region].childrenCount) {
+          case 0:
+            // place node here
+            parentBranch.children[region].children.data = node;
+            parentBranch.children[region].childrenCount = 1;
+            this._updateBranchMass(parentBranch.children[region], node);
+            break;
+          case 1:
+            // convert into children
+            // if there are two nodes exactly overlapping (on init, on opening of cluster etc.)
+            // we move one node a pixel and we do not put it in the tree.
+            if (parentBranch.children[region].children.data.x === node.x && parentBranch.children[region].children.data.y === node.y) {
+              node.x += Math.random();
+              node.y += Math.random();
+            } else {
+              this._splitBranch(parentBranch.children[region]);
+              this._placeInTree(parentBranch.children[region], node);
+            }
+            break;
+          case 4:
+            // place in branch
+            this._placeInTree(parentBranch.children[region], node);
+            break;
+        }
+      }
+    }, {
+      key: "_splitBranch",
+
+      /**
+       * this function splits a branch into 4 sub branches. If the branch contained a node, we place it in the subbranch
+       * after the split is complete.
+       *
+       * @param parentBranch
+       * @private
+       */
+      value: function _splitBranch(parentBranch) {
+        // if the branch is shaded with a node, replace the node in the new subset.
+        var containedNode = null;
+        if (parentBranch.childrenCount === 1) {
+          containedNode = parentBranch.children.data;
+          parentBranch.mass = 0;
+          parentBranch.centerOfMass.x = 0;
+          parentBranch.centerOfMass.y = 0;
+        }
+        parentBranch.childrenCount = 4;
+        parentBranch.children.data = null;
+        this._insertRegion(parentBranch, "NW");
+        this._insertRegion(parentBranch, "NE");
+        this._insertRegion(parentBranch, "SW");
+        this._insertRegion(parentBranch, "SE");
+
+        if (containedNode != null) {
+          this._placeInTree(parentBranch, containedNode);
+        }
+      }
+    }, {
+      key: "_insertRegion",
+
+      /**
+       * This function subdivides the region into four new segments.
+       * Specifically, this inserts a single new segment.
+       * It fills the children section of the parentBranch
+       *
+       * @param parentBranch
+       * @param region
+       * @param parentRange
+       * @private
+       */
+      value: function _insertRegion(parentBranch, region) {
+        var minX, maxX, minY, maxY;
+        var childSize = 0.5 * parentBranch.size;
+        switch (region) {
+          case "NW":
+            minX = parentBranch.range.minX;
+            maxX = parentBranch.range.minX + childSize;
+            minY = parentBranch.range.minY;
+            maxY = parentBranch.range.minY + childSize;
+            break;
+          case "NE":
+            minX = parentBranch.range.minX + childSize;
+            maxX = parentBranch.range.maxX;
+            minY = parentBranch.range.minY;
+            maxY = parentBranch.range.minY + childSize;
+            break;
+          case "SW":
+            minX = parentBranch.range.minX;
+            maxX = parentBranch.range.minX + childSize;
+            minY = parentBranch.range.minY + childSize;
+            maxY = parentBranch.range.maxY;
+            break;
+          case "SE":
+            minX = parentBranch.range.minX + childSize;
+            maxX = parentBranch.range.maxX;
+            minY = parentBranch.range.minY + childSize;
+            maxY = parentBranch.range.maxY;
+            break;
+        }
+
+        parentBranch.children[region] = {
+          centerOfMass: { x: 0, y: 0 },
+          mass: 0,
+          range: { minX: minX, maxX: maxX, minY: minY, maxY: maxY },
+          size: 0.5 * parentBranch.size,
+          calcSize: 2 * parentBranch.calcSize,
+          children: { data: null },
+          maxWidth: 0,
+          level: parentBranch.level + 1,
+          childrenCount: 0
+        };
+      }
+    }, {
+      key: "_debug",
+
+      //---------------------------  DEBUGGING BELOW  ---------------------------//
+
+      /**
+       * This function is for debugging purposed, it draws the tree.
+       *
+       * @param ctx
+       * @param color
+       * @private
+       */
+      value: function _debug(ctx, color) {
+        if (this.barnesHutTree !== undefined) {
+
+          ctx.lineWidth = 1;
+
+          this._drawBranch(this.barnesHutTree.root, ctx, color);
+        }
+      }
+    }, {
+      key: "_drawBranch",
+
+      /**
+       * This function is for debugging purposes. It draws the branches recursively.
+       *
+       * @param branch
+       * @param ctx
+       * @param color
+       * @private
+       */
+      value: function _drawBranch(branch, ctx, color) {
+        if (color === undefined) {
+          color = "#FF0000";
+        }
+
+        if (branch.childrenCount === 4) {
+          this._drawBranch(branch.children.NW, ctx);
+          this._drawBranch(branch.children.NE, ctx);
+          this._drawBranch(branch.children.SE, ctx);
+          this._drawBranch(branch.children.SW, ctx);
+        }
+        ctx.strokeStyle = color;
+        ctx.beginPath();
+        ctx.moveTo(branch.range.minX, branch.range.minY);
+        ctx.lineTo(branch.range.maxX, branch.range.minY);
+        ctx.stroke();
+
+        ctx.beginPath();
+        ctx.moveTo(branch.range.maxX, branch.range.minY);
+        ctx.lineTo(branch.range.maxX, branch.range.maxY);
+        ctx.stroke();
+
+        ctx.beginPath();
+        ctx.moveTo(branch.range.maxX, branch.range.maxY);
+        ctx.lineTo(branch.range.minX, branch.range.maxY);
+        ctx.stroke();
+
+        ctx.beginPath();
+        ctx.moveTo(branch.range.minX, branch.range.maxY);
+        ctx.lineTo(branch.range.minX, branch.range.minY);
+        ctx.stroke();
+
+        /*
+         if (branch.mass > 0) {
+         ctx.circle(branch.centerOfMass.x, branch.centerOfMass.y, 3*branch.mass);
+         ctx.stroke();
+         }
+         */
+      }
+    }]);
+
+    return BarnesHutSolver;
+  })();
+
+  exports["default"] = BarnesHutSolver;
+  module.exports = exports["default"];
+
+/***/ },
+/* 74 */
+/***/ function(module, exports, __webpack_require__) {
+
+  "use strict";
+
+  Object.defineProperty(exports, "__esModule", {
+    value: true
+  });
+
+  var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
+
+  function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+  var RepulsionSolver = (function () {
+    function RepulsionSolver(body, physicsBody, options) {
+      _classCallCheck(this, RepulsionSolver);
+
+      this.body = body;
+      this.physicsBody = physicsBody;
+      this.setOptions(options);
+    }
+
+    _createClass(RepulsionSolver, [{
+      key: "setOptions",
+      value: function setOptions(options) {
+        this.options = options;
+      }
+    }, {
+      key: "solve",
+
+      /**
+       * Calculate the forces the nodes apply on each other based on a repulsion field.
+       * This field is linearly approximated.
+       *
+       * @private
+       */
+      value: function solve() {
+        var dx, dy, distance, fx, fy, repulsingForce, node1, node2;
+
+        var nodes = this.body.nodes;
+        var nodeIndices = this.physicsBody.physicsNodeIndices;
+        var forces = this.physicsBody.forces;
+
+        // repulsing forces between nodes
+        var nodeDistance = this.options.nodeDistance;
+
+        // approximation constants
+        var a = -2 / 3 / nodeDistance;
+        var b = 4 / 3;
+
+        // we loop from i over all but the last entree in the array
+        // j loops from i+1 to the last. This way we do not double count any of the indices, nor i === j
+        for (var i = 0; i < nodeIndices.length - 1; i++) {
+          node1 = nodes[nodeIndices[i]];
+          for (var j = i + 1; j < nodeIndices.length; j++) {
+            node2 = nodes[nodeIndices[j]];
+
+            dx = node2.x - node1.x;
+            dy = node2.y - node1.y;
+            distance = Math.sqrt(dx * dx + dy * dy);
+
+            // same condition as BarnesHutSolver, making sure nodes are never 100% overlapping.
+            if (distance === 0) {
+              distance = 0.1 * Math.random();
+              dx = distance;
+            }
+
+            if (distance < 2 * nodeDistance) {
+              if (distance < 0.5 * nodeDistance) {
+                repulsingForce = 1;
+              } else {
+                repulsingForce = a * distance + b; // linear approx of  1 / (1 + Math.exp((distance / nodeDistance - 1) * steepness))
+              }
+              repulsingForce = repulsingForce / distance;
+
+              fx = dx * repulsingForce;
+              fy = dy * repulsingForce;
+
+              forces[node1.id].x -= fx;
+              forces[node1.id].y -= fy;
+              forces[node2.id].x += fx;
+              forces[node2.id].y += fy;
+            }
+          }
+        }
+      }
+    }]);
+
+    return RepulsionSolver;
+  })();
+
+  exports["default"] = RepulsionSolver;
+  module.exports = exports["default"];
+
+/***/ },
+/* 75 */
+/***/ function(module, exports, __webpack_require__) {
+
+  "use strict";
+
+  Object.defineProperty(exports, "__esModule", {
+    value: true
+  });
+
+  var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
+
+  function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+  var HierarchicalRepulsionSolver = (function () {
+    function HierarchicalRepulsionSolver(body, physicsBody, options) {
+      _classCallCheck(this, HierarchicalRepulsionSolver);
+
+      this.body = body;
+      this.physicsBody = physicsBody;
+      this.setOptions(options);
+    }
+
+    _createClass(HierarchicalRepulsionSolver, [{
+      key: "setOptions",
+      value: function setOptions(options) {
+        this.options = options;
+      }
+    }, {
+      key: "solve",
+
+      /**
+       * Calculate the forces the nodes apply on each other based on a repulsion field.
+       * This field is linearly approximated.
+       *
+       * @private
+       */
+      value: function solve() {
+        var dx, dy, distance, fx, fy, repulsingForce, node1, node2, i, j;
+
+        var nodes = this.body.nodes;
+        var nodeIndices = this.physicsBody.physicsNodeIndices;
+        var forces = this.physicsBody.forces;
+
+        // repulsing forces between nodes
+        var nodeDistance = this.options.nodeDistance;
+
+        // we loop from i over all but the last entree in the array
+        // j loops from i+1 to the last. This way we do not double count any of the indices, nor i === j
+        for (i = 0; i < nodeIndices.length - 1; i++) {
+          node1 = nodes[nodeIndices[i]];
+          for (j = i + 1; j < nodeIndices.length; j++) {
+            node2 = nodes[nodeIndices[j]];
+
+            // nodes only affect nodes on their level
+            if (node1.level === node2.level) {
+              dx = node2.x - node1.x;
+              dy = node2.y - node1.y;
+              distance = Math.sqrt(dx * dx + dy * dy);
+
+              var steepness = 0.05;
+              if (distance < nodeDistance) {
+                repulsingForce = -Math.pow(steepness * distance, 2) + Math.pow(steepness * nodeDistance, 2);
+              } else {
+                repulsingForce = 0;
+              }
+              // normalize force with
+              if (distance === 0) {
+                distance = 0.01;
+              } else {
+                repulsingForce = repulsingForce / distance;
+              }
+              fx = dx * repulsingForce;
+              fy = dy * repulsingForce;
+
+              forces[node1.id].x -= fx;
+              forces[node1.id].y -= fy;
+              forces[node2.id].x += fx;
+              forces[node2.id].y += fy;
+            }
+          }
+        }
+      }
+    }]);
+
+    return HierarchicalRepulsionSolver;
+  })();
+
+  exports["default"] = HierarchicalRepulsionSolver;
+  module.exports = exports["default"];
+
+/***/ },
+/* 76 */
+/***/ function(module, exports, __webpack_require__) {
+
+  "use strict";
+
+  Object.defineProperty(exports, "__esModule", {
+    value: true
+  });
+
+  var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
+
+  function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+  var SpringSolver = (function () {
+    function SpringSolver(body, physicsBody, options) {
+      _classCallCheck(this, SpringSolver);
+
+      this.body = body;
+      this.physicsBody = physicsBody;
+      this.setOptions(options);
+    }
+
+    _createClass(SpringSolver, [{
+      key: "setOptions",
+      value: function setOptions(options) {
+        this.options = options;
+      }
+    }, {
+      key: "solve",
+
+      /**
+       * This function calculates the springforces on the nodes, accounting for the support nodes.
+       *
+       * @private
+       */
+      value: function solve() {
+        var edgeLength, edge;
+        var edgeIndices = this.physicsBody.physicsEdgeIndices;
+        var edges = this.body.edges;
+
+        // forces caused by the edges, modelled as springs
+        for (var i = 0; i < edgeIndices.length; i++) {
+          edge = edges[edgeIndices[i]];
+          if (edge.connected === true && edge.toId !== edge.fromId) {
+            // only calculate forces if nodes are in the same sector
+            if (this.body.nodes[edge.toId] !== undefined && this.body.nodes[edge.fromId] !== undefined) {
+              if (edge.edgeType.via !== undefined) {
+                edgeLength = edge.options.length === undefined ? this.options.springLength : edge.options.length;
+                var node1 = edge.to;
+                var node2 = edge.edgeType.via;
+                var node3 = edge.from;
+
+                this._calculateSpringForce(node1, node2, 0.5 * edgeLength);
+                this._calculateSpringForce(node2, node3, 0.5 * edgeLength);
+              } else {
+                // the * 1.5 is here so the edge looks as large as a smooth edge. It does not initially because the smooth edges use
+                // the support nodes which exert a repulsive force on the to and from nodes, making the edge appear larger.
+                edgeLength = edge.options.length === undefined ? this.options.springLength * 1.5 : edge.options.length;
+                this._calculateSpringForce(edge.from, edge.to, edgeLength);
+              }
+            }
+          }
+        }
+      }
+    }, {
+      key: "_calculateSpringForce",
+
+      /**
+       * This is the code actually performing the calculation for the function above.
+       *
+       * @param node1
+       * @param node2
+       * @param edgeLength
+       * @private
+       */
+      value: function _calculateSpringForce(node1, node2, edgeLength) {
+        var dx, dy, fx, fy, springForce, distance;
+
+        dx = node1.x - node2.x;
+        dy = node1.y - node2.y;
+        distance = Math.sqrt(dx * dx + dy * dy);
+        distance = distance === 0 ? 0.01 : distance;
+
+        // the 1/distance is so the fx and fy can be calculated without sine or cosine.
+        springForce = this.options.springConstant * (edgeLength - distance) / distance;
+
+        fx = dx * springForce;
+        fy = dy * springForce;
+
+        // handle the case where one node is not part of the physcis
+        if (this.physicsBody.forces[node1.id] !== undefined) {
+          this.physicsBody.forces[node1.id].x += fx;
+          this.physicsBody.forces[node1.id].y += fy;
+        }
+
+        if (this.physicsBody.forces[node2.id] !== undefined) {
+          this.physicsBody.forces[node2.id].x -= fx;
+          this.physicsBody.forces[node2.id].y -= fy;
+        }
+      }
+    }]);
+
+    return SpringSolver;
+  })();
+
+  exports["default"] = SpringSolver;
+  module.exports = exports["default"];
+
+/***/ },
+/* 77 */
+/***/ function(module, exports, __webpack_require__) {
+
+  "use strict";
+
+  Object.defineProperty(exports, "__esModule", {
+    value: true
+  });
+
+  var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
+
+  function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+  var HierarchicalSpringSolver = (function () {
+    function HierarchicalSpringSolver(body, physicsBody, options) {
+      _classCallCheck(this, HierarchicalSpringSolver);
+
+      this.body = body;
+      this.physicsBody = physicsBody;
+      this.setOptions(options);
+    }
+
+    _createClass(HierarchicalSpringSolver, [{
+      key: "setOptions",
+      value: function setOptions(options) {
+        this.options = options;
+      }
+    }, {
+      key: "solve",
+
+      /**
+       * This function calculates the springforces on the nodes, accounting for the support nodes.
+       *
+       * @private
+       */
+      value: function solve() {
+        var edgeLength, edge;
+        var dx, dy, fx, fy, springForce, distance;
+        var edges = this.body.edges;
+        var factor = 0.5;
+
+        var edgeIndices = this.physicsBody.physicsEdgeIndices;
+        var nodeIndices = this.physicsBody.physicsNodeIndices;
+        var forces = this.physicsBody.forces;
+
+        // initialize the spring force counters
+        for (var i = 0; i < nodeIndices.length; i++) {
+          var nodeId = nodeIndices[i];
+          forces[nodeId].springFx = 0;
+          forces[nodeId].springFy = 0;
+        }
+
+        // forces caused by the edges, modelled as springs
+        for (var i = 0; i < edgeIndices.length; i++) {
+          edge = edges[edgeIndices[i]];
+          if (edge.connected === true) {
+            edgeLength = edge.options.length === undefined ? this.options.springLength : edge.options.length;
+
+            dx = edge.from.x - edge.to.x;
+            dy = edge.from.y - edge.to.y;
+            distance = Math.sqrt(dx * dx + dy * dy);
+            distance = distance === 0 ? 0.01 : distance;
+
+            // the 1/distance is so the fx and fy can be calculated without sine or cosine.
+            springForce = this.options.springConstant * (edgeLength - distance) / distance;
+
+            fx = dx * springForce;
+            fy = dy * springForce;
+
+            if (edge.to.level != edge.from.level) {
+              forces[edge.toId].springFx -= fx;
+              forces[edge.toId].springFy -= fy;
+              forces[edge.fromId].springFx += fx;
+              forces[edge.fromId].springFy += fy;
+            } else {
+              forces[edge.toId].x -= factor * fx;
+              forces[edge.toId].y -= factor * fy;
+              forces[edge.fromId].x += factor * fx;
+              forces[edge.fromId].y += factor * fy;
+            }
+          }
+        }
+
+        // normalize spring forces
+        var springForce = 1;
+        var springFx, springFy;
+        for (var i = 0; i < nodeIndices.length; i++) {
+          var nodeId = nodeIndices[i];
+          springFx = Math.min(springForce, Math.max(-springForce, forces[nodeId].springFx));
+          springFy = Math.min(springForce, Math.max(-springForce, forces[nodeId].springFy));
+
+          forces[nodeId].x += springFx;
+          forces[nodeId].y += springFy;
+        }
+
+        // retain energy balance
+        var totalFx = 0;
+        var totalFy = 0;
+        for (var i = 0; i < nodeIndices.length; i++) {
+          var nodeId = nodeIndices[i];
+          totalFx += forces[nodeId].x;
+          totalFy += forces[nodeId].y;
+        }
+        var correctionFx = totalFx / nodeIndices.length;
+        var correctionFy = totalFy / nodeIndices.length;
+
+        for (var i = 0; i < nodeIndices.length; i++) {
+          var nodeId = nodeIndices[i];
+          forces[nodeId].x -= correctionFx;
+          forces[nodeId].y -= correctionFy;
+        }
+      }
+    }]);
+
+    return HierarchicalSpringSolver;
+  })();
+
+  exports["default"] = HierarchicalSpringSolver;
+  module.exports = exports["default"];
+
+/***/ },
+/* 78 */
+/***/ function(module, exports, __webpack_require__) {
+
+  "use strict";
+
+  Object.defineProperty(exports, "__esModule", {
+    value: true
+  });
+
+  var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
+
+  function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+  var CentralGravitySolver = (function () {
+    function CentralGravitySolver(body, physicsBody, options) {
+      _classCallCheck(this, CentralGravitySolver);
+
+      this.body = body;
+      this.physicsBody = physicsBody;
+      this.setOptions(options);
+    }
+
+    _createClass(CentralGravitySolver, [{
+      key: "setOptions",
+      value: function setOptions(options) {
+        this.options = options;
+      }
+    }, {
+      key: "solve",
+      value: function solve() {
+        var dx, dy, distance, node, i;
+        var nodes = this.body.nodes;
+        var nodeIndices = this.physicsBody.physicsNodeIndices;
+        var forces = this.physicsBody.forces;
+
+        var gravity = this.options.centralGravity;
+        var gravityForce = 0;
+
+        for (i = 0; i < nodeIndices.length; i++) {
+          var nodeId = nodeIndices[i];
+          node = nodes[nodeId];
+          dx = -node.x;
+          dy = -node.y;
+          distance = Math.sqrt(dx * dx + dy * dy);
+
+          gravityForce = distance === 0 ? 0 : gravity / distance;
+          forces[nodeId].x = dx * gravityForce;
+          forces[nodeId].y = dy * gravityForce;
+        }
+      }
+    }]);
+
+    return CentralGravitySolver;
+  })();
+
+  exports["default"] = CentralGravitySolver;
+  module.exports = exports["default"];
+
+/***/ },
+/* 79 */
+/***/ function(module, exports, __webpack_require__) {
+
+  'use strict';
+
+  Object.defineProperty(exports, '__esModule', {
+    value: true
+  });
+
+  var _get = function get(_x, _x2, _x3) { var _again = true; _function: while (_again) { desc = parent = getter = undefined; _again = false; var object = _x,
+      property = _x2,
+      receiver = _x3; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { _x = parent; _x2 = property; _x3 = receiver; _again = true; continue _function; } } else if ('value' in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } } };
+
+  function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
+
+  function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
+
+  function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; }
+
+  var _Node2 = __webpack_require__(71);
+
+  var _Node3 = _interopRequireDefault(_Node2);
+
+  /**
+   *
+   */
+
+  var Cluster = (function (_Node) {
+    function Cluster(options, body, imagelist, grouplist, globalOptions) {
+      _classCallCheck(this, Cluster);
+
+      _get(Object.getPrototypeOf(Cluster.prototype), 'constructor', this).call(this, options, body, imagelist, grouplist, globalOptions);
+
+      this.isCluster = true;
+      this.containedNodes = {};
+      this.containedEdges = {};
+    }
+
+    _inherits(Cluster, _Node);
+
+    return Cluster;
+  })(_Node3['default']);
+
+  exports['default'] = Cluster;
+  module.exports = exports['default'];
+
+/***/ },
+/* 80 */
+/***/ function(module, exports, __webpack_require__) {
+
+  'use strict';
+
+  Object.defineProperty(exports, '__esModule', {
+    value: true
+  });
+
+  var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
+
+  function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
+
+  var util = __webpack_require__(1);
+  var Hammer = __webpack_require__(41);
+  var hammerUtil = __webpack_require__(44);
+  var keycharm = __webpack_require__(86);
+
+  var NavigationHandler = (function () {
+    function NavigationHandler(body, canvas) {
+      var _this = this;
+
+      _classCallCheck(this, NavigationHandler);
+
+      this.body = body;
+      this.canvas = canvas;
+
+      this.iconsCreated = false;
+      this.navigationHammers = [];
+      this.boundFunctions = {};
+      this.touchTime = 0;
+      this.activated = false;
+
+      this.body.emitter.on('release', function () {
+        _this._stopMovement();
+      });
+      this.body.emitter.on('activate', function () {
+        _this.activated = true;_this.configureKeyboardBindings();
+      });
+      this.body.emitter.on('deactivate', function () {
+        _this.activated = false;_this.configureKeyboardBindings();
+      });
+      this.body.emitter.on('destroy', function () {
+        if (_this.keycharm !== undefined) {
+          _this.keycharm.destroy();
+        }
+      });
+
+      this.options = {};
+    }
+
+    _createClass(NavigationHandler, [{
+      key: 'setOptions',
+      value: function setOptions(options) {
+        if (options !== undefined) {
+          this.options = options;
+          this.create();
+        }
+      }
+    }, {
+      key: 'create',
+      value: function create() {
+        if (this.options.navigationButtons === true) {
+          if (this.iconsCreated === false) {
+            this.loadNavigationElements();
+          }
+        } else if (this.iconsCreated === true) {
+          this.cleanNavigation();
+        }
+
+        this.configureKeyboardBindings();
+      }
+    }, {
+      key: 'cleanNavigation',
+      value: function cleanNavigation() {
+        // clean hammer bindings
+        if (this.navigationHammers.length != 0) {
+          for (var i = 0; i < this.navigationHammers.length; i++) {
+            this.navigationHammers[i].destroy();
+          }
+          this.navigationHammers = [];
+        }
+
+        this._navigationReleaseOverload = function () {};
+
+        // clean up previous navigation items
+        if (this.navigationDOM && this.navigationDOM['wrapper'] && this.navigationDOM['wrapper'].parentNode) {
+          this.navigationDOM['wrapper'].parentNode.removeChild(this.navigationDOM['wrapper']);
+        }
+
+        this.iconsCreated = false;
+      }
+    }, {
+      key: 'loadNavigationElements',
+
+      /**
+       * Creation of the navigation controls nodes. They are drawn over the rest of the nodes and are not affected by scale and translation
+       * they have a triggerFunction which is called on click. If the position of the navigation controls is dependent
+       * on this.frame.canvas.clientWidth or this.frame.canvas.clientHeight, we flag horizontalAlignLeft and verticalAlignTop false.
+       * This means that the location will be corrected by the _relocateNavigation function on a size change of the canvas.
+       *
+       * @private
+       */
+      value: function loadNavigationElements() {
+        this.cleanNavigation();
+
+        this.navigationDOM = {};
+        var navigationDivs = ['up', 'down', 'left', 'right', 'zoomIn', 'zoomOut', 'zoomExtends'];
+        var navigationDivActions = ['_moveUp', '_moveDown', '_moveLeft', '_moveRight', '_zoomIn', '_zoomOut', '_fit'];
+
+        this.navigationDOM['wrapper'] = document.createElement('div');
+        this.navigationDOM['wrapper'].className = 'vis-navigation';
+        this.canvas.frame.appendChild(this.navigationDOM['wrapper']);
+
+        for (var i = 0; i < navigationDivs.length; i++) {
+          this.navigationDOM[navigationDivs[i]] = document.createElement('div');
+          this.navigationDOM[navigationDivs[i]].className = 'vis-button vis-' + navigationDivs[i];
+          this.navigationDOM['wrapper'].appendChild(this.navigationDOM[navigationDivs[i]]);
+
+          var hammer = new Hammer(this.navigationDOM[navigationDivs[i]]);
+          if (navigationDivActions[i] === '_fit') {
+            hammerUtil.onTouch(hammer, this._fit.bind(this));
+          } else {
+            hammerUtil.onTouch(hammer, this.bindToRedraw.bind(this, navigationDivActions[i]));
+          }
+
+          this.navigationHammers.push(hammer);
+        }
+
+        this.iconsCreated = true;
+      }
+    }, {
+      key: 'bindToRedraw',
+      value: function bindToRedraw(action) {
+        if (this.boundFunctions[action] === undefined) {
+          this.boundFunctions[action] = this[action].bind(this);
+          this.body.emitter.on('initRedraw', this.boundFunctions[action]);
+          this.body.emitter.emit('_startRendering');
+        }
+      }
+    }, {
+      key: 'unbindFromRedraw',
+      value: function unbindFromRedraw(action) {
+        if (this.boundFunctions[action] !== undefined) {
+          this.body.emitter.off('initRedraw', this.boundFunctions[action]);
+          this.body.emitter.emit('_stopRendering');
+          delete this.boundFunctions[action];
+        }
+      }
+    }, {
+      key: '_fit',
+
+      /**
+       * this stops all movement induced by the navigation buttons
+       *
+       * @private
+       */
+      value: function _fit() {
+        if (new Date().valueOf() - this.touchTime > 700) {
+          // TODO: fix ugly hack to avoid hammer's double fireing of event (because we use release?)
+          this.body.emitter.emit('fit', { duration: 700 });
+          this.touchTime = new Date().valueOf();
+        }
+      }
+    }, {
+      key: '_stopMovement',
+
+      /**
+       * this stops all movement induced by the navigation buttons
+       *
+       * @private
+       */
+      value: function _stopMovement() {
+        for (var boundAction in this.boundFunctions) {
+          if (this.boundFunctions.hasOwnProperty(boundAction)) {
+            this.body.emitter.off('initRedraw', this.boundFunctions[boundAction]);
+            this.body.emitter.emit('_stopRendering');
+          }
+        }
+        this.boundFunctions = {};
+      }
+    }, {
+      key: '_moveUp',
+      value: function _moveUp() {
+        this.body.view.translation.y += this.options.keyboard.speed.y;
+      }
+    }, {
+      key: '_moveDown',
+      value: function _moveDown() {
+        this.body.view.translation.y -= this.options.keyboard.speed.y;
+      }
+    }, {
+      key: '_moveLeft',
+      value: function _moveLeft() {
+        this.body.view.translation.x += this.options.keyboard.speed.x;
+      }
+    }, {
+      key: '_moveRight',
+      value: function _moveRight() {
+        this.body.view.translation.x -= this.options.keyboard.speed.x;
+      }
+    }, {
+      key: '_zoomIn',
+      value: function _zoomIn() {
+        this.body.view.scale *= 1 + this.options.keyboard.speed.zoom;
+      }
+    }, {
+      key: '_zoomOut',
+      value: function _zoomOut() {
+        this.body.view.scale /= 1 + this.options.keyboard.speed.zoom;
+      }
+    }, {
+      key: 'configureKeyboardBindings',
+
+      /**
+       * bind all keys using keycharm.
+       */
+      value: function configureKeyboardBindings() {
+        if (this.keycharm !== undefined) {
+          this.keycharm.destroy();
+        }
+
+        if (this.options.keyboard.enabled === true) {
+
+          if (this.options.keyboard.bindToWindow === true) {
+            this.keycharm = keycharm({ container: window, preventDefault: true });
+          } else {
+            this.keycharm = keycharm({ container: this.canvas.frame, preventDefault: true });
+          }
+
+          this.keycharm.reset();
+
+          if (this.activated === true) {
+            this.keycharm.bind('up', this.bindToRedraw.bind(this, '_moveUp'), 'keydown');
+            this.keycharm.bind('down', this.bindToRedraw.bind(this, '_moveDown'), 'keydown');
+            this.keycharm.bind('left', this.bindToRedraw.bind(this, '_moveLeft'), 'keydown');
+            this.keycharm.bind('right', this.bindToRedraw.bind(this, '_moveRight'), 'keydown');
+            this.keycharm.bind('=', this.bindToRedraw.bind(this, '_zoomIn'), 'keydown');
+            this.keycharm.bind('num+', this.bindToRedraw.bind(this, '_zoomIn'), 'keydown');
+            this.keycharm.bind('num-', this.bindToRedraw.bind(this, '_zoomOut'), 'keydown');
+            this.keycharm.bind('-', this.bindToRedraw.bind(this, '_zoomOut'), 'keydown');
+            this.keycharm.bind('[', this.bindToRedraw.bind(this, '_zoomOut'), 'keydown');
+            this.keycharm.bind(']', this.bindToRedraw.bind(this, '_zoomIn'), 'keydown');
+            this.keycharm.bind('pageup', this.bindToRedraw.bind(this, '_zoomIn'), 'keydown');
+            this.keycharm.bind('pagedown', this.bindToRedraw.bind(this, '_zoomOut'), 'keydown');
+
+            this.keycharm.bind('up', this.unbindFromRedraw.bind(this, '_moveUp'), 'keyup');
+            this.keycharm.bind('down', this.unbindFromRedraw.bind(this, '_moveDown'), 'keyup');
+            this.keycharm.bind('left', this.unbindFromRedraw.bind(this, '_moveLeft'), 'keyup');
+            this.keycharm.bind('right', this.unbindFromRedraw.bind(this, '_moveRight'), 'keyup');
+            this.keycharm.bind('=', this.unbindFromRedraw.bind(this, '_zoomIn'), 'keyup');
+            this.keycharm.bind('num+', this.unbindFromRedraw.bind(this, '_zoomIn'), 'keyup');
+            this.keycharm.bind('num-', this.unbindFromRedraw.bind(this, '_zoomOut'), 'keyup');
+            this.keycharm.bind('-', this.unbindFromRedraw.bind(this, '_zoomOut'), 'keyup');
+            this.keycharm.bind('[', this.unbindFromRedraw.bind(this, '_zoomOut'), 'keyup');
+            this.keycharm.bind(']', this.unbindFromRedraw.bind(this, '_zoomIn'), 'keyup');
+            this.keycharm.bind('pageup', this.unbindFromRedraw.bind(this, '_zoomIn'), 'keyup');
+            this.keycharm.bind('pagedown', this.unbindFromRedraw.bind(this, '_zoomOut'), 'keyup');
+          }
+        }
+      }
+    }]);
+
+    return NavigationHandler;
+  })();
+
+  exports['default'] = NavigationHandler;
+  module.exports = exports['default'];
+
+/***/ },
+/* 81 */
+/***/ function(module, exports, __webpack_require__) {
+
+  'use strict';
+
+  Object.defineProperty(exports, '__esModule', {
+    value: true
+  });
+
+  var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
+
+  function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
+
+  /**
+   * Popup is a class to create a popup window with some text
+   * @param {Element}  container     The container object.
+   * @param {Number} [x]
+   * @param {Number} [y]
+   * @param {String} [text]
+   * @param {Object} [style]     An object containing borderColor,
+   *                             backgroundColor, etc.
+   */
+
+  var Popup = (function () {
+    function Popup(container) {
+      _classCallCheck(this, Popup);
+
+      this.container = container;
+
+      this.x = 0;
+      this.y = 0;
+      this.padding = 5;
+      this.hidden = false;
+
+      // create the frame
+      this.frame = document.createElement('div');
+      this.frame.className = 'vis-network-tooltip';
+      this.container.appendChild(this.frame);
+    }
+
+    _createClass(Popup, [{
+      key: 'setPosition',
+
+      /**
+       * @param {number} x   Horizontal position of the popup window
+       * @param {number} y   Vertical position of the popup window
+       */
+      value: function setPosition(x, y) {
+        this.x = parseInt(x);
+        this.y = parseInt(y);
+      }
+    }, {
+      key: 'setText',
+
+      /**
+       * Set the content for the popup window. This can be HTML code or text.
+       * @param {string | Element} content
+       */
+      value: function setText(content) {
+        if (content instanceof Element) {
+          this.frame.innerHTML = '';
+          this.frame.appendChild(content);
+        } else {
+          this.frame.innerHTML = content; // string containing text or HTML
+        }
+      }
+    }, {
+      key: 'show',
+
+      /**
+       * Show the popup window
+       * @param {boolean} [doShow]    Show or hide the window
+       */
+      value: function show(doShow) {
+        if (doShow === undefined) {
+          doShow = true;
+        }
+
+        if (doShow === true) {
+          var height = this.frame.clientHeight;
+          var width = this.frame.clientWidth;
+          var maxHeight = this.frame.parentNode.clientHeight;
+          var maxWidth = this.frame.parentNode.clientWidth;
+
+          var top = this.y - height;
+          if (top + height + this.padding > maxHeight) {
+            top = maxHeight - height - this.padding;
+          }
+          if (top < this.padding) {
+            top = this.padding;
+          }
+
+          var left = this.x;
+          if (left + width + this.padding > maxWidth) {
+            left = maxWidth - width - this.padding;
+          }
+          if (left < this.padding) {
+            left = this.padding;
+          }
+
+          this.frame.style.left = left + 'px';
+          this.frame.style.top = top + 'px';
+          this.frame.style.visibility = 'visible';
+          this.hidden = false;
+        } else {
+          this.hide();
+        }
+      }
+    }, {
+      key: 'hide',
+
+      /**
+       * Hide the popup window
+       */
+      value: function hide() {
+        this.hidden = true;
+        this.frame.style.visibility = 'hidden';
+      }
+    }]);
+
+    return Popup;
+  })();
+
+  exports['default'] = Popup;
+  module.exports = exports['default'];
+
+/***/ },
+/* 82 */
 /***/ function(module, exports, __webpack_require__) {
 
   var __WEBPACK_AMD_DEFINE_RESULT__;/*! Hammer.JS - v2.0.4 - 2014-09-28
@@ -33514,7 +36084,7 @@ return /******/ (function(modules) { // webpackBootstrap
       prefixed: prefixed
   });
 
-  if ("function" == TYPE_FUNCTION && __webpack_require__(88)) {
+  if ("function" == TYPE_FUNCTION && __webpack_require__(105)) {
       !(__WEBPACK_AMD_DEFINE_RESULT__ = function() {
           return Hammer;
       }.call(exports, __webpack_require__, exports, module), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__));
@@ -33528,587 +36098,235 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 72 */
+/* 83 */
 /***/ function(module, exports, __webpack_require__) {
 
-  'use strict';
+  var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;'use strict';
 
-  Object.defineProperty(exports, '__esModule', {
-    value: true
-  });
-
-  var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
-
-  function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
-
-  var Hammer = __webpack_require__(41);
-  var hammerUtil = __webpack_require__(48);
-  var util = __webpack_require__(1);
-
-  var ColorPicker = (function () {
-    function ColorPicker() {
-      var pixelRatio = arguments[0] === undefined ? 1 : arguments[0];
-
-      _classCallCheck(this, ColorPicker);
-
-      this.pixelRatio = pixelRatio;
-      this.generated = false;
-      this.centerCoordinates = { x: 289 / 2, y: 289 / 2 };
-      this.r = 289 * 0.49;
-      this.color = { r: 255, g: 255, b: 255, a: 1 };
-      this.hueCircle = undefined;
-      this.initialColor = { r: 255, g: 255, b: 255, a: 1 };
-      this.previousColor = undefined;
-      this.applied = false;
-
-      // bound by
-      this.updateCallback = function () {};
-
-      // create all DOM elements
-      this._create();
+  (function (factory) {
+    if (true) {
+      // AMD. Register as an anonymous module.
+      !(__WEBPACK_AMD_DEFINE_ARRAY__ = [], __WEBPACK_AMD_DEFINE_FACTORY__ = (factory), __WEBPACK_AMD_DEFINE_RESULT__ = (typeof __WEBPACK_AMD_DEFINE_FACTORY__ === 'function' ? (__WEBPACK_AMD_DEFINE_FACTORY__.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__)) : __WEBPACK_AMD_DEFINE_FACTORY__), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__));
+    } else if (typeof exports === 'object') {
+      // Node. Does not work with strict CommonJS, but
+      // only CommonJS-like environments that support module.exports,
+      // like Node.
+      module.exports = factory();
+    } else {
+      // Browser globals (root is window)
+      window.propagating = factory();
     }
+  }(function () {
+    var _firstTarget = null; // singleton, will contain the target element where the touch event started
+    var _processing = false; // singleton, true when a touch event is being handled
 
-    _createClass(ColorPicker, [{
-      key: 'insertTo',
+    /**
+     * Extend an Hammer.js instance with event propagation.
+     *
+     * Features:
+     * - Events emitted by hammer will propagate in order from child to parent
+     *   elements.
+     * - Events are extended with a function `event.stopPropagation()` to stop
+     *   propagation to parent elements.
+     * - An option `preventDefault` to stop all default browser behavior.
+     *
+     * Usage:
+     *   var hammer = propagatingHammer(new Hammer(element));
+     *   var hammer = propagatingHammer(new Hammer(element), {preventDefault: true});
+     *
+     * @param {Hammer.Manager} hammer   An hammer instance.
+     * @param {Object} [options]        Available options:
+     *                                  - `preventDefault: true | 'mouse' | 'touch' | 'pen'`.
+     *                                    Enforce preventing the default browser behavior.
+     *                                    Cannot be set to `false`.
+     * @return {Hammer.Manager} Returns the same hammer instance with extended
+     *                          functionality
+     */
+    return function propagating(hammer, options) {
+      if (options && options.preventDefault === false) {
+        throw new Error('Only supports preventDefault == true');
+      }
+      var _options = options || {
+        preventDefault: false
+      };
+
+      if (hammer.Manager) {
+        // This looks like the Hammer constructor.
+        // Overload the constructors with our own.
+        var Hammer = hammer;
+
+        var PropagatingHammer = function(element, options) {
+          return propagating(new Hammer(element, options), _options);
+        };
+        Hammer.extend(PropagatingHammer, Hammer);
+        PropagatingHammer.Manager = function (element, options) {
+          return propagating(new Hammer.Manager(element, options), _options);
+        };
+
+        return PropagatingHammer;
+      }
+
+      // attach to DOM element
+      var element = hammer.element;
+      element.hammer = hammer;
+
+      // move the original functions that we will wrap
+      hammer._on = hammer.on;
+      hammer._off = hammer.off;
+      hammer._emit = hammer.emit;
+      hammer._destroy = hammer.destroy;
+
+      /** @type {Object.<String, Array.<function>>} */
+      hammer._handlers = {};
+
+      // register an event to catch the start of a gesture and store the
+      // target in a singleton
+      hammer._on('hammer.input', function (event) {
+        if (_options.preventDefault === true || (_options.preventDefault === event.pointerType)) {
+          event.preventDefault();
+        }
+        if (event.isFirst) {
+          _firstTarget = event.target;
+          _processing = true;
+        }
+        if (event.isFinal) {
+          _processing = false;
+        }
+      });
 
       /**
-       * this inserts the colorPicker into a div from the DOM
-       * @param container
+       * Register a handler for one or multiple events
+       * @param {String} events    A space separated string with events
+       * @param {function} handler A callback function, called as handler(event)
+       * @returns {Hammer.Manager} Returns the hammer instance
        */
-      value: function insertTo(container) {
-        if (this.hammer !== undefined) {
-          this.hammer.destroy();
-          this.hammer = undefined;
-        }
-        this.container = container;
-        this.container.appendChild(this.frame);
-        this._bindHammer();
+      hammer.on = function (events, handler) {
+        // register the handler
+        split(events).forEach(function (event) {
+          var _handlers = hammer._handlers[event];
+          if (!_handlers) {
+            hammer._handlers[event] = _handlers = [];
 
-        this._setSize();
-      }
-    }, {
-      key: 'setCallback',
-
-      /**
-       * the callback is executed on apply and save. Bind it to the application
-       * @param callback
-       */
-      value: function setCallback(callback) {
-        if (typeof callback === 'function') {
-          this.updateCallback = callback;
-        } else {
-          throw new Error('Function attempted to set as colorPicker callback is not a function.');
-        }
-      }
-    }, {
-      key: '_isColorString',
-      value: function _isColorString(color) {
-        var htmlColors = { black: '#000000', navy: '#000080', darkblue: '#00008B', mediumblue: '#0000CD', blue: '#0000FF', darkgreen: '#006400', green: '#008000', teal: '#008080', darkcyan: '#008B8B', deepskyblue: '#00BFFF', darkturquoise: '#00CED1', mediumspringgreen: '#00FA9A', lime: '#00FF00', springgreen: '#00FF7F', aqua: '#00FFFF', cyan: '#00FFFF', midnightblue: '#191970', dodgerblue: '#1E90FF', lightseagreen: '#20B2AA', forestgreen: '#228B22', seagreen: '#2E8B57', darkslategray: '#2F4F4F', limegreen: '#32CD32', mediumseagreen: '#3CB371', turquoise: '#40E0D0', royalblue: '#4169E1', steelblue: '#4682B4', darkslateblue: '#483D8B', mediumturquoise: '#48D1CC', indigo: '#4B0082', darkolivegreen: '#556B2F', cadetblue: '#5F9EA0', cornflowerblue: '#6495ED', mediumaquamarine: '#66CDAA', dimgray: '#696969', slateblue: '#6A5ACD', olivedrab: '#6B8E23', slategray: '#708090', lightslategray: '#778899', mediumslateblue: '#7B68EE', lawngreen: '#7CFC00', chartreuse: '#7FFF00', aquamarine: '#7FFFD4', maroon: '#800000', purple: '#800080', olive: '#808000', gray: '#808080', skyblue: '#87CEEB', lightskyblue: '#87CEFA', blueviolet: '#8A2BE2', darkred: '#8B0000', darkmagenta: '#8B008B', saddlebrown: '#8B4513', darkseagreen: '#8FBC8F', lightgreen: '#90EE90', mediumpurple: '#9370D8', darkviolet: '#9400D3', palegreen: '#98FB98', darkorchid: '#9932CC', yellowgreen: '#9ACD32', sienna: '#A0522D', brown: '#A52A2A', darkgray: '#A9A9A9', lightblue: '#ADD8E6', greenyellow: '#ADFF2F', paleturquoise: '#AFEEEE', lightsteelblue: '#B0C4DE', powderblue: '#B0E0E6', firebrick: '#B22222', darkgoldenrod: '#B8860B', mediumorchid: '#BA55D3', rosybrown: '#BC8F8F', darkkhaki: '#BDB76B', silver: '#C0C0C0', mediumvioletred: '#C71585', indianred: '#CD5C5C', peru: '#CD853F', chocolate: '#D2691E', tan: '#D2B48C', lightgrey: '#D3D3D3', palevioletred: '#D87093', thistle: '#D8BFD8', orchid: '#DA70D6', goldenrod: '#DAA520', crimson: '#DC143C', gainsboro: '#DCDCDC', plum: '#DDA0DD', burlywood: '#DEB887', lightcyan: '#E0FFFF', lavender: '#E6E6FA', darksalmon: '#E9967A', violet: '#EE82EE', palegoldenrod: '#EEE8AA', lightcoral: '#F08080', khaki: '#F0E68C', aliceblue: '#F0F8FF', honeydew: '#F0FFF0', azure: '#F0FFFF', sandybrown: '#F4A460', wheat: '#F5DEB3', beige: '#F5F5DC', whitesmoke: '#F5F5F5', mintcream: '#F5FFFA', ghostwhite: '#F8F8FF', salmon: '#FA8072', antiquewhite: '#FAEBD7', linen: '#FAF0E6', lightgoldenrodyellow: '#FAFAD2', oldlace: '#FDF5E6', red: '#FF0000', fuchsia: '#FF00FF', magenta: '#FF00FF', deeppink: '#FF1493', orangered: '#FF4500', tomato: '#FF6347', hotpink: '#FF69B4', coral: '#FF7F50', darkorange: '#FF8C00', lightsalmon: '#FFA07A', orange: '#FFA500', lightpink: '#FFB6C1', pink: '#FFC0CB', gold: '#FFD700', peachpuff: '#FFDAB9', navajowhite: '#FFDEAD', moccasin: '#FFE4B5', bisque: '#FFE4C4', mistyrose: '#FFE4E1', blanchedalmond: '#FFEBCD', papayawhip: '#FFEFD5', lavenderblush: '#FFF0F5', seashell: '#FFF5EE', cornsilk: '#FFF8DC', lemonchiffon: '#FFFACD', floralwhite: '#FFFAF0', snow: '#FFFAFA', yellow: '#FFFF00', lightyellow: '#FFFFE0', ivory: '#FFFFF0', white: '#FFFFFF' };
-        if (typeof color === 'string') {
-          return htmlColors[color];
-        }
-      }
-    }, {
-      key: 'setColor',
-
-      /**
-       * Set the color of the colorPicker
-       * Supported formats:
-       * 'red'                   --> HTML color string
-       * '#ffffff'               --> hex string
-       * 'rbg(255,255,255)'      --> rgb string
-       * 'rgba(255,255,255,1.0)' --> rgba string
-       * {r:255,g:255,b:255}     --> rgb object
-       * {r:255,g:255,b:255,a:1.0} --> rgba object
-       * @param color
-       * @param setInitial
-       */
-      value: function setColor(color) {
-        var setInitial = arguments[1] === undefined ? true : arguments[1];
-
-        if (color === 'none') {
-          return;
-        }
-
-        var rgba = undefined;
-
-        // if a html color shorthand is used, convert to hex
-        var htmlColor = this._isColorString(color);
-        if (htmlColor !== undefined) {
-          color = htmlColor;
-        }
-
-        // check format
-        if (util.isString(color) === true) {
-          if (util.isValidRGB(color) === true) {
-            var rgbaArray = color.substr(4).substr(0, color.length - 5).split(',');
-            rgba = { r: rgbaArray[0], g: rgbaArray[1], b: rgbaArray[2], a: 1 };
-          } else if (util.isValidRGBA(color) === true) {
-            var rgbaArray = color.substr(5).substr(0, color.length - 6).split(',');
-            rgba = { r: rgbaArray[0], g: rgbaArray[1], b: rgbaArray[2], a: rgbaArray[3] };
-          } else if (util.isValidHex(color) === true) {
-            var rgbObj = util.hexToRGB(color);
-            rgba = { r: rgbObj.r, g: rgbObj.g, b: rgbObj.b, a: 1 };
+            // register the static, propagated handler
+            hammer._on(event, propagatedHandler);
           }
-        } else {
-          if (color instanceof Object) {
-            if (color.r !== undefined && color.g !== undefined && color.b !== undefined) {
-              var alpha = color.a !== undefined ? color.a : '1.0';
-              rgba = { r: color.r, g: color.g, b: color.b, a: alpha };
+          _handlers.push(handler);
+        });
+
+        return hammer;
+      };
+
+      /**
+       * Unregister a handler for one or multiple events
+       * @param {String} events      A space separated string with events
+       * @param {function} [handler] Optional. The registered handler. If not
+       *                             provided, all handlers for given events
+       *                             are removed.
+       * @returns {Hammer.Manager}   Returns the hammer instance
+       */
+      hammer.off = function (events, handler) {
+        // unregister the handler
+        split(events).forEach(function (event) {
+          var _handlers = hammer._handlers[event];
+          if (_handlers) {
+            _handlers = handler ? _handlers.filter(function (h) {
+              return h !== handler;
+            }) : [];
+
+            if (_handlers.length > 0) {
+              hammer._handlers[event] = _handlers;
+            }
+            else {
+              // remove static, propagated handler
+              hammer._off(event, propagatedHandler);
+              delete hammer._handlers[event];
             }
           }
-        }
-
-        // set color
-        if (rgba === undefined) {
-          throw new Error('Unknown color passed to the colorPicker. Supported are strings: rgb, hex, rgba. Object: rgb ({r:r,g:g,b:b,[a:a]}). Supplied: ' + JSON.stringify(color));
-        } else {
-          this._setColor(rgba, setInitial);
-        }
-      }
-    }, {
-      key: 'show',
-
-      /**
-       * this shows the color picker at a location. The hue circle is constructed once and stored.
-       * @param x
-       * @param y
-       */
-      value: function show(x, y) {
-        this.applied = false;
-        this.frame.style.display = 'block';
-        this.frame.style.top = y + 'px';
-        this.frame.style.left = x + 'px';
-        this._generateHueCircle();
-      }
-    }, {
-      key: '_hide',
-
-      // ------------------------------------------ PRIVATE ----------------------------- //
-
-      /**
-       * Hide the picker. Is called by the cancel button.
-       * Optional boolean to store the previous color for easy access later on.
-       * @param storePrevious
-       * @private
-       */
-      value: function _hide() {
-        var storePrevious = arguments[0] === undefined ? true : arguments[0];
-
-        // store the previous color for next time;
-        if (storePrevious === true) {
-          this.previousColor = util.extend({}, this.color);
-        }
-
-        if (this.applied === true) {
-          this.updateCallback(this.initialColor);
-        }
-
-        this.frame.style.display = 'none';
-      }
-    }, {
-      key: '_save',
-
-      /**
-       * bound to the save button. Saves and hides.
-       * @private
-       */
-      value: function _save() {
-        this.updateCallback(this.color);
-        this.applied = false;
-        this._hide();
-      }
-    }, {
-      key: '_apply',
-
-      /**
-       * Bound to apply button. Saves but does not close. Is undone by the cancel button.
-       * @private
-       */
-      value: function _apply() {
-        this.applied = true;
-        this.updateCallback(this.color);
-        this._updatePicker(this.color);
-      }
-    }, {
-      key: '_loadLast',
-
-      /**
-       * load the color from the previous session.
-       * @private
-       */
-      value: function _loadLast() {
-        if (this.previousColor !== undefined) {
-          this.setColor(this.previousColor, false);
-        } else {
-          alert('There is no last color to load...');
-        }
-      }
-    }, {
-      key: '_setColor',
-
-      /**
-       * set the color, place the picker
-       * @param rgba
-       * @param setInitial
-       * @private
-       */
-      value: function _setColor(rgba) {
-        var setInitial = arguments[1] === undefined ? true : arguments[1];
-
-        // store the initial color
-        if (setInitial === true) {
-          this.initialColor = util.extend({}, rgba);
-        }
-
-        this.color = rgba;
-        var hsv = util.RGBToHSV(rgba.r, rgba.g, rgba.b);
-
-        var angleConvert = 2 * Math.PI;
-        var radius = this.r * hsv.s;
-        var x = this.centerCoordinates.x + radius * Math.sin(angleConvert * hsv.h);
-        var y = this.centerCoordinates.y + radius * Math.cos(angleConvert * hsv.h);
-
-        this.colorPickerSelector.style.left = x - 0.5 * this.colorPickerSelector.clientWidth + 'px';
-        this.colorPickerSelector.style.top = y - 0.5 * this.colorPickerSelector.clientHeight + 'px';
-
-        this._updatePicker(rgba);
-      }
-    }, {
-      key: '_setOpacity',
-
-      /**
-       * bound to opacity control
-       * @param value
-       * @private
-       */
-      value: function _setOpacity(value) {
-        this.color.a = value / 100;
-        this._updatePicker(this.color);
-      }
-    }, {
-      key: '_setBrightness',
-
-      /**
-       * bound to brightness control
-       * @param value
-       * @private
-       */
-      value: function _setBrightness(value) {
-        var hsv = util.RGBToHSV(this.color.r, this.color.g, this.color.b);
-        hsv.v = value / 100;
-        var rgba = util.HSVToRGB(hsv.h, hsv.s, hsv.v);
-        rgba['a'] = this.color.a;
-        this.color = rgba;
-        this._updatePicker();
-      }
-    }, {
-      key: '_updatePicker',
-
-      /**
-       * update the colorpicker. A black circle overlays the hue circle to mimic the brightness decreasing.
-       * @param rgba
-       * @private
-       */
-      value: function _updatePicker() {
-        var rgba = arguments[0] === undefined ? this.color : arguments[0];
-
-        var hsv = util.RGBToHSV(rgba.r, rgba.g, rgba.b);
-        var ctx = this.colorPickerCanvas.getContext('2d');
-        if (this.pixelRation === undefined) {
-          this.pixelRatio = (window.devicePixelRatio || 1) / (ctx.webkitBackingStorePixelRatio || ctx.mozBackingStorePixelRatio || ctx.msBackingStorePixelRatio || ctx.oBackingStorePixelRatio || ctx.backingStorePixelRatio || 1);
-        }
-        ctx.setTransform(this.pixelRatio, 0, 0, this.pixelRatio, 0, 0);
-
-        // clear the canvas
-        var w = this.colorPickerCanvas.clientWidth;
-        var h = this.colorPickerCanvas.clientHeight;
-        ctx.clearRect(0, 0, w, h);
-
-        ctx.putImageData(this.hueCircle, 0, 0);
-        ctx.fillStyle = 'rgba(0,0,0,' + (1 - hsv.v) + ')';
-        ctx.circle(this.centerCoordinates.x, this.centerCoordinates.y, this.r);
-        ctx.fill();
-
-        this.brightnessRange.value = 100 * hsv.v;
-        this.opacityRange.value = 100 * rgba.a;
-
-        this.initialColorDiv.style.backgroundColor = 'rgba(' + this.initialColor.r + ',' + this.initialColor.g + ',' + this.initialColor.b + ',' + this.initialColor.a + ')';
-        this.newColorDiv.style.backgroundColor = 'rgba(' + this.color.r + ',' + this.color.g + ',' + this.color.b + ',' + this.color.a + ')';
-      }
-    }, {
-      key: '_setSize',
-
-      /**
-       * used by create to set the size of the canvas.
-       * @private
-       */
-      value: function _setSize() {
-        this.colorPickerCanvas.style.width = '100%';
-        this.colorPickerCanvas.style.height = '100%';
-
-        this.colorPickerCanvas.width = 289 * this.pixelRatio;
-        this.colorPickerCanvas.height = 289 * this.pixelRatio;
-      }
-    }, {
-      key: '_create',
-
-      /**
-       * create all dom elements
-       * TODO: cleanup, lots of similar dom elements
-       * @private
-       */
-      value: function _create() {
-        this.frame = document.createElement('div');
-        this.frame.className = 'vis-color-picker';
-
-        this.colorPickerDiv = document.createElement('div');
-        this.colorPickerSelector = document.createElement('div');
-        this.colorPickerSelector.className = 'vis-selector';
-        this.colorPickerDiv.appendChild(this.colorPickerSelector);
-
-        this.colorPickerCanvas = document.createElement('canvas');
-        this.colorPickerDiv.appendChild(this.colorPickerCanvas);
-
-        if (!this.colorPickerCanvas.getContext) {
-          var noCanvas = document.createElement('DIV');
-          noCanvas.style.color = 'red';
-          noCanvas.style.fontWeight = 'bold';
-          noCanvas.style.padding = '10px';
-          noCanvas.innerHTML = 'Error: your browser does not support HTML canvas';
-          this.colorPickerCanvas.appendChild(noCanvas);
-        } else {
-          var ctx = this.colorPickerCanvas.getContext('2d');
-          this.pixelRatio = (window.devicePixelRatio || 1) / (ctx.webkitBackingStorePixelRatio || ctx.mozBackingStorePixelRatio || ctx.msBackingStorePixelRatio || ctx.oBackingStorePixelRatio || ctx.backingStorePixelRatio || 1);
-
-          this.colorPickerCanvas.getContext('2d').setTransform(this.pixelRatio, 0, 0, this.pixelRatio, 0, 0);
-        }
-
-        this.colorPickerDiv.className = 'vis-color';
-
-        this.opacityDiv = document.createElement('div');
-        this.opacityDiv.className = 'vis-opacity';
-
-        this.brightnessDiv = document.createElement('div');
-        this.brightnessDiv.className = 'vis-brightness';
-
-        this.arrowDiv = document.createElement('div');
-        this.arrowDiv.className = 'vis-arrow';
-
-        this.opacityRange = document.createElement('input');
-        this.opacityRange.type = 'range';
-        this.opacityRange.min = '0';
-        this.opacityRange.max = '100';
-        this.opacityRange.value = '100';
-        this.opacityRange.className = 'vis-range';
-
-        this.brightnessRange = document.createElement('input');
-        this.brightnessRange.type = 'range';
-        this.brightnessRange.min = '0';
-        this.brightnessRange.max = '100';
-        this.brightnessRange.value = '100';
-        this.brightnessRange.className = 'vis-range';
-
-        this.opacityDiv.appendChild(this.opacityRange);
-        this.brightnessDiv.appendChild(this.brightnessRange);
-
-        var me = this;
-        this.opacityRange.onchange = function () {
-          me._setOpacity(this.value);
-        };
-        this.opacityRange.oninput = function () {
-          me._setOpacity(this.value);
-        };
-        this.brightnessRange.onchange = function () {
-          me._setBrightness(this.value);
-        };
-        this.brightnessRange.oninput = function () {
-          me._setBrightness(this.value);
-        };
-
-        this.brightnessLabel = document.createElement('div');
-        this.brightnessLabel.className = 'vis-label vis-brightness';
-        this.brightnessLabel.innerHTML = 'brightness:';
-
-        this.opacityLabel = document.createElement('div');
-        this.opacityLabel.className = 'vis-label vis-opacity';
-        this.opacityLabel.innerHTML = 'opacity:';
-
-        this.newColorDiv = document.createElement('div');
-        this.newColorDiv.className = 'vis-new-color';
-        this.newColorDiv.innerHTML = 'new';
-
-        this.initialColorDiv = document.createElement('div');
-        this.initialColorDiv.className = 'vis-initial-color';
-        this.initialColorDiv.innerHTML = 'initial';
-
-        this.cancelButton = document.createElement('div');
-        this.cancelButton.className = 'vis-button vis-cancel';
-        this.cancelButton.innerHTML = 'cancel';
-        this.cancelButton.onclick = this._hide.bind(this, false);
-
-        this.applyButton = document.createElement('div');
-        this.applyButton.className = 'vis-button vis-apply';
-        this.applyButton.innerHTML = 'apply';
-        this.applyButton.onclick = this._apply.bind(this);
-
-        this.saveButton = document.createElement('div');
-        this.saveButton.className = 'vis-button vis-save';
-        this.saveButton.innerHTML = 'save';
-        this.saveButton.onclick = this._save.bind(this);
-
-        this.loadButton = document.createElement('div');
-        this.loadButton.className = 'vis-button vis-load';
-        this.loadButton.innerHTML = 'load last';
-        this.loadButton.onclick = this._loadLast.bind(this);
-
-        this.frame.appendChild(this.colorPickerDiv);
-        this.frame.appendChild(this.arrowDiv);
-        this.frame.appendChild(this.brightnessLabel);
-        this.frame.appendChild(this.brightnessDiv);
-        this.frame.appendChild(this.opacityLabel);
-        this.frame.appendChild(this.opacityDiv);
-        this.frame.appendChild(this.newColorDiv);
-        this.frame.appendChild(this.initialColorDiv);
-
-        this.frame.appendChild(this.cancelButton);
-        this.frame.appendChild(this.applyButton);
-        this.frame.appendChild(this.saveButton);
-        this.frame.appendChild(this.loadButton);
-      }
-    }, {
-      key: '_bindHammer',
-
-      /**
-       * bind hammer to the color picker
-       * @private
-       */
-      value: function _bindHammer() {
-        var _this = this;
-
-        this.drag = {};
-        this.pinch = {};
-        this.hammer = new Hammer(this.colorPickerCanvas);
-        this.hammer.get('pinch').set({ enable: true });
-
-        hammerUtil.onTouch(this.hammer, function (event) {
-          _this._moveSelector(event);
         });
-        this.hammer.on('tap', function (event) {
-          _this._moveSelector(event);
-        });
-        this.hammer.on('panstart', function (event) {
-          _this._moveSelector(event);
-        });
-        this.hammer.on('panmove', function (event) {
-          _this._moveSelector(event);
-        });
-        this.hammer.on('panend', function (event) {
-          _this._moveSelector(event);
-        });
-      }
-    }, {
-      key: '_generateHueCircle',
+
+        return hammer;
+      };
 
       /**
-       * generate the hue circle. This is relatively heavy (200ms) and is done only once on the first time it is shown.
-       * @private
+       * Emit to the event listeners
+       * @param {string} eventType
+       * @param {Event} event
        */
-      value: function _generateHueCircle() {
-        if (this.generated === false) {
-          var ctx = this.colorPickerCanvas.getContext('2d');
-          if (this.pixelRation === undefined) {
-            this.pixelRatio = (window.devicePixelRatio || 1) / (ctx.webkitBackingStorePixelRatio || ctx.mozBackingStorePixelRatio || ctx.msBackingStorePixelRatio || ctx.oBackingStorePixelRatio || ctx.backingStorePixelRatio || 1);
+      hammer.emit = function(eventType, event) {
+        if (!_processing) {
+          _firstTarget = event.target;
+        }
+        hammer._emit(eventType, event);
+      };
+
+      hammer.destroy = function () {
+        // Detach from DOM element
+        var element = hammer.element;
+        delete element.hammer;
+
+        // clear all handlers
+        hammer._handlers = {};
+
+        // call original hammer destroy
+        hammer._destroy();
+      };
+
+      // split a string with space separated words
+      function split(events) {
+        return events.match(/[^ ]+/g);
+      }
+
+      /**
+       * A static event handler, applying event propagation.
+       * @param {Object} event
+       */
+      function propagatedHandler(event) {
+        // let only a single hammer instance handle this event
+        if (event.type !== 'hammer.input') {
+          // it is possible that the same srcEvent is used with multiple hammer events,
+          // we keep track on which events are handled in an object _handled
+          if (!event.srcEvent._handled) {
+            event.srcEvent._handled = {};
           }
-          ctx.setTransform(this.pixelRatio, 0, 0, this.pixelRatio, 0, 0);
 
-          // clear the canvas
-          var w = this.colorPickerCanvas.clientWidth;
-          var h = this.colorPickerCanvas.clientHeight;
-          ctx.clearRect(0, 0, w, h);
+          if (event.srcEvent._handled[event.type]) {
+            return;
+          }
+          else {
+            event.srcEvent._handled[event.type] = true;
+          }
+        }
 
-          // draw hue circle
-          var x = undefined,
-              y = undefined,
-              hue = undefined,
-              sat = undefined;
-          this.centerCoordinates = { x: w * 0.5, y: h * 0.5 };
-          this.r = 0.49 * w;
-          var angleConvert = 2 * Math.PI / 360;
-          var hfac = 1 / 360;
-          var sfac = 1 / this.r;
-          var rgb = undefined;
-          for (hue = 0; hue < 360; hue++) {
-            for (sat = 0; sat < this.r; sat++) {
-              x = this.centerCoordinates.x + sat * Math.sin(angleConvert * hue);
-              y = this.centerCoordinates.y + sat * Math.cos(angleConvert * hue);
-              rgb = util.HSVToRGB(hue * hfac, sat * sfac, 1);
-              ctx.fillStyle = 'rgb(' + rgb.r + ',' + rgb.g + ',' + rgb.b + ')';
-              ctx.fillRect(x - 0.5, y - 0.5, 2, 2);
+        // attach a stopPropagation function to the event
+        var stopped = false;
+        event.stopPropagation = function () {
+          stopped = true;
+        };
+
+        // attach firstTarget property to the event
+        event.firstTarget = _firstTarget;
+
+        // propagate over all elements (until stopped)
+        var elem = _firstTarget;
+        while (elem && !stopped) {
+          var _handlers = elem.hammer && elem.hammer._handlers[event.type];
+          if (_handlers) {
+            for (var i = 0; i < _handlers.length && !stopped; i++) {
+              _handlers[i](event);
             }
           }
-          ctx.strokeStyle = 'rgba(0,0,0,1)';
-          ctx.circle(this.centerCoordinates.x, this.centerCoordinates.y, this.r);
-          ctx.stroke();
 
-          this.hueCircle = ctx.getImageData(0, 0, w, h);
+          elem = elem.parentNode;
         }
-        this.generated = true;
       }
-    }, {
-      key: '_moveSelector',
 
-      /**
-       * move the selector. This is called by hammer functions.
-       *
-       * @param event
-       * @private
-       */
-      value: function _moveSelector(event) {
-        var rect = this.colorPickerDiv.getBoundingClientRect();
-        var left = event.center.x - rect.left;
-        var top = event.center.y - rect.top;
+      return hammer;
+    };
+  }));
 
-        var centerY = 0.5 * this.colorPickerDiv.clientHeight;
-        var centerX = 0.5 * this.colorPickerDiv.clientWidth;
-
-        var x = left - centerX;
-        var y = top - centerY;
-
-        var angle = Math.atan2(x, y);
-        var radius = 0.98 * Math.min(Math.sqrt(x * x + y * y), centerX);
-
-        var newTop = Math.cos(angle) * radius + centerY;
-        var newLeft = Math.sin(angle) * radius + centerX;
-
-        this.colorPickerSelector.style.top = newTop - 0.5 * this.colorPickerSelector.clientHeight + 'px';
-        this.colorPickerSelector.style.left = newLeft - 0.5 * this.colorPickerSelector.clientWidth + 'px';
-
-        // set color
-        var h = angle / (2 * Math.PI);
-        h = h < 0 ? h + 1 : h;
-        var s = radius / this.r;
-        var hsv = util.RGBToHSV(this.color.r, this.color.g, this.color.b);
-        hsv.h = h;
-        hsv.s = s;
-        var rgba = util.HSVToRGB(hsv.h, hsv.s, hsv.v);
-        rgba['a'] = this.color.a;
-        this.color = rgba;
-
-        // update previews
-        this.initialColorDiv.style.backgroundColor = 'rgba(' + this.initialColor.r + ',' + this.initialColor.g + ',' + this.initialColor.b + ',' + this.initialColor.a + ')';
-        this.newColorDiv.style.backgroundColor = 'rgba(' + this.color.r + ',' + this.color.g + ',' + this.color.b + ',' + this.color.a + ')';
-      }
-    }]);
-
-    return ColorPicker;
-  })();
-
-  exports['default'] = ColorPicker;
-  module.exports = exports['default'];
 
 /***/ },
-/* 73 */
+/* 84 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -34123,829 +36341,19 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
 
-  var _sharedLabel = __webpack_require__(74);
+  var _sharedLabel = __webpack_require__(72);
 
   var _sharedLabel2 = _interopRequireDefault(_sharedLabel);
 
-  var _nodesShapesBox = __webpack_require__(89);
-
-  var _nodesShapesBox2 = _interopRequireDefault(_nodesShapesBox);
-
-  var _nodesShapesCircle = __webpack_require__(90);
-
-  var _nodesShapesCircle2 = _interopRequireDefault(_nodesShapesCircle);
-
-  var _nodesShapesCircularImage = __webpack_require__(91);
-
-  var _nodesShapesCircularImage2 = _interopRequireDefault(_nodesShapesCircularImage);
-
-  var _nodesShapesDatabase = __webpack_require__(92);
-
-  var _nodesShapesDatabase2 = _interopRequireDefault(_nodesShapesDatabase);
-
-  var _nodesShapesDiamond = __webpack_require__(93);
-
-  var _nodesShapesDiamond2 = _interopRequireDefault(_nodesShapesDiamond);
-
-  var _nodesShapesDot = __webpack_require__(94);
-
-  var _nodesShapesDot2 = _interopRequireDefault(_nodesShapesDot);
-
-  var _nodesShapesEllipse = __webpack_require__(95);
-
-  var _nodesShapesEllipse2 = _interopRequireDefault(_nodesShapesEllipse);
-
-  var _nodesShapesIcon = __webpack_require__(96);
-
-  var _nodesShapesIcon2 = _interopRequireDefault(_nodesShapesIcon);
-
-  var _nodesShapesImage = __webpack_require__(97);
-
-  var _nodesShapesImage2 = _interopRequireDefault(_nodesShapesImage);
-
-  var _nodesShapesSquare = __webpack_require__(98);
-
-  var _nodesShapesSquare2 = _interopRequireDefault(_nodesShapesSquare);
-
-  var _nodesShapesStar = __webpack_require__(99);
-
-  var _nodesShapesStar2 = _interopRequireDefault(_nodesShapesStar);
-
-  var _nodesShapesText = __webpack_require__(100);
-
-  var _nodesShapesText2 = _interopRequireDefault(_nodesShapesText);
-
-  var _nodesShapesTriangle = __webpack_require__(101);
-
-  var _nodesShapesTriangle2 = _interopRequireDefault(_nodesShapesTriangle);
-
-  var _nodesShapesTriangleDown = __webpack_require__(102);
-
-  var _nodesShapesTriangleDown2 = _interopRequireDefault(_nodesShapesTriangleDown);
-
-  var _Validator = __webpack_require__(46);
-
-  var _Validator2 = _interopRequireDefault(_Validator);
-
-  var util = __webpack_require__(1);
-
-  /**
-   * @class Node
-   * A node. A node can be connected to other nodes via one or multiple edges.
-   * @param {object} options An object containing options for the node. All
-   *                            options are optional, except for the id.
-   *                              {number} id     Id of the node. Required
-   *                              {string} label  Text label for the node
-   *                              {number} x      Horizontal position of the node
-   *                              {number} y      Vertical position of the node
-   *                              {string} shape  Node shape, available:
-   *                                              "database", "circle", "ellipse",
-   *                                              "box", "image", "text", "dot",
-   *                                              "star", "triangle", "triangleDown",
-   *                                              "square", "icon"
-   *                              {string} image  An image url
-   *                              {string} title  An title text, can be HTML
-   *                              {anytype} group A group name or number
-   * @param {Network.Images} imagelist    A list with images. Only needed
-   *                                            when the node has an image
-   * @param {Network.Groups} grouplist    A list with groups. Needed for
-   *                                            retrieving group options
-   * @param {Object}               constants    An object with default values for
-   *                                            example for the color
-   *
-   */
-
-  var Node = (function () {
-    function Node(options, body, imagelist, grouplist, globalOptions) {
-      _classCallCheck(this, Node);
-
-      this.options = util.bridgeObject(globalOptions);
-      this.body = body;
-
-      this.edges = []; // all edges connected to this node
-
-      // set defaults for the options
-      this.id = undefined;
-      this.imagelist = imagelist;
-      this.grouplist = grouplist;
-
-      // state options
-      this.x = undefined;
-      this.y = undefined;
-      this.baseSize = this.options.size;
-      this.baseFontSize = this.options.font.size;
-      this.predefinedPosition = false; // used to check if initial fit should just take the range or approximate
-      this.selected = false;
-      this.hover = false;
-
-      this.labelModule = new _sharedLabel2['default'](this.body, this.options);
-      this.setOptions(options);
-    }
-
-    _createClass(Node, [{
-      key: 'attachEdge',
-
-      /**
-       * Attach a edge to the node
-       * @param {Edge} edge
-       */
-      value: function attachEdge(edge) {
-        if (this.edges.indexOf(edge) === -1) {
-          this.edges.push(edge);
-        }
-      }
-    }, {
-      key: 'detachEdge',
-
-      /**
-       * Detach a edge from the node
-       * @param {Edge} edge
-       */
-      value: function detachEdge(edge) {
-        var index = this.edges.indexOf(edge);
-        if (index != -1) {
-          this.edges.splice(index, 1);
-        }
-      }
-    }, {
-      key: 'togglePhysics',
-
-      /**
-       * Enable or disable the physics.
-       * @param status
-       */
-      value: function togglePhysics(status) {
-        this.options.physics = status;
-      }
-    }, {
-      key: 'setOptions',
-
-      /**
-       * Set or overwrite options for the node
-       * @param {Object} options an object with options
-       * @param {Object} constants  and object with default, global options
-       */
-      value: function setOptions(options) {
-        if (!options) {
-          return;
-        }
-
-        // basic options
-        if (options.id !== undefined) {
-          this.id = options.id;
-        }
-
-        if (this.id === undefined) {
-          throw 'Node must have an id';
-        }
-
-        if (options.x !== undefined) {
-          this.x = parseInt(options.x);this.predefinedPosition = true;
-        }
-        if (options.y !== undefined) {
-          this.y = parseInt(options.y);this.predefinedPosition = true;
-        }
-        if (options.size !== undefined) {
-          this.baseSize = options.size;
-        }
-        if (options.value !== undefined) {
-          options.value = parseInt(options.value);
-        }
-
-        // this transforms all shorthands into fully defined options
-        Node.parseOptions(this.options, options, true);
-
-        // copy group options
-        if (typeof options.group === 'number' || typeof options.group === 'string' && options.group != '') {
-          var groupObj = this.grouplist.get(options.group);
-          util.deepExtend(this.options, groupObj);
-          // the color object needs to be completely defined. Since groups can partially overwrite the colors, we parse it again, just in case.
-          this.options.color = util.parseColor(this.options.color);
-        }
-
-        // load the images
-        if (this.options.image !== undefined && this.options.image != '') {
-          if (this.imagelist) {
-            this.imageObj = this.imagelist.load(this.options.image, this.options.brokenImage);
-          } else {
-            throw 'No imagelist provided';
-          }
-        }
-
-        this.updateShape();
-        this.updateLabelModule();
-
-        // reset the size of the node, this can be changed
-        this._reset();
-      }
-    }, {
-      key: 'updateLabelModule',
-      value: function updateLabelModule() {
-        if (this.options.label === undefined || this.options.label === null) {
-          this.options.label = '';
-        }
-        this.labelModule.setOptions(this.options, true);
-        if (this.labelModule.baseSize !== undefined) {
-          this.baseFontSize = this.labelModule.baseSize;
-        }
-      }
-    }, {
-      key: 'updateShape',
-      value: function updateShape() {
-        // choose draw method depending on the shape
-        switch (this.options.shape) {
-          case 'box':
-            this.shape = new _nodesShapesBox2['default'](this.options, this.body, this.labelModule);
-            break;
-          case 'circle':
-            this.shape = new _nodesShapesCircle2['default'](this.options, this.body, this.labelModule);
-            break;
-          case 'circularImage':
-            this.shape = new _nodesShapesCircularImage2['default'](this.options, this.body, this.labelModule, this.imageObj);
-            break;
-          case 'database':
-            this.shape = new _nodesShapesDatabase2['default'](this.options, this.body, this.labelModule);
-            break;
-          case 'diamond':
-            this.shape = new _nodesShapesDiamond2['default'](this.options, this.body, this.labelModule);
-            break;
-          case 'dot':
-            this.shape = new _nodesShapesDot2['default'](this.options, this.body, this.labelModule);
-            break;
-          case 'ellipse':
-            this.shape = new _nodesShapesEllipse2['default'](this.options, this.body, this.labelModule);
-            break;
-          case 'icon':
-            this.shape = new _nodesShapesIcon2['default'](this.options, this.body, this.labelModule);
-            break;
-          case 'image':
-            this.shape = new _nodesShapesImage2['default'](this.options, this.body, this.labelModule, this.imageObj);
-            break;
-          case 'square':
-            this.shape = new _nodesShapesSquare2['default'](this.options, this.body, this.labelModule);
-            break;
-          case 'star':
-            this.shape = new _nodesShapesStar2['default'](this.options, this.body, this.labelModule);
-            break;
-          case 'text':
-            this.shape = new _nodesShapesText2['default'](this.options, this.body, this.labelModule);
-            break;
-          case 'triangle':
-            this.shape = new _nodesShapesTriangle2['default'](this.options, this.body, this.labelModule);
-            break;
-          case 'triangleDown':
-            this.shape = new _nodesShapesTriangleDown2['default'](this.options, this.body, this.labelModule);
-            break;
-          default:
-            this.shape = new _nodesShapesEllipse2['default'](this.options, this.body, this.labelModule);
-            break;
-        }
-        this._reset();
-      }
-    }, {
-      key: 'select',
-
-      /**
-       * select this node
-       */
-      value: function select() {
-        this.selected = true;
-        this._reset();
-      }
-    }, {
-      key: 'unselect',
-
-      /**
-       * unselect this node
-       */
-      value: function unselect() {
-        this.selected = false;
-        this._reset();
-      }
-    }, {
-      key: '_reset',
-
-      /**
-       * Reset the calculated size of the node, forces it to recalculate its size
-       * @private
-       */
-      value: function _reset() {
-        this.shape.width = undefined;
-        this.shape.height = undefined;
-      }
-    }, {
-      key: 'getTitle',
-
-      /**
-       * get the title of this node.
-       * @return {string} title    The title of the node, or undefined when no title
-       *                           has been set.
-       */
-      value: function getTitle() {
-        return this.options.title;
-      }
-    }, {
-      key: 'distanceToBorder',
-
-      /**
-       * Calculate the distance to the border of the Node
-       * @param {CanvasRenderingContext2D}   ctx
-       * @param {Number} angle        Angle in radians
-       * @returns {number} distance   Distance to the border in pixels
-       */
-      value: function distanceToBorder(ctx, angle) {
-        return this.shape.distanceToBorder(ctx, angle);
-      }
-    }, {
-      key: 'isFixed',
-
-      /**
-       * Check if this node has a fixed x and y position
-       * @return {boolean}      true if fixed, false if not
-       */
-      value: function isFixed() {
-        return this.options.fixed.x && this.options.fixed.y;
-      }
-    }, {
-      key: 'isSelected',
-
-      /**
-       * check if this node is selecte
-       * @return {boolean} selected   True if node is selected, else false
-       */
-      value: function isSelected() {
-        return this.selected;
-      }
-    }, {
-      key: 'getValue',
-
-      /**
-       * Retrieve the value of the node. Can be undefined
-       * @return {Number} value
-       */
-      value: function getValue() {
-        return this.options.value;
-      }
-    }, {
-      key: 'setValueRange',
-
-      /**
-       * Adjust the value range of the node. The node will adjust it's size
-       * based on its value.
-       * @param {Number} min
-       * @param {Number} max
-       */
-      value: function setValueRange(min, max, total) {
-        if (this.options.value !== undefined) {
-          var scale = this.options.scaling.customScalingFunction(min, max, total, this.options.value);
-          var sizeDiff = this.options.scaling.max - this.options.scaling.min;
-          if (this.options.scaling.label.enabled === true) {
-            var fontDiff = this.options.scaling.label.max - this.options.scaling.label.min;
-            this.options.font.size = this.options.scaling.label.min + scale * fontDiff;
-          }
-          this.options.size = this.options.scaling.min + scale * sizeDiff;
-        } else {
-          this.options.size = this.baseSize;
-          this.options.font.size = this.baseFontSize;
-        }
-      }
-    }, {
-      key: 'draw',
-
-      /**
-       * Draw this node in the given canvas
-       * The 2d context of a HTML canvas can be retrieved by canvas.getContext("2d");
-       * @param {CanvasRenderingContext2D}   ctx
-       */
-      value: function draw(ctx) {
-        this.shape.draw(ctx, this.x, this.y, this.selected, this.hover);
-      }
-    }, {
-      key: 'resize',
-
-      /**
-       * Recalculate the size of this node in the given canvas
-       * The 2d context of a HTML canvas can be retrieved by canvas.getContext("2d");
-       * @param {CanvasRenderingContext2D}   ctx
-       */
-      value: function resize(ctx) {
-        this.shape.resize(ctx);
-      }
-    }, {
-      key: 'isOverlappingWith',
-
-      /**
-       * Check if this object is overlapping with the provided object
-       * @param {Object} obj   an object with parameters left, top, right, bottom
-       * @return {boolean}     True if location is located on node
-       */
-      value: function isOverlappingWith(obj) {
-        return this.shape.left < obj.right && this.shape.left + this.shape.width > obj.left && this.shape.top < obj.bottom && this.shape.top + this.shape.height > obj.top;
-      }
-    }, {
-      key: 'isBoundingBoxOverlappingWith',
-
-      /**
-       * Check if this object is overlapping with the provided object
-       * @param {Object} obj   an object with parameters left, top, right, bottom
-       * @return {boolean}     True if location is located on node
-       */
-      value: function isBoundingBoxOverlappingWith(obj) {
-        return this.shape.boundingBox.left < obj.right && this.shape.boundingBox.right > obj.left && this.shape.boundingBox.top < obj.bottom && this.shape.boundingBox.bottom > obj.top;
-      }
-    }], [{
-      key: 'parseOptions',
-
-      /**
-       * This process all possible shorthands in the new options and makes sure that the parentOptions are fully defined.
-       * Static so it can also be used by the handler.
-       * @param parentOptions
-       * @param newOptions
-       */
-      value: function parseOptions(parentOptions, newOptions) {
-        var allowDeletion = arguments[2] === undefined ? false : arguments[2];
-
-        var fields = ['color', 'fixed', 'shadow'];
-        util.selectiveNotDeepExtend(fields, parentOptions, newOptions);
-
-        // merge the shadow options into the parent.
-        util.mergeOptions(parentOptions, newOptions, 'shadow');
-
-        // individual shape newOptions
-        if (newOptions.color !== undefined && newOptions.color !== null) {
-          var parsedColor = util.parseColor(newOptions.color);
-          util.fillIfDefined(parentOptions.color, parsedColor);
-        } else if (allowDeletion === true) {
-          parentOptions.color = undefined;
-          delete parentOptions.color;
-        }
-
-        if (newOptions.fixed !== undefined && newOptions.fixed !== null) {
-          if (typeof newOptions.fixed === 'boolean') {
-            parentOptions.fixed.x = newOptions.fixed;
-            parentOptions.fixed.y = newOptions.fixed;
-          } else {
-            if (newOptions.fixed.x !== undefined && typeof newOptions.fixed.x === 'boolean') {
-              parentOptions.fixed.x = newOptions.fixed.x;
-            }
-            if (newOptions.fixed.y !== undefined && typeof newOptions.fixed.y === 'boolean') {
-              parentOptions.fixed.y = newOptions.fixed.y;
-            }
-          }
-        }
-      }
-    }]);
-
-    return Node;
-  })();
-
-  exports['default'] = Node;
-  module.exports = exports['default'];
-
-/***/ },
-/* 74 */
-/***/ function(module, exports, __webpack_require__) {
-
-  'use strict';
-
-  Object.defineProperty(exports, '__esModule', {
-    value: true
-  });
-
-  var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
-
-  function _slicedToArray(arr, i) { if (Array.isArray(arr)) { return arr; } else if (Symbol.iterator in Object(arr)) { var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i['return']) _i['return'](); } finally { if (_d) throw _e; } } return _arr; } else { throw new TypeError('Invalid attempt to destructure non-iterable instance'); } }
-
-  function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
-
-  var util = __webpack_require__(1);
-
-  var Label = (function () {
-    function Label(body, options) {
-      _classCallCheck(this, Label);
-
-      this.body = body;
-
-      this.baseSize = undefined;
-      this.setOptions(options);
-      this.size = { top: 0, left: 0, width: 0, height: 0, yLine: 0 }; // could be cached
-    }
-
-    _createClass(Label, [{
-      key: 'setOptions',
-      value: function setOptions(options) {
-        var allowDeletion = arguments[1] === undefined ? false : arguments[1];
-
-        this.options = options;
-
-        if (options.label !== undefined) {
-          this.labelDirty = true;
-        }
-
-        if (options.font !== undefined) {
-          Label.parseOptions(this.options.font, options, allowDeletion);
-          if (typeof options.font === 'string') {
-            this.baseSize = this.options.font.size;
-          } else if (typeof options.font === 'object') {
-            if (options.font.size !== undefined) {
-              this.baseSize = options.font.size;
-            }
-          }
-        }
-      }
-    }, {
-      key: 'draw',
-
-      /**
-       * Main function. This is called from anything that wants to draw a label.
-       * @param ctx
-       * @param x
-       * @param y
-       * @param selected
-       * @param baseline
-       */
-      value: function draw(ctx, x, y, selected) {
-        var baseline = arguments[4] === undefined ? 'middle' : arguments[4];
-
-        // if no label, return
-        if (this.options.label === undefined) return;
-
-        // check if we have to render the label
-        var viewFontSize = this.options.font.size * this.body.view.scale;
-        if (this.options.label && viewFontSize < this.options.scaling.label.drawThreshold - 1) return;
-
-        // update the size cache if required
-        this.calculateLabelSize(ctx, selected, x, y, baseline);
-
-        // create the fontfill background
-        this._drawBackground(ctx);
-        // draw text
-        this._drawText(ctx, selected, x, y, baseline);
-      }
-    }, {
-      key: '_drawBackground',
-
-      /**
-       * Draws the label background
-       * @param {CanvasRenderingContext2D} ctx
-       * @private
-       */
-      value: function _drawBackground(ctx) {
-        if (this.options.font.background !== undefined && this.options.font.background !== 'none') {
-          ctx.fillStyle = this.options.font.background;
-
-          var lineMargin = 2;
-
-          switch (this.options.font.align) {
-            case 'middle':
-              ctx.fillRect(-this.size.width * 0.5, -this.size.height * 0.5, this.size.width, this.size.height);
-              break;
-            case 'top':
-              ctx.fillRect(-this.size.width * 0.5, -(this.size.height + lineMargin), this.size.width, this.size.height);
-              break;
-            case 'bottom':
-              ctx.fillRect(-this.size.width * 0.5, lineMargin, this.size.width, this.size.height);
-              break;
-            default:
-              ctx.fillRect(this.size.left, this.size.top, this.size.width, this.size.height);
-              break;
-          }
-        }
-      }
-    }, {
-      key: '_drawText',
-
-      /**
-       *
-       * @param ctx
-       * @param x
-       * @param baseline
-       * @private
-       */
-      value: function _drawText(ctx, selected, x, y) {
-        var baseline = arguments[4] === undefined ? 'middle' : arguments[4];
-
-        var fontSize = this.options.font.size;
-        var viewFontSize = fontSize * this.body.view.scale;
-        // this ensures that there will not be HUGE letters on screen by setting an upper limit on the visible text size (regardless of zoomLevel)
-        if (viewFontSize >= this.options.scaling.label.maxVisible) {
-          fontSize = Number(this.options.scaling.label.maxVisible) / this.body.view.scale;
-        }
-
-        var yLine = this.size.yLine;
-
-        var _getColor = this._getColor(viewFontSize);
-
-        var _getColor2 = _slicedToArray(_getColor, 2);
-
-        var fontColor = _getColor2[0];
-        var strokeColor = _getColor2[1];
-
-        var _setAlignment = this._setAlignment(ctx, x, yLine, baseline);
-
-        var _setAlignment2 = _slicedToArray(_setAlignment, 2);
-
-        x = _setAlignment2[0];
-        yLine = _setAlignment2[1];
-
-        // configure context for drawing the text
-        ctx.font = (selected ? 'bold ' : '') + fontSize + 'px ' + this.options.font.face;
-        ctx.fillStyle = fontColor;
-        ctx.textAlign = 'center';
-
-        // set the strokeWidth
-        if (this.options.font.strokeWidth > 0) {
-          ctx.lineWidth = this.options.font.strokeWidth;
-          ctx.strokeStyle = strokeColor;
-          ctx.lineJoin = 'round';
-        }
-
-        // draw the text
-        for (var i = 0; i < this.lineCount; i++) {
-          if (this.options.font.strokeWidth > 0) {
-            ctx.strokeText(this.lines[i], x, yLine);
-          }
-          ctx.fillText(this.lines[i], x, yLine);
-          yLine += fontSize;
-        }
-      }
-    }, {
-      key: '_setAlignment',
-      value: function _setAlignment(ctx, x, yLine, baseline) {
-        // check for label alignment (for edges)
-        // TODO: make alignment for nodes
-        if (this.options.font.align !== 'horizontal') {
-          x = 0;
-          yLine = 0;
-
-          var lineMargin = 2;
-          if (this.options.font.align === 'top') {
-            ctx.textBaseline = 'alphabetic';
-            yLine -= 2 * lineMargin; // distance from edge, required because we use alphabetic. Alphabetic has less difference between browsers
-          } else if (this.options.font.align === 'bottom') {
-            ctx.textBaseline = 'hanging';
-            yLine += 2 * lineMargin; // distance from edge, required because we use hanging. Hanging has less difference between browsers
-          } else {
-            ctx.textBaseline = 'middle';
-          }
-        } else {
-          ctx.textBaseline = baseline;
-        }
-
-        return [x, yLine];
-      }
-    }, {
-      key: '_getColor',
-
-      /**
-       * fade in when relative scale is between threshold and threshold - 1.
-       * If the relative scale would be smaller than threshold -1 the draw function would have returned before coming here.
-       *
-       * @param viewFontSize
-       * @returns {*[]}
-       * @private
-       */
-      value: function _getColor(viewFontSize) {
-        var fontColor = this.options.font.color || '#000000';
-        var strokeColor = this.options.font.strokeColor || '#ffffff';
-        if (viewFontSize <= this.options.scaling.label.drawThreshold) {
-          var opacity = Math.max(0, Math.min(1, 1 - (this.options.scaling.label.drawThreshold - viewFontSize)));
-          fontColor = util.overrideOpacity(fontColor, opacity);
-          strokeColor = util.overrideOpacity(strokeColor, opacity);
-        }
-        return [fontColor, strokeColor];
-      }
-    }, {
-      key: 'getTextSize',
-
-      /**
-       *
-       * @param ctx
-       * @param selected
-       * @returns {{width: number, height: number}}
-       */
-      value: function getTextSize(ctx) {
-        var selected = arguments[1] === undefined ? false : arguments[1];
-
-        var size = {
-          width: this._processLabel(ctx, selected),
-          height: this.options.font.size * this.lineCount,
-          lineCount: this.lineCount
-        };
-        return size;
-      }
-    }, {
-      key: 'calculateLabelSize',
-
-      /**
-       *
-       * @param ctx
-       * @param selected
-       * @param x
-       * @param y
-       * @param baseline
-       */
-      value: function calculateLabelSize(ctx, selected) {
-        var x = arguments[2] === undefined ? 0 : arguments[2];
-        var y = arguments[3] === undefined ? 0 : arguments[3];
-        var baseline = arguments[4] === undefined ? 'middle' : arguments[4];
-
-        if (this.labelDirty === true) {
-          this.size.width = this._processLabel(ctx, selected);
-        }
-        this.size.height = this.options.font.size * this.lineCount;
-        this.size.left = x - this.size.width * 0.5;
-        this.size.top = y - this.size.height * 0.5;
-        this.size.yLine = y + (1 - this.lineCount) * 0.5 * this.options.font.size;
-        if (baseline === 'hanging') {
-          this.size.top += 0.5 * this.options.font.size;
-          this.size.top += 4; // distance from node, required because we use hanging. Hanging has less difference between browsers
-          this.size.yLine += 4; // distance from node
-        }
-
-        this.labelDirty = false;
-      }
-    }, {
-      key: '_processLabel',
-
-      /**
-       * This calculates the width as well as explodes the label string and calculates the amount of lines.
-       * @param ctx
-       * @param selected
-       * @returns {number}
-       * @private
-       */
-      value: function _processLabel(ctx, selected) {
-        var width = 0;
-        var lines = [''];
-        var lineCount = 0;
-        if (this.options.label !== undefined) {
-          lines = String(this.options.label).split('\n');
-          lineCount = lines.length;
-          ctx.font = (selected ? 'bold ' : '') + this.options.font.size + 'px ' + this.options.font.face;
-          width = ctx.measureText(lines[0]).width;
-          for (var i = 1; i < lineCount; i++) {
-            var lineWidth = ctx.measureText(lines[i]).width;
-            width = lineWidth > width ? lineWidth : width;
-          }
-        }
-        this.lines = lines;
-        this.lineCount = lineCount;
-
-        return width;
-      }
-    }], [{
-      key: 'parseOptions',
-      value: function parseOptions(parentOptions, newOptions) {
-        var allowDeletion = arguments[2] === undefined ? false : arguments[2];
-
-        if (typeof newOptions.font === 'string') {
-          var newOptionsArray = newOptions.font.split(' ');
-          parentOptions.size = newOptionsArray[0].replace('px', '');
-          parentOptions.face = newOptionsArray[1];
-          parentOptions.color = newOptionsArray[2];
-        } else if (typeof newOptions.font === 'object') {
-          util.fillIfDefined(parentOptions, newOptions.font, allowDeletion);
-        }
-        parentOptions.size = Number(parentOptions.size);
-      }
-    }]);
-
-    return Label;
-  })();
-
-  exports['default'] = Label;
-  module.exports = exports['default'];
-
-/***/ },
-/* 75 */
-/***/ function(module, exports, __webpack_require__) {
-
-  'use strict';
-
-  Object.defineProperty(exports, '__esModule', {
-    value: true
-  });
-
-  var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
-
-  function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
-
-  function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
-
-  var _sharedLabel = __webpack_require__(74);
-
-  var _sharedLabel2 = _interopRequireDefault(_sharedLabel);
-
-  var _edgesBezierEdgeDynamic = __webpack_require__(103);
+  var _edgesBezierEdgeDynamic = __webpack_require__(101);
 
   var _edgesBezierEdgeDynamic2 = _interopRequireDefault(_edgesBezierEdgeDynamic);
 
-  var _edgesBezierEdgeStatic = __webpack_require__(104);
+  var _edgesBezierEdgeStatic = __webpack_require__(102);
 
   var _edgesBezierEdgeStatic2 = _interopRequireDefault(_edgesBezierEdgeStatic);
 
-  var _edgesStraightEdge = __webpack_require__(105);
+  var _edgesStraightEdge = __webpack_require__(103);
 
   var _edgesStraightEdge2 = _interopRequireDefault(_edgesStraightEdge);
 
@@ -35468,1406 +36876,20 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 76 */
-/***/ function(module, exports, __webpack_require__) {
-
-  "use strict";
-
-  Object.defineProperty(exports, "__esModule", {
-    value: true
-  });
-
-  var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
-
-  function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-
-  var BarnesHutSolver = (function () {
-    function BarnesHutSolver(body, physicsBody, options) {
-      _classCallCheck(this, BarnesHutSolver);
-
-      this.body = body;
-      this.physicsBody = physicsBody;
-      this.barnesHutTree;
-      this.setOptions(options);
-    }
-
-    _createClass(BarnesHutSolver, [{
-      key: "setOptions",
-      value: function setOptions(options) {
-        this.options = options;
-        this.thetaInversed = 1 / this.options.theta;
-      }
-    }, {
-      key: "solve",
-
-      /**
-       * This function calculates the forces the nodes apply on eachother based on a gravitational model.
-       * The Barnes Hut method is used to speed up this N-body simulation.
-       *
-       * @private
-       */
-      value: function solve() {
-        if (this.options.gravitationalConstant != 0) {
-          var node;
-          var nodes = this.body.nodes;
-          var nodeIndices = this.physicsBody.physicsNodeIndices;
-          var nodeCount = nodeIndices.length;
-
-          // create the tree
-          var barnesHutTree = this._formBarnesHutTree(nodes, nodeIndices);
-
-          // for debugging
-          this.barnesHutTree = barnesHutTree;
-
-          // place the nodes one by one recursively
-          for (var i = 0; i < nodeCount; i++) {
-            node = nodes[nodeIndices[i]];
-            if (node.options.mass > 0) {
-              // starting with root is irrelevant, it never passes the BarnesHutSolver condition
-              this._getForceContribution(barnesHutTree.root.children.NW, node);
-              this._getForceContribution(barnesHutTree.root.children.NE, node);
-              this._getForceContribution(barnesHutTree.root.children.SW, node);
-              this._getForceContribution(barnesHutTree.root.children.SE, node);
-            }
-          }
-        }
-      }
-    }, {
-      key: "_getForceContribution",
-
-      /**
-       * This function traverses the barnesHutTree. It checks when it can approximate distant nodes with their center of mass.
-       * If a region contains a single node, we check if it is not itself, then we apply the force.
-       *
-       * @param parentBranch
-       * @param node
-       * @private
-       */
-      value: function _getForceContribution(parentBranch, node) {
-        // we get no force contribution from an empty region
-        if (parentBranch.childrenCount > 0) {
-          var dx, dy, distance;
-
-          // get the distance from the center of mass to the node.
-          dx = parentBranch.centerOfMass.x - node.x;
-          dy = parentBranch.centerOfMass.y - node.y;
-          distance = Math.sqrt(dx * dx + dy * dy);
-
-          // BarnesHutSolver condition
-          // original condition : s/d < theta = passed  ===  d/s > 1/theta = passed
-          // calcSize = 1/s --> d * 1/s > 1/theta = passed
-          if (distance * parentBranch.calcSize > this.thetaInversed) {
-            this._calculateForces(distance, dx, dy, node, parentBranch);
-          } else {
-            // Did not pass the condition, go into children if available
-            if (parentBranch.childrenCount === 4) {
-              this._getForceContribution(parentBranch.children.NW, node);
-              this._getForceContribution(parentBranch.children.NE, node);
-              this._getForceContribution(parentBranch.children.SW, node);
-              this._getForceContribution(parentBranch.children.SE, node);
-            } else {
-              // parentBranch must have only one node, if it was empty we wouldnt be here
-              if (parentBranch.children.data.id != node.id) {
-                // if it is not self
-                this._calculateForces(distance, dx, dy, node, parentBranch);
-              }
-            }
-          }
-        }
-      }
-    }, {
-      key: "_calculateForces",
-
-      /**
-       * Calculate the forces based on the distance.
-       *
-       * @param distance
-       * @param dx
-       * @param dy
-       * @param node
-       * @param parentBranch
-       * @private
-       */
-      value: function _calculateForces(distance, dx, dy, node, parentBranch) {
-        // duplicate code to reduce function calls to speed up program
-        if (distance === 0) {
-          distance = 0.1 * Math.random();
-          dx = distance;
-        }
-        var gravityForce = this.options.gravitationalConstant * parentBranch.mass * node.options.mass / (distance * distance * distance);
-        var fx = dx * gravityForce;
-        var fy = dy * gravityForce;
-
-        this.physicsBody.forces[node.id].x += fx;
-        this.physicsBody.forces[node.id].y += fy;
-      }
-    }, {
-      key: "_formBarnesHutTree",
-
-      /**
-       * This function constructs the barnesHut tree recursively. It creates the root, splits it and starts placing the nodes.
-       *
-       * @param nodes
-       * @param nodeIndices
-       * @private
-       */
-      value: function _formBarnesHutTree(nodes, nodeIndices) {
-        var node;
-        var nodeCount = nodeIndices.length;
-
-        var minX = Number.MAX_VALUE,
-            minY = Number.MAX_VALUE,
-            maxX = -Number.MAX_VALUE,
-            maxY = -Number.MAX_VALUE;
-
-        // get the range of the nodes
-        for (var i = 0; i < nodeCount; i++) {
-          var x = nodes[nodeIndices[i]].x;
-          var y = nodes[nodeIndices[i]].y;
-          if (nodes[nodeIndices[i]].options.mass > 0) {
-            if (x < minX) {
-              minX = x;
-            }
-            if (x > maxX) {
-              maxX = x;
-            }
-            if (y < minY) {
-              minY = y;
-            }
-            if (y > maxY) {
-              maxY = y;
-            }
-          }
-        }
-        // make the range a square
-        var sizeDiff = Math.abs(maxX - minX) - Math.abs(maxY - minY); // difference between X and Y
-        if (sizeDiff > 0) {
-          minY -= 0.5 * sizeDiff;
-          maxY += 0.5 * sizeDiff;
-        } // xSize > ySize
-        else {
-          minX += 0.5 * sizeDiff;
-          maxX -= 0.5 * sizeDiff;
-        } // xSize < ySize
-
-        var minimumTreeSize = 0.00001;
-        var rootSize = Math.max(minimumTreeSize, Math.abs(maxX - minX));
-        var halfRootSize = 0.5 * rootSize;
-        var centerX = 0.5 * (minX + maxX),
-            centerY = 0.5 * (minY + maxY);
-
-        // construct the barnesHutTree
-        var barnesHutTree = {
-          root: {
-            centerOfMass: { x: 0, y: 0 },
-            mass: 0,
-            range: {
-              minX: centerX - halfRootSize, maxX: centerX + halfRootSize,
-              minY: centerY - halfRootSize, maxY: centerY + halfRootSize
-            },
-            size: rootSize,
-            calcSize: 1 / rootSize,
-            children: { data: null },
-            maxWidth: 0,
-            level: 0,
-            childrenCount: 4
-          }
-        };
-        this._splitBranch(barnesHutTree.root);
-
-        // place the nodes one by one recursively
-        for (i = 0; i < nodeCount; i++) {
-          node = nodes[nodeIndices[i]];
-          if (node.options.mass > 0) {
-            this._placeInTree(barnesHutTree.root, node);
-          }
-        }
-
-        // make global
-        return barnesHutTree;
-      }
-    }, {
-      key: "_updateBranchMass",
-
-      /**
-       * this updates the mass of a branch. this is increased by adding a node.
-       *
-       * @param parentBranch
-       * @param node
-       * @private
-       */
-      value: function _updateBranchMass(parentBranch, node) {
-        var totalMass = parentBranch.mass + node.options.mass;
-        var totalMassInv = 1 / totalMass;
-
-        parentBranch.centerOfMass.x = parentBranch.centerOfMass.x * parentBranch.mass + node.x * node.options.mass;
-        parentBranch.centerOfMass.x *= totalMassInv;
-
-        parentBranch.centerOfMass.y = parentBranch.centerOfMass.y * parentBranch.mass + node.y * node.options.mass;
-        parentBranch.centerOfMass.y *= totalMassInv;
-
-        parentBranch.mass = totalMass;
-        var biggestSize = Math.max(Math.max(node.height, node.radius), node.width);
-        parentBranch.maxWidth = parentBranch.maxWidth < biggestSize ? biggestSize : parentBranch.maxWidth;
-      }
-    }, {
-      key: "_placeInTree",
-
-      /**
-       * determine in which branch the node will be placed.
-       *
-       * @param parentBranch
-       * @param node
-       * @param skipMassUpdate
-       * @private
-       */
-      value: function _placeInTree(parentBranch, node, skipMassUpdate) {
-        if (skipMassUpdate != true || skipMassUpdate === undefined) {
-          // update the mass of the branch.
-          this._updateBranchMass(parentBranch, node);
-        }
-
-        if (parentBranch.children.NW.range.maxX > node.x) {
-          // in NW or SW
-          if (parentBranch.children.NW.range.maxY > node.y) {
-            // in NW
-            this._placeInRegion(parentBranch, node, "NW");
-          } else {
-            // in SW
-            this._placeInRegion(parentBranch, node, "SW");
-          }
-        } else {
-          // in NE or SE
-          if (parentBranch.children.NW.range.maxY > node.y) {
-            // in NE
-            this._placeInRegion(parentBranch, node, "NE");
-          } else {
-            // in SE
-            this._placeInRegion(parentBranch, node, "SE");
-          }
-        }
-      }
-    }, {
-      key: "_placeInRegion",
-
-      /**
-       * actually place the node in a region (or branch)
-       *
-       * @param parentBranch
-       * @param node
-       * @param region
-       * @private
-       */
-      value: function _placeInRegion(parentBranch, node, region) {
-        switch (parentBranch.children[region].childrenCount) {
-          case 0:
-            // place node here
-            parentBranch.children[region].children.data = node;
-            parentBranch.children[region].childrenCount = 1;
-            this._updateBranchMass(parentBranch.children[region], node);
-            break;
-          case 1:
-            // convert into children
-            // if there are two nodes exactly overlapping (on init, on opening of cluster etc.)
-            // we move one node a pixel and we do not put it in the tree.
-            if (parentBranch.children[region].children.data.x === node.x && parentBranch.children[region].children.data.y === node.y) {
-              node.x += Math.random();
-              node.y += Math.random();
-            } else {
-              this._splitBranch(parentBranch.children[region]);
-              this._placeInTree(parentBranch.children[region], node);
-            }
-            break;
-          case 4:
-            // place in branch
-            this._placeInTree(parentBranch.children[region], node);
-            break;
-        }
-      }
-    }, {
-      key: "_splitBranch",
-
-      /**
-       * this function splits a branch into 4 sub branches. If the branch contained a node, we place it in the subbranch
-       * after the split is complete.
-       *
-       * @param parentBranch
-       * @private
-       */
-      value: function _splitBranch(parentBranch) {
-        // if the branch is shaded with a node, replace the node in the new subset.
-        var containedNode = null;
-        if (parentBranch.childrenCount === 1) {
-          containedNode = parentBranch.children.data;
-          parentBranch.mass = 0;
-          parentBranch.centerOfMass.x = 0;
-          parentBranch.centerOfMass.y = 0;
-        }
-        parentBranch.childrenCount = 4;
-        parentBranch.children.data = null;
-        this._insertRegion(parentBranch, "NW");
-        this._insertRegion(parentBranch, "NE");
-        this._insertRegion(parentBranch, "SW");
-        this._insertRegion(parentBranch, "SE");
-
-        if (containedNode != null) {
-          this._placeInTree(parentBranch, containedNode);
-        }
-      }
-    }, {
-      key: "_insertRegion",
-
-      /**
-       * This function subdivides the region into four new segments.
-       * Specifically, this inserts a single new segment.
-       * It fills the children section of the parentBranch
-       *
-       * @param parentBranch
-       * @param region
-       * @param parentRange
-       * @private
-       */
-      value: function _insertRegion(parentBranch, region) {
-        var minX, maxX, minY, maxY;
-        var childSize = 0.5 * parentBranch.size;
-        switch (region) {
-          case "NW":
-            minX = parentBranch.range.minX;
-            maxX = parentBranch.range.minX + childSize;
-            minY = parentBranch.range.minY;
-            maxY = parentBranch.range.minY + childSize;
-            break;
-          case "NE":
-            minX = parentBranch.range.minX + childSize;
-            maxX = parentBranch.range.maxX;
-            minY = parentBranch.range.minY;
-            maxY = parentBranch.range.minY + childSize;
-            break;
-          case "SW":
-            minX = parentBranch.range.minX;
-            maxX = parentBranch.range.minX + childSize;
-            minY = parentBranch.range.minY + childSize;
-            maxY = parentBranch.range.maxY;
-            break;
-          case "SE":
-            minX = parentBranch.range.minX + childSize;
-            maxX = parentBranch.range.maxX;
-            minY = parentBranch.range.minY + childSize;
-            maxY = parentBranch.range.maxY;
-            break;
-        }
-
-        parentBranch.children[region] = {
-          centerOfMass: { x: 0, y: 0 },
-          mass: 0,
-          range: { minX: minX, maxX: maxX, minY: minY, maxY: maxY },
-          size: 0.5 * parentBranch.size,
-          calcSize: 2 * parentBranch.calcSize,
-          children: { data: null },
-          maxWidth: 0,
-          level: parentBranch.level + 1,
-          childrenCount: 0
-        };
-      }
-    }, {
-      key: "_debug",
-
-      //---------------------------  DEBUGGING BELOW  ---------------------------//
-
-      /**
-       * This function is for debugging purposed, it draws the tree.
-       *
-       * @param ctx
-       * @param color
-       * @private
-       */
-      value: function _debug(ctx, color) {
-        if (this.barnesHutTree !== undefined) {
-
-          ctx.lineWidth = 1;
-
-          this._drawBranch(this.barnesHutTree.root, ctx, color);
-        }
-      }
-    }, {
-      key: "_drawBranch",
-
-      /**
-       * This function is for debugging purposes. It draws the branches recursively.
-       *
-       * @param branch
-       * @param ctx
-       * @param color
-       * @private
-       */
-      value: function _drawBranch(branch, ctx, color) {
-        if (color === undefined) {
-          color = "#FF0000";
-        }
-
-        if (branch.childrenCount === 4) {
-          this._drawBranch(branch.children.NW, ctx);
-          this._drawBranch(branch.children.NE, ctx);
-          this._drawBranch(branch.children.SE, ctx);
-          this._drawBranch(branch.children.SW, ctx);
-        }
-        ctx.strokeStyle = color;
-        ctx.beginPath();
-        ctx.moveTo(branch.range.minX, branch.range.minY);
-        ctx.lineTo(branch.range.maxX, branch.range.minY);
-        ctx.stroke();
-
-        ctx.beginPath();
-        ctx.moveTo(branch.range.maxX, branch.range.minY);
-        ctx.lineTo(branch.range.maxX, branch.range.maxY);
-        ctx.stroke();
-
-        ctx.beginPath();
-        ctx.moveTo(branch.range.maxX, branch.range.maxY);
-        ctx.lineTo(branch.range.minX, branch.range.maxY);
-        ctx.stroke();
-
-        ctx.beginPath();
-        ctx.moveTo(branch.range.minX, branch.range.maxY);
-        ctx.lineTo(branch.range.minX, branch.range.minY);
-        ctx.stroke();
-
-        /*
-         if (branch.mass > 0) {
-         ctx.circle(branch.centerOfMass.x, branch.centerOfMass.y, 3*branch.mass);
-         ctx.stroke();
-         }
-         */
-      }
-    }]);
-
-    return BarnesHutSolver;
-  })();
-
-  exports["default"] = BarnesHutSolver;
-  module.exports = exports["default"];
-
-/***/ },
-/* 77 */
-/***/ function(module, exports, __webpack_require__) {
-
-  "use strict";
-
-  Object.defineProperty(exports, "__esModule", {
-    value: true
-  });
-
-  var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
-
-  function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-
-  var RepulsionSolver = (function () {
-    function RepulsionSolver(body, physicsBody, options) {
-      _classCallCheck(this, RepulsionSolver);
-
-      this.body = body;
-      this.physicsBody = physicsBody;
-      this.setOptions(options);
-    }
-
-    _createClass(RepulsionSolver, [{
-      key: "setOptions",
-      value: function setOptions(options) {
-        this.options = options;
-      }
-    }, {
-      key: "solve",
-
-      /**
-       * Calculate the forces the nodes apply on each other based on a repulsion field.
-       * This field is linearly approximated.
-       *
-       * @private
-       */
-      value: function solve() {
-        var dx, dy, distance, fx, fy, repulsingForce, node1, node2;
-
-        var nodes = this.body.nodes;
-        var nodeIndices = this.physicsBody.physicsNodeIndices;
-        var forces = this.physicsBody.forces;
-
-        // repulsing forces between nodes
-        var nodeDistance = this.options.nodeDistance;
-
-        // approximation constants
-        var a = -2 / 3 / nodeDistance;
-        var b = 4 / 3;
-
-        // we loop from i over all but the last entree in the array
-        // j loops from i+1 to the last. This way we do not double count any of the indices, nor i === j
-        for (var i = 0; i < nodeIndices.length - 1; i++) {
-          node1 = nodes[nodeIndices[i]];
-          for (var j = i + 1; j < nodeIndices.length; j++) {
-            node2 = nodes[nodeIndices[j]];
-
-            dx = node2.x - node1.x;
-            dy = node2.y - node1.y;
-            distance = Math.sqrt(dx * dx + dy * dy);
-
-            // same condition as BarnesHutSolver, making sure nodes are never 100% overlapping.
-            if (distance === 0) {
-              distance = 0.1 * Math.random();
-              dx = distance;
-            }
-
-            if (distance < 2 * nodeDistance) {
-              if (distance < 0.5 * nodeDistance) {
-                repulsingForce = 1;
-              } else {
-                repulsingForce = a * distance + b; // linear approx of  1 / (1 + Math.exp((distance / nodeDistance - 1) * steepness))
-              }
-              repulsingForce = repulsingForce / distance;
-
-              fx = dx * repulsingForce;
-              fy = dy * repulsingForce;
-
-              forces[node1.id].x -= fx;
-              forces[node1.id].y -= fy;
-              forces[node2.id].x += fx;
-              forces[node2.id].y += fy;
-            }
-          }
-        }
-      }
-    }]);
-
-    return RepulsionSolver;
-  })();
-
-  exports["default"] = RepulsionSolver;
-  module.exports = exports["default"];
-
-/***/ },
-/* 78 */
-/***/ function(module, exports, __webpack_require__) {
-
-  "use strict";
-
-  Object.defineProperty(exports, "__esModule", {
-    value: true
-  });
-
-  var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
-
-  function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-
-  var HierarchicalRepulsionSolver = (function () {
-    function HierarchicalRepulsionSolver(body, physicsBody, options) {
-      _classCallCheck(this, HierarchicalRepulsionSolver);
-
-      this.body = body;
-      this.physicsBody = physicsBody;
-      this.setOptions(options);
-    }
-
-    _createClass(HierarchicalRepulsionSolver, [{
-      key: "setOptions",
-      value: function setOptions(options) {
-        this.options = options;
-      }
-    }, {
-      key: "solve",
-
-      /**
-       * Calculate the forces the nodes apply on each other based on a repulsion field.
-       * This field is linearly approximated.
-       *
-       * @private
-       */
-      value: function solve() {
-        var dx, dy, distance, fx, fy, repulsingForce, node1, node2, i, j;
-
-        var nodes = this.body.nodes;
-        var nodeIndices = this.physicsBody.physicsNodeIndices;
-        var forces = this.physicsBody.forces;
-
-        // repulsing forces between nodes
-        var nodeDistance = this.options.nodeDistance;
-
-        // we loop from i over all but the last entree in the array
-        // j loops from i+1 to the last. This way we do not double count any of the indices, nor i === j
-        for (i = 0; i < nodeIndices.length - 1; i++) {
-          node1 = nodes[nodeIndices[i]];
-          for (j = i + 1; j < nodeIndices.length; j++) {
-            node2 = nodes[nodeIndices[j]];
-
-            // nodes only affect nodes on their level
-            if (node1.level === node2.level) {
-              dx = node2.x - node1.x;
-              dy = node2.y - node1.y;
-              distance = Math.sqrt(dx * dx + dy * dy);
-
-              var steepness = 0.05;
-              if (distance < nodeDistance) {
-                repulsingForce = -Math.pow(steepness * distance, 2) + Math.pow(steepness * nodeDistance, 2);
-              } else {
-                repulsingForce = 0;
-              }
-              // normalize force with
-              if (distance === 0) {
-                distance = 0.01;
-              } else {
-                repulsingForce = repulsingForce / distance;
-              }
-              fx = dx * repulsingForce;
-              fy = dy * repulsingForce;
-
-              forces[node1.id].x -= fx;
-              forces[node1.id].y -= fy;
-              forces[node2.id].x += fx;
-              forces[node2.id].y += fy;
-            }
-          }
-        }
-      }
-    }]);
-
-    return HierarchicalRepulsionSolver;
-  })();
-
-  exports["default"] = HierarchicalRepulsionSolver;
-  module.exports = exports["default"];
-
-/***/ },
-/* 79 */
-/***/ function(module, exports, __webpack_require__) {
-
-  "use strict";
-
-  Object.defineProperty(exports, "__esModule", {
-    value: true
-  });
-
-  var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
-
-  function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-
-  var SpringSolver = (function () {
-    function SpringSolver(body, physicsBody, options) {
-      _classCallCheck(this, SpringSolver);
-
-      this.body = body;
-      this.physicsBody = physicsBody;
-      this.setOptions(options);
-    }
-
-    _createClass(SpringSolver, [{
-      key: "setOptions",
-      value: function setOptions(options) {
-        this.options = options;
-      }
-    }, {
-      key: "solve",
-
-      /**
-       * This function calculates the springforces on the nodes, accounting for the support nodes.
-       *
-       * @private
-       */
-      value: function solve() {
-        var edgeLength, edge;
-        var edgeIndices = this.physicsBody.physicsEdgeIndices;
-        var edges = this.body.edges;
-
-        // forces caused by the edges, modelled as springs
-        for (var i = 0; i < edgeIndices.length; i++) {
-          edge = edges[edgeIndices[i]];
-          if (edge.connected === true && edge.toId !== edge.fromId) {
-            // only calculate forces if nodes are in the same sector
-            if (this.body.nodes[edge.toId] !== undefined && this.body.nodes[edge.fromId] !== undefined) {
-              if (edge.edgeType.via !== undefined) {
-                edgeLength = edge.options.length === undefined ? this.options.springLength : edge.options.length;
-                var node1 = edge.to;
-                var node2 = edge.edgeType.via;
-                var node3 = edge.from;
-
-                this._calculateSpringForce(node1, node2, 0.5 * edgeLength);
-                this._calculateSpringForce(node2, node3, 0.5 * edgeLength);
-              } else {
-                // the * 1.5 is here so the edge looks as large as a smooth edge. It does not initially because the smooth edges use
-                // the support nodes which exert a repulsive force on the to and from nodes, making the edge appear larger.
-                edgeLength = edge.options.length === undefined ? this.options.springLength * 1.5 : edge.options.length;
-                this._calculateSpringForce(edge.from, edge.to, edgeLength);
-              }
-            }
-          }
-        }
-      }
-    }, {
-      key: "_calculateSpringForce",
-
-      /**
-       * This is the code actually performing the calculation for the function above.
-       *
-       * @param node1
-       * @param node2
-       * @param edgeLength
-       * @private
-       */
-      value: function _calculateSpringForce(node1, node2, edgeLength) {
-        var dx, dy, fx, fy, springForce, distance;
-
-        dx = node1.x - node2.x;
-        dy = node1.y - node2.y;
-        distance = Math.sqrt(dx * dx + dy * dy);
-        distance = distance === 0 ? 0.01 : distance;
-
-        // the 1/distance is so the fx and fy can be calculated without sine or cosine.
-        springForce = this.options.springConstant * (edgeLength - distance) / distance;
-
-        fx = dx * springForce;
-        fy = dy * springForce;
-
-        // handle the case where one node is not part of the physcis
-        if (this.physicsBody.forces[node1.id] !== undefined) {
-          this.physicsBody.forces[node1.id].x += fx;
-          this.physicsBody.forces[node1.id].y += fy;
-        }
-
-        if (this.physicsBody.forces[node2.id] !== undefined) {
-          this.physicsBody.forces[node2.id].x -= fx;
-          this.physicsBody.forces[node2.id].y -= fy;
-        }
-      }
-    }]);
-
-    return SpringSolver;
-  })();
-
-  exports["default"] = SpringSolver;
-  module.exports = exports["default"];
-
-/***/ },
-/* 80 */
-/***/ function(module, exports, __webpack_require__) {
-
-  "use strict";
-
-  Object.defineProperty(exports, "__esModule", {
-    value: true
-  });
-
-  var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
-
-  function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-
-  var HierarchicalSpringSolver = (function () {
-    function HierarchicalSpringSolver(body, physicsBody, options) {
-      _classCallCheck(this, HierarchicalSpringSolver);
-
-      this.body = body;
-      this.physicsBody = physicsBody;
-      this.setOptions(options);
-    }
-
-    _createClass(HierarchicalSpringSolver, [{
-      key: "setOptions",
-      value: function setOptions(options) {
-        this.options = options;
-      }
-    }, {
-      key: "solve",
-
-      /**
-       * This function calculates the springforces on the nodes, accounting for the support nodes.
-       *
-       * @private
-       */
-      value: function solve() {
-        var edgeLength, edge;
-        var dx, dy, fx, fy, springForce, distance;
-        var edges = this.body.edges;
-        var factor = 0.5;
-
-        var edgeIndices = this.physicsBody.physicsEdgeIndices;
-        var nodeIndices = this.physicsBody.physicsNodeIndices;
-        var forces = this.physicsBody.forces;
-
-        // initialize the spring force counters
-        for (var i = 0; i < nodeIndices.length; i++) {
-          var nodeId = nodeIndices[i];
-          forces[nodeId].springFx = 0;
-          forces[nodeId].springFy = 0;
-        }
-
-        // forces caused by the edges, modelled as springs
-        for (var i = 0; i < edgeIndices.length; i++) {
-          edge = edges[edgeIndices[i]];
-          if (edge.connected === true) {
-            edgeLength = edge.options.length === undefined ? this.options.springLength : edge.options.length;
-
-            dx = edge.from.x - edge.to.x;
-            dy = edge.from.y - edge.to.y;
-            distance = Math.sqrt(dx * dx + dy * dy);
-            distance = distance === 0 ? 0.01 : distance;
-
-            // the 1/distance is so the fx and fy can be calculated without sine or cosine.
-            springForce = this.options.springConstant * (edgeLength - distance) / distance;
-
-            fx = dx * springForce;
-            fy = dy * springForce;
-
-            if (edge.to.level != edge.from.level) {
-              forces[edge.toId].springFx -= fx;
-              forces[edge.toId].springFy -= fy;
-              forces[edge.fromId].springFx += fx;
-              forces[edge.fromId].springFy += fy;
-            } else {
-              forces[edge.toId].x -= factor * fx;
-              forces[edge.toId].y -= factor * fy;
-              forces[edge.fromId].x += factor * fx;
-              forces[edge.fromId].y += factor * fy;
-            }
-          }
-        }
-
-        // normalize spring forces
-        var springForce = 1;
-        var springFx, springFy;
-        for (var i = 0; i < nodeIndices.length; i++) {
-          var nodeId = nodeIndices[i];
-          springFx = Math.min(springForce, Math.max(-springForce, forces[nodeId].springFx));
-          springFy = Math.min(springForce, Math.max(-springForce, forces[nodeId].springFy));
-
-          forces[nodeId].x += springFx;
-          forces[nodeId].y += springFy;
-        }
-
-        // retain energy balance
-        var totalFx = 0;
-        var totalFy = 0;
-        for (var i = 0; i < nodeIndices.length; i++) {
-          var nodeId = nodeIndices[i];
-          totalFx += forces[nodeId].x;
-          totalFy += forces[nodeId].y;
-        }
-        var correctionFx = totalFx / nodeIndices.length;
-        var correctionFy = totalFy / nodeIndices.length;
-
-        for (var i = 0; i < nodeIndices.length; i++) {
-          var nodeId = nodeIndices[i];
-          forces[nodeId].x -= correctionFx;
-          forces[nodeId].y -= correctionFy;
-        }
-      }
-    }]);
-
-    return HierarchicalSpringSolver;
-  })();
-
-  exports["default"] = HierarchicalSpringSolver;
-  module.exports = exports["default"];
-
-/***/ },
-/* 81 */
-/***/ function(module, exports, __webpack_require__) {
-
-  "use strict";
-
-  Object.defineProperty(exports, "__esModule", {
-    value: true
-  });
-
-  var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
-
-  function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-
-  var CentralGravitySolver = (function () {
-    function CentralGravitySolver(body, physicsBody, options) {
-      _classCallCheck(this, CentralGravitySolver);
-
-      this.body = body;
-      this.physicsBody = physicsBody;
-      this.setOptions(options);
-    }
-
-    _createClass(CentralGravitySolver, [{
-      key: "setOptions",
-      value: function setOptions(options) {
-        this.options = options;
-      }
-    }, {
-      key: "solve",
-      value: function solve() {
-        var dx, dy, distance, node, i;
-        var nodes = this.body.nodes;
-        var nodeIndices = this.physicsBody.physicsNodeIndices;
-        var forces = this.physicsBody.forces;
-
-        var gravity = this.options.centralGravity;
-        var gravityForce = 0;
-
-        for (i = 0; i < nodeIndices.length; i++) {
-          var nodeId = nodeIndices[i];
-          node = nodes[nodeId];
-          dx = -node.x;
-          dy = -node.y;
-          distance = Math.sqrt(dx * dx + dy * dy);
-
-          gravityForce = distance === 0 ? 0 : gravity / distance;
-          forces[nodeId].x = dx * gravityForce;
-          forces[nodeId].y = dy * gravityForce;
-        }
-      }
-    }]);
-
-    return CentralGravitySolver;
-  })();
-
-  exports["default"] = CentralGravitySolver;
-  module.exports = exports["default"];
-
-/***/ },
-/* 82 */
-/***/ function(module, exports, __webpack_require__) {
-
-  'use strict';
-
-  Object.defineProperty(exports, '__esModule', {
-    value: true
-  });
-
-  var _get = function get(_x, _x2, _x3) { var _again = true; _function: while (_again) { desc = parent = getter = undefined; _again = false; var object = _x,
-      property = _x2,
-      receiver = _x3; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { _x = parent; _x2 = property; _x3 = receiver; _again = true; continue _function; } } else if ('value' in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } } };
-
-  function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
-
-  function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
-
-  function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; }
-
-  var _Node2 = __webpack_require__(73);
-
-  var _Node3 = _interopRequireDefault(_Node2);
-
-  /**
-   *
-   */
-
-  var Cluster = (function (_Node) {
-    function Cluster(options, body, imagelist, grouplist, globalOptions) {
-      _classCallCheck(this, Cluster);
-
-      _get(Object.getPrototypeOf(Cluster.prototype), 'constructor', this).call(this, options, body, imagelist, grouplist, globalOptions);
-
-      this.isCluster = true;
-      this.containedNodes = {};
-      this.containedEdges = {};
-    }
-
-    _inherits(Cluster, _Node);
-
-    return Cluster;
-  })(_Node3['default']);
-
-  exports['default'] = Cluster;
-  module.exports = exports['default'];
-
-/***/ },
-/* 83 */
-/***/ function(module, exports, __webpack_require__) {
-
-  'use strict';
-
-  Object.defineProperty(exports, '__esModule', {
-    value: true
-  });
-
-  var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
-
-  function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
-
-  var util = __webpack_require__(1);
-  var Hammer = __webpack_require__(41);
-  var hammerUtil = __webpack_require__(48);
-  var keycharm = __webpack_require__(85);
-
-  var NavigationHandler = (function () {
-    function NavigationHandler(body, canvas) {
-      var _this = this;
-
-      _classCallCheck(this, NavigationHandler);
-
-      this.body = body;
-      this.canvas = canvas;
-
-      this.iconsCreated = false;
-      this.navigationHammers = [];
-      this.boundFunctions = {};
-      this.touchTime = 0;
-      this.activated = false;
-
-      this.body.emitter.on('release', function () {
-        _this._stopMovement();
-      });
-      this.body.emitter.on('activate', function () {
-        _this.activated = true;_this.configureKeyboardBindings();
-      });
-      this.body.emitter.on('deactivate', function () {
-        _this.activated = false;_this.configureKeyboardBindings();
-      });
-      this.body.emitter.on('destroy', function () {
-        if (_this.keycharm !== undefined) {
-          _this.keycharm.destroy();
-        }
-      });
-
-      this.options = {};
-    }
-
-    _createClass(NavigationHandler, [{
-      key: 'setOptions',
-      value: function setOptions(options) {
-        if (options !== undefined) {
-          this.options = options;
-          this.create();
-        }
-      }
-    }, {
-      key: 'create',
-      value: function create() {
-        if (this.options.navigationButtons === true) {
-          if (this.iconsCreated === false) {
-            this.loadNavigationElements();
-          }
-        } else if (this.iconsCreated === true) {
-          this.cleanNavigation();
-        }
-
-        this.configureKeyboardBindings();
-      }
-    }, {
-      key: 'cleanNavigation',
-      value: function cleanNavigation() {
-        // clean hammer bindings
-        if (this.navigationHammers.length != 0) {
-          for (var i = 0; i < this.navigationHammers.length; i++) {
-            this.navigationHammers[i].destroy();
-          }
-          this.navigationHammers = [];
-        }
-
-        this._navigationReleaseOverload = function () {};
-
-        // clean up previous navigation items
-        if (this.navigationDOM && this.navigationDOM['wrapper'] && this.navigationDOM['wrapper'].parentNode) {
-          this.navigationDOM['wrapper'].parentNode.removeChild(this.navigationDOM['wrapper']);
-        }
-
-        this.iconsCreated = false;
-      }
-    }, {
-      key: 'loadNavigationElements',
-
-      /**
-       * Creation of the navigation controls nodes. They are drawn over the rest of the nodes and are not affected by scale and translation
-       * they have a triggerFunction which is called on click. If the position of the navigation controls is dependent
-       * on this.frame.canvas.clientWidth or this.frame.canvas.clientHeight, we flag horizontalAlignLeft and verticalAlignTop false.
-       * This means that the location will be corrected by the _relocateNavigation function on a size change of the canvas.
-       *
-       * @private
-       */
-      value: function loadNavigationElements() {
-        this.cleanNavigation();
-
-        this.navigationDOM = {};
-        var navigationDivs = ['up', 'down', 'left', 'right', 'zoomIn', 'zoomOut', 'zoomExtends'];
-        var navigationDivActions = ['_moveUp', '_moveDown', '_moveLeft', '_moveRight', '_zoomIn', '_zoomOut', '_fit'];
-
-        this.navigationDOM['wrapper'] = document.createElement('div');
-        this.navigationDOM['wrapper'].className = 'vis-navigation';
-        this.canvas.frame.appendChild(this.navigationDOM['wrapper']);
-
-        for (var i = 0; i < navigationDivs.length; i++) {
-          this.navigationDOM[navigationDivs[i]] = document.createElement('div');
-          this.navigationDOM[navigationDivs[i]].className = 'vis-button vis-' + navigationDivs[i];
-          this.navigationDOM['wrapper'].appendChild(this.navigationDOM[navigationDivs[i]]);
-
-          var hammer = new Hammer(this.navigationDOM[navigationDivs[i]]);
-          if (navigationDivActions[i] === '_fit') {
-            hammerUtil.onTouch(hammer, this._fit.bind(this));
-          } else {
-            hammerUtil.onTouch(hammer, this.bindToRedraw.bind(this, navigationDivActions[i]));
-          }
-
-          this.navigationHammers.push(hammer);
-        }
-
-        this.iconsCreated = true;
-      }
-    }, {
-      key: 'bindToRedraw',
-      value: function bindToRedraw(action) {
-        if (this.boundFunctions[action] === undefined) {
-          this.boundFunctions[action] = this[action].bind(this);
-          this.body.emitter.on('initRedraw', this.boundFunctions[action]);
-          this.body.emitter.emit('_startRendering');
-        }
-      }
-    }, {
-      key: 'unbindFromRedraw',
-      value: function unbindFromRedraw(action) {
-        if (this.boundFunctions[action] !== undefined) {
-          this.body.emitter.off('initRedraw', this.boundFunctions[action]);
-          this.body.emitter.emit('_stopRendering');
-          delete this.boundFunctions[action];
-        }
-      }
-    }, {
-      key: '_fit',
-
-      /**
-       * this stops all movement induced by the navigation buttons
-       *
-       * @private
-       */
-      value: function _fit() {
-        if (new Date().valueOf() - this.touchTime > 700) {
-          // TODO: fix ugly hack to avoid hammer's double fireing of event (because we use release?)
-          this.body.emitter.emit('fit', { duration: 700 });
-          this.touchTime = new Date().valueOf();
-        }
-      }
-    }, {
-      key: '_stopMovement',
-
-      /**
-       * this stops all movement induced by the navigation buttons
-       *
-       * @private
-       */
-      value: function _stopMovement() {
-        for (var boundAction in this.boundFunctions) {
-          if (this.boundFunctions.hasOwnProperty(boundAction)) {
-            this.body.emitter.off('initRedraw', this.boundFunctions[boundAction]);
-            this.body.emitter.emit('_stopRendering');
-          }
-        }
-        this.boundFunctions = {};
-      }
-    }, {
-      key: '_moveUp',
-      value: function _moveUp() {
-        this.body.view.translation.y += this.options.keyboard.speed.y;
-      }
-    }, {
-      key: '_moveDown',
-      value: function _moveDown() {
-        this.body.view.translation.y -= this.options.keyboard.speed.y;
-      }
-    }, {
-      key: '_moveLeft',
-      value: function _moveLeft() {
-        this.body.view.translation.x += this.options.keyboard.speed.x;
-      }
-    }, {
-      key: '_moveRight',
-      value: function _moveRight() {
-        this.body.view.translation.x -= this.options.keyboard.speed.x;
-      }
-    }, {
-      key: '_zoomIn',
-      value: function _zoomIn() {
-        this.body.view.scale *= 1 + this.options.keyboard.speed.zoom;
-      }
-    }, {
-      key: '_zoomOut',
-      value: function _zoomOut() {
-        this.body.view.scale /= 1 + this.options.keyboard.speed.zoom;
-      }
-    }, {
-      key: 'configureKeyboardBindings',
-
-      /**
-       * bind all keys using keycharm.
-       */
-      value: function configureKeyboardBindings() {
-        if (this.keycharm !== undefined) {
-          this.keycharm.destroy();
-        }
-
-        if (this.options.keyboard.enabled === true) {
-
-          if (this.options.keyboard.bindToWindow === true) {
-            this.keycharm = keycharm({ container: window, preventDefault: true });
-          } else {
-            this.keycharm = keycharm({ container: this.canvas.frame, preventDefault: true });
-          }
-
-          this.keycharm.reset();
-
-          if (this.activated === true) {
-            this.keycharm.bind('up', this.bindToRedraw.bind(this, '_moveUp'), 'keydown');
-            this.keycharm.bind('down', this.bindToRedraw.bind(this, '_moveDown'), 'keydown');
-            this.keycharm.bind('left', this.bindToRedraw.bind(this, '_moveLeft'), 'keydown');
-            this.keycharm.bind('right', this.bindToRedraw.bind(this, '_moveRight'), 'keydown');
-            this.keycharm.bind('=', this.bindToRedraw.bind(this, '_zoomIn'), 'keydown');
-            this.keycharm.bind('num+', this.bindToRedraw.bind(this, '_zoomIn'), 'keydown');
-            this.keycharm.bind('num-', this.bindToRedraw.bind(this, '_zoomOut'), 'keydown');
-            this.keycharm.bind('-', this.bindToRedraw.bind(this, '_zoomOut'), 'keydown');
-            this.keycharm.bind('[', this.bindToRedraw.bind(this, '_zoomOut'), 'keydown');
-            this.keycharm.bind(']', this.bindToRedraw.bind(this, '_zoomIn'), 'keydown');
-            this.keycharm.bind('pageup', this.bindToRedraw.bind(this, '_zoomIn'), 'keydown');
-            this.keycharm.bind('pagedown', this.bindToRedraw.bind(this, '_zoomOut'), 'keydown');
-
-            this.keycharm.bind('up', this.unbindFromRedraw.bind(this, '_moveUp'), 'keyup');
-            this.keycharm.bind('down', this.unbindFromRedraw.bind(this, '_moveDown'), 'keyup');
-            this.keycharm.bind('left', this.unbindFromRedraw.bind(this, '_moveLeft'), 'keyup');
-            this.keycharm.bind('right', this.unbindFromRedraw.bind(this, '_moveRight'), 'keyup');
-            this.keycharm.bind('=', this.unbindFromRedraw.bind(this, '_zoomIn'), 'keyup');
-            this.keycharm.bind('num+', this.unbindFromRedraw.bind(this, '_zoomIn'), 'keyup');
-            this.keycharm.bind('num-', this.unbindFromRedraw.bind(this, '_zoomOut'), 'keyup');
-            this.keycharm.bind('-', this.unbindFromRedraw.bind(this, '_zoomOut'), 'keyup');
-            this.keycharm.bind('[', this.unbindFromRedraw.bind(this, '_zoomOut'), 'keyup');
-            this.keycharm.bind(']', this.unbindFromRedraw.bind(this, '_zoomIn'), 'keyup');
-            this.keycharm.bind('pageup', this.unbindFromRedraw.bind(this, '_zoomIn'), 'keyup');
-            this.keycharm.bind('pagedown', this.unbindFromRedraw.bind(this, '_zoomOut'), 'keyup');
-          }
-        }
-      }
-    }]);
-
-    return NavigationHandler;
-  })();
-
-  exports['default'] = NavigationHandler;
-  module.exports = exports['default'];
-
-/***/ },
-/* 84 */
-/***/ function(module, exports, __webpack_require__) {
-
-  'use strict';
-
-  Object.defineProperty(exports, '__esModule', {
-    value: true
-  });
-
-  var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
-
-  function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
-
-  /**
-   * Popup is a class to create a popup window with some text
-   * @param {Element}  container     The container object.
-   * @param {Number} [x]
-   * @param {Number} [y]
-   * @param {String} [text]
-   * @param {Object} [style]     An object containing borderColor,
-   *                             backgroundColor, etc.
-   */
-
-  var Popup = (function () {
-    function Popup(container) {
-      _classCallCheck(this, Popup);
-
-      this.container = container;
-
-      this.x = 0;
-      this.y = 0;
-      this.padding = 5;
-      this.hidden = false;
-
-      // create the frame
-      this.frame = document.createElement('div');
-      this.frame.className = 'vis-network-tooltip';
-      this.container.appendChild(this.frame);
-    }
-
-    _createClass(Popup, [{
-      key: 'setPosition',
-
-      /**
-       * @param {number} x   Horizontal position of the popup window
-       * @param {number} y   Vertical position of the popup window
-       */
-      value: function setPosition(x, y) {
-        this.x = parseInt(x);
-        this.y = parseInt(y);
-      }
-    }, {
-      key: 'setText',
-
-      /**
-       * Set the content for the popup window. This can be HTML code or text.
-       * @param {string | Element} content
-       */
-      value: function setText(content) {
-        if (content instanceof Element) {
-          this.frame.innerHTML = '';
-          this.frame.appendChild(content);
-        } else {
-          this.frame.innerHTML = content; // string containing text or HTML
-        }
-      }
-    }, {
-      key: 'show',
-
-      /**
-       * Show the popup window
-       * @param {boolean} [doShow]    Show or hide the window
-       */
-      value: function show(doShow) {
-        if (doShow === undefined) {
-          doShow = true;
-        }
-
-        if (doShow === true) {
-          var height = this.frame.clientHeight;
-          var width = this.frame.clientWidth;
-          var maxHeight = this.frame.parentNode.clientHeight;
-          var maxWidth = this.frame.parentNode.clientWidth;
-
-          var top = this.y - height;
-          if (top + height + this.padding > maxHeight) {
-            top = maxHeight - height - this.padding;
-          }
-          if (top < this.padding) {
-            top = this.padding;
-          }
-
-          var left = this.x;
-          if (left + width + this.padding > maxWidth) {
-            left = maxWidth - width - this.padding;
-          }
-          if (left < this.padding) {
-            left = this.padding;
-          }
-
-          this.frame.style.left = left + 'px';
-          this.frame.style.top = top + 'px';
-          this.frame.style.visibility = 'visible';
-          this.hidden = false;
-        } else {
-          this.hide();
-        }
-      }
-    }, {
-      key: 'hide',
-
-      /**
-       * Hide the popup window
-       */
-      value: function hide() {
-        this.hidden = true;
-        this.frame.style.visibility = 'hidden';
-      }
-    }]);
-
-    return Popup;
-  })();
-
-  exports['default'] = Popup;
-  module.exports = exports['default'];
-
-/***/ },
 /* 85 */
+/***/ function(module, exports, __webpack_require__) {
+
+  function webpackContext(req) {
+  	throw new Error("Cannot find module '" + req + "'.");
+  }
+  webpackContext.keys = function() { return []; };
+  webpackContext.resolve = webpackContext;
+  module.exports = webpackContext;
+  webpackContext.id = 85;
+
+
+/***/ },
+/* 86 */
 /***/ function(module, exports, __webpack_require__) {
 
   var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;"use strict";
@@ -37065,44 +37087,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 86 */
-/***/ function(module, exports, __webpack_require__) {
-
-  function webpackContext(req) {
-  	throw new Error("Cannot find module '" + req + "'.");
-  }
-  webpackContext.keys = function() { return []; };
-  webpackContext.resolve = webpackContext;
-  module.exports = webpackContext;
-  webpackContext.id = 86;
-
-
-/***/ },
 /* 87 */
-/***/ function(module, exports, __webpack_require__) {
-
-  module.exports = function(module) {
-  	if(!module.webpackPolyfill) {
-  		module.deprecate = function() {};
-  		module.paths = [];
-  		// module.parent = undefined by default
-  		module.children = [];
-  		module.webpackPolyfill = 1;
-  	}
-  	return module;
-  }
-
-
-/***/ },
-/* 88 */
-/***/ function(module, exports, __webpack_require__) {
-
-  /* WEBPACK VAR INJECTION */(function(__webpack_amd_options__) {module.exports = __webpack_amd_options__;
-
-  /* WEBPACK VAR INJECTION */}.call(exports, {}))
-
-/***/ },
-/* 89 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -37203,7 +37188,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 90 */
+/* 88 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -37287,7 +37272,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 91 */
+/* 89 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -37390,7 +37375,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 92 */
+/* 90 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -37490,7 +37475,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 93 */
+/* 91 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -37550,7 +37535,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 94 */
+/* 92 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -37610,7 +37595,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 95 */
+/* 93 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -37713,7 +37698,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 96 */
+/* 94 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -37823,7 +37808,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 97 */
+/* 95 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -37903,7 +37888,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 98 */
+/* 96 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -37964,7 +37949,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 99 */
+/* 97 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -38024,7 +38009,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 100 */
+/* 98 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -38104,7 +38089,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 101 */
+/* 99 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -38164,7 +38149,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 102 */
+/* 100 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -38224,7 +38209,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 103 */
+/* 101 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -38382,7 +38367,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 104 */
+/* 102 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -38648,7 +38633,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 105 */
+/* 103 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -38758,6 +38743,30 @@ return /******/ (function(modules) { // webpackBootstrap
 
   exports['default'] = StraightEdge;
   module.exports = exports['default'];
+
+/***/ },
+/* 104 */
+/***/ function(module, exports, __webpack_require__) {
+
+  module.exports = function(module) {
+  	if(!module.webpackPolyfill) {
+  		module.deprecate = function() {};
+  		module.paths = [];
+  		// module.parent = undefined by default
+  		module.children = [];
+  		module.webpackPolyfill = 1;
+  	}
+  	return module;
+  }
+
+
+/***/ },
+/* 105 */
+/***/ function(module, exports, __webpack_require__) {
+
+  /* WEBPACK VAR INJECTION */(function(__webpack_amd_options__) {module.exports = __webpack_amd_options__;
+
+  /* WEBPACK VAR INJECTION */}.call(exports, {}))
 
 /***/ },
 /* 106 */
