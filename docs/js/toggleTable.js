@@ -57,22 +57,25 @@ function toggleTable(tableId, parent, clickedRow) {
   }
 }
 
-function toggleTab(showTabId, showPreId, hideTabId, hidePreId) {
-  if (hideTabId !== undefined) {
-    document.getElementById(hideTabId).className = '';
-    document.getElementById(hidePreId).className = document.getElementById(hidePreId).className.replace(' hidden','');
-    document.getElementById(hidePreId).className += ' hidden';
+function toggleTab(showTabId, showDOMid, hideTabId, hideDOMid, hideTabId2, hideDOMid2) {
+  if (hideTabId2 !== undefined) {
+    document.getElementById(hideTabId2).className = '';
+    document.getElementById(hideDOMid2).className = document.getElementById(hideDOMid2).className.replace(' hidden','');
+    document.getElementById(hideDOMid2).className += ' hidden';
   }
 
-  document.getElementById('hiddenTab').className = '';
+  if (hideTabId !== undefined) {
+    document.getElementById(hideTabId).className = '';
+    document.getElementById(hideDOMid).className = document.getElementById(hideDOMid).className.replace(' hidden','');
+    document.getElementById(hideDOMid).className += ' hidden';
+  }
+
   document.getElementById(showTabId).className = 'active';
-  document.getElementById(showPreId).className = document.getElementById(showPreId).className.replace(' hidden','');
+  document.getElementById(showDOMid).className = document.getElementById(showDOMid).className.replace(' hidden','');
 }
 
 
 function hideOptions(hideTabId1, hidePreId1, hideTabId2, hidePreId2) {
-  document.getElementById('hiddenTab').className = 'active';
-
   document.getElementById(hideTabId1).className = '';
   document.getElementById(hidePreId1).className = document.getElementById(hidePreId1).className.replace(' hidden','');
   document.getElementById(hidePreId1).className += ' hidden';
