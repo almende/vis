@@ -47,7 +47,7 @@ function toggleTable(tableId, parent, clickedRow) {
   }
   else {
     spans = document.getElementsByClassName('right-caret')
-    clickedRow.className = clickedRow.className.replace(' collapsible','');
+    clickedRow.className = clickedRow.className.replace(' collapsible','').replace('collapsible','');;
   }
 
   for (var i = 0; i < spans.length; i++) {
