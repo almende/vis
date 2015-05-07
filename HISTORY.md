@@ -13,6 +13,7 @@ http://visjs.org
 
 ### Timeline
 
+- Integrated an option configurator and validator.
 - Implemented option `multiselect`, which is false by default.
 - Added method `setData({groups: groups, items: items})`.
 - Fixed range items not being displayed smaller than 10 pixels (twice the
@@ -92,7 +93,6 @@ http://visjs.org
 
 ### Timeline
 
-- Integrated an option configurator.
 - Implemented orientation option `'both'`, displaying a time axis both on top
   and bottom (#665).
 - Implemented creating new range items by dragging in an empty space with the
