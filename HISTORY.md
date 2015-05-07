@@ -11,7 +11,6 @@ http://visjs.org
   When creating a custom bundle using browserify, one now needs to add a
   transform step using `6to5ify`, this is described in README.md.
 
-
 ### Timeline
 
 - Implemented option `multiselect`, which is false by default.
@@ -93,6 +92,7 @@ http://visjs.org
 
 ### Timeline
 
+- Integrated an option configurator.
 - Implemented orientation option `'both'`, displaying a time axis both on top
   and bottom (#665).
 - Implemented creating new range items by dragging in an empty space with the
