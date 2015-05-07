@@ -75,9 +75,9 @@
     <p>The options for the manipulation module have to be contained in an object titled 'manipulation'.</p>
     <p>Click on the full options or shorthand options to show how these options are supposed to be used.</p>
     <ul class="nav nav-tabs">
-        <li role="presentation" class="active" onclick="hideOptions('fullTab','fullOptions','shortTab','shortOptions');" id="hiddenTab"><a href="#">options hidden</a></li>
-        <li role="presentation" onclick="toggleTab('fullTab','fullOptions','shortTab','shortOptions');" id="fullTab"><a href="#">full options</a></li>
-        <li role="presentation" onclick="toggleTab('shortTab','shortOptions','fullTab','fullOptions');" id="shortTab"><a href="#">shorthand options</a></li>
+        <li role="presentation" class="active" onclick="toggleTab(this)"><a href="#">options hidden</a></li>
+        <li role="presentation" onclick="toggleTab(this);" targetNode="fullOptions"><a href="#">full options</a></li>
+        <li role="presentation" onclick="toggleTab(this);" targetNode="shortOptions"><a href="#">shorthand options</a></li>
     </ul>
     <br>
 <pre class="prettyprint lang-js options top hidden" id="fullOptions">

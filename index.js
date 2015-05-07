@@ -58,6 +58,8 @@ exports.network = {
   dotparser: require('./lib/network/dotparser'),
   gephiParser: require('./lib/network/gephiParser')
 };
+exports.network.convertDot   = function (input) {return exports.network.dotparser.DOTToGraph(input)};
+exports.network.convertGephi = function (input,options) {return exports.network.gephiParser.parseGephi(input,options)};
 
 // Deprecated since v3.0.0
 exports.Graph = function () {

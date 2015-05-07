@@ -88,8 +88,8 @@
     <p>The options for the canvas have to be contained in an object titled 'groups'.</p>
     <p>Click on the options shown to show how these options are supposed to be used.</p>
     <ul class="nav nav-tabs">
-        <li role="presentation" class="active" onclick="hideOptions('fullTab','fullOptions');" id="hiddenTab"><a href="#">options hidden</a></li>
-        <li role="presentation" onclick="toggleTab('fullTab','fullOptions');" id="fullTab"><a href="#">options shown</a></li>
+        <li role="presentation" class="active" onclick="toggleTab(this)"><a href="#">options hidden</a></li>
+        <li role="presentation" onclick="toggleTab(this);" targetNode="fullOptions"><a href="#">options shown</a></li>
     </ul>
     <br>
 <pre class="prettyprint lang-js options hidden" id="fullOptions">

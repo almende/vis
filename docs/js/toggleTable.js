@@ -57,33 +57,25 @@ function toggleTable(tableId, parent, clickedRow) {
   }
 }
 
-function toggleTab(showTabId, showDOMid, hideTabId, hideDOMid, hideTabId2, hideDOMid2) {
-  if (hideTabId2 !== undefined) {
-    document.getElementById(hideTabId2).className = '';
-    document.getElementById(hideDOMid2).className = document.getElementById(hideDOMid2).className.replace(' hidden','');
-    document.getElementById(hideDOMid2).className += ' hidden';
+function toggleTab(tabThis) {
+  var parentNode = tabThis.parentNode;
+  var active = tabThis.className.indexOf('active') !== -1;
+  for (var i = 0; i < parentNode.children.length; i++) {
+    var child = parentNode.children[i];
+    var targetNodeId = child.getAttribute('targetNode');
+    if (targetNodeId) {
+      var targetNode = document.getElementById(child.getAttribute('targetNode'));
+      targetNode.className = targetNode.className.replace(' hidden', '').replace('hidden', '') + ' hidden';
+    }
+    child.className = child.className.replace(' active','').replace('active','');
   }
 
-  if (hideTabId !== undefined) {
-    document.getElementById(hideTabId).className = '';
-    document.getElementById(hideDOMid).className = document.getElementById(hideDOMid).className.replace(' hidden','');
-    document.getElementById(hideDOMid).className += ' hidden';
-  }
-
-  document.getElementById(showTabId).className = 'active';
-  document.getElementById(showDOMid).className = document.getElementById(showDOMid).className.replace(' hidden','');
-}
-
-
-function hideOptions(hideTabId1, hidePreId1, hideTabId2, hidePreId2) {
-  document.getElementById(hideTabId1).className = '';
-  document.getElementById(hidePreId1).className = document.getElementById(hidePreId1).className.replace(' hidden','');
-  document.getElementById(hidePreId1).className += ' hidden';
-
-  if (hideTabId2 !== undefined) {
-    document.getElementById(hideTabId2).className = '';
-    document.getElementById(hidePreId2).className = document.getElementById(hidePreId2).className.replace(' hidden','');
-    document.getElementById(hidePreId2).className += ' hidden';
+  // activate the tab
+  tabThis.className += ' active';
+  var ownTargetNodeId = tabThis.getAttribute('targetNode');
+  if (ownTargetNodeId) {
+    var ownTargetNode = document.getElementById(ownTargetNodeId);
+    ownTargetNode.className = ownTargetNode.className.replace(' hidden','').replace('hidden','');
   }
 
 }

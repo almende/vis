@@ -50,6 +50,19 @@
         }
     </style>
 
+    <script>
+        function toggleGettingStarted(aThis) {
+            var gettingStartedDiv = document.getElementById('gettingStarted');
+            if (aThis.innerHTML.indexOf("Show") !== -1) {
+                gettingStartedDiv.className = '';
+                aThis.innerHTML = 'Hide the getting started again.';
+            }
+            else {
+                gettingStartedDiv.className = 'hidden';
+                aThis.innerHTML = 'Show the getting started!';
+            }
+        }
+    </script>
 
     <script type="text/javascript" src="../js/toggleTable.js"></script>
 </head>
@@ -99,14 +112,88 @@
 
 <div class="container full">
     <h1>Network</h1>
+
     <p>Network is a visualization to display networks and networks consisting of nodes and edges. The visualization
         is easy to use and supports custom shapes, styles, colors, sizes, images, and more.
 
         The network visualization works smooth on any modern browser for up to a few thousand nodes and edges. To
         handle a larger amount of nodes, Network has clustering support. Network uses HTML canvas for rendering.</p>
+
     <p>As of 4.0, the network consists of individual modules which handle specific parts of the network. These modules
         have their own docs, options, methods and events which you can access
         by clicking on the modules in the list below.</p>
+
+    <a class="btn btn-primary" role="button" onclick="toggleGettingStarted(this)">Show the getting started!</a>
+    <div id="gettingStarted" class="hidden">
+    <h3>Creating a Network</h3>
+
+    <p>
+        Creating a vis network is easy. <a href="http://visjs.org/#download_install" target="_blank">It requires you to
+        include the vis.js and css files which you can get here</a>. If you have these
+        added to your application, you will need to specify your nodes and edges. You can use DOT language or export
+        nodes and edges from Gephi if you'd like but we will do it without these for now.
+        For more information on this click the tabs below. You can also use the vis.DataSets for dynamic data binding,
+        for instance, changing the color, label or any option after you have initialized the network.
+        <br><br>
+        Once you have the data, all you need is a container div to tell vis where to put your network. Additionally you
+        can use an options object to customize many aspects of the network. In code this
+        looks like this:</p>
+
+        <pre class="prettyprint lang-html options">
+&lt;html&gt;
+&lt;head&gt;
+    &lt;script type="text/javascript" src="../../dist/vis.js"&gt;&lt;/script&gt;
+    &lt;link href="../../dist/vis.css" rel="stylesheet" type="text/css" /&gt;
+
+    &lt;style type="text/css"&gt;
+        #mynetwork {
+            width: 600px;
+            height: 400px;
+            border: 1px solid lightgray;
+        }
+    &lt;/style&gt;
+&lt;/head&gt;
+&lt;body&gt;
+&lt;div id="mynetwork"&gt;&lt;/div&gt;
+
+&lt;script type="text/javascript"&gt;
+    // create an array with nodes
+    var nodes = new vis.DataSet([
+        {id: 1, label: 'Node 1'},
+        {id: 2, label: 'Node 2'},
+        {id: 3, label: 'Node 3'},
+        {id: 4, label: 'Node 4'},
+        {id: 5, label: 'Node 5'}
+    ]);
+
+    // create an array with edges
+    var edges = new vis.DataSet([
+        {from: 1, to: 3},
+        {from: 1, to: 2},
+        {from: 2, to: 4},
+        {from: 2, to: 5}
+    ]);
+
+    // create a network
+    var container = document.getElementById('mynetwork');
+
+    // provide the data in the vis format
+    var data = {
+        nodes: nodes,
+        edges: edges
+    };
+    var options = {};
+
+    // initialize your network!
+    var network = new vis.Network(container, data, options);
+&lt;/script&gt;
+&lt;/body&gt;
+&lt;/html&gt;
+</pre>
+    <p><a href="http://visjs.org/examples/network/01_basic_usage.html" target="_blank">The result of the code above will be the basic example which is shown here.</a></p>
+
+    <br>
+    </div>
 
     <h3>Modules</h3>
     <table class="moduleTable">
@@ -155,14 +242,19 @@
 
     <ul class="nav nav-tabs">
         <li role="presentation" class="active"
-            onclick="toggleTab('optionsTab','optionsDiv','methodsTab','methodsDiv','eventsTab','eventsDiv');"
-            id="optionsTab"><a>Options</a></li>
+            onclick="toggleTab(this);"
+            targetNode="optionsDiv"><a>Options</a></li>
         <li role="presentation"
-            onclick="toggleTab('methodsTab','methodsDiv','eventsTab','eventsDiv','optionsTab','optionsDiv');"
-            id="methodsTab"><a>Methods</a></li>
+            onclick="toggleTab(this);"
+            targetNode="methodsDiv"><a>Methods</a></li>
+        <li role="presentation" onclick="toggleTab(this);"
+            targetNode="eventsDiv"><a>Events</a></li>
         <li role="presentation"
-            onclick="toggleTab('eventsTab','eventsDiv','methodsTab','methodsDiv','optionsTab','optionsDiv');"
-            id="eventsTab"><a>Events</a></li>
+            onclick="toggleTab(this);"
+            targetNode="dotParserDiv"><a>DOT language</a></li>
+        <li role="presentation"
+            onclick="toggleTab(this);"
+            targetNode="gephiDiv"><a>Importing from Gephi</a></li>
     </ul>
     <br>
 
@@ -253,6 +345,7 @@ network.setOptions(options);
         <br>
         <br>
         <h4 id="locales">Custom locales</h4>
+
         <p>The locales object has the following format:</p>
     <pre class="prettyprint lang-js">
 var locales = {
@@ -272,7 +365,8 @@ var locales = {
     editClusterError: 'Clusters cannot be edited.'
   }
 }</pre>
-        <p>If you want to define your own locale, you can change the key ('en' here) and change all the string. You can then use your new key in the locale option.</p>
+        <p>If you want to define your own locale, you can change the key ('en' here) and change all the string. You can
+            then use your new key in the locale option.</p>
     </div>
     <div id="methodsDiv" class=" hidden">
         <h3>All Methods</h3>
@@ -1214,7 +1308,122 @@ var options = {
         </table>
 
     </div>
+    <div id="dotParserDiv" class=" hidden">
+        <p>
+            Network supports data in the
+            <a href="http://en.wikipedia.org/wiki/DOT_language" target="_blank">DOT language</a>.
+            To use data in the DOT language, you can use the vis.network.convertDot converter to transform the DOT
+            language
+            into a vis.Network compatible nodes, edges and options objects. You can extend the options object with other
+            options if you'd like.
+        </p>
 
+        <p>
+            Example usage:
+        </p>
+
+<pre class="prettyprint lang-js">
+// provide data in the DOT language
+var DOTstring = 'dinetwork {1 -> 1 -> 2; 2 -> 3; 2 -- 4; 2 -> 1 }';
+var parsedData = vis.network.convertDot(DOTstring);
+
+var data = {
+  nodes: parsedData.nodes,
+  edges: parsedData.edges
+}
+
+var options = parsedData.options;
+
+// you can extend the options like a normal JSON variable:
+options.nodes = {
+  color: 'red'
+}
+
+// create a network
+var network = new vis.Network(container, data, options);
+</pre>
+    </div>
+    <div id="gephiDiv" class=" hidden">
+        <p>
+            Network can import data straight from an exported json file from gephi. You can get the JSON exporter here:
+            <a href="https://marketplace.gephi.org/plugin/json-exporter/" target="_blank">https://marketplace.gephi.org/plugin/json-exporter/</a>.
+            An example exists showing how to get a JSON file into Vis: <a
+                href="../examples/network/30_importing_from_gephi.html">30_importing_from_gephi</a>.
+        </p>
+
+        <p>
+            Example usage:
+        </p>
+
+<pre class="prettyprint lang-js">
+// load the JSON file containing the Gephi network.
+var gephiJSON = loadJSON("./data/WorldCup2014.json"); // code in example 30
+
+// you can customize the result like with these options. These are explained below.
+// These are the default options.
+var parserOptions = {
+  edges: {
+    inheritColors: false
+  },
+  nodes: {
+    fixed: true,
+    parseColor: false
+  }
+}
+
+// parse the gephi file to receive an object
+// containing nodes and edges in vis format.
+var parsed = vis.network.convertGephi(gephiJSON, parserOptions);
+
+// provide data in the normal fashion
+var data = {
+  nodes: parsed.nodes,
+  edged: parsed.edges
+};
+
+// create a network
+var network = new vis.Network(container, data);
+</pre>
+
+        <br>
+        <h4>Gephi parser options</h4>
+
+        There are a few options you can use to tell Vis what to do with the data from Gephi.
+        <table class="moduleTable">
+            <tr class="header">
+                <td>name</td>
+                <td>type</td>
+                <td>default</td>
+                <td>description</td>
+            </tr>
+            <tr>
+                <td>nodes.fixed</td>
+                <td class="mid">Boolean</td>
+                <td class="mid"><code>true</code></td>
+                <td>When false, the nodes will move according to the physics model after import. If true, the nodes do
+                    not move at all. If set to true, the node positions have to be defined to avoid infinite recursion
+                    errors in the physics.
+                </td>
+            </tr>
+            <tr>
+                <td>nodes.parseColor</td>
+                <td class="mid">Boolean</td>
+                <td class="mid"><code>false</code></td>
+                <td>If true, the color will be parsed by the vis parser, generating extra colors for the borders,
+                    highlighs and hover. If false, the node will be the supplied color.
+                </td>
+            </tr>
+            <tr>
+                <td>edges.inheritColor</td>
+                <td class="mid">Boolean</td>
+                <td class="mid"><code>false</code></td>
+                <td>When true, the color supplied by gephi is ignored and the inherit color mode is used with the global
+                    setting.
+                </td>
+            </tr>
+
+        </table>
+    </div>
 
     <br>
     <br>

@@ -143,6 +143,12 @@ return /******/ (function(modules) { // webpackBootstrap
     dotparser: __webpack_require__(38),
     gephiParser: __webpack_require__(39)
   };
+  exports.network.convertDot = function (input) {
+    return exports.network.dotparser.DOTToGraph(input);
+  };
+  exports.network.convertGephi = function (input, options) {
+    return exports.network.gephiParser.parseGephi(input, options);
+  };
 
   // Deprecated since v3.0.0
   exports.Graph = function () {
@@ -6451,8 +6457,7 @@ return /******/ (function(modules) { // webpackBootstrap
     // validate options
     var errorFound = Validator.validate(options, allOptions);
     if (errorFound === true) {
-      options = {};
-      console.log('%cErrors have been found in the supplied options object. None of the options will be used.', printStyle);
+      console.log('%cErrors have been found in the supplied options object.', printStyle);
     }
 
     Core.prototype.setOptions.call(this, options);
@@ -15620,15 +15625,15 @@ return /******/ (function(modules) { // webpackBootstrap
 
   var _modulesManipulationSystem2 = _interopRequireDefault(_modulesManipulationSystem);
 
-  var _modulesConfigurationSystem = __webpack_require__(45);
+  var _sharedConfigurationSystem = __webpack_require__(45);
 
-  var _modulesConfigurationSystem2 = _interopRequireDefault(_modulesConfigurationSystem);
+  var _sharedConfigurationSystem2 = _interopRequireDefault(_sharedConfigurationSystem);
 
-  var _modulesValidator = __webpack_require__(46);
+  var _sharedValidator = __webpack_require__(46);
 
-  var _modulesValidator2 = _interopRequireDefault(_modulesValidator);
+  var _sharedValidator2 = _interopRequireDefault(_sharedValidator);
 
-  var _modulesComponentsAllOptionsJs = __webpack_require__(65);
+  var _optionsJs = __webpack_require__(65);
 
   // Load custom shapes into CanvasRenderingContext2D
   __webpack_require__(66);
@@ -15738,7 +15743,7 @@ return /******/ (function(modules) { // webpackBootstrap
     this.canvas._create();
 
     // setup configuration system
-    this.configurationSystem = new _modulesConfigurationSystem2['default'](this, this.body.container, _modulesComponentsAllOptionsJs.configureOptions, this.canvas.pixelRatio);
+    this.configurationSystem = new _sharedConfigurationSystem2['default'](this, this.body.container, _optionsJs.configureOptions, this.canvas.pixelRatio);
 
     // apply options
     this.setOptions(options);
@@ -15757,10 +15762,9 @@ return /******/ (function(modules) { // webpackBootstrap
   Network.prototype.setOptions = function (options) {
     if (options !== undefined) {
 
-      var errorFound = _modulesValidator2['default'].validate(options, _modulesComponentsAllOptionsJs.allOptions);
+      var errorFound = _sharedValidator2['default'].validate(options, _optionsJs.allOptions);
       if (errorFound === true) {
-        options = {};
-        console.log('%cErrors have been found in the supplied options object. None of the options will be used.', _modulesValidator.printStyle);
+        console.log('%cErrors have been found in the supplied options object.', _sharedValidator.printStyle);
       }
 
       // copy the global fields over
@@ -15914,19 +15918,17 @@ return /******/ (function(modules) { // webpackBootstrap
     this.setOptions(data && data.options);
     // set all data
     if (data && data.dot) {
+      console.log('The dot property has been depricated. Please use the static convertDot method to convert DOT into vis.network format and use the normal data format with nodes and edges. This converter is used like this: var data = vis.network.convertDot(dotString);');
       // parse DOT file
-      if (data && data.dot) {
-        var dotData = dotparser.DOTToGraph(data.dot);
-        this.setData(dotData);
-        return;
-      }
+      var dotData = dotparser.DOTToGraph(data.dot);
+      this.setData(dotData);
+      return;
     } else if (data && data.gephi) {
       // parse DOT file
-      if (data && data.gephi) {
-        var gephiData = gephiParser.parseGephi(data.gephi);
-        this.setData(gephiData);
-        return;
-      }
+      console.log('The gephi property has been depricated. Please use the static convertGephi method to convert gephi into vis.network format and use the normal data format with nodes and edges. This converter is used like this: var data = vis.network.convertGephi(gephiJson);');
+      var gephiData = gephiParser.parseGephi(data.gephi);
+      this.setData(gephiData);
+      return;
     } else {
       this.nodesHandler.setData(data && data.nodes, true);
       this.edgesHandler.setData(data && data.edges, true);
@@ -17062,7 +17064,7 @@ return /******/ (function(modules) { // webpackBootstrap
     var nodes = [];
     var options = {
       edges: {
-        inheritColor: true
+        inheritColor: false
       },
       nodes: {
         fixed: false,
@@ -17071,9 +17073,9 @@ return /******/ (function(modules) { // webpackBootstrap
     };
 
     if (options !== undefined) {
-      options.nodes['fixed'] = optionsObj.fixed !== undefined ? options.fixed : false;
+      options.nodes['fixed'] = optionsObj.fixed !== undefined ? options.fixed : true;
       options.nodes['parseColor'] = optionsObj.parseColor !== undefined ? options.parseColor : false;
-      options.edges['inheritColor'] = optionsObj.inheritColor !== undefined ? options.inheritColor : true;
+      options.edges['inheritColor'] = optionsObj.inheritColor !== undefined ? options.inheritColor : false;
     }
 
     var gEdges = gephiJSON.edges;
@@ -17087,8 +17089,9 @@ return /******/ (function(modules) { // webpackBootstrap
       edge['attributes'] = gEdge.attributes;
       //    edge['value'] = gEdge.attributes !== undefined ? gEdge.attributes.Weight : undefined;
       //    edge['width'] = edge['value'] !== undefined ? undefined : edgegEdge.size;
-      edge['color'] = gEdge.color;
-      edge['inheritColor'] = edge['color'] !== undefined ? false : options.inheritColor;
+      if (gEdge.color && options.inheritColor === false) {
+        edge['color'] = gEdge.color;
+      }
       edges.push(edge);
     }
 
@@ -18515,9 +18518,9 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
 
-  var _componentsColorPicker = __webpack_require__(72);
+  var _networkModulesComponentsColorPicker = __webpack_require__(72);
 
-  var _componentsColorPicker2 = _interopRequireDefault(_componentsColorPicker);
+  var _networkModulesComponentsColorPicker2 = _interopRequireDefault(_networkModulesComponentsColorPicker);
 
   var util = __webpack_require__(1);
 
@@ -18557,7 +18560,7 @@ return /******/ (function(modules) { // webpackBootstrap
       this.configureOptions = configureOptions;
       this.moduleOptions = {};
       this.domElements = [];
-      this.colorPicker = new _componentsColorPicker2['default'](pixelRatio);
+      this.colorPicker = new _networkModulesComponentsColorPicker2['default'](pixelRatio);
       this.wrapper;
     }
 
@@ -34192,9 +34195,9 @@ return /******/ (function(modules) { // webpackBootstrap
 
   var _nodesShapesTriangleDown2 = _interopRequireDefault(_nodesShapesTriangleDown);
 
-  var _Validator = __webpack_require__(46);
+  var _sharedValidator = __webpack_require__(46);
 
-  var _Validator2 = _interopRequireDefault(_Validator);
+  var _sharedValidator2 = _interopRequireDefault(_sharedValidator);
 
   var util = __webpack_require__(1);
 
