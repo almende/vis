@@ -5,7 +5,7 @@
  * A dynamic, browser-based visualization library.
  *
  * @version 4.0.0-SNAPSHOT
- * @date    2015-05-06
+ * @date    2015-05-07
  *
  * @license
  * Copyright (C) 2011-2014 Almende B.V, http://almende.com
@@ -7491,9 +7491,9 @@ return /******/ (function(modules) { // webpackBootstrap
    * @param {Date} [end]           The end date
    * @param {Number} [minimumStep] Optional. Minimum step size in milliseconds
    */
-  "use strict";
+  'use strict';
 
-  function DataStep(start, end, minimumStep, containerHeight, customRange, alignZeros) {
+  function DataStep(start, end, minimumStep, containerHeight, customRange, formattingFunction, alignZeros) {
     // variables
     this.current = 0;
 
@@ -7501,6 +7501,7 @@ return /******/ (function(modules) { // webpackBootstrap
     this.stepIndex = 0;
     this.step = 1;
     this.scale = 1;
+    this.formattingFunction = formattingFunction;
 
     this.marginStart;
     this.marginEnd;
@@ -7647,62 +7648,21 @@ return /******/ (function(modules) { // webpackBootstrap
    * Get the current datetime
    * @return {String}  current The current date
    */
-  DataStep.prototype.getCurrent = function (decimals) {
+  DataStep.prototype.getCurrent = function () {
     // prevent round-off errors when close to zero
     var current = Math.abs(this.current) < this.step / 2 ? 0 : this.current;
-    var toPrecision = "" + Number(current).toPrecision(5);
-
-    // If decimals is specified, then limit or extend the string as required
-    if (decimals !== undefined && !isNaN(Number(decimals))) {
-      // If string includes exponent, then we need to add it to the end
-      var exp = "";
-      var index = toPrecision.indexOf("e");
-      if (index != -1) {
-        // Get the exponent
-        exp = toPrecision.slice(index);
-        // Remove the exponent in case we need to zero-extend
-        toPrecision = toPrecision.slice(0, index);
-      }
-      index = Math.max(toPrecision.indexOf(","), toPrecision.indexOf("."));
-      if (index === -1) {
-        // No decimal found - if we want decimals, then we need to add it
-        if (decimals !== 0) {
-          toPrecision += ".";
-        }
-        // Calculate how long the string should be
-        index = toPrecision.length + decimals;
-      } else if (decimals !== 0) {
-        // Calculate how long the string should be - accounting for the decimal place
-        index += decimals + 1;
-      }
-      if (index > toPrecision.length) {
-        // We need to add zeros!
-        for (var cnt = index - toPrecision.length; cnt > 0; cnt--) {
-          toPrecision += "0";
-        }
-      } else {
-        // we need to remove characters
-        toPrecision = toPrecision.slice(0, index);
-      }
-      // Add the exponent if there is one
-      toPrecision += exp;
-    } else {
-      if (toPrecision.indexOf(",") != -1 || toPrecision.indexOf(".") != -1) {
-        // If no decimal is specified, and there are decimal places, remove trailing zeros
-        for (var i = toPrecision.length - 1; i > 0; i--) {
-          if (toPrecision[i] === "0") {
-            toPrecision = toPrecision.slice(0, i);
-          } else if (toPrecision[i] === "." || toPrecision[i] === ",") {
-            toPrecision = toPrecision.slice(0, i);
-            break;
-          } else {
-            break;
-          }
-        }
-      }
+    var returnValue = current.toPrecision(5);
+    if (typeof this.formattingFunction === 'function') {
+      returnValue = this.formattingFunction(current);
     }
 
-    return toPrecision;
+    if (typeof returnValue === 'number') {
+      return '' + returnValue;
+    } else if (typeof returnValue === 'string') {
+      return returnValue;
+    } else {
+      return current.toPrecision(5);
+    }
   };
 
   /**
@@ -10927,12 +10887,16 @@ return /******/ (function(modules) { // webpackBootstrap
       alignZeros: true,
       left: {
         range: { min: undefined, max: undefined },
-        format: { decimals: undefined },
+        format: function format(value) {
+          return '' + value.toPrecision(5);
+        },
         title: { text: undefined, style: undefined }
       },
       right: {
         range: { min: undefined, max: undefined },
-        format: { decimals: undefined },
+        format: function format(value) {
+          return '' + value.toPrecision(5);
+        },
         title: { text: undefined, style: undefined }
       }
     };
@@ -11250,7 +11214,7 @@ return /******/ (function(modules) { // webpackBootstrap
       rangeEnd = this.range.end;
     }
 
-    this.step = step = new DataStep(rangeStart, rangeEnd, minimumStep, this.dom.frame.offsetHeight, this.options[this.options.orientation].range, this.master === false && this.options.alignZeros // does the step have to align zeros? only if not master and the options is on
+    this.step = step = new DataStep(rangeStart, rangeEnd, minimumStep, this.dom.frame.offsetHeight, this.options[this.options.orientation].range, this.options[this.options.orientation].format, this.master === false && this.options.alignZeros // does the step have to align zeros? only if not master and the options is on
     );
 
     // the slave axis needs to use the same horizontal lines as the master axis.
@@ -11269,12 +11233,6 @@ return /******/ (function(modules) { // webpackBootstrap
     // value at the bottom of the SVG
     this.valueAtBottom = step.marginEnd;
 
-    // Get the number of decimal places
-    var decimals;
-    if (this.options[orientation].format !== undefined) {
-      decimals = this.options[orientation].format.decimals;
-    }
-
     this.maxLabelSize = 0;
     var y = 0; // init value
     var stepIndex = 0; // init value
@@ -11285,12 +11243,12 @@ return /******/ (function(modules) { // webpackBootstrap
 
       if (stepIndex > 0 && stepIndex !== this.amountOfSteps) {
         if (this.options['showMinorLabels'] && isMajor === false || this.master === false && this.options['showMinorLabels'] === true) {
-          this._redrawLabel(y - 2, step.getCurrent(decimals), orientation, 'vis-y-axis vis-minor', this.props.minorCharHeight);
+          this._redrawLabel(y - 2, step.getCurrent(), orientation, 'vis-y-axis vis-minor', this.props.minorCharHeight);
         }
 
         if (isMajor && this.options['showMajorLabels'] && this.master === true || this.options['showMinorLabels'] === false && this.master === false && isMajor === true) {
           if (y >= 0) {
-            this._redrawLabel(y - 2, step.getCurrent(decimals), orientation, 'vis-y-axis vis-major', this.props.majorCharHeight);
+            this._redrawLabel(y - 2, step.getCurrent(), orientation, 'vis-y-axis vis-major', this.props.majorCharHeight);
           }
           this._redrawLine(y, orientation, 'vis-grid vis-horizontal vis-major', this.options.majorLinesOffset, this.props.majorLineWidth);
         } else {
