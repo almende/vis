@@ -11,9 +11,9 @@ http://visjs.org
   When creating a custom bundle using browserify, one now needs to add a
   transform step using `6to5ify`, this is described in README.md.
 
-
 ### Timeline
 
+- Integrated an option configurator and validator.
 - Implemented option `multiselect`, which is false by default.
 - Added method `setData({groups: groups, items: items})`.
 - Fixed range items not being displayed smaller than 10 pixels (twice the
