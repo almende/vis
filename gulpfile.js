@@ -84,7 +84,7 @@ gulp.task('bundle-js', ['clean'], function (cb) {
     if (stats && stats.compilation && stats.compilation.errors) {
       // output soft errors
       stats.compilation.errors.forEach(function (err) {
-        gutil.log(err);
+        gutil.log(err.toString());
       });
 
       if (err || stats.compilation.errors.length > 0) {
