@@ -78,3 +78,8 @@ td.mid {
 td.properties {
     width:150px;
 }
+
+
+p {
+    max-width:1000px;
+}
