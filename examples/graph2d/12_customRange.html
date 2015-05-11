@@ -23,13 +23,11 @@
 <pre class="prettyprint lang-js">
 var options = {
     dataAxis: {
-        customRange: {
-            left: {
-                min:-5, max:30
-            },
-            right: {
-                min:-5
-            }
+        left: {
+            range: {min:-5, max:30}
+        },
+        right: {
+            range: {min:-5}
         }
     }
 };
@@ -71,16 +69,14 @@ var options = {
     var dataset = new vis.DataSet(items);
     var options = {
         style:'bar',
-        barChart: {width:50, align:'center', handleOverlap:"sideBySide"}, // align: left, center, right
+        barChart: {width:50, align:'center', sideBySide:true}, // align: left, center, right
         drawPoints: true,
         dataAxis: {
-            customRange: {
-                left: {
-                    min:-5, max:30
-                },
-                right: {
-                    min:-5
-                }
+            left: {
+                range: {min:-5, max:30}
+            },
+            right: {
+                range: {min:-5}
             },
             icons:true
         },

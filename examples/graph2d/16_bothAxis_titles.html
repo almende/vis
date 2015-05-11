@@ -64,15 +64,6 @@
                     <td><input type="button" onclick="styleTitle('left')" value="Color Left Title" /></td>
                     <td><input type="button" onclick="styleTitle('right')" value="Color Right Title" /></td>
                 </tr>
-                <tr>
-                    <td>Left decimals</td>
-                    <td><select id="decimals" onchange="styleDecimals()">
-                        <option value="0">0</option>
-                        <option value="1">1</option>
-                        <option value="2">2</option>
-                        </select>
-                    </td>
-                </tr>
             </table>
         </td>
     </tr>
@@ -159,8 +150,8 @@
     var options = {
         dataAxis: {
             showMinorLabels: false,
-            title: {
-                right: {
+            right: {
+                title: {
                     text: 'Title (right axis)'
                 }
             }
@@ -185,10 +176,10 @@
         }
 
         if(axis == 'left') {
-            graph2d.setOptions({dataAxis: {title: {left: title}}});
+            graph2d.setOptions({dataAxis: {left: {title: title}}});
         }
         else {
-            graph2d.setOptions({dataAxis: {title: {right: title}}});
+            graph2d.setOptions({dataAxis: {right: {title: title}}});
         }
     }
 
@@ -198,16 +189,11 @@
         title = {style: "color: " + colors[Math.floor(Math.random() * colors.length) + 1]};
 
         if(axis == 'left') {
-            graph2d.setOptions({dataAxis: {title: {left: title}}});
+            graph2d.setOptions({dataAxis: {left: {title: title}}});
         }
         else {
-            graph2d.setOptions({dataAxis: {title: {right: title}}});
+            graph2d.setOptions({dataAxis: {right: {title: title}}});
         }
-    }
-
-    function styleDecimals() {
-        var x = document.getElementById("decimals");
-        graph2d.setOptions({dataAxis: {format: {left: {decimals: Number(x.value)}}}});
     }
 
 </script>

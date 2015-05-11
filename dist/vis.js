@@ -5,7 +5,7 @@
  * A dynamic, browser-based visualization library.
  *
  * @version 4.0.0-SNAPSHOT
- * @date    2015-05-07
+ * @date    2015-05-11
  *
  * @license
  * Copyright (C) 2011-2014 Almende B.V, http://almende.com
@@ -10931,14 +10931,14 @@ return /******/ (function(modules) { // webpackBootstrap
       left: {
         range: { min: undefined, max: undefined },
         format: function format(value) {
-          return '' + value.toPrecision(5);
+          return '' + value;
         },
         title: { text: undefined, style: undefined }
       },
       right: {
         range: { min: undefined, max: undefined },
         format: function format(value) {
-          return '' + value.toPrecision(5);
+          return '' + value;
         },
         title: { text: undefined, style: undefined }
       }
@@ -11520,7 +11520,7 @@ return /******/ (function(modules) { // webpackBootstrap
    */
   function GraphGroup(group, groupId, options, groupsUsingDefaultStyles) {
     this.id = groupId;
-    var fields = ['sampling', 'style', 'sort', 'yAxisOrientation', 'barChart', 'drawPoints', 'shaded', 'catmullRom'];
+    var fields = ['sampling', 'style', 'sort', 'yAxisOrientation', 'barChart', 'drawPoints', 'shaded', 'interpolation'];
     this.options = util.selectiveBridgeObject(fields, options);
     this.usingDefaultStyle = group.className === undefined;
     this.groupsUsingDefaultStyles = groupsUsingDefaultStyles;
@@ -11567,20 +11567,20 @@ return /******/ (function(modules) { // webpackBootstrap
       var fields = ['sampling', 'style', 'sort', 'yAxisOrientation', 'barChart'];
       util.selectiveDeepExtend(fields, this.options, options);
 
-      util.mergeOptions(this.options, options, 'catmullRom');
+      util.mergeOptions(this.options, options, 'interpolation');
       util.mergeOptions(this.options, options, 'drawPoints');
       util.mergeOptions(this.options, options, 'shaded');
 
-      if (options.catmullRom) {
-        if (typeof options.catmullRom == 'object') {
-          if (options.catmullRom.parametrization) {
-            if (options.catmullRom.parametrization == 'uniform') {
-              this.options.catmullRom.alpha = 0;
-            } else if (options.catmullRom.parametrization == 'chordal') {
-              this.options.catmullRom.alpha = 1;
+      if (options.interpolation) {
+        if (typeof options.interpolation == 'object') {
+          if (options.interpolation.parametrization) {
+            if (options.interpolation.parametrization == 'uniform') {
+              this.options.interpolation.alpha = 0;
+            } else if (options.interpolation.parametrization == 'chordal') {
+              this.options.interpolation.alpha = 1;
             } else {
-              this.options.catmullRom.parametrization = 'centripetal';
-              this.options.catmullRom.alpha = 0.5;
+              this.options.interpolation.parametrization = 'centripetal';
+              this.options.interpolation.alpha = 0.5;
             }
           }
         }
@@ -14201,10 +14201,10 @@ return /******/ (function(modules) { // webpackBootstrap
       style: 'line', // line, bar
       barChart: {
         width: 50,
-        handleOverlap: 'overlap',
+        sideBySide: false,
         align: 'center' // left, center, right
       },
-      catmullRom: {
+      interpolation: {
         enabled: true,
         parametrization: 'centripetal', // uniform (alpha = 0.0), chordal (alpha = 1.0), centripetal (alpha = 0.5)
         alpha: 0.5
@@ -14223,12 +14223,16 @@ return /******/ (function(modules) { // webpackBootstrap
         alignZeros: true,
         left: {
           range: { min: undefined, max: undefined },
-          format: { decimals: undefined },
+          format: function format(value) {
+            return '' + value;
+          },
           title: { text: undefined, style: undefined }
         },
         right: {
           range: { min: undefined, max: undefined },
-          format: { decimals: undefined },
+          format: function format(value) {
+            return '' + value;
+          },
           title: { text: undefined, style: undefined }
         }
       },
@@ -14358,21 +14362,21 @@ return /******/ (function(modules) { // webpackBootstrap
         }
       }
       util.selectiveDeepExtend(fields, this.options, options);
-      util.mergeOptions(this.options, options, 'catmullRom');
+      util.mergeOptions(this.options, options, 'interpolation');
       util.mergeOptions(this.options, options, 'drawPoints');
       util.mergeOptions(this.options, options, 'shaded');
       util.mergeOptions(this.options, options, 'legend');
 
-      if (options.catmullRom) {
-        if (typeof options.catmullRom == 'object') {
-          if (options.catmullRom.parametrization) {
-            if (options.catmullRom.parametrization == 'uniform') {
-              this.options.catmullRom.alpha = 0;
-            } else if (options.catmullRom.parametrization == 'chordal') {
-              this.options.catmullRom.alpha = 1;
+      if (options.interpolation) {
+        if (typeof options.interpolation == 'object') {
+          if (options.interpolation.parametrization) {
+            if (options.interpolation.parametrization == 'uniform') {
+              this.options.interpolation.alpha = 0;
+            } else if (options.interpolation.parametrization == 'chordal') {
+              this.options.interpolation.alpha = 1;
             } else {
-              this.options.catmullRom.parametrization = 'centripetal';
-              this.options.catmullRom.alpha = 0.5;
+              this.options.interpolation.parametrization = 'centripetal';
+              this.options.interpolation.alpha = 0.5;
             }
           }
         }
@@ -19878,7 +19882,7 @@ return /******/ (function(modules) { // webpackBootstrap
         }
 
         // construct path from dataset
-        if (group.options.catmullRom.enabled == true) {
+        if (group.options.interpolation.enabled == true) {
           d = Line._catmullRom(dataset, group);
         } else {
           d = Line._linear(dataset);
@@ -19911,7 +19915,7 @@ return /******/ (function(modules) { // webpackBootstrap
   };
 
   /**
-   * This uses an uniform parametrization of the CatmullRom algorithm:
+   * This uses an uniform parametrization of the interpolation algorithm:
    * 'On the Parameterization of Catmull-Rom Curves' by Cem Yuksel et al.
    * @param data
    * @returns {string}
@@ -19959,7 +19963,7 @@ return /******/ (function(modules) { // webpackBootstrap
    * @private
    */
   Line._catmullRom = function (data, group) {
-    var alpha = group.options.catmullRom.alpha;
+    var alpha = group.options.interpolation.alpha;
     if (alpha == 0 || alpha === undefined) {
       return this._catmullRomUniform(data);
     } else {

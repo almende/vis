@@ -62,7 +62,7 @@
     var dataset = new vis.DataSet(items);
     var options = {
         style:'bar',
-        stack:true,
+        stack:false,
         barChart: {width:50, align:'center', sideBySide:true}, // align: left, center, right
         drawPoints: false,
         dataAxis: {
@@ -78,7 +78,7 @@
     dropdown.onchange = update;
 
     function update() {
-        var options = {barChart:{handleOverlap:dropdown.value}};
+        var options = {stack:dropdown.value === 'stack',barChart:{sideBySide:dropdown.value === 'sideBySide'}};
         graph2d.setOptions(options);
     }
 

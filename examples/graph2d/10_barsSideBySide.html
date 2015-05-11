@@ -66,7 +66,7 @@
     dropdown.onchange = update;
 
     function update() {
-        var options = {barChart:{handleOverlap:dropdown.value}};
+        var options = {stack:dropdown.value === 'stack',barChart:{sideBySide:dropdown.value === 'sideBySide'}};
         graph2d.setOptions(options);
     }
 

@@ -74,19 +74,19 @@
         var interpolationField = document.getElementById("interpolation");
         if (interpolation == "linear") {
             interpolation = 'centripetal';
-            interpolationOptions = {catmullRom: {parametrization: interpolation}};
+            interpolationOptions = {interpolation: {parametrization: interpolation}};
         }
         else if (interpolation == "centripetal") {
             interpolation = 'chordal';
-            interpolationOptions = {catmullRom: {parametrization: interpolation}};
+            interpolationOptions = {interpolation: {parametrization: interpolation}};
         }
         else if (interpolation == "chordal") {
             interpolation = 'uniform';
-            interpolationOptions = {catmullRom: {parametrization: interpolation}};
+            interpolationOptions = {interpolation: {parametrization: interpolation}};
         }
         else if (interpolation == "uniform") {
             interpolation = 'linear';
-            interpolationOptions = {catmullRom: false};
+            interpolationOptions = {interpolation: false};
         }
         interpolationField.value = interpolation;
         graph2d.setOptions(interpolationOptions);
@@ -139,7 +139,7 @@
     var options = {
         sampling: true,
         drawPoints: {enabled:false, size:3},
-        catmullRom: false,
+        interpolation: false,
         start: startPoint,
         end: endPoint
     };

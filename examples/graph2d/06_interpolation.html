@@ -36,7 +36,7 @@
         content: names[0],
         options: {
             drawPoints: false,
-            catmullRom: {
+            interpolation: {
                 parametrization: 'centripetal'
             }
         }});
@@ -46,7 +46,7 @@
         content: names[1],
         options: {
             drawPoints: false,
-            catmullRom: {
+            interpolation: {
                 parametrization: 'chordal'
             }
         }});
@@ -56,7 +56,7 @@
         content: names[2],
         options: {
             drawPoints: false,
-            catmullRom: {
+            interpolation: {
                 parametrization: 'uniform'
             }
         }
@@ -67,7 +67,7 @@
         content: names[3],
         options: {
             drawPoints: { style: 'circle' },
-            catmullRom: false
+            interpolation: false
         }});
 
     var container = document.getElementById('visualization');
