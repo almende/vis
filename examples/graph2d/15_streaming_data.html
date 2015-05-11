@@ -45,8 +45,8 @@
     start: vis.moment().add(-30, 'seconds'), // changed so its faster
     end: vis.moment(),
     dataAxis: {
-      customRange: {
-        left: {
+      left: {
+        range: {
           min:-10, max: 10
         }
       }
@@ -73,12 +73,12 @@
     switch (strategy.value) {
       case 'continuous':
         // continuously move the window
-        graph2d.setWindow(now - interval, now, {animate: false});
+        graph2d.setWindow(now - interval, now, {animation: false});
         requestAnimationFrame(renderStep);
         break;
 
       case 'discrete':
-        graph2d.setWindow(now - interval, now, {animate: false});
+        graph2d.setWindow(now - interval, now, {animation: false});
         setTimeout(renderStep, DELAY);
         break;
 

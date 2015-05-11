@@ -6751,6 +6751,12 @@ return /******/ (function(modules) { // webpackBootstrap
   var CustomTime = __webpack_require__(27);
   var LineGraph = __webpack_require__(34);
 
+  var ConfigurationSystem = __webpack_require__(45);
+  var Validator = __webpack_require__(46)['default'];
+  var printStyle = __webpack_require__(46).printStyle;
+  var allOptions = __webpack_require__(48).allOptions;
+  var configureOptions = __webpack_require__(48).configureOptions;
+
   /**
    * Create a timeline visualization
    * @param {HTMLElement} container
@@ -6842,6 +6848,11 @@ return /******/ (function(modules) { // webpackBootstrap
 
     // apply options
     if (options) {
+      var errorFound = Validator.validate(options, allOptions);
+      if (errorFound === true) {
+        console.log('%cErrors have been found in the supplied options object.', printStyle);
+      }
+
       this.setOptions(options);
     }
 
@@ -7738,7 +7749,7 @@ return /******/ (function(modules) { // webpackBootstrap
   'use strict';
 
   var util = __webpack_require__(1);
-  var hammerUtil = __webpack_require__(48);
+  var hammerUtil = __webpack_require__(49);
   var moment = __webpack_require__(40);
   var Component = __webpack_require__(25);
   var DateUtil = __webpack_require__(15);
@@ -10486,7 +10497,7 @@ return /******/ (function(modules) { // webpackBootstrap
   var util = __webpack_require__(1);
   var Component = __webpack_require__(25);
   var moment = __webpack_require__(40);
-  var locales = __webpack_require__(49);
+  var locales = __webpack_require__(50);
 
   /**
    * A current time bar
@@ -10663,7 +10674,7 @@ return /******/ (function(modules) { // webpackBootstrap
   var util = __webpack_require__(1);
   var Component = __webpack_require__(25);
   var moment = __webpack_require__(40);
-  var locales = __webpack_require__(49);
+  var locales = __webpack_require__(50);
 
   /**
    * A custom time bar
@@ -10931,14 +10942,14 @@ return /******/ (function(modules) { // webpackBootstrap
       left: {
         range: { min: undefined, max: undefined },
         format: function format(value) {
-          return '' + value;
+          return value;
         },
         title: { text: undefined, style: undefined }
       },
       right: {
         range: { min: undefined, max: undefined },
         format: function format(value) {
-          return '' + value;
+          return value;
         },
         title: { text: undefined, style: undefined }
       }
@@ -11504,9 +11515,9 @@ return /******/ (function(modules) { // webpackBootstrap
 
   var util = __webpack_require__(1);
   var DOMutil = __webpack_require__(2);
-  var Line = __webpack_require__(50);
-  var Bar = __webpack_require__(51);
-  var Points = __webpack_require__(52);
+  var Line = __webpack_require__(51);
+  var Bar = __webpack_require__(52);
+  var Points = __webpack_require__(53);
 
   /**
    * /**
@@ -14171,8 +14182,8 @@ return /******/ (function(modules) { // webpackBootstrap
   var DataAxis = __webpack_require__(28);
   var GraphGroup = __webpack_require__(29);
   var Legend = __webpack_require__(33);
-  var BarFunctions = __webpack_require__(51);
-  var LineFunctions = __webpack_require__(50);
+  var BarFunctions = __webpack_require__(52);
+  var LineFunctions = __webpack_require__(51);
 
   var UNGROUPED = '__ungrouped__'; // reserved group id for ungrouped items
 
@@ -14224,14 +14235,14 @@ return /******/ (function(modules) { // webpackBootstrap
         left: {
           range: { min: undefined, max: undefined },
           format: function format(value) {
-            return '' + value;
+            return value;
           },
           title: { text: undefined, style: undefined }
         },
         right: {
           range: { min: undefined, max: undefined },
           format: function format(value) {
-            return '' + value;
+            return value;
           },
           title: { text: undefined, style: undefined }
         }
@@ -15581,51 +15592,51 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
 
-  var _modulesGroups = __webpack_require__(53);
+  var _modulesGroups = __webpack_require__(54);
 
   var _modulesGroups2 = _interopRequireDefault(_modulesGroups);
 
-  var _modulesNodesHandler = __webpack_require__(54);
+  var _modulesNodesHandler = __webpack_require__(55);
 
   var _modulesNodesHandler2 = _interopRequireDefault(_modulesNodesHandler);
 
-  var _modulesEdgesHandler = __webpack_require__(55);
+  var _modulesEdgesHandler = __webpack_require__(56);
 
   var _modulesEdgesHandler2 = _interopRequireDefault(_modulesEdgesHandler);
 
-  var _modulesPhysicsEngine = __webpack_require__(56);
+  var _modulesPhysicsEngine = __webpack_require__(57);
 
   var _modulesPhysicsEngine2 = _interopRequireDefault(_modulesPhysicsEngine);
 
-  var _modulesClustering = __webpack_require__(57);
+  var _modulesClustering = __webpack_require__(58);
 
   var _modulesClustering2 = _interopRequireDefault(_modulesClustering);
 
-  var _modulesCanvasRenderer = __webpack_require__(58);
+  var _modulesCanvasRenderer = __webpack_require__(59);
 
   var _modulesCanvasRenderer2 = _interopRequireDefault(_modulesCanvasRenderer);
 
-  var _modulesCanvas = __webpack_require__(59);
+  var _modulesCanvas = __webpack_require__(60);
 
   var _modulesCanvas2 = _interopRequireDefault(_modulesCanvas);
 
-  var _modulesView = __webpack_require__(60);
+  var _modulesView = __webpack_require__(61);
 
   var _modulesView2 = _interopRequireDefault(_modulesView);
 
-  var _modulesInteractionHandler = __webpack_require__(61);
+  var _modulesInteractionHandler = __webpack_require__(62);
 
   var _modulesInteractionHandler2 = _interopRequireDefault(_modulesInteractionHandler);
 
-  var _modulesSelectionHandler = __webpack_require__(62);
+  var _modulesSelectionHandler = __webpack_require__(63);
 
   var _modulesSelectionHandler2 = _interopRequireDefault(_modulesSelectionHandler);
 
-  var _modulesLayoutEngine = __webpack_require__(63);
+  var _modulesLayoutEngine = __webpack_require__(64);
 
   var _modulesLayoutEngine2 = _interopRequireDefault(_modulesLayoutEngine);
 
-  var _modulesManipulationSystem = __webpack_require__(64);
+  var _modulesManipulationSystem = __webpack_require__(65);
 
   var _modulesManipulationSystem2 = _interopRequireDefault(_modulesManipulationSystem);
 
@@ -15637,10 +15648,10 @@ return /******/ (function(modules) { // webpackBootstrap
 
   var _sharedValidator2 = _interopRequireDefault(_sharedValidator);
 
-  var _optionsJs = __webpack_require__(65);
+  var _optionsJs = __webpack_require__(66);
 
   // Load custom shapes into CanvasRenderingContext2D
-  __webpack_require__(66);
+  __webpack_require__(67);
 
   var Emitter = __webpack_require__(43);
   var Hammer = __webpack_require__(41);
@@ -15650,8 +15661,8 @@ return /******/ (function(modules) { // webpackBootstrap
   var dotparser = __webpack_require__(38);
   var gephiParser = __webpack_require__(39);
   var Images = __webpack_require__(37);
-  var Activator = __webpack_require__(67);
-  var locales = __webpack_require__(68);
+  var Activator = __webpack_require__(68);
+  var locales = __webpack_require__(69);
 
   /**
    * @constructor Network
@@ -17131,7 +17142,7 @@ return /******/ (function(modules) { // webpackBootstrap
   // use this instance. Else, load via commonjs.
   'use strict';
 
-  module.exports = typeof window !== 'undefined' && window['moment'] || __webpack_require__(69);
+  module.exports = typeof window !== 'undefined' && window['moment'] || __webpack_require__(70);
 
 /***/ },
 /* 41 */
@@ -17142,8 +17153,8 @@ return /******/ (function(modules) { // webpackBootstrap
   'use strict';
 
   if (typeof window !== 'undefined') {
-    var propagating = __webpack_require__(70);
-    var Hammer = window['Hammer'] || __webpack_require__(71);
+    var propagating = __webpack_require__(71);
+    var Hammer = window['Hammer'] || __webpack_require__(72);
     module.exports = propagating(Hammer, {
       preventDefault: 'mouse'
     });
@@ -17547,14 +17558,14 @@ return /******/ (function(modules) { // webpackBootstrap
 
   var Emitter = __webpack_require__(43);
   var Hammer = __webpack_require__(41);
-  var hammerUtil = __webpack_require__(48);
+  var hammerUtil = __webpack_require__(49);
   var util = __webpack_require__(1);
   var DataSet = __webpack_require__(3);
   var DataView = __webpack_require__(4);
   var Range = __webpack_require__(17);
   var ItemSet = __webpack_require__(32);
   var TimeAxis = __webpack_require__(35);
-  var Activator = __webpack_require__(67);
+  var Activator = __webpack_require__(68);
   var DateUtil = __webpack_require__(15);
   var CustomTime = __webpack_require__(27);
 
@@ -18522,7 +18533,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
 
-  var _networkModulesComponentsColorPicker = __webpack_require__(72);
+  var _networkModulesComponentsColorPicker = __webpack_require__(73);
 
   var _networkModulesComponentsColorPicker2 = _interopRequireDefault(_networkModulesComponentsColorPicker);
 
@@ -19667,6 +19678,277 @@ return /******/ (function(modules) { // webpackBootstrap
 
   'use strict';
 
+  Object.defineProperty(exports, '__esModule', {
+    value: true
+  });
+  /**
+   * This object contains all possible options. It will check if the types are correct, if required if the option is one
+   * of the allowed values.
+   *
+   * __any__ means that the name of the property does not matter.
+   * __type__ is a required field for all objects and contains the allowed types of all objects
+   */
+  var string = 'string';
+  var boolean = 'boolean';
+  var number = 'number';
+  var array = 'array';
+  var date = 'date';
+  var object = 'object'; // should only be in a __type__ property
+  var dom = 'dom';
+  var moment = 'moment';
+  var fn = 'function';
+  var nada = 'null';
+  var undef = 'undefined';
+  var any = 'any';
+
+  var allOptions = {
+    configure: {
+      enabled: { boolean: boolean },
+      filter: { boolean: boolean, string: string, array: array },
+      container: { dom: dom },
+      __type__: { object: object, boolean: boolean, string: string, array: array }
+    },
+
+    //globals :
+    yAxisOrientation: { string: ['left', 'right'] },
+    defaultGroup: { string: string },
+    sort: { boolean: boolean },
+    sampling: { boolean: boolean },
+    stack: { boolean: boolean },
+    graphHeight: { string: string, number: number },
+    shaded: {
+      enabled: { boolean: boolean },
+      orientation: { string: ['bottom', 'top'] }, // top, bottom
+      __type__: { boolean: boolean, object: object }
+    },
+    style: { string: ['line', 'bar', 'points'] }, // line, bar
+    barChart: {
+      width: { number: number },
+      sideBySide: { boolean: boolean },
+      align: { string: ['left', 'center', 'right'] },
+      __type__: { object: object }
+    },
+    interpolation: {
+      enabled: { boolean: boolean },
+      parametrization: { string: ['centripetal', 'chordal', 'uniform'] }, // uniform (alpha = 0.0), chordal (alpha = 1.0), centripetal (alpha = 0.5)
+      alpha: { number: number },
+      __type__: { object: object, boolean: boolean }
+    },
+    drawPoints: {
+      enabled: { boolean: boolean },
+      size: { number: number },
+      style: { string: ['square', 'circle'] }, // square, circle
+      __type__: { object: object, boolean: boolean }
+    },
+    dataAxis: {
+      showMinorLabels: { boolean: boolean },
+      showMajorLabels: { boolean: boolean },
+      icons: { boolean: boolean },
+      width: { string: string, number: number },
+      visible: { boolean: boolean },
+      alignZeros: { boolean: boolean },
+      left: {
+        range: { min: { number: number }, max: { number: number }, __type__: { object: object } },
+        format: { fn: fn },
+        title: { text: { string: string, number: number }, style: { string: string }, __type__: { object: object } },
+        __type__: { object: object }
+      },
+      right: {
+        range: { min: { number: number }, max: { number: number }, __type__: { object: object } },
+        format: { fn: fn },
+        title: { text: { string: string, number: number }, style: { string: string }, __type__: { object: object } },
+        __type__: { object: object }
+      },
+      __type__: { object: object }
+    },
+    legend: {
+      enabled: { boolean: boolean },
+      icons: { boolean: boolean },
+      left: {
+        visible: { boolean: boolean },
+        position: { string: ['top-right', 'bottom-right', 'top-left', 'bottom-left'] },
+        __type__: { object: object }
+      },
+      right: {
+        visible: { boolean: boolean },
+        position: { string: ['top-right', 'bottom-right', 'top-left', 'bottom-left'] },
+        __type__: { object: object }
+      },
+      __type__: { object: object, boolean: boolean }
+    },
+    groups: {
+      visibility: { any: any },
+      __type__: { object: object }
+    },
+
+    autoResize: { boolean: boolean },
+    clickToUse: { boolean: boolean },
+    end: { number: number, date: date, string: string, moment: moment },
+    format: {
+      minorLabels: {
+        millisecond: { string: string, undef: undef },
+        second: { string: string, undef: undef },
+        minute: { string: string, undef: undef },
+        hour: { string: string, undef: undef },
+        weekday: { string: string, undef: undef },
+        day: { string: string, undef: undef },
+        month: { string: string, undef: undef },
+        year: { string: string, undef: undef },
+        __type__: { object: object }
+      },
+      majorLabels: {
+        millisecond: { string: string, undef: undef },
+        second: { string: string, undef: undef },
+        minute: { string: string, undef: undef },
+        hour: { string: string, undef: undef },
+        weekday: { string: string, undef: undef },
+        day: { string: string, undef: undef },
+        month: { string: string, undef: undef },
+        year: { string: string, undef: undef },
+        __type__: { object: object }
+      },
+      __type__: { object: object }
+    },
+    height: { string: string, number: number },
+    hiddenDates: { object: object, array: array },
+    locale: { string: string },
+    locales: {
+      __any__: { object: object },
+      __type__: { object: object }
+    },
+    max: { date: date, number: number, string: string, moment: moment },
+    maxHeight: { number: number, string: string },
+    min: { date: date, number: number, string: string, moment: moment },
+    minHeight: { number: number, string: string },
+    moveable: { boolean: boolean },
+    multiselect: { boolean: boolean },
+    orientation: { string: string },
+    showCurrentTime: { boolean: boolean },
+    showMajorLabels: { boolean: boolean },
+    showMinorLabels: { boolean: boolean },
+    start: { date: date, number: number, string: string, moment: moment },
+    timeAxis: {
+      scale: { string: string, undef: undef },
+      step: { number: number, undef: undef },
+      __type__: { object: object }
+    },
+    width: { string: string, number: number },
+    zoomable: { boolean: boolean },
+    zoomMax: { number: number },
+    zoomMin: { number: number },
+    __type__: { object: object }
+  };
+
+  var configureOptions = {
+    global: {
+      yAxisOrientation: ['left', 'right'],
+      sort: true,
+      sampling: true,
+      stack: false,
+      shaded: {
+        enabled: false,
+        orientation: ['top', 'bottom'] // top, bottom
+      },
+      style: ['line', 'bar', 'points'], // line, bar
+      barChart: {
+        width: [50, 5, 100, 5],
+        sideBySide: false,
+        align: ['left', 'center', 'right'] // left, center, right
+      },
+      interpolation: {
+        enabled: true,
+        parametrization: ['centripetal', 'chordal', 'uniform'] // uniform (alpha = 0.0), chordal (alpha = 1.0), centripetal (alpha = 0.5)
+      },
+      drawPoints: {
+        enabled: true,
+        size: [6, 2, 30, 1],
+        style: 'square' // square, circle
+      },
+      dataAxis: {
+        showMinorLabels: true,
+        showMajorLabels: true,
+        icons: false,
+        width: [40, 0, 200, 1],
+        visible: true,
+        alignZeros: true,
+        left: {
+          //range: {min:undefined,max:undefined},
+          //format: function (value) {return value;},
+          title: { text: '', style: '' }
+        },
+        right: {
+          //range: {min:undefined,max:undefined},
+          //format: function (value) {return value;},
+          title: { text: '', style: '' }
+        }
+      },
+      legend: {
+        enabled: false,
+        icons: true,
+        left: {
+          visible: true,
+          position: ['top-right', 'bottom-right', 'top-left', 'bottom-left'] // top/bottom - left,right
+        },
+        right: {
+          visible: true,
+          position: ['top-right', 'bottom-right', 'top-left', 'bottom-left'] // top/bottom - left,right
+        }
+      },
+
+      autoResize: true,
+      clickToUse: false,
+      end: '',
+      format: {
+        minorLabels: {
+          millisecond: 'SSS',
+          second: 's',
+          minute: 'HH:mm',
+          hour: 'HH:mm',
+          weekday: 'ddd D',
+          day: 'D',
+          month: 'MMM',
+          year: 'YYYY'
+        },
+        majorLabels: {
+          millisecond: 'HH:mm:ss',
+          second: 'D MMMM HH:mm',
+          minute: 'ddd D MMMM',
+          hour: 'ddd D MMMM',
+          weekday: 'MMMM YYYY',
+          day: 'MMMM YYYY',
+          month: 'YYYY',
+          year: ''
+        }
+      },
+
+      height: '',
+      locale: '',
+      max: '',
+      maxHeight: '',
+      min: '',
+      minHeight: '',
+      movable: true,
+      orientation: ['both', 'bottom', 'top'],
+      showCurrentTime: false,
+      showMajorLabels: true,
+      showMinorLabels: true,
+      start: '',
+      width: '100%',
+      zoomable: true,
+      zoomMax: [315360000000000, 10, 315360000000000, 1],
+      zoomMin: [10, 10, 315360000000000, 1]
+    }
+  };
+
+  exports.allOptions = allOptions;
+  exports.configureOptions = configureOptions;
+
+/***/ },
+/* 49 */
+/***/ function(module, exports, __webpack_require__) {
+
+  'use strict';
+
   var Hammer = __webpack_require__(41);
 
   /**
@@ -19734,7 +20016,7 @@ return /******/ (function(modules) { // webpackBootstrap
   exports.offRelease = exports.offTouch;
 
 /***/ },
-/* 49 */
+/* 50 */
 /***/ function(module, exports, __webpack_require__) {
 
   // English
@@ -19756,13 +20038,13 @@ return /******/ (function(modules) { // webpackBootstrap
   exports['nl_BE'] = exports['nl'];
 
 /***/ },
-/* 50 */
+/* 51 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
 
   var DOMutil = __webpack_require__(2);
-  var Points = __webpack_require__(52);
+  var Points = __webpack_require__(53);
 
   function Line(groupId, options) {
     this.groupId = groupId;
@@ -20051,13 +20333,13 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = Line;
 
 /***/ },
-/* 51 */
+/* 52 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
 
   var DOMutil = __webpack_require__(2);
-  var Points = __webpack_require__(52);
+  var Points = __webpack_require__(53);
 
   function Bargraph(groupId, options) {
     this.groupId = groupId;
@@ -20299,7 +20581,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = Bargraph;
 
 /***/ },
-/* 52 */
+/* 53 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -20346,7 +20628,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = Points;
 
 /***/ },
-/* 53 */
+/* 54 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
@@ -20488,7 +20770,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports["default"];
 
 /***/ },
-/* 54 */
+/* 55 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -20503,11 +20785,11 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
 
-  var _componentsNode = __webpack_require__(73);
+  var _componentsNode = __webpack_require__(74);
 
   var _componentsNode2 = _interopRequireDefault(_componentsNode);
 
-  var _componentsSharedLabel = __webpack_require__(74);
+  var _componentsSharedLabel = __webpack_require__(75);
 
   var _componentsSharedLabel2 = _interopRequireDefault(_componentsSharedLabel);
 
@@ -20961,7 +21243,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 55 */
+/* 56 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -20976,11 +21258,11 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
 
-  var _componentsEdge = __webpack_require__(75);
+  var _componentsEdge = __webpack_require__(76);
 
   var _componentsEdge2 = _interopRequireDefault(_componentsEdge);
 
-  var _componentsSharedLabel = __webpack_require__(74);
+  var _componentsSharedLabel = __webpack_require__(75);
 
   var _componentsSharedLabel2 = _interopRequireDefault(_componentsSharedLabel);
 
@@ -21381,7 +21663,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 56 */
+/* 57 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -21396,27 +21678,27 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
 
-  var _componentsPhysicsBarnesHutSolver = __webpack_require__(76);
+  var _componentsPhysicsBarnesHutSolver = __webpack_require__(77);
 
   var _componentsPhysicsBarnesHutSolver2 = _interopRequireDefault(_componentsPhysicsBarnesHutSolver);
 
-  var _componentsPhysicsRepulsionSolver = __webpack_require__(77);
+  var _componentsPhysicsRepulsionSolver = __webpack_require__(78);
 
   var _componentsPhysicsRepulsionSolver2 = _interopRequireDefault(_componentsPhysicsRepulsionSolver);
 
-  var _componentsPhysicsHierarchicalRepulsionSolver = __webpack_require__(78);
+  var _componentsPhysicsHierarchicalRepulsionSolver = __webpack_require__(79);
 
   var _componentsPhysicsHierarchicalRepulsionSolver2 = _interopRequireDefault(_componentsPhysicsHierarchicalRepulsionSolver);
 
-  var _componentsPhysicsSpringSolver = __webpack_require__(79);
+  var _componentsPhysicsSpringSolver = __webpack_require__(80);
 
   var _componentsPhysicsSpringSolver2 = _interopRequireDefault(_componentsPhysicsSpringSolver);
 
-  var _componentsPhysicsHierarchicalSpringSolver = __webpack_require__(80);
+  var _componentsPhysicsHierarchicalSpringSolver = __webpack_require__(81);
 
   var _componentsPhysicsHierarchicalSpringSolver2 = _interopRequireDefault(_componentsPhysicsHierarchicalSpringSolver);
 
-  var _componentsPhysicsCentralGravitySolver = __webpack_require__(81);
+  var _componentsPhysicsCentralGravitySolver = __webpack_require__(82);
 
   var _componentsPhysicsCentralGravitySolver2 = _interopRequireDefault(_componentsPhysicsCentralGravitySolver);
 
@@ -21957,7 +22239,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 57 */
+/* 58 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
@@ -21972,7 +22254,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
-  var _componentsNodesCluster = __webpack_require__(82);
+  var _componentsNodesCluster = __webpack_require__(83);
 
   var _componentsNodesCluster2 = _interopRequireDefault(_componentsNodesCluster);
 
@@ -22609,7 +22891,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports["default"];
 
 /***/ },
-/* 58 */
+/* 59 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -22947,7 +23229,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 59 */
+/* 60 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -22961,7 +23243,7 @@ return /******/ (function(modules) { // webpackBootstrap
   function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
 
   var Hammer = __webpack_require__(41);
-  var hammerUtil = __webpack_require__(48);
+  var hammerUtil = __webpack_require__(49);
 
   var util = __webpack_require__(1);
 
@@ -23315,7 +23597,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 60 */
+/* 61 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
@@ -23717,7 +23999,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports["default"];
 
 /***/ },
-/* 61 */
+/* 62 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -23732,11 +24014,11 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
 
-  var _componentsNavigationHandler = __webpack_require__(83);
+  var _componentsNavigationHandler = __webpack_require__(84);
 
   var _componentsNavigationHandler2 = _interopRequireDefault(_componentsNavigationHandler);
 
-  var _componentsPopup = __webpack_require__(84);
+  var _componentsPopup = __webpack_require__(85);
 
   var _componentsPopup2 = _interopRequireDefault(_componentsPopup);
 
@@ -24445,7 +24727,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 62 */
+/* 63 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
@@ -24458,7 +24740,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
-  var Node = __webpack_require__(73);
+  var Node = __webpack_require__(74);
   var util = __webpack_require__(1);
 
   var SelectionHandler = (function () {
@@ -25133,7 +25415,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports["default"];
 
 /***/ },
-/* 63 */
+/* 64 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -25630,7 +25912,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 64 */
+/* 65 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -25645,7 +25927,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   var util = __webpack_require__(1);
   var Hammer = __webpack_require__(41);
-  var hammerUtil = __webpack_require__(48);
+  var hammerUtil = __webpack_require__(49);
 
   /**
    * clears the toolbar div element of children
@@ -26819,7 +27101,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 65 */
+/* 66 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -27277,7 +27559,7 @@ return /******/ (function(modules) { // webpackBootstrap
   exports.configureOptions = configureOptions;
 
 /***/ },
-/* 66 */
+/* 67 */
 /***/ function(module, exports, __webpack_require__) {
 
   /**
@@ -27561,12 +27843,12 @@ return /******/ (function(modules) { // webpackBootstrap
   }
 
 /***/ },
-/* 67 */
+/* 68 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
 
-  var keycharm = __webpack_require__(85);
+  var keycharm = __webpack_require__(86);
   var Emitter = __webpack_require__(43);
   var Hammer = __webpack_require__(41);
   var util = __webpack_require__(1);
@@ -27714,7 +27996,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = Activator;
 
 /***/ },
-/* 68 */
+/* 69 */
 /***/ function(module, exports, __webpack_require__) {
 
   // English
@@ -27758,7 +28040,7 @@ return /******/ (function(modules) { // webpackBootstrap
   exports['nl_BE'] = exports['nl'];
 
 /***/ },
-/* 69 */
+/* 70 */
 /***/ function(module, exports, __webpack_require__) {
 
   /* WEBPACK VAR INJECTION */(function(module) {//! moment.js
@@ -30844,10 +31126,10 @@ return /******/ (function(modules) { // webpackBootstrap
       return _moment;
 
   }));
-  /* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(87)(module)))
+  /* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(88)(module)))
 
 /***/ },
-/* 70 */
+/* 71 */
 /***/ function(module, exports, __webpack_require__) {
 
   var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;'use strict';
@@ -31075,7 +31357,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 71 */
+/* 72 */
 /***/ function(module, exports, __webpack_require__) {
 
   var __WEBPACK_AMD_DEFINE_RESULT__;/*! Hammer.JS - v2.0.4 - 2014-09-28
@@ -33530,7 +33812,7 @@ return /******/ (function(modules) { // webpackBootstrap
       prefixed: prefixed
   });
 
-  if ("function" == TYPE_FUNCTION && __webpack_require__(88)) {
+  if ("function" == TYPE_FUNCTION && __webpack_require__(89)) {
       !(__WEBPACK_AMD_DEFINE_RESULT__ = function() {
           return Hammer;
       }.call(exports, __webpack_require__, exports, module), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__));
@@ -33544,7 +33826,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 72 */
+/* 73 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -33558,7 +33840,7 @@ return /******/ (function(modules) { // webpackBootstrap
   function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
 
   var Hammer = __webpack_require__(41);
-  var hammerUtil = __webpack_require__(48);
+  var hammerUtil = __webpack_require__(49);
   var util = __webpack_require__(1);
 
   var ColorPicker = (function () {
@@ -34124,7 +34406,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 73 */
+/* 74 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -34139,63 +34421,63 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
 
-  var _sharedLabel = __webpack_require__(74);
+  var _sharedLabel = __webpack_require__(75);
 
   var _sharedLabel2 = _interopRequireDefault(_sharedLabel);
 
-  var _nodesShapesBox = __webpack_require__(89);
+  var _nodesShapesBox = __webpack_require__(90);
 
   var _nodesShapesBox2 = _interopRequireDefault(_nodesShapesBox);
 
-  var _nodesShapesCircle = __webpack_require__(90);
+  var _nodesShapesCircle = __webpack_require__(91);
 
   var _nodesShapesCircle2 = _interopRequireDefault(_nodesShapesCircle);
 
-  var _nodesShapesCircularImage = __webpack_require__(91);
+  var _nodesShapesCircularImage = __webpack_require__(92);
 
   var _nodesShapesCircularImage2 = _interopRequireDefault(_nodesShapesCircularImage);
 
-  var _nodesShapesDatabase = __webpack_require__(92);
+  var _nodesShapesDatabase = __webpack_require__(93);
 
   var _nodesShapesDatabase2 = _interopRequireDefault(_nodesShapesDatabase);
 
-  var _nodesShapesDiamond = __webpack_require__(93);
+  var _nodesShapesDiamond = __webpack_require__(94);
 
   var _nodesShapesDiamond2 = _interopRequireDefault(_nodesShapesDiamond);
 
-  var _nodesShapesDot = __webpack_require__(94);
+  var _nodesShapesDot = __webpack_require__(95);
 
   var _nodesShapesDot2 = _interopRequireDefault(_nodesShapesDot);
 
-  var _nodesShapesEllipse = __webpack_require__(95);
+  var _nodesShapesEllipse = __webpack_require__(96);
 
   var _nodesShapesEllipse2 = _interopRequireDefault(_nodesShapesEllipse);
 
-  var _nodesShapesIcon = __webpack_require__(96);
+  var _nodesShapesIcon = __webpack_require__(97);
 
   var _nodesShapesIcon2 = _interopRequireDefault(_nodesShapesIcon);
 
-  var _nodesShapesImage = __webpack_require__(97);
+  var _nodesShapesImage = __webpack_require__(98);
 
   var _nodesShapesImage2 = _interopRequireDefault(_nodesShapesImage);
 
-  var _nodesShapesSquare = __webpack_require__(98);
+  var _nodesShapesSquare = __webpack_require__(99);
 
   var _nodesShapesSquare2 = _interopRequireDefault(_nodesShapesSquare);
 
-  var _nodesShapesStar = __webpack_require__(99);
+  var _nodesShapesStar = __webpack_require__(100);
 
   var _nodesShapesStar2 = _interopRequireDefault(_nodesShapesStar);
 
-  var _nodesShapesText = __webpack_require__(100);
+  var _nodesShapesText = __webpack_require__(101);
 
   var _nodesShapesText2 = _interopRequireDefault(_nodesShapesText);
 
-  var _nodesShapesTriangle = __webpack_require__(101);
+  var _nodesShapesTriangle = __webpack_require__(102);
 
   var _nodesShapesTriangle2 = _interopRequireDefault(_nodesShapesTriangle);
 
-  var _nodesShapesTriangleDown = __webpack_require__(102);
+  var _nodesShapesTriangleDown = __webpack_require__(103);
 
   var _nodesShapesTriangleDown2 = _interopRequireDefault(_nodesShapesTriangleDown);
 
@@ -34619,7 +34901,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 74 */
+/* 75 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -34934,7 +35216,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 75 */
+/* 76 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -34949,19 +35231,19 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
 
-  var _sharedLabel = __webpack_require__(74);
+  var _sharedLabel = __webpack_require__(75);
 
   var _sharedLabel2 = _interopRequireDefault(_sharedLabel);
 
-  var _edgesBezierEdgeDynamic = __webpack_require__(103);
+  var _edgesBezierEdgeDynamic = __webpack_require__(104);
 
   var _edgesBezierEdgeDynamic2 = _interopRequireDefault(_edgesBezierEdgeDynamic);
 
-  var _edgesBezierEdgeStatic = __webpack_require__(104);
+  var _edgesBezierEdgeStatic = __webpack_require__(105);
 
   var _edgesBezierEdgeStatic2 = _interopRequireDefault(_edgesBezierEdgeStatic);
 
-  var _edgesStraightEdge = __webpack_require__(105);
+  var _edgesStraightEdge = __webpack_require__(106);
 
   var _edgesStraightEdge2 = _interopRequireDefault(_edgesStraightEdge);
 
@@ -35484,7 +35766,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 76 */
+/* 77 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
@@ -35964,7 +36246,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports["default"];
 
 /***/ },
-/* 77 */
+/* 78 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
@@ -36059,7 +36341,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports["default"];
 
 /***/ },
-/* 78 */
+/* 79 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
@@ -36150,7 +36432,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports["default"];
 
 /***/ },
-/* 79 */
+/* 80 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
@@ -36259,7 +36541,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports["default"];
 
 /***/ },
-/* 80 */
+/* 81 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
@@ -36380,7 +36662,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports["default"];
 
 /***/ },
-/* 81 */
+/* 82 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
@@ -36439,7 +36721,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports["default"];
 
 /***/ },
-/* 82 */
+/* 83 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -36458,7 +36740,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; }
 
-  var _Node2 = __webpack_require__(73);
+  var _Node2 = __webpack_require__(74);
 
   var _Node3 = _interopRequireDefault(_Node2);
 
@@ -36486,7 +36768,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 83 */
+/* 84 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -36501,8 +36783,8 @@ return /******/ (function(modules) { // webpackBootstrap
 
   var util = __webpack_require__(1);
   var Hammer = __webpack_require__(41);
-  var hammerUtil = __webpack_require__(48);
-  var keycharm = __webpack_require__(85);
+  var hammerUtil = __webpack_require__(49);
+  var keycharm = __webpack_require__(86);
 
   var NavigationHandler = (function () {
     function NavigationHandler(body, canvas) {
@@ -36756,7 +37038,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 84 */
+/* 85 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -36883,7 +37165,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 85 */
+/* 86 */
 /***/ function(module, exports, __webpack_require__) {
 
   var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;"use strict";
@@ -37081,7 +37363,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 86 */
+/* 87 */
 /***/ function(module, exports, __webpack_require__) {
 
   function webpackContext(req) {
@@ -37090,11 +37372,11 @@ return /******/ (function(modules) { // webpackBootstrap
   webpackContext.keys = function() { return []; };
   webpackContext.resolve = webpackContext;
   module.exports = webpackContext;
-  webpackContext.id = 86;
+  webpackContext.id = 87;
 
 
 /***/ },
-/* 87 */
+/* 88 */
 /***/ function(module, exports, __webpack_require__) {
 
   module.exports = function(module) {
@@ -37110,7 +37392,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 88 */
+/* 89 */
 /***/ function(module, exports, __webpack_require__) {
 
   /* WEBPACK VAR INJECTION */(function(__webpack_amd_options__) {module.exports = __webpack_amd_options__;
@@ -37118,7 +37400,7 @@ return /******/ (function(modules) { // webpackBootstrap
   /* WEBPACK VAR INJECTION */}.call(exports, {}))
 
 /***/ },
-/* 89 */
+/* 90 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -37139,7 +37421,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; }
 
-  var _utilNodeBase = __webpack_require__(106);
+  var _utilNodeBase = __webpack_require__(107);
 
   var _utilNodeBase2 = _interopRequireDefault(_utilNodeBase);
 
@@ -37219,7 +37501,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 90 */
+/* 91 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -37240,7 +37522,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; }
 
-  var _utilCircleImageBase = __webpack_require__(107);
+  var _utilCircleImageBase = __webpack_require__(108);
 
   var _utilCircleImageBase2 = _interopRequireDefault(_utilCircleImageBase);
 
@@ -37303,7 +37585,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 91 */
+/* 92 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -37324,7 +37606,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; }
 
-  var _utilCircleImageBase = __webpack_require__(107);
+  var _utilCircleImageBase = __webpack_require__(108);
 
   var _utilCircleImageBase2 = _interopRequireDefault(_utilCircleImageBase);
 
@@ -37406,7 +37688,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 92 */
+/* 93 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -37427,7 +37709,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; }
 
-  var _utilNodeBase = __webpack_require__(106);
+  var _utilNodeBase = __webpack_require__(107);
 
   var _utilNodeBase2 = _interopRequireDefault(_utilNodeBase);
 
@@ -37506,7 +37788,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 93 */
+/* 94 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -37527,7 +37809,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; }
 
-  var _utilShapeBase = __webpack_require__(108);
+  var _utilShapeBase = __webpack_require__(109);
 
   var _utilShapeBase2 = _interopRequireDefault(_utilShapeBase);
 
@@ -37566,7 +37848,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 94 */
+/* 95 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -37587,7 +37869,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; }
 
-  var _utilShapeBase = __webpack_require__(108);
+  var _utilShapeBase = __webpack_require__(109);
 
   var _utilShapeBase2 = _interopRequireDefault(_utilShapeBase);
 
@@ -37626,7 +37908,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 95 */
+/* 96 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -37647,7 +37929,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; }
 
-  var _utilNodeBase = __webpack_require__(106);
+  var _utilNodeBase = __webpack_require__(107);
 
   var _utilNodeBase2 = _interopRequireDefault(_utilNodeBase);
 
@@ -37729,7 +38011,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 96 */
+/* 97 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -37750,7 +38032,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; }
 
-  var _utilNodeBase = __webpack_require__(106);
+  var _utilNodeBase = __webpack_require__(107);
 
   var _utilNodeBase2 = _interopRequireDefault(_utilNodeBase);
 
@@ -37839,7 +38121,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 97 */
+/* 98 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -37860,7 +38142,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; }
 
-  var _utilCircleImageBase = __webpack_require__(107);
+  var _utilCircleImageBase = __webpack_require__(108);
 
   var _utilCircleImageBase2 = _interopRequireDefault(_utilCircleImageBase);
 
@@ -37919,7 +38201,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 98 */
+/* 99 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -37940,7 +38222,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; }
 
-  var _utilShapeBase = __webpack_require__(108);
+  var _utilShapeBase = __webpack_require__(109);
 
   var _utilShapeBase2 = _interopRequireDefault(_utilShapeBase);
 
@@ -37980,7 +38262,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 99 */
+/* 100 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -38001,7 +38283,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; }
 
-  var _utilShapeBase = __webpack_require__(108);
+  var _utilShapeBase = __webpack_require__(109);
 
   var _utilShapeBase2 = _interopRequireDefault(_utilShapeBase);
 
@@ -38040,7 +38322,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 100 */
+/* 101 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -38061,7 +38343,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; }
 
-  var _utilNodeBase = __webpack_require__(106);
+  var _utilNodeBase = __webpack_require__(107);
 
   var _utilNodeBase2 = _interopRequireDefault(_utilNodeBase);
 
@@ -38120,7 +38402,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 101 */
+/* 102 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -38141,7 +38423,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; }
 
-  var _utilShapeBase = __webpack_require__(108);
+  var _utilShapeBase = __webpack_require__(109);
 
   var _utilShapeBase2 = _interopRequireDefault(_utilShapeBase);
 
@@ -38180,7 +38462,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 102 */
+/* 103 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -38201,7 +38483,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; }
 
-  var _utilShapeBase = __webpack_require__(108);
+  var _utilShapeBase = __webpack_require__(109);
 
   var _utilShapeBase2 = _interopRequireDefault(_utilShapeBase);
 
@@ -38240,7 +38522,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 103 */
+/* 104 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -38261,7 +38543,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; }
 
-  var _utilBezierEdgeBase = __webpack_require__(109);
+  var _utilBezierEdgeBase = __webpack_require__(110);
 
   var _utilBezierEdgeBase2 = _interopRequireDefault(_utilBezierEdgeBase);
 
@@ -38398,7 +38680,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 104 */
+/* 105 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -38419,7 +38701,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; }
 
-  var _utilBezierEdgeBase = __webpack_require__(109);
+  var _utilBezierEdgeBase = __webpack_require__(110);
 
   var _utilBezierEdgeBase2 = _interopRequireDefault(_utilBezierEdgeBase);
 
@@ -38664,7 +38946,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 105 */
+/* 106 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -38685,7 +38967,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; }
 
-  var _utilEdgeBase = __webpack_require__(110);
+  var _utilEdgeBase = __webpack_require__(111);
 
   var _utilEdgeBase2 = _interopRequireDefault(_utilEdgeBase);
 
@@ -38776,7 +39058,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 106 */
+/* 107 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -38842,7 +39124,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 107 */
+/* 108 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -38863,7 +39145,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; }
 
-  var _utilNodeBase = __webpack_require__(106);
+  var _utilNodeBase = __webpack_require__(107);
 
   var _utilNodeBase2 = _interopRequireDefault(_utilNodeBase);
 
@@ -38965,7 +39247,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 108 */
+/* 109 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -38986,7 +39268,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; }
 
-  var _utilNodeBase = __webpack_require__(106);
+  var _utilNodeBase = __webpack_require__(107);
 
   var _utilNodeBase2 = _interopRequireDefault(_utilNodeBase);
 
@@ -39057,7 +39339,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 109 */
+/* 110 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -39078,7 +39360,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; }
 
-  var _EdgeBase2 = __webpack_require__(110);
+  var _EdgeBase2 = __webpack_require__(111);
 
   var _EdgeBase3 = _interopRequireDefault(_EdgeBase2);
 
@@ -39206,7 +39488,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 110 */
+/* 111 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';

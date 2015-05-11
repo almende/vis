@@ -465,10 +465,10 @@ var options = {
             <td>Insert a custom function on how to format the label. The function will receive a numeric value and has to return a string. Default function is:
             <pre class="code">
 function (value) {
-  return '' + value.toPrecision(5);
+  return value;
 }
             </pre>
-            which basically rounds it to 5 decimals.</td>
+            which does nothing to it.</td>
         </tr>
         <tr parent="dataAxis" class="hidden">
             <td class="indent2">dataAxis.left.range.min</td>
@@ -747,7 +747,38 @@ function (value) {
                 If not provided, the latest date present in the items set is taken as
                 end date.</td>
         </tr>
-
+        <tr>
+            <td>format</td>
+            <td class="mid">Object</td>
+            <td class="mid">none</td>
+            <td>
+                Apply custom date formatting of the labels on the time axis. The default value of <code>format</code> is:
+      <pre class="prettyprint lang-js">{
+  minorLabels: {
+    millisecond:'SSS',
+    second:     's',
+    minute:     'HH:mm',
+    hour:       'HH:mm',
+    weekday:    'ddd D',
+    day:        'D',
+    month:      'MMM',
+    year:       'YYYY'
+  },
+  majorLabels: {
+    millisecond:'HH:mm:ss',
+    second:     'D MMMM HH:mm',
+    minute:     'ddd D MMMM',
+    hour:       'ddd D MMMM',
+    weekday:    'MMMM YYYY',
+    day:        'MMMM YYYY',
+    month:      'YYYY',
+    year:       ''
+  }
+}</pre>
+                For values which not provided in the customized <code>options.format</code>, the default values will be used.
+                All available formatting syntax is described in the <a href="http://momentjs.com/docs/#/displaying/format/">docs of moment.js</a>.
+            </td>
+        </tr>
         <tr>
             <td>height</td>
             <td class="mid">Number or String</td>
@@ -815,6 +846,15 @@ function (value) {
             <td class="mid">Number or String</td>
             <td class="mid">none</td>
             <td>Specifies the minimum height for the Timeline. Can be a number in pixels or a string like "300px".</td>
+        </tr>
+        <tr>
+            <td>moveable</td>
+            <td class="mid">boolean</td>
+            <td class="mid"><code>true</code></td>
+            <td>
+                Specifies whether the Timeline can be moved and zoomed by dragging the window.
+                See also option <code>zoomable</code>.
+            </td>
         </tr>
 
         <tr>
