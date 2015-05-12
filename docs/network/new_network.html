@@ -212,8 +212,7 @@
         <tr>
             <td><a href="./interaction.html">interaction</a></td>
             <td>Used for all user interaction with the network. Handles mouse and touch events and selection as well as
-                the navigation
-                buttons and the popups.
+                the navigation buttons and the popups.
             </td>
         </tr>
         <tr>
@@ -798,11 +797,11 @@ var locales = {
                 </td>
             </tr>
             <tr class="collapsible toggle" onclick="toggleTable('methodTable','stabilize', this);">
-                <td colspan="2"><span parent="stabilize" class="right-caret"></span> stabilize()</td>
+                <td colspan="2"><span parent="stabilize" class="right-caret"></span> stabilize([iterations])</td>
             </tr>
             <tr class="hidden" parent="stabilize">
                 <td class="midMethods">Returns: none</td>
-                <td>You can manually call stabilize at any time. All the stabilization options above are used.</td>
+                <td>You can manually call stabilize at any time. All the stabilization options above are used. You can optionally supply the number of iterations it should do.</td>
             </tr>
 
 
@@ -1253,12 +1252,12 @@ var options = {
             <tr class="">
                 <td>showPopup</td>
                 <td class="mid"><code>id of item corresponding to popup</code></td>
-                <td>Fired when the popup is shown.</td>
+                <td>Fired when the popup (tooltip) is shown.</td>
             </tr>
             <tr class="">
                 <td>hidePopup</td>
                 <td class="mid">none</td>
-                <td>Fired when the popup is hidden.</td>
+                <td>Fired when the popup (tooltip) is hidden.</td>
             </tr>
             <tr class="subHeader ">
                 <td colspan="3">Events triggered the physics simulation. Can be used to trigger GUI updates.</td>
