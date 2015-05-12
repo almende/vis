@@ -92,6 +92,14 @@ var options = {
       springConstant: 0.04,
       damping: 0.09
     },
+    forceAtlas2Based: {
+      theta: 0.5,
+      gravitationalConstant: -800,
+      centralGravity: 0.01,
+      springConstant: 0.08,
+      springLength: 100,
+      damping: 0.4
+    },
     repulsion: {
       centralGravity: 0.2,
       springLength: 200,
@@ -135,12 +143,22 @@ network.setOptions(options);
     <p>All of the individual options are explained here:</p>
     <table class="moduleTable" id="optionTable">
         <tr class="header"><td class="name">name</td><td class="type">type</td><td>default</td><td>description</td></tr>
-        <tr class='toggle collapsible' onclick="toggleTable('optionTable','barnesHut', this);"><td><span parent="barnesHut" class="right-caret"></span> barnesHut</td>                              <td class="mid">Object</td>         <td class="mid"><code>Object</code></td>    <td>BarnesHut is a quadtree based gravity model. This is the fastest, default and recommended solver for non-hierarchical layouts.</td></tr>
+        <tr class='toggle collapsible' onclick="toggleTable('optionTable','barnesHut', this);"><td><span parent="barnesHut" class="right-caret"></span> barnesHut</td>                       <td class="mid">Object</td>         <td class="mid"><code>Object</code></td>    <td>BarnesHut is a quadtree based gravity model. This is the fastest, default and recommended solver for non-hierarchical layouts.</td></tr>
         <tr parent="barnesHut" class="hidden"><td class="indent">barnesHut.gravitationalConstant</td>        <td class="mid">Number</td>         <td class="mid"><code>-2000</code></td>     <td>Gravity attracts. We like repulsion. So the value is negative. If you want the repulsion to be stronger, decrease the value (so -10000, -50000).</td></tr>
         <tr parent="barnesHut" class="hidden"><td class="indent">barnesHut.centralGravity</td>               <td class="mid">Number</td>         <td class="mid"><code>0.3</code></td>       <td>There is a central gravity attractor to pull the entire network back to the center.</td></tr>
         <tr parent="barnesHut" class="hidden"><td class="indent">barnesHut.springLength</td>                 <td class="mid">Number</td>         <td class="mid"><code>95</code></td>        <td>The edges are modelled as springs. This springLength here is the the rest length of the spring.</td></tr>
         <tr parent="barnesHut" class="hidden"><td class="indent">barnesHut.springConstant</td>               <td class="mid">Number</td>         <td class="mid"><code>0.04</code></td>      <td>This is how 'sturdy' the springs are. Higher values mean stronger springs.</td></tr>
         <tr parent="barnesHut" class="hidden"><td class="indent">barnesHut.damping</td>                      <td class="mid">Number</td>         <td class="mid"><code>0.09</code></td>      <td>Accepted range: <code>[0 .. 1]</code>. The damping factor is how much of the velocity from the previous physics simulation iteration carries over to the next iteration.</td></tr>
+
+        <tr class='toggle collapsible' onclick="toggleTable('optionTable','forceAtlas2Based', this);"><td><span parent="forceAtlas2Based" class="right-caret"></span> forceAtlas2Based</td>    <td class="mid">Object</td>         <td class="mid"><code>Object</code></td>    <td>Force Atlas 2 has been developed by <a href="http://journals.plos.org/plosone/article?id=10.1371/journal.pone.0098679" target="_blank">Jacomi <i>et al</i> (2014)</a> for use with Gephi. The forceAtlas2Based solver makes use of some of the equations provided
+            by them and makes use of the barnesHut implementation in vis. The main differences are the central gravity model,
+            which is here distance independent, and the repulsion being linear instead of quadratic. Finally, all node masses have a
+            multiplier based on the amount of connected edges plus one.</td></tr>
+        <tr parent="forceAtlas2Based" class="hidden"><td class="indent">forceAtlas2Based.gravitationalConstant</td> <td class="mid">Number</td>         <td class="mid"><code>-800</code></td> <td>This is similar to the barnesHut method except that the falloff is linear instead of quadratic. The connectivity is also taken into account as a factor of the mass. If you want the repulsion to be stronger, decrease the value (so -1000, -2000).</td></tr>
+        <tr parent="forceAtlas2Based" class="hidden"><td class="indent">forceAtlas2Based.centralGravity</td>        <td class="mid">Number</td>         <td class="mid"><code>0.01</code></td> <td>There is a central gravity attractor to pull the entire network back to the center. This is not dependent on distance.</td></tr>
+        <tr parent="forceAtlas2Based" class="hidden"><td class="indent">forceAtlas2Based.springLength</td>          <td class="mid">Number</td>         <td class="mid"><code>100</code></td>  <td>The edges are modelled as springs. This springLength here is the the rest length of the spring.</td></tr>
+        <tr parent="forceAtlas2Based" class="hidden"><td class="indent">forceAtlas2Based.springConstant</td>        <td class="mid">Number</td>         <td class="mid"><code>0.08</code></td> <td>This is how 'sturdy' the springs are. Higher values mean stronger springs.</td></tr>
+        <tr parent="forceAtlas2Based" class="hidden"><td class="indent">forceAtlas2Based.damping</td>               <td class="mid">Number</td>         <td class="mid"><code>0.4</code></td>  <td>Accepted range: <code>[0 .. 1]</code>. The damping factor is how much of the velocity from the previous physics simulation iteration carries over to the next iteration.</td></tr>
 
         <tr class='toggle collapsible' onclick="toggleTable('optionTable','repulsion', this);"><td><span parent="repulsion" class="right-caret"></span> repulsion</td>                              <td class="mid">Object</td>         <td class="mid"><code>Object</code></td>    <td>The repulsion model assumes nodes have a simplified repulsion field around them. It's force linearly decreases from 1 (at 0.5*nodeDistance and smaller) to 0 (at 2*nodeDistance).</td></tr>
         <tr parent="repulsion" class="hidden"><td class="indent">repulsion.nodeDistance</td>                 <td class="mid">Number</td>         <td class="mid"><code>100</code></td>       <td>This is the range of influence for the repulsion.</td></tr>
@@ -158,7 +176,7 @@ network.setOptions(options);
 
         <tr><td>maxVelocity</td>                            <td class="mid">Number</td>         <td class="mid"><code>50</code></td>        <td>The physics module limits the maximum velocity of the nodes to increase the time to stabilization. This is the maximium value.</td></tr>
         <tr><td>minVelocity</td>                            <td class="mid">Number</td>         <td class="mid"><code>0.1</code></td>       <td>Once the minimum velocity is reached for all nodes, we assume the network has been stabilized and the simulation stops.</td></tr>
-        <tr><td>solver</td>                                 <td class="mid">String</td>         <td class="mid"><code>'barnesHut'</code></td><td>You can select your own solver. Possible options: <code>'barnesHut', 'repulsion', 'hierarchicalRepulsion'</code>. When setting the hierarchical layout, the hierarchical repulsion solver is automaticaly selected, regardless of what you fill in here.</td></tr>
+        <tr><td>solver</td>                                 <td class="mid">String</td>         <td class="mid"><code>'barnesHut'</code></td><td>You can select your own solver. Possible options: <code>'barnesHut', 'repulsion', 'hierarchicalRepulsion', 'forceAtlas2Based'</code>. When setting the hierarchical layout, the hierarchical repulsion solver is automaticaly selected, regardless of what you fill in here.</td></tr>
         <tr class='toggle collapsible' onclick="toggleTable('optionTable','stabilization', this);"><td><span parent="stabilization" class="right-caret"></span> stabilization</td>                          <td class="mid">Object | Boolean</td><td class="mid"><code>Object</code></td>    <td>When true, the network is stabilized on load using default settings. If false, stabilization is disabled. To further customize this, you can supply an object.</td></tr>
         <tr parent="stabilization" class="hidden"><td class="indent">stabilization.enabled</td>                  <td class="mid">Boolean</td>        <td class="mid"><code>true</code></td>       <td>Toggle the stabilization. This is an optional property. If undefined, it is automatically set to true when any of the properties of this object are defined.</td></tr>
         <tr parent="stabilization" class="hidden"><td class="indent">stabilization.iterations</td>               <td class="mid">Number</td>         <td class="mid"><code>1000</code></td>       <td>The physics module tries to stabilize the network on load up til a maximum number of iterations defined here. If the network stabilized with less, you are finished before the maximum number.</td></tr>
