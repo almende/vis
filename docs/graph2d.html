@@ -506,7 +506,7 @@ The options colored in green can also be used as options for the groups. All opt
   <td>undefined</td>
   <td>Set the number of decimal points used on the the left axis. If set, this will fix the number of decimal places
     displayed after the decimal point.
-    If undefined, trailing zeros will be removed.</td>
+    If undefined, trailing zeros will be removed. If dataAxis.format.left.formatter is defined, decimals will be unused.</td>
 </tr>
 <tr>
   <td>dataAxis.format.right.decimals</td>
@@ -514,7 +514,21 @@ The options colored in green can also be used as options for the groups. All opt
   <td>undefined</td>
   <td>Set the number of decimal points used on the the right axis. If set, this will fix the number of decimal places
       displayed after the decimal point.
-      If undefined, trailing zeros will be removed.</td>
+      If undefined, trailing zeros will be removed. If dataAxis.format.right.formatter is defined, decimals will be unused.</td>
+</tr>
+<tr>
+  <td>dataAxis.format.left.formatter</td>
+  <td>Function</td>
+  <td>undefined</td>
+  <td>A formatter for the left axis labels. It is a function that takes a numerical input value and should return the
+      string to display for this value.</td>
+</tr>
+<tr>
+  <td>dataAxis.format.right.formatter</td>
+  <td>Number</td>
+  <td>undefined</td>
+  <td>A formatter for the right axis labels. It is a function that takes a numerical input value and should return the
+      string to display for this value.</td>
 </tr>
 <tr>
     <td>dataAxis.alignZeros</td>
