@@ -1,0 +1,82 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+  <title>Graph2d | Groups Example</title>
+    <meta content="text/html;charset=utf-8" http-equiv="Content-Type">
+    <meta content="utf-8" http-equiv="encoding">
+  <style type="text/css">
+    body, html {
+      font-family: sans-serif;
+    }
+  </style>
+
+  <script src="../../dist/vis.js"></script>
+  <link href="../../dist/vis.css" rel="stylesheet" type="text/css" />
+</head>
+<body>
+<h2>Graph2d | Groups Example</h2>
+<div style="width:700px; font-size:14px; text-align: justify;">
+    This example shows how to have a customized format for the Data axis. This can be useful if you want custom rules for the
+    number of decimals, if you want to display an unit or if you want your data axis to display something non-numerical. <br /> <br />
+</div>
+<br />
+
+<div id="visualization"></div>
+
+<script type="text/javascript">
+
+    /**
+     * Transforms the numerical axis value into the proper text value.
+     * @param {Number} axis_value         Numerical axis value
+     * @return {String} text_value        Text equivalent
+     */
+    function formatter(value) {
+      return value.toFixed(2) + " s";
+    }
+
+    var groups = new vis.DataSet();
+    groups.add({
+      id: 0,
+      content: "100m world record progression"
+    });
+
+  var container = document.getElementById('visualization');
+  var items = [
+    {x: '1968-10-14', y: 9.95, group: 0},
+    {x: '1983-07-03', y: 9.93, group: 0},
+    {x: '1988-09-24', y: 9.92, group: 0},
+    {x: '1991-06-14', y: 9.90, group: 0},
+    {x: '1991-08-25', y: 9.86, group: 0},
+    {x: '1994-07-06', y: 9.85, group: 0},
+    {x: '1996-07-27', y: 9.84, group: 0},
+    {x: '1999-06-16', y: 9.79, group: 0},
+    {x: '2005-06-14', y: 9.77, group: 0},
+    {x: '2007-09-09', y: 9.74, group: 0},
+    {x: '2008-05-31', y: 9.72, group: 0},
+    {x: '2008-08-16', y: 9.69, group: 0},
+    {x: '2009-08-16', y: 9.58, group: 0},
+  ];
+
+  var dataset = new vis.DataSet(items);
+  var options = {
+      legend: true,
+      dataAxis: {
+        format: {
+          left: {
+            formatter: formatter,
+          }
+        },
+        customRange: {
+          left: {
+            min: 9.5,
+            max: 10.5,
+          }
+        }
+      }
+  };
+  var graph2d = new vis.Graph2d(container, dataset, groups, options);
+
+</script>
+<small>Data from <a href="http://en.wikipedia.org/wiki/Men%27s_100_metres_world_record_progression">Wikipedia</a></small>
+</body>
+</html>
