@@ -88,7 +88,7 @@ var options = {
     dragView: true,
     hideEdgesOnDrag: false,
     hideNodesOnDrag: false,
-    hoverEnabled: false,
+    hover: false,
     keyboard: {
       enabled: false,
       speed: {x: 10, y: 10, zoom: 0.02},
@@ -123,7 +123,7 @@ network.setOptions(options);
         <tr><td>dragView</td>               <td class="mid">Boolean</td>            <td class="mid"><code>true</code></td>      <td>When true, the view can be dragged around by the user.</td></tr>
         <tr><td>hideEdgesOnDrag</td>        <td class="mid">Boolean</td>            <td class="mid"><code>false</code></td>     <td>When true, the edges are not drawn when dragging the view. This can greatly speed up responsiveness on dragging, improving user experience.</td></tr>
         <tr><td>hideNodesOnDrag</td>        <td class="mid">Boolean</td>            <td class="mid"><code>false</code></td>     <td>When true, the nodes are not drawn when dragging the view. This can greatly speed up responsiveness on dragging, improving user experience.</td></tr>
-        <tr><td>hoverEnabled</td>           <td class="mid">Boolean</td>            <td class="mid"><code>false</code></td>     <td>When true, the nodes use their hover colors when the mouse moves over them.</td></tr>
+        <tr><td>hover</td>                  <td class="mid">Boolean</td>            <td class="mid"><code>false</code></td>     <td>When true, the nodes use their hover colors when the mouse moves over them.</td></tr>
         <tr class='toggle collapsible' onclick="toggleTable('optionTable','keyboard', this);"><td><span parent="keyboard" class="right-caret"></span> keyboard</td>               <td class="mid">Object or Boolean</td>   <td class="mid"><code>Object</code></td>    <td>When true, the keyboard shortcuts are enabled with the default settings. For further customization, you can supply an object.</td></tr>
         <tr parent="keyboard" class="hidden"><td class="indent">keyboard.enabled</td>       <td class="mid">Boolean</td>            <td class="mid"><code>false</code></td>     <td>Toggle the usage of the keyboard shortcuts. If this option is not defined, it is set to true if any of the properties in this object are defined.</td></tr>
         <tr parent="keyboard" class="hidden"><td class="indent">keyboard.speed.x</td>       <td class="mid">Number</td>             <td class="mid"><code>1</code></td>         <td>The speed at which the view moves in the x direction on pressing a key or pressing a navigation button.</td></tr>
