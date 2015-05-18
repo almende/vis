@@ -17,7 +17,8 @@
 <body>
 
 <p>
-  Create a simple network with some nodes and edges.
+  Nodes can be all kinds of colors. This example shows all possible ways of defining colors. If you supply an object, the undefined fields will assume the default colors.
+  When supplying a hex or rgb format color, it will be parsed and variations will be created for highlight and hover. Edges with inheritColor take the border colors.
 </p>
 
 <div id="mynetwork"></div>
@@ -31,7 +32,7 @@
     {id: 4, label:'rgba color', color: 'rgba(230,53,94,0.5)'},
     {id: 5, label:'colorObject', color: {background:'red', border:'blue'}},
     {id: 6, label:'colorObject + highlight', color: {background:'orange', border:'blue',highlight:{background:'red',border:'blue'}}},
-    {id: 7, label:'colorObject + highlight + hover', color: {background:'orange', border:'blue',highlight:{background:'red',border:'blue'},hover:{background:'white',border:'red'}}}
+    {id: 7, label:'colorObject + highlight + hover', color: {background:'cyan', border:'blue',highlight:{background:'red',border:'blue'},hover:{background:'white',border:'red'}}}
   ])
 
   // create an array with edges

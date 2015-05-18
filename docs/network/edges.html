@@ -160,8 +160,7 @@ var options = {
     },
     smooth: {
       enabled: true,
-      dynamic: true,
-      type: "continuous",
+      type: "dynamic",
       roundness: 0.5
     },
     title:undefined,
@@ -578,11 +577,11 @@ var options: {
             <td><span parent="smooth" class="right-caret"></span> smooth</td>
             <td class="mid">Object or Boolean</td>
             <td class="mid"><code>Object</code></td>
-            <td>When true, the edge is drawn as a quadratic bezier curve. The drawing of these curves takes longer than
+            <td>When true, the edge is drawn as a dynamic quadratic bezier curve. The drawing of these curves takes longer than
                 that of straight curves but it looks better.
                 There is a difference between dynamic smooth curves and static smooth curves. The dynamic smooth curves
                 have an invisible support node that takes part in the physics simulation. If you have a lot of edges,
-                you may want to consider turning off dynamic smooth curves for performance.
+                you may want to consider picking a different type of smooth curves then dynamic for better performance.
             </td>
         </tr>
         <tr parent="smooth" class="hidden">
@@ -594,28 +593,22 @@ var options: {
             </td>
         </tr>
         <tr parent="smooth" class="hidden">
-            <td class="indent">smooth.dynamic</td>
-            <td class="mid">Boolean</td>
-            <td class="mid"><code>false</code></td>
-            <td>When true, the edges will have an invisible support node guiding the shape. This node is part of the
-                physics simulation. When false, there are a number of different approximations for smooth curves. Those
-                can be selected in the type property.
-            </td>
-        </tr>
-        <tr parent="smooth" class="hidden">
             <td class="indent">smooth.type</td>
             <td class="mid">String</td>
-            <td class="mid"><code>'continuous'</code></td>
-            <td>Possible options: <code>'continuous', 'discrete', 'diagonalCross', 'straightCross', 'horizontal',
+            <td class="mid"><code>'dynamic'</code></td>
+            <td>Possible options: <code>'dynamic', 'continuous', 'discrete', 'diagonalCross', 'straightCross', 'horizontal',
                 'vertical', 'curvedCW', 'curvedCCW'</code>. Take a look at our example 26 to see what these look like
-                and pick the one that you like best! <i>These do not do anything for dynamic smooth curves</i>.
+                and pick the one that you like best!
+                <br><br>
+                When using dynamic, the edges will have an invisible support node guiding the shape. This node is part of the
+                physics simulation.
             </td>
         </tr>
         <tr parent="smooth" class="hidden">
             <td class="indent">smooth.roundness</td>
             <td class="mid">Number</td>
             <td class="mid"><code>0.5</code></td>
-            <td>Accepted range: <code>0 .. 1.0</code>. This parameter tweaks the roundness of the static smooth curves.
+            <td>Accepted range: <code>0 .. 1.0</code>. This parameter tweaks the roundness of the smooth curves for all types EXCEPT dynamic.
             </td>
         </tr>
         <tr>
