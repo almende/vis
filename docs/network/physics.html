@@ -90,7 +90,8 @@ var options = {
       centralGravity: 0.3,
       springLength: 95,
       springConstant: 0.04,
-      damping: 0.09
+      damping: 0.09,
+      avoidOverlap: false
     },
     forceAtlas2Based: {
       theta: 0.5,
@@ -98,14 +99,16 @@ var options = {
       centralGravity: 0.01,
       springConstant: 0.08,
       springLength: 100,
-      damping: 0.4
+      damping: 0.4,
+      avoidOverlap: false
     },
     repulsion: {
       centralGravity: 0.2,
       springLength: 200,
       springConstant: 0.05,
       nodeDistance: 100,
-      damping: 0.09
+      damping: 0.09,
+      avoidOverlap: false
     },
     hierarchicalRepulsion: {
       centralGravity: 0.0,
@@ -149,6 +152,7 @@ network.setOptions(options);
         <tr parent="barnesHut" class="hidden"><td class="indent">barnesHut.springLength</td>                 <td class="mid">Number</td>         <td class="mid"><code>95</code></td>        <td>The edges are modelled as springs. This springLength here is the the rest length of the spring.</td></tr>
         <tr parent="barnesHut" class="hidden"><td class="indent">barnesHut.springConstant</td>               <td class="mid">Number</td>         <td class="mid"><code>0.04</code></td>      <td>This is how 'sturdy' the springs are. Higher values mean stronger springs.</td></tr>
         <tr parent="barnesHut" class="hidden"><td class="indent">barnesHut.damping</td>                      <td class="mid">Number</td>         <td class="mid"><code>0.09</code></td>      <td>Accepted range: <code>[0 .. 1]</code>. The damping factor is how much of the velocity from the previous physics simulation iteration carries over to the next iteration.</td></tr>
+        <tr parent="barnesHut" class="hidden"><td class="indent">barnesHut.avoidOverlap</td>                 <td class="mid">Number</td>         <td class="mid"><code>0</code></td>         <td>Accepted range: <code>[0 .. 1]</code>. When larger than 0, the size of the node is taken into account. The distance will be calculated from the radius of the encompassing circle of the node for both the gravity model and the spring model. Value 1 is maximum overlap avoidance.</td></tr>
 
         <tr class='toggle collapsible' onclick="toggleTable('optionTable','forceAtlas2Based', this);"><td><span parent="forceAtlas2Based" class="right-caret"></span> forceAtlas2Based</td>    <td class="mid">Object</td>         <td class="mid"><code>Object</code></td>    <td>Force Atlas 2 has been developed by <a href="http://journals.plos.org/plosone/article?id=10.1371/journal.pone.0098679" target="_blank">Jacomi <i>et al</i> (2014)</a> for use with Gephi. The forceAtlas2Based solver makes use of some of the equations provided
             by them and makes use of the barnesHut implementation in vis. The main differences are the central gravity model,
@@ -159,6 +163,7 @@ network.setOptions(options);
         <tr parent="forceAtlas2Based" class="hidden"><td class="indent">forceAtlas2Based.springLength</td>          <td class="mid">Number</td>         <td class="mid"><code>100</code></td>  <td>The edges are modelled as springs. This springLength here is the the rest length of the spring.</td></tr>
         <tr parent="forceAtlas2Based" class="hidden"><td class="indent">forceAtlas2Based.springConstant</td>        <td class="mid">Number</td>         <td class="mid"><code>0.08</code></td> <td>This is how 'sturdy' the springs are. Higher values mean stronger springs.</td></tr>
         <tr parent="forceAtlas2Based" class="hidden"><td class="indent">forceAtlas2Based.damping</td>               <td class="mid">Number</td>         <td class="mid"><code>0.4</code></td>  <td>Accepted range: <code>[0 .. 1]</code>. The damping factor is how much of the velocity from the previous physics simulation iteration carries over to the next iteration.</td></tr>
+        <tr parent="forceAtlas2Based" class="hidden"><td class="indent">forceAtlas2Based.avoidOverlap</td>          <td class="mid">Number</td>         <td class="mid"><code>0</code></td>    <td>Accepted range: <code>[0 .. 1]</code>. When larger than 0, the size of the node is taken into account. The distance will be calculated from the radius of the encompassing circle of the node for both the gravity model and the spring model. Value 1 is maximum overlap avoidance.</td></tr>
 
         <tr class='toggle collapsible' onclick="toggleTable('optionTable','repulsion', this);"><td><span parent="repulsion" class="right-caret"></span> repulsion</td>                              <td class="mid">Object</td>         <td class="mid"><code>Object</code></td>    <td>The repulsion model assumes nodes have a simplified repulsion field around them. It's force linearly decreases from 1 (at 0.5*nodeDistance and smaller) to 0 (at 2*nodeDistance).</td></tr>
         <tr parent="repulsion" class="hidden"><td class="indent">repulsion.nodeDistance</td>                 <td class="mid">Number</td>         <td class="mid"><code>100</code></td>       <td>This is the range of influence for the repulsion.</td></tr>
@@ -166,6 +171,7 @@ network.setOptions(options);
         <tr parent="repulsion" class="hidden"><td class="indent">repulsion.springLength</td>                 <td class="mid">Number</td>         <td class="mid"><code>200</code></td>       <td>The edges are modelled as springs. This springLength here is the the rest length of the spring.</td></tr>
         <tr parent="repulsion" class="hidden"><td class="indent">repulsion.springConstant</td>               <td class="mid">Number</td>         <td class="mid"><code>0.05</code></td>      <td>This is how 'sturdy' the springs are. Higher values mean stronger springs.</td></tr>
         <tr parent="repulsion" class="hidden"><td class="indent">repulsion.damping</td>                      <td class="mid">Number</td>         <td class="mid"><code>0.09</code></td>      <td>Accepted range: <code>[0 .. 1]</code>. The damping factor is how much of the velocity from the previous physics simulation iteration carries over to the next iteration.</td></tr>
+        <tr parent="repulsion" class="hidden"><td class="indent">repulsion.avoidOverlap</td>                 <td class="mid">Number</td>         <td class="mid"><code>0</code></td>         <td>Accepted range: <code>[0 .. 1]</code>. When larger than 0, the size of the node is taken into account. The distance will be calculated from the radius of the encompassing circle of the node for the spring model. Value 1 is maximum overlap avoidance.</td></tr>
 
         <tr class='toggle collapsible' onclick="toggleTable('optionTable','hierarchicalRepulsion', this);"><td><span parent="hierarchicalRepulsion" class="right-caret"></span> hierarchicalRepulsion</td>                  <td class="mid">Object</td>         <td class="mid"><code>Object</code></td>    <td>This model is based on the repulsion solver but the levels are taken into account and the forces are normalized.</td></tr>
         <tr parent="hierarchicalRepulsion" class="hidden"><td class="indent">hierarchicalRepulsion.nodeDistance</td>     <td class="mid">Number</td>         <td class="mid"><code>120</code></td>       <td>This is the range of influence for the repulsion.</td></tr>
