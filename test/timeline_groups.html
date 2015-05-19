@@ -64,7 +64,7 @@
   var names = ['John (0)', 'Alston (1)', 'Lee (2)', 'Grant (3)'];
   var groups = new vis.DataSet();
   for (var g = 0; g < groupCount; g++) {
-    groups.add({id: g, content: names[g], title: 'Title of group ' + g, 'className': 'myGroup'});
+    groups.add({id: g, content: '<a href="http://google.com"><span style="color:#97B0F8;">' + names[g] + '</a>', title: 'Title of group ' + g, 'className': 'myGroup'});
   }
 
   // create a dataset with items
@@ -77,7 +77,7 @@
       id: i,
       group: group,
       content: 'item ' + i +
-          ' <span style="color:#97B0F8;">(' + names[group] + ')</span>',
+          ' <a href="http://google.com"><span style="color:#97B0F8;">(' + names[group] + ')</span></a> ',
       start: start,
       end: end,
       title: 'Title for item ' + i,
