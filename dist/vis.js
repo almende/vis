@@ -3144,7 +3144,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   'use strict';
 
-  var Emitter = __webpack_require__(69);
+  var Emitter = __webpack_require__(43);
   var DataSet = __webpack_require__(3);
   var DataView = __webpack_require__(4);
   var util = __webpack_require__(1);
@@ -6307,23 +6307,23 @@ return /******/ (function(modules) { // webpackBootstrap
 
   'use strict';
 
-  var Emitter = __webpack_require__(69);
+  var Emitter = __webpack_require__(43);
   var Hammer = __webpack_require__(41);
   var util = __webpack_require__(1);
   var DataSet = __webpack_require__(3);
   var DataView = __webpack_require__(4);
   var Range = __webpack_require__(17);
-  var Core = __webpack_require__(43);
+  var Core = __webpack_require__(44);
   var TimeAxis = __webpack_require__(35);
   var CurrentTime = __webpack_require__(26);
   var CustomTime = __webpack_require__(27);
   var ItemSet = __webpack_require__(32);
 
-  var ConfigurationSystem = __webpack_require__(44);
-  var Validator = __webpack_require__(45)['default'];
-  var printStyle = __webpack_require__(45).printStyle;
-  var allOptions = __webpack_require__(46).allOptions;
-  var configureOptions = __webpack_require__(46).configureOptions;
+  var ConfigurationSystem = __webpack_require__(45);
+  var Validator = __webpack_require__(46)['default'];
+  var printStyle = __webpack_require__(46).printStyle;
+  var allOptions = __webpack_require__(47).allOptions;
+  var configureOptions = __webpack_require__(47).configureOptions;
 
   /**
    * Create a timeline visualization
@@ -6746,23 +6746,23 @@ return /******/ (function(modules) { // webpackBootstrap
 
   'use strict';
 
-  var Emitter = __webpack_require__(69);
+  var Emitter = __webpack_require__(43);
   var Hammer = __webpack_require__(41);
   var util = __webpack_require__(1);
   var DataSet = __webpack_require__(3);
   var DataView = __webpack_require__(4);
   var Range = __webpack_require__(17);
-  var Core = __webpack_require__(43);
+  var Core = __webpack_require__(44);
   var TimeAxis = __webpack_require__(35);
   var CurrentTime = __webpack_require__(26);
   var CustomTime = __webpack_require__(27);
   var LineGraph = __webpack_require__(34);
 
-  var ConfigurationSystem = __webpack_require__(44);
-  var Validator = __webpack_require__(45)['default'];
-  var printStyle = __webpack_require__(45).printStyle;
-  var allOptions = __webpack_require__(47).allOptions;
-  var configureOptions = __webpack_require__(47).configureOptions;
+  var ConfigurationSystem = __webpack_require__(45);
+  var Validator = __webpack_require__(46)['default'];
+  var printStyle = __webpack_require__(46).printStyle;
+  var allOptions = __webpack_require__(48).allOptions;
+  var configureOptions = __webpack_require__(48).configureOptions;
 
   /**
    * Create a timeline visualization
@@ -7756,7 +7756,7 @@ return /******/ (function(modules) { // webpackBootstrap
   'use strict';
 
   var util = __webpack_require__(1);
-  var hammerUtil = __webpack_require__(48);
+  var hammerUtil = __webpack_require__(49);
   var moment = __webpack_require__(40);
   var Component = __webpack_require__(25);
   var DateUtil = __webpack_require__(15);
@@ -9172,32 +9172,32 @@ return /******/ (function(modules) { // webpackBootstrap
     var step = this.step;
 
     function even(value) {
-      return value / step % 2 == 0 ? ' even' : ' odd';
+      return value / step % 2 == 0 ? ' vis-even' : ' vis-odd';
     }
 
     function today(date) {
       if (date.isSame(new Date(), 'day')) {
-        return ' today';
+        return ' vis-today';
       }
       if (date.isSame(moment().add(1, 'day'), 'day')) {
-        return ' tomorrow';
+        return ' vis-tomorrow';
       }
       if (date.isSame(moment().add(-1, 'day'), 'day')) {
-        return ' yesterday';
+        return ' vis-yesterday';
       }
       return '';
     }
 
     function currentWeek(date) {
-      return date.isSame(new Date(), 'week') ? ' current-week' : '';
+      return date.isSame(new Date(), 'week') ? ' vis-current-week' : '';
     }
 
     function currentMonth(date) {
-      return date.isSame(new Date(), 'month') ? ' current-month' : '';
+      return date.isSame(new Date(), 'month') ? ' vis-current-month' : '';
     }
 
     function currentYear(date) {
-      return date.isSame(new Date(), 'year') ? ' current-year' : '';
+      return date.isSame(new Date(), 'year') ? ' vis-current-year' : '';
     }
 
     switch (this.scale) {
@@ -9215,22 +9215,22 @@ return /******/ (function(modules) { // webpackBootstrap
         if (this.step == 4) {
           hours = hours + '-h' + (hours + 4);
         }
-        return 'h' + hours + today(date) + even(date.hours());
+        return 'vis-h' + hours + today(date) + even(date.hours());
 
       case 'weekday':
-        return date.format('dddd').toLowerCase() + today(date) + currentWeek(date) + even(date.date());
+        return 'vis-' + date.format('dddd').toLowerCase() + today(date) + currentWeek(date) + even(date.date());
 
       case 'day':
         var day = date.date();
         var month = date.format('MMMM').toLowerCase();
-        return 'day' + day + ' ' + month + currentMonth(date) + even(day - 1);
+        return 'vis-day' + day + ' vis-' + month + currentMonth(date) + even(day - 1);
 
       case 'month':
-        return date.format('MMMM').toLowerCase() + currentMonth(date) + even(date.month());
+        return 'vis-' + date.format('MMMM').toLowerCase() + currentMonth(date) + even(date.month());
 
       case 'year':
         var year = date.year();
-        return 'year' + year + currentYear(date) + even(year);
+        return 'vis-year' + year + currentYear(date) + even(year);
 
       default:
         return '';
@@ -10504,7 +10504,7 @@ return /******/ (function(modules) { // webpackBootstrap
   var util = __webpack_require__(1);
   var Component = __webpack_require__(25);
   var moment = __webpack_require__(40);
-  var locales = __webpack_require__(49);
+  var locales = __webpack_require__(50);
 
   /**
    * A current time bar
@@ -10681,7 +10681,7 @@ return /******/ (function(modules) { // webpackBootstrap
   var util = __webpack_require__(1);
   var Component = __webpack_require__(25);
   var moment = __webpack_require__(40);
-  var locales = __webpack_require__(49);
+  var locales = __webpack_require__(50);
 
   /**
    * A custom time bar
@@ -11522,9 +11522,9 @@ return /******/ (function(modules) { // webpackBootstrap
 
   var util = __webpack_require__(1);
   var DOMutil = __webpack_require__(2);
-  var Line = __webpack_require__(50);
-  var Bar = __webpack_require__(51);
-  var Points = __webpack_require__(52);
+  var Line = __webpack_require__(51);
+  var Bar = __webpack_require__(52);
+  var Points = __webpack_require__(53);
 
   /**
    * /**
@@ -14189,8 +14189,8 @@ return /******/ (function(modules) { // webpackBootstrap
   var DataAxis = __webpack_require__(28);
   var GraphGroup = __webpack_require__(29);
   var Legend = __webpack_require__(33);
-  var BarFunctions = __webpack_require__(51);
-  var LineFunctions = __webpack_require__(50);
+  var BarFunctions = __webpack_require__(52);
+  var LineFunctions = __webpack_require__(51);
 
   var UNGROUPED = '__ungrouped__'; // reserved group id for ungrouped items
 
@@ -15599,68 +15599,68 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
 
-  var _Groups = __webpack_require__(53);
+  var _Groups = __webpack_require__(54);
 
   var _Groups2 = _interopRequireDefault(_Groups);
 
-  var _NodesHandler = __webpack_require__(54);
+  var _NodesHandler = __webpack_require__(55);
 
   var _NodesHandler2 = _interopRequireDefault(_NodesHandler);
 
-  var _EdgesHandler = __webpack_require__(55);
+  var _EdgesHandler = __webpack_require__(56);
 
   var _EdgesHandler2 = _interopRequireDefault(_EdgesHandler);
 
-  var _PhysicsEngine = __webpack_require__(56);
+  var _PhysicsEngine = __webpack_require__(57);
 
   var _PhysicsEngine2 = _interopRequireDefault(_PhysicsEngine);
 
-  var _ClusterEngine = __webpack_require__(57);
+  var _ClusterEngine = __webpack_require__(58);
 
   var _ClusterEngine2 = _interopRequireDefault(_ClusterEngine);
 
-  var _CanvasRenderer = __webpack_require__(58);
+  var _CanvasRenderer = __webpack_require__(59);
 
   var _CanvasRenderer2 = _interopRequireDefault(_CanvasRenderer);
 
-  var _Canvas = __webpack_require__(59);
+  var _Canvas = __webpack_require__(60);
 
   var _Canvas2 = _interopRequireDefault(_Canvas);
 
-  var _View = __webpack_require__(60);
+  var _View = __webpack_require__(61);
 
   var _View2 = _interopRequireDefault(_View);
 
-  var _InteractionHandler = __webpack_require__(61);
+  var _InteractionHandler = __webpack_require__(62);
 
   var _InteractionHandler2 = _interopRequireDefault(_InteractionHandler);
 
-  var _SelectionHandler = __webpack_require__(62);
+  var _SelectionHandler = __webpack_require__(63);
 
   var _SelectionHandler2 = _interopRequireDefault(_SelectionHandler);
 
-  var _LayoutEngine = __webpack_require__(63);
+  var _LayoutEngine = __webpack_require__(64);
 
   var _LayoutEngine2 = _interopRequireDefault(_LayoutEngine);
 
-  var _ManipulationSystem = __webpack_require__(64);
+  var _ManipulationSystem = __webpack_require__(65);
 
   var _ManipulationSystem2 = _interopRequireDefault(_ManipulationSystem);
 
-  var _ConfigurationSystem = __webpack_require__(44);
+  var _ConfigurationSystem = __webpack_require__(45);
 
   var _ConfigurationSystem2 = _interopRequireDefault(_ConfigurationSystem);
 
-  var _Validator = __webpack_require__(45);
+  var _Validator = __webpack_require__(46);
 
   var _Validator2 = _interopRequireDefault(_Validator);
 
-  var _allOptions$configureOptions = __webpack_require__(65);
+  var _allOptions$configureOptions = __webpack_require__(66);
 
   // Load custom shapes into CanvasRenderingContext2D
-  __webpack_require__(66);
+  __webpack_require__(67);
 
-  var Emitter = __webpack_require__(69);
+  var Emitter = __webpack_require__(43);
   var Hammer = __webpack_require__(41);
   var util = __webpack_require__(1);
   var DataSet = __webpack_require__(3);
@@ -15668,8 +15668,8 @@ return /******/ (function(modules) { // webpackBootstrap
   var dotparser = __webpack_require__(38);
   var gephiParser = __webpack_require__(39);
   var Images = __webpack_require__(37);
-  var Activator = __webpack_require__(67);
-  var locales = __webpack_require__(68);
+  var Activator = __webpack_require__(68);
+  var locales = __webpack_require__(69);
 
   /**
    * @constructor Network
@@ -17391,18 +17391,188 @@ return /******/ (function(modules) { // webpackBootstrap
 /* 43 */
 /***/ function(module, exports, __webpack_require__) {
 
+  
+  /**
+   * Expose `Emitter`.
+   */
+
+  module.exports = Emitter;
+
+  /**
+   * Initialize a new `Emitter`.
+   *
+   * @api public
+   */
+
+  function Emitter(obj) {
+    if (obj) return mixin(obj);
+  };
+
+  /**
+   * Mixin the emitter properties.
+   *
+   * @param {Object} obj
+   * @return {Object}
+   * @api private
+   */
+
+  function mixin(obj) {
+    for (var key in Emitter.prototype) {
+      obj[key] = Emitter.prototype[key];
+    }
+    return obj;
+  }
+
+  /**
+   * Listen on the given `event` with `fn`.
+   *
+   * @param {String} event
+   * @param {Function} fn
+   * @return {Emitter}
+   * @api public
+   */
+
+  Emitter.prototype.on =
+  Emitter.prototype.addEventListener = function(event, fn){
+    this._callbacks = this._callbacks || {};
+    (this._callbacks[event] = this._callbacks[event] || [])
+      .push(fn);
+    return this;
+  };
+
+  /**
+   * Adds an `event` listener that will be invoked a single
+   * time then automatically removed.
+   *
+   * @param {String} event
+   * @param {Function} fn
+   * @return {Emitter}
+   * @api public
+   */
+
+  Emitter.prototype.once = function(event, fn){
+    var self = this;
+    this._callbacks = this._callbacks || {};
+
+    function on() {
+      self.off(event, on);
+      fn.apply(this, arguments);
+    }
+
+    on.fn = fn;
+    this.on(event, on);
+    return this;
+  };
+
+  /**
+   * Remove the given callback for `event` or all
+   * registered callbacks.
+   *
+   * @param {String} event
+   * @param {Function} fn
+   * @return {Emitter}
+   * @api public
+   */
+
+  Emitter.prototype.off =
+  Emitter.prototype.removeListener =
+  Emitter.prototype.removeAllListeners =
+  Emitter.prototype.removeEventListener = function(event, fn){
+    this._callbacks = this._callbacks || {};
+
+    // all
+    if (0 == arguments.length) {
+      this._callbacks = {};
+      return this;
+    }
+
+    // specific event
+    var callbacks = this._callbacks[event];
+    if (!callbacks) return this;
+
+    // remove all handlers
+    if (1 == arguments.length) {
+      delete this._callbacks[event];
+      return this;
+    }
+
+    // remove specific handler
+    var cb;
+    for (var i = 0; i < callbacks.length; i++) {
+      cb = callbacks[i];
+      if (cb === fn || cb.fn === fn) {
+        callbacks.splice(i, 1);
+        break;
+      }
+    }
+    return this;
+  };
+
+  /**
+   * Emit `event` with the given args.
+   *
+   * @param {String} event
+   * @param {Mixed} ...
+   * @return {Emitter}
+   */
+
+  Emitter.prototype.emit = function(event){
+    this._callbacks = this._callbacks || {};
+    var args = [].slice.call(arguments, 1)
+      , callbacks = this._callbacks[event];
+
+    if (callbacks) {
+      callbacks = callbacks.slice(0);
+      for (var i = 0, len = callbacks.length; i < len; ++i) {
+        callbacks[i].apply(this, args);
+      }
+    }
+
+    return this;
+  };
+
+  /**
+   * Return array of callbacks for `event`.
+   *
+   * @param {String} event
+   * @return {Array}
+   * @api public
+   */
+
+  Emitter.prototype.listeners = function(event){
+    this._callbacks = this._callbacks || {};
+    return this._callbacks[event] || [];
+  };
+
+  /**
+   * Check if this emitter has `event` handlers.
+   *
+   * @param {String} event
+   * @return {Boolean}
+   * @api public
+   */
+
+  Emitter.prototype.hasListeners = function(event){
+    return !! this.listeners(event).length;
+  };
+
+
+/***/ },
+/* 44 */
+/***/ function(module, exports, __webpack_require__) {
+
   'use strict';
 
-  var Emitter = __webpack_require__(69);
+  var Emitter = __webpack_require__(43);
   var Hammer = __webpack_require__(41);
-  var hammerUtil = __webpack_require__(48);
+  var hammerUtil = __webpack_require__(49);
   var util = __webpack_require__(1);
   var DataSet = __webpack_require__(3);
   var DataView = __webpack_require__(4);
   var Range = __webpack_require__(17);
   var ItemSet = __webpack_require__(32);
   var TimeAxis = __webpack_require__(35);
-  var Activator = __webpack_require__(67);
+  var Activator = __webpack_require__(68);
   var DateUtil = __webpack_require__(15);
   var CustomTime = __webpack_require__(27);
 
@@ -18355,7 +18525,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = Core;
 
 /***/ },
-/* 44 */
+/* 45 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -19012,7 +19182,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 45 */
+/* 46 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -19325,7 +19495,7 @@ return /******/ (function(modules) { // webpackBootstrap
   // item is a function, which is allowed
 
 /***/ },
-/* 46 */
+/* 47 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -19542,7 +19712,7 @@ return /******/ (function(modules) { // webpackBootstrap
   exports.configureOptions = configureOptions;
 
 /***/ },
-/* 47 */
+/* 48 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -19813,7 +19983,7 @@ return /******/ (function(modules) { // webpackBootstrap
   exports.configureOptions = configureOptions;
 
 /***/ },
-/* 48 */
+/* 49 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -19885,7 +20055,7 @@ return /******/ (function(modules) { // webpackBootstrap
   exports.offRelease = exports.offTouch;
 
 /***/ },
-/* 49 */
+/* 50 */
 /***/ function(module, exports, __webpack_require__) {
 
   // English
@@ -19907,13 +20077,13 @@ return /******/ (function(modules) { // webpackBootstrap
   exports['nl_BE'] = exports['nl'];
 
 /***/ },
-/* 50 */
+/* 51 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
 
   var DOMutil = __webpack_require__(2);
-  var Points = __webpack_require__(52);
+  var Points = __webpack_require__(53);
 
   function Line(groupId, options) {
     this.groupId = groupId;
@@ -20202,13 +20372,13 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = Line;
 
 /***/ },
-/* 51 */
+/* 52 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
 
   var DOMutil = __webpack_require__(2);
-  var Points = __webpack_require__(52);
+  var Points = __webpack_require__(53);
 
   function Bargraph(groupId, options) {
     this.groupId = groupId;
@@ -20450,7 +20620,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = Bargraph;
 
 /***/ },
-/* 52 */
+/* 53 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -20497,7 +20667,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = Points;
 
 /***/ },
-/* 53 */
+/* 54 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
@@ -20639,7 +20809,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports["default"];
 
 /***/ },
-/* 54 */
+/* 55 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -21112,7 +21282,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 55 */
+/* 56 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -21127,7 +21297,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
 
-  var _Edge = __webpack_require__(84);
+  var _Edge = __webpack_require__(76);
 
   var _Edge2 = _interopRequireDefault(_Edge);
 
@@ -21531,7 +21701,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 56 */
+/* 57 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -21546,35 +21716,35 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
 
-  var _BarnesHutSolver = __webpack_require__(76);
+  var _BarnesHutSolver = __webpack_require__(77);
 
   var _BarnesHutSolver2 = _interopRequireDefault(_BarnesHutSolver);
 
-  var _Repulsion = __webpack_require__(77);
+  var _Repulsion = __webpack_require__(78);
 
   var _Repulsion2 = _interopRequireDefault(_Repulsion);
 
-  var _HierarchicalRepulsion = __webpack_require__(78);
+  var _HierarchicalRepulsion = __webpack_require__(79);
 
   var _HierarchicalRepulsion2 = _interopRequireDefault(_HierarchicalRepulsion);
 
-  var _SpringSolver = __webpack_require__(79);
+  var _SpringSolver = __webpack_require__(80);
 
   var _SpringSolver2 = _interopRequireDefault(_SpringSolver);
 
-  var _HierarchicalSpringSolver = __webpack_require__(80);
+  var _HierarchicalSpringSolver = __webpack_require__(81);
 
   var _HierarchicalSpringSolver2 = _interopRequireDefault(_HierarchicalSpringSolver);
 
-  var _CentralGravitySolver = __webpack_require__(81);
+  var _CentralGravitySolver = __webpack_require__(82);
 
   var _CentralGravitySolver2 = _interopRequireDefault(_CentralGravitySolver);
 
-  var _ForceAtlas2BasedRepulsionSolver = __webpack_require__(82);
+  var _ForceAtlas2BasedRepulsionSolver = __webpack_require__(83);
 
   var _ForceAtlas2BasedRepulsionSolver2 = _interopRequireDefault(_ForceAtlas2BasedRepulsionSolver);
 
-  var _ForceAtlas2BasedCentralGravitySolver = __webpack_require__(83);
+  var _ForceAtlas2BasedCentralGravitySolver = __webpack_require__(84);
 
   var _ForceAtlas2BasedCentralGravitySolver2 = _interopRequireDefault(_ForceAtlas2BasedCentralGravitySolver);
 
@@ -22137,7 +22307,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 57 */
+/* 58 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
@@ -22789,7 +22959,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports["default"];
 
 /***/ },
-/* 58 */
+/* 59 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -23129,7 +23299,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 59 */
+/* 60 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -23143,7 +23313,7 @@ return /******/ (function(modules) { // webpackBootstrap
   function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
 
   var Hammer = __webpack_require__(41);
-  var hammerUtil = __webpack_require__(48);
+  var hammerUtil = __webpack_require__(49);
 
   var util = __webpack_require__(1);
 
@@ -23497,7 +23667,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 60 */
+/* 61 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
@@ -23899,7 +24069,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports["default"];
 
 /***/ },
-/* 61 */
+/* 62 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -24605,7 +24775,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 62 */
+/* 63 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
@@ -24619,7 +24789,7 @@ return /******/ (function(modules) { // webpackBootstrap
   function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
   var Node = __webpack_require__(74);
-  var Edge = __webpack_require__(84);
+  var Edge = __webpack_require__(76);
   var util = __webpack_require__(1);
 
   var SelectionHandler = (function () {
@@ -25325,7 +25495,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports["default"];
 
 /***/ },
-/* 63 */
+/* 64 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -25822,7 +25992,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 64 */
+/* 65 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -25837,7 +26007,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   var util = __webpack_require__(1);
   var Hammer = __webpack_require__(41);
-  var hammerUtil = __webpack_require__(48);
+  var hammerUtil = __webpack_require__(49);
 
   /**
    * clears the toolbar div element of children
@@ -27011,7 +27181,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 65 */
+/* 66 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -27483,7 +27653,7 @@ return /******/ (function(modules) { // webpackBootstrap
   exports.configureOptions = configureOptions;
 
 /***/ },
-/* 66 */
+/* 67 */
 /***/ function(module, exports, __webpack_require__) {
 
   /**
@@ -27767,13 +27937,13 @@ return /******/ (function(modules) { // webpackBootstrap
   }
 
 /***/ },
-/* 67 */
+/* 68 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
 
   var keycharm = __webpack_require__(88);
-  var Emitter = __webpack_require__(69);
+  var Emitter = __webpack_require__(43);
   var Hammer = __webpack_require__(41);
   var util = __webpack_require__(1);
 
@@ -27920,7 +28090,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = Activator;
 
 /***/ },
-/* 68 */
+/* 69 */
 /***/ function(module, exports, __webpack_require__) {
 
   // English
@@ -27962,176 +28132,6 @@ return /******/ (function(modules) { // webpackBootstrap
   };
   exports['nl_NL'] = exports['nl'];
   exports['nl_BE'] = exports['nl'];
-
-/***/ },
-/* 69 */
-/***/ function(module, exports, __webpack_require__) {
-
-  
-  /**
-   * Expose `Emitter`.
-   */
-
-  module.exports = Emitter;
-
-  /**
-   * Initialize a new `Emitter`.
-   *
-   * @api public
-   */
-
-  function Emitter(obj) {
-    if (obj) return mixin(obj);
-  };
-
-  /**
-   * Mixin the emitter properties.
-   *
-   * @param {Object} obj
-   * @return {Object}
-   * @api private
-   */
-
-  function mixin(obj) {
-    for (var key in Emitter.prototype) {
-      obj[key] = Emitter.prototype[key];
-    }
-    return obj;
-  }
-
-  /**
-   * Listen on the given `event` with `fn`.
-   *
-   * @param {String} event
-   * @param {Function} fn
-   * @return {Emitter}
-   * @api public
-   */
-
-  Emitter.prototype.on =
-  Emitter.prototype.addEventListener = function(event, fn){
-    this._callbacks = this._callbacks || {};
-    (this._callbacks[event] = this._callbacks[event] || [])
-      .push(fn);
-    return this;
-  };
-
-  /**
-   * Adds an `event` listener that will be invoked a single
-   * time then automatically removed.
-   *
-   * @param {String} event
-   * @param {Function} fn
-   * @return {Emitter}
-   * @api public
-   */
-
-  Emitter.prototype.once = function(event, fn){
-    var self = this;
-    this._callbacks = this._callbacks || {};
-
-    function on() {
-      self.off(event, on);
-      fn.apply(this, arguments);
-    }
-
-    on.fn = fn;
-    this.on(event, on);
-    return this;
-  };
-
-  /**
-   * Remove the given callback for `event` or all
-   * registered callbacks.
-   *
-   * @param {String} event
-   * @param {Function} fn
-   * @return {Emitter}
-   * @api public
-   */
-
-  Emitter.prototype.off =
-  Emitter.prototype.removeListener =
-  Emitter.prototype.removeAllListeners =
-  Emitter.prototype.removeEventListener = function(event, fn){
-    this._callbacks = this._callbacks || {};
-
-    // all
-    if (0 == arguments.length) {
-      this._callbacks = {};
-      return this;
-    }
-
-    // specific event
-    var callbacks = this._callbacks[event];
-    if (!callbacks) return this;
-
-    // remove all handlers
-    if (1 == arguments.length) {
-      delete this._callbacks[event];
-      return this;
-    }
-
-    // remove specific handler
-    var cb;
-    for (var i = 0; i < callbacks.length; i++) {
-      cb = callbacks[i];
-      if (cb === fn || cb.fn === fn) {
-        callbacks.splice(i, 1);
-        break;
-      }
-    }
-    return this;
-  };
-
-  /**
-   * Emit `event` with the given args.
-   *
-   * @param {String} event
-   * @param {Mixed} ...
-   * @return {Emitter}
-   */
-
-  Emitter.prototype.emit = function(event){
-    this._callbacks = this._callbacks || {};
-    var args = [].slice.call(arguments, 1)
-      , callbacks = this._callbacks[event];
-
-    if (callbacks) {
-      callbacks = callbacks.slice(0);
-      for (var i = 0, len = callbacks.length; i < len; ++i) {
-        callbacks[i].apply(this, args);
-      }
-    }
-
-    return this;
-  };
-
-  /**
-   * Return array of callbacks for `event`.
-   *
-   * @param {String} event
-   * @return {Array}
-   * @api public
-   */
-
-  Emitter.prototype.listeners = function(event){
-    this._callbacks = this._callbacks || {};
-    return this._callbacks[event] || [];
-  };
-
-  /**
-   * Check if this emitter has `event` handlers.
-   *
-   * @param {String} event
-   * @return {Boolean}
-   * @api public
-   */
-
-  Emitter.prototype.hasListeners = function(event){
-    return !! this.listeners(event).length;
-  };
-
 
 /***/ },
 /* 70 */
@@ -31220,7 +31220,7 @@ return /******/ (function(modules) { // webpackBootstrap
       return _moment;
 
   }));
-  /* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(107)(module)))
+  /* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(90)(module)))
 
 /***/ },
 /* 71 */
@@ -33906,7 +33906,7 @@ return /******/ (function(modules) { // webpackBootstrap
       prefixed: prefixed
   });
 
-  if ("function" == TYPE_FUNCTION && __webpack_require__(108)) {
+  if ("function" == TYPE_FUNCTION && __webpack_require__(91)) {
       !(__WEBPACK_AMD_DEFINE_RESULT__ = function() {
           return Hammer;
       }.call(exports, __webpack_require__, exports, module), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__));
@@ -33934,7 +33934,7 @@ return /******/ (function(modules) { // webpackBootstrap
   function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
 
   var Hammer = __webpack_require__(41);
-  var hammerUtil = __webpack_require__(48);
+  var hammerUtil = __webpack_require__(49);
   var util = __webpack_require__(1);
 
   var ColorPicker = (function () {
@@ -34519,63 +34519,63 @@ return /******/ (function(modules) { // webpackBootstrap
 
   var _Label2 = _interopRequireDefault(_Label);
 
-  var _Box = __webpack_require__(90);
+  var _Box = __webpack_require__(92);
 
   var _Box2 = _interopRequireDefault(_Box);
 
-  var _Circle = __webpack_require__(91);
+  var _Circle = __webpack_require__(93);
 
   var _Circle2 = _interopRequireDefault(_Circle);
 
-  var _CircularImage = __webpack_require__(92);
+  var _CircularImage = __webpack_require__(94);
 
   var _CircularImage2 = _interopRequireDefault(_CircularImage);
 
-  var _Database = __webpack_require__(93);
+  var _Database = __webpack_require__(95);
 
   var _Database2 = _interopRequireDefault(_Database);
 
-  var _Diamond = __webpack_require__(94);
+  var _Diamond = __webpack_require__(96);
 
   var _Diamond2 = _interopRequireDefault(_Diamond);
 
-  var _Dot = __webpack_require__(95);
+  var _Dot = __webpack_require__(97);
 
   var _Dot2 = _interopRequireDefault(_Dot);
 
-  var _Ellipse = __webpack_require__(96);
+  var _Ellipse = __webpack_require__(98);
 
   var _Ellipse2 = _interopRequireDefault(_Ellipse);
 
-  var _Icon = __webpack_require__(97);
+  var _Icon = __webpack_require__(99);
 
   var _Icon2 = _interopRequireDefault(_Icon);
 
-  var _Image = __webpack_require__(98);
+  var _Image = __webpack_require__(100);
 
   var _Image2 = _interopRequireDefault(_Image);
 
-  var _Square = __webpack_require__(99);
+  var _Square = __webpack_require__(101);
 
   var _Square2 = _interopRequireDefault(_Square);
 
-  var _Star = __webpack_require__(100);
+  var _Star = __webpack_require__(102);
 
   var _Star2 = _interopRequireDefault(_Star);
 
-  var _Text = __webpack_require__(101);
+  var _Text = __webpack_require__(103);
 
   var _Text2 = _interopRequireDefault(_Text);
 
-  var _Triangle = __webpack_require__(102);
+  var _Triangle = __webpack_require__(104);
 
   var _Triangle2 = _interopRequireDefault(_Triangle);
 
-  var _TriangleDown = __webpack_require__(103);
+  var _TriangleDown = __webpack_require__(105);
 
   var _TriangleDown2 = _interopRequireDefault(_TriangleDown);
 
-  var _Validator = __webpack_require__(45);
+  var _Validator = __webpack_require__(46);
 
   var _Validator2 = _interopRequireDefault(_Validator);
 
@@ -35322,1108 +35322,6 @@ return /******/ (function(modules) { // webpackBootstrap
 /* 76 */
 /***/ function(module, exports, __webpack_require__) {
 
-  "use strict";
-
-  Object.defineProperty(exports, "__esModule", {
-    value: true
-  });
-
-  var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
-
-  function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-
-  var BarnesHutSolver = (function () {
-    function BarnesHutSolver(body, physicsBody, options) {
-      _classCallCheck(this, BarnesHutSolver);
-
-      this.body = body;
-      this.physicsBody = physicsBody;
-      this.barnesHutTree;
-      this.setOptions(options);
-    }
-
-    _createClass(BarnesHutSolver, [{
-      key: "setOptions",
-      value: function setOptions(options) {
-        this.options = options;
-        this.thetaInversed = 1 / this.options.theta;
-      }
-    }, {
-      key: "solve",
-
-      /**
-       * This function calculates the forces the nodes apply on eachother based on a gravitational model.
-       * The Barnes Hut method is used to speed up this N-body simulation.
-       *
-       * @private
-       */
-      value: function solve() {
-        if (this.options.gravitationalConstant !== 0 && this.physicsBody.physicsNodeIndices.length > 0) {
-          var node = undefined;
-          var nodes = this.body.nodes;
-          var nodeIndices = this.physicsBody.physicsNodeIndices;
-          var nodeCount = nodeIndices.length;
-
-          // create the tree
-          var barnesHutTree = this._formBarnesHutTree(nodes, nodeIndices);
-
-          // for debugging
-          this.barnesHutTree = barnesHutTree;
-
-          // place the nodes one by one recursively
-          for (var i = 0; i < nodeCount; i++) {
-            node = nodes[nodeIndices[i]];
-            if (node.options.mass > 0) {
-              // starting with root is irrelevant, it never passes the BarnesHutSolver condition
-              this._getForceContribution(barnesHutTree.root.children.NW, node);
-              this._getForceContribution(barnesHutTree.root.children.NE, node);
-              this._getForceContribution(barnesHutTree.root.children.SW, node);
-              this._getForceContribution(barnesHutTree.root.children.SE, node);
-            }
-          }
-        }
-      }
-    }, {
-      key: "_getForceContribution",
-
-      /**
-       * This function traverses the barnesHutTree. It checks when it can approximate distant nodes with their center of mass.
-       * If a region contains a single node, we check if it is not itself, then we apply the force.
-       *
-       * @param parentBranch
-       * @param node
-       * @private
-       */
-      value: function _getForceContribution(parentBranch, node) {
-        // we get no force contribution from an empty region
-        if (parentBranch.childrenCount > 0) {
-          var dx = undefined,
-              dy = undefined,
-              distance = undefined;
-
-          // get the distance from the center of mass to the node.
-          dx = parentBranch.centerOfMass.x - node.x;
-          dy = parentBranch.centerOfMass.y - node.y;
-          distance = Math.sqrt(dx * dx + dy * dy);
-
-          // BarnesHutSolver condition
-          // original condition : s/d < theta = passed  ===  d/s > 1/theta = passed
-          // calcSize = 1/s --> d * 1/s > 1/theta = passed
-          if (distance * parentBranch.calcSize > this.thetaInversed) {
-            this._calculateForces(distance, dx, dy, node, parentBranch);
-          } else {
-            // Did not pass the condition, go into children if available
-            if (parentBranch.childrenCount === 4) {
-              this._getForceContribution(parentBranch.children.NW, node);
-              this._getForceContribution(parentBranch.children.NE, node);
-              this._getForceContribution(parentBranch.children.SW, node);
-              this._getForceContribution(parentBranch.children.SE, node);
-            } else {
-              // parentBranch must have only one node, if it was empty we wouldnt be here
-              if (parentBranch.children.data.id != node.id) {
-                // if it is not self
-                this._calculateForces(distance, dx, dy, node, parentBranch);
-              }
-            }
-          }
-        }
-      }
-    }, {
-      key: "_calculateForces",
-
-      /**
-       * Calculate the forces based on the distance.
-       *
-       * @param distance
-       * @param dx
-       * @param dy
-       * @param node
-       * @param parentBranch
-       * @private
-       */
-      value: function _calculateForces(distance, dx, dy, node, parentBranch) {
-        if (distance === 0) {
-          distance = 0.1 * Math.random();
-          dx = distance;
-        }
-        // the dividing by the distance cubed instead of squared allows us to get the fx and fy components without sines and cosines
-        // it is shorthand for gravityforce with distance squared and fx = dx/distance * gravityForce
-        var gravityForce = this.options.gravitationalConstant * parentBranch.mass * node.options.mass / Math.pow(distance, 3);
-        var fx = dx * gravityForce;
-        var fy = dy * gravityForce;
-
-        this.physicsBody.forces[node.id].x += fx;
-        this.physicsBody.forces[node.id].y += fy;
-      }
-    }, {
-      key: "_formBarnesHutTree",
-
-      /**
-       * This function constructs the barnesHut tree recursively. It creates the root, splits it and starts placing the nodes.
-       *
-       * @param nodes
-       * @param nodeIndices
-       * @private
-       */
-      value: function _formBarnesHutTree(nodes, nodeIndices) {
-        var node = undefined;
-        var nodeCount = nodeIndices.length;
-
-        var minX = nodes[nodeIndices[0]].x;
-        var minY = nodes[nodeIndices[0]].y;
-        var maxX = nodes[nodeIndices[0]].x;
-        var maxY = nodes[nodeIndices[0]].y;
-
-        // get the range of the nodes
-        for (var i = 1; i < nodeCount; i++) {
-          var x = nodes[nodeIndices[i]].x;
-          var y = nodes[nodeIndices[i]].y;
-          if (nodes[nodeIndices[i]].options.mass > 0) {
-            if (x < minX) {
-              minX = x;
-            }
-            if (x > maxX) {
-              maxX = x;
-            }
-            if (y < minY) {
-              minY = y;
-            }
-            if (y > maxY) {
-              maxY = y;
-            }
-          }
-        }
-        // make the range a square
-        var sizeDiff = Math.abs(maxX - minX) - Math.abs(maxY - minY); // difference between X and Y
-        if (sizeDiff > 0) {
-          minY -= 0.5 * sizeDiff;
-          maxY += 0.5 * sizeDiff;
-        } // xSize > ySize
-        else {
-          minX += 0.5 * sizeDiff;
-          maxX -= 0.5 * sizeDiff;
-        } // xSize < ySize
-
-        var minimumTreeSize = 0.00001;
-        var rootSize = Math.max(minimumTreeSize, Math.abs(maxX - minX));
-        var halfRootSize = 0.5 * rootSize;
-        var centerX = 0.5 * (minX + maxX),
-            centerY = 0.5 * (minY + maxY);
-
-        // construct the barnesHutTree
-        var barnesHutTree = {
-          root: {
-            centerOfMass: { x: 0, y: 0 },
-            mass: 0,
-            range: {
-              minX: centerX - halfRootSize, maxX: centerX + halfRootSize,
-              minY: centerY - halfRootSize, maxY: centerY + halfRootSize
-            },
-            size: rootSize,
-            calcSize: 1 / rootSize,
-            children: { data: null },
-            maxWidth: 0,
-            level: 0,
-            childrenCount: 4
-          }
-        };
-        this._splitBranch(barnesHutTree.root);
-
-        // place the nodes one by one recursively
-        for (var i = 0; i < nodeCount; i++) {
-          node = nodes[nodeIndices[i]];
-          if (node.options.mass > 0) {
-            this._placeInTree(barnesHutTree.root, node);
-          }
-        }
-
-        // make global
-        return barnesHutTree;
-      }
-    }, {
-      key: "_updateBranchMass",
-
-      /**
-       * this updates the mass of a branch. this is increased by adding a node.
-       *
-       * @param parentBranch
-       * @param node
-       * @private
-       */
-      value: function _updateBranchMass(parentBranch, node) {
-        var totalMass = parentBranch.mass + node.options.mass;
-        var totalMassInv = 1 / totalMass;
-
-        parentBranch.centerOfMass.x = parentBranch.centerOfMass.x * parentBranch.mass + node.x * node.options.mass;
-        parentBranch.centerOfMass.x *= totalMassInv;
-
-        parentBranch.centerOfMass.y = parentBranch.centerOfMass.y * parentBranch.mass + node.y * node.options.mass;
-        parentBranch.centerOfMass.y *= totalMassInv;
-
-        parentBranch.mass = totalMass;
-        var biggestSize = Math.max(Math.max(node.height, node.radius), node.width);
-        parentBranch.maxWidth = parentBranch.maxWidth < biggestSize ? biggestSize : parentBranch.maxWidth;
-      }
-    }, {
-      key: "_placeInTree",
-
-      /**
-       * determine in which branch the node will be placed.
-       *
-       * @param parentBranch
-       * @param node
-       * @param skipMassUpdate
-       * @private
-       */
-      value: function _placeInTree(parentBranch, node, skipMassUpdate) {
-        if (skipMassUpdate != true || skipMassUpdate === undefined) {
-          // update the mass of the branch.
-          this._updateBranchMass(parentBranch, node);
-        }
-
-        if (parentBranch.children.NW.range.maxX > node.x) {
-          // in NW or SW
-          if (parentBranch.children.NW.range.maxY > node.y) {
-            // in NW
-            this._placeInRegion(parentBranch, node, "NW");
-          } else {
-            // in SW
-            this._placeInRegion(parentBranch, node, "SW");
-          }
-        } else {
-          // in NE or SE
-          if (parentBranch.children.NW.range.maxY > node.y) {
-            // in NE
-            this._placeInRegion(parentBranch, node, "NE");
-          } else {
-            // in SE
-            this._placeInRegion(parentBranch, node, "SE");
-          }
-        }
-      }
-    }, {
-      key: "_placeInRegion",
-
-      /**
-       * actually place the node in a region (or branch)
-       *
-       * @param parentBranch
-       * @param node
-       * @param region
-       * @private
-       */
-      value: function _placeInRegion(parentBranch, node, region) {
-        switch (parentBranch.children[region].childrenCount) {
-          case 0:
-            // place node here
-            parentBranch.children[region].children.data = node;
-            parentBranch.children[region].childrenCount = 1;
-            this._updateBranchMass(parentBranch.children[region], node);
-            break;
-          case 1:
-            // convert into children
-            // if there are two nodes exactly overlapping (on init, on opening of cluster etc.)
-            // we move one node a pixel and we do not put it in the tree.
-            if (parentBranch.children[region].children.data.x === node.x && parentBranch.children[region].children.data.y === node.y) {
-              node.x += Math.random();
-              node.y += Math.random();
-            } else {
-              this._splitBranch(parentBranch.children[region]);
-              this._placeInTree(parentBranch.children[region], node);
-            }
-            break;
-          case 4:
-            // place in branch
-            this._placeInTree(parentBranch.children[region], node);
-            break;
-        }
-      }
-    }, {
-      key: "_splitBranch",
-
-      /**
-       * this function splits a branch into 4 sub branches. If the branch contained a node, we place it in the subbranch
-       * after the split is complete.
-       *
-       * @param parentBranch
-       * @private
-       */
-      value: function _splitBranch(parentBranch) {
-        // if the branch is shaded with a node, replace the node in the new subset.
-        var containedNode = null;
-        if (parentBranch.childrenCount === 1) {
-          containedNode = parentBranch.children.data;
-          parentBranch.mass = 0;
-          parentBranch.centerOfMass.x = 0;
-          parentBranch.centerOfMass.y = 0;
-        }
-        parentBranch.childrenCount = 4;
-        parentBranch.children.data = null;
-        this._insertRegion(parentBranch, "NW");
-        this._insertRegion(parentBranch, "NE");
-        this._insertRegion(parentBranch, "SW");
-        this._insertRegion(parentBranch, "SE");
-
-        if (containedNode != null) {
-          this._placeInTree(parentBranch, containedNode);
-        }
-      }
-    }, {
-      key: "_insertRegion",
-
-      /**
-       * This function subdivides the region into four new segments.
-       * Specifically, this inserts a single new segment.
-       * It fills the children section of the parentBranch
-       *
-       * @param parentBranch
-       * @param region
-       * @param parentRange
-       * @private
-       */
-      value: function _insertRegion(parentBranch, region) {
-        var minX = undefined,
-            maxX = undefined,
-            minY = undefined,
-            maxY = undefined;
-        var childSize = 0.5 * parentBranch.size;
-        switch (region) {
-          case "NW":
-            minX = parentBranch.range.minX;
-            maxX = parentBranch.range.minX + childSize;
-            minY = parentBranch.range.minY;
-            maxY = parentBranch.range.minY + childSize;
-            break;
-          case "NE":
-            minX = parentBranch.range.minX + childSize;
-            maxX = parentBranch.range.maxX;
-            minY = parentBranch.range.minY;
-            maxY = parentBranch.range.minY + childSize;
-            break;
-          case "SW":
-            minX = parentBranch.range.minX;
-            maxX = parentBranch.range.minX + childSize;
-            minY = parentBranch.range.minY + childSize;
-            maxY = parentBranch.range.maxY;
-            break;
-          case "SE":
-            minX = parentBranch.range.minX + childSize;
-            maxX = parentBranch.range.maxX;
-            minY = parentBranch.range.minY + childSize;
-            maxY = parentBranch.range.maxY;
-            break;
-        }
-
-        parentBranch.children[region] = {
-          centerOfMass: { x: 0, y: 0 },
-          mass: 0,
-          range: { minX: minX, maxX: maxX, minY: minY, maxY: maxY },
-          size: 0.5 * parentBranch.size,
-          calcSize: 2 * parentBranch.calcSize,
-          children: { data: null },
-          maxWidth: 0,
-          level: parentBranch.level + 1,
-          childrenCount: 0
-        };
-      }
-    }, {
-      key: "_debug",
-
-      //---------------------------  DEBUGGING BELOW  ---------------------------//
-
-      /**
-       * This function is for debugging purposed, it draws the tree.
-       *
-       * @param ctx
-       * @param color
-       * @private
-       */
-      value: function _debug(ctx, color) {
-        if (this.barnesHutTree !== undefined) {
-
-          ctx.lineWidth = 1;
-
-          this._drawBranch(this.barnesHutTree.root, ctx, color);
-        }
-      }
-    }, {
-      key: "_drawBranch",
-
-      /**
-       * This function is for debugging purposes. It draws the branches recursively.
-       *
-       * @param branch
-       * @param ctx
-       * @param color
-       * @private
-       */
-      value: function _drawBranch(branch, ctx, color) {
-        if (color === undefined) {
-          color = "#FF0000";
-        }
-
-        if (branch.childrenCount === 4) {
-          this._drawBranch(branch.children.NW, ctx);
-          this._drawBranch(branch.children.NE, ctx);
-          this._drawBranch(branch.children.SE, ctx);
-          this._drawBranch(branch.children.SW, ctx);
-        }
-        ctx.strokeStyle = color;
-        ctx.beginPath();
-        ctx.moveTo(branch.range.minX, branch.range.minY);
-        ctx.lineTo(branch.range.maxX, branch.range.minY);
-        ctx.stroke();
-
-        ctx.beginPath();
-        ctx.moveTo(branch.range.maxX, branch.range.minY);
-        ctx.lineTo(branch.range.maxX, branch.range.maxY);
-        ctx.stroke();
-
-        ctx.beginPath();
-        ctx.moveTo(branch.range.maxX, branch.range.maxY);
-        ctx.lineTo(branch.range.minX, branch.range.maxY);
-        ctx.stroke();
-
-        ctx.beginPath();
-        ctx.moveTo(branch.range.minX, branch.range.maxY);
-        ctx.lineTo(branch.range.minX, branch.range.minY);
-        ctx.stroke();
-
-        /*
-         if (branch.mass > 0) {
-         ctx.circle(branch.centerOfMass.x, branch.centerOfMass.y, 3*branch.mass);
-         ctx.stroke();
-         }
-         */
-      }
-    }]);
-
-    return BarnesHutSolver;
-  })();
-
-  exports["default"] = BarnesHutSolver;
-  module.exports = exports["default"];
-
-/***/ },
-/* 77 */
-/***/ function(module, exports, __webpack_require__) {
-
-  "use strict";
-
-  Object.defineProperty(exports, "__esModule", {
-    value: true
-  });
-
-  var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
-
-  function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-
-  var RepulsionSolver = (function () {
-    function RepulsionSolver(body, physicsBody, options) {
-      _classCallCheck(this, RepulsionSolver);
-
-      this.body = body;
-      this.physicsBody = physicsBody;
-      this.setOptions(options);
-    }
-
-    _createClass(RepulsionSolver, [{
-      key: "setOptions",
-      value: function setOptions(options) {
-        this.options = options;
-      }
-    }, {
-      key: "solve",
-
-      /**
-       * Calculate the forces the nodes apply on each other based on a repulsion field.
-       * This field is linearly approximated.
-       *
-       * @private
-       */
-      value: function solve() {
-        var dx, dy, distance, fx, fy, repulsingForce, node1, node2;
-
-        var nodes = this.body.nodes;
-        var nodeIndices = this.physicsBody.physicsNodeIndices;
-        var forces = this.physicsBody.forces;
-
-        // repulsing forces between nodes
-        var nodeDistance = this.options.nodeDistance;
-
-        // approximation constants
-        var a = -2 / 3 / nodeDistance;
-        var b = 4 / 3;
-
-        // we loop from i over all but the last entree in the array
-        // j loops from i+1 to the last. This way we do not double count any of the indices, nor i === j
-        for (var i = 0; i < nodeIndices.length - 1; i++) {
-          node1 = nodes[nodeIndices[i]];
-          for (var j = i + 1; j < nodeIndices.length; j++) {
-            node2 = nodes[nodeIndices[j]];
-
-            dx = node2.x - node1.x;
-            dy = node2.y - node1.y;
-            distance = Math.sqrt(dx * dx + dy * dy);
-
-            // same condition as BarnesHutSolver, making sure nodes are never 100% overlapping.
-            if (distance === 0) {
-              distance = 0.1 * Math.random();
-              dx = distance;
-            }
-
-            if (distance < 2 * nodeDistance) {
-              if (distance < 0.5 * nodeDistance) {
-                repulsingForce = 1;
-              } else {
-                repulsingForce = a * distance + b; // linear approx of  1 / (1 + Math.exp((distance / nodeDistance - 1) * steepness))
-              }
-              repulsingForce = repulsingForce / distance;
-
-              fx = dx * repulsingForce;
-              fy = dy * repulsingForce;
-
-              forces[node1.id].x -= fx;
-              forces[node1.id].y -= fy;
-              forces[node2.id].x += fx;
-              forces[node2.id].y += fy;
-            }
-          }
-        }
-      }
-    }]);
-
-    return RepulsionSolver;
-  })();
-
-  exports["default"] = RepulsionSolver;
-  module.exports = exports["default"];
-
-/***/ },
-/* 78 */
-/***/ function(module, exports, __webpack_require__) {
-
-  "use strict";
-
-  Object.defineProperty(exports, "__esModule", {
-    value: true
-  });
-
-  var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
-
-  function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-
-  var HierarchicalRepulsionSolver = (function () {
-    function HierarchicalRepulsionSolver(body, physicsBody, options) {
-      _classCallCheck(this, HierarchicalRepulsionSolver);
-
-      this.body = body;
-      this.physicsBody = physicsBody;
-      this.setOptions(options);
-    }
-
-    _createClass(HierarchicalRepulsionSolver, [{
-      key: "setOptions",
-      value: function setOptions(options) {
-        this.options = options;
-      }
-    }, {
-      key: "solve",
-
-      /**
-       * Calculate the forces the nodes apply on each other based on a repulsion field.
-       * This field is linearly approximated.
-       *
-       * @private
-       */
-      value: function solve() {
-        var dx, dy, distance, fx, fy, repulsingForce, node1, node2, i, j;
-
-        var nodes = this.body.nodes;
-        var nodeIndices = this.physicsBody.physicsNodeIndices;
-        var forces = this.physicsBody.forces;
-
-        // repulsing forces between nodes
-        var nodeDistance = this.options.nodeDistance;
-
-        // we loop from i over all but the last entree in the array
-        // j loops from i+1 to the last. This way we do not double count any of the indices, nor i === j
-        for (i = 0; i < nodeIndices.length - 1; i++) {
-          node1 = nodes[nodeIndices[i]];
-          for (j = i + 1; j < nodeIndices.length; j++) {
-            node2 = nodes[nodeIndices[j]];
-
-            // nodes only affect nodes on their level
-            if (node1.level === node2.level) {
-              dx = node2.x - node1.x;
-              dy = node2.y - node1.y;
-              distance = Math.sqrt(dx * dx + dy * dy);
-
-              var steepness = 0.05;
-              if (distance < nodeDistance) {
-                repulsingForce = -Math.pow(steepness * distance, 2) + Math.pow(steepness * nodeDistance, 2);
-              } else {
-                repulsingForce = 0;
-              }
-              // normalize force with
-              if (distance === 0) {
-                distance = 0.01;
-              } else {
-                repulsingForce = repulsingForce / distance;
-              }
-              fx = dx * repulsingForce;
-              fy = dy * repulsingForce;
-
-              forces[node1.id].x -= fx;
-              forces[node1.id].y -= fy;
-              forces[node2.id].x += fx;
-              forces[node2.id].y += fy;
-            }
-          }
-        }
-      }
-    }]);
-
-    return HierarchicalRepulsionSolver;
-  })();
-
-  exports["default"] = HierarchicalRepulsionSolver;
-  module.exports = exports["default"];
-
-/***/ },
-/* 79 */
-/***/ function(module, exports, __webpack_require__) {
-
-  "use strict";
-
-  Object.defineProperty(exports, "__esModule", {
-    value: true
-  });
-
-  var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
-
-  function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-
-  var SpringSolver = (function () {
-    function SpringSolver(body, physicsBody, options) {
-      _classCallCheck(this, SpringSolver);
-
-      this.body = body;
-      this.physicsBody = physicsBody;
-      this.setOptions(options);
-    }
-
-    _createClass(SpringSolver, [{
-      key: "setOptions",
-      value: function setOptions(options) {
-        this.options = options;
-      }
-    }, {
-      key: "solve",
-
-      /**
-       * This function calculates the springforces on the nodes, accounting for the support nodes.
-       *
-       * @private
-       */
-      value: function solve() {
-        var edgeLength = undefined,
-            edge = undefined;
-        var edgeIndices = this.physicsBody.physicsEdgeIndices;
-        var edges = this.body.edges;
-        var node1 = undefined,
-            node2 = undefined,
-            node3 = undefined;
-
-        // forces caused by the edges, modelled as springs
-        for (var i = 0; i < edgeIndices.length; i++) {
-          edge = edges[edgeIndices[i]];
-          if (edge.connected === true && edge.toId !== edge.fromId) {
-            // only calculate forces if nodes are in the same sector
-            if (this.body.nodes[edge.toId] !== undefined && this.body.nodes[edge.fromId] !== undefined) {
-              if (edge.edgeType.via !== undefined) {
-                edgeLength = edge.options.length === undefined ? this.options.springLength : edge.options.length;
-                node1 = edge.to;
-                node2 = edge.edgeType.via;
-                node3 = edge.from;
-
-                this._calculateSpringForce(node1, node2, 0.5 * edgeLength);
-                this._calculateSpringForce(node2, node3, 0.5 * edgeLength);
-              } else {
-                // the * 1.5 is here so the edge looks as large as a smooth edge. It does not initially because the smooth edges use
-                // the support nodes which exert a repulsive force on the to and from nodes, making the edge appear larger.
-                edgeLength = edge.options.length === undefined ? this.options.springLength * 1.5 : edge.options.length;
-                this._calculateSpringForce(edge.from, edge.to, edgeLength);
-              }
-            }
-          }
-        }
-      }
-    }, {
-      key: "_calculateSpringForce",
-
-      /**
-       * This is the code actually performing the calculation for the function above.
-       *
-       * @param node1
-       * @param node2
-       * @param edgeLength
-       * @private
-       */
-      value: function _calculateSpringForce(node1, node2, edgeLength) {
-        var dx = node1.x - node2.x;
-        var dy = node1.y - node2.y;
-        var distance = Math.sqrt(dx * dx + dy * dy);
-        distance = distance === 0 ? 0.01 : distance;
-
-        // the 1/distance is so the fx and fy can be calculated without sine or cosine.
-        var springForce = this.options.springConstant * (edgeLength - distance) / distance;
-
-        var fx = dx * springForce;
-        var fy = dy * springForce;
-
-        // handle the case where one node is not part of the physcis
-        if (this.physicsBody.forces[node1.id] !== undefined) {
-          this.physicsBody.forces[node1.id].x += fx;
-          this.physicsBody.forces[node1.id].y += fy;
-        }
-
-        if (this.physicsBody.forces[node2.id] !== undefined) {
-          this.physicsBody.forces[node2.id].x -= fx;
-          this.physicsBody.forces[node2.id].y -= fy;
-        }
-      }
-    }]);
-
-    return SpringSolver;
-  })();
-
-  exports["default"] = SpringSolver;
-  module.exports = exports["default"];
-
-/***/ },
-/* 80 */
-/***/ function(module, exports, __webpack_require__) {
-
-  "use strict";
-
-  Object.defineProperty(exports, "__esModule", {
-    value: true
-  });
-
-  var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
-
-  function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-
-  var HierarchicalSpringSolver = (function () {
-    function HierarchicalSpringSolver(body, physicsBody, options) {
-      _classCallCheck(this, HierarchicalSpringSolver);
-
-      this.body = body;
-      this.physicsBody = physicsBody;
-      this.setOptions(options);
-    }
-
-    _createClass(HierarchicalSpringSolver, [{
-      key: "setOptions",
-      value: function setOptions(options) {
-        this.options = options;
-      }
-    }, {
-      key: "solve",
-
-      /**
-       * This function calculates the springforces on the nodes, accounting for the support nodes.
-       *
-       * @private
-       */
-      value: function solve() {
-        var edgeLength, edge;
-        var dx, dy, fx, fy, springForce, distance;
-        var edges = this.body.edges;
-        var factor = 0.5;
-
-        var edgeIndices = this.physicsBody.physicsEdgeIndices;
-        var nodeIndices = this.physicsBody.physicsNodeIndices;
-        var forces = this.physicsBody.forces;
-
-        // initialize the spring force counters
-        for (var i = 0; i < nodeIndices.length; i++) {
-          var nodeId = nodeIndices[i];
-          forces[nodeId].springFx = 0;
-          forces[nodeId].springFy = 0;
-        }
-
-        // forces caused by the edges, modelled as springs
-        for (var i = 0; i < edgeIndices.length; i++) {
-          edge = edges[edgeIndices[i]];
-          if (edge.connected === true) {
-            edgeLength = edge.options.length === undefined ? this.options.springLength : edge.options.length;
-
-            dx = edge.from.x - edge.to.x;
-            dy = edge.from.y - edge.to.y;
-            distance = Math.sqrt(dx * dx + dy * dy);
-            distance = distance === 0 ? 0.01 : distance;
-
-            // the 1/distance is so the fx and fy can be calculated without sine or cosine.
-            springForce = this.options.springConstant * (edgeLength - distance) / distance;
-
-            fx = dx * springForce;
-            fy = dy * springForce;
-
-            if (edge.to.level != edge.from.level) {
-              forces[edge.toId].springFx -= fx;
-              forces[edge.toId].springFy -= fy;
-              forces[edge.fromId].springFx += fx;
-              forces[edge.fromId].springFy += fy;
-            } else {
-              forces[edge.toId].x -= factor * fx;
-              forces[edge.toId].y -= factor * fy;
-              forces[edge.fromId].x += factor * fx;
-              forces[edge.fromId].y += factor * fy;
-            }
-          }
-        }
-
-        // normalize spring forces
-        var springForce = 1;
-        var springFx, springFy;
-        for (var i = 0; i < nodeIndices.length; i++) {
-          var nodeId = nodeIndices[i];
-          springFx = Math.min(springForce, Math.max(-springForce, forces[nodeId].springFx));
-          springFy = Math.min(springForce, Math.max(-springForce, forces[nodeId].springFy));
-
-          forces[nodeId].x += springFx;
-          forces[nodeId].y += springFy;
-        }
-
-        // retain energy balance
-        var totalFx = 0;
-        var totalFy = 0;
-        for (var i = 0; i < nodeIndices.length; i++) {
-          var nodeId = nodeIndices[i];
-          totalFx += forces[nodeId].x;
-          totalFy += forces[nodeId].y;
-        }
-        var correctionFx = totalFx / nodeIndices.length;
-        var correctionFy = totalFy / nodeIndices.length;
-
-        for (var i = 0; i < nodeIndices.length; i++) {
-          var nodeId = nodeIndices[i];
-          forces[nodeId].x -= correctionFx;
-          forces[nodeId].y -= correctionFy;
-        }
-      }
-    }]);
-
-    return HierarchicalSpringSolver;
-  })();
-
-  exports["default"] = HierarchicalSpringSolver;
-  module.exports = exports["default"];
-
-/***/ },
-/* 81 */
-/***/ function(module, exports, __webpack_require__) {
-
-  "use strict";
-
-  Object.defineProperty(exports, "__esModule", {
-    value: true
-  });
-
-  var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
-
-  function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-
-  var CentralGravitySolver = (function () {
-    function CentralGravitySolver(body, physicsBody, options) {
-      _classCallCheck(this, CentralGravitySolver);
-
-      this.body = body;
-      this.physicsBody = physicsBody;
-      this.setOptions(options);
-    }
-
-    _createClass(CentralGravitySolver, [{
-      key: "setOptions",
-      value: function setOptions(options) {
-        this.options = options;
-      }
-    }, {
-      key: "solve",
-      value: function solve() {
-        var dx = undefined,
-            dy = undefined,
-            distance = undefined,
-            node = undefined;
-        var nodes = this.body.nodes;
-        var nodeIndices = this.physicsBody.physicsNodeIndices;
-        var forces = this.physicsBody.forces;
-
-        for (var i = 0; i < nodeIndices.length; i++) {
-          var nodeId = nodeIndices[i];
-          node = nodes[nodeId];
-          dx = -node.x;
-          dy = -node.y;
-          distance = Math.sqrt(dx * dx + dy * dy);
-
-          this._calculateForces(distance, dx, dy, forces, node);
-        }
-      }
-    }, {
-      key: "_calculateForces",
-
-      /**
-       * Calculate the forces based on the distance.
-       * @private
-       */
-      value: function _calculateForces(distance, dx, dy, forces, node) {
-        var gravityForce = distance === 0 ? 0 : this.options.centralGravity / distance;
-        forces[node.id].x = dx * gravityForce;
-        forces[node.id].y = dy * gravityForce;
-      }
-    }]);
-
-    return CentralGravitySolver;
-  })();
-
-  exports["default"] = CentralGravitySolver;
-  module.exports = exports["default"];
-
-/***/ },
-/* 82 */
-/***/ function(module, exports, __webpack_require__) {
-
-  "use strict";
-
-  Object.defineProperty(exports, "__esModule", {
-    value: true
-  });
-
-  var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
-
-  var _get = function get(_x, _x2, _x3) { var _again = true; _function: while (_again) { desc = parent = getter = undefined; _again = false; var object = _x,
-      property = _x2,
-      receiver = _x3; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { _x = parent; _x2 = property; _x3 = receiver; _again = true; continue _function; } } else if ("value" in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } } };
-
-  function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { "default": obj }; }
-
-  function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-
-  function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; }
-
-  var _BarnesHutSolver2 = __webpack_require__(76);
-
-  var _BarnesHutSolver3 = _interopRequireDefault(_BarnesHutSolver2);
-
-  var ForceAtlas2BasedRepulsionSolver = (function (_BarnesHutSolver) {
-    function ForceAtlas2BasedRepulsionSolver(body, physicsBody, options) {
-      _classCallCheck(this, ForceAtlas2BasedRepulsionSolver);
-
-      _get(Object.getPrototypeOf(ForceAtlas2BasedRepulsionSolver.prototype), "constructor", this).call(this, body, physicsBody, options);
-    }
-
-    _inherits(ForceAtlas2BasedRepulsionSolver, _BarnesHutSolver);
-
-    _createClass(ForceAtlas2BasedRepulsionSolver, [{
-      key: "_calculateForces",
-
-      /**
-       * Calculate the forces based on the distance.
-       *
-       * @param distance
-       * @param dx
-       * @param dy
-       * @param node
-       * @param parentBranch
-       * @private
-       */
-      value: function _calculateForces(distance, dx, dy, node, parentBranch) {
-        if (distance === 0) {
-          distance = 0.1 * Math.random();
-          dx = distance;
-        }
-        var degree = node.edges.length + 1;
-        // the dividing by the distance cubed instead of squared allows us to get the fx and fy components without sines and cosines
-        // it is shorthand for gravityforce with distance squared and fx = dx/distance * gravityForce
-        var gravityForce = this.options.gravitationalConstant * parentBranch.mass * node.options.mass * degree / Math.pow(distance, 2);
-        var fx = dx * gravityForce;
-        var fy = dy * gravityForce;
-
-        this.physicsBody.forces[node.id].x += fx;
-        this.physicsBody.forces[node.id].y += fy;
-      }
-    }]);
-
-    return ForceAtlas2BasedRepulsionSolver;
-  })(_BarnesHutSolver3["default"]);
-
-  exports["default"] = ForceAtlas2BasedRepulsionSolver;
-  module.exports = exports["default"];
-
-/***/ },
-/* 83 */
-/***/ function(module, exports, __webpack_require__) {
-
-  "use strict";
-
-  Object.defineProperty(exports, "__esModule", {
-    value: true
-  });
-
-  var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
-
-  var _get = function get(_x, _x2, _x3) { var _again = true; _function: while (_again) { desc = parent = getter = undefined; _again = false; var object = _x,
-      property = _x2,
-      receiver = _x3; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { _x = parent; _x2 = property; _x3 = receiver; _again = true; continue _function; } } else if ("value" in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } } };
-
-  function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { "default": obj }; }
-
-  function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-
-  function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; }
-
-  var _CentralGravitySolver2 = __webpack_require__(81);
-
-  var _CentralGravitySolver3 = _interopRequireDefault(_CentralGravitySolver2);
-
-  var ForceAtlas2BasedCentralGravitySolver = (function (_CentralGravitySolver) {
-    function ForceAtlas2BasedCentralGravitySolver(body, physicsBody, options) {
-      _classCallCheck(this, ForceAtlas2BasedCentralGravitySolver);
-
-      _get(Object.getPrototypeOf(ForceAtlas2BasedCentralGravitySolver.prototype), "constructor", this).call(this, body, physicsBody, options);
-    }
-
-    _inherits(ForceAtlas2BasedCentralGravitySolver, _CentralGravitySolver);
-
-    _createClass(ForceAtlas2BasedCentralGravitySolver, [{
-      key: "_calculateForces",
-
-      /**
-       * Calculate the forces based on the distance.
-       * @private
-       */
-      value: function _calculateForces(distance, dx, dy, forces, node) {
-        if (distance > 0) {
-          var degree = node.edges.length + 1;
-          var gravityForce = this.options.centralGravity * degree * node.options.mass;
-          forces[node.id].x = dx * gravityForce;
-          forces[node.id].y = dy * gravityForce;
-        }
-      }
-    }]);
-
-    return ForceAtlas2BasedCentralGravitySolver;
-  })(_CentralGravitySolver3["default"]);
-
-  exports["default"] = ForceAtlas2BasedCentralGravitySolver;
-  module.exports = exports["default"];
-
-/***/ },
-/* 84 */
-/***/ function(module, exports, __webpack_require__) {
-
   'use strict';
 
   Object.defineProperty(exports, '__esModule', {
@@ -36440,15 +35338,15 @@ return /******/ (function(modules) { // webpackBootstrap
 
   var _Label2 = _interopRequireDefault(_Label);
 
-  var _BezierEdgeDynamic = __webpack_require__(104);
+  var _BezierEdgeDynamic = __webpack_require__(106);
 
   var _BezierEdgeDynamic2 = _interopRequireDefault(_BezierEdgeDynamic);
 
-  var _BezierEdgeStatic = __webpack_require__(105);
+  var _BezierEdgeStatic = __webpack_require__(107);
 
   var _BezierEdgeStatic2 = _interopRequireDefault(_BezierEdgeStatic);
 
-  var _StraightEdge = __webpack_require__(106);
+  var _StraightEdge = __webpack_require__(108);
 
   var _StraightEdge2 = _interopRequireDefault(_StraightEdge);
 
@@ -36971,6 +35869,1108 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
+/* 77 */
+/***/ function(module, exports, __webpack_require__) {
+
+  "use strict";
+
+  Object.defineProperty(exports, "__esModule", {
+    value: true
+  });
+
+  var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
+
+  function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+  var BarnesHutSolver = (function () {
+    function BarnesHutSolver(body, physicsBody, options) {
+      _classCallCheck(this, BarnesHutSolver);
+
+      this.body = body;
+      this.physicsBody = physicsBody;
+      this.barnesHutTree;
+      this.setOptions(options);
+    }
+
+    _createClass(BarnesHutSolver, [{
+      key: "setOptions",
+      value: function setOptions(options) {
+        this.options = options;
+        this.thetaInversed = 1 / this.options.theta;
+      }
+    }, {
+      key: "solve",
+
+      /**
+       * This function calculates the forces the nodes apply on eachother based on a gravitational model.
+       * The Barnes Hut method is used to speed up this N-body simulation.
+       *
+       * @private
+       */
+      value: function solve() {
+        if (this.options.gravitationalConstant !== 0 && this.physicsBody.physicsNodeIndices.length > 0) {
+          var node = undefined;
+          var nodes = this.body.nodes;
+          var nodeIndices = this.physicsBody.physicsNodeIndices;
+          var nodeCount = nodeIndices.length;
+
+          // create the tree
+          var barnesHutTree = this._formBarnesHutTree(nodes, nodeIndices);
+
+          // for debugging
+          this.barnesHutTree = barnesHutTree;
+
+          // place the nodes one by one recursively
+          for (var i = 0; i < nodeCount; i++) {
+            node = nodes[nodeIndices[i]];
+            if (node.options.mass > 0) {
+              // starting with root is irrelevant, it never passes the BarnesHutSolver condition
+              this._getForceContribution(barnesHutTree.root.children.NW, node);
+              this._getForceContribution(barnesHutTree.root.children.NE, node);
+              this._getForceContribution(barnesHutTree.root.children.SW, node);
+              this._getForceContribution(barnesHutTree.root.children.SE, node);
+            }
+          }
+        }
+      }
+    }, {
+      key: "_getForceContribution",
+
+      /**
+       * This function traverses the barnesHutTree. It checks when it can approximate distant nodes with their center of mass.
+       * If a region contains a single node, we check if it is not itself, then we apply the force.
+       *
+       * @param parentBranch
+       * @param node
+       * @private
+       */
+      value: function _getForceContribution(parentBranch, node) {
+        // we get no force contribution from an empty region
+        if (parentBranch.childrenCount > 0) {
+          var dx = undefined,
+              dy = undefined,
+              distance = undefined;
+
+          // get the distance from the center of mass to the node.
+          dx = parentBranch.centerOfMass.x - node.x;
+          dy = parentBranch.centerOfMass.y - node.y;
+          distance = Math.sqrt(dx * dx + dy * dy);
+
+          // BarnesHutSolver condition
+          // original condition : s/d < theta = passed  ===  d/s > 1/theta = passed
+          // calcSize = 1/s --> d * 1/s > 1/theta = passed
+          if (distance * parentBranch.calcSize > this.thetaInversed) {
+            this._calculateForces(distance, dx, dy, node, parentBranch);
+          } else {
+            // Did not pass the condition, go into children if available
+            if (parentBranch.childrenCount === 4) {
+              this._getForceContribution(parentBranch.children.NW, node);
+              this._getForceContribution(parentBranch.children.NE, node);
+              this._getForceContribution(parentBranch.children.SW, node);
+              this._getForceContribution(parentBranch.children.SE, node);
+            } else {
+              // parentBranch must have only one node, if it was empty we wouldnt be here
+              if (parentBranch.children.data.id != node.id) {
+                // if it is not self
+                this._calculateForces(distance, dx, dy, node, parentBranch);
+              }
+            }
+          }
+        }
+      }
+    }, {
+      key: "_calculateForces",
+
+      /**
+       * Calculate the forces based on the distance.
+       *
+       * @param distance
+       * @param dx
+       * @param dy
+       * @param node
+       * @param parentBranch
+       * @private
+       */
+      value: function _calculateForces(distance, dx, dy, node, parentBranch) {
+        if (distance === 0) {
+          distance = 0.1 * Math.random();
+          dx = distance;
+        }
+        // the dividing by the distance cubed instead of squared allows us to get the fx and fy components without sines and cosines
+        // it is shorthand for gravityforce with distance squared and fx = dx/distance * gravityForce
+        var gravityForce = this.options.gravitationalConstant * parentBranch.mass * node.options.mass / Math.pow(distance, 3);
+        var fx = dx * gravityForce;
+        var fy = dy * gravityForce;
+
+        this.physicsBody.forces[node.id].x += fx;
+        this.physicsBody.forces[node.id].y += fy;
+      }
+    }, {
+      key: "_formBarnesHutTree",
+
+      /**
+       * This function constructs the barnesHut tree recursively. It creates the root, splits it and starts placing the nodes.
+       *
+       * @param nodes
+       * @param nodeIndices
+       * @private
+       */
+      value: function _formBarnesHutTree(nodes, nodeIndices) {
+        var node = undefined;
+        var nodeCount = nodeIndices.length;
+
+        var minX = nodes[nodeIndices[0]].x;
+        var minY = nodes[nodeIndices[0]].y;
+        var maxX = nodes[nodeIndices[0]].x;
+        var maxY = nodes[nodeIndices[0]].y;
+
+        // get the range of the nodes
+        for (var i = 1; i < nodeCount; i++) {
+          var x = nodes[nodeIndices[i]].x;
+          var y = nodes[nodeIndices[i]].y;
+          if (nodes[nodeIndices[i]].options.mass > 0) {
+            if (x < minX) {
+              minX = x;
+            }
+            if (x > maxX) {
+              maxX = x;
+            }
+            if (y < minY) {
+              minY = y;
+            }
+            if (y > maxY) {
+              maxY = y;
+            }
+          }
+        }
+        // make the range a square
+        var sizeDiff = Math.abs(maxX - minX) - Math.abs(maxY - minY); // difference between X and Y
+        if (sizeDiff > 0) {
+          minY -= 0.5 * sizeDiff;
+          maxY += 0.5 * sizeDiff;
+        } // xSize > ySize
+        else {
+          minX += 0.5 * sizeDiff;
+          maxX -= 0.5 * sizeDiff;
+        } // xSize < ySize
+
+        var minimumTreeSize = 0.00001;
+        var rootSize = Math.max(minimumTreeSize, Math.abs(maxX - minX));
+        var halfRootSize = 0.5 * rootSize;
+        var centerX = 0.5 * (minX + maxX),
+            centerY = 0.5 * (minY + maxY);
+
+        // construct the barnesHutTree
+        var barnesHutTree = {
+          root: {
+            centerOfMass: { x: 0, y: 0 },
+            mass: 0,
+            range: {
+              minX: centerX - halfRootSize, maxX: centerX + halfRootSize,
+              minY: centerY - halfRootSize, maxY: centerY + halfRootSize
+            },
+            size: rootSize,
+            calcSize: 1 / rootSize,
+            children: { data: null },
+            maxWidth: 0,
+            level: 0,
+            childrenCount: 4
+          }
+        };
+        this._splitBranch(barnesHutTree.root);
+
+        // place the nodes one by one recursively
+        for (var i = 0; i < nodeCount; i++) {
+          node = nodes[nodeIndices[i]];
+          if (node.options.mass > 0) {
+            this._placeInTree(barnesHutTree.root, node);
+          }
+        }
+
+        // make global
+        return barnesHutTree;
+      }
+    }, {
+      key: "_updateBranchMass",
+
+      /**
+       * this updates the mass of a branch. this is increased by adding a node.
+       *
+       * @param parentBranch
+       * @param node
+       * @private
+       */
+      value: function _updateBranchMass(parentBranch, node) {
+        var totalMass = parentBranch.mass + node.options.mass;
+        var totalMassInv = 1 / totalMass;
+
+        parentBranch.centerOfMass.x = parentBranch.centerOfMass.x * parentBranch.mass + node.x * node.options.mass;
+        parentBranch.centerOfMass.x *= totalMassInv;
+
+        parentBranch.centerOfMass.y = parentBranch.centerOfMass.y * parentBranch.mass + node.y * node.options.mass;
+        parentBranch.centerOfMass.y *= totalMassInv;
+
+        parentBranch.mass = totalMass;
+        var biggestSize = Math.max(Math.max(node.height, node.radius), node.width);
+        parentBranch.maxWidth = parentBranch.maxWidth < biggestSize ? biggestSize : parentBranch.maxWidth;
+      }
+    }, {
+      key: "_placeInTree",
+
+      /**
+       * determine in which branch the node will be placed.
+       *
+       * @param parentBranch
+       * @param node
+       * @param skipMassUpdate
+       * @private
+       */
+      value: function _placeInTree(parentBranch, node, skipMassUpdate) {
+        if (skipMassUpdate != true || skipMassUpdate === undefined) {
+          // update the mass of the branch.
+          this._updateBranchMass(parentBranch, node);
+        }
+
+        if (parentBranch.children.NW.range.maxX > node.x) {
+          // in NW or SW
+          if (parentBranch.children.NW.range.maxY > node.y) {
+            // in NW
+            this._placeInRegion(parentBranch, node, "NW");
+          } else {
+            // in SW
+            this._placeInRegion(parentBranch, node, "SW");
+          }
+        } else {
+          // in NE or SE
+          if (parentBranch.children.NW.range.maxY > node.y) {
+            // in NE
+            this._placeInRegion(parentBranch, node, "NE");
+          } else {
+            // in SE
+            this._placeInRegion(parentBranch, node, "SE");
+          }
+        }
+      }
+    }, {
+      key: "_placeInRegion",
+
+      /**
+       * actually place the node in a region (or branch)
+       *
+       * @param parentBranch
+       * @param node
+       * @param region
+       * @private
+       */
+      value: function _placeInRegion(parentBranch, node, region) {
+        switch (parentBranch.children[region].childrenCount) {
+          case 0:
+            // place node here
+            parentBranch.children[region].children.data = node;
+            parentBranch.children[region].childrenCount = 1;
+            this._updateBranchMass(parentBranch.children[region], node);
+            break;
+          case 1:
+            // convert into children
+            // if there are two nodes exactly overlapping (on init, on opening of cluster etc.)
+            // we move one node a pixel and we do not put it in the tree.
+            if (parentBranch.children[region].children.data.x === node.x && parentBranch.children[region].children.data.y === node.y) {
+              node.x += Math.random();
+              node.y += Math.random();
+            } else {
+              this._splitBranch(parentBranch.children[region]);
+              this._placeInTree(parentBranch.children[region], node);
+            }
+            break;
+          case 4:
+            // place in branch
+            this._placeInTree(parentBranch.children[region], node);
+            break;
+        }
+      }
+    }, {
+      key: "_splitBranch",
+
+      /**
+       * this function splits a branch into 4 sub branches. If the branch contained a node, we place it in the subbranch
+       * after the split is complete.
+       *
+       * @param parentBranch
+       * @private
+       */
+      value: function _splitBranch(parentBranch) {
+        // if the branch is shaded with a node, replace the node in the new subset.
+        var containedNode = null;
+        if (parentBranch.childrenCount === 1) {
+          containedNode = parentBranch.children.data;
+          parentBranch.mass = 0;
+          parentBranch.centerOfMass.x = 0;
+          parentBranch.centerOfMass.y = 0;
+        }
+        parentBranch.childrenCount = 4;
+        parentBranch.children.data = null;
+        this._insertRegion(parentBranch, "NW");
+        this._insertRegion(parentBranch, "NE");
+        this._insertRegion(parentBranch, "SW");
+        this._insertRegion(parentBranch, "SE");
+
+        if (containedNode != null) {
+          this._placeInTree(parentBranch, containedNode);
+        }
+      }
+    }, {
+      key: "_insertRegion",
+
+      /**
+       * This function subdivides the region into four new segments.
+       * Specifically, this inserts a single new segment.
+       * It fills the children section of the parentBranch
+       *
+       * @param parentBranch
+       * @param region
+       * @param parentRange
+       * @private
+       */
+      value: function _insertRegion(parentBranch, region) {
+        var minX = undefined,
+            maxX = undefined,
+            minY = undefined,
+            maxY = undefined;
+        var childSize = 0.5 * parentBranch.size;
+        switch (region) {
+          case "NW":
+            minX = parentBranch.range.minX;
+            maxX = parentBranch.range.minX + childSize;
+            minY = parentBranch.range.minY;
+            maxY = parentBranch.range.minY + childSize;
+            break;
+          case "NE":
+            minX = parentBranch.range.minX + childSize;
+            maxX = parentBranch.range.maxX;
+            minY = parentBranch.range.minY;
+            maxY = parentBranch.range.minY + childSize;
+            break;
+          case "SW":
+            minX = parentBranch.range.minX;
+            maxX = parentBranch.range.minX + childSize;
+            minY = parentBranch.range.minY + childSize;
+            maxY = parentBranch.range.maxY;
+            break;
+          case "SE":
+            minX = parentBranch.range.minX + childSize;
+            maxX = parentBranch.range.maxX;
+            minY = parentBranch.range.minY + childSize;
+            maxY = parentBranch.range.maxY;
+            break;
+        }
+
+        parentBranch.children[region] = {
+          centerOfMass: { x: 0, y: 0 },
+          mass: 0,
+          range: { minX: minX, maxX: maxX, minY: minY, maxY: maxY },
+          size: 0.5 * parentBranch.size,
+          calcSize: 2 * parentBranch.calcSize,
+          children: { data: null },
+          maxWidth: 0,
+          level: parentBranch.level + 1,
+          childrenCount: 0
+        };
+      }
+    }, {
+      key: "_debug",
+
+      //---------------------------  DEBUGGING BELOW  ---------------------------//
+
+      /**
+       * This function is for debugging purposed, it draws the tree.
+       *
+       * @param ctx
+       * @param color
+       * @private
+       */
+      value: function _debug(ctx, color) {
+        if (this.barnesHutTree !== undefined) {
+
+          ctx.lineWidth = 1;
+
+          this._drawBranch(this.barnesHutTree.root, ctx, color);
+        }
+      }
+    }, {
+      key: "_drawBranch",
+
+      /**
+       * This function is for debugging purposes. It draws the branches recursively.
+       *
+       * @param branch
+       * @param ctx
+       * @param color
+       * @private
+       */
+      value: function _drawBranch(branch, ctx, color) {
+        if (color === undefined) {
+          color = "#FF0000";
+        }
+
+        if (branch.childrenCount === 4) {
+          this._drawBranch(branch.children.NW, ctx);
+          this._drawBranch(branch.children.NE, ctx);
+          this._drawBranch(branch.children.SE, ctx);
+          this._drawBranch(branch.children.SW, ctx);
+        }
+        ctx.strokeStyle = color;
+        ctx.beginPath();
+        ctx.moveTo(branch.range.minX, branch.range.minY);
+        ctx.lineTo(branch.range.maxX, branch.range.minY);
+        ctx.stroke();
+
+        ctx.beginPath();
+        ctx.moveTo(branch.range.maxX, branch.range.minY);
+        ctx.lineTo(branch.range.maxX, branch.range.maxY);
+        ctx.stroke();
+
+        ctx.beginPath();
+        ctx.moveTo(branch.range.maxX, branch.range.maxY);
+        ctx.lineTo(branch.range.minX, branch.range.maxY);
+        ctx.stroke();
+
+        ctx.beginPath();
+        ctx.moveTo(branch.range.minX, branch.range.maxY);
+        ctx.lineTo(branch.range.minX, branch.range.minY);
+        ctx.stroke();
+
+        /*
+         if (branch.mass > 0) {
+         ctx.circle(branch.centerOfMass.x, branch.centerOfMass.y, 3*branch.mass);
+         ctx.stroke();
+         }
+         */
+      }
+    }]);
+
+    return BarnesHutSolver;
+  })();
+
+  exports["default"] = BarnesHutSolver;
+  module.exports = exports["default"];
+
+/***/ },
+/* 78 */
+/***/ function(module, exports, __webpack_require__) {
+
+  "use strict";
+
+  Object.defineProperty(exports, "__esModule", {
+    value: true
+  });
+
+  var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
+
+  function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+  var RepulsionSolver = (function () {
+    function RepulsionSolver(body, physicsBody, options) {
+      _classCallCheck(this, RepulsionSolver);
+
+      this.body = body;
+      this.physicsBody = physicsBody;
+      this.setOptions(options);
+    }
+
+    _createClass(RepulsionSolver, [{
+      key: "setOptions",
+      value: function setOptions(options) {
+        this.options = options;
+      }
+    }, {
+      key: "solve",
+
+      /**
+       * Calculate the forces the nodes apply on each other based on a repulsion field.
+       * This field is linearly approximated.
+       *
+       * @private
+       */
+      value: function solve() {
+        var dx, dy, distance, fx, fy, repulsingForce, node1, node2;
+
+        var nodes = this.body.nodes;
+        var nodeIndices = this.physicsBody.physicsNodeIndices;
+        var forces = this.physicsBody.forces;
+
+        // repulsing forces between nodes
+        var nodeDistance = this.options.nodeDistance;
+
+        // approximation constants
+        var a = -2 / 3 / nodeDistance;
+        var b = 4 / 3;
+
+        // we loop from i over all but the last entree in the array
+        // j loops from i+1 to the last. This way we do not double count any of the indices, nor i === j
+        for (var i = 0; i < nodeIndices.length - 1; i++) {
+          node1 = nodes[nodeIndices[i]];
+          for (var j = i + 1; j < nodeIndices.length; j++) {
+            node2 = nodes[nodeIndices[j]];
+
+            dx = node2.x - node1.x;
+            dy = node2.y - node1.y;
+            distance = Math.sqrt(dx * dx + dy * dy);
+
+            // same condition as BarnesHutSolver, making sure nodes are never 100% overlapping.
+            if (distance === 0) {
+              distance = 0.1 * Math.random();
+              dx = distance;
+            }
+
+            if (distance < 2 * nodeDistance) {
+              if (distance < 0.5 * nodeDistance) {
+                repulsingForce = 1;
+              } else {
+                repulsingForce = a * distance + b; // linear approx of  1 / (1 + Math.exp((distance / nodeDistance - 1) * steepness))
+              }
+              repulsingForce = repulsingForce / distance;
+
+              fx = dx * repulsingForce;
+              fy = dy * repulsingForce;
+
+              forces[node1.id].x -= fx;
+              forces[node1.id].y -= fy;
+              forces[node2.id].x += fx;
+              forces[node2.id].y += fy;
+            }
+          }
+        }
+      }
+    }]);
+
+    return RepulsionSolver;
+  })();
+
+  exports["default"] = RepulsionSolver;
+  module.exports = exports["default"];
+
+/***/ },
+/* 79 */
+/***/ function(module, exports, __webpack_require__) {
+
+  "use strict";
+
+  Object.defineProperty(exports, "__esModule", {
+    value: true
+  });
+
+  var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
+
+  function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+  var HierarchicalRepulsionSolver = (function () {
+    function HierarchicalRepulsionSolver(body, physicsBody, options) {
+      _classCallCheck(this, HierarchicalRepulsionSolver);
+
+      this.body = body;
+      this.physicsBody = physicsBody;
+      this.setOptions(options);
+    }
+
+    _createClass(HierarchicalRepulsionSolver, [{
+      key: "setOptions",
+      value: function setOptions(options) {
+        this.options = options;
+      }
+    }, {
+      key: "solve",
+
+      /**
+       * Calculate the forces the nodes apply on each other based on a repulsion field.
+       * This field is linearly approximated.
+       *
+       * @private
+       */
+      value: function solve() {
+        var dx, dy, distance, fx, fy, repulsingForce, node1, node2, i, j;
+
+        var nodes = this.body.nodes;
+        var nodeIndices = this.physicsBody.physicsNodeIndices;
+        var forces = this.physicsBody.forces;
+
+        // repulsing forces between nodes
+        var nodeDistance = this.options.nodeDistance;
+
+        // we loop from i over all but the last entree in the array
+        // j loops from i+1 to the last. This way we do not double count any of the indices, nor i === j
+        for (i = 0; i < nodeIndices.length - 1; i++) {
+          node1 = nodes[nodeIndices[i]];
+          for (j = i + 1; j < nodeIndices.length; j++) {
+            node2 = nodes[nodeIndices[j]];
+
+            // nodes only affect nodes on their level
+            if (node1.level === node2.level) {
+              dx = node2.x - node1.x;
+              dy = node2.y - node1.y;
+              distance = Math.sqrt(dx * dx + dy * dy);
+
+              var steepness = 0.05;
+              if (distance < nodeDistance) {
+                repulsingForce = -Math.pow(steepness * distance, 2) + Math.pow(steepness * nodeDistance, 2);
+              } else {
+                repulsingForce = 0;
+              }
+              // normalize force with
+              if (distance === 0) {
+                distance = 0.01;
+              } else {
+                repulsingForce = repulsingForce / distance;
+              }
+              fx = dx * repulsingForce;
+              fy = dy * repulsingForce;
+
+              forces[node1.id].x -= fx;
+              forces[node1.id].y -= fy;
+              forces[node2.id].x += fx;
+              forces[node2.id].y += fy;
+            }
+          }
+        }
+      }
+    }]);
+
+    return HierarchicalRepulsionSolver;
+  })();
+
+  exports["default"] = HierarchicalRepulsionSolver;
+  module.exports = exports["default"];
+
+/***/ },
+/* 80 */
+/***/ function(module, exports, __webpack_require__) {
+
+  "use strict";
+
+  Object.defineProperty(exports, "__esModule", {
+    value: true
+  });
+
+  var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
+
+  function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+  var SpringSolver = (function () {
+    function SpringSolver(body, physicsBody, options) {
+      _classCallCheck(this, SpringSolver);
+
+      this.body = body;
+      this.physicsBody = physicsBody;
+      this.setOptions(options);
+    }
+
+    _createClass(SpringSolver, [{
+      key: "setOptions",
+      value: function setOptions(options) {
+        this.options = options;
+      }
+    }, {
+      key: "solve",
+
+      /**
+       * This function calculates the springforces on the nodes, accounting for the support nodes.
+       *
+       * @private
+       */
+      value: function solve() {
+        var edgeLength = undefined,
+            edge = undefined;
+        var edgeIndices = this.physicsBody.physicsEdgeIndices;
+        var edges = this.body.edges;
+        var node1 = undefined,
+            node2 = undefined,
+            node3 = undefined;
+
+        // forces caused by the edges, modelled as springs
+        for (var i = 0; i < edgeIndices.length; i++) {
+          edge = edges[edgeIndices[i]];
+          if (edge.connected === true && edge.toId !== edge.fromId) {
+            // only calculate forces if nodes are in the same sector
+            if (this.body.nodes[edge.toId] !== undefined && this.body.nodes[edge.fromId] !== undefined) {
+              if (edge.edgeType.via !== undefined) {
+                edgeLength = edge.options.length === undefined ? this.options.springLength : edge.options.length;
+                node1 = edge.to;
+                node2 = edge.edgeType.via;
+                node3 = edge.from;
+
+                this._calculateSpringForce(node1, node2, 0.5 * edgeLength);
+                this._calculateSpringForce(node2, node3, 0.5 * edgeLength);
+              } else {
+                // the * 1.5 is here so the edge looks as large as a smooth edge. It does not initially because the smooth edges use
+                // the support nodes which exert a repulsive force on the to and from nodes, making the edge appear larger.
+                edgeLength = edge.options.length === undefined ? this.options.springLength * 1.5 : edge.options.length;
+                this._calculateSpringForce(edge.from, edge.to, edgeLength);
+              }
+            }
+          }
+        }
+      }
+    }, {
+      key: "_calculateSpringForce",
+
+      /**
+       * This is the code actually performing the calculation for the function above.
+       *
+       * @param node1
+       * @param node2
+       * @param edgeLength
+       * @private
+       */
+      value: function _calculateSpringForce(node1, node2, edgeLength) {
+        var dx = node1.x - node2.x;
+        var dy = node1.y - node2.y;
+        var distance = Math.sqrt(dx * dx + dy * dy);
+        distance = distance === 0 ? 0.01 : distance;
+
+        // the 1/distance is so the fx and fy can be calculated without sine or cosine.
+        var springForce = this.options.springConstant * (edgeLength - distance) / distance;
+
+        var fx = dx * springForce;
+        var fy = dy * springForce;
+
+        // handle the case where one node is not part of the physcis
+        if (this.physicsBody.forces[node1.id] !== undefined) {
+          this.physicsBody.forces[node1.id].x += fx;
+          this.physicsBody.forces[node1.id].y += fy;
+        }
+
+        if (this.physicsBody.forces[node2.id] !== undefined) {
+          this.physicsBody.forces[node2.id].x -= fx;
+          this.physicsBody.forces[node2.id].y -= fy;
+        }
+      }
+    }]);
+
+    return SpringSolver;
+  })();
+
+  exports["default"] = SpringSolver;
+  module.exports = exports["default"];
+
+/***/ },
+/* 81 */
+/***/ function(module, exports, __webpack_require__) {
+
+  "use strict";
+
+  Object.defineProperty(exports, "__esModule", {
+    value: true
+  });
+
+  var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
+
+  function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+  var HierarchicalSpringSolver = (function () {
+    function HierarchicalSpringSolver(body, physicsBody, options) {
+      _classCallCheck(this, HierarchicalSpringSolver);
+
+      this.body = body;
+      this.physicsBody = physicsBody;
+      this.setOptions(options);
+    }
+
+    _createClass(HierarchicalSpringSolver, [{
+      key: "setOptions",
+      value: function setOptions(options) {
+        this.options = options;
+      }
+    }, {
+      key: "solve",
+
+      /**
+       * This function calculates the springforces on the nodes, accounting for the support nodes.
+       *
+       * @private
+       */
+      value: function solve() {
+        var edgeLength, edge;
+        var dx, dy, fx, fy, springForce, distance;
+        var edges = this.body.edges;
+        var factor = 0.5;
+
+        var edgeIndices = this.physicsBody.physicsEdgeIndices;
+        var nodeIndices = this.physicsBody.physicsNodeIndices;
+        var forces = this.physicsBody.forces;
+
+        // initialize the spring force counters
+        for (var i = 0; i < nodeIndices.length; i++) {
+          var nodeId = nodeIndices[i];
+          forces[nodeId].springFx = 0;
+          forces[nodeId].springFy = 0;
+        }
+
+        // forces caused by the edges, modelled as springs
+        for (var i = 0; i < edgeIndices.length; i++) {
+          edge = edges[edgeIndices[i]];
+          if (edge.connected === true) {
+            edgeLength = edge.options.length === undefined ? this.options.springLength : edge.options.length;
+
+            dx = edge.from.x - edge.to.x;
+            dy = edge.from.y - edge.to.y;
+            distance = Math.sqrt(dx * dx + dy * dy);
+            distance = distance === 0 ? 0.01 : distance;
+
+            // the 1/distance is so the fx and fy can be calculated without sine or cosine.
+            springForce = this.options.springConstant * (edgeLength - distance) / distance;
+
+            fx = dx * springForce;
+            fy = dy * springForce;
+
+            if (edge.to.level != edge.from.level) {
+              forces[edge.toId].springFx -= fx;
+              forces[edge.toId].springFy -= fy;
+              forces[edge.fromId].springFx += fx;
+              forces[edge.fromId].springFy += fy;
+            } else {
+              forces[edge.toId].x -= factor * fx;
+              forces[edge.toId].y -= factor * fy;
+              forces[edge.fromId].x += factor * fx;
+              forces[edge.fromId].y += factor * fy;
+            }
+          }
+        }
+
+        // normalize spring forces
+        var springForce = 1;
+        var springFx, springFy;
+        for (var i = 0; i < nodeIndices.length; i++) {
+          var nodeId = nodeIndices[i];
+          springFx = Math.min(springForce, Math.max(-springForce, forces[nodeId].springFx));
+          springFy = Math.min(springForce, Math.max(-springForce, forces[nodeId].springFy));
+
+          forces[nodeId].x += springFx;
+          forces[nodeId].y += springFy;
+        }
+
+        // retain energy balance
+        var totalFx = 0;
+        var totalFy = 0;
+        for (var i = 0; i < nodeIndices.length; i++) {
+          var nodeId = nodeIndices[i];
+          totalFx += forces[nodeId].x;
+          totalFy += forces[nodeId].y;
+        }
+        var correctionFx = totalFx / nodeIndices.length;
+        var correctionFy = totalFy / nodeIndices.length;
+
+        for (var i = 0; i < nodeIndices.length; i++) {
+          var nodeId = nodeIndices[i];
+          forces[nodeId].x -= correctionFx;
+          forces[nodeId].y -= correctionFy;
+        }
+      }
+    }]);
+
+    return HierarchicalSpringSolver;
+  })();
+
+  exports["default"] = HierarchicalSpringSolver;
+  module.exports = exports["default"];
+
+/***/ },
+/* 82 */
+/***/ function(module, exports, __webpack_require__) {
+
+  "use strict";
+
+  Object.defineProperty(exports, "__esModule", {
+    value: true
+  });
+
+  var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
+
+  function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+  var CentralGravitySolver = (function () {
+    function CentralGravitySolver(body, physicsBody, options) {
+      _classCallCheck(this, CentralGravitySolver);
+
+      this.body = body;
+      this.physicsBody = physicsBody;
+      this.setOptions(options);
+    }
+
+    _createClass(CentralGravitySolver, [{
+      key: "setOptions",
+      value: function setOptions(options) {
+        this.options = options;
+      }
+    }, {
+      key: "solve",
+      value: function solve() {
+        var dx = undefined,
+            dy = undefined,
+            distance = undefined,
+            node = undefined;
+        var nodes = this.body.nodes;
+        var nodeIndices = this.physicsBody.physicsNodeIndices;
+        var forces = this.physicsBody.forces;
+
+        for (var i = 0; i < nodeIndices.length; i++) {
+          var nodeId = nodeIndices[i];
+          node = nodes[nodeId];
+          dx = -node.x;
+          dy = -node.y;
+          distance = Math.sqrt(dx * dx + dy * dy);
+
+          this._calculateForces(distance, dx, dy, forces, node);
+        }
+      }
+    }, {
+      key: "_calculateForces",
+
+      /**
+       * Calculate the forces based on the distance.
+       * @private
+       */
+      value: function _calculateForces(distance, dx, dy, forces, node) {
+        var gravityForce = distance === 0 ? 0 : this.options.centralGravity / distance;
+        forces[node.id].x = dx * gravityForce;
+        forces[node.id].y = dy * gravityForce;
+      }
+    }]);
+
+    return CentralGravitySolver;
+  })();
+
+  exports["default"] = CentralGravitySolver;
+  module.exports = exports["default"];
+
+/***/ },
+/* 83 */
+/***/ function(module, exports, __webpack_require__) {
+
+  "use strict";
+
+  Object.defineProperty(exports, "__esModule", {
+    value: true
+  });
+
+  var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
+
+  var _get = function get(_x, _x2, _x3) { var _again = true; _function: while (_again) { desc = parent = getter = undefined; _again = false; var object = _x,
+      property = _x2,
+      receiver = _x3; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { _x = parent; _x2 = property; _x3 = receiver; _again = true; continue _function; } } else if ("value" in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } } };
+
+  function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { "default": obj }; }
+
+  function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+  function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; }
+
+  var _BarnesHutSolver2 = __webpack_require__(77);
+
+  var _BarnesHutSolver3 = _interopRequireDefault(_BarnesHutSolver2);
+
+  var ForceAtlas2BasedRepulsionSolver = (function (_BarnesHutSolver) {
+    function ForceAtlas2BasedRepulsionSolver(body, physicsBody, options) {
+      _classCallCheck(this, ForceAtlas2BasedRepulsionSolver);
+
+      _get(Object.getPrototypeOf(ForceAtlas2BasedRepulsionSolver.prototype), "constructor", this).call(this, body, physicsBody, options);
+    }
+
+    _inherits(ForceAtlas2BasedRepulsionSolver, _BarnesHutSolver);
+
+    _createClass(ForceAtlas2BasedRepulsionSolver, [{
+      key: "_calculateForces",
+
+      /**
+       * Calculate the forces based on the distance.
+       *
+       * @param distance
+       * @param dx
+       * @param dy
+       * @param node
+       * @param parentBranch
+       * @private
+       */
+      value: function _calculateForces(distance, dx, dy, node, parentBranch) {
+        if (distance === 0) {
+          distance = 0.1 * Math.random();
+          dx = distance;
+        }
+        var degree = node.edges.length + 1;
+        // the dividing by the distance cubed instead of squared allows us to get the fx and fy components without sines and cosines
+        // it is shorthand for gravityforce with distance squared and fx = dx/distance * gravityForce
+        var gravityForce = this.options.gravitationalConstant * parentBranch.mass * node.options.mass * degree / Math.pow(distance, 2);
+        var fx = dx * gravityForce;
+        var fy = dy * gravityForce;
+
+        this.physicsBody.forces[node.id].x += fx;
+        this.physicsBody.forces[node.id].y += fy;
+      }
+    }]);
+
+    return ForceAtlas2BasedRepulsionSolver;
+  })(_BarnesHutSolver3["default"]);
+
+  exports["default"] = ForceAtlas2BasedRepulsionSolver;
+  module.exports = exports["default"];
+
+/***/ },
+/* 84 */
+/***/ function(module, exports, __webpack_require__) {
+
+  "use strict";
+
+  Object.defineProperty(exports, "__esModule", {
+    value: true
+  });
+
+  var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
+
+  var _get = function get(_x, _x2, _x3) { var _again = true; _function: while (_again) { desc = parent = getter = undefined; _again = false; var object = _x,
+      property = _x2,
+      receiver = _x3; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { _x = parent; _x2 = property; _x3 = receiver; _again = true; continue _function; } } else if ("value" in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } } };
+
+  function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { "default": obj }; }
+
+  function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+  function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; }
+
+  var _CentralGravitySolver2 = __webpack_require__(82);
+
+  var _CentralGravitySolver3 = _interopRequireDefault(_CentralGravitySolver2);
+
+  var ForceAtlas2BasedCentralGravitySolver = (function (_CentralGravitySolver) {
+    function ForceAtlas2BasedCentralGravitySolver(body, physicsBody, options) {
+      _classCallCheck(this, ForceAtlas2BasedCentralGravitySolver);
+
+      _get(Object.getPrototypeOf(ForceAtlas2BasedCentralGravitySolver.prototype), "constructor", this).call(this, body, physicsBody, options);
+    }
+
+    _inherits(ForceAtlas2BasedCentralGravitySolver, _CentralGravitySolver);
+
+    _createClass(ForceAtlas2BasedCentralGravitySolver, [{
+      key: "_calculateForces",
+
+      /**
+       * Calculate the forces based on the distance.
+       * @private
+       */
+      value: function _calculateForces(distance, dx, dy, forces, node) {
+        if (distance > 0) {
+          var degree = node.edges.length + 1;
+          var gravityForce = this.options.centralGravity * degree * node.options.mass;
+          forces[node.id].x = dx * gravityForce;
+          forces[node.id].y = dy * gravityForce;
+        }
+      }
+    }]);
+
+    return ForceAtlas2BasedCentralGravitySolver;
+  })(_CentralGravitySolver3["default"]);
+
+  exports["default"] = ForceAtlas2BasedCentralGravitySolver;
+  module.exports = exports["default"];
+
+/***/ },
 /* 85 */
 /***/ function(module, exports, __webpack_require__) {
 
@@ -37033,7 +37033,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   var util = __webpack_require__(1);
   var Hammer = __webpack_require__(41);
-  var hammerUtil = __webpack_require__(48);
+  var hammerUtil = __webpack_require__(49);
   var keycharm = __webpack_require__(88);
 
   var NavigationHandler = (function () {
@@ -37630,6 +37630,30 @@ return /******/ (function(modules) { // webpackBootstrap
 /* 90 */
 /***/ function(module, exports, __webpack_require__) {
 
+  module.exports = function(module) {
+  	if(!module.webpackPolyfill) {
+  		module.deprecate = function() {};
+  		module.paths = [];
+  		// module.parent = undefined by default
+  		module.children = [];
+  		module.webpackPolyfill = 1;
+  	}
+  	return module;
+  }
+
+
+/***/ },
+/* 91 */
+/***/ function(module, exports, __webpack_require__) {
+
+  /* WEBPACK VAR INJECTION */(function(__webpack_amd_options__) {module.exports = __webpack_amd_options__;
+
+  /* WEBPACK VAR INJECTION */}.call(exports, {}))
+
+/***/ },
+/* 92 */
+/***/ function(module, exports, __webpack_require__) {
+
   'use strict';
 
   Object.defineProperty(exports, '__esModule', {
@@ -37735,7 +37759,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 91 */
+/* 93 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -37828,7 +37852,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 92 */
+/* 94 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -37935,7 +37959,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 93 */
+/* 95 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -38043,7 +38067,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 94 */
+/* 96 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -38103,7 +38127,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 95 */
+/* 97 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -38163,7 +38187,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 96 */
+/* 98 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -38273,7 +38297,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 97 */
+/* 99 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -38392,7 +38416,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 98 */
+/* 100 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -38483,7 +38507,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 99 */
+/* 101 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -38544,7 +38568,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 100 */
+/* 102 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -38604,7 +38628,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 101 */
+/* 103 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -38692,7 +38716,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 102 */
+/* 104 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -38752,7 +38776,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 103 */
+/* 105 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -38812,7 +38836,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 104 */
+/* 106 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -38970,7 +38994,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 105 */
+/* 107 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -39236,7 +39260,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 106 */
+/* 108 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -39346,30 +39370,6 @@ return /******/ (function(modules) { // webpackBootstrap
 
   exports['default'] = StraightEdge;
   module.exports = exports['default'];
-
-/***/ },
-/* 107 */
-/***/ function(module, exports, __webpack_require__) {
-
-  module.exports = function(module) {
-  	if(!module.webpackPolyfill) {
-  		module.deprecate = function() {};
-  		module.paths = [];
-  		// module.parent = undefined by default
-  		module.children = [];
-  		module.webpackPolyfill = 1;
-  	}
-  	return module;
-  }
-
-
-/***/ },
-/* 108 */
-/***/ function(module, exports, __webpack_require__) {
-
-  /* WEBPACK VAR INJECTION */(function(__webpack_amd_options__) {module.exports = __webpack_amd_options__;
-
-  /* WEBPACK VAR INJECTION */}.call(exports, {}))
 
 /***/ },
 /* 109 */

@@ -1522,28 +1522,28 @@ var options = {
       <td>Description</td><td>values</td>
     </tr>
     <tr>
-      <td>Alternating columns</td><td class="mid"><code>even</code>, <code>odd</code></td>
+      <td>Alternating columns</td><td class="mid"><code>vis-even</code>, <code>vis-odd</code></td>
     </tr>
     <tr>
-      <td>Current date</td><td class="mid"><code>today</code>, <code>tomorrow</code>, <code>yesterday</code>, <code>current-week</code>, <code>current-month</code>, <code>current-year</code></td>
+      <td>Current date</td><td class="mid"><code>vis-today</code>, <code>vis-tomorrow</code>, <code>vis-yesterday</code>, <code>vis-current-week</code>, <code>vis-current-month</code>, <code>vis-current-year</code></td>
     </tr>
     <tr>
-      <td>Hours</td><td class="mid"><code>h0</code>, <code>h1</code>, ..., <code>h23</code></td>
+      <td>Hours</td><td class="mid"><code>vis-h0</code>, <code>vis-h1</code>, ..., <code>vis-h23</code></td>
     </tr>
     <tr>
-      <td>Grouped hours</td><td class="mid"><code>h0-h4</code> to <code>h20-h24</code></td>
+      <td>Grouped hours</td><td class="mid"><code>vis-h0-h4</code> to <code>vis-h20-h24</code></td>
     </tr>
     <tr>
-      <td>Weekday</td><td class="mid"><code>monday</code>, <code>tuesday</code>, <code>wednesday</code>, <code>thursday</code>, <code>friday</code>, <code>saturday</code>, <code>sunday</code></td>
+      <td>Weekday</td><td class="mid"><code>vis-monday</code>, <code>vis-tuesday</code>, <code>vis-wednesday</code>, <code>vis-thursday</code>, <code>vis-friday</code>, <code>vis-saturday</code>, <code>vis-sunday</code></td>
     </tr>
     <tr>
-      <td>Days</td><td class="mid"><code>date1</code>, <code>date2</code>, ..., <code>date31</code></td>
+      <td>Days</td><td class="mid"><code>vis-date1</code>, <code>vis-date2</code>, ..., <code>vis-date31</code></td>
     </tr>
     <tr>
-      <td>Months</td><td class="mid"><code>januari</code>, <code>februari</code>, <code>march</code>, <code>april</code>, <code>may</code>, <code>june</code>, <code>july</code>, <code>august</code>, <code>september</code>, <code>october</code>, <code>november</code>, <code>december</code></td>
+      <td>Months</td><td class="mid"><code>vis-januari</code>, <code>vis-februari</code>, <code>vis-march</code>, <code>vis-april</code>, <code>vis-may</code>, <code>vis-june</code>, <code>vis-july</code>, <code>vis-august</code>, <code>vis-september</code>, <code>vis-october</code>, <code>vis-november</code>, <code>vis-december</code></td>
     </tr>
     <tr>
-      <td>Years</td><td class="mid"><code>year2014</code>, <code>year2015</code>, ...</td>
+      <td>Years</td><td class="mid"><code>vis-year2014</code>, <code>vis-year2015</code>, ...</td>
     </tr>
   </table>
 
@@ -1551,17 +1551,17 @@ var options = {
 
   <pre class="prettyprint lang-html">&lt;style&gt;
   /* alternating column backgrounds */
-  .vis-time-axis .grid.odd {
+  .vis-time-axis .grid.vis-odd {
     background: #f5f5f5;
   }
 
   /* gray background in weekends, white text color */
-  .vis-time-axis .vis-grid.saturday,
-  .vis-time-axis .vis-grid.sunday {
+  .vis-time-axis .vis-grid.vis-saturday,
+  .vis-time-axis .vis-grid.vis-sunday {
     background: gray;
   }
-  .vis-time-axis .vis-text.saturday,
-  .vis-time-axis .vis-text.sunday {
+  .vis-time-axis .vis-text.vis-saturday,
+  .vis-time-axis .vis-text.vis-sunday {
     color: white;
   }
 &lt;/style&gt;
