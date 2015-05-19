@@ -5,9 +5,23 @@ html {
 body {
     font-family: "Helvetica Neue", Helvetica, Arial, sans-serif !important;
     /*font-family: Lustria, Georgia, Times, "Times New Roman", serif !important;*/
-    height:100%;
     font-size:16px;
+    line-height: 1.5em;
     background: url('../img/crosswordStrong.png') /* Background pattern from subtlepatterns.com */
+}
+
+
+h1, h2, h3, h4, h5, h6 {
+    margin: 40px 0 20px 0;
+}
+
+ul {
+    margin-top: 0.7em;
+    margin-bottom: 0.7em;
+}
+
+p {
+    margin: 20px 0;
 }
 
 img.icon {
@@ -37,66 +51,82 @@ div.blogHeader {
 
 div.full {
     min-height:100%;
-    box-shadow:0px 2px 10px rgba(0,0,0,0.4);
-    padding-left:20px;
-    padding-right:20px;
+    box-shadow:0 2px 10px rgba(0,0,0,0.4);
+    padding: 20px 10px 40px 10px;
     background-color:#ffffff;
 }
 
+@media (min-width: 768px) {
+    div.full {
+        padding: 40px 40px 80px 40px;
+    }
+}
+
+@media (min-width: 992px) {
+    div.full {
+        padding: 80px 80px 160px 80px;
+    }
+}
+
 table.moduleTable {
-    border:1px solid #eeeeee;
-    font-size:14px;
-    max-width: 900px;
 }
 
-table.moduleTable td{
-    min-width: 80px;
-    padding:2px 5px 2px 5px;
-    height:35px;
+table.moduleTable th,
+table.moduleTable td {
+    padding: 5px 15px;
+    border: 1px solid #dddddd;
 }
 
-table.moduleTable tr{
-    border:1px solid #eeeeee;
+
+table.moduleTable th {
+    background-color: #f5f5f5;
+}
+
+table.moduleTable td {
     vertical-align: top;
-
 }
 
-tr.header {
-    color: #1f3350;
-    background-color: #cccccc;
-    border-bottom:1px solid #999999 !important;
-    font-size:16px;
-    font-style:italic;
-}
+
+/* TODO: cleanup */
+/*tr.header {*/
+    /*color: #1f3350;*/
+    /*background-color: #cccccc;*/
+    /*border-bottom:1px solid #999999 !important;*/
+    /*font-size:16px;*/
+    /*font-style:italic;*/
+/*}*/
 
 td.mid {
-    background-color: rgba(0,0,0,0.035);
+    background-color: #f5f5f5;
 
     font-style:italic;
 }
 
-td.properties {
-    width:150px;
+/*td.properties {*/
+    /*width:150px;*/
+/*}*/
+
+/*p {*/
+    /*max-width:1000px;*/
+/*}*/
+
+
+/*pre.code {*/
+    /*padding:2px 4px;*/
+    /*font-size:90%;*/
+    /*color: #444444;*/
+    /*background-color:#f9f2f4;*/
+    /*border-radius:4px;*/
+    /*border:0;*/
+/*}*/
+
+pre {
+    margin: 20px 0;
 }
 
-p {
-    min-width:400px;
-    max-width:1000px;
-}
-
-
-pre.code {
-    padding:2px 4px;
-    font-size:90%;
-    color:#c7254e;
-    background-color:#f9f2f4;
-    border-radius:4px;
-    border:0px;
-}
-
-pre.top {
-    margin-left:20px;
-}
+/*pre.top {*/
+    /*margin-left:20px;*/
+/*}*/
 
 tr.hidden {
     max-height:0;
@@ -151,7 +181,7 @@ tr.toggle {
 
 
 tr.toggle.collapsible {
-    background-color: #f7f7f7;
+    background-color: #f5f5f5;
     border-left: 3px solid #89b3ff;
 }
 
@@ -164,29 +194,30 @@ td.indent2 {
     padding-left:50px !important;
 }
 
-td.name {
-    width:230px;
-}
+/* TODO: cleanup */
+/*td.name {*/
+    /*width:230px;*/
+/*}*/
 
-td.nameSmall {
-    width:150px;
-}
+/*td.nameSmall {*/
+    /*width:150px;*/
+/*}*/
 
-td.type {
-    width: 110px;
-}
+/*td.type {*/
+    /*width: 110px;*/
+/*}*/
 
-td.default {
-    width:60px;
-}
+/*td.default {*/
+    /*width:60px;*/
+/*}*/
 
-td.eventProperties {
-    width:150px;
-}
+/*td.eventProperties {*/
+    /*width:150px;*/
+/*}*/
 
-td.methodName {
-    width:250px;
-}
+/*td.methodName {*/
+    /*width:250px;*/
+/*}*/
 
 pre.options {
     max-width:600px;

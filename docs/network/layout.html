@@ -110,7 +110,7 @@ network.setOptions(options);
 </pre>
     <p>When enabling the hierarchical layout, it overrules some of the other options. The physics is set to the hierarchical repulsion solver and dynamic smooth edges are converted to static smooth edges.</p>
     <table class="moduleTable" id="optionTable">
-        <tr class="header"><td class="name">name</td><td class="type">type</td><td class="default">default</td><td class="description">description</td></tr>
+        <tr><th>name</th><th>type</th><th>default</th><td>description</td></tr>
         <tr><td>randomSeed</td><td class="mid">Number</td><td class="mid"><code>undefined</code></td>               <td>When NOT using the hierarchical layout, the nodes are randomly positioned initially. This means that the settled result is different every time. If you provide a random seed manually, the layout will be the same every time. Ideally you try with an undefined seed, reload until you are happy with the layout and use the <code>getSeed()</code> method to ascertain the seed.</td></tr>
         <tr class='toggle collapsible' onclick="toggleTable('optionTable','hierarchical', this);"><td><span parent="repulsion" class="right-caret"></span> hierarchical</td><td class="mid">Object or Boolean</td><td class="mid"><code>Object</code></td>      <td>When true, the layout engine positions the nodes in a hierarchical fashion using default settings. For customization you can supply an object.</td></tr>
         <tr parent="hierarchical" class="hidden"><td class="indent">hierarchical.enabled</td><td class="mid">Boolean</td><td class="mid"><code>false</code></td>        <td>Toggle the usage of the hierarchical layout system. If this option is not defined, it is set to true if any of the properties in this object are defined.</td></tr>
@@ -121,13 +121,6 @@ network.setOptions(options);
             Directed adheres to the to and from data of the edges. A --> B so B is a level lower than A.</td></tr>
     </table>
 
-    <br />
-    <br />
-    <br />
-    <br />
-    <br />
-    <br />
-    <br />
 </div>
 
 <!-- Bootstrap core JavaScript
