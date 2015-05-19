@@ -3144,7 +3144,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   'use strict';
 
-  var Emitter = __webpack_require__(43);
+  var Emitter = __webpack_require__(69);
   var DataSet = __webpack_require__(3);
   var DataView = __webpack_require__(4);
   var util = __webpack_require__(1);
@@ -6307,23 +6307,23 @@ return /******/ (function(modules) { // webpackBootstrap
 
   'use strict';
 
-  var Emitter = __webpack_require__(43);
+  var Emitter = __webpack_require__(69);
   var Hammer = __webpack_require__(41);
   var util = __webpack_require__(1);
   var DataSet = __webpack_require__(3);
   var DataView = __webpack_require__(4);
   var Range = __webpack_require__(17);
-  var Core = __webpack_require__(44);
+  var Core = __webpack_require__(43);
   var TimeAxis = __webpack_require__(35);
   var CurrentTime = __webpack_require__(26);
   var CustomTime = __webpack_require__(27);
   var ItemSet = __webpack_require__(32);
 
-  var ConfigurationSystem = __webpack_require__(45);
-  var Validator = __webpack_require__(46)['default'];
-  var printStyle = __webpack_require__(46).printStyle;
-  var allOptions = __webpack_require__(47).allOptions;
-  var configureOptions = __webpack_require__(47).configureOptions;
+  var ConfigurationSystem = __webpack_require__(44);
+  var Validator = __webpack_require__(45)['default'];
+  var printStyle = __webpack_require__(45).printStyle;
+  var allOptions = __webpack_require__(46).allOptions;
+  var configureOptions = __webpack_require__(46).configureOptions;
 
   /**
    * Create a timeline visualization
@@ -6691,10 +6691,10 @@ return /******/ (function(modules) { // webpackBootstrap
    *                  The event happened, whether clicked on an item, etc.
    */
   Timeline.prototype.getEventProperties = function (event) {
-    var pageX = event.center ? event.center.x : event.pageX;
-    var pageY = event.center ? event.center.y : event.pageY;
-    var x = pageX - util.getAbsoluteLeft(this.dom.centerContainer);
-    var y = pageY - util.getAbsoluteTop(this.dom.centerContainer);
+    var clientX = event.center ? event.center.x : event.clientX;
+    var clientY = event.center ? event.center.y : event.clientY;
+    var x = clientX - util.getAbsoluteLeft(this.dom.centerContainer);
+    var y = clientY - util.getAbsoluteTop(this.dom.centerContainer);
 
     var item = this.itemSet.itemFromTarget(event);
     var group = this.itemSet.groupFromTarget(event);
@@ -6729,8 +6729,8 @@ return /******/ (function(modules) { // webpackBootstrap
       item: item ? item.id : null,
       group: group ? group.groupId : null,
       what: what,
-      pageX: pageX,
-      pageY: pageY,
+      pageX: event.srcEvent ? event.srcEvent.pageX : event.pageX,
+      pageY: event.srcEvent ? event.srcEvent.pageY : event.pageY,
       x: x,
       y: y,
       time: time,
@@ -6746,23 +6746,23 @@ return /******/ (function(modules) { // webpackBootstrap
 
   'use strict';
 
-  var Emitter = __webpack_require__(43);
+  var Emitter = __webpack_require__(69);
   var Hammer = __webpack_require__(41);
   var util = __webpack_require__(1);
   var DataSet = __webpack_require__(3);
   var DataView = __webpack_require__(4);
   var Range = __webpack_require__(17);
-  var Core = __webpack_require__(44);
+  var Core = __webpack_require__(43);
   var TimeAxis = __webpack_require__(35);
   var CurrentTime = __webpack_require__(26);
   var CustomTime = __webpack_require__(27);
   var LineGraph = __webpack_require__(34);
 
-  var ConfigurationSystem = __webpack_require__(45);
-  var Validator = __webpack_require__(46)['default'];
-  var printStyle = __webpack_require__(46).printStyle;
-  var allOptions = __webpack_require__(48).allOptions;
-  var configureOptions = __webpack_require__(48).configureOptions;
+  var ConfigurationSystem = __webpack_require__(44);
+  var Validator = __webpack_require__(45)['default'];
+  var printStyle = __webpack_require__(45).printStyle;
+  var allOptions = __webpack_require__(47).allOptions;
+  var configureOptions = __webpack_require__(47).configureOptions;
 
   /**
    * Create a timeline visualization
@@ -7008,10 +7008,10 @@ return /******/ (function(modules) { // webpackBootstrap
    *                  The event happened, whether clicked on an item, etc.
    */
   Graph2d.prototype.getEventProperties = function (event) {
-    var pageX = event.center ? event.center.x : event.pageX;
-    var pageY = event.center ? event.center.y : event.pageY;
-    var x = pageX - util.getAbsoluteLeft(this.dom.centerContainer);
-    var y = pageY - util.getAbsoluteTop(this.dom.centerContainer);
+    var clientX = event.center ? event.center.x : event.clientX;
+    var clientY = event.center ? event.center.y : event.clientY;
+    var x = clientX - util.getAbsoluteLeft(this.dom.centerContainer);
+    var y = clientY - util.getAbsoluteTop(this.dom.centerContainer);
     var time = this._toTime(x);
 
     var customTime = CustomTime.customTimeFromTarget(event);
@@ -7051,8 +7051,8 @@ return /******/ (function(modules) { // webpackBootstrap
     return {
       event: event,
       what: what,
-      pageX: pageX,
-      pageY: pageY,
+      pageX: event.srcEvent ? event.srcEvent.pageX : event.pageX,
+      pageY: event.srcEvent ? event.srcEvent.pageY : event.pageY,
       x: x,
       y: y,
       time: time,
@@ -7756,7 +7756,7 @@ return /******/ (function(modules) { // webpackBootstrap
   'use strict';
 
   var util = __webpack_require__(1);
-  var hammerUtil = __webpack_require__(49);
+  var hammerUtil = __webpack_require__(48);
   var moment = __webpack_require__(40);
   var Component = __webpack_require__(25);
   var DateUtil = __webpack_require__(15);
@@ -8242,7 +8242,7 @@ return /******/ (function(modules) { // webpackBootstrap
       }
 
       // calculate center, the date to zoom around
-      var pointer = getPointer({ x: event.pageX, y: event.pageY }, this.body.dom.center);
+      var pointer = getPointer({ x: event.clientX, y: event.clientY }, this.body.dom.center);
       var pointerDate = this._pointerToDate(pointer);
 
       this.zoom(scale, pointerDate, delta);
@@ -9172,32 +9172,32 @@ return /******/ (function(modules) { // webpackBootstrap
     var step = this.step;
 
     function even(value) {
-      return value / step % 2 == 0 ? ' even' : ' odd';
+      return value / step % 2 == 0 ? ' vis-even' : ' vis-odd';
     }
 
     function today(date) {
       if (date.isSame(new Date(), 'day')) {
-        return ' today';
+        return ' vis-today';
       }
       if (date.isSame(moment().add(1, 'day'), 'day')) {
-        return ' tomorrow';
+        return ' vis-tomorrow';
       }
       if (date.isSame(moment().add(-1, 'day'), 'day')) {
-        return ' yesterday';
+        return ' vis-yesterday';
       }
       return '';
     }
 
     function currentWeek(date) {
-      return date.isSame(new Date(), 'week') ? ' current-week' : '';
+      return date.isSame(new Date(), 'week') ? ' vis-current-week' : '';
     }
 
     function currentMonth(date) {
-      return date.isSame(new Date(), 'month') ? ' current-month' : '';
+      return date.isSame(new Date(), 'month') ? ' vis-current-month' : '';
     }
 
     function currentYear(date) {
-      return date.isSame(new Date(), 'year') ? ' current-year' : '';
+      return date.isSame(new Date(), 'year') ? ' vis-current-year' : '';
     }
 
     switch (this.scale) {
@@ -9215,22 +9215,22 @@ return /******/ (function(modules) { // webpackBootstrap
         if (this.step == 4) {
           hours = hours + '-h' + (hours + 4);
         }
-        return 'h' + hours + today(date) + even(date.hours());
+        return 'vis-h' + hours + today(date) + even(date.hours());
 
       case 'weekday':
-        return date.format('dddd').toLowerCase() + today(date) + currentWeek(date) + even(date.date());
+        return 'vis-' + date.format('dddd').toLowerCase() + today(date) + currentWeek(date) + even(date.date());
 
       case 'day':
         var day = date.date();
         var month = date.format('MMMM').toLowerCase();
-        return 'day' + day + ' ' + month + currentMonth(date) + even(day - 1);
+        return 'vis-day' + day + ' vis-' + month + currentMonth(date) + even(day - 1);
 
       case 'month':
-        return date.format('MMMM').toLowerCase() + currentMonth(date) + even(date.month());
+        return 'vis-' + date.format('MMMM').toLowerCase() + currentMonth(date) + even(date.month());
 
       case 'year':
         var year = date.year();
-        return 'year' + year + currentYear(date) + even(year);
+        return 'vis-year' + year + currentYear(date) + even(year);
 
       default:
         return '';
@@ -10504,7 +10504,7 @@ return /******/ (function(modules) { // webpackBootstrap
   var util = __webpack_require__(1);
   var Component = __webpack_require__(25);
   var moment = __webpack_require__(40);
-  var locales = __webpack_require__(50);
+  var locales = __webpack_require__(49);
 
   /**
    * A current time bar
@@ -10681,7 +10681,7 @@ return /******/ (function(modules) { // webpackBootstrap
   var util = __webpack_require__(1);
   var Component = __webpack_require__(25);
   var moment = __webpack_require__(40);
-  var locales = __webpack_require__(50);
+  var locales = __webpack_require__(49);
 
   /**
    * A custom time bar
@@ -11522,9 +11522,9 @@ return /******/ (function(modules) { // webpackBootstrap
 
   var util = __webpack_require__(1);
   var DOMutil = __webpack_require__(2);
-  var Line = __webpack_require__(51);
-  var Bar = __webpack_require__(52);
-  var Points = __webpack_require__(53);
+  var Line = __webpack_require__(50);
+  var Bar = __webpack_require__(51);
+  var Points = __webpack_require__(52);
 
   /**
    * /**
@@ -13165,17 +13165,19 @@ return /******/ (function(modules) { // webpackBootstrap
   ItemSet.prototype._onUpdate = function (ids) {
     var me = this;
 
-    ids.forEach(function (id) {
+    ids.forEach((function (id) {
       var itemData = me.itemsData.get(id, me.itemOptions);
       var item = me.items[id];
       var type = me._getType(itemData);
 
       var constructor = ItemSet.types[type];
+      var selected;
 
       if (item) {
         // update item
         if (!constructor || !(item instanceof constructor)) {
           // item type has changed, delete the item and recreate it
+          selected = item.selected; // preserve selection of this item
           me._removeItem(item);
           item = null;
         } else {
@@ -13189,6 +13191,10 @@ return /******/ (function(modules) { // webpackBootstrap
           item = new constructor(itemData, me.conversion, me.options);
           item.id = id; // TODO: not so nice setting id afterwards
           me._addItem(item);
+          if (selected) {
+            this.selection.push(id);
+            item.select();
+          }
         } else if (type == 'rangeoverflow') {
           // TODO: deprecated since version 2.1.0 (or 3.0.0?). cleanup some day
           throw new TypeError('Item type "rangeoverflow" is deprecated. Use css styling instead: ' + '.vis-item.vis-range .vis-item-content {overflow: visible;}');
@@ -13196,7 +13202,7 @@ return /******/ (function(modules) { // webpackBootstrap
           throw new TypeError('Unknown item type "' + type + '"');
         }
       }
-    });
+    }).bind(this));
 
     this._order();
     this.stackDirty = true; // force re-stacking of all items next redraw
@@ -13917,22 +13923,22 @@ return /******/ (function(modules) { // webpackBootstrap
    * @return {Group | null} group
    */
   ItemSet.prototype.groupFromTarget = function (event) {
-    var pageY = event.center ? event.center.y : event.pageY;
+    var clientY = event.center ? event.center.y : event.clientY;
     for (var i = 0; i < this.groupIds.length; i++) {
       var groupId = this.groupIds[i];
       var group = this.groups[groupId];
       var foreground = group.dom.foreground;
       var top = util.getAbsoluteTop(foreground);
-      if (pageY > top && pageY < top + foreground.offsetHeight) {
+      if (clientY > top && clientY < top + foreground.offsetHeight) {
         return group;
       }
 
       if (this.options.orientation.item === 'top') {
-        if (i === this.groupIds.length - 1 && pageY > top) {
+        if (i === this.groupIds.length - 1 && clientY > top) {
           return group;
         }
       } else {
-        if (i === 0 && pageY < top + foreground.offset) {
+        if (i === 0 && clientY < top + foreground.offset) {
           return group;
         }
       }
@@ -14189,8 +14195,8 @@ return /******/ (function(modules) { // webpackBootstrap
   var DataAxis = __webpack_require__(28);
   var GraphGroup = __webpack_require__(29);
   var Legend = __webpack_require__(33);
-  var BarFunctions = __webpack_require__(52);
-  var LineFunctions = __webpack_require__(51);
+  var BarFunctions = __webpack_require__(51);
+  var LineFunctions = __webpack_require__(50);
 
   var UNGROUPED = '__ungrouped__'; // reserved group id for ungrouped items
 
@@ -15599,68 +15605,68 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
 
-  var _modulesGroups = __webpack_require__(54);
+  var _modulesGroups = __webpack_require__(53);
 
   var _modulesGroups2 = _interopRequireDefault(_modulesGroups);
 
-  var _modulesNodesHandler = __webpack_require__(55);
+  var _modulesNodesHandler = __webpack_require__(54);
 
   var _modulesNodesHandler2 = _interopRequireDefault(_modulesNodesHandler);
 
-  var _modulesEdgesHandler = __webpack_require__(56);
+  var _modulesEdgesHandler = __webpack_require__(55);
 
   var _modulesEdgesHandler2 = _interopRequireDefault(_modulesEdgesHandler);
 
-  var _modulesPhysicsEngine = __webpack_require__(57);
+  var _modulesPhysicsEngine = __webpack_require__(56);
 
   var _modulesPhysicsEngine2 = _interopRequireDefault(_modulesPhysicsEngine);
 
-  var _modulesClustering = __webpack_require__(58);
+  var _modulesClustering = __webpack_require__(57);
 
   var _modulesClustering2 = _interopRequireDefault(_modulesClustering);
 
-  var _modulesCanvasRenderer = __webpack_require__(59);
+  var _modulesCanvasRenderer = __webpack_require__(58);
 
   var _modulesCanvasRenderer2 = _interopRequireDefault(_modulesCanvasRenderer);
 
-  var _modulesCanvas = __webpack_require__(60);
+  var _modulesCanvas = __webpack_require__(59);
 
   var _modulesCanvas2 = _interopRequireDefault(_modulesCanvas);
 
-  var _modulesView = __webpack_require__(61);
+  var _modulesView = __webpack_require__(60);
 
   var _modulesView2 = _interopRequireDefault(_modulesView);
 
-  var _modulesInteractionHandler = __webpack_require__(62);
+  var _modulesInteractionHandler = __webpack_require__(61);
 
   var _modulesInteractionHandler2 = _interopRequireDefault(_modulesInteractionHandler);
 
-  var _modulesSelectionHandler = __webpack_require__(63);
+  var _modulesSelectionHandler = __webpack_require__(62);
 
   var _modulesSelectionHandler2 = _interopRequireDefault(_modulesSelectionHandler);
 
-  var _modulesLayoutEngine = __webpack_require__(64);
+  var _modulesLayoutEngine = __webpack_require__(63);
 
   var _modulesLayoutEngine2 = _interopRequireDefault(_modulesLayoutEngine);
 
-  var _modulesManipulationSystem = __webpack_require__(65);
+  var _modulesManipulationSystem = __webpack_require__(64);
 
   var _modulesManipulationSystem2 = _interopRequireDefault(_modulesManipulationSystem);
 
-  var _sharedConfigurationSystem = __webpack_require__(45);
+  var _sharedConfigurationSystem = __webpack_require__(44);
 
   var _sharedConfigurationSystem2 = _interopRequireDefault(_sharedConfigurationSystem);
 
-  var _sharedValidator = __webpack_require__(46);
+  var _sharedValidator = __webpack_require__(45);
 
   var _sharedValidator2 = _interopRequireDefault(_sharedValidator);
 
-  var _optionsJs = __webpack_require__(66);
+  var _optionsJs = __webpack_require__(65);
 
   // Load custom shapes into CanvasRenderingContext2D
-  __webpack_require__(67);
+  __webpack_require__(66);
 
-  var Emitter = __webpack_require__(43);
+  var Emitter = __webpack_require__(69);
   var Hammer = __webpack_require__(41);
   var util = __webpack_require__(1);
   var DataSet = __webpack_require__(3);
@@ -15668,8 +15674,8 @@ return /******/ (function(modules) { // webpackBootstrap
   var dotparser = __webpack_require__(38);
   var gephiParser = __webpack_require__(39);
   var Images = __webpack_require__(37);
-  var Activator = __webpack_require__(68);
-  var locales = __webpack_require__(69);
+  var Activator = __webpack_require__(67);
+  var locales = __webpack_require__(68);
 
   /**
    * @constructor Network
@@ -17149,7 +17155,7 @@ return /******/ (function(modules) { // webpackBootstrap
   // use this instance. Else, load via commonjs.
   'use strict';
 
-  module.exports = typeof window !== 'undefined' && window['moment'] || __webpack_require__(70);
+  module.exports = typeof window !== 'undefined' && window['moment'] || __webpack_require__(72);
 
 /***/ },
 /* 41 */
@@ -17160,8 +17166,8 @@ return /******/ (function(modules) { // webpackBootstrap
   'use strict';
 
   if (typeof window !== 'undefined') {
-    var propagating = __webpack_require__(71);
-    var Hammer = window['Hammer'] || __webpack_require__(72);
+    var propagating = __webpack_require__(70);
+    var Hammer = window['Hammer'] || __webpack_require__(71);
     module.exports = propagating(Hammer, {
       preventDefault: 'mouse'
     });
@@ -17391,188 +17397,18 @@ return /******/ (function(modules) { // webpackBootstrap
 /* 43 */
 /***/ function(module, exports, __webpack_require__) {
 
-  
-  /**
-   * Expose `Emitter`.
-   */
-
-  module.exports = Emitter;
-
-  /**
-   * Initialize a new `Emitter`.
-   *
-   * @api public
-   */
-
-  function Emitter(obj) {
-    if (obj) return mixin(obj);
-  };
-
-  /**
-   * Mixin the emitter properties.
-   *
-   * @param {Object} obj
-   * @return {Object}
-   * @api private
-   */
-
-  function mixin(obj) {
-    for (var key in Emitter.prototype) {
-      obj[key] = Emitter.prototype[key];
-    }
-    return obj;
-  }
-
-  /**
-   * Listen on the given `event` with `fn`.
-   *
-   * @param {String} event
-   * @param {Function} fn
-   * @return {Emitter}
-   * @api public
-   */
-
-  Emitter.prototype.on =
-  Emitter.prototype.addEventListener = function(event, fn){
-    this._callbacks = this._callbacks || {};
-    (this._callbacks[event] = this._callbacks[event] || [])
-      .push(fn);
-    return this;
-  };
-
-  /**
-   * Adds an `event` listener that will be invoked a single
-   * time then automatically removed.
-   *
-   * @param {String} event
-   * @param {Function} fn
-   * @return {Emitter}
-   * @api public
-   */
-
-  Emitter.prototype.once = function(event, fn){
-    var self = this;
-    this._callbacks = this._callbacks || {};
-
-    function on() {
-      self.off(event, on);
-      fn.apply(this, arguments);
-    }
-
-    on.fn = fn;
-    this.on(event, on);
-    return this;
-  };
-
-  /**
-   * Remove the given callback for `event` or all
-   * registered callbacks.
-   *
-   * @param {String} event
-   * @param {Function} fn
-   * @return {Emitter}
-   * @api public
-   */
-
-  Emitter.prototype.off =
-  Emitter.prototype.removeListener =
-  Emitter.prototype.removeAllListeners =
-  Emitter.prototype.removeEventListener = function(event, fn){
-    this._callbacks = this._callbacks || {};
-
-    // all
-    if (0 == arguments.length) {
-      this._callbacks = {};
-      return this;
-    }
-
-    // specific event
-    var callbacks = this._callbacks[event];
-    if (!callbacks) return this;
-
-    // remove all handlers
-    if (1 == arguments.length) {
-      delete this._callbacks[event];
-      return this;
-    }
-
-    // remove specific handler
-    var cb;
-    for (var i = 0; i < callbacks.length; i++) {
-      cb = callbacks[i];
-      if (cb === fn || cb.fn === fn) {
-        callbacks.splice(i, 1);
-        break;
-      }
-    }
-    return this;
-  };
-
-  /**
-   * Emit `event` with the given args.
-   *
-   * @param {String} event
-   * @param {Mixed} ...
-   * @return {Emitter}
-   */
-
-  Emitter.prototype.emit = function(event){
-    this._callbacks = this._callbacks || {};
-    var args = [].slice.call(arguments, 1)
-      , callbacks = this._callbacks[event];
-
-    if (callbacks) {
-      callbacks = callbacks.slice(0);
-      for (var i = 0, len = callbacks.length; i < len; ++i) {
-        callbacks[i].apply(this, args);
-      }
-    }
-
-    return this;
-  };
-
-  /**
-   * Return array of callbacks for `event`.
-   *
-   * @param {String} event
-   * @return {Array}
-   * @api public
-   */
-
-  Emitter.prototype.listeners = function(event){
-    this._callbacks = this._callbacks || {};
-    return this._callbacks[event] || [];
-  };
-
-  /**
-   * Check if this emitter has `event` handlers.
-   *
-   * @param {String} event
-   * @return {Boolean}
-   * @api public
-   */
-
-  Emitter.prototype.hasListeners = function(event){
-    return !! this.listeners(event).length;
-  };
-
-
-/***/ },
-/* 44 */
-/***/ function(module, exports, __webpack_require__) {
-
   'use strict';
 
-  var Emitter = __webpack_require__(43);
+  var Emitter = __webpack_require__(69);
   var Hammer = __webpack_require__(41);
-  var hammerUtil = __webpack_require__(49);
+  var hammerUtil = __webpack_require__(48);
   var util = __webpack_require__(1);
   var DataSet = __webpack_require__(3);
   var DataView = __webpack_require__(4);
   var Range = __webpack_require__(17);
   var ItemSet = __webpack_require__(32);
   var TimeAxis = __webpack_require__(35);
-  var Activator = __webpack_require__(68);
+  var Activator = __webpack_require__(67);
   var DateUtil = __webpack_require__(15);
   var CustomTime = __webpack_require__(27);
 
@@ -18525,7 +18361,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = Core;
 
 /***/ },
-/* 45 */
+/* 44 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -19182,7 +19018,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 46 */
+/* 45 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -19495,7 +19331,7 @@ return /******/ (function(modules) { // webpackBootstrap
   // item is a function, which is allowed
 
 /***/ },
-/* 47 */
+/* 46 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -19712,7 +19548,7 @@ return /******/ (function(modules) { // webpackBootstrap
   exports.configureOptions = configureOptions;
 
 /***/ },
-/* 48 */
+/* 47 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -19983,7 +19819,7 @@ return /******/ (function(modules) { // webpackBootstrap
   exports.configureOptions = configureOptions;
 
 /***/ },
-/* 49 */
+/* 48 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -20055,7 +19891,7 @@ return /******/ (function(modules) { // webpackBootstrap
   exports.offRelease = exports.offTouch;
 
 /***/ },
-/* 50 */
+/* 49 */
 /***/ function(module, exports, __webpack_require__) {
 
   // English
@@ -20077,13 +19913,13 @@ return /******/ (function(modules) { // webpackBootstrap
   exports['nl_BE'] = exports['nl'];
 
 /***/ },
-/* 51 */
+/* 50 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
 
   var DOMutil = __webpack_require__(2);
-  var Points = __webpack_require__(53);
+  var Points = __webpack_require__(52);
 
   function Line(groupId, options) {
     this.groupId = groupId;
@@ -20372,13 +20208,13 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = Line;
 
 /***/ },
-/* 52 */
+/* 51 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
 
   var DOMutil = __webpack_require__(2);
-  var Points = __webpack_require__(53);
+  var Points = __webpack_require__(52);
 
   function Bargraph(groupId, options) {
     this.groupId = groupId;
@@ -20620,7 +20456,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = Bargraph;
 
 /***/ },
-/* 53 */
+/* 52 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -20667,7 +20503,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = Points;
 
 /***/ },
-/* 54 */
+/* 53 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
@@ -20809,7 +20645,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports["default"];
 
 /***/ },
-/* 55 */
+/* 54 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -20824,7 +20660,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
 
-  var _componentsNode = __webpack_require__(74);
+  var _componentsNode = __webpack_require__(87);
 
   var _componentsNode2 = _interopRequireDefault(_componentsNode);
 
@@ -21282,7 +21118,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 56 */
+/* 55 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -21297,7 +21133,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
 
-  var _componentsEdge = __webpack_require__(76);
+  var _componentsEdge = __webpack_require__(74);
 
   var _componentsEdge2 = _interopRequireDefault(_componentsEdge);
 
@@ -21701,7 +21537,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 57 */
+/* 56 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -22317,7 +22153,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 58 */
+/* 57 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
@@ -22332,7 +22168,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
-  var _componentsNodesCluster = __webpack_require__(85);
+  var _componentsNodesCluster = __webpack_require__(76);
 
   var _componentsNodesCluster2 = _interopRequireDefault(_componentsNodesCluster);
 
@@ -22969,7 +22805,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports["default"];
 
 /***/ },
-/* 59 */
+/* 58 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -23347,7 +23183,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 60 */
+/* 59 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -23361,7 +23197,7 @@ return /******/ (function(modules) { // webpackBootstrap
   function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
 
   var Hammer = __webpack_require__(41);
-  var hammerUtil = __webpack_require__(49);
+  var hammerUtil = __webpack_require__(48);
 
   var util = __webpack_require__(1);
 
@@ -23715,7 +23551,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 61 */
+/* 60 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
@@ -24117,7 +23953,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports["default"];
 
 /***/ },
-/* 62 */
+/* 61 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -24132,11 +23968,11 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
 
-  var _componentsNavigationHandler = __webpack_require__(86);
+  var _componentsNavigationHandler = __webpack_require__(85);
 
   var _componentsNavigationHandler2 = _interopRequireDefault(_componentsNavigationHandler);
 
-  var _componentsPopup = __webpack_require__(87);
+  var _componentsPopup = __webpack_require__(86);
 
   var _componentsPopup2 = _interopRequireDefault(_componentsPopup);
 
@@ -24823,7 +24659,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 63 */
+/* 62 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
@@ -24836,8 +24672,8 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
-  var Node = __webpack_require__(74);
-  var Edge = __webpack_require__(76);
+  var Node = __webpack_require__(87);
+  var Edge = __webpack_require__(74);
   var util = __webpack_require__(1);
 
   var SelectionHandler = (function () {
@@ -25543,7 +25379,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports["default"];
 
 /***/ },
-/* 64 */
+/* 63 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -26039,7 +25875,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 65 */
+/* 64 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -26054,7 +25890,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   var util = __webpack_require__(1);
   var Hammer = __webpack_require__(41);
-  var hammerUtil = __webpack_require__(49);
+  var hammerUtil = __webpack_require__(48);
 
   /**
    * clears the toolbar div element of children
@@ -27228,7 +27064,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 66 */
+/* 65 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -27706,7 +27542,7 @@ return /******/ (function(modules) { // webpackBootstrap
   exports.configureOptions = configureOptions;
 
 /***/ },
-/* 67 */
+/* 66 */
 /***/ function(module, exports, __webpack_require__) {
 
   /**
@@ -27990,13 +27826,13 @@ return /******/ (function(modules) { // webpackBootstrap
   }
 
 /***/ },
-/* 68 */
+/* 67 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
 
   var keycharm = __webpack_require__(88);
-  var Emitter = __webpack_require__(43);
+  var Emitter = __webpack_require__(69);
   var Hammer = __webpack_require__(41);
   var util = __webpack_require__(1);
 
@@ -28143,7 +27979,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = Activator;
 
 /***/ },
-/* 69 */
+/* 68 */
 /***/ function(module, exports, __webpack_require__) {
 
   // English
@@ -28187,7 +28023,2874 @@ return /******/ (function(modules) { // webpackBootstrap
   exports['nl_BE'] = exports['nl'];
 
 /***/ },
+/* 69 */
+/***/ function(module, exports, __webpack_require__) {
+
+  
+  /**
+   * Expose `Emitter`.
+   */
+
+  module.exports = Emitter;
+
+  /**
+   * Initialize a new `Emitter`.
+   *
+   * @api public
+   */
+
+  function Emitter(obj) {
+    if (obj) return mixin(obj);
+  };
+
+  /**
+   * Mixin the emitter properties.
+   *
+   * @param {Object} obj
+   * @return {Object}
+   * @api private
+   */
+
+  function mixin(obj) {
+    for (var key in Emitter.prototype) {
+      obj[key] = Emitter.prototype[key];
+    }
+    return obj;
+  }
+
+  /**
+   * Listen on the given `event` with `fn`.
+   *
+   * @param {String} event
+   * @param {Function} fn
+   * @return {Emitter}
+   * @api public
+   */
+
+  Emitter.prototype.on =
+  Emitter.prototype.addEventListener = function(event, fn){
+    this._callbacks = this._callbacks || {};
+    (this._callbacks[event] = this._callbacks[event] || [])
+      .push(fn);
+    return this;
+  };
+
+  /**
+   * Adds an `event` listener that will be invoked a single
+   * time then automatically removed.
+   *
+   * @param {String} event
+   * @param {Function} fn
+   * @return {Emitter}
+   * @api public
+   */
+
+  Emitter.prototype.once = function(event, fn){
+    var self = this;
+    this._callbacks = this._callbacks || {};
+
+    function on() {
+      self.off(event, on);
+      fn.apply(this, arguments);
+    }
+
+    on.fn = fn;
+    this.on(event, on);
+    return this;
+  };
+
+  /**
+   * Remove the given callback for `event` or all
+   * registered callbacks.
+   *
+   * @param {String} event
+   * @param {Function} fn
+   * @return {Emitter}
+   * @api public
+   */
+
+  Emitter.prototype.off =
+  Emitter.prototype.removeListener =
+  Emitter.prototype.removeAllListeners =
+  Emitter.prototype.removeEventListener = function(event, fn){
+    this._callbacks = this._callbacks || {};
+
+    // all
+    if (0 == arguments.length) {
+      this._callbacks = {};
+      return this;
+    }
+
+    // specific event
+    var callbacks = this._callbacks[event];
+    if (!callbacks) return this;
+
+    // remove all handlers
+    if (1 == arguments.length) {
+      delete this._callbacks[event];
+      return this;
+    }
+
+    // remove specific handler
+    var cb;
+    for (var i = 0; i < callbacks.length; i++) {
+      cb = callbacks[i];
+      if (cb === fn || cb.fn === fn) {
+        callbacks.splice(i, 1);
+        break;
+      }
+    }
+    return this;
+  };
+
+  /**
+   * Emit `event` with the given args.
+   *
+   * @param {String} event
+   * @param {Mixed} ...
+   * @return {Emitter}
+   */
+
+  Emitter.prototype.emit = function(event){
+    this._callbacks = this._callbacks || {};
+    var args = [].slice.call(arguments, 1)
+      , callbacks = this._callbacks[event];
+
+    if (callbacks) {
+      callbacks = callbacks.slice(0);
+      for (var i = 0, len = callbacks.length; i < len; ++i) {
+        callbacks[i].apply(this, args);
+      }
+    }
+
+    return this;
+  };
+
+  /**
+   * Return array of callbacks for `event`.
+   *
+   * @param {String} event
+   * @return {Array}
+   * @api public
+   */
+
+  Emitter.prototype.listeners = function(event){
+    this._callbacks = this._callbacks || {};
+    return this._callbacks[event] || [];
+  };
+
+  /**
+   * Check if this emitter has `event` handlers.
+   *
+   * @param {String} event
+   * @return {Boolean}
+   * @api public
+   */
+
+  Emitter.prototype.hasListeners = function(event){
+    return !! this.listeners(event).length;
+  };
+
+
+/***/ },
 /* 70 */
+/***/ function(module, exports, __webpack_require__) {
+
+  var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;'use strict';
+
+  (function (factory) {
+    if (true) {
+      // AMD. Register as an anonymous module.
+      !(__WEBPACK_AMD_DEFINE_ARRAY__ = [], __WEBPACK_AMD_DEFINE_FACTORY__ = (factory), __WEBPACK_AMD_DEFINE_RESULT__ = (typeof __WEBPACK_AMD_DEFINE_FACTORY__ === 'function' ? (__WEBPACK_AMD_DEFINE_FACTORY__.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__)) : __WEBPACK_AMD_DEFINE_FACTORY__), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__));
+    } else if (typeof exports === 'object') {
+      // Node. Does not work with strict CommonJS, but
+      // only CommonJS-like environments that support module.exports,
+      // like Node.
+      module.exports = factory();
+    } else {
+      // Browser globals (root is window)
+      window.propagating = factory();
+    }
+  }(function () {
+    var _firstTarget = null; // singleton, will contain the target element where the touch event started
+    var _processing = false; // singleton, true when a touch event is being handled
+
+    /**
+     * Extend an Hammer.js instance with event propagation.
+     *
+     * Features:
+     * - Events emitted by hammer will propagate in order from child to parent
+     *   elements.
+     * - Events are extended with a function `event.stopPropagation()` to stop
+     *   propagation to parent elements.
+     * - An option `preventDefault` to stop all default browser behavior.
+     *
+     * Usage:
+     *   var hammer = propagatingHammer(new Hammer(element));
+     *   var hammer = propagatingHammer(new Hammer(element), {preventDefault: true});
+     *
+     * @param {Hammer.Manager} hammer   An hammer instance.
+     * @param {Object} [options]        Available options:
+     *                                  - `preventDefault: true | 'mouse' | 'touch' | 'pen'`.
+     *                                    Enforce preventing the default browser behavior.
+     *                                    Cannot be set to `false`.
+     * @return {Hammer.Manager} Returns the same hammer instance with extended
+     *                          functionality
+     */
+    return function propagating(hammer, options) {
+      if (options && options.preventDefault === false) {
+        throw new Error('Only supports preventDefault == true');
+      }
+      var _options = options || {
+        preventDefault: false
+      };
+
+      if (hammer.Manager) {
+        // This looks like the Hammer constructor.
+        // Overload the constructors with our own.
+        var Hammer = hammer;
+
+        var PropagatingHammer = function(element, options) {
+          return propagating(new Hammer(element, options), _options);
+        };
+        Hammer.extend(PropagatingHammer, Hammer);
+        PropagatingHammer.Manager = function (element, options) {
+          return propagating(new Hammer.Manager(element, options), _options);
+        };
+
+        return PropagatingHammer;
+      }
+
+      // attach to DOM element
+      var element = hammer.element;
+      element.hammer = hammer;
+
+      // move the original functions that we will wrap
+      hammer._on = hammer.on;
+      hammer._off = hammer.off;
+      hammer._emit = hammer.emit;
+      hammer._destroy = hammer.destroy;
+
+      /** @type {Object.<String, Array.<function>>} */
+      hammer._handlers = {};
+
+      // register an event to catch the start of a gesture and store the
+      // target in a singleton
+      hammer._on('hammer.input', function (event) {
+        if (_options.preventDefault === true || (_options.preventDefault === event.pointerType)) {
+          event.preventDefault();
+        }
+        if (event.isFirst) {
+          _firstTarget = event.target;
+          _processing = true;
+        }
+        if (event.isFinal) {
+          _processing = false;
+        }
+      });
+
+      /**
+       * Register a handler for one or multiple events
+       * @param {String} events    A space separated string with events
+       * @param {function} handler A callback function, called as handler(event)
+       * @returns {Hammer.Manager} Returns the hammer instance
+       */
+      hammer.on = function (events, handler) {
+        // register the handler
+        split(events).forEach(function (event) {
+          var _handlers = hammer._handlers[event];
+          if (!_handlers) {
+            hammer._handlers[event] = _handlers = [];
+
+            // register the static, propagated handler
+            hammer._on(event, propagatedHandler);
+          }
+          _handlers.push(handler);
+        });
+
+        return hammer;
+      };
+
+      /**
+       * Unregister a handler for one or multiple events
+       * @param {String} events      A space separated string with events
+       * @param {function} [handler] Optional. The registered handler. If not
+       *                             provided, all handlers for given events
+       *                             are removed.
+       * @returns {Hammer.Manager}   Returns the hammer instance
+       */
+      hammer.off = function (events, handler) {
+        // unregister the handler
+        split(events).forEach(function (event) {
+          var _handlers = hammer._handlers[event];
+          if (_handlers) {
+            _handlers = handler ? _handlers.filter(function (h) {
+              return h !== handler;
+            }) : [];
+
+            if (_handlers.length > 0) {
+              hammer._handlers[event] = _handlers;
+            }
+            else {
+              // remove static, propagated handler
+              hammer._off(event, propagatedHandler);
+              delete hammer._handlers[event];
+            }
+          }
+        });
+
+        return hammer;
+      };
+
+      /**
+       * Emit to the event listeners
+       * @param {string} eventType
+       * @param {Event} event
+       */
+      hammer.emit = function(eventType, event) {
+        if (!_processing) {
+          _firstTarget = event.target;
+        }
+        hammer._emit(eventType, event);
+      };
+
+      hammer.destroy = function () {
+        // Detach from DOM element
+        var element = hammer.element;
+        delete element.hammer;
+
+        // clear all handlers
+        hammer._handlers = {};
+
+        // call original hammer destroy
+        hammer._destroy();
+      };
+
+      // split a string with space separated words
+      function split(events) {
+        return events.match(/[^ ]+/g);
+      }
+
+      /**
+       * A static event handler, applying event propagation.
+       * @param {Object} event
+       */
+      function propagatedHandler(event) {
+        // let only a single hammer instance handle this event
+        if (event.type !== 'hammer.input') {
+          // it is possible that the same srcEvent is used with multiple hammer events,
+          // we keep track on which events are handled in an object _handled
+          if (!event.srcEvent._handled) {
+            event.srcEvent._handled = {};
+          }
+
+          if (event.srcEvent._handled[event.type]) {
+            return;
+          }
+          else {
+            event.srcEvent._handled[event.type] = true;
+          }
+        }
+
+        // attach a stopPropagation function to the event
+        var stopped = false;
+        event.stopPropagation = function () {
+          stopped = true;
+        };
+
+        // attach firstTarget property to the event
+        event.firstTarget = _firstTarget;
+
+        // propagate over all elements (until stopped)
+        var elem = _firstTarget;
+        while (elem && !stopped) {
+          var _handlers = elem.hammer && elem.hammer._handlers[event.type];
+          if (_handlers) {
+            for (var i = 0; i < _handlers.length && !stopped; i++) {
+              _handlers[i](event);
+            }
+          }
+
+          elem = elem.parentNode;
+        }
+      }
+
+      return hammer;
+    };
+  }));
+
+
+/***/ },
+/* 71 */
+/***/ function(module, exports, __webpack_require__) {
+
+  var __WEBPACK_AMD_DEFINE_RESULT__;/*! Hammer.JS - v2.0.4 - 2014-09-28
+   * http://hammerjs.github.io/
+   *
+   * Copyright (c) 2014 Jorik Tangelder;
+   * Licensed under the MIT license */
+  (function(window, document, exportName, undefined) {
+    'use strict';
+
+  var VENDOR_PREFIXES = ['', 'webkit', 'moz', 'MS', 'ms', 'o'];
+  var TEST_ELEMENT = document.createElement('div');
+
+  var TYPE_FUNCTION = 'function';
+
+  var round = Math.round;
+  var abs = Math.abs;
+  var now = Date.now;
+
+  /**
+   * set a timeout with a given scope
+   * @param {Function} fn
+   * @param {Number} timeout
+   * @param {Object} context
+   * @returns {number}
+   */
+  function setTimeoutContext(fn, timeout, context) {
+      return setTimeout(bindFn(fn, context), timeout);
+  }
+
+  /**
+   * if the argument is an array, we want to execute the fn on each entry
+   * if it aint an array we don't want to do a thing.
+   * this is used by all the methods that accept a single and array argument.
+   * @param {*|Array} arg
+   * @param {String} fn
+   * @param {Object} [context]
+   * @returns {Boolean}
+   */
+  function invokeArrayArg(arg, fn, context) {
+      if (Array.isArray(arg)) {
+          each(arg, context[fn], context);
+          return true;
+      }
+      return false;
+  }
+
+  /**
+   * walk objects and arrays
+   * @param {Object} obj
+   * @param {Function} iterator
+   * @param {Object} context
+   */
+  function each(obj, iterator, context) {
+      var i;
+
+      if (!obj) {
+          return;
+      }
+
+      if (obj.forEach) {
+          obj.forEach(iterator, context);
+      } else if (obj.length !== undefined) {
+          i = 0;
+          while (i < obj.length) {
+              iterator.call(context, obj[i], i, obj);
+              i++;
+          }
+      } else {
+          for (i in obj) {
+              obj.hasOwnProperty(i) && iterator.call(context, obj[i], i, obj);
+          }
+      }
+  }
+
+  /**
+   * extend object.
+   * means that properties in dest will be overwritten by the ones in src.
+   * @param {Object} dest
+   * @param {Object} src
+   * @param {Boolean} [merge]
+   * @returns {Object} dest
+   */
+  function extend(dest, src, merge) {
+      var keys = Object.keys(src);
+      var i = 0;
+      while (i < keys.length) {
+          if (!merge || (merge && dest[keys[i]] === undefined)) {
+              dest[keys[i]] = src[keys[i]];
+          }
+          i++;
+      }
+      return dest;
+  }
+
+  /**
+   * merge the values from src in the dest.
+   * means that properties that exist in dest will not be overwritten by src
+   * @param {Object} dest
+   * @param {Object} src
+   * @returns {Object} dest
+   */
+  function merge(dest, src) {
+      return extend(dest, src, true);
+  }
+
+  /**
+   * simple class inheritance
+   * @param {Function} child
+   * @param {Function} base
+   * @param {Object} [properties]
+   */
+  function inherit(child, base, properties) {
+      var baseP = base.prototype,
+          childP;
+
+      childP = child.prototype = Object.create(baseP);
+      childP.constructor = child;
+      childP._super = baseP;
+
+      if (properties) {
+          extend(childP, properties);
+      }
+  }
+
+  /**
+   * simple function bind
+   * @param {Function} fn
+   * @param {Object} context
+   * @returns {Function}
+   */
+  function bindFn(fn, context) {
+      return function boundFn() {
+          return fn.apply(context, arguments);
+      };
+  }
+
+  /**
+   * let a boolean value also be a function that must return a boolean
+   * this first item in args will be used as the context
+   * @param {Boolean|Function} val
+   * @param {Array} [args]
+   * @returns {Boolean}
+   */
+  function boolOrFn(val, args) {
+      if (typeof val == TYPE_FUNCTION) {
+          return val.apply(args ? args[0] || undefined : undefined, args);
+      }
+      return val;
+  }
+
+  /**
+   * use the val2 when val1 is undefined
+   * @param {*} val1
+   * @param {*} val2
+   * @returns {*}
+   */
+  function ifUndefined(val1, val2) {
+      return (val1 === undefined) ? val2 : val1;
+  }
+
+  /**
+   * addEventListener with multiple events at once
+   * @param {EventTarget} target
+   * @param {String} types
+   * @param {Function} handler
+   */
+  function addEventListeners(target, types, handler) {
+      each(splitStr(types), function(type) {
+          target.addEventListener(type, handler, false);
+      });
+  }
+
+  /**
+   * removeEventListener with multiple events at once
+   * @param {EventTarget} target
+   * @param {String} types
+   * @param {Function} handler
+   */
+  function removeEventListeners(target, types, handler) {
+      each(splitStr(types), function(type) {
+          target.removeEventListener(type, handler, false);
+      });
+  }
+
+  /**
+   * find if a node is in the given parent
+   * @method hasParent
+   * @param {HTMLElement} node
+   * @param {HTMLElement} parent
+   * @return {Boolean} found
+   */
+  function hasParent(node, parent) {
+      while (node) {
+          if (node == parent) {
+              return true;
+          }
+          node = node.parentNode;
+      }
+      return false;
+  }
+
+  /**
+   * small indexOf wrapper
+   * @param {String} str
+   * @param {String} find
+   * @returns {Boolean} found
+   */
+  function inStr(str, find) {
+      return str.indexOf(find) > -1;
+  }
+
+  /**
+   * split string on whitespace
+   * @param {String} str
+   * @returns {Array} words
+   */
+  function splitStr(str) {
+      return str.trim().split(/\s+/g);
+  }
+
+  /**
+   * find if a array contains the object using indexOf or a simple polyFill
+   * @param {Array} src
+   * @param {String} find
+   * @param {String} [findByKey]
+   * @return {Boolean|Number} false when not found, or the index
+   */
+  function inArray(src, find, findByKey) {
+      if (src.indexOf && !findByKey) {
+          return src.indexOf(find);
+      } else {
+          var i = 0;
+          while (i < src.length) {
+              if ((findByKey && src[i][findByKey] == find) || (!findByKey && src[i] === find)) {
+                  return i;
+              }
+              i++;
+          }
+          return -1;
+      }
+  }
+
+  /**
+   * convert array-like objects to real arrays
+   * @param {Object} obj
+   * @returns {Array}
+   */
+  function toArray(obj) {
+      return Array.prototype.slice.call(obj, 0);
+  }
+
+  /**
+   * unique array with objects based on a key (like 'id') or just by the array's value
+   * @param {Array} src [{id:1},{id:2},{id:1}]
+   * @param {String} [key]
+   * @param {Boolean} [sort=False]
+   * @returns {Array} [{id:1},{id:2}]
+   */
+  function uniqueArray(src, key, sort) {
+      var results = [];
+      var values = [];
+      var i = 0;
+
+      while (i < src.length) {
+          var val = key ? src[i][key] : src[i];
+          if (inArray(values, val) < 0) {
+              results.push(src[i]);
+          }
+          values[i] = val;
+          i++;
+      }
+
+      if (sort) {
+          if (!key) {
+              results = results.sort();
+          } else {
+              results = results.sort(function sortUniqueArray(a, b) {
+                  return a[key] > b[key];
+              });
+          }
+      }
+
+      return results;
+  }
+
+  /**
+   * get the prefixed property
+   * @param {Object} obj
+   * @param {String} property
+   * @returns {String|Undefined} prefixed
+   */
+  function prefixed(obj, property) {
+      var prefix, prop;
+      var camelProp = property[0].toUpperCase() + property.slice(1);
+
+      var i = 0;
+      while (i < VENDOR_PREFIXES.length) {
+          prefix = VENDOR_PREFIXES[i];
+          prop = (prefix) ? prefix + camelProp : property;
+
+          if (prop in obj) {
+              return prop;
+          }
+          i++;
+      }
+      return undefined;
+  }
+
+  /**
+   * get a unique id
+   * @returns {number} uniqueId
+   */
+  var _uniqueId = 1;
+  function uniqueId() {
+      return _uniqueId++;
+  }
+
+  /**
+   * get the window object of an element
+   * @param {HTMLElement} element
+   * @returns {DocumentView|Window}
+   */
+  function getWindowForElement(element) {
+      var doc = element.ownerDocument;
+      return (doc.defaultView || doc.parentWindow);
+  }
+
+  var MOBILE_REGEX = /mobile|tablet|ip(ad|hone|od)|android/i;
+
+  var SUPPORT_TOUCH = ('ontouchstart' in window);
+  var SUPPORT_POINTER_EVENTS = prefixed(window, 'PointerEvent') !== undefined;
+  var SUPPORT_ONLY_TOUCH = SUPPORT_TOUCH && MOBILE_REGEX.test(navigator.userAgent);
+
+  var INPUT_TYPE_TOUCH = 'touch';
+  var INPUT_TYPE_PEN = 'pen';
+  var INPUT_TYPE_MOUSE = 'mouse';
+  var INPUT_TYPE_KINECT = 'kinect';
+
+  var COMPUTE_INTERVAL = 25;
+
+  var INPUT_START = 1;
+  var INPUT_MOVE = 2;
+  var INPUT_END = 4;
+  var INPUT_CANCEL = 8;
+
+  var DIRECTION_NONE = 1;
+  var DIRECTION_LEFT = 2;
+  var DIRECTION_RIGHT = 4;
+  var DIRECTION_UP = 8;
+  var DIRECTION_DOWN = 16;
+
+  var DIRECTION_HORIZONTAL = DIRECTION_LEFT | DIRECTION_RIGHT;
+  var DIRECTION_VERTICAL = DIRECTION_UP | DIRECTION_DOWN;
+  var DIRECTION_ALL = DIRECTION_HORIZONTAL | DIRECTION_VERTICAL;
+
+  var PROPS_XY = ['x', 'y'];
+  var PROPS_CLIENT_XY = ['clientX', 'clientY'];
+
+  /**
+   * create new input type manager
+   * @param {Manager} manager
+   * @param {Function} callback
+   * @returns {Input}
+   * @constructor
+   */
+  function Input(manager, callback) {
+      var self = this;
+      this.manager = manager;
+      this.callback = callback;
+      this.element = manager.element;
+      this.target = manager.options.inputTarget;
+
+      // smaller wrapper around the handler, for the scope and the enabled state of the manager,
+      // so when disabled the input events are completely bypassed.
+      this.domHandler = function(ev) {
+          if (boolOrFn(manager.options.enable, [manager])) {
+              self.handler(ev);
+          }
+      };
+
+      this.init();
+
+  }
+
+  Input.prototype = {
+      /**
+       * should handle the inputEvent data and trigger the callback
+       * @virtual
+       */
+      handler: function() { },
+
+      /**
+       * bind the events
+       */
+      init: function() {
+          this.evEl && addEventListeners(this.element, this.evEl, this.domHandler);
+          this.evTarget && addEventListeners(this.target, this.evTarget, this.domHandler);
+          this.evWin && addEventListeners(getWindowForElement(this.element), this.evWin, this.domHandler);
+      },
+
+      /**
+       * unbind the events
+       */
+      destroy: function() {
+          this.evEl && removeEventListeners(this.element, this.evEl, this.domHandler);
+          this.evTarget && removeEventListeners(this.target, this.evTarget, this.domHandler);
+          this.evWin && removeEventListeners(getWindowForElement(this.element), this.evWin, this.domHandler);
+      }
+  };
+
+  /**
+   * create new input type manager
+   * called by the Manager constructor
+   * @param {Hammer} manager
+   * @returns {Input}
+   */
+  function createInputInstance(manager) {
+      var Type;
+      var inputClass = manager.options.inputClass;
+
+      if (inputClass) {
+          Type = inputClass;
+      } else if (SUPPORT_POINTER_EVENTS) {
+          Type = PointerEventInput;
+      } else if (SUPPORT_ONLY_TOUCH) {
+          Type = TouchInput;
+      } else if (!SUPPORT_TOUCH) {
+          Type = MouseInput;
+      } else {
+          Type = TouchMouseInput;
+      }
+      return new (Type)(manager, inputHandler);
+  }
+
+  /**
+   * handle input events
+   * @param {Manager} manager
+   * @param {String} eventType
+   * @param {Object} input
+   */
+  function inputHandler(manager, eventType, input) {
+      var pointersLen = input.pointers.length;
+      var changedPointersLen = input.changedPointers.length;
+      var isFirst = (eventType & INPUT_START && (pointersLen - changedPointersLen === 0));
+      var isFinal = (eventType & (INPUT_END | INPUT_CANCEL) && (pointersLen - changedPointersLen === 0));
+
+      input.isFirst = !!isFirst;
+      input.isFinal = !!isFinal;
+
+      if (isFirst) {
+          manager.session = {};
+      }
+
+      // source event is the normalized value of the domEvents
+      // like 'touchstart, mouseup, pointerdown'
+      input.eventType = eventType;
+
+      // compute scale, rotation etc
+      computeInputData(manager, input);
+
+      // emit secret event
+      manager.emit('hammer.input', input);
+
+      manager.recognize(input);
+      manager.session.prevInput = input;
+  }
+
+  /**
+   * extend the data with some usable properties like scale, rotate, velocity etc
+   * @param {Object} manager
+   * @param {Object} input
+   */
+  function computeInputData(manager, input) {
+      var session = manager.session;
+      var pointers = input.pointers;
+      var pointersLength = pointers.length;
+
+      // store the first input to calculate the distance and direction
+      if (!session.firstInput) {
+          session.firstInput = simpleCloneInputData(input);
+      }
+
+      // to compute scale and rotation we need to store the multiple touches
+      if (pointersLength > 1 && !session.firstMultiple) {
+          session.firstMultiple = simpleCloneInputData(input);
+      } else if (pointersLength === 1) {
+          session.firstMultiple = false;
+      }
+
+      var firstInput = session.firstInput;
+      var firstMultiple = session.firstMultiple;
+      var offsetCenter = firstMultiple ? firstMultiple.center : firstInput.center;
+
+      var center = input.center = getCenter(pointers);
+      input.timeStamp = now();
+      input.deltaTime = input.timeStamp - firstInput.timeStamp;
+
+      input.angle = getAngle(offsetCenter, center);
+      input.distance = getDistance(offsetCenter, center);
+
+      computeDeltaXY(session, input);
+      input.offsetDirection = getDirection(input.deltaX, input.deltaY);
+
+      input.scale = firstMultiple ? getScale(firstMultiple.pointers, pointers) : 1;
+      input.rotation = firstMultiple ? getRotation(firstMultiple.pointers, pointers) : 0;
+
+      computeIntervalInputData(session, input);
+
+      // find the correct target
+      var target = manager.element;
+      if (hasParent(input.srcEvent.target, target)) {
+          target = input.srcEvent.target;
+      }
+      input.target = target;
+  }
+
+  function computeDeltaXY(session, input) {
+      var center = input.center;
+      var offset = session.offsetDelta || {};
+      var prevDelta = session.prevDelta || {};
+      var prevInput = session.prevInput || {};
+
+      if (input.eventType === INPUT_START || prevInput.eventType === INPUT_END) {
+          prevDelta = session.prevDelta = {
+              x: prevInput.deltaX || 0,
+              y: prevInput.deltaY || 0
+          };
+
+          offset = session.offsetDelta = {
+              x: center.x,
+              y: center.y
+          };
+      }
+
+      input.deltaX = prevDelta.x + (center.x - offset.x);
+      input.deltaY = prevDelta.y + (center.y - offset.y);
+  }
+
+  /**
+   * velocity is calculated every x ms
+   * @param {Object} session
+   * @param {Object} input
+   */
+  function computeIntervalInputData(session, input) {
+      var last = session.lastInterval || input,
+          deltaTime = input.timeStamp - last.timeStamp,
+          velocity, velocityX, velocityY, direction;
+
+      if (input.eventType != INPUT_CANCEL && (deltaTime > COMPUTE_INTERVAL || last.velocity === undefined)) {
+          var deltaX = last.deltaX - input.deltaX;
+          var deltaY = last.deltaY - input.deltaY;
+
+          var v = getVelocity(deltaTime, deltaX, deltaY);
+          velocityX = v.x;
+          velocityY = v.y;
+          velocity = (abs(v.x) > abs(v.y)) ? v.x : v.y;
+          direction = getDirection(deltaX, deltaY);
+
+          session.lastInterval = input;
+      } else {
+          // use latest velocity info if it doesn't overtake a minimum period
+          velocity = last.velocity;
+          velocityX = last.velocityX;
+          velocityY = last.velocityY;
+          direction = last.direction;
+      }
+
+      input.velocity = velocity;
+      input.velocityX = velocityX;
+      input.velocityY = velocityY;
+      input.direction = direction;
+  }
+
+  /**
+   * create a simple clone from the input used for storage of firstInput and firstMultiple
+   * @param {Object} input
+   * @returns {Object} clonedInputData
+   */
+  function simpleCloneInputData(input) {
+      // make a simple copy of the pointers because we will get a reference if we don't
+      // we only need clientXY for the calculations
+      var pointers = [];
+      var i = 0;
+      while (i < input.pointers.length) {
+          pointers[i] = {
+              clientX: round(input.pointers[i].clientX),
+              clientY: round(input.pointers[i].clientY)
+          };
+          i++;
+      }
+
+      return {
+          timeStamp: now(),
+          pointers: pointers,
+          center: getCenter(pointers),
+          deltaX: input.deltaX,
+          deltaY: input.deltaY
+      };
+  }
+
+  /**
+   * get the center of all the pointers
+   * @param {Array} pointers
+   * @return {Object} center contains `x` and `y` properties
+   */
+  function getCenter(pointers) {
+      var pointersLength = pointers.length;
+
+      // no need to loop when only one touch
+      if (pointersLength === 1) {
+          return {
+              x: round(pointers[0].clientX),
+              y: round(pointers[0].clientY)
+          };
+      }
+
+      var x = 0, y = 0, i = 0;
+      while (i < pointersLength) {
+          x += pointers[i].clientX;
+          y += pointers[i].clientY;
+          i++;
+      }
+
+      return {
+          x: round(x / pointersLength),
+          y: round(y / pointersLength)
+      };
+  }
+
+  /**
+   * calculate the velocity between two points. unit is in px per ms.
+   * @param {Number} deltaTime
+   * @param {Number} x
+   * @param {Number} y
+   * @return {Object} velocity `x` and `y`
+   */
+  function getVelocity(deltaTime, x, y) {
+      return {
+          x: x / deltaTime || 0,
+          y: y / deltaTime || 0
+      };
+  }
+
+  /**
+   * get the direction between two points
+   * @param {Number} x
+   * @param {Number} y
+   * @return {Number} direction
+   */
+  function getDirection(x, y) {
+      if (x === y) {
+          return DIRECTION_NONE;
+      }
+
+      if (abs(x) >= abs(y)) {
+          return x > 0 ? DIRECTION_LEFT : DIRECTION_RIGHT;
+      }
+      return y > 0 ? DIRECTION_UP : DIRECTION_DOWN;
+  }
+
+  /**
+   * calculate the absolute distance between two points
+   * @param {Object} p1 {x, y}
+   * @param {Object} p2 {x, y}
+   * @param {Array} [props] containing x and y keys
+   * @return {Number} distance
+   */
+  function getDistance(p1, p2, props) {
+      if (!props) {
+          props = PROPS_XY;
+      }
+      var x = p2[props[0]] - p1[props[0]],
+          y = p2[props[1]] - p1[props[1]];
+
+      return Math.sqrt((x * x) + (y * y));
+  }
+
+  /**
+   * calculate the angle between two coordinates
+   * @param {Object} p1
+   * @param {Object} p2
+   * @param {Array} [props] containing x and y keys
+   * @return {Number} angle
+   */
+  function getAngle(p1, p2, props) {
+      if (!props) {
+          props = PROPS_XY;
+      }
+      var x = p2[props[0]] - p1[props[0]],
+          y = p2[props[1]] - p1[props[1]];
+      return Math.atan2(y, x) * 180 / Math.PI;
+  }
+
+  /**
+   * calculate the rotation degrees between two pointersets
+   * @param {Array} start array of pointers
+   * @param {Array} end array of pointers
+   * @return {Number} rotation
+   */
+  function getRotation(start, end) {
+      return getAngle(end[1], end[0], PROPS_CLIENT_XY) - getAngle(start[1], start[0], PROPS_CLIENT_XY);
+  }
+
+  /**
+   * calculate the scale factor between two pointersets
+   * no scale is 1, and goes down to 0 when pinched together, and bigger when pinched out
+   * @param {Array} start array of pointers
+   * @param {Array} end array of pointers
+   * @return {Number} scale
+   */
+  function getScale(start, end) {
+      return getDistance(end[0], end[1], PROPS_CLIENT_XY) / getDistance(start[0], start[1], PROPS_CLIENT_XY);
+  }
+
+  var MOUSE_INPUT_MAP = {
+      mousedown: INPUT_START,
+      mousemove: INPUT_MOVE,
+      mouseup: INPUT_END
+  };
+
+  var MOUSE_ELEMENT_EVENTS = 'mousedown';
+  var MOUSE_WINDOW_EVENTS = 'mousemove mouseup';
+
+  /**
+   * Mouse events input
+   * @constructor
+   * @extends Input
+   */
+  function MouseInput() {
+      this.evEl = MOUSE_ELEMENT_EVENTS;
+      this.evWin = MOUSE_WINDOW_EVENTS;
+
+      this.allow = true; // used by Input.TouchMouse to disable mouse events
+      this.pressed = false; // mousedown state
+
+      Input.apply(this, arguments);
+  }
+
+  inherit(MouseInput, Input, {
+      /**
+       * handle mouse events
+       * @param {Object} ev
+       */
+      handler: function MEhandler(ev) {
+          var eventType = MOUSE_INPUT_MAP[ev.type];
+
+          // on start we want to have the left mouse button down
+          if (eventType & INPUT_START && ev.button === 0) {
+              this.pressed = true;
+          }
+
+          if (eventType & INPUT_MOVE && ev.which !== 1) {
+              eventType = INPUT_END;
+          }
+
+          // mouse must be down, and mouse events are allowed (see the TouchMouse input)
+          if (!this.pressed || !this.allow) {
+              return;
+          }
+
+          if (eventType & INPUT_END) {
+              this.pressed = false;
+          }
+
+          this.callback(this.manager, eventType, {
+              pointers: [ev],
+              changedPointers: [ev],
+              pointerType: INPUT_TYPE_MOUSE,
+              srcEvent: ev
+          });
+      }
+  });
+
+  var POINTER_INPUT_MAP = {
+      pointerdown: INPUT_START,
+      pointermove: INPUT_MOVE,
+      pointerup: INPUT_END,
+      pointercancel: INPUT_CANCEL,
+      pointerout: INPUT_CANCEL
+  };
+
+  // in IE10 the pointer types is defined as an enum
+  var IE10_POINTER_TYPE_ENUM = {
+      2: INPUT_TYPE_TOUCH,
+      3: INPUT_TYPE_PEN,
+      4: INPUT_TYPE_MOUSE,
+      5: INPUT_TYPE_KINECT // see https://twitter.com/jacobrossi/status/480596438489890816
+  };
+
+  var POINTER_ELEMENT_EVENTS = 'pointerdown';
+  var POINTER_WINDOW_EVENTS = 'pointermove pointerup pointercancel';
+
+  // IE10 has prefixed support, and case-sensitive
+  if (window.MSPointerEvent) {
+      POINTER_ELEMENT_EVENTS = 'MSPointerDown';
+      POINTER_WINDOW_EVENTS = 'MSPointerMove MSPointerUp MSPointerCancel';
+  }
+
+  /**
+   * Pointer events input
+   * @constructor
+   * @extends Input
+   */
+  function PointerEventInput() {
+      this.evEl = POINTER_ELEMENT_EVENTS;
+      this.evWin = POINTER_WINDOW_EVENTS;
+
+      Input.apply(this, arguments);
+
+      this.store = (this.manager.session.pointerEvents = []);
+  }
+
+  inherit(PointerEventInput, Input, {
+      /**
+       * handle mouse events
+       * @param {Object} ev
+       */
+      handler: function PEhandler(ev) {
+          var store = this.store;
+          var removePointer = false;
+
+          var eventTypeNormalized = ev.type.toLowerCase().replace('ms', '');
+          var eventType = POINTER_INPUT_MAP[eventTypeNormalized];
+          var pointerType = IE10_POINTER_TYPE_ENUM[ev.pointerType] || ev.pointerType;
+
+          var isTouch = (pointerType == INPUT_TYPE_TOUCH);
+
+          // get index of the event in the store
+          var storeIndex = inArray(store, ev.pointerId, 'pointerId');
+
+          // start and mouse must be down
+          if (eventType & INPUT_START && (ev.button === 0 || isTouch)) {
+              if (storeIndex < 0) {
+                  store.push(ev);
+                  storeIndex = store.length - 1;
+              }
+          } else if (eventType & (INPUT_END | INPUT_CANCEL)) {
+              removePointer = true;
+          }
+
+          // it not found, so the pointer hasn't been down (so it's probably a hover)
+          if (storeIndex < 0) {
+              return;
+          }
+
+          // update the event in the store
+          store[storeIndex] = ev;
+
+          this.callback(this.manager, eventType, {
+              pointers: store,
+              changedPointers: [ev],
+              pointerType: pointerType,
+              srcEvent: ev
+          });
+
+          if (removePointer) {
+              // remove from the store
+              store.splice(storeIndex, 1);
+          }
+      }
+  });
+
+  var SINGLE_TOUCH_INPUT_MAP = {
+      touchstart: INPUT_START,
+      touchmove: INPUT_MOVE,
+      touchend: INPUT_END,
+      touchcancel: INPUT_CANCEL
+  };
+
+  var SINGLE_TOUCH_TARGET_EVENTS = 'touchstart';
+  var SINGLE_TOUCH_WINDOW_EVENTS = 'touchstart touchmove touchend touchcancel';
+
+  /**
+   * Touch events input
+   * @constructor
+   * @extends Input
+   */
+  function SingleTouchInput() {
+      this.evTarget = SINGLE_TOUCH_TARGET_EVENTS;
+      this.evWin = SINGLE_TOUCH_WINDOW_EVENTS;
+      this.started = false;
+
+      Input.apply(this, arguments);
+  }
+
+  inherit(SingleTouchInput, Input, {
+      handler: function TEhandler(ev) {
+          var type = SINGLE_TOUCH_INPUT_MAP[ev.type];
+
+          // should we handle the touch events?
+          if (type === INPUT_START) {
+              this.started = true;
+          }
+
+          if (!this.started) {
+              return;
+          }
+
+          var touches = normalizeSingleTouches.call(this, ev, type);
+
+          // when done, reset the started state
+          if (type & (INPUT_END | INPUT_CANCEL) && touches[0].length - touches[1].length === 0) {
+              this.started = false;
+          }
+
+          this.callback(this.manager, type, {
+              pointers: touches[0],
+              changedPointers: touches[1],
+              pointerType: INPUT_TYPE_TOUCH,
+              srcEvent: ev
+          });
+      }
+  });
+
+  /**
+   * @this {TouchInput}
+   * @param {Object} ev
+   * @param {Number} type flag
+   * @returns {undefined|Array} [all, changed]
+   */
+  function normalizeSingleTouches(ev, type) {
+      var all = toArray(ev.touches);
+      var changed = toArray(ev.changedTouches);
+
+      if (type & (INPUT_END | INPUT_CANCEL)) {
+          all = uniqueArray(all.concat(changed), 'identifier', true);
+      }
+
+      return [all, changed];
+  }
+
+  var TOUCH_INPUT_MAP = {
+      touchstart: INPUT_START,
+      touchmove: INPUT_MOVE,
+      touchend: INPUT_END,
+      touchcancel: INPUT_CANCEL
+  };
+
+  var TOUCH_TARGET_EVENTS = 'touchstart touchmove touchend touchcancel';
+
+  /**
+   * Multi-user touch events input
+   * @constructor
+   * @extends Input
+   */
+  function TouchInput() {
+      this.evTarget = TOUCH_TARGET_EVENTS;
+      this.targetIds = {};
+
+      Input.apply(this, arguments);
+  }
+
+  inherit(TouchInput, Input, {
+      handler: function MTEhandler(ev) {
+          var type = TOUCH_INPUT_MAP[ev.type];
+          var touches = getTouches.call(this, ev, type);
+          if (!touches) {
+              return;
+          }
+
+          this.callback(this.manager, type, {
+              pointers: touches[0],
+              changedPointers: touches[1],
+              pointerType: INPUT_TYPE_TOUCH,
+              srcEvent: ev
+          });
+      }
+  });
+
+  /**
+   * @this {TouchInput}
+   * @param {Object} ev
+   * @param {Number} type flag
+   * @returns {undefined|Array} [all, changed]
+   */
+  function getTouches(ev, type) {
+      var allTouches = toArray(ev.touches);
+      var targetIds = this.targetIds;
+
+      // when there is only one touch, the process can be simplified
+      if (type & (INPUT_START | INPUT_MOVE) && allTouches.length === 1) {
+          targetIds[allTouches[0].identifier] = true;
+          return [allTouches, allTouches];
+      }
+
+      var i,
+          targetTouches,
+          changedTouches = toArray(ev.changedTouches),
+          changedTargetTouches = [],
+          target = this.target;
+
+      // get target touches from touches
+      targetTouches = allTouches.filter(function(touch) {
+          return hasParent(touch.target, target);
+      });
+
+      // collect touches
+      if (type === INPUT_START) {
+          i = 0;
+          while (i < targetTouches.length) {
+              targetIds[targetTouches[i].identifier] = true;
+              i++;
+          }
+      }
+
+      // filter changed touches to only contain touches that exist in the collected target ids
+      i = 0;
+      while (i < changedTouches.length) {
+          if (targetIds[changedTouches[i].identifier]) {
+              changedTargetTouches.push(changedTouches[i]);
+          }
+
+          // cleanup removed touches
+          if (type & (INPUT_END | INPUT_CANCEL)) {
+              delete targetIds[changedTouches[i].identifier];
+          }
+          i++;
+      }
+
+      if (!changedTargetTouches.length) {
+          return;
+      }
+
+      return [
+          // merge targetTouches with changedTargetTouches so it contains ALL touches, including 'end' and 'cancel'
+          uniqueArray(targetTouches.concat(changedTargetTouches), 'identifier', true),
+          changedTargetTouches
+      ];
+  }
+
+  /**
+   * Combined touch and mouse input
+   *
+   * Touch has a higher priority then mouse, and while touching no mouse events are allowed.
+   * This because touch devices also emit mouse events while doing a touch.
+   *
+   * @constructor
+   * @extends Input
+   */
+  function TouchMouseInput() {
+      Input.apply(this, arguments);
+
+      var handler = bindFn(this.handler, this);
+      this.touch = new TouchInput(this.manager, handler);
+      this.mouse = new MouseInput(this.manager, handler);
+  }
+
+  inherit(TouchMouseInput, Input, {
+      /**
+       * handle mouse and touch events
+       * @param {Hammer} manager
+       * @param {String} inputEvent
+       * @param {Object} inputData
+       */
+      handler: function TMEhandler(manager, inputEvent, inputData) {
+          var isTouch = (inputData.pointerType == INPUT_TYPE_TOUCH),
+              isMouse = (inputData.pointerType == INPUT_TYPE_MOUSE);
+
+          // when we're in a touch event, so  block all upcoming mouse events
+          // most mobile browser also emit mouseevents, right after touchstart
+          if (isTouch) {
+              this.mouse.allow = false;
+          } else if (isMouse && !this.mouse.allow) {
+              return;
+          }
+
+          // reset the allowMouse when we're done
+          if (inputEvent & (INPUT_END | INPUT_CANCEL)) {
+              this.mouse.allow = true;
+          }
+
+          this.callback(manager, inputEvent, inputData);
+      },
+
+      /**
+       * remove the event listeners
+       */
+      destroy: function destroy() {
+          this.touch.destroy();
+          this.mouse.destroy();
+      }
+  });
+
+  var PREFIXED_TOUCH_ACTION = prefixed(TEST_ELEMENT.style, 'touchAction');
+  var NATIVE_TOUCH_ACTION = PREFIXED_TOUCH_ACTION !== undefined;
+
+  // magical touchAction value
+  var TOUCH_ACTION_COMPUTE = 'compute';
+  var TOUCH_ACTION_AUTO = 'auto';
+  var TOUCH_ACTION_MANIPULATION = 'manipulation'; // not implemented
+  var TOUCH_ACTION_NONE = 'none';
+  var TOUCH_ACTION_PAN_X = 'pan-x';
+  var TOUCH_ACTION_PAN_Y = 'pan-y';
+
+  /**
+   * Touch Action
+   * sets the touchAction property or uses the js alternative
+   * @param {Manager} manager
+   * @param {String} value
+   * @constructor
+   */
+  function TouchAction(manager, value) {
+      this.manager = manager;
+      this.set(value);
+  }
+
+  TouchAction.prototype = {
+      /**
+       * set the touchAction value on the element or enable the polyfill
+       * @param {String} value
+       */
+      set: function(value) {
+          // find out the touch-action by the event handlers
+          if (value == TOUCH_ACTION_COMPUTE) {
+              value = this.compute();
+          }
+
+          if (NATIVE_TOUCH_ACTION) {
+              this.manager.element.style[PREFIXED_TOUCH_ACTION] = value;
+          }
+          this.actions = value.toLowerCase().trim();
+      },
+
+      /**
+       * just re-set the touchAction value
+       */
+      update: function() {
+          this.set(this.manager.options.touchAction);
+      },
+
+      /**
+       * compute the value for the touchAction property based on the recognizer's settings
+       * @returns {String} value
+       */
+      compute: function() {
+          var actions = [];
+          each(this.manager.recognizers, function(recognizer) {
+              if (boolOrFn(recognizer.options.enable, [recognizer])) {
+                  actions = actions.concat(recognizer.getTouchAction());
+              }
+          });
+          return cleanTouchActions(actions.join(' '));
+      },
+
+      /**
+       * this method is called on each input cycle and provides the preventing of the browser behavior
+       * @param {Object} input
+       */
+      preventDefaults: function(input) {
+          // not needed with native support for the touchAction property
+          if (NATIVE_TOUCH_ACTION) {
+              return;
+          }
+
+          var srcEvent = input.srcEvent;
+          var direction = input.offsetDirection;
+
+          // if the touch action did prevented once this session
+          if (this.manager.session.prevented) {
+              srcEvent.preventDefault();
+              return;
+          }
+
+          var actions = this.actions;
+          var hasNone = inStr(actions, TOUCH_ACTION_NONE);
+          var hasPanY = inStr(actions, TOUCH_ACTION_PAN_Y);
+          var hasPanX = inStr(actions, TOUCH_ACTION_PAN_X);
+
+          if (hasNone ||
+              (hasPanY && direction & DIRECTION_HORIZONTAL) ||
+              (hasPanX && direction & DIRECTION_VERTICAL)) {
+              return this.preventSrc(srcEvent);
+          }
+      },
+
+      /**
+       * call preventDefault to prevent the browser's default behavior (scrolling in most cases)
+       * @param {Object} srcEvent
+       */
+      preventSrc: function(srcEvent) {
+          this.manager.session.prevented = true;
+          srcEvent.preventDefault();
+      }
+  };
+
+  /**
+   * when the touchActions are collected they are not a valid value, so we need to clean things up. *
+   * @param {String} actions
+   * @returns {*}
+   */
+  function cleanTouchActions(actions) {
+      // none
+      if (inStr(actions, TOUCH_ACTION_NONE)) {
+          return TOUCH_ACTION_NONE;
+      }
+
+      var hasPanX = inStr(actions, TOUCH_ACTION_PAN_X);
+      var hasPanY = inStr(actions, TOUCH_ACTION_PAN_Y);
+
+      // pan-x and pan-y can be combined
+      if (hasPanX && hasPanY) {
+          return TOUCH_ACTION_PAN_X + ' ' + TOUCH_ACTION_PAN_Y;
+      }
+
+      // pan-x OR pan-y
+      if (hasPanX || hasPanY) {
+          return hasPanX ? TOUCH_ACTION_PAN_X : TOUCH_ACTION_PAN_Y;
+      }
+
+      // manipulation
+      if (inStr(actions, TOUCH_ACTION_MANIPULATION)) {
+          return TOUCH_ACTION_MANIPULATION;
+      }
+
+      return TOUCH_ACTION_AUTO;
+  }
+
+  /**
+   * Recognizer flow explained; *
+   * All recognizers have the initial state of POSSIBLE when a input session starts.
+   * The definition of a input session is from the first input until the last input, with all it's movement in it. *
+   * Example session for mouse-input: mousedown -> mousemove -> mouseup
+   *
+   * On each recognizing cycle (see Manager.recognize) the .recognize() method is executed
+   * which determines with state it should be.
+   *
+   * If the recognizer has the state FAILED, CANCELLED or RECOGNIZED (equals ENDED), it is reset to
+   * POSSIBLE to give it another change on the next cycle.
+   *
+   *               Possible
+   *                  |
+   *            +-----+---------------+
+   *            |                     |
+   *      +-----+-----+               |
+   *      |           |               |
+   *   Failed      Cancelled          |
+   *                          +-------+------+
+   *                          |              |
+   *                      Recognized       Began
+   *                                         |
+   *                                      Changed
+   *                                         |
+   *                                  Ended/Recognized
+   */
+  var STATE_POSSIBLE = 1;
+  var STATE_BEGAN = 2;
+  var STATE_CHANGED = 4;
+  var STATE_ENDED = 8;
+  var STATE_RECOGNIZED = STATE_ENDED;
+  var STATE_CANCELLED = 16;
+  var STATE_FAILED = 32;
+
+  /**
+   * Recognizer
+   * Every recognizer needs to extend from this class.
+   * @constructor
+   * @param {Object} options
+   */
+  function Recognizer(options) {
+      this.id = uniqueId();
+
+      this.manager = null;
+      this.options = merge(options || {}, this.defaults);
+
+      // default is enable true
+      this.options.enable = ifUndefined(this.options.enable, true);
+
+      this.state = STATE_POSSIBLE;
+
+      this.simultaneous = {};
+      this.requireFail = [];
+  }
+
+  Recognizer.prototype = {
+      /**
+       * @virtual
+       * @type {Object}
+       */
+      defaults: {},
+
+      /**
+       * set options
+       * @param {Object} options
+       * @return {Recognizer}
+       */
+      set: function(options) {
+          extend(this.options, options);
+
+          // also update the touchAction, in case something changed about the directions/enabled state
+          this.manager && this.manager.touchAction.update();
+          return this;
+      },
+
+      /**
+       * recognize simultaneous with an other recognizer.
+       * @param {Recognizer} otherRecognizer
+       * @returns {Recognizer} this
+       */
+      recognizeWith: function(otherRecognizer) {
+          if (invokeArrayArg(otherRecognizer, 'recognizeWith', this)) {
+              return this;
+          }
+
+          var simultaneous = this.simultaneous;
+          otherRecognizer = getRecognizerByNameIfManager(otherRecognizer, this);
+          if (!simultaneous[otherRecognizer.id]) {
+              simultaneous[otherRecognizer.id] = otherRecognizer;
+              otherRecognizer.recognizeWith(this);
+          }
+          return this;
+      },
+
+      /**
+       * drop the simultaneous link. it doesnt remove the link on the other recognizer.
+       * @param {Recognizer} otherRecognizer
+       * @returns {Recognizer} this
+       */
+      dropRecognizeWith: function(otherRecognizer) {
+          if (invokeArrayArg(otherRecognizer, 'dropRecognizeWith', this)) {
+              return this;
+          }
+
+          otherRecognizer = getRecognizerByNameIfManager(otherRecognizer, this);
+          delete this.simultaneous[otherRecognizer.id];
+          return this;
+      },
+
+      /**
+       * recognizer can only run when an other is failing
+       * @param {Recognizer} otherRecognizer
+       * @returns {Recognizer} this
+       */
+      requireFailure: function(otherRecognizer) {
+          if (invokeArrayArg(otherRecognizer, 'requireFailure', this)) {
+              return this;
+          }
+
+          var requireFail = this.requireFail;
+          otherRecognizer = getRecognizerByNameIfManager(otherRecognizer, this);
+          if (inArray(requireFail, otherRecognizer) === -1) {
+              requireFail.push(otherRecognizer);
+              otherRecognizer.requireFailure(this);
+          }
+          return this;
+      },
+
+      /**
+       * drop the requireFailure link. it does not remove the link on the other recognizer.
+       * @param {Recognizer} otherRecognizer
+       * @returns {Recognizer} this
+       */
+      dropRequireFailure: function(otherRecognizer) {
+          if (invokeArrayArg(otherRecognizer, 'dropRequireFailure', this)) {
+              return this;
+          }
+
+          otherRecognizer = getRecognizerByNameIfManager(otherRecognizer, this);
+          var index = inArray(this.requireFail, otherRecognizer);
+          if (index > -1) {
+              this.requireFail.splice(index, 1);
+          }
+          return this;
+      },
+
+      /**
+       * has require failures boolean
+       * @returns {boolean}
+       */
+      hasRequireFailures: function() {
+          return this.requireFail.length > 0;
+      },
+
+      /**
+       * if the recognizer can recognize simultaneous with an other recognizer
+       * @param {Recognizer} otherRecognizer
+       * @returns {Boolean}
+       */
+      canRecognizeWith: function(otherRecognizer) {
+          return !!this.simultaneous[otherRecognizer.id];
+      },
+
+      /**
+       * You should use `tryEmit` instead of `emit` directly to check
+       * that all the needed recognizers has failed before emitting.
+       * @param {Object} input
+       */
+      emit: function(input) {
+          var self = this;
+          var state = this.state;
+
+          function emit(withState) {
+              self.manager.emit(self.options.event + (withState ? stateStr(state) : ''), input);
+          }
+
+          // 'panstart' and 'panmove'
+          if (state < STATE_ENDED) {
+              emit(true);
+          }
+
+          emit(); // simple 'eventName' events
+
+          // panend and pancancel
+          if (state >= STATE_ENDED) {
+              emit(true);
+          }
+      },
+
+      /**
+       * Check that all the require failure recognizers has failed,
+       * if true, it emits a gesture event,
+       * otherwise, setup the state to FAILED.
+       * @param {Object} input
+       */
+      tryEmit: function(input) {
+          if (this.canEmit()) {
+              return this.emit(input);
+          }
+          // it's failing anyway
+          this.state = STATE_FAILED;
+      },
+
+      /**
+       * can we emit?
+       * @returns {boolean}
+       */
+      canEmit: function() {
+          var i = 0;
+          while (i < this.requireFail.length) {
+              if (!(this.requireFail[i].state & (STATE_FAILED | STATE_POSSIBLE))) {
+                  return false;
+              }
+              i++;
+          }
+          return true;
+      },
+
+      /**
+       * update the recognizer
+       * @param {Object} inputData
+       */
+      recognize: function(inputData) {
+          // make a new copy of the inputData
+          // so we can change the inputData without messing up the other recognizers
+          var inputDataClone = extend({}, inputData);
+
+          // is is enabled and allow recognizing?
+          if (!boolOrFn(this.options.enable, [this, inputDataClone])) {
+              this.reset();
+              this.state = STATE_FAILED;
+              return;
+          }
+
+          // reset when we've reached the end
+          if (this.state & (STATE_RECOGNIZED | STATE_CANCELLED | STATE_FAILED)) {
+              this.state = STATE_POSSIBLE;
+          }
+
+          this.state = this.process(inputDataClone);
+
+          // the recognizer has recognized a gesture
+          // so trigger an event
+          if (this.state & (STATE_BEGAN | STATE_CHANGED | STATE_ENDED | STATE_CANCELLED)) {
+              this.tryEmit(inputDataClone);
+          }
+      },
+
+      /**
+       * return the state of the recognizer
+       * the actual recognizing happens in this method
+       * @virtual
+       * @param {Object} inputData
+       * @returns {Const} STATE
+       */
+      process: function(inputData) { }, // jshint ignore:line
+
+      /**
+       * return the preferred touch-action
+       * @virtual
+       * @returns {Array}
+       */
+      getTouchAction: function() { },
+
+      /**
+       * called when the gesture isn't allowed to recognize
+       * like when another is being recognized or it is disabled
+       * @virtual
+       */
+      reset: function() { }
+  };
+
+  /**
+   * get a usable string, used as event postfix
+   * @param {Const} state
+   * @returns {String} state
+   */
+  function stateStr(state) {
+      if (state & STATE_CANCELLED) {
+          return 'cancel';
+      } else if (state & STATE_ENDED) {
+          return 'end';
+      } else if (state & STATE_CHANGED) {
+          return 'move';
+      } else if (state & STATE_BEGAN) {
+          return 'start';
+      }
+      return '';
+  }
+
+  /**
+   * direction cons to string
+   * @param {Const} direction
+   * @returns {String}
+   */
+  function directionStr(direction) {
+      if (direction == DIRECTION_DOWN) {
+          return 'down';
+      } else if (direction == DIRECTION_UP) {
+          return 'up';
+      } else if (direction == DIRECTION_LEFT) {
+          return 'left';
+      } else if (direction == DIRECTION_RIGHT) {
+          return 'right';
+      }
+      return '';
+  }
+
+  /**
+   * get a recognizer by name if it is bound to a manager
+   * @param {Recognizer|String} otherRecognizer
+   * @param {Recognizer} recognizer
+   * @returns {Recognizer}
+   */
+  function getRecognizerByNameIfManager(otherRecognizer, recognizer) {
+      var manager = recognizer.manager;
+      if (manager) {
+          return manager.get(otherRecognizer);
+      }
+      return otherRecognizer;
+  }
+
+  /**
+   * This recognizer is just used as a base for the simple attribute recognizers.
+   * @constructor
+   * @extends Recognizer
+   */
+  function AttrRecognizer() {
+      Recognizer.apply(this, arguments);
+  }
+
+  inherit(AttrRecognizer, Recognizer, {
+      /**
+       * @namespace
+       * @memberof AttrRecognizer
+       */
+      defaults: {
+          /**
+           * @type {Number}
+           * @default 1
+           */
+          pointers: 1
+      },
+
+      /**
+       * Used to check if it the recognizer receives valid input, like input.distance > 10.
+       * @memberof AttrRecognizer
+       * @param {Object} input
+       * @returns {Boolean} recognized
+       */
+      attrTest: function(input) {
+          var optionPointers = this.options.pointers;
+          return optionPointers === 0 || input.pointers.length === optionPointers;
+      },
+
+      /**
+       * Process the input and return the state for the recognizer
+       * @memberof AttrRecognizer
+       * @param {Object} input
+       * @returns {*} State
+       */
+      process: function(input) {
+          var state = this.state;
+          var eventType = input.eventType;
+
+          var isRecognized = state & (STATE_BEGAN | STATE_CHANGED);
+          var isValid = this.attrTest(input);
+
+          // on cancel input and we've recognized before, return STATE_CANCELLED
+          if (isRecognized && (eventType & INPUT_CANCEL || !isValid)) {
+              return state | STATE_CANCELLED;
+          } else if (isRecognized || isValid) {
+              if (eventType & INPUT_END) {
+                  return state | STATE_ENDED;
+              } else if (!(state & STATE_BEGAN)) {
+                  return STATE_BEGAN;
+              }
+              return state | STATE_CHANGED;
+          }
+          return STATE_FAILED;
+      }
+  });
+
+  /**
+   * Pan
+   * Recognized when the pointer is down and moved in the allowed direction.
+   * @constructor
+   * @extends AttrRecognizer
+   */
+  function PanRecognizer() {
+      AttrRecognizer.apply(this, arguments);
+
+      this.pX = null;
+      this.pY = null;
+  }
+
+  inherit(PanRecognizer, AttrRecognizer, {
+      /**
+       * @namespace
+       * @memberof PanRecognizer
+       */
+      defaults: {
+          event: 'pan',
+          threshold: 10,
+          pointers: 1,
+          direction: DIRECTION_ALL
+      },
+
+      getTouchAction: function() {
+          var direction = this.options.direction;
+          var actions = [];
+          if (direction & DIRECTION_HORIZONTAL) {
+              actions.push(TOUCH_ACTION_PAN_Y);
+          }
+          if (direction & DIRECTION_VERTICAL) {
+              actions.push(TOUCH_ACTION_PAN_X);
+          }
+          return actions;
+      },
+
+      directionTest: function(input) {
+          var options = this.options;
+          var hasMoved = true;
+          var distance = input.distance;
+          var direction = input.direction;
+          var x = input.deltaX;
+          var y = input.deltaY;
+
+          // lock to axis?
+          if (!(direction & options.direction)) {
+              if (options.direction & DIRECTION_HORIZONTAL) {
+                  direction = (x === 0) ? DIRECTION_NONE : (x < 0) ? DIRECTION_LEFT : DIRECTION_RIGHT;
+                  hasMoved = x != this.pX;
+                  distance = Math.abs(input.deltaX);
+              } else {
+                  direction = (y === 0) ? DIRECTION_NONE : (y < 0) ? DIRECTION_UP : DIRECTION_DOWN;
+                  hasMoved = y != this.pY;
+                  distance = Math.abs(input.deltaY);
+              }
+          }
+          input.direction = direction;
+          return hasMoved && distance > options.threshold && direction & options.direction;
+      },
+
+      attrTest: function(input) {
+          return AttrRecognizer.prototype.attrTest.call(this, input) &&
+              (this.state & STATE_BEGAN || (!(this.state & STATE_BEGAN) && this.directionTest(input)));
+      },
+
+      emit: function(input) {
+          this.pX = input.deltaX;
+          this.pY = input.deltaY;
+
+          var direction = directionStr(input.direction);
+          if (direction) {
+              this.manager.emit(this.options.event + direction, input);
+          }
+
+          this._super.emit.call(this, input);
+      }
+  });
+
+  /**
+   * Pinch
+   * Recognized when two or more pointers are moving toward (zoom-in) or away from each other (zoom-out).
+   * @constructor
+   * @extends AttrRecognizer
+   */
+  function PinchRecognizer() {
+      AttrRecognizer.apply(this, arguments);
+  }
+
+  inherit(PinchRecognizer, AttrRecognizer, {
+      /**
+       * @namespace
+       * @memberof PinchRecognizer
+       */
+      defaults: {
+          event: 'pinch',
+          threshold: 0,
+          pointers: 2
+      },
+
+      getTouchAction: function() {
+          return [TOUCH_ACTION_NONE];
+      },
+
+      attrTest: function(input) {
+          return this._super.attrTest.call(this, input) &&
+              (Math.abs(input.scale - 1) > this.options.threshold || this.state & STATE_BEGAN);
+      },
+
+      emit: function(input) {
+          this._super.emit.call(this, input);
+          if (input.scale !== 1) {
+              var inOut = input.scale < 1 ? 'in' : 'out';
+              this.manager.emit(this.options.event + inOut, input);
+          }
+      }
+  });
+
+  /**
+   * Press
+   * Recognized when the pointer is down for x ms without any movement.
+   * @constructor
+   * @extends Recognizer
+   */
+  function PressRecognizer() {
+      Recognizer.apply(this, arguments);
+
+      this._timer = null;
+      this._input = null;
+  }
+
+  inherit(PressRecognizer, Recognizer, {
+      /**
+       * @namespace
+       * @memberof PressRecognizer
+       */
+      defaults: {
+          event: 'press',
+          pointers: 1,
+          time: 500, // minimal time of the pointer to be pressed
+          threshold: 5 // a minimal movement is ok, but keep it low
+      },
+
+      getTouchAction: function() {
+          return [TOUCH_ACTION_AUTO];
+      },
+
+      process: function(input) {
+          var options = this.options;
+          var validPointers = input.pointers.length === options.pointers;
+          var validMovement = input.distance < options.threshold;
+          var validTime = input.deltaTime > options.time;
+
+          this._input = input;
+
+          // we only allow little movement
+          // and we've reached an end event, so a tap is possible
+          if (!validMovement || !validPointers || (input.eventType & (INPUT_END | INPUT_CANCEL) && !validTime)) {
+              this.reset();
+          } else if (input.eventType & INPUT_START) {
+              this.reset();
+              this._timer = setTimeoutContext(function() {
+                  this.state = STATE_RECOGNIZED;
+                  this.tryEmit();
+              }, options.time, this);
+          } else if (input.eventType & INPUT_END) {
+              return STATE_RECOGNIZED;
+          }
+          return STATE_FAILED;
+      },
+
+      reset: function() {
+          clearTimeout(this._timer);
+      },
+
+      emit: function(input) {
+          if (this.state !== STATE_RECOGNIZED) {
+              return;
+          }
+
+          if (input && (input.eventType & INPUT_END)) {
+              this.manager.emit(this.options.event + 'up', input);
+          } else {
+              this._input.timeStamp = now();
+              this.manager.emit(this.options.event, this._input);
+          }
+      }
+  });
+
+  /**
+   * Rotate
+   * Recognized when two or more pointer are moving in a circular motion.
+   * @constructor
+   * @extends AttrRecognizer
+   */
+  function RotateRecognizer() {
+      AttrRecognizer.apply(this, arguments);
+  }
+
+  inherit(RotateRecognizer, AttrRecognizer, {
+      /**
+       * @namespace
+       * @memberof RotateRecognizer
+       */
+      defaults: {
+          event: 'rotate',
+          threshold: 0,
+          pointers: 2
+      },
+
+      getTouchAction: function() {
+          return [TOUCH_ACTION_NONE];
+      },
+
+      attrTest: function(input) {
+          return this._super.attrTest.call(this, input) &&
+              (Math.abs(input.rotation) > this.options.threshold || this.state & STATE_BEGAN);
+      }
+  });
+
+  /**
+   * Swipe
+   * Recognized when the pointer is moving fast (velocity), with enough distance in the allowed direction.
+   * @constructor
+   * @extends AttrRecognizer
+   */
+  function SwipeRecognizer() {
+      AttrRecognizer.apply(this, arguments);
+  }
+
+  inherit(SwipeRecognizer, AttrRecognizer, {
+      /**
+       * @namespace
+       * @memberof SwipeRecognizer
+       */
+      defaults: {
+          event: 'swipe',
+          threshold: 10,
+          velocity: 0.65,
+          direction: DIRECTION_HORIZONTAL | DIRECTION_VERTICAL,
+          pointers: 1
+      },
+
+      getTouchAction: function() {
+          return PanRecognizer.prototype.getTouchAction.call(this);
+      },
+
+      attrTest: function(input) {
+          var direction = this.options.direction;
+          var velocity;
+
+          if (direction & (DIRECTION_HORIZONTAL | DIRECTION_VERTICAL)) {
+              velocity = input.velocity;
+          } else if (direction & DIRECTION_HORIZONTAL) {
+              velocity = input.velocityX;
+          } else if (direction & DIRECTION_VERTICAL) {
+              velocity = input.velocityY;
+          }
+
+          return this._super.attrTest.call(this, input) &&
+              direction & input.direction &&
+              input.distance > this.options.threshold &&
+              abs(velocity) > this.options.velocity && input.eventType & INPUT_END;
+      },
+
+      emit: function(input) {
+          var direction = directionStr(input.direction);
+          if (direction) {
+              this.manager.emit(this.options.event + direction, input);
+          }
+
+          this.manager.emit(this.options.event, input);
+      }
+  });
+
+  /**
+   * A tap is ecognized when the pointer is doing a small tap/click. Multiple taps are recognized if they occur
+   * between the given interval and position. The delay option can be used to recognize multi-taps without firing
+   * a single tap.
+   *
+   * The eventData from the emitted event contains the property `tapCount`, which contains the amount of
+   * multi-taps being recognized.
+   * @constructor
+   * @extends Recognizer
+   */
+  function TapRecognizer() {
+      Recognizer.apply(this, arguments);
+
+      // previous time and center,
+      // used for tap counting
+      this.pTime = false;
+      this.pCenter = false;
+
+      this._timer = null;
+      this._input = null;
+      this.count = 0;
+  }
+
+  inherit(TapRecognizer, Recognizer, {
+      /**
+       * @namespace
+       * @memberof PinchRecognizer
+       */
+      defaults: {
+          event: 'tap',
+          pointers: 1,
+          taps: 1,
+          interval: 300, // max time between the multi-tap taps
+          time: 250, // max time of the pointer to be down (like finger on the screen)
+          threshold: 2, // a minimal movement is ok, but keep it low
+          posThreshold: 10 // a multi-tap can be a bit off the initial position
+      },
+
+      getTouchAction: function() {
+          return [TOUCH_ACTION_MANIPULATION];
+      },
+
+      process: function(input) {
+          var options = this.options;
+
+          var validPointers = input.pointers.length === options.pointers;
+          var validMovement = input.distance < options.threshold;
+          var validTouchTime = input.deltaTime < options.time;
+
+          this.reset();
+
+          if ((input.eventType & INPUT_START) && (this.count === 0)) {
+              return this.failTimeout();
+          }
+
+          // we only allow little movement
+          // and we've reached an end event, so a tap is possible
+          if (validMovement && validTouchTime && validPointers) {
+              if (input.eventType != INPUT_END) {
+                  return this.failTimeout();
+              }
+
+              var validInterval = this.pTime ? (input.timeStamp - this.pTime < options.interval) : true;
+              var validMultiTap = !this.pCenter || getDistance(this.pCenter, input.center) < options.posThreshold;
+
+              this.pTime = input.timeStamp;
+              this.pCenter = input.center;
+
+              if (!validMultiTap || !validInterval) {
+                  this.count = 1;
+              } else {
+                  this.count += 1;
+              }
+
+              this._input = input;
+
+              // if tap count matches we have recognized it,
+              // else it has began recognizing...
+              var tapCount = this.count % options.taps;
+              if (tapCount === 0) {
+                  // no failing requirements, immediately trigger the tap event
+                  // or wait as long as the multitap interval to trigger
+                  if (!this.hasRequireFailures()) {
+                      return STATE_RECOGNIZED;
+                  } else {
+                      this._timer = setTimeoutContext(function() {
+                          this.state = STATE_RECOGNIZED;
+                          this.tryEmit();
+                      }, options.interval, this);
+                      return STATE_BEGAN;
+                  }
+              }
+          }
+          return STATE_FAILED;
+      },
+
+      failTimeout: function() {
+          this._timer = setTimeoutContext(function() {
+              this.state = STATE_FAILED;
+          }, this.options.interval, this);
+          return STATE_FAILED;
+      },
+
+      reset: function() {
+          clearTimeout(this._timer);
+      },
+
+      emit: function() {
+          if (this.state == STATE_RECOGNIZED ) {
+              this._input.tapCount = this.count;
+              this.manager.emit(this.options.event, this._input);
+          }
+      }
+  });
+
+  /**
+   * Simple way to create an manager with a default set of recognizers.
+   * @param {HTMLElement} element
+   * @param {Object} [options]
+   * @constructor
+   */
+  function Hammer(element, options) {
+      options = options || {};
+      options.recognizers = ifUndefined(options.recognizers, Hammer.defaults.preset);
+      return new Manager(element, options);
+  }
+
+  /**
+   * @const {string}
+   */
+  Hammer.VERSION = '2.0.4';
+
+  /**
+   * default settings
+   * @namespace
+   */
+  Hammer.defaults = {
+      /**
+       * set if DOM events are being triggered.
+       * But this is slower and unused by simple implementations, so disabled by default.
+       * @type {Boolean}
+       * @default false
+       */
+      domEvents: false,
+
+      /**
+       * The value for the touchAction property/fallback.
+       * When set to `compute` it will magically set the correct value based on the added recognizers.
+       * @type {String}
+       * @default compute
+       */
+      touchAction: TOUCH_ACTION_COMPUTE,
+
+      /**
+       * @type {Boolean}
+       * @default true
+       */
+      enable: true,
+
+      /**
+       * EXPERIMENTAL FEATURE -- can be removed/changed
+       * Change the parent input target element.
+       * If Null, then it is being set the to main element.
+       * @type {Null|EventTarget}
+       * @default null
+       */
+      inputTarget: null,
+
+      /**
+       * force an input class
+       * @type {Null|Function}
+       * @default null
+       */
+      inputClass: null,
+
+      /**
+       * Default recognizer setup when calling `Hammer()`
+       * When creating a new Manager these will be skipped.
+       * @type {Array}
+       */
+      preset: [
+          // RecognizerClass, options, [recognizeWith, ...], [requireFailure, ...]
+          [RotateRecognizer, { enable: false }],
+          [PinchRecognizer, { enable: false }, ['rotate']],
+          [SwipeRecognizer,{ direction: DIRECTION_HORIZONTAL }],
+          [PanRecognizer, { direction: DIRECTION_HORIZONTAL }, ['swipe']],
+          [TapRecognizer],
+          [TapRecognizer, { event: 'doubletap', taps: 2 }, ['tap']],
+          [PressRecognizer]
+      ],
+
+      /**
+       * Some CSS properties can be used to improve the working of Hammer.
+       * Add them to this method and they will be set when creating a new Manager.
+       * @namespace
+       */
+      cssProps: {
+          /**
+           * Disables text selection to improve the dragging gesture. Mainly for desktop browsers.
+           * @type {String}
+           * @default 'none'
+           */
+          userSelect: 'none',
+
+          /**
+           * Disable the Windows Phone grippers when pressing an element.
+           * @type {String}
+           * @default 'none'
+           */
+          touchSelect: 'none',
+
+          /**
+           * Disables the default callout shown when you touch and hold a touch target.
+           * On iOS, when you touch and hold a touch target such as a link, Safari displays
+           * a callout containing information about the link. This property allows you to disable that callout.
+           * @type {String}
+           * @default 'none'
+           */
+          touchCallout: 'none',
+
+          /**
+           * Specifies whether zooming is enabled. Used by IE10>
+           * @type {String}
+           * @default 'none'
+           */
+          contentZooming: 'none',
+
+          /**
+           * Specifies that an entire element should be draggable instead of its contents. Mainly for desktop browsers.
+           * @type {String}
+           * @default 'none'
+           */
+          userDrag: 'none',
+
+          /**
+           * Overrides the highlight color shown when the user taps a link or a JavaScript
+           * clickable element in iOS. This property obeys the alpha value, if specified.
+           * @type {String}
+           * @default 'rgba(0,0,0,0)'
+           */
+          tapHighlightColor: 'rgba(0,0,0,0)'
+      }
+  };
+
+  var STOP = 1;
+  var FORCED_STOP = 2;
+
+  /**
+   * Manager
+   * @param {HTMLElement} element
+   * @param {Object} [options]
+   * @constructor
+   */
+  function Manager(element, options) {
+      options = options || {};
+
+      this.options = merge(options, Hammer.defaults);
+      this.options.inputTarget = this.options.inputTarget || element;
+
+      this.handlers = {};
+      this.session = {};
+      this.recognizers = [];
+
+      this.element = element;
+      this.input = createInputInstance(this);
+      this.touchAction = new TouchAction(this, this.options.touchAction);
+
+      toggleCssProps(this, true);
+
+      each(options.recognizers, function(item) {
+          var recognizer = this.add(new (item[0])(item[1]));
+          item[2] && recognizer.recognizeWith(item[2]);
+          item[3] && recognizer.requireFailure(item[3]);
+      }, this);
+  }
+
+  Manager.prototype = {
+      /**
+       * set options
+       * @param {Object} options
+       * @returns {Manager}
+       */
+      set: function(options) {
+          extend(this.options, options);
+
+          // Options that need a little more setup
+          if (options.touchAction) {
+              this.touchAction.update();
+          }
+          if (options.inputTarget) {
+              // Clean up existing event listeners and reinitialize
+              this.input.destroy();
+              this.input.target = options.inputTarget;
+              this.input.init();
+          }
+          return this;
+      },
+
+      /**
+       * stop recognizing for this session.
+       * This session will be discarded, when a new [input]start event is fired.
+       * When forced, the recognizer cycle is stopped immediately.
+       * @param {Boolean} [force]
+       */
+      stop: function(force) {
+          this.session.stopped = force ? FORCED_STOP : STOP;
+      },
+
+      /**
+       * run the recognizers!
+       * called by the inputHandler function on every movement of the pointers (touches)
+       * it walks through all the recognizers and tries to detect the gesture that is being made
+       * @param {Object} inputData
+       */
+      recognize: function(inputData) {
+          var session = this.session;
+          if (session.stopped) {
+              return;
+          }
+
+          // run the touch-action polyfill
+          this.touchAction.preventDefaults(inputData);
+
+          var recognizer;
+          var recognizers = this.recognizers;
+
+          // this holds the recognizer that is being recognized.
+          // so the recognizer's state needs to be BEGAN, CHANGED, ENDED or RECOGNIZED
+          // if no recognizer is detecting a thing, it is set to `null`
+          var curRecognizer = session.curRecognizer;
+
+          // reset when the last recognizer is recognized
+          // or when we're in a new session
+          if (!curRecognizer || (curRecognizer && curRecognizer.state & STATE_RECOGNIZED)) {
+              curRecognizer = session.curRecognizer = null;
+          }
+
+          var i = 0;
+          while (i < recognizers.length) {
+              recognizer = recognizers[i];
+
+              // find out if we are allowed try to recognize the input for this one.
+              // 1.   allow if the session is NOT forced stopped (see the .stop() method)
+              // 2.   allow if we still haven't recognized a gesture in this session, or the this recognizer is the one
+              //      that is being recognized.
+              // 3.   allow if the recognizer is allowed to run simultaneous with the current recognized recognizer.
+              //      this can be setup with the `recognizeWith()` method on the recognizer.
+              if (session.stopped !== FORCED_STOP && ( // 1
+                      !curRecognizer || recognizer == curRecognizer || // 2
+                      recognizer.canRecognizeWith(curRecognizer))) { // 3
+                  recognizer.recognize(inputData);
+              } else {
+                  recognizer.reset();
+              }
+
+              // if the recognizer has been recognizing the input as a valid gesture, we want to store this one as the
+              // current active recognizer. but only if we don't already have an active recognizer
+              if (!curRecognizer && recognizer.state & (STATE_BEGAN | STATE_CHANGED | STATE_ENDED)) {
+                  curRecognizer = session.curRecognizer = recognizer;
+              }
+              i++;
+          }
+      },
+
+      /**
+       * get a recognizer by its event name.
+       * @param {Recognizer|String} recognizer
+       * @returns {Recognizer|Null}
+       */
+      get: function(recognizer) {
+          if (recognizer instanceof Recognizer) {
+              return recognizer;
+          }
+
+          var recognizers = this.recognizers;
+          for (var i = 0; i < recognizers.length; i++) {
+              if (recognizers[i].options.event == recognizer) {
+                  return recognizers[i];
+              }
+          }
+          return null;
+      },
+
+      /**
+       * add a recognizer to the manager
+       * existing recognizers with the same event name will be removed
+       * @param {Recognizer} recognizer
+       * @returns {Recognizer|Manager}
+       */
+      add: function(recognizer) {
+          if (invokeArrayArg(recognizer, 'add', this)) {
+              return this;
+          }
+
+          // remove existing
+          var existing = this.get(recognizer.options.event);
+          if (existing) {
+              this.remove(existing);
+          }
+
+          this.recognizers.push(recognizer);
+          recognizer.manager = this;
+
+          this.touchAction.update();
+          return recognizer;
+      },
+
+      /**
+       * remove a recognizer by name or instance
+       * @param {Recognizer|String} recognizer
+       * @returns {Manager}
+       */
+      remove: function(recognizer) {
+          if (invokeArrayArg(recognizer, 'remove', this)) {
+              return this;
+          }
+
+          var recognizers = this.recognizers;
+          recognizer = this.get(recognizer);
+          recognizers.splice(inArray(recognizers, recognizer), 1);
+
+          this.touchAction.update();
+          return this;
+      },
+
+      /**
+       * bind event
+       * @param {String} events
+       * @param {Function} handler
+       * @returns {EventEmitter} this
+       */
+      on: function(events, handler) {
+          var handlers = this.handlers;
+          each(splitStr(events), function(event) {
+              handlers[event] = handlers[event] || [];
+              handlers[event].push(handler);
+          });
+          return this;
+      },
+
+      /**
+       * unbind event, leave emit blank to remove all handlers
+       * @param {String} events
+       * @param {Function} [handler]
+       * @returns {EventEmitter} this
+       */
+      off: function(events, handler) {
+          var handlers = this.handlers;
+          each(splitStr(events), function(event) {
+              if (!handler) {
+                  delete handlers[event];
+              } else {
+                  handlers[event].splice(inArray(handlers[event], handler), 1);
+              }
+          });
+          return this;
+      },
+
+      /**
+       * emit event to the listeners
+       * @param {String} event
+       * @param {Object} data
+       */
+      emit: function(event, data) {
+          // we also want to trigger dom events
+          if (this.options.domEvents) {
+              triggerDomEvent(event, data);
+          }
+
+          // no handlers, so skip it all
+          var handlers = this.handlers[event] && this.handlers[event].slice();
+          if (!handlers || !handlers.length) {
+              return;
+          }
+
+          data.type = event;
+          data.preventDefault = function() {
+              data.srcEvent.preventDefault();
+          };
+
+          var i = 0;
+          while (i < handlers.length) {
+              handlers[i](data);
+              i++;
+          }
+      },
+
+      /**
+       * destroy the manager and unbinds all events
+       * it doesn't unbind dom events, that is the user own responsibility
+       */
+      destroy: function() {
+          this.element && toggleCssProps(this, false);
+
+          this.handlers = {};
+          this.session = {};
+          this.input.destroy();
+          this.element = null;
+      }
+  };
+
+  /**
+   * add/remove the css properties as defined in manager.options.cssProps
+   * @param {Manager} manager
+   * @param {Boolean} add
+   */
+  function toggleCssProps(manager, add) {
+      var element = manager.element;
+      each(manager.options.cssProps, function(value, name) {
+          element.style[prefixed(element.style, name)] = add ? value : '';
+      });
+  }
+
+  /**
+   * trigger dom event
+   * @param {String} event
+   * @param {Object} data
+   */
+  function triggerDomEvent(event, data) {
+      var gestureEvent = document.createEvent('Event');
+      gestureEvent.initEvent(event, true, true);
+      gestureEvent.gesture = data;
+      data.target.dispatchEvent(gestureEvent);
+  }
+
+  extend(Hammer, {
+      INPUT_START: INPUT_START,
+      INPUT_MOVE: INPUT_MOVE,
+      INPUT_END: INPUT_END,
+      INPUT_CANCEL: INPUT_CANCEL,
+
+      STATE_POSSIBLE: STATE_POSSIBLE,
+      STATE_BEGAN: STATE_BEGAN,
+      STATE_CHANGED: STATE_CHANGED,
+      STATE_ENDED: STATE_ENDED,
+      STATE_RECOGNIZED: STATE_RECOGNIZED,
+      STATE_CANCELLED: STATE_CANCELLED,
+      STATE_FAILED: STATE_FAILED,
+
+      DIRECTION_NONE: DIRECTION_NONE,
+      DIRECTION_LEFT: DIRECTION_LEFT,
+      DIRECTION_RIGHT: DIRECTION_RIGHT,
+      DIRECTION_UP: DIRECTION_UP,
+      DIRECTION_DOWN: DIRECTION_DOWN,
+      DIRECTION_HORIZONTAL: DIRECTION_HORIZONTAL,
+      DIRECTION_VERTICAL: DIRECTION_VERTICAL,
+      DIRECTION_ALL: DIRECTION_ALL,
+
+      Manager: Manager,
+      Input: Input,
+      TouchAction: TouchAction,
+
+      TouchInput: TouchInput,
+      MouseInput: MouseInput,
+      PointerEventInput: PointerEventInput,
+      TouchMouseInput: TouchMouseInput,
+      SingleTouchInput: SingleTouchInput,
+
+      Recognizer: Recognizer,
+      AttrRecognizer: AttrRecognizer,
+      Tap: TapRecognizer,
+      Pan: PanRecognizer,
+      Swipe: SwipeRecognizer,
+      Pinch: PinchRecognizer,
+      Rotate: RotateRecognizer,
+      Press: PressRecognizer,
+
+      on: addEventListeners,
+      off: removeEventListeners,
+      each: each,
+      merge: merge,
+      extend: extend,
+      inherit: inherit,
+      bindFn: bindFn,
+      prefixed: prefixed
+  });
+
+  if ("function" == TYPE_FUNCTION && __webpack_require__(107)) {
+      !(__WEBPACK_AMD_DEFINE_RESULT__ = function() {
+          return Hammer;
+      }.call(exports, __webpack_require__, exports, module), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__));
+  } else if (typeof module != 'undefined' && module.exports) {
+      module.exports = Hammer;
+  } else {
+      window[exportName] = Hammer;
+  }
+
+  })(window, document, 'Hammer');
+
+
+/***/ },
+/* 72 */
 /***/ function(module, exports, __webpack_require__) {
 
   /* WEBPACK VAR INJECTION */(function(module) {//! moment.js
@@ -31273,2704 +33976,7 @@ return /******/ (function(modules) { // webpackBootstrap
       return _moment;
 
   }));
-  /* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(90)(module)))
-
-/***/ },
-/* 71 */
-/***/ function(module, exports, __webpack_require__) {
-
-  var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;'use strict';
-
-  (function (factory) {
-    if (true) {
-      // AMD. Register as an anonymous module.
-      !(__WEBPACK_AMD_DEFINE_ARRAY__ = [], __WEBPACK_AMD_DEFINE_FACTORY__ = (factory), __WEBPACK_AMD_DEFINE_RESULT__ = (typeof __WEBPACK_AMD_DEFINE_FACTORY__ === 'function' ? (__WEBPACK_AMD_DEFINE_FACTORY__.apply(exports, __WEBPACK_AMD_DEFINE_ARRAY__)) : __WEBPACK_AMD_DEFINE_FACTORY__), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__));
-    } else if (typeof exports === 'object') {
-      // Node. Does not work with strict CommonJS, but
-      // only CommonJS-like environments that support module.exports,
-      // like Node.
-      module.exports = factory();
-    } else {
-      // Browser globals (root is window)
-      window.propagating = factory();
-    }
-  }(function () {
-    var _firstTarget = null; // singleton, will contain the target element where the touch event started
-    var _processing = false; // singleton, true when a touch event is being handled
-
-    /**
-     * Extend an Hammer.js instance with event propagation.
-     *
-     * Features:
-     * - Events emitted by hammer will propagate in order from child to parent
-     *   elements.
-     * - Events are extended with a function `event.stopPropagation()` to stop
-     *   propagation to parent elements.
-     * - An option `preventDefault` to stop all default browser behavior.
-     *
-     * Usage:
-     *   var hammer = propagatingHammer(new Hammer(element));
-     *   var hammer = propagatingHammer(new Hammer(element), {preventDefault: true});
-     *
-     * @param {Hammer.Manager} hammer   An hammer instance.
-     * @param {Object} [options]        Available options:
-     *                                  - `preventDefault: true | 'mouse' | 'touch' | 'pen'`.
-     *                                    Enforce preventing the default browser behavior.
-     *                                    Cannot be set to `false`.
-     * @return {Hammer.Manager} Returns the same hammer instance with extended
-     *                          functionality
-     */
-    return function propagating(hammer, options) {
-      if (options && options.preventDefault === false) {
-        throw new Error('Only supports preventDefault == true');
-      }
-      var _options = options || {
-        preventDefault: false
-      };
-
-      if (hammer.Manager) {
-        // This looks like the Hammer constructor.
-        // Overload the constructors with our own.
-        var Hammer = hammer;
-
-        var PropagatingHammer = function(element, options) {
-          return propagating(new Hammer(element, options), _options);
-        };
-        Hammer.extend(PropagatingHammer, Hammer);
-        PropagatingHammer.Manager = function (element, options) {
-          return propagating(new Hammer.Manager(element, options), _options);
-        };
-
-        return PropagatingHammer;
-      }
-
-      // attach to DOM element
-      var element = hammer.element;
-      element.hammer = hammer;
-
-      // move the original functions that we will wrap
-      hammer._on = hammer.on;
-      hammer._off = hammer.off;
-      hammer._emit = hammer.emit;
-      hammer._destroy = hammer.destroy;
-
-      /** @type {Object.<String, Array.<function>>} */
-      hammer._handlers = {};
-
-      // register an event to catch the start of a gesture and store the
-      // target in a singleton
-      hammer._on('hammer.input', function (event) {
-        if (_options.preventDefault === true || (_options.preventDefault === event.pointerType)) {
-          event.preventDefault();
-        }
-        if (event.isFirst) {
-          _firstTarget = event.target;
-          _processing = true;
-        }
-        if (event.isFinal) {
-          _processing = false;
-        }
-      });
-
-      /**
-       * Register a handler for one or multiple events
-       * @param {String} events    A space separated string with events
-       * @param {function} handler A callback function, called as handler(event)
-       * @returns {Hammer.Manager} Returns the hammer instance
-       */
-      hammer.on = function (events, handler) {
-        // register the handler
-        split(events).forEach(function (event) {
-          var _handlers = hammer._handlers[event];
-          if (!_handlers) {
-            hammer._handlers[event] = _handlers = [];
-
-            // register the static, propagated handler
-            hammer._on(event, propagatedHandler);
-          }
-          _handlers.push(handler);
-        });
-
-        return hammer;
-      };
-
-      /**
-       * Unregister a handler for one or multiple events
-       * @param {String} events      A space separated string with events
-       * @param {function} [handler] Optional. The registered handler. If not
-       *                             provided, all handlers for given events
-       *                             are removed.
-       * @returns {Hammer.Manager}   Returns the hammer instance
-       */
-      hammer.off = function (events, handler) {
-        // unregister the handler
-        split(events).forEach(function (event) {
-          var _handlers = hammer._handlers[event];
-          if (_handlers) {
-            _handlers = handler ? _handlers.filter(function (h) {
-              return h !== handler;
-            }) : [];
-
-            if (_handlers.length > 0) {
-              hammer._handlers[event] = _handlers;
-            }
-            else {
-              // remove static, propagated handler
-              hammer._off(event, propagatedHandler);
-              delete hammer._handlers[event];
-            }
-          }
-        });
-
-        return hammer;
-      };
-
-      /**
-       * Emit to the event listeners
-       * @param {string} eventType
-       * @param {Event} event
-       */
-      hammer.emit = function(eventType, event) {
-        if (!_processing) {
-          _firstTarget = event.target;
-        }
-        hammer._emit(eventType, event);
-      };
-
-      hammer.destroy = function () {
-        // Detach from DOM element
-        var element = hammer.element;
-        delete element.hammer;
-
-        // clear all handlers
-        hammer._handlers = {};
-
-        // call original hammer destroy
-        hammer._destroy();
-      };
-
-      // split a string with space separated words
-      function split(events) {
-        return events.match(/[^ ]+/g);
-      }
-
-      /**
-       * A static event handler, applying event propagation.
-       * @param {Object} event
-       */
-      function propagatedHandler(event) {
-        // let only a single hammer instance handle this event
-        if (event.type !== 'hammer.input') {
-          // it is possible that the same srcEvent is used with multiple hammer events,
-          // we keep track on which events are handled in an object _handled
-          if (!event.srcEvent._handled) {
-            event.srcEvent._handled = {};
-          }
-
-          if (event.srcEvent._handled[event.type]) {
-            return;
-          }
-          else {
-            event.srcEvent._handled[event.type] = true;
-          }
-        }
-
-        // attach a stopPropagation function to the event
-        var stopped = false;
-        event.stopPropagation = function () {
-          stopped = true;
-        };
-
-        // attach firstTarget property to the event
-        event.firstTarget = _firstTarget;
-
-        // propagate over all elements (until stopped)
-        var elem = _firstTarget;
-        while (elem && !stopped) {
-          var _handlers = elem.hammer && elem.hammer._handlers[event.type];
-          if (_handlers) {
-            for (var i = 0; i < _handlers.length && !stopped; i++) {
-              _handlers[i](event);
-            }
-          }
-
-          elem = elem.parentNode;
-        }
-      }
-
-      return hammer;
-    };
-  }));
-
-
-/***/ },
-/* 72 */
-/***/ function(module, exports, __webpack_require__) {
-
-  var __WEBPACK_AMD_DEFINE_RESULT__;/*! Hammer.JS - v2.0.4 - 2014-09-28
-   * http://hammerjs.github.io/
-   *
-   * Copyright (c) 2014 Jorik Tangelder;
-   * Licensed under the MIT license */
-  (function(window, document, exportName, undefined) {
-    'use strict';
-
-  var VENDOR_PREFIXES = ['', 'webkit', 'moz', 'MS', 'ms', 'o'];
-  var TEST_ELEMENT = document.createElement('div');
-
-  var TYPE_FUNCTION = 'function';
-
-  var round = Math.round;
-  var abs = Math.abs;
-  var now = Date.now;
-
-  /**
-   * set a timeout with a given scope
-   * @param {Function} fn
-   * @param {Number} timeout
-   * @param {Object} context
-   * @returns {number}
-   */
-  function setTimeoutContext(fn, timeout, context) {
-      return setTimeout(bindFn(fn, context), timeout);
-  }
-
-  /**
-   * if the argument is an array, we want to execute the fn on each entry
-   * if it aint an array we don't want to do a thing.
-   * this is used by all the methods that accept a single and array argument.
-   * @param {*|Array} arg
-   * @param {String} fn
-   * @param {Object} [context]
-   * @returns {Boolean}
-   */
-  function invokeArrayArg(arg, fn, context) {
-      if (Array.isArray(arg)) {
-          each(arg, context[fn], context);
-          return true;
-      }
-      return false;
-  }
-
-  /**
-   * walk objects and arrays
-   * @param {Object} obj
-   * @param {Function} iterator
-   * @param {Object} context
-   */
-  function each(obj, iterator, context) {
-      var i;
-
-      if (!obj) {
-          return;
-      }
-
-      if (obj.forEach) {
-          obj.forEach(iterator, context);
-      } else if (obj.length !== undefined) {
-          i = 0;
-          while (i < obj.length) {
-              iterator.call(context, obj[i], i, obj);
-              i++;
-          }
-      } else {
-          for (i in obj) {
-              obj.hasOwnProperty(i) && iterator.call(context, obj[i], i, obj);
-          }
-      }
-  }
-
-  /**
-   * extend object.
-   * means that properties in dest will be overwritten by the ones in src.
-   * @param {Object} dest
-   * @param {Object} src
-   * @param {Boolean} [merge]
-   * @returns {Object} dest
-   */
-  function extend(dest, src, merge) {
-      var keys = Object.keys(src);
-      var i = 0;
-      while (i < keys.length) {
-          if (!merge || (merge && dest[keys[i]] === undefined)) {
-              dest[keys[i]] = src[keys[i]];
-          }
-          i++;
-      }
-      return dest;
-  }
-
-  /**
-   * merge the values from src in the dest.
-   * means that properties that exist in dest will not be overwritten by src
-   * @param {Object} dest
-   * @param {Object} src
-   * @returns {Object} dest
-   */
-  function merge(dest, src) {
-      return extend(dest, src, true);
-  }
-
-  /**
-   * simple class inheritance
-   * @param {Function} child
-   * @param {Function} base
-   * @param {Object} [properties]
-   */
-  function inherit(child, base, properties) {
-      var baseP = base.prototype,
-          childP;
-
-      childP = child.prototype = Object.create(baseP);
-      childP.constructor = child;
-      childP._super = baseP;
-
-      if (properties) {
-          extend(childP, properties);
-      }
-  }
-
-  /**
-   * simple function bind
-   * @param {Function} fn
-   * @param {Object} context
-   * @returns {Function}
-   */
-  function bindFn(fn, context) {
-      return function boundFn() {
-          return fn.apply(context, arguments);
-      };
-  }
-
-  /**
-   * let a boolean value also be a function that must return a boolean
-   * this first item in args will be used as the context
-   * @param {Boolean|Function} val
-   * @param {Array} [args]
-   * @returns {Boolean}
-   */
-  function boolOrFn(val, args) {
-      if (typeof val == TYPE_FUNCTION) {
-          return val.apply(args ? args[0] || undefined : undefined, args);
-      }
-      return val;
-  }
-
-  /**
-   * use the val2 when val1 is undefined
-   * @param {*} val1
-   * @param {*} val2
-   * @returns {*}
-   */
-  function ifUndefined(val1, val2) {
-      return (val1 === undefined) ? val2 : val1;
-  }
-
-  /**
-   * addEventListener with multiple events at once
-   * @param {EventTarget} target
-   * @param {String} types
-   * @param {Function} handler
-   */
-  function addEventListeners(target, types, handler) {
-      each(splitStr(types), function(type) {
-          target.addEventListener(type, handler, false);
-      });
-  }
-
-  /**
-   * removeEventListener with multiple events at once
-   * @param {EventTarget} target
-   * @param {String} types
-   * @param {Function} handler
-   */
-  function removeEventListeners(target, types, handler) {
-      each(splitStr(types), function(type) {
-          target.removeEventListener(type, handler, false);
-      });
-  }
-
-  /**
-   * find if a node is in the given parent
-   * @method hasParent
-   * @param {HTMLElement} node
-   * @param {HTMLElement} parent
-   * @return {Boolean} found
-   */
-  function hasParent(node, parent) {
-      while (node) {
-          if (node == parent) {
-              return true;
-          }
-          node = node.parentNode;
-      }
-      return false;
-  }
-
-  /**
-   * small indexOf wrapper
-   * @param {String} str
-   * @param {String} find
-   * @returns {Boolean} found
-   */
-  function inStr(str, find) {
-      return str.indexOf(find) > -1;
-  }
-
-  /**
-   * split string on whitespace
-   * @param {String} str
-   * @returns {Array} words
-   */
-  function splitStr(str) {
-      return str.trim().split(/\s+/g);
-  }
-
-  /**
-   * find if a array contains the object using indexOf or a simple polyFill
-   * @param {Array} src
-   * @param {String} find
-   * @param {String} [findByKey]
-   * @return {Boolean|Number} false when not found, or the index
-   */
-  function inArray(src, find, findByKey) {
-      if (src.indexOf && !findByKey) {
-          return src.indexOf(find);
-      } else {
-          var i = 0;
-          while (i < src.length) {
-              if ((findByKey && src[i][findByKey] == find) || (!findByKey && src[i] === find)) {
-                  return i;
-              }
-              i++;
-          }
-          return -1;
-      }
-  }
-
-  /**
-   * convert array-like objects to real arrays
-   * @param {Object} obj
-   * @returns {Array}
-   */
-  function toArray(obj) {
-      return Array.prototype.slice.call(obj, 0);
-  }
-
-  /**
-   * unique array with objects based on a key (like 'id') or just by the array's value
-   * @param {Array} src [{id:1},{id:2},{id:1}]
-   * @param {String} [key]
-   * @param {Boolean} [sort=False]
-   * @returns {Array} [{id:1},{id:2}]
-   */
-  function uniqueArray(src, key, sort) {
-      var results = [];
-      var values = [];
-      var i = 0;
-
-      while (i < src.length) {
-          var val = key ? src[i][key] : src[i];
-          if (inArray(values, val) < 0) {
-              results.push(src[i]);
-          }
-          values[i] = val;
-          i++;
-      }
-
-      if (sort) {
-          if (!key) {
-              results = results.sort();
-          } else {
-              results = results.sort(function sortUniqueArray(a, b) {
-                  return a[key] > b[key];
-              });
-          }
-      }
-
-      return results;
-  }
-
-  /**
-   * get the prefixed property
-   * @param {Object} obj
-   * @param {String} property
-   * @returns {String|Undefined} prefixed
-   */
-  function prefixed(obj, property) {
-      var prefix, prop;
-      var camelProp = property[0].toUpperCase() + property.slice(1);
-
-      var i = 0;
-      while (i < VENDOR_PREFIXES.length) {
-          prefix = VENDOR_PREFIXES[i];
-          prop = (prefix) ? prefix + camelProp : property;
-
-          if (prop in obj) {
-              return prop;
-          }
-          i++;
-      }
-      return undefined;
-  }
-
-  /**
-   * get a unique id
-   * @returns {number} uniqueId
-   */
-  var _uniqueId = 1;
-  function uniqueId() {
-      return _uniqueId++;
-  }
-
-  /**
-   * get the window object of an element
-   * @param {HTMLElement} element
-   * @returns {DocumentView|Window}
-   */
-  function getWindowForElement(element) {
-      var doc = element.ownerDocument;
-      return (doc.defaultView || doc.parentWindow);
-  }
-
-  var MOBILE_REGEX = /mobile|tablet|ip(ad|hone|od)|android/i;
-
-  var SUPPORT_TOUCH = ('ontouchstart' in window);
-  var SUPPORT_POINTER_EVENTS = prefixed(window, 'PointerEvent') !== undefined;
-  var SUPPORT_ONLY_TOUCH = SUPPORT_TOUCH && MOBILE_REGEX.test(navigator.userAgent);
-
-  var INPUT_TYPE_TOUCH = 'touch';
-  var INPUT_TYPE_PEN = 'pen';
-  var INPUT_TYPE_MOUSE = 'mouse';
-  var INPUT_TYPE_KINECT = 'kinect';
-
-  var COMPUTE_INTERVAL = 25;
-
-  var INPUT_START = 1;
-  var INPUT_MOVE = 2;
-  var INPUT_END = 4;
-  var INPUT_CANCEL = 8;
-
-  var DIRECTION_NONE = 1;
-  var DIRECTION_LEFT = 2;
-  var DIRECTION_RIGHT = 4;
-  var DIRECTION_UP = 8;
-  var DIRECTION_DOWN = 16;
-
-  var DIRECTION_HORIZONTAL = DIRECTION_LEFT | DIRECTION_RIGHT;
-  var DIRECTION_VERTICAL = DIRECTION_UP | DIRECTION_DOWN;
-  var DIRECTION_ALL = DIRECTION_HORIZONTAL | DIRECTION_VERTICAL;
-
-  var PROPS_XY = ['x', 'y'];
-  var PROPS_CLIENT_XY = ['clientX', 'clientY'];
-
-  /**
-   * create new input type manager
-   * @param {Manager} manager
-   * @param {Function} callback
-   * @returns {Input}
-   * @constructor
-   */
-  function Input(manager, callback) {
-      var self = this;
-      this.manager = manager;
-      this.callback = callback;
-      this.element = manager.element;
-      this.target = manager.options.inputTarget;
-
-      // smaller wrapper around the handler, for the scope and the enabled state of the manager,
-      // so when disabled the input events are completely bypassed.
-      this.domHandler = function(ev) {
-          if (boolOrFn(manager.options.enable, [manager])) {
-              self.handler(ev);
-          }
-      };
-
-      this.init();
-
-  }
-
-  Input.prototype = {
-      /**
-       * should handle the inputEvent data and trigger the callback
-       * @virtual
-       */
-      handler: function() { },
-
-      /**
-       * bind the events
-       */
-      init: function() {
-          this.evEl && addEventListeners(this.element, this.evEl, this.domHandler);
-          this.evTarget && addEventListeners(this.target, this.evTarget, this.domHandler);
-          this.evWin && addEventListeners(getWindowForElement(this.element), this.evWin, this.domHandler);
-      },
-
-      /**
-       * unbind the events
-       */
-      destroy: function() {
-          this.evEl && removeEventListeners(this.element, this.evEl, this.domHandler);
-          this.evTarget && removeEventListeners(this.target, this.evTarget, this.domHandler);
-          this.evWin && removeEventListeners(getWindowForElement(this.element), this.evWin, this.domHandler);
-      }
-  };
-
-  /**
-   * create new input type manager
-   * called by the Manager constructor
-   * @param {Hammer} manager
-   * @returns {Input}
-   */
-  function createInputInstance(manager) {
-      var Type;
-      var inputClass = manager.options.inputClass;
-
-      if (inputClass) {
-          Type = inputClass;
-      } else if (SUPPORT_POINTER_EVENTS) {
-          Type = PointerEventInput;
-      } else if (SUPPORT_ONLY_TOUCH) {
-          Type = TouchInput;
-      } else if (!SUPPORT_TOUCH) {
-          Type = MouseInput;
-      } else {
-          Type = TouchMouseInput;
-      }
-      return new (Type)(manager, inputHandler);
-  }
-
-  /**
-   * handle input events
-   * @param {Manager} manager
-   * @param {String} eventType
-   * @param {Object} input
-   */
-  function inputHandler(manager, eventType, input) {
-      var pointersLen = input.pointers.length;
-      var changedPointersLen = input.changedPointers.length;
-      var isFirst = (eventType & INPUT_START && (pointersLen - changedPointersLen === 0));
-      var isFinal = (eventType & (INPUT_END | INPUT_CANCEL) && (pointersLen - changedPointersLen === 0));
-
-      input.isFirst = !!isFirst;
-      input.isFinal = !!isFinal;
-
-      if (isFirst) {
-          manager.session = {};
-      }
-
-      // source event is the normalized value of the domEvents
-      // like 'touchstart, mouseup, pointerdown'
-      input.eventType = eventType;
-
-      // compute scale, rotation etc
-      computeInputData(manager, input);
-
-      // emit secret event
-      manager.emit('hammer.input', input);
-
-      manager.recognize(input);
-      manager.session.prevInput = input;
-  }
-
-  /**
-   * extend the data with some usable properties like scale, rotate, velocity etc
-   * @param {Object} manager
-   * @param {Object} input
-   */
-  function computeInputData(manager, input) {
-      var session = manager.session;
-      var pointers = input.pointers;
-      var pointersLength = pointers.length;
-
-      // store the first input to calculate the distance and direction
-      if (!session.firstInput) {
-          session.firstInput = simpleCloneInputData(input);
-      }
-
-      // to compute scale and rotation we need to store the multiple touches
-      if (pointersLength > 1 && !session.firstMultiple) {
-          session.firstMultiple = simpleCloneInputData(input);
-      } else if (pointersLength === 1) {
-          session.firstMultiple = false;
-      }
-
-      var firstInput = session.firstInput;
-      var firstMultiple = session.firstMultiple;
-      var offsetCenter = firstMultiple ? firstMultiple.center : firstInput.center;
-
-      var center = input.center = getCenter(pointers);
-      input.timeStamp = now();
-      input.deltaTime = input.timeStamp - firstInput.timeStamp;
-
-      input.angle = getAngle(offsetCenter, center);
-      input.distance = getDistance(offsetCenter, center);
-
-      computeDeltaXY(session, input);
-      input.offsetDirection = getDirection(input.deltaX, input.deltaY);
-
-      input.scale = firstMultiple ? getScale(firstMultiple.pointers, pointers) : 1;
-      input.rotation = firstMultiple ? getRotation(firstMultiple.pointers, pointers) : 0;
-
-      computeIntervalInputData(session, input);
-
-      // find the correct target
-      var target = manager.element;
-      if (hasParent(input.srcEvent.target, target)) {
-          target = input.srcEvent.target;
-      }
-      input.target = target;
-  }
-
-  function computeDeltaXY(session, input) {
-      var center = input.center;
-      var offset = session.offsetDelta || {};
-      var prevDelta = session.prevDelta || {};
-      var prevInput = session.prevInput || {};
-
-      if (input.eventType === INPUT_START || prevInput.eventType === INPUT_END) {
-          prevDelta = session.prevDelta = {
-              x: prevInput.deltaX || 0,
-              y: prevInput.deltaY || 0
-          };
-
-          offset = session.offsetDelta = {
-              x: center.x,
-              y: center.y
-          };
-      }
-
-      input.deltaX = prevDelta.x + (center.x - offset.x);
-      input.deltaY = prevDelta.y + (center.y - offset.y);
-  }
-
-  /**
-   * velocity is calculated every x ms
-   * @param {Object} session
-   * @param {Object} input
-   */
-  function computeIntervalInputData(session, input) {
-      var last = session.lastInterval || input,
-          deltaTime = input.timeStamp - last.timeStamp,
-          velocity, velocityX, velocityY, direction;
-
-      if (input.eventType != INPUT_CANCEL && (deltaTime > COMPUTE_INTERVAL || last.velocity === undefined)) {
-          var deltaX = last.deltaX - input.deltaX;
-          var deltaY = last.deltaY - input.deltaY;
-
-          var v = getVelocity(deltaTime, deltaX, deltaY);
-          velocityX = v.x;
-          velocityY = v.y;
-          velocity = (abs(v.x) > abs(v.y)) ? v.x : v.y;
-          direction = getDirection(deltaX, deltaY);
-
-          session.lastInterval = input;
-      } else {
-          // use latest velocity info if it doesn't overtake a minimum period
-          velocity = last.velocity;
-          velocityX = last.velocityX;
-          velocityY = last.velocityY;
-          direction = last.direction;
-      }
-
-      input.velocity = velocity;
-      input.velocityX = velocityX;
-      input.velocityY = velocityY;
-      input.direction = direction;
-  }
-
-  /**
-   * create a simple clone from the input used for storage of firstInput and firstMultiple
-   * @param {Object} input
-   * @returns {Object} clonedInputData
-   */
-  function simpleCloneInputData(input) {
-      // make a simple copy of the pointers because we will get a reference if we don't
-      // we only need clientXY for the calculations
-      var pointers = [];
-      var i = 0;
-      while (i < input.pointers.length) {
-          pointers[i] = {
-              clientX: round(input.pointers[i].clientX),
-              clientY: round(input.pointers[i].clientY)
-          };
-          i++;
-      }
-
-      return {
-          timeStamp: now(),
-          pointers: pointers,
-          center: getCenter(pointers),
-          deltaX: input.deltaX,
-          deltaY: input.deltaY
-      };
-  }
-
-  /**
-   * get the center of all the pointers
-   * @param {Array} pointers
-   * @return {Object} center contains `x` and `y` properties
-   */
-  function getCenter(pointers) {
-      var pointersLength = pointers.length;
-
-      // no need to loop when only one touch
-      if (pointersLength === 1) {
-          return {
-              x: round(pointers[0].clientX),
-              y: round(pointers[0].clientY)
-          };
-      }
-
-      var x = 0, y = 0, i = 0;
-      while (i < pointersLength) {
-          x += pointers[i].clientX;
-          y += pointers[i].clientY;
-          i++;
-      }
-
-      return {
-          x: round(x / pointersLength),
-          y: round(y / pointersLength)
-      };
-  }
-
-  /**
-   * calculate the velocity between two points. unit is in px per ms.
-   * @param {Number} deltaTime
-   * @param {Number} x
-   * @param {Number} y
-   * @return {Object} velocity `x` and `y`
-   */
-  function getVelocity(deltaTime, x, y) {
-      return {
-          x: x / deltaTime || 0,
-          y: y / deltaTime || 0
-      };
-  }
-
-  /**
-   * get the direction between two points
-   * @param {Number} x
-   * @param {Number} y
-   * @return {Number} direction
-   */
-  function getDirection(x, y) {
-      if (x === y) {
-          return DIRECTION_NONE;
-      }
-
-      if (abs(x) >= abs(y)) {
-          return x > 0 ? DIRECTION_LEFT : DIRECTION_RIGHT;
-      }
-      return y > 0 ? DIRECTION_UP : DIRECTION_DOWN;
-  }
-
-  /**
-   * calculate the absolute distance between two points
-   * @param {Object} p1 {x, y}
-   * @param {Object} p2 {x, y}
-   * @param {Array} [props] containing x and y keys
-   * @return {Number} distance
-   */
-  function getDistance(p1, p2, props) {
-      if (!props) {
-          props = PROPS_XY;
-      }
-      var x = p2[props[0]] - p1[props[0]],
-          y = p2[props[1]] - p1[props[1]];
-
-      return Math.sqrt((x * x) + (y * y));
-  }
-
-  /**
-   * calculate the angle between two coordinates
-   * @param {Object} p1
-   * @param {Object} p2
-   * @param {Array} [props] containing x and y keys
-   * @return {Number} angle
-   */
-  function getAngle(p1, p2, props) {
-      if (!props) {
-          props = PROPS_XY;
-      }
-      var x = p2[props[0]] - p1[props[0]],
-          y = p2[props[1]] - p1[props[1]];
-      return Math.atan2(y, x) * 180 / Math.PI;
-  }
-
-  /**
-   * calculate the rotation degrees between two pointersets
-   * @param {Array} start array of pointers
-   * @param {Array} end array of pointers
-   * @return {Number} rotation
-   */
-  function getRotation(start, end) {
-      return getAngle(end[1], end[0], PROPS_CLIENT_XY) - getAngle(start[1], start[0], PROPS_CLIENT_XY);
-  }
-
-  /**
-   * calculate the scale factor between two pointersets
-   * no scale is 1, and goes down to 0 when pinched together, and bigger when pinched out
-   * @param {Array} start array of pointers
-   * @param {Array} end array of pointers
-   * @return {Number} scale
-   */
-  function getScale(start, end) {
-      return getDistance(end[0], end[1], PROPS_CLIENT_XY) / getDistance(start[0], start[1], PROPS_CLIENT_XY);
-  }
-
-  var MOUSE_INPUT_MAP = {
-      mousedown: INPUT_START,
-      mousemove: INPUT_MOVE,
-      mouseup: INPUT_END
-  };
-
-  var MOUSE_ELEMENT_EVENTS = 'mousedown';
-  var MOUSE_WINDOW_EVENTS = 'mousemove mouseup';
-
-  /**
-   * Mouse events input
-   * @constructor
-   * @extends Input
-   */
-  function MouseInput() {
-      this.evEl = MOUSE_ELEMENT_EVENTS;
-      this.evWin = MOUSE_WINDOW_EVENTS;
-
-      this.allow = true; // used by Input.TouchMouse to disable mouse events
-      this.pressed = false; // mousedown state
-
-      Input.apply(this, arguments);
-  }
-
-  inherit(MouseInput, Input, {
-      /**
-       * handle mouse events
-       * @param {Object} ev
-       */
-      handler: function MEhandler(ev) {
-          var eventType = MOUSE_INPUT_MAP[ev.type];
-
-          // on start we want to have the left mouse button down
-          if (eventType & INPUT_START && ev.button === 0) {
-              this.pressed = true;
-          }
-
-          if (eventType & INPUT_MOVE && ev.which !== 1) {
-              eventType = INPUT_END;
-          }
-
-          // mouse must be down, and mouse events are allowed (see the TouchMouse input)
-          if (!this.pressed || !this.allow) {
-              return;
-          }
-
-          if (eventType & INPUT_END) {
-              this.pressed = false;
-          }
-
-          this.callback(this.manager, eventType, {
-              pointers: [ev],
-              changedPointers: [ev],
-              pointerType: INPUT_TYPE_MOUSE,
-              srcEvent: ev
-          });
-      }
-  });
-
-  var POINTER_INPUT_MAP = {
-      pointerdown: INPUT_START,
-      pointermove: INPUT_MOVE,
-      pointerup: INPUT_END,
-      pointercancel: INPUT_CANCEL,
-      pointerout: INPUT_CANCEL
-  };
-
-  // in IE10 the pointer types is defined as an enum
-  var IE10_POINTER_TYPE_ENUM = {
-      2: INPUT_TYPE_TOUCH,
-      3: INPUT_TYPE_PEN,
-      4: INPUT_TYPE_MOUSE,
-      5: INPUT_TYPE_KINECT // see https://twitter.com/jacobrossi/status/480596438489890816
-  };
-
-  var POINTER_ELEMENT_EVENTS = 'pointerdown';
-  var POINTER_WINDOW_EVENTS = 'pointermove pointerup pointercancel';
-
-  // IE10 has prefixed support, and case-sensitive
-  if (window.MSPointerEvent) {
-      POINTER_ELEMENT_EVENTS = 'MSPointerDown';
-      POINTER_WINDOW_EVENTS = 'MSPointerMove MSPointerUp MSPointerCancel';
-  }
-
-  /**
-   * Pointer events input
-   * @constructor
-   * @extends Input
-   */
-  function PointerEventInput() {
-      this.evEl = POINTER_ELEMENT_EVENTS;
-      this.evWin = POINTER_WINDOW_EVENTS;
-
-      Input.apply(this, arguments);
-
-      this.store = (this.manager.session.pointerEvents = []);
-  }
-
-  inherit(PointerEventInput, Input, {
-      /**
-       * handle mouse events
-       * @param {Object} ev
-       */
-      handler: function PEhandler(ev) {
-          var store = this.store;
-          var removePointer = false;
-
-          var eventTypeNormalized = ev.type.toLowerCase().replace('ms', '');
-          var eventType = POINTER_INPUT_MAP[eventTypeNormalized];
-          var pointerType = IE10_POINTER_TYPE_ENUM[ev.pointerType] || ev.pointerType;
-
-          var isTouch = (pointerType == INPUT_TYPE_TOUCH);
-
-          // get index of the event in the store
-          var storeIndex = inArray(store, ev.pointerId, 'pointerId');
-
-          // start and mouse must be down
-          if (eventType & INPUT_START && (ev.button === 0 || isTouch)) {
-              if (storeIndex < 0) {
-                  store.push(ev);
-                  storeIndex = store.length - 1;
-              }
-          } else if (eventType & (INPUT_END | INPUT_CANCEL)) {
-              removePointer = true;
-          }
-
-          // it not found, so the pointer hasn't been down (so it's probably a hover)
-          if (storeIndex < 0) {
-              return;
-          }
-
-          // update the event in the store
-          store[storeIndex] = ev;
-
-          this.callback(this.manager, eventType, {
-              pointers: store,
-              changedPointers: [ev],
-              pointerType: pointerType,
-              srcEvent: ev
-          });
-
-          if (removePointer) {
-              // remove from the store
-              store.splice(storeIndex, 1);
-          }
-      }
-  });
-
-  var SINGLE_TOUCH_INPUT_MAP = {
-      touchstart: INPUT_START,
-      touchmove: INPUT_MOVE,
-      touchend: INPUT_END,
-      touchcancel: INPUT_CANCEL
-  };
-
-  var SINGLE_TOUCH_TARGET_EVENTS = 'touchstart';
-  var SINGLE_TOUCH_WINDOW_EVENTS = 'touchstart touchmove touchend touchcancel';
-
-  /**
-   * Touch events input
-   * @constructor
-   * @extends Input
-   */
-  function SingleTouchInput() {
-      this.evTarget = SINGLE_TOUCH_TARGET_EVENTS;
-      this.evWin = SINGLE_TOUCH_WINDOW_EVENTS;
-      this.started = false;
-
-      Input.apply(this, arguments);
-  }
-
-  inherit(SingleTouchInput, Input, {
-      handler: function TEhandler(ev) {
-          var type = SINGLE_TOUCH_INPUT_MAP[ev.type];
-
-          // should we handle the touch events?
-          if (type === INPUT_START) {
-              this.started = true;
-          }
-
-          if (!this.started) {
-              return;
-          }
-
-          var touches = normalizeSingleTouches.call(this, ev, type);
-
-          // when done, reset the started state
-          if (type & (INPUT_END | INPUT_CANCEL) && touches[0].length - touches[1].length === 0) {
-              this.started = false;
-          }
-
-          this.callback(this.manager, type, {
-              pointers: touches[0],
-              changedPointers: touches[1],
-              pointerType: INPUT_TYPE_TOUCH,
-              srcEvent: ev
-          });
-      }
-  });
-
-  /**
-   * @this {TouchInput}
-   * @param {Object} ev
-   * @param {Number} type flag
-   * @returns {undefined|Array} [all, changed]
-   */
-  function normalizeSingleTouches(ev, type) {
-      var all = toArray(ev.touches);
-      var changed = toArray(ev.changedTouches);
-
-      if (type & (INPUT_END | INPUT_CANCEL)) {
-          all = uniqueArray(all.concat(changed), 'identifier', true);
-      }
-
-      return [all, changed];
-  }
-
-  var TOUCH_INPUT_MAP = {
-      touchstart: INPUT_START,
-      touchmove: INPUT_MOVE,
-      touchend: INPUT_END,
-      touchcancel: INPUT_CANCEL
-  };
-
-  var TOUCH_TARGET_EVENTS = 'touchstart touchmove touchend touchcancel';
-
-  /**
-   * Multi-user touch events input
-   * @constructor
-   * @extends Input
-   */
-  function TouchInput() {
-      this.evTarget = TOUCH_TARGET_EVENTS;
-      this.targetIds = {};
-
-      Input.apply(this, arguments);
-  }
-
-  inherit(TouchInput, Input, {
-      handler: function MTEhandler(ev) {
-          var type = TOUCH_INPUT_MAP[ev.type];
-          var touches = getTouches.call(this, ev, type);
-          if (!touches) {
-              return;
-          }
-
-          this.callback(this.manager, type, {
-              pointers: touches[0],
-              changedPointers: touches[1],
-              pointerType: INPUT_TYPE_TOUCH,
-              srcEvent: ev
-          });
-      }
-  });
-
-  /**
-   * @this {TouchInput}
-   * @param {Object} ev
-   * @param {Number} type flag
-   * @returns {undefined|Array} [all, changed]
-   */
-  function getTouches(ev, type) {
-      var allTouches = toArray(ev.touches);
-      var targetIds = this.targetIds;
-
-      // when there is only one touch, the process can be simplified
-      if (type & (INPUT_START | INPUT_MOVE) && allTouches.length === 1) {
-          targetIds[allTouches[0].identifier] = true;
-          return [allTouches, allTouches];
-      }
-
-      var i,
-          targetTouches,
-          changedTouches = toArray(ev.changedTouches),
-          changedTargetTouches = [],
-          target = this.target;
-
-      // get target touches from touches
-      targetTouches = allTouches.filter(function(touch) {
-          return hasParent(touch.target, target);
-      });
-
-      // collect touches
-      if (type === INPUT_START) {
-          i = 0;
-          while (i < targetTouches.length) {
-              targetIds[targetTouches[i].identifier] = true;
-              i++;
-          }
-      }
-
-      // filter changed touches to only contain touches that exist in the collected target ids
-      i = 0;
-      while (i < changedTouches.length) {
-          if (targetIds[changedTouches[i].identifier]) {
-              changedTargetTouches.push(changedTouches[i]);
-          }
-
-          // cleanup removed touches
-          if (type & (INPUT_END | INPUT_CANCEL)) {
-              delete targetIds[changedTouches[i].identifier];
-          }
-          i++;
-      }
-
-      if (!changedTargetTouches.length) {
-          return;
-      }
-
-      return [
-          // merge targetTouches with changedTargetTouches so it contains ALL touches, including 'end' and 'cancel'
-          uniqueArray(targetTouches.concat(changedTargetTouches), 'identifier', true),
-          changedTargetTouches
-      ];
-  }
-
-  /**
-   * Combined touch and mouse input
-   *
-   * Touch has a higher priority then mouse, and while touching no mouse events are allowed.
-   * This because touch devices also emit mouse events while doing a touch.
-   *
-   * @constructor
-   * @extends Input
-   */
-  function TouchMouseInput() {
-      Input.apply(this, arguments);
-
-      var handler = bindFn(this.handler, this);
-      this.touch = new TouchInput(this.manager, handler);
-      this.mouse = new MouseInput(this.manager, handler);
-  }
-
-  inherit(TouchMouseInput, Input, {
-      /**
-       * handle mouse and touch events
-       * @param {Hammer} manager
-       * @param {String} inputEvent
-       * @param {Object} inputData
-       */
-      handler: function TMEhandler(manager, inputEvent, inputData) {
-          var isTouch = (inputData.pointerType == INPUT_TYPE_TOUCH),
-              isMouse = (inputData.pointerType == INPUT_TYPE_MOUSE);
-
-          // when we're in a touch event, so  block all upcoming mouse events
-          // most mobile browser also emit mouseevents, right after touchstart
-          if (isTouch) {
-              this.mouse.allow = false;
-          } else if (isMouse && !this.mouse.allow) {
-              return;
-          }
-
-          // reset the allowMouse when we're done
-          if (inputEvent & (INPUT_END | INPUT_CANCEL)) {
-              this.mouse.allow = true;
-          }
-
-          this.callback(manager, inputEvent, inputData);
-      },
-
-      /**
-       * remove the event listeners
-       */
-      destroy: function destroy() {
-          this.touch.destroy();
-          this.mouse.destroy();
-      }
-  });
-
-  var PREFIXED_TOUCH_ACTION = prefixed(TEST_ELEMENT.style, 'touchAction');
-  var NATIVE_TOUCH_ACTION = PREFIXED_TOUCH_ACTION !== undefined;
-
-  // magical touchAction value
-  var TOUCH_ACTION_COMPUTE = 'compute';
-  var TOUCH_ACTION_AUTO = 'auto';
-  var TOUCH_ACTION_MANIPULATION = 'manipulation'; // not implemented
-  var TOUCH_ACTION_NONE = 'none';
-  var TOUCH_ACTION_PAN_X = 'pan-x';
-  var TOUCH_ACTION_PAN_Y = 'pan-y';
-
-  /**
-   * Touch Action
-   * sets the touchAction property or uses the js alternative
-   * @param {Manager} manager
-   * @param {String} value
-   * @constructor
-   */
-  function TouchAction(manager, value) {
-      this.manager = manager;
-      this.set(value);
-  }
-
-  TouchAction.prototype = {
-      /**
-       * set the touchAction value on the element or enable the polyfill
-       * @param {String} value
-       */
-      set: function(value) {
-          // find out the touch-action by the event handlers
-          if (value == TOUCH_ACTION_COMPUTE) {
-              value = this.compute();
-          }
-
-          if (NATIVE_TOUCH_ACTION) {
-              this.manager.element.style[PREFIXED_TOUCH_ACTION] = value;
-          }
-          this.actions = value.toLowerCase().trim();
-      },
-
-      /**
-       * just re-set the touchAction value
-       */
-      update: function() {
-          this.set(this.manager.options.touchAction);
-      },
-
-      /**
-       * compute the value for the touchAction property based on the recognizer's settings
-       * @returns {String} value
-       */
-      compute: function() {
-          var actions = [];
-          each(this.manager.recognizers, function(recognizer) {
-              if (boolOrFn(recognizer.options.enable, [recognizer])) {
-                  actions = actions.concat(recognizer.getTouchAction());
-              }
-          });
-          return cleanTouchActions(actions.join(' '));
-      },
-
-      /**
-       * this method is called on each input cycle and provides the preventing of the browser behavior
-       * @param {Object} input
-       */
-      preventDefaults: function(input) {
-          // not needed with native support for the touchAction property
-          if (NATIVE_TOUCH_ACTION) {
-              return;
-          }
-
-          var srcEvent = input.srcEvent;
-          var direction = input.offsetDirection;
-
-          // if the touch action did prevented once this session
-          if (this.manager.session.prevented) {
-              srcEvent.preventDefault();
-              return;
-          }
-
-          var actions = this.actions;
-          var hasNone = inStr(actions, TOUCH_ACTION_NONE);
-          var hasPanY = inStr(actions, TOUCH_ACTION_PAN_Y);
-          var hasPanX = inStr(actions, TOUCH_ACTION_PAN_X);
-
-          if (hasNone ||
-              (hasPanY && direction & DIRECTION_HORIZONTAL) ||
-              (hasPanX && direction & DIRECTION_VERTICAL)) {
-              return this.preventSrc(srcEvent);
-          }
-      },
-
-      /**
-       * call preventDefault to prevent the browser's default behavior (scrolling in most cases)
-       * @param {Object} srcEvent
-       */
-      preventSrc: function(srcEvent) {
-          this.manager.session.prevented = true;
-          srcEvent.preventDefault();
-      }
-  };
-
-  /**
-   * when the touchActions are collected they are not a valid value, so we need to clean things up. *
-   * @param {String} actions
-   * @returns {*}
-   */
-  function cleanTouchActions(actions) {
-      // none
-      if (inStr(actions, TOUCH_ACTION_NONE)) {
-          return TOUCH_ACTION_NONE;
-      }
-
-      var hasPanX = inStr(actions, TOUCH_ACTION_PAN_X);
-      var hasPanY = inStr(actions, TOUCH_ACTION_PAN_Y);
-
-      // pan-x and pan-y can be combined
-      if (hasPanX && hasPanY) {
-          return TOUCH_ACTION_PAN_X + ' ' + TOUCH_ACTION_PAN_Y;
-      }
-
-      // pan-x OR pan-y
-      if (hasPanX || hasPanY) {
-          return hasPanX ? TOUCH_ACTION_PAN_X : TOUCH_ACTION_PAN_Y;
-      }
-
-      // manipulation
-      if (inStr(actions, TOUCH_ACTION_MANIPULATION)) {
-          return TOUCH_ACTION_MANIPULATION;
-      }
-
-      return TOUCH_ACTION_AUTO;
-  }
-
-  /**
-   * Recognizer flow explained; *
-   * All recognizers have the initial state of POSSIBLE when a input session starts.
-   * The definition of a input session is from the first input until the last input, with all it's movement in it. *
-   * Example session for mouse-input: mousedown -> mousemove -> mouseup
-   *
-   * On each recognizing cycle (see Manager.recognize) the .recognize() method is executed
-   * which determines with state it should be.
-   *
-   * If the recognizer has the state FAILED, CANCELLED or RECOGNIZED (equals ENDED), it is reset to
-   * POSSIBLE to give it another change on the next cycle.
-   *
-   *               Possible
-   *                  |
-   *            +-----+---------------+
-   *            |                     |
-   *      +-----+-----+               |
-   *      |           |               |
-   *   Failed      Cancelled          |
-   *                          +-------+------+
-   *                          |              |
-   *                      Recognized       Began
-   *                                         |
-   *                                      Changed
-   *                                         |
-   *                                  Ended/Recognized
-   */
-  var STATE_POSSIBLE = 1;
-  var STATE_BEGAN = 2;
-  var STATE_CHANGED = 4;
-  var STATE_ENDED = 8;
-  var STATE_RECOGNIZED = STATE_ENDED;
-  var STATE_CANCELLED = 16;
-  var STATE_FAILED = 32;
-
-  /**
-   * Recognizer
-   * Every recognizer needs to extend from this class.
-   * @constructor
-   * @param {Object} options
-   */
-  function Recognizer(options) {
-      this.id = uniqueId();
-
-      this.manager = null;
-      this.options = merge(options || {}, this.defaults);
-
-      // default is enable true
-      this.options.enable = ifUndefined(this.options.enable, true);
-
-      this.state = STATE_POSSIBLE;
-
-      this.simultaneous = {};
-      this.requireFail = [];
-  }
-
-  Recognizer.prototype = {
-      /**
-       * @virtual
-       * @type {Object}
-       */
-      defaults: {},
-
-      /**
-       * set options
-       * @param {Object} options
-       * @return {Recognizer}
-       */
-      set: function(options) {
-          extend(this.options, options);
-
-          // also update the touchAction, in case something changed about the directions/enabled state
-          this.manager && this.manager.touchAction.update();
-          return this;
-      },
-
-      /**
-       * recognize simultaneous with an other recognizer.
-       * @param {Recognizer} otherRecognizer
-       * @returns {Recognizer} this
-       */
-      recognizeWith: function(otherRecognizer) {
-          if (invokeArrayArg(otherRecognizer, 'recognizeWith', this)) {
-              return this;
-          }
-
-          var simultaneous = this.simultaneous;
-          otherRecognizer = getRecognizerByNameIfManager(otherRecognizer, this);
-          if (!simultaneous[otherRecognizer.id]) {
-              simultaneous[otherRecognizer.id] = otherRecognizer;
-              otherRecognizer.recognizeWith(this);
-          }
-          return this;
-      },
-
-      /**
-       * drop the simultaneous link. it doesnt remove the link on the other recognizer.
-       * @param {Recognizer} otherRecognizer
-       * @returns {Recognizer} this
-       */
-      dropRecognizeWith: function(otherRecognizer) {
-          if (invokeArrayArg(otherRecognizer, 'dropRecognizeWith', this)) {
-              return this;
-          }
-
-          otherRecognizer = getRecognizerByNameIfManager(otherRecognizer, this);
-          delete this.simultaneous[otherRecognizer.id];
-          return this;
-      },
-
-      /**
-       * recognizer can only run when an other is failing
-       * @param {Recognizer} otherRecognizer
-       * @returns {Recognizer} this
-       */
-      requireFailure: function(otherRecognizer) {
-          if (invokeArrayArg(otherRecognizer, 'requireFailure', this)) {
-              return this;
-          }
-
-          var requireFail = this.requireFail;
-          otherRecognizer = getRecognizerByNameIfManager(otherRecognizer, this);
-          if (inArray(requireFail, otherRecognizer) === -1) {
-              requireFail.push(otherRecognizer);
-              otherRecognizer.requireFailure(this);
-          }
-          return this;
-      },
-
-      /**
-       * drop the requireFailure link. it does not remove the link on the other recognizer.
-       * @param {Recognizer} otherRecognizer
-       * @returns {Recognizer} this
-       */
-      dropRequireFailure: function(otherRecognizer) {
-          if (invokeArrayArg(otherRecognizer, 'dropRequireFailure', this)) {
-              return this;
-          }
-
-          otherRecognizer = getRecognizerByNameIfManager(otherRecognizer, this);
-          var index = inArray(this.requireFail, otherRecognizer);
-          if (index > -1) {
-              this.requireFail.splice(index, 1);
-          }
-          return this;
-      },
-
-      /**
-       * has require failures boolean
-       * @returns {boolean}
-       */
-      hasRequireFailures: function() {
-          return this.requireFail.length > 0;
-      },
-
-      /**
-       * if the recognizer can recognize simultaneous with an other recognizer
-       * @param {Recognizer} otherRecognizer
-       * @returns {Boolean}
-       */
-      canRecognizeWith: function(otherRecognizer) {
-          return !!this.simultaneous[otherRecognizer.id];
-      },
-
-      /**
-       * You should use `tryEmit` instead of `emit` directly to check
-       * that all the needed recognizers has failed before emitting.
-       * @param {Object} input
-       */
-      emit: function(input) {
-          var self = this;
-          var state = this.state;
-
-          function emit(withState) {
-              self.manager.emit(self.options.event + (withState ? stateStr(state) : ''), input);
-          }
-
-          // 'panstart' and 'panmove'
-          if (state < STATE_ENDED) {
-              emit(true);
-          }
-
-          emit(); // simple 'eventName' events
-
-          // panend and pancancel
-          if (state >= STATE_ENDED) {
-              emit(true);
-          }
-      },
-
-      /**
-       * Check that all the require failure recognizers has failed,
-       * if true, it emits a gesture event,
-       * otherwise, setup the state to FAILED.
-       * @param {Object} input
-       */
-      tryEmit: function(input) {
-          if (this.canEmit()) {
-              return this.emit(input);
-          }
-          // it's failing anyway
-          this.state = STATE_FAILED;
-      },
-
-      /**
-       * can we emit?
-       * @returns {boolean}
-       */
-      canEmit: function() {
-          var i = 0;
-          while (i < this.requireFail.length) {
-              if (!(this.requireFail[i].state & (STATE_FAILED | STATE_POSSIBLE))) {
-                  return false;
-              }
-              i++;
-          }
-          return true;
-      },
-
-      /**
-       * update the recognizer
-       * @param {Object} inputData
-       */
-      recognize: function(inputData) {
-          // make a new copy of the inputData
-          // so we can change the inputData without messing up the other recognizers
-          var inputDataClone = extend({}, inputData);
-
-          // is is enabled and allow recognizing?
-          if (!boolOrFn(this.options.enable, [this, inputDataClone])) {
-              this.reset();
-              this.state = STATE_FAILED;
-              return;
-          }
-
-          // reset when we've reached the end
-          if (this.state & (STATE_RECOGNIZED | STATE_CANCELLED | STATE_FAILED)) {
-              this.state = STATE_POSSIBLE;
-          }
-
-          this.state = this.process(inputDataClone);
-
-          // the recognizer has recognized a gesture
-          // so trigger an event
-          if (this.state & (STATE_BEGAN | STATE_CHANGED | STATE_ENDED | STATE_CANCELLED)) {
-              this.tryEmit(inputDataClone);
-          }
-      },
-
-      /**
-       * return the state of the recognizer
-       * the actual recognizing happens in this method
-       * @virtual
-       * @param {Object} inputData
-       * @returns {Const} STATE
-       */
-      process: function(inputData) { }, // jshint ignore:line
-
-      /**
-       * return the preferred touch-action
-       * @virtual
-       * @returns {Array}
-       */
-      getTouchAction: function() { },
-
-      /**
-       * called when the gesture isn't allowed to recognize
-       * like when another is being recognized or it is disabled
-       * @virtual
-       */
-      reset: function() { }
-  };
-
-  /**
-   * get a usable string, used as event postfix
-   * @param {Const} state
-   * @returns {String} state
-   */
-  function stateStr(state) {
-      if (state & STATE_CANCELLED) {
-          return 'cancel';
-      } else if (state & STATE_ENDED) {
-          return 'end';
-      } else if (state & STATE_CHANGED) {
-          return 'move';
-      } else if (state & STATE_BEGAN) {
-          return 'start';
-      }
-      return '';
-  }
-
-  /**
-   * direction cons to string
-   * @param {Const} direction
-   * @returns {String}
-   */
-  function directionStr(direction) {
-      if (direction == DIRECTION_DOWN) {
-          return 'down';
-      } else if (direction == DIRECTION_UP) {
-          return 'up';
-      } else if (direction == DIRECTION_LEFT) {
-          return 'left';
-      } else if (direction == DIRECTION_RIGHT) {
-          return 'right';
-      }
-      return '';
-  }
-
-  /**
-   * get a recognizer by name if it is bound to a manager
-   * @param {Recognizer|String} otherRecognizer
-   * @param {Recognizer} recognizer
-   * @returns {Recognizer}
-   */
-  function getRecognizerByNameIfManager(otherRecognizer, recognizer) {
-      var manager = recognizer.manager;
-      if (manager) {
-          return manager.get(otherRecognizer);
-      }
-      return otherRecognizer;
-  }
-
-  /**
-   * This recognizer is just used as a base for the simple attribute recognizers.
-   * @constructor
-   * @extends Recognizer
-   */
-  function AttrRecognizer() {
-      Recognizer.apply(this, arguments);
-  }
-
-  inherit(AttrRecognizer, Recognizer, {
-      /**
-       * @namespace
-       * @memberof AttrRecognizer
-       */
-      defaults: {
-          /**
-           * @type {Number}
-           * @default 1
-           */
-          pointers: 1
-      },
-
-      /**
-       * Used to check if it the recognizer receives valid input, like input.distance > 10.
-       * @memberof AttrRecognizer
-       * @param {Object} input
-       * @returns {Boolean} recognized
-       */
-      attrTest: function(input) {
-          var optionPointers = this.options.pointers;
-          return optionPointers === 0 || input.pointers.length === optionPointers;
-      },
-
-      /**
-       * Process the input and return the state for the recognizer
-       * @memberof AttrRecognizer
-       * @param {Object} input
-       * @returns {*} State
-       */
-      process: function(input) {
-          var state = this.state;
-          var eventType = input.eventType;
-
-          var isRecognized = state & (STATE_BEGAN | STATE_CHANGED);
-          var isValid = this.attrTest(input);
-
-          // on cancel input and we've recognized before, return STATE_CANCELLED
-          if (isRecognized && (eventType & INPUT_CANCEL || !isValid)) {
-              return state | STATE_CANCELLED;
-          } else if (isRecognized || isValid) {
-              if (eventType & INPUT_END) {
-                  return state | STATE_ENDED;
-              } else if (!(state & STATE_BEGAN)) {
-                  return STATE_BEGAN;
-              }
-              return state | STATE_CHANGED;
-          }
-          return STATE_FAILED;
-      }
-  });
-
-  /**
-   * Pan
-   * Recognized when the pointer is down and moved in the allowed direction.
-   * @constructor
-   * @extends AttrRecognizer
-   */
-  function PanRecognizer() {
-      AttrRecognizer.apply(this, arguments);
-
-      this.pX = null;
-      this.pY = null;
-  }
-
-  inherit(PanRecognizer, AttrRecognizer, {
-      /**
-       * @namespace
-       * @memberof PanRecognizer
-       */
-      defaults: {
-          event: 'pan',
-          threshold: 10,
-          pointers: 1,
-          direction: DIRECTION_ALL
-      },
-
-      getTouchAction: function() {
-          var direction = this.options.direction;
-          var actions = [];
-          if (direction & DIRECTION_HORIZONTAL) {
-              actions.push(TOUCH_ACTION_PAN_Y);
-          }
-          if (direction & DIRECTION_VERTICAL) {
-              actions.push(TOUCH_ACTION_PAN_X);
-          }
-          return actions;
-      },
-
-      directionTest: function(input) {
-          var options = this.options;
-          var hasMoved = true;
-          var distance = input.distance;
-          var direction = input.direction;
-          var x = input.deltaX;
-          var y = input.deltaY;
-
-          // lock to axis?
-          if (!(direction & options.direction)) {
-              if (options.direction & DIRECTION_HORIZONTAL) {
-                  direction = (x === 0) ? DIRECTION_NONE : (x < 0) ? DIRECTION_LEFT : DIRECTION_RIGHT;
-                  hasMoved = x != this.pX;
-                  distance = Math.abs(input.deltaX);
-              } else {
-                  direction = (y === 0) ? DIRECTION_NONE : (y < 0) ? DIRECTION_UP : DIRECTION_DOWN;
-                  hasMoved = y != this.pY;
-                  distance = Math.abs(input.deltaY);
-              }
-          }
-          input.direction = direction;
-          return hasMoved && distance > options.threshold && direction & options.direction;
-      },
-
-      attrTest: function(input) {
-          return AttrRecognizer.prototype.attrTest.call(this, input) &&
-              (this.state & STATE_BEGAN || (!(this.state & STATE_BEGAN) && this.directionTest(input)));
-      },
-
-      emit: function(input) {
-          this.pX = input.deltaX;
-          this.pY = input.deltaY;
-
-          var direction = directionStr(input.direction);
-          if (direction) {
-              this.manager.emit(this.options.event + direction, input);
-          }
-
-          this._super.emit.call(this, input);
-      }
-  });
-
-  /**
-   * Pinch
-   * Recognized when two or more pointers are moving toward (zoom-in) or away from each other (zoom-out).
-   * @constructor
-   * @extends AttrRecognizer
-   */
-  function PinchRecognizer() {
-      AttrRecognizer.apply(this, arguments);
-  }
-
-  inherit(PinchRecognizer, AttrRecognizer, {
-      /**
-       * @namespace
-       * @memberof PinchRecognizer
-       */
-      defaults: {
-          event: 'pinch',
-          threshold: 0,
-          pointers: 2
-      },
-
-      getTouchAction: function() {
-          return [TOUCH_ACTION_NONE];
-      },
-
-      attrTest: function(input) {
-          return this._super.attrTest.call(this, input) &&
-              (Math.abs(input.scale - 1) > this.options.threshold || this.state & STATE_BEGAN);
-      },
-
-      emit: function(input) {
-          this._super.emit.call(this, input);
-          if (input.scale !== 1) {
-              var inOut = input.scale < 1 ? 'in' : 'out';
-              this.manager.emit(this.options.event + inOut, input);
-          }
-      }
-  });
-
-  /**
-   * Press
-   * Recognized when the pointer is down for x ms without any movement.
-   * @constructor
-   * @extends Recognizer
-   */
-  function PressRecognizer() {
-      Recognizer.apply(this, arguments);
-
-      this._timer = null;
-      this._input = null;
-  }
-
-  inherit(PressRecognizer, Recognizer, {
-      /**
-       * @namespace
-       * @memberof PressRecognizer
-       */
-      defaults: {
-          event: 'press',
-          pointers: 1,
-          time: 500, // minimal time of the pointer to be pressed
-          threshold: 5 // a minimal movement is ok, but keep it low
-      },
-
-      getTouchAction: function() {
-          return [TOUCH_ACTION_AUTO];
-      },
-
-      process: function(input) {
-          var options = this.options;
-          var validPointers = input.pointers.length === options.pointers;
-          var validMovement = input.distance < options.threshold;
-          var validTime = input.deltaTime > options.time;
-
-          this._input = input;
-
-          // we only allow little movement
-          // and we've reached an end event, so a tap is possible
-          if (!validMovement || !validPointers || (input.eventType & (INPUT_END | INPUT_CANCEL) && !validTime)) {
-              this.reset();
-          } else if (input.eventType & INPUT_START) {
-              this.reset();
-              this._timer = setTimeoutContext(function() {
-                  this.state = STATE_RECOGNIZED;
-                  this.tryEmit();
-              }, options.time, this);
-          } else if (input.eventType & INPUT_END) {
-              return STATE_RECOGNIZED;
-          }
-          return STATE_FAILED;
-      },
-
-      reset: function() {
-          clearTimeout(this._timer);
-      },
-
-      emit: function(input) {
-          if (this.state !== STATE_RECOGNIZED) {
-              return;
-          }
-
-          if (input && (input.eventType & INPUT_END)) {
-              this.manager.emit(this.options.event + 'up', input);
-          } else {
-              this._input.timeStamp = now();
-              this.manager.emit(this.options.event, this._input);
-          }
-      }
-  });
-
-  /**
-   * Rotate
-   * Recognized when two or more pointer are moving in a circular motion.
-   * @constructor
-   * @extends AttrRecognizer
-   */
-  function RotateRecognizer() {
-      AttrRecognizer.apply(this, arguments);
-  }
-
-  inherit(RotateRecognizer, AttrRecognizer, {
-      /**
-       * @namespace
-       * @memberof RotateRecognizer
-       */
-      defaults: {
-          event: 'rotate',
-          threshold: 0,
-          pointers: 2
-      },
-
-      getTouchAction: function() {
-          return [TOUCH_ACTION_NONE];
-      },
-
-      attrTest: function(input) {
-          return this._super.attrTest.call(this, input) &&
-              (Math.abs(input.rotation) > this.options.threshold || this.state & STATE_BEGAN);
-      }
-  });
-
-  /**
-   * Swipe
-   * Recognized when the pointer is moving fast (velocity), with enough distance in the allowed direction.
-   * @constructor
-   * @extends AttrRecognizer
-   */
-  function SwipeRecognizer() {
-      AttrRecognizer.apply(this, arguments);
-  }
-
-  inherit(SwipeRecognizer, AttrRecognizer, {
-      /**
-       * @namespace
-       * @memberof SwipeRecognizer
-       */
-      defaults: {
-          event: 'swipe',
-          threshold: 10,
-          velocity: 0.65,
-          direction: DIRECTION_HORIZONTAL | DIRECTION_VERTICAL,
-          pointers: 1
-      },
-
-      getTouchAction: function() {
-          return PanRecognizer.prototype.getTouchAction.call(this);
-      },
-
-      attrTest: function(input) {
-          var direction = this.options.direction;
-          var velocity;
-
-          if (direction & (DIRECTION_HORIZONTAL | DIRECTION_VERTICAL)) {
-              velocity = input.velocity;
-          } else if (direction & DIRECTION_HORIZONTAL) {
-              velocity = input.velocityX;
-          } else if (direction & DIRECTION_VERTICAL) {
-              velocity = input.velocityY;
-          }
-
-          return this._super.attrTest.call(this, input) &&
-              direction & input.direction &&
-              input.distance > this.options.threshold &&
-              abs(velocity) > this.options.velocity && input.eventType & INPUT_END;
-      },
-
-      emit: function(input) {
-          var direction = directionStr(input.direction);
-          if (direction) {
-              this.manager.emit(this.options.event + direction, input);
-          }
-
-          this.manager.emit(this.options.event, input);
-      }
-  });
-
-  /**
-   * A tap is ecognized when the pointer is doing a small tap/click. Multiple taps are recognized if they occur
-   * between the given interval and position. The delay option can be used to recognize multi-taps without firing
-   * a single tap.
-   *
-   * The eventData from the emitted event contains the property `tapCount`, which contains the amount of
-   * multi-taps being recognized.
-   * @constructor
-   * @extends Recognizer
-   */
-  function TapRecognizer() {
-      Recognizer.apply(this, arguments);
-
-      // previous time and center,
-      // used for tap counting
-      this.pTime = false;
-      this.pCenter = false;
-
-      this._timer = null;
-      this._input = null;
-      this.count = 0;
-  }
-
-  inherit(TapRecognizer, Recognizer, {
-      /**
-       * @namespace
-       * @memberof PinchRecognizer
-       */
-      defaults: {
-          event: 'tap',
-          pointers: 1,
-          taps: 1,
-          interval: 300, // max time between the multi-tap taps
-          time: 250, // max time of the pointer to be down (like finger on the screen)
-          threshold: 2, // a minimal movement is ok, but keep it low
-          posThreshold: 10 // a multi-tap can be a bit off the initial position
-      },
-
-      getTouchAction: function() {
-          return [TOUCH_ACTION_MANIPULATION];
-      },
-
-      process: function(input) {
-          var options = this.options;
-
-          var validPointers = input.pointers.length === options.pointers;
-          var validMovement = input.distance < options.threshold;
-          var validTouchTime = input.deltaTime < options.time;
-
-          this.reset();
-
-          if ((input.eventType & INPUT_START) && (this.count === 0)) {
-              return this.failTimeout();
-          }
-
-          // we only allow little movement
-          // and we've reached an end event, so a tap is possible
-          if (validMovement && validTouchTime && validPointers) {
-              if (input.eventType != INPUT_END) {
-                  return this.failTimeout();
-              }
-
-              var validInterval = this.pTime ? (input.timeStamp - this.pTime < options.interval) : true;
-              var validMultiTap = !this.pCenter || getDistance(this.pCenter, input.center) < options.posThreshold;
-
-              this.pTime = input.timeStamp;
-              this.pCenter = input.center;
-
-              if (!validMultiTap || !validInterval) {
-                  this.count = 1;
-              } else {
-                  this.count += 1;
-              }
-
-              this._input = input;
-
-              // if tap count matches we have recognized it,
-              // else it has began recognizing...
-              var tapCount = this.count % options.taps;
-              if (tapCount === 0) {
-                  // no failing requirements, immediately trigger the tap event
-                  // or wait as long as the multitap interval to trigger
-                  if (!this.hasRequireFailures()) {
-                      return STATE_RECOGNIZED;
-                  } else {
-                      this._timer = setTimeoutContext(function() {
-                          this.state = STATE_RECOGNIZED;
-                          this.tryEmit();
-                      }, options.interval, this);
-                      return STATE_BEGAN;
-                  }
-              }
-          }
-          return STATE_FAILED;
-      },
-
-      failTimeout: function() {
-          this._timer = setTimeoutContext(function() {
-              this.state = STATE_FAILED;
-          }, this.options.interval, this);
-          return STATE_FAILED;
-      },
-
-      reset: function() {
-          clearTimeout(this._timer);
-      },
-
-      emit: function() {
-          if (this.state == STATE_RECOGNIZED ) {
-              this._input.tapCount = this.count;
-              this.manager.emit(this.options.event, this._input);
-          }
-      }
-  });
-
-  /**
-   * Simple way to create an manager with a default set of recognizers.
-   * @param {HTMLElement} element
-   * @param {Object} [options]
-   * @constructor
-   */
-  function Hammer(element, options) {
-      options = options || {};
-      options.recognizers = ifUndefined(options.recognizers, Hammer.defaults.preset);
-      return new Manager(element, options);
-  }
-
-  /**
-   * @const {string}
-   */
-  Hammer.VERSION = '2.0.4';
-
-  /**
-   * default settings
-   * @namespace
-   */
-  Hammer.defaults = {
-      /**
-       * set if DOM events are being triggered.
-       * But this is slower and unused by simple implementations, so disabled by default.
-       * @type {Boolean}
-       * @default false
-       */
-      domEvents: false,
-
-      /**
-       * The value for the touchAction property/fallback.
-       * When set to `compute` it will magically set the correct value based on the added recognizers.
-       * @type {String}
-       * @default compute
-       */
-      touchAction: TOUCH_ACTION_COMPUTE,
-
-      /**
-       * @type {Boolean}
-       * @default true
-       */
-      enable: true,
-
-      /**
-       * EXPERIMENTAL FEATURE -- can be removed/changed
-       * Change the parent input target element.
-       * If Null, then it is being set the to main element.
-       * @type {Null|EventTarget}
-       * @default null
-       */
-      inputTarget: null,
-
-      /**
-       * force an input class
-       * @type {Null|Function}
-       * @default null
-       */
-      inputClass: null,
-
-      /**
-       * Default recognizer setup when calling `Hammer()`
-       * When creating a new Manager these will be skipped.
-       * @type {Array}
-       */
-      preset: [
-          // RecognizerClass, options, [recognizeWith, ...], [requireFailure, ...]
-          [RotateRecognizer, { enable: false }],
-          [PinchRecognizer, { enable: false }, ['rotate']],
-          [SwipeRecognizer,{ direction: DIRECTION_HORIZONTAL }],
-          [PanRecognizer, { direction: DIRECTION_HORIZONTAL }, ['swipe']],
-          [TapRecognizer],
-          [TapRecognizer, { event: 'doubletap', taps: 2 }, ['tap']],
-          [PressRecognizer]
-      ],
-
-      /**
-       * Some CSS properties can be used to improve the working of Hammer.
-       * Add them to this method and they will be set when creating a new Manager.
-       * @namespace
-       */
-      cssProps: {
-          /**
-           * Disables text selection to improve the dragging gesture. Mainly for desktop browsers.
-           * @type {String}
-           * @default 'none'
-           */
-          userSelect: 'none',
-
-          /**
-           * Disable the Windows Phone grippers when pressing an element.
-           * @type {String}
-           * @default 'none'
-           */
-          touchSelect: 'none',
-
-          /**
-           * Disables the default callout shown when you touch and hold a touch target.
-           * On iOS, when you touch and hold a touch target such as a link, Safari displays
-           * a callout containing information about the link. This property allows you to disable that callout.
-           * @type {String}
-           * @default 'none'
-           */
-          touchCallout: 'none',
-
-          /**
-           * Specifies whether zooming is enabled. Used by IE10>
-           * @type {String}
-           * @default 'none'
-           */
-          contentZooming: 'none',
-
-          /**
-           * Specifies that an entire element should be draggable instead of its contents. Mainly for desktop browsers.
-           * @type {String}
-           * @default 'none'
-           */
-          userDrag: 'none',
-
-          /**
-           * Overrides the highlight color shown when the user taps a link or a JavaScript
-           * clickable element in iOS. This property obeys the alpha value, if specified.
-           * @type {String}
-           * @default 'rgba(0,0,0,0)'
-           */
-          tapHighlightColor: 'rgba(0,0,0,0)'
-      }
-  };
-
-  var STOP = 1;
-  var FORCED_STOP = 2;
-
-  /**
-   * Manager
-   * @param {HTMLElement} element
-   * @param {Object} [options]
-   * @constructor
-   */
-  function Manager(element, options) {
-      options = options || {};
-
-      this.options = merge(options, Hammer.defaults);
-      this.options.inputTarget = this.options.inputTarget || element;
-
-      this.handlers = {};
-      this.session = {};
-      this.recognizers = [];
-
-      this.element = element;
-      this.input = createInputInstance(this);
-      this.touchAction = new TouchAction(this, this.options.touchAction);
-
-      toggleCssProps(this, true);
-
-      each(options.recognizers, function(item) {
-          var recognizer = this.add(new (item[0])(item[1]));
-          item[2] && recognizer.recognizeWith(item[2]);
-          item[3] && recognizer.requireFailure(item[3]);
-      }, this);
-  }
-
-  Manager.prototype = {
-      /**
-       * set options
-       * @param {Object} options
-       * @returns {Manager}
-       */
-      set: function(options) {
-          extend(this.options, options);
-
-          // Options that need a little more setup
-          if (options.touchAction) {
-              this.touchAction.update();
-          }
-          if (options.inputTarget) {
-              // Clean up existing event listeners and reinitialize
-              this.input.destroy();
-              this.input.target = options.inputTarget;
-              this.input.init();
-          }
-          return this;
-      },
-
-      /**
-       * stop recognizing for this session.
-       * This session will be discarded, when a new [input]start event is fired.
-       * When forced, the recognizer cycle is stopped immediately.
-       * @param {Boolean} [force]
-       */
-      stop: function(force) {
-          this.session.stopped = force ? FORCED_STOP : STOP;
-      },
-
-      /**
-       * run the recognizers!
-       * called by the inputHandler function on every movement of the pointers (touches)
-       * it walks through all the recognizers and tries to detect the gesture that is being made
-       * @param {Object} inputData
-       */
-      recognize: function(inputData) {
-          var session = this.session;
-          if (session.stopped) {
-              return;
-          }
-
-          // run the touch-action polyfill
-          this.touchAction.preventDefaults(inputData);
-
-          var recognizer;
-          var recognizers = this.recognizers;
-
-          // this holds the recognizer that is being recognized.
-          // so the recognizer's state needs to be BEGAN, CHANGED, ENDED or RECOGNIZED
-          // if no recognizer is detecting a thing, it is set to `null`
-          var curRecognizer = session.curRecognizer;
-
-          // reset when the last recognizer is recognized
-          // or when we're in a new session
-          if (!curRecognizer || (curRecognizer && curRecognizer.state & STATE_RECOGNIZED)) {
-              curRecognizer = session.curRecognizer = null;
-          }
-
-          var i = 0;
-          while (i < recognizers.length) {
-              recognizer = recognizers[i];
-
-              // find out if we are allowed try to recognize the input for this one.
-              // 1.   allow if the session is NOT forced stopped (see the .stop() method)
-              // 2.   allow if we still haven't recognized a gesture in this session, or the this recognizer is the one
-              //      that is being recognized.
-              // 3.   allow if the recognizer is allowed to run simultaneous with the current recognized recognizer.
-              //      this can be setup with the `recognizeWith()` method on the recognizer.
-              if (session.stopped !== FORCED_STOP && ( // 1
-                      !curRecognizer || recognizer == curRecognizer || // 2
-                      recognizer.canRecognizeWith(curRecognizer))) { // 3
-                  recognizer.recognize(inputData);
-              } else {
-                  recognizer.reset();
-              }
-
-              // if the recognizer has been recognizing the input as a valid gesture, we want to store this one as the
-              // current active recognizer. but only if we don't already have an active recognizer
-              if (!curRecognizer && recognizer.state & (STATE_BEGAN | STATE_CHANGED | STATE_ENDED)) {
-                  curRecognizer = session.curRecognizer = recognizer;
-              }
-              i++;
-          }
-      },
-
-      /**
-       * get a recognizer by its event name.
-       * @param {Recognizer|String} recognizer
-       * @returns {Recognizer|Null}
-       */
-      get: function(recognizer) {
-          if (recognizer instanceof Recognizer) {
-              return recognizer;
-          }
-
-          var recognizers = this.recognizers;
-          for (var i = 0; i < recognizers.length; i++) {
-              if (recognizers[i].options.event == recognizer) {
-                  return recognizers[i];
-              }
-          }
-          return null;
-      },
-
-      /**
-       * add a recognizer to the manager
-       * existing recognizers with the same event name will be removed
-       * @param {Recognizer} recognizer
-       * @returns {Recognizer|Manager}
-       */
-      add: function(recognizer) {
-          if (invokeArrayArg(recognizer, 'add', this)) {
-              return this;
-          }
-
-          // remove existing
-          var existing = this.get(recognizer.options.event);
-          if (existing) {
-              this.remove(existing);
-          }
-
-          this.recognizers.push(recognizer);
-          recognizer.manager = this;
-
-          this.touchAction.update();
-          return recognizer;
-      },
-
-      /**
-       * remove a recognizer by name or instance
-       * @param {Recognizer|String} recognizer
-       * @returns {Manager}
-       */
-      remove: function(recognizer) {
-          if (invokeArrayArg(recognizer, 'remove', this)) {
-              return this;
-          }
-
-          var recognizers = this.recognizers;
-          recognizer = this.get(recognizer);
-          recognizers.splice(inArray(recognizers, recognizer), 1);
-
-          this.touchAction.update();
-          return this;
-      },
-
-      /**
-       * bind event
-       * @param {String} events
-       * @param {Function} handler
-       * @returns {EventEmitter} this
-       */
-      on: function(events, handler) {
-          var handlers = this.handlers;
-          each(splitStr(events), function(event) {
-              handlers[event] = handlers[event] || [];
-              handlers[event].push(handler);
-          });
-          return this;
-      },
-
-      /**
-       * unbind event, leave emit blank to remove all handlers
-       * @param {String} events
-       * @param {Function} [handler]
-       * @returns {EventEmitter} this
-       */
-      off: function(events, handler) {
-          var handlers = this.handlers;
-          each(splitStr(events), function(event) {
-              if (!handler) {
-                  delete handlers[event];
-              } else {
-                  handlers[event].splice(inArray(handlers[event], handler), 1);
-              }
-          });
-          return this;
-      },
-
-      /**
-       * emit event to the listeners
-       * @param {String} event
-       * @param {Object} data
-       */
-      emit: function(event, data) {
-          // we also want to trigger dom events
-          if (this.options.domEvents) {
-              triggerDomEvent(event, data);
-          }
-
-          // no handlers, so skip it all
-          var handlers = this.handlers[event] && this.handlers[event].slice();
-          if (!handlers || !handlers.length) {
-              return;
-          }
-
-          data.type = event;
-          data.preventDefault = function() {
-              data.srcEvent.preventDefault();
-          };
-
-          var i = 0;
-          while (i < handlers.length) {
-              handlers[i](data);
-              i++;
-          }
-      },
-
-      /**
-       * destroy the manager and unbinds all events
-       * it doesn't unbind dom events, that is the user own responsibility
-       */
-      destroy: function() {
-          this.element && toggleCssProps(this, false);
-
-          this.handlers = {};
-          this.session = {};
-          this.input.destroy();
-          this.element = null;
-      }
-  };
-
-  /**
-   * add/remove the css properties as defined in manager.options.cssProps
-   * @param {Manager} manager
-   * @param {Boolean} add
-   */
-  function toggleCssProps(manager, add) {
-      var element = manager.element;
-      each(manager.options.cssProps, function(value, name) {
-          element.style[prefixed(element.style, name)] = add ? value : '';
-      });
-  }
-
-  /**
-   * trigger dom event
-   * @param {String} event
-   * @param {Object} data
-   */
-  function triggerDomEvent(event, data) {
-      var gestureEvent = document.createEvent('Event');
-      gestureEvent.initEvent(event, true, true);
-      gestureEvent.gesture = data;
-      data.target.dispatchEvent(gestureEvent);
-  }
-
-  extend(Hammer, {
-      INPUT_START: INPUT_START,
-      INPUT_MOVE: INPUT_MOVE,
-      INPUT_END: INPUT_END,
-      INPUT_CANCEL: INPUT_CANCEL,
-
-      STATE_POSSIBLE: STATE_POSSIBLE,
-      STATE_BEGAN: STATE_BEGAN,
-      STATE_CHANGED: STATE_CHANGED,
-      STATE_ENDED: STATE_ENDED,
-      STATE_RECOGNIZED: STATE_RECOGNIZED,
-      STATE_CANCELLED: STATE_CANCELLED,
-      STATE_FAILED: STATE_FAILED,
-
-      DIRECTION_NONE: DIRECTION_NONE,
-      DIRECTION_LEFT: DIRECTION_LEFT,
-      DIRECTION_RIGHT: DIRECTION_RIGHT,
-      DIRECTION_UP: DIRECTION_UP,
-      DIRECTION_DOWN: DIRECTION_DOWN,
-      DIRECTION_HORIZONTAL: DIRECTION_HORIZONTAL,
-      DIRECTION_VERTICAL: DIRECTION_VERTICAL,
-      DIRECTION_ALL: DIRECTION_ALL,
-
-      Manager: Manager,
-      Input: Input,
-      TouchAction: TouchAction,
-
-      TouchInput: TouchInput,
-      MouseInput: MouseInput,
-      PointerEventInput: PointerEventInput,
-      TouchMouseInput: TouchMouseInput,
-      SingleTouchInput: SingleTouchInput,
-
-      Recognizer: Recognizer,
-      AttrRecognizer: AttrRecognizer,
-      Tap: TapRecognizer,
-      Pan: PanRecognizer,
-      Swipe: SwipeRecognizer,
-      Pinch: PinchRecognizer,
-      Rotate: RotateRecognizer,
-      Press: PressRecognizer,
-
-      on: addEventListeners,
-      off: removeEventListeners,
-      each: each,
-      merge: merge,
-      extend: extend,
-      inherit: inherit,
-      bindFn: bindFn,
-      prefixed: prefixed
-  });
-
-  if ("function" == TYPE_FUNCTION && __webpack_require__(91)) {
-      !(__WEBPACK_AMD_DEFINE_RESULT__ = function() {
-          return Hammer;
-      }.call(exports, __webpack_require__, exports, module), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__));
-  } else if (typeof module != 'undefined' && module.exports) {
-      module.exports = Hammer;
-  } else {
-      window[exportName] = Hammer;
-  }
-
-  })(window, document, 'Hammer');
-
+  /* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(108)(module)))
 
 /***/ },
 /* 73 */
@@ -33987,7 +33993,7 @@ return /******/ (function(modules) { // webpackBootstrap
   function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
 
   var Hammer = __webpack_require__(41);
-  var hammerUtil = __webpack_require__(49);
+  var hammerUtil = __webpack_require__(48);
   var util = __webpack_require__(1);
 
   var ColorPicker = (function () {
@@ -34572,838 +34578,15 @@ return /******/ (function(modules) { // webpackBootstrap
 
   var _sharedLabel2 = _interopRequireDefault(_sharedLabel);
 
-  var _nodesShapesBox = __webpack_require__(92);
-
-  var _nodesShapesBox2 = _interopRequireDefault(_nodesShapesBox);
-
-  var _nodesShapesCircle = __webpack_require__(93);
-
-  var _nodesShapesCircle2 = _interopRequireDefault(_nodesShapesCircle);
-
-  var _nodesShapesCircularImage = __webpack_require__(94);
-
-  var _nodesShapesCircularImage2 = _interopRequireDefault(_nodesShapesCircularImage);
-
-  var _nodesShapesDatabase = __webpack_require__(95);
-
-  var _nodesShapesDatabase2 = _interopRequireDefault(_nodesShapesDatabase);
-
-  var _nodesShapesDiamond = __webpack_require__(96);
-
-  var _nodesShapesDiamond2 = _interopRequireDefault(_nodesShapesDiamond);
-
-  var _nodesShapesDot = __webpack_require__(97);
-
-  var _nodesShapesDot2 = _interopRequireDefault(_nodesShapesDot);
-
-  var _nodesShapesEllipse = __webpack_require__(98);
-
-  var _nodesShapesEllipse2 = _interopRequireDefault(_nodesShapesEllipse);
-
-  var _nodesShapesIcon = __webpack_require__(99);
-
-  var _nodesShapesIcon2 = _interopRequireDefault(_nodesShapesIcon);
-
-  var _nodesShapesImage = __webpack_require__(100);
-
-  var _nodesShapesImage2 = _interopRequireDefault(_nodesShapesImage);
-
-  var _nodesShapesSquare = __webpack_require__(101);
-
-  var _nodesShapesSquare2 = _interopRequireDefault(_nodesShapesSquare);
-
-  var _nodesShapesStar = __webpack_require__(102);
-
-  var _nodesShapesStar2 = _interopRequireDefault(_nodesShapesStar);
-
-  var _nodesShapesText = __webpack_require__(103);
-
-  var _nodesShapesText2 = _interopRequireDefault(_nodesShapesText);
-
-  var _nodesShapesTriangle = __webpack_require__(104);
-
-  var _nodesShapesTriangle2 = _interopRequireDefault(_nodesShapesTriangle);
-
-  var _nodesShapesTriangleDown = __webpack_require__(105);
-
-  var _nodesShapesTriangleDown2 = _interopRequireDefault(_nodesShapesTriangleDown);
-
-  var _sharedValidator = __webpack_require__(46);
-
-  var _sharedValidator2 = _interopRequireDefault(_sharedValidator);
-
-  var util = __webpack_require__(1);
-
-  /**
-   * @class Node
-   * A node. A node can be connected to other nodes via one or multiple edges.
-   * @param {object} options An object containing options for the node. All
-   *                            options are optional, except for the id.
-   *                              {number} id     Id of the node. Required
-   *                              {string} label  Text label for the node
-   *                              {number} x      Horizontal position of the node
-   *                              {number} y      Vertical position of the node
-   *                              {string} shape  Node shape, available:
-   *                                              "database", "circle", "ellipse",
-   *                                              "box", "image", "text", "dot",
-   *                                              "star", "triangle", "triangleDown",
-   *                                              "square", "icon"
-   *                              {string} image  An image url
-   *                              {string} title  An title text, can be HTML
-   *                              {anytype} group A group name or number
-   * @param {Network.Images} imagelist    A list with images. Only needed
-   *                                            when the node has an image
-   * @param {Network.Groups} grouplist    A list with groups. Needed for
-   *                                            retrieving group options
-   * @param {Object}               constants    An object with default values for
-   *                                            example for the color
-   *
-   */
-
-  var Node = (function () {
-    function Node(options, body, imagelist, grouplist, globalOptions) {
-      _classCallCheck(this, Node);
-
-      this.options = util.bridgeObject(globalOptions);
-      this.body = body;
-
-      this.edges = []; // all edges connected to this node
-
-      // set defaults for the options
-      this.id = undefined;
-      this.imagelist = imagelist;
-      this.grouplist = grouplist;
-
-      // state options
-      this.x = undefined;
-      this.y = undefined;
-      this.baseSize = this.options.size;
-      this.baseFontSize = this.options.font.size;
-      this.predefinedPosition = false; // used to check if initial fit should just take the range or approximate
-      this.selected = false;
-      this.hover = false;
-
-      this.labelModule = new _sharedLabel2['default'](this.body, this.options);
-      this.setOptions(options);
-    }
-
-    _createClass(Node, [{
-      key: 'attachEdge',
-
-      /**
-       * Attach a edge to the node
-       * @param {Edge} edge
-       */
-      value: function attachEdge(edge) {
-        if (this.edges.indexOf(edge) === -1) {
-          this.edges.push(edge);
-        }
-      }
-    }, {
-      key: 'detachEdge',
-
-      /**
-       * Detach a edge from the node
-       * @param {Edge} edge
-       */
-      value: function detachEdge(edge) {
-        var index = this.edges.indexOf(edge);
-        if (index != -1) {
-          this.edges.splice(index, 1);
-        }
-      }
-    }, {
-      key: 'togglePhysics',
-
-      /**
-       * Enable or disable the physics.
-       * @param status
-       */
-      value: function togglePhysics(status) {
-        this.options.physics = status;
-      }
-    }, {
-      key: 'setOptions',
-
-      /**
-       * Set or overwrite options for the node
-       * @param {Object} options an object with options
-       * @param {Object} constants  and object with default, global options
-       */
-      value: function setOptions(options) {
-        if (!options) {
-          return;
-        }
-
-        // basic options
-        if (options.id !== undefined) {
-          this.id = options.id;
-        }
-
-        if (this.id === undefined) {
-          throw 'Node must have an id';
-        }
-
-        if (options.x !== undefined) {
-          this.x = parseInt(options.x);this.predefinedPosition = true;
-        }
-        if (options.y !== undefined) {
-          this.y = parseInt(options.y);this.predefinedPosition = true;
-        }
-        if (options.size !== undefined) {
-          this.baseSize = options.size;
-        }
-        if (options.value !== undefined) {
-          options.value = parseInt(options.value);
-        }
-
-        // this transforms all shorthands into fully defined options
-        Node.parseOptions(this.options, options, true);
-
-        // copy group options
-        if (typeof options.group === 'number' || typeof options.group === 'string' && options.group != '') {
-          var groupObj = this.grouplist.get(options.group);
-          util.deepExtend(this.options, groupObj);
-          // the color object needs to be completely defined. Since groups can partially overwrite the colors, we parse it again, just in case.
-          this.options.color = util.parseColor(this.options.color);
-        }
-
-        // load the images
-        if (this.options.image !== undefined && this.options.image != '') {
-          if (this.imagelist) {
-            this.imageObj = this.imagelist.load(this.options.image, this.options.brokenImage);
-          } else {
-            throw 'No imagelist provided';
-          }
-        }
-
-        this.updateShape();
-        this.updateLabelModule();
-
-        // reset the size of the node, this can be changed
-        this._reset();
-      }
-    }, {
-      key: 'updateLabelModule',
-      value: function updateLabelModule() {
-        if (this.options.label === undefined || this.options.label === null) {
-          this.options.label = '';
-        }
-        this.labelModule.setOptions(this.options, true);
-        if (this.labelModule.baseSize !== undefined) {
-          this.baseFontSize = this.labelModule.baseSize;
-        }
-      }
-    }, {
-      key: 'updateShape',
-      value: function updateShape() {
-        // choose draw method depending on the shape
-        switch (this.options.shape) {
-          case 'box':
-            this.shape = new _nodesShapesBox2['default'](this.options, this.body, this.labelModule);
-            break;
-          case 'circle':
-            this.shape = new _nodesShapesCircle2['default'](this.options, this.body, this.labelModule);
-            break;
-          case 'circularImage':
-            this.shape = new _nodesShapesCircularImage2['default'](this.options, this.body, this.labelModule, this.imageObj);
-            break;
-          case 'database':
-            this.shape = new _nodesShapesDatabase2['default'](this.options, this.body, this.labelModule);
-            break;
-          case 'diamond':
-            this.shape = new _nodesShapesDiamond2['default'](this.options, this.body, this.labelModule);
-            break;
-          case 'dot':
-            this.shape = new _nodesShapesDot2['default'](this.options, this.body, this.labelModule);
-            break;
-          case 'ellipse':
-            this.shape = new _nodesShapesEllipse2['default'](this.options, this.body, this.labelModule);
-            break;
-          case 'icon':
-            this.shape = new _nodesShapesIcon2['default'](this.options, this.body, this.labelModule);
-            break;
-          case 'image':
-            this.shape = new _nodesShapesImage2['default'](this.options, this.body, this.labelModule, this.imageObj);
-            break;
-          case 'square':
-            this.shape = new _nodesShapesSquare2['default'](this.options, this.body, this.labelModule);
-            break;
-          case 'star':
-            this.shape = new _nodesShapesStar2['default'](this.options, this.body, this.labelModule);
-            break;
-          case 'text':
-            this.shape = new _nodesShapesText2['default'](this.options, this.body, this.labelModule);
-            break;
-          case 'triangle':
-            this.shape = new _nodesShapesTriangle2['default'](this.options, this.body, this.labelModule);
-            break;
-          case 'triangleDown':
-            this.shape = new _nodesShapesTriangleDown2['default'](this.options, this.body, this.labelModule);
-            break;
-          default:
-            this.shape = new _nodesShapesEllipse2['default'](this.options, this.body, this.labelModule);
-            break;
-        }
-        this._reset();
-      }
-    }, {
-      key: 'select',
-
-      /**
-       * select this node
-       */
-      value: function select() {
-        this.selected = true;
-        this._reset();
-      }
-    }, {
-      key: 'unselect',
-
-      /**
-       * unselect this node
-       */
-      value: function unselect() {
-        this.selected = false;
-        this._reset();
-      }
-    }, {
-      key: '_reset',
-
-      /**
-       * Reset the calculated size of the node, forces it to recalculate its size
-       * @private
-       */
-      value: function _reset() {
-        this.shape.width = undefined;
-        this.shape.height = undefined;
-      }
-    }, {
-      key: 'getTitle',
-
-      /**
-       * get the title of this node.
-       * @return {string} title    The title of the node, or undefined when no title
-       *                           has been set.
-       */
-      value: function getTitle() {
-        return this.options.title;
-      }
-    }, {
-      key: 'distanceToBorder',
-
-      /**
-       * Calculate the distance to the border of the Node
-       * @param {CanvasRenderingContext2D}   ctx
-       * @param {Number} angle        Angle in radians
-       * @returns {number} distance   Distance to the border in pixels
-       */
-      value: function distanceToBorder(ctx, angle) {
-        return this.shape.distanceToBorder(ctx, angle);
-      }
-    }, {
-      key: 'isFixed',
-
-      /**
-       * Check if this node has a fixed x and y position
-       * @return {boolean}      true if fixed, false if not
-       */
-      value: function isFixed() {
-        return this.options.fixed.x && this.options.fixed.y;
-      }
-    }, {
-      key: 'isSelected',
-
-      /**
-       * check if this node is selecte
-       * @return {boolean} selected   True if node is selected, else false
-       */
-      value: function isSelected() {
-        return this.selected;
-      }
-    }, {
-      key: 'getValue',
-
-      /**
-       * Retrieve the value of the node. Can be undefined
-       * @return {Number} value
-       */
-      value: function getValue() {
-        return this.options.value;
-      }
-    }, {
-      key: 'setValueRange',
-
-      /**
-       * Adjust the value range of the node. The node will adjust it's size
-       * based on its value.
-       * @param {Number} min
-       * @param {Number} max
-       */
-      value: function setValueRange(min, max, total) {
-        if (this.options.value !== undefined) {
-          var scale = this.options.scaling.customScalingFunction(min, max, total, this.options.value);
-          var sizeDiff = this.options.scaling.max - this.options.scaling.min;
-          if (this.options.scaling.label.enabled === true) {
-            var fontDiff = this.options.scaling.label.max - this.options.scaling.label.min;
-            this.options.font.size = this.options.scaling.label.min + scale * fontDiff;
-          }
-          this.options.size = this.options.scaling.min + scale * sizeDiff;
-        } else {
-          this.options.size = this.baseSize;
-          this.options.font.size = this.baseFontSize;
-        }
-      }
-    }, {
-      key: 'draw',
-
-      /**
-       * Draw this node in the given canvas
-       * The 2d context of a HTML canvas can be retrieved by canvas.getContext("2d");
-       * @param {CanvasRenderingContext2D}   ctx
-       */
-      value: function draw(ctx) {
-        this.shape.draw(ctx, this.x, this.y, this.selected, this.hover);
-      }
-    }, {
-      key: 'updateBoundingBox',
-
-      /**
-       * Update the bounding box of the shape
-       */
-      value: function updateBoundingBox() {
-        this.shape.updateBoundingBox(this.x, this.y);
-      }
-    }, {
-      key: 'resize',
-
-      /**
-       * Recalculate the size of this node in the given canvas
-       * The 2d context of a HTML canvas can be retrieved by canvas.getContext("2d");
-       * @param {CanvasRenderingContext2D}   ctx
-       */
-      value: function resize(ctx) {
-        this.shape.resize(ctx);
-      }
-    }, {
-      key: 'isOverlappingWith',
-
-      /**
-       * Check if this object is overlapping with the provided object
-       * @param {Object} obj   an object with parameters left, top, right, bottom
-       * @return {boolean}     True if location is located on node
-       */
-      value: function isOverlappingWith(obj) {
-        return this.shape.left < obj.right && this.shape.left + this.shape.width > obj.left && this.shape.top < obj.bottom && this.shape.top + this.shape.height > obj.top;
-      }
-    }, {
-      key: 'isBoundingBoxOverlappingWith',
-
-      /**
-       * Check if this object is overlapping with the provided object
-       * @param {Object} obj   an object with parameters left, top, right, bottom
-       * @return {boolean}     True if location is located on node
-       */
-      value: function isBoundingBoxOverlappingWith(obj) {
-        return this.shape.boundingBox.left < obj.right && this.shape.boundingBox.right > obj.left && this.shape.boundingBox.top < obj.bottom && this.shape.boundingBox.bottom > obj.top;
-      }
-    }], [{
-      key: 'parseOptions',
-
-      /**
-       * This process all possible shorthands in the new options and makes sure that the parentOptions are fully defined.
-       * Static so it can also be used by the handler.
-       * @param parentOptions
-       * @param newOptions
-       */
-      value: function parseOptions(parentOptions, newOptions) {
-        var allowDeletion = arguments[2] === undefined ? false : arguments[2];
-
-        var fields = ['color', 'font', 'fixed', 'shadow'];
-        util.selectiveNotDeepExtend(fields, parentOptions, newOptions);
-
-        // merge the shadow options into the parent.
-        util.mergeOptions(parentOptions, newOptions, 'shadow');
-
-        // individual shape newOptions
-        if (newOptions.color !== undefined && newOptions.color !== null) {
-          var parsedColor = util.parseColor(newOptions.color);
-          util.fillIfDefined(parentOptions.color, parsedColor);
-        } else if (allowDeletion === true) {
-          parentOptions.color = undefined;
-          delete parentOptions.color;
-        }
-
-        if (newOptions.fixed !== undefined && newOptions.fixed !== null) {
-          if (typeof newOptions.fixed === 'boolean') {
-            parentOptions.fixed.x = newOptions.fixed;
-            parentOptions.fixed.y = newOptions.fixed;
-          } else {
-            if (newOptions.fixed.x !== undefined && typeof newOptions.fixed.x === 'boolean') {
-              parentOptions.fixed.x = newOptions.fixed.x;
-            }
-            if (newOptions.fixed.y !== undefined && typeof newOptions.fixed.y === 'boolean') {
-              parentOptions.fixed.y = newOptions.fixed.y;
-            }
-          }
-        }
-
-        if (newOptions.font !== undefined) {
-          _sharedLabel2['default'].parseOptions(parentOptions.font, newOptions);
-        }
-      }
-    }]);
-
-    return Node;
-  })();
-
-  exports['default'] = Node;
-  module.exports = exports['default'];
-
-/***/ },
-/* 75 */
-/***/ function(module, exports, __webpack_require__) {
-
-  'use strict';
-
-  Object.defineProperty(exports, '__esModule', {
-    value: true
-  });
-
-  var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
-
-  function _slicedToArray(arr, i) { if (Array.isArray(arr)) { return arr; } else if (Symbol.iterator in Object(arr)) { var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i['return']) _i['return'](); } finally { if (_d) throw _e; } } return _arr; } else { throw new TypeError('Invalid attempt to destructure non-iterable instance'); } }
-
-  function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
-
-  var util = __webpack_require__(1);
-
-  var Label = (function () {
-    function Label(body, options) {
-      _classCallCheck(this, Label);
-
-      this.body = body;
-
-      this.baseSize = undefined;
-      this.setOptions(options);
-      this.size = { top: 0, left: 0, width: 0, height: 0, yLine: 0 }; // could be cached
-    }
-
-    _createClass(Label, [{
-      key: 'setOptions',
-      value: function setOptions(options) {
-        var allowDeletion = arguments[1] === undefined ? false : arguments[1];
-
-        this.options = options;
-
-        if (options.label !== undefined) {
-          this.labelDirty = true;
-        }
-
-        if (options.font !== undefined) {
-          Label.parseOptions(this.options.font, options, allowDeletion);
-          if (typeof options.font === 'string') {
-            this.baseSize = this.options.font.size;
-          } else if (typeof options.font === 'object') {
-            if (options.font.size !== undefined) {
-              this.baseSize = options.font.size;
-            }
-          }
-        }
-      }
-    }, {
-      key: 'draw',
-
-      /**
-       * Main function. This is called from anything that wants to draw a label.
-       * @param ctx
-       * @param x
-       * @param y
-       * @param selected
-       * @param baseline
-       */
-      value: function draw(ctx, x, y, selected) {
-        var baseline = arguments[4] === undefined ? 'middle' : arguments[4];
-
-        // if no label, return
-        if (this.options.label === undefined) return;
-
-        // check if we have to render the label
-        var viewFontSize = this.options.font.size * this.body.view.scale;
-        if (this.options.label && viewFontSize < this.options.scaling.label.drawThreshold - 1) return;
-
-        // update the size cache if required
-        this.calculateLabelSize(ctx, selected, x, y, baseline);
-
-        // create the fontfill background
-        this._drawBackground(ctx);
-        // draw text
-        this._drawText(ctx, selected, x, y, baseline);
-      }
-    }, {
-      key: '_drawBackground',
-
-      /**
-       * Draws the label background
-       * @param {CanvasRenderingContext2D} ctx
-       * @private
-       */
-      value: function _drawBackground(ctx) {
-        if (this.options.font.background !== undefined && this.options.font.background !== 'none') {
-          ctx.fillStyle = this.options.font.background;
-
-          var lineMargin = 2;
-
-          switch (this.options.font.align) {
-            case 'middle':
-              ctx.fillRect(-this.size.width * 0.5, -this.size.height * 0.5, this.size.width, this.size.height);
-              break;
-            case 'top':
-              ctx.fillRect(-this.size.width * 0.5, -(this.size.height + lineMargin), this.size.width, this.size.height);
-              break;
-            case 'bottom':
-              ctx.fillRect(-this.size.width * 0.5, lineMargin, this.size.width, this.size.height);
-              break;
-            default:
-              ctx.fillRect(this.size.left, this.size.top - 0.5 * lineMargin, this.size.width, this.size.height);
-              break;
-          }
-        }
-      }
-    }, {
-      key: '_drawText',
-
-      /**
-       *
-       * @param ctx
-       * @param x
-       * @param baseline
-       * @private
-       */
-      value: function _drawText(ctx, selected, x, y) {
-        var baseline = arguments[4] === undefined ? 'middle' : arguments[4];
-
-        var fontSize = this.options.font.size;
-        var viewFontSize = fontSize * this.body.view.scale;
-        // this ensures that there will not be HUGE letters on screen by setting an upper limit on the visible text size (regardless of zoomLevel)
-        if (viewFontSize >= this.options.scaling.label.maxVisible) {
-          fontSize = Number(this.options.scaling.label.maxVisible) / this.body.view.scale;
-        }
-
-        var yLine = this.size.yLine;
-
-        var _getColor = this._getColor(viewFontSize);
-
-        var _getColor2 = _slicedToArray(_getColor, 2);
-
-        var fontColor = _getColor2[0];
-        var strokeColor = _getColor2[1];
-
-        var _setAlignment = this._setAlignment(ctx, x, yLine, baseline);
-
-        var _setAlignment2 = _slicedToArray(_setAlignment, 2);
-
-        x = _setAlignment2[0];
-        yLine = _setAlignment2[1];
-
-        // configure context for drawing the text
-        ctx.font = (selected ? 'bold ' : '') + fontSize + 'px ' + this.options.font.face;
-        ctx.fillStyle = fontColor;
-        ctx.textAlign = 'center';
-
-        // set the strokeWidth
-        if (this.options.font.strokeWidth > 0) {
-          ctx.lineWidth = this.options.font.strokeWidth;
-          ctx.strokeStyle = strokeColor;
-          ctx.lineJoin = 'round';
-        }
-
-        // draw the text
-        for (var i = 0; i < this.lineCount; i++) {
-          if (this.options.font.strokeWidth > 0) {
-            ctx.strokeText(this.lines[i], x, yLine);
-          }
-          ctx.fillText(this.lines[i], x, yLine);
-          yLine += fontSize;
-        }
-      }
-    }, {
-      key: '_setAlignment',
-      value: function _setAlignment(ctx, x, yLine, baseline) {
-        // check for label alignment (for edges)
-        // TODO: make alignment for nodes
-        if (this.options.font.align !== 'horizontal') {
-          x = 0;
-          yLine = 0;
-
-          var lineMargin = 2;
-          if (this.options.font.align === 'top') {
-            ctx.textBaseline = 'alphabetic';
-            yLine -= 2 * lineMargin; // distance from edge, required because we use alphabetic. Alphabetic has less difference between browsers
-          } else if (this.options.font.align === 'bottom') {
-            ctx.textBaseline = 'hanging';
-            yLine += 2 * lineMargin; // distance from edge, required because we use hanging. Hanging has less difference between browsers
-          } else {
-            ctx.textBaseline = 'middle';
-          }
-        } else {
-          ctx.textBaseline = baseline;
-        }
-
-        return [x, yLine];
-      }
-    }, {
-      key: '_getColor',
-
-      /**
-       * fade in when relative scale is between threshold and threshold - 1.
-       * If the relative scale would be smaller than threshold -1 the draw function would have returned before coming here.
-       *
-       * @param viewFontSize
-       * @returns {*[]}
-       * @private
-       */
-      value: function _getColor(viewFontSize) {
-        var fontColor = this.options.font.color || '#000000';
-        var strokeColor = this.options.font.strokeColor || '#ffffff';
-        if (viewFontSize <= this.options.scaling.label.drawThreshold) {
-          var opacity = Math.max(0, Math.min(1, 1 - (this.options.scaling.label.drawThreshold - viewFontSize)));
-          fontColor = util.overrideOpacity(fontColor, opacity);
-          strokeColor = util.overrideOpacity(strokeColor, opacity);
-        }
-        return [fontColor, strokeColor];
-      }
-    }, {
-      key: 'getTextSize',
-
-      /**
-       *
-       * @param ctx
-       * @param selected
-       * @returns {{width: number, height: number}}
-       */
-      value: function getTextSize(ctx) {
-        var selected = arguments[1] === undefined ? false : arguments[1];
-
-        var size = {
-          width: this._processLabel(ctx, selected),
-          height: this.options.font.size * this.lineCount,
-          lineCount: this.lineCount
-        };
-        return size;
-      }
-    }, {
-      key: 'calculateLabelSize',
-
-      /**
-       *
-       * @param ctx
-       * @param selected
-       * @param x
-       * @param y
-       * @param baseline
-       */
-      value: function calculateLabelSize(ctx, selected) {
-        var x = arguments[2] === undefined ? 0 : arguments[2];
-        var y = arguments[3] === undefined ? 0 : arguments[3];
-        var baseline = arguments[4] === undefined ? 'middle' : arguments[4];
-
-        if (this.labelDirty === true) {
-          this.size.width = this._processLabel(ctx, selected);
-        }
-        this.size.height = this.options.font.size * this.lineCount;
-        this.size.left = x - this.size.width * 0.5;
-        this.size.top = y - this.size.height * 0.5;
-        this.size.yLine = y + (1 - this.lineCount) * 0.5 * this.options.font.size;
-        if (baseline === 'hanging') {
-          this.size.top += 0.5 * this.options.font.size;
-          this.size.top += 4; // distance from node, required because we use hanging. Hanging has less difference between browsers
-          this.size.yLine += 4; // distance from node
-        }
-
-        this.labelDirty = false;
-      }
-    }, {
-      key: '_processLabel',
-
-      /**
-       * This calculates the width as well as explodes the label string and calculates the amount of lines.
-       * @param ctx
-       * @param selected
-       * @returns {number}
-       * @private
-       */
-      value: function _processLabel(ctx, selected) {
-        var width = 0;
-        var lines = [''];
-        var lineCount = 0;
-        if (this.options.label !== undefined) {
-          lines = String(this.options.label).split('\n');
-          lineCount = lines.length;
-          ctx.font = (selected ? 'bold ' : '') + this.options.font.size + 'px ' + this.options.font.face;
-          width = ctx.measureText(lines[0]).width;
-          for (var i = 1; i < lineCount; i++) {
-            var lineWidth = ctx.measureText(lines[i]).width;
-            width = lineWidth > width ? lineWidth : width;
-          }
-        }
-        this.lines = lines;
-        this.lineCount = lineCount;
-
-        return width;
-      }
-    }], [{
-      key: 'parseOptions',
-      value: function parseOptions(parentOptions, newOptions) {
-        var allowDeletion = arguments[2] === undefined ? false : arguments[2];
-
-        if (typeof newOptions.font === 'string') {
-          var newOptionsArray = newOptions.font.split(' ');
-          parentOptions.size = newOptionsArray[0].replace('px', '');
-          parentOptions.face = newOptionsArray[1];
-          parentOptions.color = newOptionsArray[2];
-        } else if (typeof newOptions.font === 'object') {
-          util.fillIfDefined(parentOptions, newOptions.font, allowDeletion);
-        }
-        parentOptions.size = Number(parentOptions.size);
-      }
-    }]);
-
-    return Label;
-  })();
-
-  exports['default'] = Label;
-  module.exports = exports['default'];
-
-/***/ },
-/* 76 */
-/***/ function(module, exports, __webpack_require__) {
-
-  'use strict';
-
-  Object.defineProperty(exports, '__esModule', {
-    value: true
-  });
-
-  var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
-
-  function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
-
-  function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
-
-  var _sharedLabel = __webpack_require__(75);
-
-  var _sharedLabel2 = _interopRequireDefault(_sharedLabel);
-
-  var _edgesBezierEdgeDynamic = __webpack_require__(106);
+  var _edgesBezierEdgeDynamic = __webpack_require__(89);
 
   var _edgesBezierEdgeDynamic2 = _interopRequireDefault(_edgesBezierEdgeDynamic);
 
-  var _edgesBezierEdgeStatic = __webpack_require__(107);
+  var _edgesBezierEdgeStatic = __webpack_require__(90);
 
   var _edgesBezierEdgeStatic2 = _interopRequireDefault(_edgesBezierEdgeStatic);
 
-  var _edgesStraightEdge = __webpack_require__(108);
+  var _edgesStraightEdge = __webpack_require__(91);
 
   var _edgesStraightEdge2 = _interopRequireDefault(_edgesStraightEdge);
 
@@ -35923,6 +35106,368 @@ return /******/ (function(modules) { // webpackBootstrap
   })();
 
   exports['default'] = Edge;
+  module.exports = exports['default'];
+
+/***/ },
+/* 75 */
+/***/ function(module, exports, __webpack_require__) {
+
+  'use strict';
+
+  Object.defineProperty(exports, '__esModule', {
+    value: true
+  });
+
+  var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
+
+  function _slicedToArray(arr, i) { if (Array.isArray(arr)) { return arr; } else if (Symbol.iterator in Object(arr)) { var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i['return']) _i['return'](); } finally { if (_d) throw _e; } } return _arr; } else { throw new TypeError('Invalid attempt to destructure non-iterable instance'); } }
+
+  function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
+
+  var util = __webpack_require__(1);
+
+  var Label = (function () {
+    function Label(body, options) {
+      _classCallCheck(this, Label);
+
+      this.body = body;
+
+      this.baseSize = undefined;
+      this.setOptions(options);
+      this.size = { top: 0, left: 0, width: 0, height: 0, yLine: 0 }; // could be cached
+    }
+
+    _createClass(Label, [{
+      key: 'setOptions',
+      value: function setOptions(options) {
+        var allowDeletion = arguments[1] === undefined ? false : arguments[1];
+
+        this.options = options;
+
+        if (options.label !== undefined) {
+          this.labelDirty = true;
+        }
+
+        if (options.font !== undefined) {
+          Label.parseOptions(this.options.font, options, allowDeletion);
+          if (typeof options.font === 'string') {
+            this.baseSize = this.options.font.size;
+          } else if (typeof options.font === 'object') {
+            if (options.font.size !== undefined) {
+              this.baseSize = options.font.size;
+            }
+          }
+        }
+      }
+    }, {
+      key: 'draw',
+
+      /**
+       * Main function. This is called from anything that wants to draw a label.
+       * @param ctx
+       * @param x
+       * @param y
+       * @param selected
+       * @param baseline
+       */
+      value: function draw(ctx, x, y, selected) {
+        var baseline = arguments[4] === undefined ? 'middle' : arguments[4];
+
+        // if no label, return
+        if (this.options.label === undefined) return;
+
+        // check if we have to render the label
+        var viewFontSize = this.options.font.size * this.body.view.scale;
+        if (this.options.label && viewFontSize < this.options.scaling.label.drawThreshold - 1) return;
+
+        // update the size cache if required
+        this.calculateLabelSize(ctx, selected, x, y, baseline);
+
+        // create the fontfill background
+        this._drawBackground(ctx);
+        // draw text
+        this._drawText(ctx, selected, x, y, baseline);
+      }
+    }, {
+      key: '_drawBackground',
+
+      /**
+       * Draws the label background
+       * @param {CanvasRenderingContext2D} ctx
+       * @private
+       */
+      value: function _drawBackground(ctx) {
+        if (this.options.font.background !== undefined && this.options.font.background !== 'none') {
+          ctx.fillStyle = this.options.font.background;
+
+          var lineMargin = 2;
+
+          switch (this.options.font.align) {
+            case 'middle':
+              ctx.fillRect(-this.size.width * 0.5, -this.size.height * 0.5, this.size.width, this.size.height);
+              break;
+            case 'top':
+              ctx.fillRect(-this.size.width * 0.5, -(this.size.height + lineMargin), this.size.width, this.size.height);
+              break;
+            case 'bottom':
+              ctx.fillRect(-this.size.width * 0.5, lineMargin, this.size.width, this.size.height);
+              break;
+            default:
+              ctx.fillRect(this.size.left, this.size.top - 0.5 * lineMargin, this.size.width, this.size.height);
+              break;
+          }
+        }
+      }
+    }, {
+      key: '_drawText',
+
+      /**
+       *
+       * @param ctx
+       * @param x
+       * @param baseline
+       * @private
+       */
+      value: function _drawText(ctx, selected, x, y) {
+        var baseline = arguments[4] === undefined ? 'middle' : arguments[4];
+
+        var fontSize = this.options.font.size;
+        var viewFontSize = fontSize * this.body.view.scale;
+        // this ensures that there will not be HUGE letters on screen by setting an upper limit on the visible text size (regardless of zoomLevel)
+        if (viewFontSize >= this.options.scaling.label.maxVisible) {
+          fontSize = Number(this.options.scaling.label.maxVisible) / this.body.view.scale;
+        }
+
+        var yLine = this.size.yLine;
+
+        var _getColor = this._getColor(viewFontSize);
+
+        var _getColor2 = _slicedToArray(_getColor, 2);
+
+        var fontColor = _getColor2[0];
+        var strokeColor = _getColor2[1];
+
+        var _setAlignment = this._setAlignment(ctx, x, yLine, baseline);
+
+        var _setAlignment2 = _slicedToArray(_setAlignment, 2);
+
+        x = _setAlignment2[0];
+        yLine = _setAlignment2[1];
+
+        // configure context for drawing the text
+        ctx.font = (selected ? 'bold ' : '') + fontSize + 'px ' + this.options.font.face;
+        ctx.fillStyle = fontColor;
+        ctx.textAlign = 'center';
+
+        // set the strokeWidth
+        if (this.options.font.strokeWidth > 0) {
+          ctx.lineWidth = this.options.font.strokeWidth;
+          ctx.strokeStyle = strokeColor;
+          ctx.lineJoin = 'round';
+        }
+
+        // draw the text
+        for (var i = 0; i < this.lineCount; i++) {
+          if (this.options.font.strokeWidth > 0) {
+            ctx.strokeText(this.lines[i], x, yLine);
+          }
+          ctx.fillText(this.lines[i], x, yLine);
+          yLine += fontSize;
+        }
+      }
+    }, {
+      key: '_setAlignment',
+      value: function _setAlignment(ctx, x, yLine, baseline) {
+        // check for label alignment (for edges)
+        // TODO: make alignment for nodes
+        if (this.options.font.align !== 'horizontal') {
+          x = 0;
+          yLine = 0;
+
+          var lineMargin = 2;
+          if (this.options.font.align === 'top') {
+            ctx.textBaseline = 'alphabetic';
+            yLine -= 2 * lineMargin; // distance from edge, required because we use alphabetic. Alphabetic has less difference between browsers
+          } else if (this.options.font.align === 'bottom') {
+            ctx.textBaseline = 'hanging';
+            yLine += 2 * lineMargin; // distance from edge, required because we use hanging. Hanging has less difference between browsers
+          } else {
+            ctx.textBaseline = 'middle';
+          }
+        } else {
+          ctx.textBaseline = baseline;
+        }
+
+        return [x, yLine];
+      }
+    }, {
+      key: '_getColor',
+
+      /**
+       * fade in when relative scale is between threshold and threshold - 1.
+       * If the relative scale would be smaller than threshold -1 the draw function would have returned before coming here.
+       *
+       * @param viewFontSize
+       * @returns {*[]}
+       * @private
+       */
+      value: function _getColor(viewFontSize) {
+        var fontColor = this.options.font.color || '#000000';
+        var strokeColor = this.options.font.strokeColor || '#ffffff';
+        if (viewFontSize <= this.options.scaling.label.drawThreshold) {
+          var opacity = Math.max(0, Math.min(1, 1 - (this.options.scaling.label.drawThreshold - viewFontSize)));
+          fontColor = util.overrideOpacity(fontColor, opacity);
+          strokeColor = util.overrideOpacity(strokeColor, opacity);
+        }
+        return [fontColor, strokeColor];
+      }
+    }, {
+      key: 'getTextSize',
+
+      /**
+       *
+       * @param ctx
+       * @param selected
+       * @returns {{width: number, height: number}}
+       */
+      value: function getTextSize(ctx) {
+        var selected = arguments[1] === undefined ? false : arguments[1];
+
+        var size = {
+          width: this._processLabel(ctx, selected),
+          height: this.options.font.size * this.lineCount,
+          lineCount: this.lineCount
+        };
+        return size;
+      }
+    }, {
+      key: 'calculateLabelSize',
+
+      /**
+       *
+       * @param ctx
+       * @param selected
+       * @param x
+       * @param y
+       * @param baseline
+       */
+      value: function calculateLabelSize(ctx, selected) {
+        var x = arguments[2] === undefined ? 0 : arguments[2];
+        var y = arguments[3] === undefined ? 0 : arguments[3];
+        var baseline = arguments[4] === undefined ? 'middle' : arguments[4];
+
+        if (this.labelDirty === true) {
+          this.size.width = this._processLabel(ctx, selected);
+        }
+        this.size.height = this.options.font.size * this.lineCount;
+        this.size.left = x - this.size.width * 0.5;
+        this.size.top = y - this.size.height * 0.5;
+        this.size.yLine = y + (1 - this.lineCount) * 0.5 * this.options.font.size;
+        if (baseline === 'hanging') {
+          this.size.top += 0.5 * this.options.font.size;
+          this.size.top += 4; // distance from node, required because we use hanging. Hanging has less difference between browsers
+          this.size.yLine += 4; // distance from node
+        }
+
+        this.labelDirty = false;
+      }
+    }, {
+      key: '_processLabel',
+
+      /**
+       * This calculates the width as well as explodes the label string and calculates the amount of lines.
+       * @param ctx
+       * @param selected
+       * @returns {number}
+       * @private
+       */
+      value: function _processLabel(ctx, selected) {
+        var width = 0;
+        var lines = [''];
+        var lineCount = 0;
+        if (this.options.label !== undefined) {
+          lines = String(this.options.label).split('\n');
+          lineCount = lines.length;
+          ctx.font = (selected ? 'bold ' : '') + this.options.font.size + 'px ' + this.options.font.face;
+          width = ctx.measureText(lines[0]).width;
+          for (var i = 1; i < lineCount; i++) {
+            var lineWidth = ctx.measureText(lines[i]).width;
+            width = lineWidth > width ? lineWidth : width;
+          }
+        }
+        this.lines = lines;
+        this.lineCount = lineCount;
+
+        return width;
+      }
+    }], [{
+      key: 'parseOptions',
+      value: function parseOptions(parentOptions, newOptions) {
+        var allowDeletion = arguments[2] === undefined ? false : arguments[2];
+
+        if (typeof newOptions.font === 'string') {
+          var newOptionsArray = newOptions.font.split(' ');
+          parentOptions.size = newOptionsArray[0].replace('px', '');
+          parentOptions.face = newOptionsArray[1];
+          parentOptions.color = newOptionsArray[2];
+        } else if (typeof newOptions.font === 'object') {
+          util.fillIfDefined(parentOptions, newOptions.font, allowDeletion);
+        }
+        parentOptions.size = Number(parentOptions.size);
+      }
+    }]);
+
+    return Label;
+  })();
+
+  exports['default'] = Label;
+  module.exports = exports['default'];
+
+/***/ },
+/* 76 */
+/***/ function(module, exports, __webpack_require__) {
+
+  'use strict';
+
+  Object.defineProperty(exports, '__esModule', {
+    value: true
+  });
+
+  var _get = function get(_x, _x2, _x3) { var _again = true; _function: while (_again) { desc = parent = getter = undefined; _again = false; var object = _x,
+      property = _x2,
+      receiver = _x3; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { _x = parent; _x2 = property; _x3 = receiver; _again = true; continue _function; } } else if ('value' in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } } };
+
+  function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
+
+  function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
+
+  function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; }
+
+  var _Node2 = __webpack_require__(87);
+
+  var _Node3 = _interopRequireDefault(_Node2);
+
+  /**
+   *
+   */
+
+  var Cluster = (function (_Node) {
+    function Cluster(options, body, imagelist, grouplist, globalOptions) {
+      _classCallCheck(this, Cluster);
+
+      _get(Object.getPrototypeOf(Cluster.prototype), 'constructor', this).call(this, options, body, imagelist, grouplist, globalOptions);
+
+      this.isCluster = true;
+      this.containedNodes = {};
+      this.containedEdges = {};
+    }
+
+    _inherits(Cluster, _Node);
+
+    return Cluster;
+  })(_Node3['default']);
+
+  exports['default'] = Cluster;
   module.exports = exports['default'];
 
 /***/ },
@@ -37058,60 +36603,13 @@ return /******/ (function(modules) { // webpackBootstrap
     value: true
   });
 
-  var _get = function get(_x, _x2, _x3) { var _again = true; _function: while (_again) { desc = parent = getter = undefined; _again = false; var object = _x,
-      property = _x2,
-      receiver = _x3; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { _x = parent; _x2 = property; _x3 = receiver; _again = true; continue _function; } } else if ('value' in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } } };
-
-  function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
-
-  function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
-
-  function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; }
-
-  var _Node2 = __webpack_require__(74);
-
-  var _Node3 = _interopRequireDefault(_Node2);
-
-  /**
-   *
-   */
-
-  var Cluster = (function (_Node) {
-    function Cluster(options, body, imagelist, grouplist, globalOptions) {
-      _classCallCheck(this, Cluster);
-
-      _get(Object.getPrototypeOf(Cluster.prototype), 'constructor', this).call(this, options, body, imagelist, grouplist, globalOptions);
-
-      this.isCluster = true;
-      this.containedNodes = {};
-      this.containedEdges = {};
-    }
-
-    _inherits(Cluster, _Node);
-
-    return Cluster;
-  })(_Node3['default']);
-
-  exports['default'] = Cluster;
-  module.exports = exports['default'];
-
-/***/ },
-/* 86 */
-/***/ function(module, exports, __webpack_require__) {
-
-  'use strict';
-
-  Object.defineProperty(exports, '__esModule', {
-    value: true
-  });
-
   var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
 
   function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
 
   var util = __webpack_require__(1);
   var Hammer = __webpack_require__(41);
-  var hammerUtil = __webpack_require__(49);
+  var hammerUtil = __webpack_require__(48);
   var keycharm = __webpack_require__(88);
 
   var NavigationHandler = (function () {
@@ -37366,7 +36864,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 87 */
+/* 86 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -37490,6 +36988,514 @@ return /******/ (function(modules) { // webpackBootstrap
   })();
 
   exports['default'] = Popup;
+  module.exports = exports['default'];
+
+/***/ },
+/* 87 */
+/***/ function(module, exports, __webpack_require__) {
+
+  'use strict';
+
+  Object.defineProperty(exports, '__esModule', {
+    value: true
+  });
+
+  var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
+
+  function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
+
+  function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
+
+  var _sharedLabel = __webpack_require__(75);
+
+  var _sharedLabel2 = _interopRequireDefault(_sharedLabel);
+
+  var _nodesShapesBox = __webpack_require__(93);
+
+  var _nodesShapesBox2 = _interopRequireDefault(_nodesShapesBox);
+
+  var _nodesShapesCircle = __webpack_require__(94);
+
+  var _nodesShapesCircle2 = _interopRequireDefault(_nodesShapesCircle);
+
+  var _nodesShapesCircularImage = __webpack_require__(95);
+
+  var _nodesShapesCircularImage2 = _interopRequireDefault(_nodesShapesCircularImage);
+
+  var _nodesShapesDatabase = __webpack_require__(96);
+
+  var _nodesShapesDatabase2 = _interopRequireDefault(_nodesShapesDatabase);
+
+  var _nodesShapesDiamond = __webpack_require__(97);
+
+  var _nodesShapesDiamond2 = _interopRequireDefault(_nodesShapesDiamond);
+
+  var _nodesShapesDot = __webpack_require__(98);
+
+  var _nodesShapesDot2 = _interopRequireDefault(_nodesShapesDot);
+
+  var _nodesShapesEllipse = __webpack_require__(99);
+
+  var _nodesShapesEllipse2 = _interopRequireDefault(_nodesShapesEllipse);
+
+  var _nodesShapesIcon = __webpack_require__(100);
+
+  var _nodesShapesIcon2 = _interopRequireDefault(_nodesShapesIcon);
+
+  var _nodesShapesImage = __webpack_require__(101);
+
+  var _nodesShapesImage2 = _interopRequireDefault(_nodesShapesImage);
+
+  var _nodesShapesSquare = __webpack_require__(102);
+
+  var _nodesShapesSquare2 = _interopRequireDefault(_nodesShapesSquare);
+
+  var _nodesShapesStar = __webpack_require__(103);
+
+  var _nodesShapesStar2 = _interopRequireDefault(_nodesShapesStar);
+
+  var _nodesShapesText = __webpack_require__(104);
+
+  var _nodesShapesText2 = _interopRequireDefault(_nodesShapesText);
+
+  var _nodesShapesTriangle = __webpack_require__(105);
+
+  var _nodesShapesTriangle2 = _interopRequireDefault(_nodesShapesTriangle);
+
+  var _nodesShapesTriangleDown = __webpack_require__(106);
+
+  var _nodesShapesTriangleDown2 = _interopRequireDefault(_nodesShapesTriangleDown);
+
+  var _sharedValidator = __webpack_require__(45);
+
+  var _sharedValidator2 = _interopRequireDefault(_sharedValidator);
+
+  var util = __webpack_require__(1);
+
+  /**
+   * @class Node
+   * A node. A node can be connected to other nodes via one or multiple edges.
+   * @param {object} options An object containing options for the node. All
+   *                            options are optional, except for the id.
+   *                              {number} id     Id of the node. Required
+   *                              {string} label  Text label for the node
+   *                              {number} x      Horizontal position of the node
+   *                              {number} y      Vertical position of the node
+   *                              {string} shape  Node shape, available:
+   *                                              "database", "circle", "ellipse",
+   *                                              "box", "image", "text", "dot",
+   *                                              "star", "triangle", "triangleDown",
+   *                                              "square", "icon"
+   *                              {string} image  An image url
+   *                              {string} title  An title text, can be HTML
+   *                              {anytype} group A group name or number
+   * @param {Network.Images} imagelist    A list with images. Only needed
+   *                                            when the node has an image
+   * @param {Network.Groups} grouplist    A list with groups. Needed for
+   *                                            retrieving group options
+   * @param {Object}               constants    An object with default values for
+   *                                            example for the color
+   *
+   */
+
+  var Node = (function () {
+    function Node(options, body, imagelist, grouplist, globalOptions) {
+      _classCallCheck(this, Node);
+
+      this.options = util.bridgeObject(globalOptions);
+      this.body = body;
+
+      this.edges = []; // all edges connected to this node
+
+      // set defaults for the options
+      this.id = undefined;
+      this.imagelist = imagelist;
+      this.grouplist = grouplist;
+
+      // state options
+      this.x = undefined;
+      this.y = undefined;
+      this.baseSize = this.options.size;
+      this.baseFontSize = this.options.font.size;
+      this.predefinedPosition = false; // used to check if initial fit should just take the range or approximate
+      this.selected = false;
+      this.hover = false;
+
+      this.labelModule = new _sharedLabel2['default'](this.body, this.options);
+      this.setOptions(options);
+    }
+
+    _createClass(Node, [{
+      key: 'attachEdge',
+
+      /**
+       * Attach a edge to the node
+       * @param {Edge} edge
+       */
+      value: function attachEdge(edge) {
+        if (this.edges.indexOf(edge) === -1) {
+          this.edges.push(edge);
+        }
+      }
+    }, {
+      key: 'detachEdge',
+
+      /**
+       * Detach a edge from the node
+       * @param {Edge} edge
+       */
+      value: function detachEdge(edge) {
+        var index = this.edges.indexOf(edge);
+        if (index != -1) {
+          this.edges.splice(index, 1);
+        }
+      }
+    }, {
+      key: 'togglePhysics',
+
+      /**
+       * Enable or disable the physics.
+       * @param status
+       */
+      value: function togglePhysics(status) {
+        this.options.physics = status;
+      }
+    }, {
+      key: 'setOptions',
+
+      /**
+       * Set or overwrite options for the node
+       * @param {Object} options an object with options
+       * @param {Object} constants  and object with default, global options
+       */
+      value: function setOptions(options) {
+        if (!options) {
+          return;
+        }
+
+        // basic options
+        if (options.id !== undefined) {
+          this.id = options.id;
+        }
+
+        if (this.id === undefined) {
+          throw 'Node must have an id';
+        }
+
+        if (options.x !== undefined) {
+          this.x = parseInt(options.x);this.predefinedPosition = true;
+        }
+        if (options.y !== undefined) {
+          this.y = parseInt(options.y);this.predefinedPosition = true;
+        }
+        if (options.size !== undefined) {
+          this.baseSize = options.size;
+        }
+        if (options.value !== undefined) {
+          options.value = parseInt(options.value);
+        }
+
+        // this transforms all shorthands into fully defined options
+        Node.parseOptions(this.options, options, true);
+
+        // copy group options
+        if (typeof options.group === 'number' || typeof options.group === 'string' && options.group != '') {
+          var groupObj = this.grouplist.get(options.group);
+          util.deepExtend(this.options, groupObj);
+          // the color object needs to be completely defined. Since groups can partially overwrite the colors, we parse it again, just in case.
+          this.options.color = util.parseColor(this.options.color);
+        }
+
+        // load the images
+        if (this.options.image !== undefined && this.options.image != '') {
+          if (this.imagelist) {
+            this.imageObj = this.imagelist.load(this.options.image, this.options.brokenImage);
+          } else {
+            throw 'No imagelist provided';
+          }
+        }
+
+        this.updateShape();
+        this.updateLabelModule();
+
+        // reset the size of the node, this can be changed
+        this._reset();
+      }
+    }, {
+      key: 'updateLabelModule',
+      value: function updateLabelModule() {
+        if (this.options.label === undefined || this.options.label === null) {
+          this.options.label = '';
+        }
+        this.labelModule.setOptions(this.options, true);
+        if (this.labelModule.baseSize !== undefined) {
+          this.baseFontSize = this.labelModule.baseSize;
+        }
+      }
+    }, {
+      key: 'updateShape',
+      value: function updateShape() {
+        // choose draw method depending on the shape
+        switch (this.options.shape) {
+          case 'box':
+            this.shape = new _nodesShapesBox2['default'](this.options, this.body, this.labelModule);
+            break;
+          case 'circle':
+            this.shape = new _nodesShapesCircle2['default'](this.options, this.body, this.labelModule);
+            break;
+          case 'circularImage':
+            this.shape = new _nodesShapesCircularImage2['default'](this.options, this.body, this.labelModule, this.imageObj);
+            break;
+          case 'database':
+            this.shape = new _nodesShapesDatabase2['default'](this.options, this.body, this.labelModule);
+            break;
+          case 'diamond':
+            this.shape = new _nodesShapesDiamond2['default'](this.options, this.body, this.labelModule);
+            break;
+          case 'dot':
+            this.shape = new _nodesShapesDot2['default'](this.options, this.body, this.labelModule);
+            break;
+          case 'ellipse':
+            this.shape = new _nodesShapesEllipse2['default'](this.options, this.body, this.labelModule);
+            break;
+          case 'icon':
+            this.shape = new _nodesShapesIcon2['default'](this.options, this.body, this.labelModule);
+            break;
+          case 'image':
+            this.shape = new _nodesShapesImage2['default'](this.options, this.body, this.labelModule, this.imageObj);
+            break;
+          case 'square':
+            this.shape = new _nodesShapesSquare2['default'](this.options, this.body, this.labelModule);
+            break;
+          case 'star':
+            this.shape = new _nodesShapesStar2['default'](this.options, this.body, this.labelModule);
+            break;
+          case 'text':
+            this.shape = new _nodesShapesText2['default'](this.options, this.body, this.labelModule);
+            break;
+          case 'triangle':
+            this.shape = new _nodesShapesTriangle2['default'](this.options, this.body, this.labelModule);
+            break;
+          case 'triangleDown':
+            this.shape = new _nodesShapesTriangleDown2['default'](this.options, this.body, this.labelModule);
+            break;
+          default:
+            this.shape = new _nodesShapesEllipse2['default'](this.options, this.body, this.labelModule);
+            break;
+        }
+        this._reset();
+      }
+    }, {
+      key: 'select',
+
+      /**
+       * select this node
+       */
+      value: function select() {
+        this.selected = true;
+        this._reset();
+      }
+    }, {
+      key: 'unselect',
+
+      /**
+       * unselect this node
+       */
+      value: function unselect() {
+        this.selected = false;
+        this._reset();
+      }
+    }, {
+      key: '_reset',
+
+      /**
+       * Reset the calculated size of the node, forces it to recalculate its size
+       * @private
+       */
+      value: function _reset() {
+        this.shape.width = undefined;
+        this.shape.height = undefined;
+      }
+    }, {
+      key: 'getTitle',
+
+      /**
+       * get the title of this node.
+       * @return {string} title    The title of the node, or undefined when no title
+       *                           has been set.
+       */
+      value: function getTitle() {
+        return this.options.title;
+      }
+    }, {
+      key: 'distanceToBorder',
+
+      /**
+       * Calculate the distance to the border of the Node
+       * @param {CanvasRenderingContext2D}   ctx
+       * @param {Number} angle        Angle in radians
+       * @returns {number} distance   Distance to the border in pixels
+       */
+      value: function distanceToBorder(ctx, angle) {
+        return this.shape.distanceToBorder(ctx, angle);
+      }
+    }, {
+      key: 'isFixed',
+
+      /**
+       * Check if this node has a fixed x and y position
+       * @return {boolean}      true if fixed, false if not
+       */
+      value: function isFixed() {
+        return this.options.fixed.x && this.options.fixed.y;
+      }
+    }, {
+      key: 'isSelected',
+
+      /**
+       * check if this node is selecte
+       * @return {boolean} selected   True if node is selected, else false
+       */
+      value: function isSelected() {
+        return this.selected;
+      }
+    }, {
+      key: 'getValue',
+
+      /**
+       * Retrieve the value of the node. Can be undefined
+       * @return {Number} value
+       */
+      value: function getValue() {
+        return this.options.value;
+      }
+    }, {
+      key: 'setValueRange',
+
+      /**
+       * Adjust the value range of the node. The node will adjust it's size
+       * based on its value.
+       * @param {Number} min
+       * @param {Number} max
+       */
+      value: function setValueRange(min, max, total) {
+        if (this.options.value !== undefined) {
+          var scale = this.options.scaling.customScalingFunction(min, max, total, this.options.value);
+          var sizeDiff = this.options.scaling.max - this.options.scaling.min;
+          if (this.options.scaling.label.enabled === true) {
+            var fontDiff = this.options.scaling.label.max - this.options.scaling.label.min;
+            this.options.font.size = this.options.scaling.label.min + scale * fontDiff;
+          }
+          this.options.size = this.options.scaling.min + scale * sizeDiff;
+        } else {
+          this.options.size = this.baseSize;
+          this.options.font.size = this.baseFontSize;
+        }
+      }
+    }, {
+      key: 'draw',
+
+      /**
+       * Draw this node in the given canvas
+       * The 2d context of a HTML canvas can be retrieved by canvas.getContext("2d");
+       * @param {CanvasRenderingContext2D}   ctx
+       */
+      value: function draw(ctx) {
+        this.shape.draw(ctx, this.x, this.y, this.selected, this.hover);
+      }
+    }, {
+      key: 'updateBoundingBox',
+
+      /**
+       * Update the bounding box of the shape
+       */
+      value: function updateBoundingBox() {
+        this.shape.updateBoundingBox(this.x, this.y);
+      }
+    }, {
+      key: 'resize',
+
+      /**
+       * Recalculate the size of this node in the given canvas
+       * The 2d context of a HTML canvas can be retrieved by canvas.getContext("2d");
+       * @param {CanvasRenderingContext2D}   ctx
+       */
+      value: function resize(ctx) {
+        this.shape.resize(ctx);
+      }
+    }, {
+      key: 'isOverlappingWith',
+
+      /**
+       * Check if this object is overlapping with the provided object
+       * @param {Object} obj   an object with parameters left, top, right, bottom
+       * @return {boolean}     True if location is located on node
+       */
+      value: function isOverlappingWith(obj) {
+        return this.shape.left < obj.right && this.shape.left + this.shape.width > obj.left && this.shape.top < obj.bottom && this.shape.top + this.shape.height > obj.top;
+      }
+    }, {
+      key: 'isBoundingBoxOverlappingWith',
+
+      /**
+       * Check if this object is overlapping with the provided object
+       * @param {Object} obj   an object with parameters left, top, right, bottom
+       * @return {boolean}     True if location is located on node
+       */
+      value: function isBoundingBoxOverlappingWith(obj) {
+        return this.shape.boundingBox.left < obj.right && this.shape.boundingBox.right > obj.left && this.shape.boundingBox.top < obj.bottom && this.shape.boundingBox.bottom > obj.top;
+      }
+    }], [{
+      key: 'parseOptions',
+
+      /**
+       * This process all possible shorthands in the new options and makes sure that the parentOptions are fully defined.
+       * Static so it can also be used by the handler.
+       * @param parentOptions
+       * @param newOptions
+       */
+      value: function parseOptions(parentOptions, newOptions) {
+        var allowDeletion = arguments[2] === undefined ? false : arguments[2];
+
+        var fields = ['color', 'font', 'fixed', 'shadow'];
+        util.selectiveNotDeepExtend(fields, parentOptions, newOptions);
+
+        // merge the shadow options into the parent.
+        util.mergeOptions(parentOptions, newOptions, 'shadow');
+
+        // individual shape newOptions
+        if (newOptions.color !== undefined && newOptions.color !== null) {
+          var parsedColor = util.parseColor(newOptions.color);
+          util.fillIfDefined(parentOptions.color, parsedColor);
+        } else if (allowDeletion === true) {
+          parentOptions.color = undefined;
+          delete parentOptions.color;
+        }
+
+        if (newOptions.fixed !== undefined && newOptions.fixed !== null) {
+          if (typeof newOptions.fixed === 'boolean') {
+            parentOptions.fixed.x = newOptions.fixed;
+            parentOptions.fixed.y = newOptions.fixed;
+          } else {
+            if (newOptions.fixed.x !== undefined && typeof newOptions.fixed.x === 'boolean') {
+              parentOptions.fixed.x = newOptions.fixed.x;
+            }
+            if (newOptions.fixed.y !== undefined && typeof newOptions.fixed.y === 'boolean') {
+              parentOptions.fixed.y = newOptions.fixed.y;
+            }
+          }
+        }
+
+        if (newOptions.font !== undefined) {
+          _sharedLabel2['default'].parseOptions(parentOptions.font, newOptions);
+        }
+      }
+    }]);
+
+    return Node;
+  })();
+
+  exports['default'] = Node;
   module.exports = exports['default'];
 
 /***/ },
@@ -37694,43 +37700,6 @@ return /******/ (function(modules) { // webpackBootstrap
 /* 89 */
 /***/ function(module, exports, __webpack_require__) {
 
-  function webpackContext(req) {
-  	throw new Error("Cannot find module '" + req + "'.");
-  }
-  webpackContext.keys = function() { return []; };
-  webpackContext.resolve = webpackContext;
-  module.exports = webpackContext;
-  webpackContext.id = 89;
-
-
-/***/ },
-/* 90 */
-/***/ function(module, exports, __webpack_require__) {
-
-  module.exports = function(module) {
-  	if(!module.webpackPolyfill) {
-  		module.deprecate = function() {};
-  		module.paths = [];
-  		// module.parent = undefined by default
-  		module.children = [];
-  		module.webpackPolyfill = 1;
-  	}
-  	return module;
-  }
-
-
-/***/ },
-/* 91 */
-/***/ function(module, exports, __webpack_require__) {
-
-  /* WEBPACK VAR INJECTION */(function(__webpack_amd_options__) {module.exports = __webpack_amd_options__;
-
-  /* WEBPACK VAR INJECTION */}.call(exports, {}))
-
-/***/ },
-/* 92 */
-/***/ function(module, exports, __webpack_require__) {
-
   'use strict';
 
   Object.defineProperty(exports, '__esModule', {
@@ -37749,1199 +37718,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; }
 
-  var _utilNodeBase = __webpack_require__(109);
-
-  var _utilNodeBase2 = _interopRequireDefault(_utilNodeBase);
-
-  'use strict';
-
-  var Box = (function (_NodeBase) {
-    function Box(options, body, labelModule) {
-      _classCallCheck(this, Box);
-
-      _get(Object.getPrototypeOf(Box.prototype), 'constructor', this).call(this, options, body, labelModule);
-    }
-
-    _inherits(Box, _NodeBase);
-
-    _createClass(Box, [{
-      key: 'resize',
-      value: function resize(ctx, selected) {
-        if (this.width === undefined) {
-          var margin = 5;
-          var textSize = this.labelModule.getTextSize(ctx, selected);
-          this.width = textSize.width + 2 * margin;
-          this.height = textSize.height + 2 * margin;
-          this.radius = 0.5 * this.width;
-        }
-      }
-    }, {
-      key: 'draw',
-      value: function draw(ctx, x, y, selected, hover) {
-        this.resize(ctx, selected);
-        this.left = x - this.width / 2;
-        this.top = y - this.height / 2;
-
-        var borderWidth = this.options.borderWidth;
-        var selectionLineWidth = this.options.borderWidthSelected || 2 * this.options.borderWidth;
-
-        ctx.strokeStyle = selected ? this.options.color.highlight.border : hover ? this.options.color.hover.border : this.options.color.border;
-        ctx.lineWidth = selected ? selectionLineWidth : borderWidth;
-        ctx.lineWidth /= this.body.view.scale;
-        ctx.lineWidth = Math.min(this.width, ctx.lineWidth);
-
-        ctx.fillStyle = selected ? this.options.color.highlight.background : hover ? this.options.color.hover.background : this.options.color.background;
-
-        var borderRadius = 6;
-        ctx.roundRect(this.left, this.top, this.width, this.height, borderRadius);
-
-        // draw shadow if enabled
-        this.enableShadow(ctx);
-        ctx.fill();
-
-        // disable shadows for other elements.
-        this.disableShadow(ctx);
-
-        ctx.stroke();
-
-        this.updateBoundingBox(x, y);
-        this.labelModule.draw(ctx, x, y, selected);
-      }
-    }, {
-      key: 'updateBoundingBox',
-      value: function updateBoundingBox(x, y) {
-        this.left = x - this.width * 0.5;
-        this.top = y - this.height * 0.5;
-
-        this.boundingBox.left = this.left;
-        this.boundingBox.top = this.top;
-        this.boundingBox.bottom = this.top + this.height;
-        this.boundingBox.right = this.left + this.width;
-      }
-    }, {
-      key: 'distanceToBorder',
-      value: function distanceToBorder(ctx, angle) {
-        this.resize(ctx);
-        var a = this.width / 2;
-        var b = this.height / 2;
-        var w = Math.sin(angle) * a;
-        var h = Math.cos(angle) * b;
-        return a * b / Math.sqrt(w * w + h * h);
-      }
-    }]);
-
-    return Box;
-  })(_utilNodeBase2['default']);
-
-  exports['default'] = Box;
-  module.exports = exports['default'];
-
-/***/ },
-/* 93 */
-/***/ function(module, exports, __webpack_require__) {
-
-  'use strict';
-
-  Object.defineProperty(exports, '__esModule', {
-    value: true
-  });
-
-  var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
-
-  var _get = function get(_x, _x2, _x3) { var _again = true; _function: while (_again) { desc = parent = getter = undefined; _again = false; var object = _x,
-      property = _x2,
-      receiver = _x3; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { _x = parent; _x2 = property; _x3 = receiver; _again = true; continue _function; } } else if ('value' in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } } };
-
-  function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
-
-  function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
-
-  function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; }
-
-  var _utilCircleImageBase = __webpack_require__(110);
-
-  var _utilCircleImageBase2 = _interopRequireDefault(_utilCircleImageBase);
-
-  'use strict';
-
-  var Circle = (function (_CircleImageBase) {
-    function Circle(options, body, labelModule) {
-      _classCallCheck(this, Circle);
-
-      _get(Object.getPrototypeOf(Circle.prototype), 'constructor', this).call(this, options, body, labelModule);
-    }
-
-    _inherits(Circle, _CircleImageBase);
-
-    _createClass(Circle, [{
-      key: 'resize',
-      value: function resize(ctx, selected) {
-        if (this.width === undefined) {
-          var margin = 5;
-          var textSize = this.labelModule.getTextSize(ctx, selected);
-          var diameter = Math.max(textSize.width, textSize.height) + 2 * margin;
-          this.options.size = diameter / 2;
-
-          this.width = diameter;
-          this.height = diameter;
-          this.radius = 0.5 * this.width;
-        }
-      }
-    }, {
-      key: 'draw',
-      value: function draw(ctx, x, y, selected, hover) {
-        this.resize(ctx, selected);
-        this.left = x - this.width / 2;
-        this.top = y - this.height / 2;
-
-        this._drawRawCircle(ctx, x, y, selected, hover, this.options.size);
-
-        this.boundingBox.top = y - this.options.size;
-        this.boundingBox.left = x - this.options.size;
-        this.boundingBox.right = x + this.options.size;
-        this.boundingBox.bottom = y + this.options.size;
-
-        this.updateBoundingBox(x, y);
-        this.labelModule.draw(ctx, x, y, selected);
-      }
-    }, {
-      key: 'updateBoundingBox',
-      value: function updateBoundingBox(x, y) {
-        this.boundingBox.top = y - this.options.size;
-        this.boundingBox.left = x - this.options.size;
-        this.boundingBox.right = x + this.options.size;
-        this.boundingBox.bottom = y + this.options.size;
-      }
-    }, {
-      key: 'distanceToBorder',
-      value: function distanceToBorder(ctx, angle) {
-        this.resize(ctx);
-        var a = this.width / 2;
-        var b = this.height / 2;
-        var w = Math.sin(angle) * a;
-        var h = Math.cos(angle) * b;
-        return a * b / Math.sqrt(w * w + h * h);
-      }
-    }]);
-
-    return Circle;
-  })(_utilCircleImageBase2['default']);
-
-  exports['default'] = Circle;
-  module.exports = exports['default'];
-
-/***/ },
-/* 94 */
-/***/ function(module, exports, __webpack_require__) {
-
-  'use strict';
-
-  Object.defineProperty(exports, '__esModule', {
-    value: true
-  });
-
-  var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
-
-  var _get = function get(_x, _x2, _x3) { var _again = true; _function: while (_again) { desc = parent = getter = undefined; _again = false; var object = _x,
-      property = _x2,
-      receiver = _x3; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { _x = parent; _x2 = property; _x3 = receiver; _again = true; continue _function; } } else if ('value' in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } } };
-
-  function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
-
-  function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
-
-  function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; }
-
-  var _utilCircleImageBase = __webpack_require__(110);
-
-  var _utilCircleImageBase2 = _interopRequireDefault(_utilCircleImageBase);
-
-  'use strict';
-
-  var CircularImage = (function (_CircleImageBase) {
-    function CircularImage(options, body, labelModule, imageObj) {
-      _classCallCheck(this, CircularImage);
-
-      _get(Object.getPrototypeOf(CircularImage.prototype), 'constructor', this).call(this, options, body, labelModule);
-      this.imageObj = imageObj;
-      this._swapToImageResizeWhenImageLoaded = true;
-    }
-
-    _inherits(CircularImage, _CircleImageBase);
-
-    _createClass(CircularImage, [{
-      key: 'resize',
-      value: function resize() {
-        if (this.imageObj.src === undefined || this.imageObj.width === undefined || this.imageObj.height === undefined) {
-          if (!this.width) {
-            var diameter = this.options.size * 2;
-            this.width = diameter;
-            this.height = diameter;
-            this._swapToImageResizeWhenImageLoaded = true;
-            this.radius = 0.5 * this.width;
-          }
-        } else {
-          if (this._swapToImageResizeWhenImageLoaded) {
-            this.width = undefined;
-            this.height = undefined;
-            this._swapToImageResizeWhenImageLoaded = false;
-          }
-          this._resizeImage();
-        }
-      }
-    }, {
-      key: 'draw',
-      value: function draw(ctx, x, y, selected, hover) {
-        this.resize();
-
-        this.left = x - this.width / 2;
-        this.top = y - this.height / 2;
-
-        var size = Math.min(0.5 * this.height, 0.5 * this.width);
-        this._drawRawCircle(ctx, x, y, selected, hover, size);
-
-        ctx.save();
-        ctx.circle(x, y, size);
-        ctx.stroke();
-        ctx.clip();
-
-        this._drawImageAtPosition(ctx);
-
-        ctx.restore();
-
-        this._drawImageLabel(ctx, x, y, selected);
-
-        this.updateBoundingBox(x, y);
-      }
-    }, {
-      key: 'updateBoundingBox',
-      value: function updateBoundingBox(x, y) {
-        this.boundingBox.top = y - this.options.size;
-        this.boundingBox.left = x - this.options.size;
-        this.boundingBox.right = x + this.options.size;
-        this.boundingBox.bottom = y + this.options.size;
-        this.boundingBox.left = Math.min(this.boundingBox.left, this.labelModule.size.left);
-        this.boundingBox.right = Math.max(this.boundingBox.right, this.labelModule.size.left + this.labelModule.size.width);
-        this.boundingBox.bottom = Math.max(this.boundingBox.bottom, this.boundingBox.bottom + this.labelOffset);
-      }
-    }, {
-      key: 'distanceToBorder',
-      value: function distanceToBorder(ctx, angle) {
-        this.resize(ctx);
-        return this._distanceToBorder(angle);
-      }
-    }]);
-
-    return CircularImage;
-  })(_utilCircleImageBase2['default']);
-
-  exports['default'] = CircularImage;
-  module.exports = exports['default'];
-
-/***/ },
-/* 95 */
-/***/ function(module, exports, __webpack_require__) {
-
-  'use strict';
-
-  Object.defineProperty(exports, '__esModule', {
-    value: true
-  });
-
-  var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
-
-  var _get = function get(_x, _x2, _x3) { var _again = true; _function: while (_again) { desc = parent = getter = undefined; _again = false; var object = _x,
-      property = _x2,
-      receiver = _x3; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { _x = parent; _x2 = property; _x3 = receiver; _again = true; continue _function; } } else if ('value' in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } } };
-
-  function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
-
-  function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
-
-  function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; }
-
-  var _utilNodeBase = __webpack_require__(109);
-
-  var _utilNodeBase2 = _interopRequireDefault(_utilNodeBase);
-
-  'use strict';
-
-  var Database = (function (_NodeBase) {
-    function Database(options, body, labelModule) {
-      _classCallCheck(this, Database);
-
-      _get(Object.getPrototypeOf(Database.prototype), 'constructor', this).call(this, options, body, labelModule);
-    }
-
-    _inherits(Database, _NodeBase);
-
-    _createClass(Database, [{
-      key: 'resize',
-      value: function resize(ctx, selected) {
-        if (this.width === undefined) {
-          var margin = 5;
-          var textSize = this.labelModule.getTextSize(ctx, selected);
-          var size = textSize.width + 2 * margin;
-          this.width = size;
-          this.height = size;
-          this.radius = 0.5 * this.width;
-        }
-      }
-    }, {
-      key: 'draw',
-      value: function draw(ctx, x, y, selected, hover) {
-        this.resize(ctx, selected);
-        this.left = x - this.width / 2;
-        this.top = y - this.height / 2;
-
-        var borderWidth = this.options.borderWidth;
-        var selectionLineWidth = this.options.borderWidthSelected || 2 * this.options.borderWidth;
-
-        ctx.strokeStyle = selected ? this.options.color.highlight.border : hover ? this.options.color.hover.border : this.options.color.border;
-        ctx.lineWidth = this.selected ? selectionLineWidth : borderWidth;
-        ctx.lineWidth *= this.networkScaleInv;
-        ctx.lineWidth = Math.min(this.width, ctx.lineWidth);
-
-        ctx.fillStyle = selected ? this.options.color.highlight.background : hover ? this.options.color.hover.background : this.options.color.background;
-        ctx.database(x - this.width / 2, y - this.height * 0.5, this.width, this.height);
-
-        // draw shadow if enabled
-        this.enableShadow(ctx);
-        ctx.fill();
-
-        // disable shadows for other elements.
-        this.disableShadow(ctx);
-
-        ctx.stroke();
-
-        this.updateBoundingBox(x, y);
-
-        this.labelModule.draw(ctx, x, y, selected);
-      }
-    }, {
-      key: 'updateBoundingBox',
-      value: function updateBoundingBox(x, y) {
-        this.left = x - this.width * 0.5;
-        this.top = y - this.height * 0.5;
-
-        this.boundingBox.left = this.left;
-        this.boundingBox.top = this.top;
-        this.boundingBox.bottom = this.top + this.height;
-        this.boundingBox.right = this.left + this.width;
-      }
-    }, {
-      key: 'distanceToBorder',
-      value: function distanceToBorder(ctx, angle) {
-        this.resize(ctx);
-        var a = this.width / 2;
-        var b = this.height / 2;
-        var w = Math.sin(angle) * a;
-        var h = Math.cos(angle) * b;
-        return a * b / Math.sqrt(w * w + h * h);
-      }
-    }]);
-
-    return Database;
-  })(_utilNodeBase2['default']);
-
-  exports['default'] = Database;
-  module.exports = exports['default'];
-
-/***/ },
-/* 96 */
-/***/ function(module, exports, __webpack_require__) {
-
-  'use strict';
-
-  Object.defineProperty(exports, '__esModule', {
-    value: true
-  });
-
-  var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
-
-  var _get = function get(_x, _x2, _x3) { var _again = true; _function: while (_again) { desc = parent = getter = undefined; _again = false; var object = _x,
-      property = _x2,
-      receiver = _x3; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { _x = parent; _x2 = property; _x3 = receiver; _again = true; continue _function; } } else if ('value' in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } } };
-
-  function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
-
-  function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
-
-  function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; }
-
-  var _utilShapeBase = __webpack_require__(111);
-
-  var _utilShapeBase2 = _interopRequireDefault(_utilShapeBase);
-
-  'use strict';
-
-  var Diamond = (function (_ShapeBase) {
-    function Diamond(options, body, labelModule) {
-      _classCallCheck(this, Diamond);
-
-      _get(Object.getPrototypeOf(Diamond.prototype), 'constructor', this).call(this, options, body, labelModule);
-    }
-
-    _inherits(Diamond, _ShapeBase);
-
-    _createClass(Diamond, [{
-      key: 'resize',
-      value: function resize(ctx) {
-        this._resizeShape();
-      }
-    }, {
-      key: 'draw',
-      value: function draw(ctx, x, y, selected, hover) {
-        this._drawShape(ctx, 'diamond', 4, x, y, selected, hover);
-      }
-    }, {
-      key: 'distanceToBorder',
-      value: function distanceToBorder(ctx, angle) {
-        return this._distanceToBorder(angle);
-      }
-    }]);
-
-    return Diamond;
-  })(_utilShapeBase2['default']);
-
-  exports['default'] = Diamond;
-  module.exports = exports['default'];
-
-/***/ },
-/* 97 */
-/***/ function(module, exports, __webpack_require__) {
-
-  'use strict';
-
-  Object.defineProperty(exports, '__esModule', {
-    value: true
-  });
-
-  var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
-
-  var _get = function get(_x, _x2, _x3) { var _again = true; _function: while (_again) { desc = parent = getter = undefined; _again = false; var object = _x,
-      property = _x2,
-      receiver = _x3; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { _x = parent; _x2 = property; _x3 = receiver; _again = true; continue _function; } } else if ('value' in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } } };
-
-  function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
-
-  function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
-
-  function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; }
-
-  var _utilShapeBase = __webpack_require__(111);
-
-  var _utilShapeBase2 = _interopRequireDefault(_utilShapeBase);
-
-  'use strict';
-
-  var Dot = (function (_ShapeBase) {
-    function Dot(options, body, labelModule) {
-      _classCallCheck(this, Dot);
-
-      _get(Object.getPrototypeOf(Dot.prototype), 'constructor', this).call(this, options, body, labelModule);
-    }
-
-    _inherits(Dot, _ShapeBase);
-
-    _createClass(Dot, [{
-      key: 'resize',
-      value: function resize(ctx) {
-        this._resizeShape();
-      }
-    }, {
-      key: 'draw',
-      value: function draw(ctx, x, y, selected, hover) {
-        this._drawShape(ctx, 'circle', 2, x, y, selected, hover);
-      }
-    }, {
-      key: 'distanceToBorder',
-      value: function distanceToBorder(ctx, angle) {
-        return this.options.size + this.options.borderWidth;
-      }
-    }]);
-
-    return Dot;
-  })(_utilShapeBase2['default']);
-
-  exports['default'] = Dot;
-  module.exports = exports['default'];
-
-/***/ },
-/* 98 */
-/***/ function(module, exports, __webpack_require__) {
-
-  'use strict';
-
-  Object.defineProperty(exports, '__esModule', {
-    value: true
-  });
-
-  var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
-
-  var _get = function get(_x, _x2, _x3) { var _again = true; _function: while (_again) { desc = parent = getter = undefined; _again = false; var object = _x,
-      property = _x2,
-      receiver = _x3; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { _x = parent; _x2 = property; _x3 = receiver; _again = true; continue _function; } } else if ('value' in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } } };
-
-  function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
-
-  function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
-
-  function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; }
-
-  var _utilNodeBase = __webpack_require__(109);
-
-  var _utilNodeBase2 = _interopRequireDefault(_utilNodeBase);
-
-  'use strict';
-
-  var Ellipse = (function (_NodeBase) {
-    function Ellipse(options, body, labelModule) {
-      _classCallCheck(this, Ellipse);
-
-      _get(Object.getPrototypeOf(Ellipse.prototype), 'constructor', this).call(this, options, body, labelModule);
-    }
-
-    _inherits(Ellipse, _NodeBase);
-
-    _createClass(Ellipse, [{
-      key: 'resize',
-      value: function resize(ctx, selected) {
-        if (this.width === undefined) {
-          var textSize = this.labelModule.getTextSize(ctx, selected);
-
-          this.width = textSize.width * 1.5;
-          this.height = textSize.height * 2;
-          if (this.width < this.height) {
-            this.width = this.height;
-          }
-          this.radius = 0.5 * this.width;
-        }
-      }
-    }, {
-      key: 'draw',
-      value: function draw(ctx, x, y, selected, hover) {
-        this.resize(ctx, selected);
-        this.left = x - this.width * 0.5;
-        this.top = y - this.height * 0.5;
-
-        var borderWidth = this.options.borderWidth;
-        var selectionLineWidth = this.options.borderWidthSelected || 2 * this.options.borderWidth;
-
-        ctx.strokeStyle = selected ? this.options.color.highlight.border : hover ? this.options.color.hover.border : this.options.color.border;
-
-        ctx.lineWidth = selected ? selectionLineWidth : borderWidth;
-        ctx.lineWidth /= this.body.view.scale;
-        ctx.lineWidth = Math.min(this.width, ctx.lineWidth);
-
-        ctx.fillStyle = selected ? this.options.color.highlight.background : hover ? this.options.color.hover.background : this.options.color.background;
-        ctx.ellipse(this.left, this.top, this.width, this.height);
-
-        // draw shadow if enabled
-        this.enableShadow(ctx);
-        ctx.fill();
-
-        // disable shadows for other elements.
-        this.disableShadow(ctx);
-
-        ctx.stroke();
-
-        this.updateBoundingBox(x, y);
-        this.labelModule.draw(ctx, x, y, selected);
-      }
-    }, {
-      key: 'updateBoundingBox',
-      value: function updateBoundingBox(x, y) {
-        this.left = x - this.width * 0.5;
-        this.top = y - this.height * 0.5;
-
-        this.boundingBox.left = this.left;
-        this.boundingBox.top = this.top;
-        this.boundingBox.bottom = this.top + this.height;
-        this.boundingBox.right = this.left + this.width;
-      }
-    }, {
-      key: 'distanceToBorder',
-      value: function distanceToBorder(ctx, angle) {
-        this.resize(ctx);
-        var a = this.width * 0.5;
-        var b = this.height * 0.5;
-        var w = Math.sin(angle) * a;
-        var h = Math.cos(angle) * b;
-        return a * b / Math.sqrt(w * w + h * h);
-      }
-    }]);
-
-    return Ellipse;
-  })(_utilNodeBase2['default']);
-
-  exports['default'] = Ellipse;
-  module.exports = exports['default'];
-
-/***/ },
-/* 99 */
-/***/ function(module, exports, __webpack_require__) {
-
-  'use strict';
-
-  Object.defineProperty(exports, '__esModule', {
-    value: true
-  });
-
-  var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
-
-  var _get = function get(_x, _x2, _x3) { var _again = true; _function: while (_again) { desc = parent = getter = undefined; _again = false; var object = _x,
-      property = _x2,
-      receiver = _x3; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { _x = parent; _x2 = property; _x3 = receiver; _again = true; continue _function; } } else if ('value' in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } } };
-
-  function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
-
-  function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
-
-  function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; }
-
-  var _utilNodeBase = __webpack_require__(109);
-
-  var _utilNodeBase2 = _interopRequireDefault(_utilNodeBase);
-
-  'use strict';
-
-  var Icon = (function (_NodeBase) {
-    function Icon(options, body, labelModule) {
-      _classCallCheck(this, Icon);
-
-      _get(Object.getPrototypeOf(Icon.prototype), 'constructor', this).call(this, options, body, labelModule);
-    }
-
-    _inherits(Icon, _NodeBase);
-
-    _createClass(Icon, [{
-      key: 'resize',
-      value: function resize(ctx) {
-        if (this.width === undefined) {
-          var margin = 5;
-          var iconSize = {
-            width: Number(this.options.icon.size),
-            height: Number(this.options.icon.size)
-          };
-          this.width = iconSize.width + 2 * margin;
-          this.height = iconSize.height + 2 * margin;
-          this.radius = 0.5 * this.width;
-        }
-      }
-    }, {
-      key: 'draw',
-      value: function draw(ctx, x, y, selected, hover) {
-        this.resize(ctx);
-        this.options.icon.size = this.options.icon.size || 50;
-
-        this.left = x - this.width * 0.5;
-        this.top = y - this.height * 0.5;
-        this._icon(ctx, x, y, selected);
-
-        if (this.options.label !== undefined) {
-          var iconTextSpacing = 5;
-          this.labelModule.draw(ctx, x, y + this.height * 0.5 + iconTextSpacing, selected);
-        }
-
-        this.updateBoundingBox(x, y);
-      }
-    }, {
-      key: 'updateBoundingBox',
-      value: function updateBoundingBox(x, y) {
-        this.boundingBox.top = y - this.options.icon.size * 0.5;
-        this.boundingBox.left = x - this.options.icon.size * 0.5;
-        this.boundingBox.right = x + this.options.icon.size * 0.5;
-        this.boundingBox.bottom = y + this.options.icon.size * 0.5;
-
-        if (this.options.label !== undefined) {
-          var iconTextSpacing = 5;
-          this.boundingBox.left = Math.min(this.boundingBox.left, this.labelModule.size.left);
-          this.boundingBox.right = Math.max(this.boundingBox.right, this.labelModule.size.left + this.labelModule.size.width);
-          this.boundingBox.bottom = Math.max(this.boundingBox.bottom, this.boundingBox.bottom + this.labelModule.size.height + iconTextSpacing);
-        }
-      }
-    }, {
-      key: '_icon',
-      value: function _icon(ctx, x, y, selected) {
-        var iconSize = Number(this.options.icon.size);
-
-        if (this.options.icon.code !== undefined) {
-          ctx.font = (selected ? 'bold ' : '') + iconSize + 'px ' + this.options.icon.face;
-
-          // draw icon
-          ctx.fillStyle = this.options.icon.color || 'black';
-          ctx.textAlign = 'center';
-          ctx.textBaseline = 'middle';
-
-          // draw shadow if enabled
-          this.enableShadow(ctx);
-          ctx.fillText(this.options.icon.code, x, y);
-
-          // disable shadows for other elements.
-          this.disableShadow(ctx);
-        } else {
-          console.error('When using the icon shape, you need to define the code in the icon options object. This can be done per node or globally.');
-        }
-      }
-    }, {
-      key: 'distanceToBorder',
-      value: function distanceToBorder(ctx, angle) {
-        this.resize(ctx);
-        this._distanceToBorder(angle);
-      }
-    }]);
-
-    return Icon;
-  })(_utilNodeBase2['default']);
-
-  exports['default'] = Icon;
-  module.exports = exports['default'];
-
-/***/ },
-/* 100 */
-/***/ function(module, exports, __webpack_require__) {
-
-  'use strict';
-
-  Object.defineProperty(exports, '__esModule', {
-    value: true
-  });
-
-  var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
-
-  var _get = function get(_x, _x2, _x3) { var _again = true; _function: while (_again) { desc = parent = getter = undefined; _again = false; var object = _x,
-      property = _x2,
-      receiver = _x3; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { _x = parent; _x2 = property; _x3 = receiver; _again = true; continue _function; } } else if ('value' in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } } };
-
-  function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
-
-  function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
-
-  function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; }
-
-  var _utilCircleImageBase = __webpack_require__(110);
-
-  var _utilCircleImageBase2 = _interopRequireDefault(_utilCircleImageBase);
-
-  'use strict';
-
-  var Image = (function (_CircleImageBase) {
-    function Image(options, body, labelModule, imageObj) {
-      _classCallCheck(this, Image);
-
-      _get(Object.getPrototypeOf(Image.prototype), 'constructor', this).call(this, options, body, labelModule);
-      this.imageObj = imageObj;
-    }
-
-    _inherits(Image, _CircleImageBase);
-
-    _createClass(Image, [{
-      key: 'resize',
-      value: function resize() {
-        this._resizeImage();
-      }
-    }, {
-      key: 'draw',
-      value: function draw(ctx, x, y, selected, hover) {
-        this.resize();
-        this.left = x - this.width / 2;
-        this.top = y - this.height / 2;
-
-        this._drawImageAtPosition(ctx);
-
-        this._drawImageLabel(ctx, x, y, selected || hover);
-
-        this.updateBoundingBox(x, y);
-      }
-    }, {
-      key: 'updateBoundingBox',
-      value: function updateBoundingBox(x, y) {
-        this.left = x - this.width / 2;
-        this.top = y - this.height / 2;
-
-        this.boundingBox.top = this.top;
-        this.boundingBox.left = this.left;
-        this.boundingBox.right = this.left + this.width;
-        this.boundingBox.bottom = this.top + this.height;
-
-        if (this.options.label !== undefined) {
-          this.boundingBox.left = Math.min(this.boundingBox.left, this.labelModule.size.left);
-          this.boundingBox.right = Math.max(this.boundingBox.right, this.labelModule.size.left + this.labelModule.size.width);
-          this.boundingBox.bottom = Math.max(this.boundingBox.bottom, this.boundingBox.bottom + this.labelOffset);
-        }
-      }
-    }, {
-      key: 'distanceToBorder',
-      value: function distanceToBorder(ctx, angle) {
-        this.resize(ctx);
-        var a = this.width / 2;
-        var b = this.height / 2;
-        var w = Math.sin(angle) * a;
-        var h = Math.cos(angle) * b;
-        return a * b / Math.sqrt(w * w + h * h);
-      }
-    }]);
-
-    return Image;
-  })(_utilCircleImageBase2['default']);
-
-  exports['default'] = Image;
-  module.exports = exports['default'];
-
-/***/ },
-/* 101 */
-/***/ function(module, exports, __webpack_require__) {
-
-  'use strict';
-
-  Object.defineProperty(exports, '__esModule', {
-    value: true
-  });
-
-  var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
-
-  var _get = function get(_x, _x2, _x3) { var _again = true; _function: while (_again) { desc = parent = getter = undefined; _again = false; var object = _x,
-      property = _x2,
-      receiver = _x3; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { _x = parent; _x2 = property; _x3 = receiver; _again = true; continue _function; } } else if ('value' in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } } };
-
-  function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
-
-  function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
-
-  function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; }
-
-  var _utilShapeBase = __webpack_require__(111);
-
-  var _utilShapeBase2 = _interopRequireDefault(_utilShapeBase);
-
-  'use strict';
-
-  var Square = (function (_ShapeBase) {
-    function Square(options, body, labelModule) {
-      _classCallCheck(this, Square);
-
-      _get(Object.getPrototypeOf(Square.prototype), 'constructor', this).call(this, options, body, labelModule);
-    }
-
-    _inherits(Square, _ShapeBase);
-
-    _createClass(Square, [{
-      key: 'resize',
-      value: function resize() {
-        this._resizeShape();
-      }
-    }, {
-      key: 'draw',
-      value: function draw(ctx, x, y, selected, hover) {
-        this._drawShape(ctx, 'square', 2, x, y, selected, hover);
-      }
-    }, {
-      key: 'distanceToBorder',
-      value: function distanceToBorder(ctx, angle) {
-        this.resize(ctx);
-        return this._distanceToBorder(angle);
-      }
-    }]);
-
-    return Square;
-  })(_utilShapeBase2['default']);
-
-  exports['default'] = Square;
-  module.exports = exports['default'];
-
-/***/ },
-/* 102 */
-/***/ function(module, exports, __webpack_require__) {
-
-  'use strict';
-
-  Object.defineProperty(exports, '__esModule', {
-    value: true
-  });
-
-  var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
-
-  var _get = function get(_x, _x2, _x3) { var _again = true; _function: while (_again) { desc = parent = getter = undefined; _again = false; var object = _x,
-      property = _x2,
-      receiver = _x3; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { _x = parent; _x2 = property; _x3 = receiver; _again = true; continue _function; } } else if ('value' in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } } };
-
-  function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
-
-  function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
-
-  function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; }
-
-  var _utilShapeBase = __webpack_require__(111);
-
-  var _utilShapeBase2 = _interopRequireDefault(_utilShapeBase);
-
-  'use strict';
-
-  var Star = (function (_ShapeBase) {
-    function Star(options, body, labelModule) {
-      _classCallCheck(this, Star);
-
-      _get(Object.getPrototypeOf(Star.prototype), 'constructor', this).call(this, options, body, labelModule);
-    }
-
-    _inherits(Star, _ShapeBase);
-
-    _createClass(Star, [{
-      key: 'resize',
-      value: function resize(ctx) {
-        this._resizeShape();
-      }
-    }, {
-      key: 'draw',
-      value: function draw(ctx, x, y, selected, hover) {
-        this._drawShape(ctx, 'star', 4, x, y, selected, hover);
-      }
-    }, {
-      key: 'distanceToBorder',
-      value: function distanceToBorder(ctx, angle) {
-        return this._distanceToBorder(angle);
-      }
-    }]);
-
-    return Star;
-  })(_utilShapeBase2['default']);
-
-  exports['default'] = Star;
-  module.exports = exports['default'];
-
-/***/ },
-/* 103 */
-/***/ function(module, exports, __webpack_require__) {
-
-  'use strict';
-
-  Object.defineProperty(exports, '__esModule', {
-    value: true
-  });
-
-  var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
-
-  var _get = function get(_x, _x2, _x3) { var _again = true; _function: while (_again) { desc = parent = getter = undefined; _again = false; var object = _x,
-      property = _x2,
-      receiver = _x3; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { _x = parent; _x2 = property; _x3 = receiver; _again = true; continue _function; } } else if ('value' in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } } };
-
-  function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
-
-  function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
-
-  function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; }
-
-  var _utilNodeBase = __webpack_require__(109);
-
-  var _utilNodeBase2 = _interopRequireDefault(_utilNodeBase);
-
-  'use strict';
-
-  var Text = (function (_NodeBase) {
-    function Text(options, body, labelModule) {
-      _classCallCheck(this, Text);
-
-      _get(Object.getPrototypeOf(Text.prototype), 'constructor', this).call(this, options, body, labelModule);
-    }
-
-    _inherits(Text, _NodeBase);
-
-    _createClass(Text, [{
-      key: 'resize',
-      value: function resize(ctx, selected) {
-        if (this.width === undefined) {
-          var margin = 5;
-          var textSize = this.labelModule.getTextSize(ctx, selected);
-          this.width = textSize.width + 2 * margin;
-          this.height = textSize.height + 2 * margin;
-          this.radius = 0.5 * this.width;
-        }
-      }
-    }, {
-      key: 'draw',
-      value: function draw(ctx, x, y, selected, hover) {
-        this.resize(ctx, selected || hover);
-        this.left = x - this.width / 2;
-        this.top = y - this.height / 2;
-
-        // draw shadow if enabled
-        this.enableShadow(ctx);
-        this.labelModule.draw(ctx, x, y, selected || hover);
-
-        // disable shadows for other elements.
-        this.disableShadow(ctx);
-
-        this.updateBoundingBox(x, y);
-      }
-    }, {
-      key: 'updateBoundingBox',
-      value: function updateBoundingBox(x, y) {
-        this.left = x - this.width / 2;
-        this.top = y - this.height / 2;
-
-        this.boundingBox.top = this.top;
-        this.boundingBox.left = this.left;
-        this.boundingBox.right = this.left + this.width;
-        this.boundingBox.bottom = this.top + this.height;
-      }
-    }, {
-      key: 'distanceToBorder',
-      value: function distanceToBorder(ctx, angle) {
-        this.resize(ctx);
-        return this._distanceToBorder(angle);
-      }
-    }]);
-
-    return Text;
-  })(_utilNodeBase2['default']);
-
-  exports['default'] = Text;
-  module.exports = exports['default'];
-
-/***/ },
-/* 104 */
-/***/ function(module, exports, __webpack_require__) {
-
-  'use strict';
-
-  Object.defineProperty(exports, '__esModule', {
-    value: true
-  });
-
-  var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
-
-  var _get = function get(_x, _x2, _x3) { var _again = true; _function: while (_again) { desc = parent = getter = undefined; _again = false; var object = _x,
-      property = _x2,
-      receiver = _x3; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { _x = parent; _x2 = property; _x3 = receiver; _again = true; continue _function; } } else if ('value' in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } } };
-
-  function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
-
-  function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
-
-  function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; }
-
-  var _utilShapeBase = __webpack_require__(111);
-
-  var _utilShapeBase2 = _interopRequireDefault(_utilShapeBase);
-
-  'use strict';
-
-  var Triangle = (function (_ShapeBase) {
-    function Triangle(options, body, labelModule) {
-      _classCallCheck(this, Triangle);
-
-      _get(Object.getPrototypeOf(Triangle.prototype), 'constructor', this).call(this, options, body, labelModule);
-    }
-
-    _inherits(Triangle, _ShapeBase);
-
-    _createClass(Triangle, [{
-      key: 'resize',
-      value: function resize(ctx) {
-        this._resizeShape();
-      }
-    }, {
-      key: 'draw',
-      value: function draw(ctx, x, y, selected, hover) {
-        this._drawShape(ctx, 'triangle', 3, x, y, selected, hover);
-      }
-    }, {
-      key: 'distanceToBorder',
-      value: function distanceToBorder(ctx, angle) {
-        return this._distanceToBorder(angle);
-      }
-    }]);
-
-    return Triangle;
-  })(_utilShapeBase2['default']);
-
-  exports['default'] = Triangle;
-  module.exports = exports['default'];
-
-/***/ },
-/* 105 */
-/***/ function(module, exports, __webpack_require__) {
-
-  'use strict';
-
-  Object.defineProperty(exports, '__esModule', {
-    value: true
-  });
-
-  var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
-
-  var _get = function get(_x, _x2, _x3) { var _again = true; _function: while (_again) { desc = parent = getter = undefined; _again = false; var object = _x,
-      property = _x2,
-      receiver = _x3; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { _x = parent; _x2 = property; _x3 = receiver; _again = true; continue _function; } } else if ('value' in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } } };
-
-  function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
-
-  function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
-
-  function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; }
-
-  var _utilShapeBase = __webpack_require__(111);
-
-  var _utilShapeBase2 = _interopRequireDefault(_utilShapeBase);
-
-  'use strict';
-
-  var TriangleDown = (function (_ShapeBase) {
-    function TriangleDown(options, body, labelModule) {
-      _classCallCheck(this, TriangleDown);
-
-      _get(Object.getPrototypeOf(TriangleDown.prototype), 'constructor', this).call(this, options, body, labelModule);
-    }
-
-    _inherits(TriangleDown, _ShapeBase);
-
-    _createClass(TriangleDown, [{
-      key: 'resize',
-      value: function resize(ctx) {
-        this._resizeShape();
-      }
-    }, {
-      key: 'draw',
-      value: function draw(ctx, x, y, selected, hover) {
-        this._drawShape(ctx, 'triangleDown', 3, x, y, selected, hover);
-      }
-    }, {
-      key: 'distanceToBorder',
-      value: function distanceToBorder(ctx, angle) {
-        return this._distanceToBorder(angle);
-      }
-    }]);
-
-    return TriangleDown;
-  })(_utilShapeBase2['default']);
-
-  exports['default'] = TriangleDown;
-  module.exports = exports['default'];
-
-/***/ },
-/* 106 */
-/***/ function(module, exports, __webpack_require__) {
-
-  'use strict';
-
-  Object.defineProperty(exports, '__esModule', {
-    value: true
-  });
-
-  var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
-
-  var _get = function get(_x, _x2, _x3) { var _again = true; _function: while (_again) { desc = parent = getter = undefined; _again = false; var object = _x,
-      property = _x2,
-      receiver = _x3; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { _x = parent; _x2 = property; _x3 = receiver; _again = true; continue _function; } } else if ('value' in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } } };
-
-  function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
-
-  function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
-
-  function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; }
-
-  var _utilBezierEdgeBase = __webpack_require__(112);
+  var _utilBezierEdgeBase = __webpack_require__(109);
 
   var _utilBezierEdgeBase2 = _interopRequireDefault(_utilBezierEdgeBase);
 
@@ -39078,7 +37855,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 107 */
+/* 90 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -39099,7 +37876,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; }
 
-  var _utilBezierEdgeBase = __webpack_require__(112);
+  var _utilBezierEdgeBase = __webpack_require__(109);
 
   var _utilBezierEdgeBase2 = _interopRequireDefault(_utilBezierEdgeBase);
 
@@ -39344,7 +38121,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 108 */
+/* 91 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -39365,7 +38142,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; }
 
-  var _utilEdgeBase = __webpack_require__(113);
+  var _utilEdgeBase = __webpack_require__(110);
 
   var _utilEdgeBase2 = _interopRequireDefault(_utilEdgeBase);
 
@@ -39456,75 +38233,20 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 109 */
+/* 92 */
 /***/ function(module, exports, __webpack_require__) {
 
-  'use strict';
+  function webpackContext(req) {
+  	throw new Error("Cannot find module '" + req + "'.");
+  }
+  webpackContext.keys = function() { return []; };
+  webpackContext.resolve = webpackContext;
+  module.exports = webpackContext;
+  webpackContext.id = 92;
 
-  Object.defineProperty(exports, '__esModule', {
-    value: true
-  });
-
-  var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
-
-  function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
-
-  var NodeBase = (function () {
-    function NodeBase(options, body, labelModule) {
-      _classCallCheck(this, NodeBase);
-
-      this.body = body;
-      this.labelModule = labelModule;
-      this.setOptions(options);
-      this.top = undefined;
-      this.left = undefined;
-      this.height = undefined;
-      this.width = undefined;
-      this.radius = undefined;
-      this.boundingBox = { top: 0, left: 0, right: 0, bottom: 0 };
-    }
-
-    _createClass(NodeBase, [{
-      key: 'setOptions',
-      value: function setOptions(options) {
-        this.options = options;
-      }
-    }, {
-      key: '_distanceToBorder',
-      value: function _distanceToBorder(angle) {
-        var borderWidth = 1;
-        return Math.min(Math.abs(this.width / 2 / Math.cos(angle)), Math.abs(this.height / 2 / Math.sin(angle))) + borderWidth;
-      }
-    }, {
-      key: 'enableShadow',
-      value: function enableShadow(ctx) {
-        if (this.options.shadow.enabled === true) {
-          ctx.shadowColor = 'rgba(0,0,0,0.5)';
-          ctx.shadowBlur = this.options.shadow.size;
-          ctx.shadowOffsetX = this.options.shadow.x;
-          ctx.shadowOffsetY = this.options.shadow.y;
-        }
-      }
-    }, {
-      key: 'disableShadow',
-      value: function disableShadow(ctx) {
-        if (this.options.shadow.enabled === true) {
-          ctx.shadowColor = 'rgba(0,0,0,0)';
-          ctx.shadowBlur = 0;
-          ctx.shadowOffsetX = 0;
-          ctx.shadowOffsetY = 0;
-        }
-      }
-    }]);
-
-    return NodeBase;
-  })();
-
-  exports['default'] = NodeBase;
-  module.exports = exports['default'];
 
 /***/ },
-/* 110 */
+/* 93 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -39545,163 +38267,36 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; }
 
-  var _utilNodeBase = __webpack_require__(109);
+  var _utilNodeBase = __webpack_require__(111);
 
   var _utilNodeBase2 = _interopRequireDefault(_utilNodeBase);
-
-  var CircleImageBase = (function (_NodeBase) {
-    function CircleImageBase(options, body, labelModule) {
-      _classCallCheck(this, CircleImageBase);
-
-      _get(Object.getPrototypeOf(CircleImageBase.prototype), 'constructor', this).call(this, options, body, labelModule);
-      this.labelOffset = 0;
-    }
-
-    _inherits(CircleImageBase, _NodeBase);
-
-    _createClass(CircleImageBase, [{
-      key: '_resizeImage',
-      value: function _resizeImage() {
-        if (!this.width || !this.height) {
-          // undefined or 0
-          var width, height, ratio;
-          if (this.imageObj.width && this.imageObj.height) {
-            // not undefined or 0
-            width = 0;
-            height = 0;
-          }
-          if (this.imageObj.width > this.imageObj.height) {
-            ratio = this.imageObj.width / this.imageObj.height;
-            width = this.options.size * 2 * ratio || this.imageObj.width;
-            height = this.options.size * 2 || this.imageObj.height;
-          } else {
-            ratio = this.imageObj.height / this.imageObj.width;
-            width = this.options.size * 2 || this.imageObj.width;
-            height = this.options.size * 2 * ratio || this.imageObj.height;
-          }
-          this.width = width;
-          this.height = height;
-          this.radius = 0.5 * this.width;
-        }
-      }
-    }, {
-      key: '_drawRawCircle',
-      value: function _drawRawCircle(ctx, x, y, selected, hover, size) {
-        var borderWidth = this.options.borderWidth;
-        var selectionLineWidth = this.options.borderWidthSelected || 2 * this.options.borderWidth;
-
-        ctx.strokeStyle = selected ? this.options.color.highlight.border : hover ? this.options.color.hover.border : this.options.color.border;
-
-        ctx.lineWidth = selected ? selectionLineWidth : borderWidth;
-        ctx.lineWidth *= this.networkScaleInv;
-        ctx.lineWidth = Math.min(this.width, ctx.lineWidth);
-
-        ctx.fillStyle = selected ? this.options.color.highlight.background : hover ? this.options.color.hover.background : this.options.color.background;
-        ctx.circle(x, y, size);
-
-        // draw shadow if enabled
-        this.enableShadow(ctx);
-        ctx.fill();
-
-        // disable shadows for other elements.
-        this.disableShadow(ctx);
-
-        ctx.stroke();
-      }
-    }, {
-      key: '_drawImageAtPosition',
-      value: function _drawImageAtPosition(ctx) {
-        if (this.imageObj.width != 0) {
-          // draw the image
-          ctx.globalAlpha = 1;
-
-          // draw shadow if enabled
-          this.enableShadow(ctx);
-          ctx.drawImage(this.imageObj, this.left, this.top, this.width, this.height);
-
-          // disable shadows for other elements.
-          this.disableShadow(ctx);
-        }
-      }
-    }, {
-      key: '_drawImageLabel',
-      value: function _drawImageLabel(ctx, x, y, selected) {
-        var yLabel;
-        var offset = 0;
-
-        if (this.height !== undefined) {
-          offset = this.height * 0.5;
-          var labelDimensions = this.labelModule.getTextSize(ctx);
-          if (labelDimensions.lineCount >= 1) {
-            offset += labelDimensions.height / 2;
-          }
-        }
-
-        yLabel = y + offset;
-
-        if (this.options.label) {
-          this.labelOffset = offset;
-        }
-        this.labelModule.draw(ctx, x, yLabel, selected, 'hanging');
-      }
-    }]);
-
-    return CircleImageBase;
-  })(_utilNodeBase2['default']);
-
-  exports['default'] = CircleImageBase;
-  module.exports = exports['default'];
-
-/***/ },
-/* 111 */
-/***/ function(module, exports, __webpack_require__) {
 
   'use strict';
 
-  Object.defineProperty(exports, '__esModule', {
-    value: true
-  });
+  var Box = (function (_NodeBase) {
+    function Box(options, body, labelModule) {
+      _classCallCheck(this, Box);
 
-  var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
-
-  var _get = function get(_x, _x2, _x3) { var _again = true; _function: while (_again) { desc = parent = getter = undefined; _again = false; var object = _x,
-      property = _x2,
-      receiver = _x3; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { _x = parent; _x2 = property; _x3 = receiver; _again = true; continue _function; } } else if ('value' in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } } };
-
-  function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
-
-  function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
-
-  function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; }
-
-  var _utilNodeBase = __webpack_require__(109);
-
-  var _utilNodeBase2 = _interopRequireDefault(_utilNodeBase);
-
-  var ShapeBase = (function (_NodeBase) {
-    function ShapeBase(options, body, labelModule) {
-      _classCallCheck(this, ShapeBase);
-
-      _get(Object.getPrototypeOf(ShapeBase.prototype), 'constructor', this).call(this, options, body, labelModule);
+      _get(Object.getPrototypeOf(Box.prototype), 'constructor', this).call(this, options, body, labelModule);
     }
 
-    _inherits(ShapeBase, _NodeBase);
+    _inherits(Box, _NodeBase);
 
-    _createClass(ShapeBase, [{
-      key: '_resizeShape',
-      value: function _resizeShape() {
+    _createClass(Box, [{
+      key: 'resize',
+      value: function resize(ctx, selected) {
         if (this.width === undefined) {
-          var size = 2 * this.options.size;
-          this.width = size;
-          this.height = size;
+          var margin = 5;
+          var textSize = this.labelModule.getTextSize(ctx, selected);
+          this.width = textSize.width + 2 * margin;
+          this.height = textSize.height + 2 * margin;
           this.radius = 0.5 * this.width;
         }
       }
     }, {
-      key: '_drawShape',
-      value: function _drawShape(ctx, shape, sizeMultiplier, x, y, selected, hover) {
-        this._resizeShape();
-
+      key: 'draw',
+      value: function draw(ctx, x, y, selected, hover) {
+        this.resize(ctx, selected);
         this.left = x - this.width / 2;
         this.top = y - this.height / 2;
 
@@ -39712,8 +38307,11 @@ return /******/ (function(modules) { // webpackBootstrap
         ctx.lineWidth = selected ? selectionLineWidth : borderWidth;
         ctx.lineWidth /= this.body.view.scale;
         ctx.lineWidth = Math.min(this.width, ctx.lineWidth);
+
         ctx.fillStyle = selected ? this.options.color.highlight.background : hover ? this.options.color.hover.background : this.options.color.background;
-        ctx[shape](x, y, this.options.size);
+
+        var borderRadius = 6;
+        ctx.roundRect(this.left, this.top, this.width, this.height, borderRadius);
 
         // draw shadow if enabled
         this.enableShadow(ctx);
@@ -39724,10 +38322,212 @@ return /******/ (function(modules) { // webpackBootstrap
 
         ctx.stroke();
 
-        if (this.options.label !== undefined) {
-          var yLabel = y + 0.5 * this.height + 3; // the + 3 is to offset it a bit below the node.
-          this.labelModule.draw(ctx, x, yLabel, selected, 'hanging');
+        this.updateBoundingBox(x, y);
+        this.labelModule.draw(ctx, x, y, selected);
+      }
+    }, {
+      key: 'updateBoundingBox',
+      value: function updateBoundingBox(x, y) {
+        this.left = x - this.width * 0.5;
+        this.top = y - this.height * 0.5;
+
+        this.boundingBox.left = this.left;
+        this.boundingBox.top = this.top;
+        this.boundingBox.bottom = this.top + this.height;
+        this.boundingBox.right = this.left + this.width;
+      }
+    }, {
+      key: 'distanceToBorder',
+      value: function distanceToBorder(ctx, angle) {
+        this.resize(ctx);
+        var a = this.width / 2;
+        var b = this.height / 2;
+        var w = Math.sin(angle) * a;
+        var h = Math.cos(angle) * b;
+        return a * b / Math.sqrt(w * w + h * h);
+      }
+    }]);
+
+    return Box;
+  })(_utilNodeBase2['default']);
+
+  exports['default'] = Box;
+  module.exports = exports['default'];
+
+/***/ },
+/* 94 */
+/***/ function(module, exports, __webpack_require__) {
+
+  'use strict';
+
+  Object.defineProperty(exports, '__esModule', {
+    value: true
+  });
+
+  var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
+
+  var _get = function get(_x, _x2, _x3) { var _again = true; _function: while (_again) { desc = parent = getter = undefined; _again = false; var object = _x,
+      property = _x2,
+      receiver = _x3; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { _x = parent; _x2 = property; _x3 = receiver; _again = true; continue _function; } } else if ('value' in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } } };
+
+  function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
+
+  function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
+
+  function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; }
+
+  var _utilCircleImageBase = __webpack_require__(112);
+
+  var _utilCircleImageBase2 = _interopRequireDefault(_utilCircleImageBase);
+
+  'use strict';
+
+  var Circle = (function (_CircleImageBase) {
+    function Circle(options, body, labelModule) {
+      _classCallCheck(this, Circle);
+
+      _get(Object.getPrototypeOf(Circle.prototype), 'constructor', this).call(this, options, body, labelModule);
+    }
+
+    _inherits(Circle, _CircleImageBase);
+
+    _createClass(Circle, [{
+      key: 'resize',
+      value: function resize(ctx, selected) {
+        if (this.width === undefined) {
+          var margin = 5;
+          var textSize = this.labelModule.getTextSize(ctx, selected);
+          var diameter = Math.max(textSize.width, textSize.height) + 2 * margin;
+          this.options.size = diameter / 2;
+
+          this.width = diameter;
+          this.height = diameter;
+          this.radius = 0.5 * this.width;
         }
+      }
+    }, {
+      key: 'draw',
+      value: function draw(ctx, x, y, selected, hover) {
+        this.resize(ctx, selected);
+        this.left = x - this.width / 2;
+        this.top = y - this.height / 2;
+
+        this._drawRawCircle(ctx, x, y, selected, hover, this.options.size);
+
+        this.boundingBox.top = y - this.options.size;
+        this.boundingBox.left = x - this.options.size;
+        this.boundingBox.right = x + this.options.size;
+        this.boundingBox.bottom = y + this.options.size;
+
+        this.updateBoundingBox(x, y);
+        this.labelModule.draw(ctx, x, y, selected);
+      }
+    }, {
+      key: 'updateBoundingBox',
+      value: function updateBoundingBox(x, y) {
+        this.boundingBox.top = y - this.options.size;
+        this.boundingBox.left = x - this.options.size;
+        this.boundingBox.right = x + this.options.size;
+        this.boundingBox.bottom = y + this.options.size;
+      }
+    }, {
+      key: 'distanceToBorder',
+      value: function distanceToBorder(ctx, angle) {
+        this.resize(ctx);
+        var a = this.width / 2;
+        var b = this.height / 2;
+        var w = Math.sin(angle) * a;
+        var h = Math.cos(angle) * b;
+        return a * b / Math.sqrt(w * w + h * h);
+      }
+    }]);
+
+    return Circle;
+  })(_utilCircleImageBase2['default']);
+
+  exports['default'] = Circle;
+  module.exports = exports['default'];
+
+/***/ },
+/* 95 */
+/***/ function(module, exports, __webpack_require__) {
+
+  'use strict';
+
+  Object.defineProperty(exports, '__esModule', {
+    value: true
+  });
+
+  var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
+
+  var _get = function get(_x, _x2, _x3) { var _again = true; _function: while (_again) { desc = parent = getter = undefined; _again = false; var object = _x,
+      property = _x2,
+      receiver = _x3; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { _x = parent; _x2 = property; _x3 = receiver; _again = true; continue _function; } } else if ('value' in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } } };
+
+  function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
+
+  function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
+
+  function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; }
+
+  var _utilCircleImageBase = __webpack_require__(112);
+
+  var _utilCircleImageBase2 = _interopRequireDefault(_utilCircleImageBase);
+
+  'use strict';
+
+  var CircularImage = (function (_CircleImageBase) {
+    function CircularImage(options, body, labelModule, imageObj) {
+      _classCallCheck(this, CircularImage);
+
+      _get(Object.getPrototypeOf(CircularImage.prototype), 'constructor', this).call(this, options, body, labelModule);
+      this.imageObj = imageObj;
+      this._swapToImageResizeWhenImageLoaded = true;
+    }
+
+    _inherits(CircularImage, _CircleImageBase);
+
+    _createClass(CircularImage, [{
+      key: 'resize',
+      value: function resize() {
+        if (this.imageObj.src === undefined || this.imageObj.width === undefined || this.imageObj.height === undefined) {
+          if (!this.width) {
+            var diameter = this.options.size * 2;
+            this.width = diameter;
+            this.height = diameter;
+            this._swapToImageResizeWhenImageLoaded = true;
+            this.radius = 0.5 * this.width;
+          }
+        } else {
+          if (this._swapToImageResizeWhenImageLoaded) {
+            this.width = undefined;
+            this.height = undefined;
+            this._swapToImageResizeWhenImageLoaded = false;
+          }
+          this._resizeImage();
+        }
+      }
+    }, {
+      key: 'draw',
+      value: function draw(ctx, x, y, selected, hover) {
+        this.resize();
+
+        this.left = x - this.width / 2;
+        this.top = y - this.height / 2;
+
+        var size = Math.min(0.5 * this.height, 0.5 * this.width);
+        this._drawRawCircle(ctx, x, y, selected, hover, size);
+
+        ctx.save();
+        ctx.circle(x, y, size);
+        ctx.stroke();
+        ctx.clip();
+
+        this._drawImageAtPosition(ctx);
+
+        ctx.restore();
+
+        this._drawImageLabel(ctx, x, y, selected);
 
         this.updateBoundingBox(x, y);
       }
@@ -39738,23 +38538,931 @@ return /******/ (function(modules) { // webpackBootstrap
         this.boundingBox.left = x - this.options.size;
         this.boundingBox.right = x + this.options.size;
         this.boundingBox.bottom = y + this.options.size;
+        this.boundingBox.left = Math.min(this.boundingBox.left, this.labelModule.size.left);
+        this.boundingBox.right = Math.max(this.boundingBox.right, this.labelModule.size.left + this.labelModule.size.width);
+        this.boundingBox.bottom = Math.max(this.boundingBox.bottom, this.boundingBox.bottom + this.labelOffset);
+      }
+    }, {
+      key: 'distanceToBorder',
+      value: function distanceToBorder(ctx, angle) {
+        this.resize(ctx);
+        return this._distanceToBorder(angle);
+      }
+    }]);
+
+    return CircularImage;
+  })(_utilCircleImageBase2['default']);
+
+  exports['default'] = CircularImage;
+  module.exports = exports['default'];
+
+/***/ },
+/* 96 */
+/***/ function(module, exports, __webpack_require__) {
+
+  'use strict';
+
+  Object.defineProperty(exports, '__esModule', {
+    value: true
+  });
+
+  var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
+
+  var _get = function get(_x, _x2, _x3) { var _again = true; _function: while (_again) { desc = parent = getter = undefined; _again = false; var object = _x,
+      property = _x2,
+      receiver = _x3; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { _x = parent; _x2 = property; _x3 = receiver; _again = true; continue _function; } } else if ('value' in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } } };
+
+  function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
+
+  function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
+
+  function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; }
+
+  var _utilNodeBase = __webpack_require__(111);
+
+  var _utilNodeBase2 = _interopRequireDefault(_utilNodeBase);
+
+  'use strict';
+
+  var Database = (function (_NodeBase) {
+    function Database(options, body, labelModule) {
+      _classCallCheck(this, Database);
+
+      _get(Object.getPrototypeOf(Database.prototype), 'constructor', this).call(this, options, body, labelModule);
+    }
+
+    _inherits(Database, _NodeBase);
+
+    _createClass(Database, [{
+      key: 'resize',
+      value: function resize(ctx, selected) {
+        if (this.width === undefined) {
+          var margin = 5;
+          var textSize = this.labelModule.getTextSize(ctx, selected);
+          var size = textSize.width + 2 * margin;
+          this.width = size;
+          this.height = size;
+          this.radius = 0.5 * this.width;
+        }
+      }
+    }, {
+      key: 'draw',
+      value: function draw(ctx, x, y, selected, hover) {
+        this.resize(ctx, selected);
+        this.left = x - this.width / 2;
+        this.top = y - this.height / 2;
+
+        var borderWidth = this.options.borderWidth;
+        var selectionLineWidth = this.options.borderWidthSelected || 2 * this.options.borderWidth;
+
+        ctx.strokeStyle = selected ? this.options.color.highlight.border : hover ? this.options.color.hover.border : this.options.color.border;
+        ctx.lineWidth = this.selected ? selectionLineWidth : borderWidth;
+        ctx.lineWidth *= this.networkScaleInv;
+        ctx.lineWidth = Math.min(this.width, ctx.lineWidth);
+
+        ctx.fillStyle = selected ? this.options.color.highlight.background : hover ? this.options.color.hover.background : this.options.color.background;
+        ctx.database(x - this.width / 2, y - this.height * 0.5, this.width, this.height);
+
+        // draw shadow if enabled
+        this.enableShadow(ctx);
+        ctx.fill();
+
+        // disable shadows for other elements.
+        this.disableShadow(ctx);
+
+        ctx.stroke();
+
+        this.updateBoundingBox(x, y);
+
+        this.labelModule.draw(ctx, x, y, selected);
+      }
+    }, {
+      key: 'updateBoundingBox',
+      value: function updateBoundingBox(x, y) {
+        this.left = x - this.width * 0.5;
+        this.top = y - this.height * 0.5;
+
+        this.boundingBox.left = this.left;
+        this.boundingBox.top = this.top;
+        this.boundingBox.bottom = this.top + this.height;
+        this.boundingBox.right = this.left + this.width;
+      }
+    }, {
+      key: 'distanceToBorder',
+      value: function distanceToBorder(ctx, angle) {
+        this.resize(ctx);
+        var a = this.width / 2;
+        var b = this.height / 2;
+        var w = Math.sin(angle) * a;
+        var h = Math.cos(angle) * b;
+        return a * b / Math.sqrt(w * w + h * h);
+      }
+    }]);
+
+    return Database;
+  })(_utilNodeBase2['default']);
+
+  exports['default'] = Database;
+  module.exports = exports['default'];
+
+/***/ },
+/* 97 */
+/***/ function(module, exports, __webpack_require__) {
+
+  'use strict';
+
+  Object.defineProperty(exports, '__esModule', {
+    value: true
+  });
+
+  var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
+
+  var _get = function get(_x, _x2, _x3) { var _again = true; _function: while (_again) { desc = parent = getter = undefined; _again = false; var object = _x,
+      property = _x2,
+      receiver = _x3; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { _x = parent; _x2 = property; _x3 = receiver; _again = true; continue _function; } } else if ('value' in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } } };
+
+  function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
+
+  function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
+
+  function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; }
+
+  var _utilShapeBase = __webpack_require__(113);
+
+  var _utilShapeBase2 = _interopRequireDefault(_utilShapeBase);
+
+  'use strict';
+
+  var Diamond = (function (_ShapeBase) {
+    function Diamond(options, body, labelModule) {
+      _classCallCheck(this, Diamond);
+
+      _get(Object.getPrototypeOf(Diamond.prototype), 'constructor', this).call(this, options, body, labelModule);
+    }
+
+    _inherits(Diamond, _ShapeBase);
+
+    _createClass(Diamond, [{
+      key: 'resize',
+      value: function resize(ctx) {
+        this._resizeShape();
+      }
+    }, {
+      key: 'draw',
+      value: function draw(ctx, x, y, selected, hover) {
+        this._drawShape(ctx, 'diamond', 4, x, y, selected, hover);
+      }
+    }, {
+      key: 'distanceToBorder',
+      value: function distanceToBorder(ctx, angle) {
+        return this._distanceToBorder(angle);
+      }
+    }]);
+
+    return Diamond;
+  })(_utilShapeBase2['default']);
+
+  exports['default'] = Diamond;
+  module.exports = exports['default'];
+
+/***/ },
+/* 98 */
+/***/ function(module, exports, __webpack_require__) {
+
+  'use strict';
+
+  Object.defineProperty(exports, '__esModule', {
+    value: true
+  });
+
+  var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
+
+  var _get = function get(_x, _x2, _x3) { var _again = true; _function: while (_again) { desc = parent = getter = undefined; _again = false; var object = _x,
+      property = _x2,
+      receiver = _x3; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { _x = parent; _x2 = property; _x3 = receiver; _again = true; continue _function; } } else if ('value' in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } } };
+
+  function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
+
+  function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
+
+  function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; }
+
+  var _utilShapeBase = __webpack_require__(113);
+
+  var _utilShapeBase2 = _interopRequireDefault(_utilShapeBase);
+
+  'use strict';
+
+  var Dot = (function (_ShapeBase) {
+    function Dot(options, body, labelModule) {
+      _classCallCheck(this, Dot);
+
+      _get(Object.getPrototypeOf(Dot.prototype), 'constructor', this).call(this, options, body, labelModule);
+    }
+
+    _inherits(Dot, _ShapeBase);
+
+    _createClass(Dot, [{
+      key: 'resize',
+      value: function resize(ctx) {
+        this._resizeShape();
+      }
+    }, {
+      key: 'draw',
+      value: function draw(ctx, x, y, selected, hover) {
+        this._drawShape(ctx, 'circle', 2, x, y, selected, hover);
+      }
+    }, {
+      key: 'distanceToBorder',
+      value: function distanceToBorder(ctx, angle) {
+        return this.options.size + this.options.borderWidth;
+      }
+    }]);
+
+    return Dot;
+  })(_utilShapeBase2['default']);
+
+  exports['default'] = Dot;
+  module.exports = exports['default'];
+
+/***/ },
+/* 99 */
+/***/ function(module, exports, __webpack_require__) {
+
+  'use strict';
+
+  Object.defineProperty(exports, '__esModule', {
+    value: true
+  });
+
+  var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
+
+  var _get = function get(_x, _x2, _x3) { var _again = true; _function: while (_again) { desc = parent = getter = undefined; _again = false; var object = _x,
+      property = _x2,
+      receiver = _x3; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { _x = parent; _x2 = property; _x3 = receiver; _again = true; continue _function; } } else if ('value' in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } } };
+
+  function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
+
+  function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
+
+  function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; }
+
+  var _utilNodeBase = __webpack_require__(111);
+
+  var _utilNodeBase2 = _interopRequireDefault(_utilNodeBase);
+
+  'use strict';
+
+  var Ellipse = (function (_NodeBase) {
+    function Ellipse(options, body, labelModule) {
+      _classCallCheck(this, Ellipse);
+
+      _get(Object.getPrototypeOf(Ellipse.prototype), 'constructor', this).call(this, options, body, labelModule);
+    }
+
+    _inherits(Ellipse, _NodeBase);
+
+    _createClass(Ellipse, [{
+      key: 'resize',
+      value: function resize(ctx, selected) {
+        if (this.width === undefined) {
+          var textSize = this.labelModule.getTextSize(ctx, selected);
+
+          this.width = textSize.width * 1.5;
+          this.height = textSize.height * 2;
+          if (this.width < this.height) {
+            this.width = this.height;
+          }
+          this.radius = 0.5 * this.width;
+        }
+      }
+    }, {
+      key: 'draw',
+      value: function draw(ctx, x, y, selected, hover) {
+        this.resize(ctx, selected);
+        this.left = x - this.width * 0.5;
+        this.top = y - this.height * 0.5;
+
+        var borderWidth = this.options.borderWidth;
+        var selectionLineWidth = this.options.borderWidthSelected || 2 * this.options.borderWidth;
+
+        ctx.strokeStyle = selected ? this.options.color.highlight.border : hover ? this.options.color.hover.border : this.options.color.border;
+
+        ctx.lineWidth = selected ? selectionLineWidth : borderWidth;
+        ctx.lineWidth /= this.body.view.scale;
+        ctx.lineWidth = Math.min(this.width, ctx.lineWidth);
+
+        ctx.fillStyle = selected ? this.options.color.highlight.background : hover ? this.options.color.hover.background : this.options.color.background;
+        ctx.ellipse(this.left, this.top, this.width, this.height);
+
+        // draw shadow if enabled
+        this.enableShadow(ctx);
+        ctx.fill();
+
+        // disable shadows for other elements.
+        this.disableShadow(ctx);
+
+        ctx.stroke();
+
+        this.updateBoundingBox(x, y);
+        this.labelModule.draw(ctx, x, y, selected);
+      }
+    }, {
+      key: 'updateBoundingBox',
+      value: function updateBoundingBox(x, y) {
+        this.left = x - this.width * 0.5;
+        this.top = y - this.height * 0.5;
+
+        this.boundingBox.left = this.left;
+        this.boundingBox.top = this.top;
+        this.boundingBox.bottom = this.top + this.height;
+        this.boundingBox.right = this.left + this.width;
+      }
+    }, {
+      key: 'distanceToBorder',
+      value: function distanceToBorder(ctx, angle) {
+        this.resize(ctx);
+        var a = this.width * 0.5;
+        var b = this.height * 0.5;
+        var w = Math.sin(angle) * a;
+        var h = Math.cos(angle) * b;
+        return a * b / Math.sqrt(w * w + h * h);
+      }
+    }]);
+
+    return Ellipse;
+  })(_utilNodeBase2['default']);
+
+  exports['default'] = Ellipse;
+  module.exports = exports['default'];
+
+/***/ },
+/* 100 */
+/***/ function(module, exports, __webpack_require__) {
+
+  'use strict';
+
+  Object.defineProperty(exports, '__esModule', {
+    value: true
+  });
+
+  var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
+
+  var _get = function get(_x, _x2, _x3) { var _again = true; _function: while (_again) { desc = parent = getter = undefined; _again = false; var object = _x,
+      property = _x2,
+      receiver = _x3; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { _x = parent; _x2 = property; _x3 = receiver; _again = true; continue _function; } } else if ('value' in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } } };
+
+  function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
+
+  function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
+
+  function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; }
+
+  var _utilNodeBase = __webpack_require__(111);
+
+  var _utilNodeBase2 = _interopRequireDefault(_utilNodeBase);
+
+  'use strict';
+
+  var Icon = (function (_NodeBase) {
+    function Icon(options, body, labelModule) {
+      _classCallCheck(this, Icon);
+
+      _get(Object.getPrototypeOf(Icon.prototype), 'constructor', this).call(this, options, body, labelModule);
+    }
+
+    _inherits(Icon, _NodeBase);
+
+    _createClass(Icon, [{
+      key: 'resize',
+      value: function resize(ctx) {
+        if (this.width === undefined) {
+          var margin = 5;
+          var iconSize = {
+            width: Number(this.options.icon.size),
+            height: Number(this.options.icon.size)
+          };
+          this.width = iconSize.width + 2 * margin;
+          this.height = iconSize.height + 2 * margin;
+          this.radius = 0.5 * this.width;
+        }
+      }
+    }, {
+      key: 'draw',
+      value: function draw(ctx, x, y, selected, hover) {
+        this.resize(ctx);
+        this.options.icon.size = this.options.icon.size || 50;
+
+        this.left = x - this.width * 0.5;
+        this.top = y - this.height * 0.5;
+        this._icon(ctx, x, y, selected);
+
+        if (this.options.label !== undefined) {
+          var iconTextSpacing = 5;
+          this.labelModule.draw(ctx, x, y + this.height * 0.5 + iconTextSpacing, selected);
+        }
+
+        this.updateBoundingBox(x, y);
+      }
+    }, {
+      key: 'updateBoundingBox',
+      value: function updateBoundingBox(x, y) {
+        this.boundingBox.top = y - this.options.icon.size * 0.5;
+        this.boundingBox.left = x - this.options.icon.size * 0.5;
+        this.boundingBox.right = x + this.options.icon.size * 0.5;
+        this.boundingBox.bottom = y + this.options.icon.size * 0.5;
+
+        if (this.options.label !== undefined) {
+          var iconTextSpacing = 5;
+          this.boundingBox.left = Math.min(this.boundingBox.left, this.labelModule.size.left);
+          this.boundingBox.right = Math.max(this.boundingBox.right, this.labelModule.size.left + this.labelModule.size.width);
+          this.boundingBox.bottom = Math.max(this.boundingBox.bottom, this.boundingBox.bottom + this.labelModule.size.height + iconTextSpacing);
+        }
+      }
+    }, {
+      key: '_icon',
+      value: function _icon(ctx, x, y, selected) {
+        var iconSize = Number(this.options.icon.size);
+
+        if (this.options.icon.code !== undefined) {
+          ctx.font = (selected ? 'bold ' : '') + iconSize + 'px ' + this.options.icon.face;
+
+          // draw icon
+          ctx.fillStyle = this.options.icon.color || 'black';
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'middle';
+
+          // draw shadow if enabled
+          this.enableShadow(ctx);
+          ctx.fillText(this.options.icon.code, x, y);
+
+          // disable shadows for other elements.
+          this.disableShadow(ctx);
+        } else {
+          console.error('When using the icon shape, you need to define the code in the icon options object. This can be done per node or globally.');
+        }
+      }
+    }, {
+      key: 'distanceToBorder',
+      value: function distanceToBorder(ctx, angle) {
+        this.resize(ctx);
+        this._distanceToBorder(angle);
+      }
+    }]);
+
+    return Icon;
+  })(_utilNodeBase2['default']);
+
+  exports['default'] = Icon;
+  module.exports = exports['default'];
+
+/***/ },
+/* 101 */
+/***/ function(module, exports, __webpack_require__) {
+
+  'use strict';
+
+  Object.defineProperty(exports, '__esModule', {
+    value: true
+  });
+
+  var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
+
+  var _get = function get(_x, _x2, _x3) { var _again = true; _function: while (_again) { desc = parent = getter = undefined; _again = false; var object = _x,
+      property = _x2,
+      receiver = _x3; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { _x = parent; _x2 = property; _x3 = receiver; _again = true; continue _function; } } else if ('value' in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } } };
+
+  function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
+
+  function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
+
+  function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; }
+
+  var _utilCircleImageBase = __webpack_require__(112);
+
+  var _utilCircleImageBase2 = _interopRequireDefault(_utilCircleImageBase);
+
+  'use strict';
+
+  var Image = (function (_CircleImageBase) {
+    function Image(options, body, labelModule, imageObj) {
+      _classCallCheck(this, Image);
+
+      _get(Object.getPrototypeOf(Image.prototype), 'constructor', this).call(this, options, body, labelModule);
+      this.imageObj = imageObj;
+    }
+
+    _inherits(Image, _CircleImageBase);
+
+    _createClass(Image, [{
+      key: 'resize',
+      value: function resize() {
+        this._resizeImage();
+      }
+    }, {
+      key: 'draw',
+      value: function draw(ctx, x, y, selected, hover) {
+        this.resize();
+        this.left = x - this.width / 2;
+        this.top = y - this.height / 2;
+
+        this._drawImageAtPosition(ctx);
+
+        this._drawImageLabel(ctx, x, y, selected || hover);
+
+        this.updateBoundingBox(x, y);
+      }
+    }, {
+      key: 'updateBoundingBox',
+      value: function updateBoundingBox(x, y) {
+        this.left = x - this.width / 2;
+        this.top = y - this.height / 2;
+
+        this.boundingBox.top = this.top;
+        this.boundingBox.left = this.left;
+        this.boundingBox.right = this.left + this.width;
+        this.boundingBox.bottom = this.top + this.height;
 
         if (this.options.label !== undefined) {
           this.boundingBox.left = Math.min(this.boundingBox.left, this.labelModule.size.left);
           this.boundingBox.right = Math.max(this.boundingBox.right, this.labelModule.size.left + this.labelModule.size.width);
-          this.boundingBox.bottom = Math.max(this.boundingBox.bottom, this.boundingBox.bottom + this.labelModule.size.height + 3);
+          this.boundingBox.bottom = Math.max(this.boundingBox.bottom, this.boundingBox.bottom + this.labelOffset);
         }
+      }
+    }, {
+      key: 'distanceToBorder',
+      value: function distanceToBorder(ctx, angle) {
+        this.resize(ctx);
+        var a = this.width / 2;
+        var b = this.height / 2;
+        var w = Math.sin(angle) * a;
+        var h = Math.cos(angle) * b;
+        return a * b / Math.sqrt(w * w + h * h);
       }
     }]);
 
-    return ShapeBase;
-  })(_utilNodeBase2['default']);
+    return Image;
+  })(_utilCircleImageBase2['default']);
 
-  exports['default'] = ShapeBase;
+  exports['default'] = Image;
   module.exports = exports['default'];
 
 /***/ },
-/* 112 */
+/* 102 */
+/***/ function(module, exports, __webpack_require__) {
+
+  'use strict';
+
+  Object.defineProperty(exports, '__esModule', {
+    value: true
+  });
+
+  var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
+
+  var _get = function get(_x, _x2, _x3) { var _again = true; _function: while (_again) { desc = parent = getter = undefined; _again = false; var object = _x,
+      property = _x2,
+      receiver = _x3; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { _x = parent; _x2 = property; _x3 = receiver; _again = true; continue _function; } } else if ('value' in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } } };
+
+  function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
+
+  function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
+
+  function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; }
+
+  var _utilShapeBase = __webpack_require__(113);
+
+  var _utilShapeBase2 = _interopRequireDefault(_utilShapeBase);
+
+  'use strict';
+
+  var Square = (function (_ShapeBase) {
+    function Square(options, body, labelModule) {
+      _classCallCheck(this, Square);
+
+      _get(Object.getPrototypeOf(Square.prototype), 'constructor', this).call(this, options, body, labelModule);
+    }
+
+    _inherits(Square, _ShapeBase);
+
+    _createClass(Square, [{
+      key: 'resize',
+      value: function resize() {
+        this._resizeShape();
+      }
+    }, {
+      key: 'draw',
+      value: function draw(ctx, x, y, selected, hover) {
+        this._drawShape(ctx, 'square', 2, x, y, selected, hover);
+      }
+    }, {
+      key: 'distanceToBorder',
+      value: function distanceToBorder(ctx, angle) {
+        this.resize(ctx);
+        return this._distanceToBorder(angle);
+      }
+    }]);
+
+    return Square;
+  })(_utilShapeBase2['default']);
+
+  exports['default'] = Square;
+  module.exports = exports['default'];
+
+/***/ },
+/* 103 */
+/***/ function(module, exports, __webpack_require__) {
+
+  'use strict';
+
+  Object.defineProperty(exports, '__esModule', {
+    value: true
+  });
+
+  var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
+
+  var _get = function get(_x, _x2, _x3) { var _again = true; _function: while (_again) { desc = parent = getter = undefined; _again = false; var object = _x,
+      property = _x2,
+      receiver = _x3; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { _x = parent; _x2 = property; _x3 = receiver; _again = true; continue _function; } } else if ('value' in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } } };
+
+  function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
+
+  function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
+
+  function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; }
+
+  var _utilShapeBase = __webpack_require__(113);
+
+  var _utilShapeBase2 = _interopRequireDefault(_utilShapeBase);
+
+  'use strict';
+
+  var Star = (function (_ShapeBase) {
+    function Star(options, body, labelModule) {
+      _classCallCheck(this, Star);
+
+      _get(Object.getPrototypeOf(Star.prototype), 'constructor', this).call(this, options, body, labelModule);
+    }
+
+    _inherits(Star, _ShapeBase);
+
+    _createClass(Star, [{
+      key: 'resize',
+      value: function resize(ctx) {
+        this._resizeShape();
+      }
+    }, {
+      key: 'draw',
+      value: function draw(ctx, x, y, selected, hover) {
+        this._drawShape(ctx, 'star', 4, x, y, selected, hover);
+      }
+    }, {
+      key: 'distanceToBorder',
+      value: function distanceToBorder(ctx, angle) {
+        return this._distanceToBorder(angle);
+      }
+    }]);
+
+    return Star;
+  })(_utilShapeBase2['default']);
+
+  exports['default'] = Star;
+  module.exports = exports['default'];
+
+/***/ },
+/* 104 */
+/***/ function(module, exports, __webpack_require__) {
+
+  'use strict';
+
+  Object.defineProperty(exports, '__esModule', {
+    value: true
+  });
+
+  var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
+
+  var _get = function get(_x, _x2, _x3) { var _again = true; _function: while (_again) { desc = parent = getter = undefined; _again = false; var object = _x,
+      property = _x2,
+      receiver = _x3; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { _x = parent; _x2 = property; _x3 = receiver; _again = true; continue _function; } } else if ('value' in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } } };
+
+  function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
+
+  function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
+
+  function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; }
+
+  var _utilNodeBase = __webpack_require__(111);
+
+  var _utilNodeBase2 = _interopRequireDefault(_utilNodeBase);
+
+  'use strict';
+
+  var Text = (function (_NodeBase) {
+    function Text(options, body, labelModule) {
+      _classCallCheck(this, Text);
+
+      _get(Object.getPrototypeOf(Text.prototype), 'constructor', this).call(this, options, body, labelModule);
+    }
+
+    _inherits(Text, _NodeBase);
+
+    _createClass(Text, [{
+      key: 'resize',
+      value: function resize(ctx, selected) {
+        if (this.width === undefined) {
+          var margin = 5;
+          var textSize = this.labelModule.getTextSize(ctx, selected);
+          this.width = textSize.width + 2 * margin;
+          this.height = textSize.height + 2 * margin;
+          this.radius = 0.5 * this.width;
+        }
+      }
+    }, {
+      key: 'draw',
+      value: function draw(ctx, x, y, selected, hover) {
+        this.resize(ctx, selected || hover);
+        this.left = x - this.width / 2;
+        this.top = y - this.height / 2;
+
+        // draw shadow if enabled
+        this.enableShadow(ctx);
+        this.labelModule.draw(ctx, x, y, selected || hover);
+
+        // disable shadows for other elements.
+        this.disableShadow(ctx);
+
+        this.updateBoundingBox(x, y);
+      }
+    }, {
+      key: 'updateBoundingBox',
+      value: function updateBoundingBox(x, y) {
+        this.left = x - this.width / 2;
+        this.top = y - this.height / 2;
+
+        this.boundingBox.top = this.top;
+        this.boundingBox.left = this.left;
+        this.boundingBox.right = this.left + this.width;
+        this.boundingBox.bottom = this.top + this.height;
+      }
+    }, {
+      key: 'distanceToBorder',
+      value: function distanceToBorder(ctx, angle) {
+        this.resize(ctx);
+        return this._distanceToBorder(angle);
+      }
+    }]);
+
+    return Text;
+  })(_utilNodeBase2['default']);
+
+  exports['default'] = Text;
+  module.exports = exports['default'];
+
+/***/ },
+/* 105 */
+/***/ function(module, exports, __webpack_require__) {
+
+  'use strict';
+
+  Object.defineProperty(exports, '__esModule', {
+    value: true
+  });
+
+  var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
+
+  var _get = function get(_x, _x2, _x3) { var _again = true; _function: while (_again) { desc = parent = getter = undefined; _again = false; var object = _x,
+      property = _x2,
+      receiver = _x3; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { _x = parent; _x2 = property; _x3 = receiver; _again = true; continue _function; } } else if ('value' in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } } };
+
+  function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
+
+  function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
+
+  function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; }
+
+  var _utilShapeBase = __webpack_require__(113);
+
+  var _utilShapeBase2 = _interopRequireDefault(_utilShapeBase);
+
+  'use strict';
+
+  var Triangle = (function (_ShapeBase) {
+    function Triangle(options, body, labelModule) {
+      _classCallCheck(this, Triangle);
+
+      _get(Object.getPrototypeOf(Triangle.prototype), 'constructor', this).call(this, options, body, labelModule);
+    }
+
+    _inherits(Triangle, _ShapeBase);
+
+    _createClass(Triangle, [{
+      key: 'resize',
+      value: function resize(ctx) {
+        this._resizeShape();
+      }
+    }, {
+      key: 'draw',
+      value: function draw(ctx, x, y, selected, hover) {
+        this._drawShape(ctx, 'triangle', 3, x, y, selected, hover);
+      }
+    }, {
+      key: 'distanceToBorder',
+      value: function distanceToBorder(ctx, angle) {
+        return this._distanceToBorder(angle);
+      }
+    }]);
+
+    return Triangle;
+  })(_utilShapeBase2['default']);
+
+  exports['default'] = Triangle;
+  module.exports = exports['default'];
+
+/***/ },
+/* 106 */
+/***/ function(module, exports, __webpack_require__) {
+
+  'use strict';
+
+  Object.defineProperty(exports, '__esModule', {
+    value: true
+  });
+
+  var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
+
+  var _get = function get(_x, _x2, _x3) { var _again = true; _function: while (_again) { desc = parent = getter = undefined; _again = false; var object = _x,
+      property = _x2,
+      receiver = _x3; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { _x = parent; _x2 = property; _x3 = receiver; _again = true; continue _function; } } else if ('value' in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } } };
+
+  function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
+
+  function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
+
+  function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; }
+
+  var _utilShapeBase = __webpack_require__(113);
+
+  var _utilShapeBase2 = _interopRequireDefault(_utilShapeBase);
+
+  'use strict';
+
+  var TriangleDown = (function (_ShapeBase) {
+    function TriangleDown(options, body, labelModule) {
+      _classCallCheck(this, TriangleDown);
+
+      _get(Object.getPrototypeOf(TriangleDown.prototype), 'constructor', this).call(this, options, body, labelModule);
+    }
+
+    _inherits(TriangleDown, _ShapeBase);
+
+    _createClass(TriangleDown, [{
+      key: 'resize',
+      value: function resize(ctx) {
+        this._resizeShape();
+      }
+    }, {
+      key: 'draw',
+      value: function draw(ctx, x, y, selected, hover) {
+        this._drawShape(ctx, 'triangleDown', 3, x, y, selected, hover);
+      }
+    }, {
+      key: 'distanceToBorder',
+      value: function distanceToBorder(ctx, angle) {
+        return this._distanceToBorder(angle);
+      }
+    }]);
+
+    return TriangleDown;
+  })(_utilShapeBase2['default']);
+
+  exports['default'] = TriangleDown;
+  module.exports = exports['default'];
+
+/***/ },
+/* 107 */
+/***/ function(module, exports, __webpack_require__) {
+
+  /* WEBPACK VAR INJECTION */(function(__webpack_amd_options__) {module.exports = __webpack_amd_options__;
+
+  /* WEBPACK VAR INJECTION */}.call(exports, {}))
+
+/***/ },
+/* 108 */
+/***/ function(module, exports, __webpack_require__) {
+
+  module.exports = function(module) {
+  	if(!module.webpackPolyfill) {
+  		module.deprecate = function() {};
+  		module.paths = [];
+  		// module.parent = undefined by default
+  		module.children = [];
+  		module.webpackPolyfill = 1;
+  	}
+  	return module;
+  }
+
+
+/***/ },
+/* 109 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -39775,7 +39483,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; }
 
-  var _EdgeBase2 = __webpack_require__(113);
+  var _EdgeBase2 = __webpack_require__(110);
 
   var _EdgeBase3 = _interopRequireDefault(_EdgeBase2);
 
@@ -39903,7 +39611,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 113 */
+/* 110 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -40486,6 +40194,304 @@ return /******/ (function(modules) { // webpackBootstrap
   })();
 
   exports['default'] = EdgeBase;
+  module.exports = exports['default'];
+
+/***/ },
+/* 111 */
+/***/ function(module, exports, __webpack_require__) {
+
+  'use strict';
+
+  Object.defineProperty(exports, '__esModule', {
+    value: true
+  });
+
+  var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
+
+  function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
+
+  var NodeBase = (function () {
+    function NodeBase(options, body, labelModule) {
+      _classCallCheck(this, NodeBase);
+
+      this.body = body;
+      this.labelModule = labelModule;
+      this.setOptions(options);
+      this.top = undefined;
+      this.left = undefined;
+      this.height = undefined;
+      this.width = undefined;
+      this.radius = undefined;
+      this.boundingBox = { top: 0, left: 0, right: 0, bottom: 0 };
+    }
+
+    _createClass(NodeBase, [{
+      key: 'setOptions',
+      value: function setOptions(options) {
+        this.options = options;
+      }
+    }, {
+      key: '_distanceToBorder',
+      value: function _distanceToBorder(angle) {
+        var borderWidth = 1;
+        return Math.min(Math.abs(this.width / 2 / Math.cos(angle)), Math.abs(this.height / 2 / Math.sin(angle))) + borderWidth;
+      }
+    }, {
+      key: 'enableShadow',
+      value: function enableShadow(ctx) {
+        if (this.options.shadow.enabled === true) {
+          ctx.shadowColor = 'rgba(0,0,0,0.5)';
+          ctx.shadowBlur = this.options.shadow.size;
+          ctx.shadowOffsetX = this.options.shadow.x;
+          ctx.shadowOffsetY = this.options.shadow.y;
+        }
+      }
+    }, {
+      key: 'disableShadow',
+      value: function disableShadow(ctx) {
+        if (this.options.shadow.enabled === true) {
+          ctx.shadowColor = 'rgba(0,0,0,0)';
+          ctx.shadowBlur = 0;
+          ctx.shadowOffsetX = 0;
+          ctx.shadowOffsetY = 0;
+        }
+      }
+    }]);
+
+    return NodeBase;
+  })();
+
+  exports['default'] = NodeBase;
+  module.exports = exports['default'];
+
+/***/ },
+/* 112 */
+/***/ function(module, exports, __webpack_require__) {
+
+  'use strict';
+
+  Object.defineProperty(exports, '__esModule', {
+    value: true
+  });
+
+  var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
+
+  var _get = function get(_x, _x2, _x3) { var _again = true; _function: while (_again) { desc = parent = getter = undefined; _again = false; var object = _x,
+      property = _x2,
+      receiver = _x3; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { _x = parent; _x2 = property; _x3 = receiver; _again = true; continue _function; } } else if ('value' in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } } };
+
+  function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
+
+  function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
+
+  function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; }
+
+  var _utilNodeBase = __webpack_require__(111);
+
+  var _utilNodeBase2 = _interopRequireDefault(_utilNodeBase);
+
+  var CircleImageBase = (function (_NodeBase) {
+    function CircleImageBase(options, body, labelModule) {
+      _classCallCheck(this, CircleImageBase);
+
+      _get(Object.getPrototypeOf(CircleImageBase.prototype), 'constructor', this).call(this, options, body, labelModule);
+      this.labelOffset = 0;
+    }
+
+    _inherits(CircleImageBase, _NodeBase);
+
+    _createClass(CircleImageBase, [{
+      key: '_resizeImage',
+      value: function _resizeImage() {
+        if (!this.width || !this.height) {
+          // undefined or 0
+          var width, height, ratio;
+          if (this.imageObj.width && this.imageObj.height) {
+            // not undefined or 0
+            width = 0;
+            height = 0;
+          }
+          if (this.imageObj.width > this.imageObj.height) {
+            ratio = this.imageObj.width / this.imageObj.height;
+            width = this.options.size * 2 * ratio || this.imageObj.width;
+            height = this.options.size * 2 || this.imageObj.height;
+          } else {
+            ratio = this.imageObj.height / this.imageObj.width;
+            width = this.options.size * 2 || this.imageObj.width;
+            height = this.options.size * 2 * ratio || this.imageObj.height;
+          }
+          this.width = width;
+          this.height = height;
+          this.radius = 0.5 * this.width;
+        }
+      }
+    }, {
+      key: '_drawRawCircle',
+      value: function _drawRawCircle(ctx, x, y, selected, hover, size) {
+        var borderWidth = this.options.borderWidth;
+        var selectionLineWidth = this.options.borderWidthSelected || 2 * this.options.borderWidth;
+
+        ctx.strokeStyle = selected ? this.options.color.highlight.border : hover ? this.options.color.hover.border : this.options.color.border;
+
+        ctx.lineWidth = selected ? selectionLineWidth : borderWidth;
+        ctx.lineWidth *= this.networkScaleInv;
+        ctx.lineWidth = Math.min(this.width, ctx.lineWidth);
+
+        ctx.fillStyle = selected ? this.options.color.highlight.background : hover ? this.options.color.hover.background : this.options.color.background;
+        ctx.circle(x, y, size);
+
+        // draw shadow if enabled
+        this.enableShadow(ctx);
+        ctx.fill();
+
+        // disable shadows for other elements.
+        this.disableShadow(ctx);
+
+        ctx.stroke();
+      }
+    }, {
+      key: '_drawImageAtPosition',
+      value: function _drawImageAtPosition(ctx) {
+        if (this.imageObj.width != 0) {
+          // draw the image
+          ctx.globalAlpha = 1;
+
+          // draw shadow if enabled
+          this.enableShadow(ctx);
+          ctx.drawImage(this.imageObj, this.left, this.top, this.width, this.height);
+
+          // disable shadows for other elements.
+          this.disableShadow(ctx);
+        }
+      }
+    }, {
+      key: '_drawImageLabel',
+      value: function _drawImageLabel(ctx, x, y, selected) {
+        var yLabel;
+        var offset = 0;
+
+        if (this.height !== undefined) {
+          offset = this.height * 0.5;
+          var labelDimensions = this.labelModule.getTextSize(ctx);
+          if (labelDimensions.lineCount >= 1) {
+            offset += labelDimensions.height / 2;
+          }
+        }
+
+        yLabel = y + offset;
+
+        if (this.options.label) {
+          this.labelOffset = offset;
+        }
+        this.labelModule.draw(ctx, x, yLabel, selected, 'hanging');
+      }
+    }]);
+
+    return CircleImageBase;
+  })(_utilNodeBase2['default']);
+
+  exports['default'] = CircleImageBase;
+  module.exports = exports['default'];
+
+/***/ },
+/* 113 */
+/***/ function(module, exports, __webpack_require__) {
+
+  'use strict';
+
+  Object.defineProperty(exports, '__esModule', {
+    value: true
+  });
+
+  var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
+
+  var _get = function get(_x, _x2, _x3) { var _again = true; _function: while (_again) { desc = parent = getter = undefined; _again = false; var object = _x,
+      property = _x2,
+      receiver = _x3; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { _x = parent; _x2 = property; _x3 = receiver; _again = true; continue _function; } } else if ('value' in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } } };
+
+  function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
+
+  function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
+
+  function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; }
+
+  var _utilNodeBase = __webpack_require__(111);
+
+  var _utilNodeBase2 = _interopRequireDefault(_utilNodeBase);
+
+  var ShapeBase = (function (_NodeBase) {
+    function ShapeBase(options, body, labelModule) {
+      _classCallCheck(this, ShapeBase);
+
+      _get(Object.getPrototypeOf(ShapeBase.prototype), 'constructor', this).call(this, options, body, labelModule);
+    }
+
+    _inherits(ShapeBase, _NodeBase);
+
+    _createClass(ShapeBase, [{
+      key: '_resizeShape',
+      value: function _resizeShape() {
+        if (this.width === undefined) {
+          var size = 2 * this.options.size;
+          this.width = size;
+          this.height = size;
+          this.radius = 0.5 * this.width;
+        }
+      }
+    }, {
+      key: '_drawShape',
+      value: function _drawShape(ctx, shape, sizeMultiplier, x, y, selected, hover) {
+        this._resizeShape();
+
+        this.left = x - this.width / 2;
+        this.top = y - this.height / 2;
+
+        var borderWidth = this.options.borderWidth;
+        var selectionLineWidth = this.options.borderWidthSelected || 2 * this.options.borderWidth;
+
+        ctx.strokeStyle = selected ? this.options.color.highlight.border : hover ? this.options.color.hover.border : this.options.color.border;
+        ctx.lineWidth = selected ? selectionLineWidth : borderWidth;
+        ctx.lineWidth /= this.body.view.scale;
+        ctx.lineWidth = Math.min(this.width, ctx.lineWidth);
+        ctx.fillStyle = selected ? this.options.color.highlight.background : hover ? this.options.color.hover.background : this.options.color.background;
+        ctx[shape](x, y, this.options.size);
+
+        // draw shadow if enabled
+        this.enableShadow(ctx);
+        ctx.fill();
+
+        // disable shadows for other elements.
+        this.disableShadow(ctx);
+
+        ctx.stroke();
+
+        if (this.options.label !== undefined) {
+          var yLabel = y + 0.5 * this.height + 3; // the + 3 is to offset it a bit below the node.
+          this.labelModule.draw(ctx, x, yLabel, selected, 'hanging');
+        }
+
+        this.updateBoundingBox(x, y);
+      }
+    }, {
+      key: 'updateBoundingBox',
+      value: function updateBoundingBox(x, y) {
+        this.boundingBox.top = y - this.options.size;
+        this.boundingBox.left = x - this.options.size;
+        this.boundingBox.right = x + this.options.size;
+        this.boundingBox.bottom = y + this.options.size;
+
+        if (this.options.label !== undefined) {
+          this.boundingBox.left = Math.min(this.boundingBox.left, this.labelModule.size.left);
+          this.boundingBox.right = Math.max(this.boundingBox.right, this.labelModule.size.left + this.labelModule.size.width);
+          this.boundingBox.bottom = Math.max(this.boundingBox.bottom, this.boundingBox.bottom + this.labelModule.size.height + 3);
+        }
+      }
+    }]);
+
+    return ShapeBase;
+  })(_utilNodeBase2['default']);
+
+  exports['default'] = ShapeBase;
   module.exports = exports['default'];
 
 /***/ }
