@@ -5,7 +5,7 @@
  * A dynamic, browser-based visualization library.
  *
  * @version 4.0.0-SNAPSHOT
- * @date    2015-05-19
+ * @date    2015-05-20
  *
  * @license
  * Copyright (C) 2011-2014 Almende B.V, http://almende.com
@@ -377,7 +377,7 @@ return /******/ (function(modules) { // webpackBootstrap
             if (a[prop].constructor === Object) {
               exports.deepExtend(a[prop], b[prop], false, allowDeletion);
             } else {
-              if ((b[prop] === undefined || b[prop] === null) && a[prop] !== undefined && allowDeletion === true) {
+              if (b[prop] === null && a[prop] !== undefined && allowDeletion === true) {
                 delete a[prop];
               } else {
                 a[prop] = b[prop];
@@ -419,7 +419,7 @@ return /******/ (function(modules) { // webpackBootstrap
             if (a[prop].constructor === Object) {
               exports.deepExtend(a[prop], b[prop]);
             } else {
-              if ((b[prop] === undefined || b[prop] === null) && a[prop] !== undefined && allowDeletion === true) {
+              if (b[prop] === null && a[prop] !== undefined && allowDeletion === true) {
                 delete a[prop];
               } else {
                 a[prop] = b[prop];
@@ -442,7 +442,7 @@ return /******/ (function(modules) { // webpackBootstrap
    * @param {Object} b
    * @param [Boolean] protoExtend --> optional parameter. If true, the prototype values will also be extended.
    *                                  (ie. the options objects that inherit from others will also get the inherited options)
-   * @param [Boolean] global      --> optional parameter. If true, the values of fields that are undefined or null will not deleted
+   * @param [Boolean] global      --> optional parameter. If true, the values of fields that are null will not deleted
    * @returns {Object}
    */
   exports.deepExtend = function (a, b, protoExtend, allowDeletion) {
@@ -455,7 +455,7 @@ return /******/ (function(modules) { // webpackBootstrap
           if (a[prop].constructor === Object) {
             exports.deepExtend(a[prop], b[prop], protoExtend);
           } else {
-            if ((b[prop] === undefined || b[prop] === null) && a[prop] !== undefined && allowDeletion === true) {
+            if (b[prop] === null && a[prop] !== undefined && allowDeletion === true) {
               delete a[prop];
             } else {
               a[prop] = b[prop];
@@ -1324,14 +1324,21 @@ return /******/ (function(modules) { // webpackBootstrap
    * @private
    */
   exports.mergeOptions = function (mergeTarget, options, option) {
-    if (options[option] !== undefined) {
-      if (typeof options[option] == 'boolean') {
-        mergeTarget[option].enabled = options[option];
-      } else {
-        mergeTarget[option].enabled = true;
-        for (var prop in options[option]) {
-          if (options[option].hasOwnProperty(prop)) {
-            mergeTarget[option][prop] = options[option][prop];
+    var allowDeletion = arguments[3] === undefined ? false : arguments[3];
+
+    if (options[option] === null) {
+      mergeTarget[option] = undefined;
+      delete mergeTarget[option];
+    } else {
+      if (options[option] !== undefined) {
+        if (typeof options[option] == 'boolean') {
+          mergeTarget[option].enabled = options[option];
+        } else {
+          mergeTarget[option].enabled = true;
+          for (var prop in options[option]) {
+            if (options[option].hasOwnProperty(prop)) {
+              mergeTarget[option][prop] = options[option][prop];
+            }
           }
         }
       }
@@ -1841,8 +1848,10 @@ return /******/ (function(modules) { // webpackBootstrap
     });
   };
 
-  // TODO: make this function deprecated (replaced with `on` since version 0.5)
-  DataSet.prototype.subscribe = DataSet.prototype.on;
+  // TODO: remove this deprecated function some day (replaced with `on` since version 0.5, deprecated since v4.0)
+  DataSet.prototype.subscribe = function () {
+    throw new Error('DataSet.subscribe is deprecated. Use DataSet.on instead.');
+  };
 
   /**
    * Unsubscribe from an event, remove an event listener
@@ -1858,8 +1867,10 @@ return /******/ (function(modules) { // webpackBootstrap
     }
   };
 
-  // TODO: make this function deprecated (replaced with `on` since version 0.5)
-  DataSet.prototype.unsubscribe = DataSet.prototype.off;
+  // TODO: remove this deprecated function some day (replaced with `on` since version 0.5, deprecated since v4.0)
+  DataSet.prototype.unsubscribe = function () {
+    throw new Error('DataSet.unsubscribe is deprecated. Use DataSet.off instead.');
+  };
 
   /**
    * Trigger an event
@@ -6318,7 +6329,7 @@ return /******/ (function(modules) { // webpackBootstrap
   var CustomTime = __webpack_require__(27);
   var ItemSet = __webpack_require__(32);
 
-  var ConfigurationSystem = __webpack_require__(45);
+  var Configurator = __webpack_require__(45);
   var Validator = __webpack_require__(46)['default'];
   var printStyle = __webpack_require__(46).printStyle;
   var allOptions = __webpack_require__(47).allOptions;
@@ -6426,7 +6437,7 @@ return /******/ (function(modules) { // webpackBootstrap
     };
 
     // setup configuration system
-    this.configurationSystem = new ConfigurationSystem(this, container, configureOptions);
+    this.configurator = new Configurator(this, container, configureOptions);
 
     // apply options
     if (options) {
@@ -6475,8 +6486,10 @@ return /******/ (function(modules) { // webpackBootstrap
         // force recreation of all items
         var itemsData = this.itemsData;
         if (itemsData) {
+          var selection = this.getSelection();
           this.setItems(null); // remove all
           this.setItems(itemsData); // add all
+          this.setSelection(selection); // restore selection
         }
       }
     }
@@ -6757,7 +6770,7 @@ return /******/ (function(modules) { // webpackBootstrap
   var CustomTime = __webpack_require__(27);
   var LineGraph = __webpack_require__(34);
 
-  var ConfigurationSystem = __webpack_require__(45);
+  var Configurator = __webpack_require__(45);
   var Validator = __webpack_require__(46)['default'];
   var printStyle = __webpack_require__(46).printStyle;
   var allOptions = __webpack_require__(48).allOptions;
@@ -6852,13 +6865,11 @@ return /******/ (function(modules) { // webpackBootstrap
       me.emit('contextmenu', me.getEventProperties(event));
     };
 
+    // setup configuration system
+    this.configurator = new Configurator(this, container, configureOptions);
+
     // apply options
     if (options) {
-      var errorFound = Validator.validate(options, allOptions);
-      if (errorFound === true) {
-        console.log('%cErrors have been found in the supplied options object.', printStyle);
-      }
-
       this.setOptions(options);
     }
 
@@ -6877,6 +6888,16 @@ return /******/ (function(modules) { // webpackBootstrap
 
   // Extend the functionality from Core
   Graph2d.prototype = new Core();
+
+  Graph2d.prototype.setOptions = function (options) {
+    // validate options
+    var errorFound = Validator.validate(options, allOptions);
+    if (errorFound === true) {
+      console.log('%cErrors have been found in the supplied options object.', printStyle);
+    }
+
+    Core.prototype.setOptions.call(this, options);
+  };
 
   /**
    * Set items
@@ -15652,9 +15673,9 @@ return /******/ (function(modules) { // webpackBootstrap
 
   var _modulesManipulationSystem2 = _interopRequireDefault(_modulesManipulationSystem);
 
-  var _sharedConfigurationSystem = __webpack_require__(45);
+  var _sharedConfigurator = __webpack_require__(45);
 
-  var _sharedConfigurationSystem2 = _interopRequireDefault(_sharedConfigurationSystem);
+  var _sharedConfigurator2 = _interopRequireDefault(_sharedConfigurator);
 
   var _sharedValidator = __webpack_require__(46);
 
@@ -15770,7 +15791,7 @@ return /******/ (function(modules) { // webpackBootstrap
     this.canvas._create();
 
     // setup configuration system
-    this.configurationSystem = new _sharedConfigurationSystem2['default'](this, this.body.container, _optionsJs.configureOptions, this.canvas.pixelRatio);
+    this.configurator = new _sharedConfigurator2['default'](this, this.body.container, _optionsJs.configureOptions, this.canvas.pixelRatio);
 
     // apply options
     this.setOptions(options);
@@ -15814,14 +15835,18 @@ return /******/ (function(modules) { // webpackBootstrap
       this.renderer.setOptions(options.interaction); // options for rendering are in interaction
       this.selectionHandler.setOptions(options.interaction); // options for selection are in interaction
 
+      // reload the settings of the nodes to apply changes in groups that are not referenced by pointer.
+      if (options.groups !== undefined) {
+        this.body.emitter.emit('refreshNodes');
+      }
       // these two do not have options at the moment, here for completeness
       //this.view.setOptions(options.view);
       //this.clustering.setOptions(options.clustering);
 
-      this.configurationSystem.setOptions(options.configure);
+      this.configurator.setOptions(options.configure);
 
       // if the configuration system is enabled, copy all options and put them into the config system
-      if (this.configurationSystem.options.enabled === true) {
+      if (this.configurator.options.enabled === true) {
         var networkOptions = { nodes: {}, edges: {}, layout: {}, interaction: {}, manipulation: {}, physics: {}, global: {} };
         util.deepExtend(networkOptions.nodes, this.nodesHandler.options);
         util.deepExtend(networkOptions.edges, this.edgesHandler.options);
@@ -15838,7 +15863,7 @@ return /******/ (function(modules) { // webpackBootstrap
         util.deepExtend(networkOptions.global, this.canvas.options);
         util.deepExtend(networkOptions.global, this.options);
 
-        this.configurationSystem.setModuleOptions(networkOptions);
+        this.configurator.setModuleOptions(networkOptions);
       }
 
       // handle network global options
@@ -15993,7 +16018,7 @@ return /******/ (function(modules) { // webpackBootstrap
     delete this.manipulation;
     delete this.nodesHandler;
     delete this.edgesHandler;
-    delete this.configurationSystem;
+    delete this.configurator;
     delete this.images;
 
     // delete emitter bindings
@@ -17853,16 +17878,15 @@ return /******/ (function(modules) { // webpackBootstrap
     });
 
     // enable/disable configure
-    if (this.configurationSystem) {
-      this.configurationSystem.setOptions(options.configure);
+    if (this.configurator) {
+      this.configurator.setOptions(options.configure);
 
       // collect the settings of all components, and pass them to the configuration system
       var appliedOptions = util.deepExtend({}, this.options);
       this.components.forEach(function (component) {
         util.deepExtend(appliedOptions, component.options);
       });
-      this.configurationSystem.setModuleOptions({ global: appliedOptions });
-      console.log(appliedOptions);
+      this.configurator.setModuleOptions({ global: appliedOptions });
     }
 
     // redraw everything
@@ -18551,9 +18575,9 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
 
-  var _networkModulesComponentsColorPicker = __webpack_require__(73);
+  var _ColorPicker = __webpack_require__(73);
 
-  var _networkModulesComponentsColorPicker2 = _interopRequireDefault(_networkModulesComponentsColorPicker);
+  var _ColorPicker2 = _interopRequireDefault(_ColorPicker);
 
   var util = __webpack_require__(1);
 
@@ -18572,11 +18596,11 @@ return /******/ (function(modules) { // webpackBootstrap
    * @param pixelRatio          | canvas pixel ratio
    */
 
-  var ConfigurationSystem = (function () {
-    function ConfigurationSystem(parentModule, defaultContainer, configureOptions) {
+  var Configurator = (function () {
+    function Configurator(parentModule, defaultContainer, configureOptions) {
       var pixelRatio = arguments[3] === undefined ? 1 : arguments[3];
 
-      _classCallCheck(this, ConfigurationSystem);
+      _classCallCheck(this, Configurator);
 
       this.parent = parentModule;
       this.changedOptions = [];
@@ -18594,11 +18618,11 @@ return /******/ (function(modules) { // webpackBootstrap
       this.configureOptions = configureOptions;
       this.moduleOptions = {};
       this.domElements = [];
-      this.colorPicker = new _networkModulesComponentsColorPicker2['default'](pixelRatio);
-      this.wrapper;
+      this.colorPicker = new _ColorPicker2['default'](pixelRatio);
+      this.wrapper = undefined;
     }
 
-    _createClass(ConfigurationSystem, [{
+    _createClass(Configurator, [{
       key: 'setOptions',
 
       /**
@@ -18652,7 +18676,6 @@ return /******/ (function(modules) { // webpackBootstrap
 
       /**
        * Create all DOM elements
-       * @param {Boolean | String} config
        * @private
        */
       value: function _create() {
@@ -18661,17 +18684,17 @@ return /******/ (function(modules) { // webpackBootstrap
         this._clean();
         this.changedOptions = [];
 
-        var config = this.options.filter;
+        var filter = this.options.filter;
         var counter = 0;
         var show = false;
         for (var option in this.configureOptions) {
           if (this.configureOptions.hasOwnProperty(option)) {
             this.allowCreation = false;
             show = false;
-            if (typeof config === 'function') {
-              show = config(option, []);
+            if (typeof filter === 'function') {
+              show = filter(option, []);
               show = show || this._handleObject(this.configureOptions[option], [option]);
-            } else if (config === true || config.indexOf(option) !== -1) {
+            } else if (filter === true || filter.indexOf(option) !== -1) {
               show = true;
             }
 
@@ -19052,13 +19075,15 @@ return /******/ (function(modules) { // webpackBootstrap
         var path = arguments[1] === undefined ? [] : arguments[1];
 
         var show = false;
-        var config = this.options.filter;
+        var filter = this.options.filter;
         var visibleInSet = false;
         for (var subObj in obj) {
           if (obj.hasOwnProperty(subObj)) {
             show = false;
-            if (typeof config === 'function') {
-              show = config(subObj, path);
+            if (typeof filter === 'function') {
+              show = filter(subObj, path);
+            } else if (filter === true) {
+              show = true;
             }
 
             if (show !== false) {
@@ -19186,10 +19211,10 @@ return /******/ (function(modules) { // webpackBootstrap
       }
     }]);
 
-    return ConfigurationSystem;
+    return Configurator;
   })();
 
-  exports['default'] = ConfigurationSystem;
+  exports['default'] = Configurator;
   module.exports = exports['default'];
 
 /***/ },
@@ -19537,9 +19562,9 @@ return /******/ (function(modules) { // webpackBootstrap
   var allOptions = {
     configure: {
       enabled: { boolean: boolean },
-      filter: { boolean: boolean, string: string, array: array },
+      filter: { boolean: boolean, fn: fn },
       container: { dom: dom },
-      __type__: { object: object, boolean: boolean, string: string, array: array }
+      __type__: { object: object, boolean: boolean, fn: fn }
     },
 
     //globals :
@@ -19754,9 +19779,9 @@ return /******/ (function(modules) { // webpackBootstrap
   var allOptions = {
     configure: {
       enabled: { boolean: boolean },
-      filter: { boolean: boolean, string: string, array: array },
+      filter: { boolean: boolean, fn: fn },
       container: { dom: dom },
-      __type__: { object: object, boolean: boolean, string: string, array: array }
+      __type__: { object: object, boolean: boolean, fn: fn }
     },
 
     //globals :
@@ -19912,7 +19937,7 @@ return /******/ (function(modules) { // webpackBootstrap
       drawPoints: {
         enabled: true,
         size: [6, 2, 30, 1],
-        style: 'square' // square, circle
+        style: ['square', 'circle'] // square, circle
       },
       dataAxis: {
         showMinorLabels: true,
@@ -19977,7 +20002,7 @@ return /******/ (function(modules) { // webpackBootstrap
       maxHeight: '',
       min: '',
       minHeight: '',
-      movable: true,
+      moveable: true,
       orientation: ['both', 'bottom', 'top'],
       showCurrentTime: false,
       showMajorLabels: true,
@@ -20835,11 +20860,11 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
 
-  var _componentsNode = __webpack_require__(74);
+  var _componentsNode = __webpack_require__(85);
 
   var _componentsNode2 = _interopRequireDefault(_componentsNode);
 
-  var _componentsSharedLabel = __webpack_require__(75);
+  var _componentsSharedLabel = __webpack_require__(91);
 
   var _componentsSharedLabel2 = _interopRequireDefault(_componentsSharedLabel);
 
@@ -20924,7 +20949,7 @@ return /******/ (function(modules) { // webpackBootstrap
             min: 14,
             max: 30,
             maxVisible: 30,
-            drawThreshold: 3
+            drawThreshold: 6
           },
           customScalingFunction: function customScalingFunction(min, max, total, value) {
             if (max === min) {
@@ -21108,7 +21133,7 @@ return /******/ (function(modules) { // webpackBootstrap
           var data = changedData[i];
           if (node !== undefined) {
             // update node
-            node.setOptions(data, this.constants);
+            node.setOptions(data);
           } else {
             dataChanged = true;
             // create node
@@ -21308,11 +21333,11 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
 
-  var _componentsEdge = __webpack_require__(76);
+  var _componentsEdge = __webpack_require__(86);
 
   var _componentsEdge2 = _interopRequireDefault(_componentsEdge);
 
-  var _componentsSharedLabel = __webpack_require__(75);
+  var _componentsSharedLabel = __webpack_require__(91);
 
   var _componentsSharedLabel2 = _interopRequireDefault(_componentsSharedLabel);
 
@@ -21382,7 +21407,7 @@ return /******/ (function(modules) { // webpackBootstrap
             min: 14,
             max: 30,
             maxVisible: 30,
-            drawThreshold: 3
+            drawThreshold: 6
           },
           customScalingFunction: function customScalingFunction(min, max, total, value) {
             if (max === min) {
@@ -21727,35 +21752,35 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
 
-  var _componentsPhysicsBarnesHutSolver = __webpack_require__(77);
+  var _componentsPhysicsBarnesHutSolver = __webpack_require__(74);
 
   var _componentsPhysicsBarnesHutSolver2 = _interopRequireDefault(_componentsPhysicsBarnesHutSolver);
 
-  var _componentsPhysicsRepulsionSolver = __webpack_require__(78);
+  var _componentsPhysicsRepulsionSolver = __webpack_require__(75);
 
   var _componentsPhysicsRepulsionSolver2 = _interopRequireDefault(_componentsPhysicsRepulsionSolver);
 
-  var _componentsPhysicsHierarchicalRepulsionSolver = __webpack_require__(79);
+  var _componentsPhysicsHierarchicalRepulsionSolver = __webpack_require__(76);
 
   var _componentsPhysicsHierarchicalRepulsionSolver2 = _interopRequireDefault(_componentsPhysicsHierarchicalRepulsionSolver);
 
-  var _componentsPhysicsSpringSolver = __webpack_require__(80);
+  var _componentsPhysicsSpringSolver = __webpack_require__(77);
 
   var _componentsPhysicsSpringSolver2 = _interopRequireDefault(_componentsPhysicsSpringSolver);
 
-  var _componentsPhysicsHierarchicalSpringSolver = __webpack_require__(81);
+  var _componentsPhysicsHierarchicalSpringSolver = __webpack_require__(78);
 
   var _componentsPhysicsHierarchicalSpringSolver2 = _interopRequireDefault(_componentsPhysicsHierarchicalSpringSolver);
 
-  var _componentsPhysicsCentralGravitySolver = __webpack_require__(82);
+  var _componentsPhysicsCentralGravitySolver = __webpack_require__(79);
 
   var _componentsPhysicsCentralGravitySolver2 = _interopRequireDefault(_componentsPhysicsCentralGravitySolver);
 
-  var _componentsPhysicsFA2BasedRepulsionSolver = __webpack_require__(83);
+  var _componentsPhysicsFA2BasedRepulsionSolver = __webpack_require__(80);
 
   var _componentsPhysicsFA2BasedRepulsionSolver2 = _interopRequireDefault(_componentsPhysicsFA2BasedRepulsionSolver);
 
-  var _componentsPhysicsFA2BasedCentralGravitySolver = __webpack_require__(84);
+  var _componentsPhysicsFA2BasedCentralGravitySolver = __webpack_require__(81);
 
   var _componentsPhysicsFA2BasedCentralGravitySolver2 = _interopRequireDefault(_componentsPhysicsFA2BasedCentralGravitySolver);
 
@@ -22343,7 +22368,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
-  var _componentsNodesCluster = __webpack_require__(85);
+  var _componentsNodesCluster = __webpack_require__(82);
 
   var _componentsNodesCluster2 = _interopRequireDefault(_componentsNodesCluster);
 
@@ -24143,11 +24168,11 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
 
-  var _componentsNavigationHandler = __webpack_require__(86);
+  var _componentsNavigationHandler = __webpack_require__(83);
 
   var _componentsNavigationHandler2 = _interopRequireDefault(_componentsNavigationHandler);
 
-  var _componentsPopup = __webpack_require__(87);
+  var _componentsPopup = __webpack_require__(84);
 
   var _componentsPopup2 = _interopRequireDefault(_componentsPopup);
 
@@ -24847,8 +24872,8 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
-  var Node = __webpack_require__(74);
-  var Edge = __webpack_require__(76);
+  var Node = __webpack_require__(85);
+  var Edge = __webpack_require__(86);
   var util = __webpack_require__(1);
 
   var SelectionHandler = (function () {
@@ -27486,7 +27511,6 @@ return /******/ (function(modules) { // webpackBootstrap
         springConstant: { number: number },
         nodeDistance: { number: number },
         damping: { number: number },
-        avoidOverlap: { number: number },
         __type__: { object: object }
       },
       hierarchicalRepulsion: {
@@ -27693,8 +27717,7 @@ return /******/ (function(modules) { // webpackBootstrap
         springLength: [200, 0, 500, 5],
         springConstant: [0.05, 0, 5, 0.005],
         nodeDistance: [100, 0, 500, 5],
-        damping: [0.09, 0, 1, 0.01],
-        avoidOverlap: [0, 0, 1, 0.01]
+        damping: [0.09, 0, 1, 0.01]
       },
       hierarchicalRepulsion: {
         centralGravity: [0.2, 0, 10, 0.05],
@@ -28006,7 +28029,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   'use strict';
 
-  var keycharm = __webpack_require__(88);
+  var keycharm = __webpack_require__(87);
   var Emitter = __webpack_require__(43);
   var Hammer = __webpack_require__(41);
   var util = __webpack_require__(1);
@@ -31284,7 +31307,7 @@ return /******/ (function(modules) { // webpackBootstrap
       return _moment;
 
   }));
-  /* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(90)(module)))
+  /* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(89)(module)))
 
 /***/ },
 /* 71 */
@@ -33970,7 +33993,7 @@ return /******/ (function(modules) { // webpackBootstrap
       prefixed: prefixed
   });
 
-  if ("function" == TYPE_FUNCTION && __webpack_require__(91)) {
+  if ("function" == TYPE_FUNCTION && __webpack_require__(90)) {
       !(__WEBPACK_AMD_DEFINE_RESULT__ = function() {
           return Hammer;
       }.call(exports, __webpack_require__, exports, module), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__));
@@ -34567,1383 +34590,6 @@ return /******/ (function(modules) { // webpackBootstrap
 /* 74 */
 /***/ function(module, exports, __webpack_require__) {
 
-  'use strict';
-
-  Object.defineProperty(exports, '__esModule', {
-    value: true
-  });
-
-  var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
-
-  function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
-
-  function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
-
-  var _sharedLabel = __webpack_require__(75);
-
-  var _sharedLabel2 = _interopRequireDefault(_sharedLabel);
-
-  var _nodesShapesBox = __webpack_require__(92);
-
-  var _nodesShapesBox2 = _interopRequireDefault(_nodesShapesBox);
-
-  var _nodesShapesCircle = __webpack_require__(93);
-
-  var _nodesShapesCircle2 = _interopRequireDefault(_nodesShapesCircle);
-
-  var _nodesShapesCircularImage = __webpack_require__(94);
-
-  var _nodesShapesCircularImage2 = _interopRequireDefault(_nodesShapesCircularImage);
-
-  var _nodesShapesDatabase = __webpack_require__(95);
-
-  var _nodesShapesDatabase2 = _interopRequireDefault(_nodesShapesDatabase);
-
-  var _nodesShapesDiamond = __webpack_require__(96);
-
-  var _nodesShapesDiamond2 = _interopRequireDefault(_nodesShapesDiamond);
-
-  var _nodesShapesDot = __webpack_require__(97);
-
-  var _nodesShapesDot2 = _interopRequireDefault(_nodesShapesDot);
-
-  var _nodesShapesEllipse = __webpack_require__(98);
-
-  var _nodesShapesEllipse2 = _interopRequireDefault(_nodesShapesEllipse);
-
-  var _nodesShapesIcon = __webpack_require__(99);
-
-  var _nodesShapesIcon2 = _interopRequireDefault(_nodesShapesIcon);
-
-  var _nodesShapesImage = __webpack_require__(100);
-
-  var _nodesShapesImage2 = _interopRequireDefault(_nodesShapesImage);
-
-  var _nodesShapesSquare = __webpack_require__(101);
-
-  var _nodesShapesSquare2 = _interopRequireDefault(_nodesShapesSquare);
-
-  var _nodesShapesStar = __webpack_require__(102);
-
-  var _nodesShapesStar2 = _interopRequireDefault(_nodesShapesStar);
-
-  var _nodesShapesText = __webpack_require__(103);
-
-  var _nodesShapesText2 = _interopRequireDefault(_nodesShapesText);
-
-  var _nodesShapesTriangle = __webpack_require__(104);
-
-  var _nodesShapesTriangle2 = _interopRequireDefault(_nodesShapesTriangle);
-
-  var _nodesShapesTriangleDown = __webpack_require__(105);
-
-  var _nodesShapesTriangleDown2 = _interopRequireDefault(_nodesShapesTriangleDown);
-
-  var _sharedValidator = __webpack_require__(46);
-
-  var _sharedValidator2 = _interopRequireDefault(_sharedValidator);
-
-  var util = __webpack_require__(1);
-
-  /**
-   * @class Node
-   * A node. A node can be connected to other nodes via one or multiple edges.
-   * @param {object} options An object containing options for the node. All
-   *                            options are optional, except for the id.
-   *                              {number} id     Id of the node. Required
-   *                              {string} label  Text label for the node
-   *                              {number} x      Horizontal position of the node
-   *                              {number} y      Vertical position of the node
-   *                              {string} shape  Node shape, available:
-   *                                              "database", "circle", "ellipse",
-   *                                              "box", "image", "text", "dot",
-   *                                              "star", "triangle", "triangleDown",
-   *                                              "square", "icon"
-   *                              {string} image  An image url
-   *                              {string} title  An title text, can be HTML
-   *                              {anytype} group A group name or number
-   * @param {Network.Images} imagelist    A list with images. Only needed
-   *                                            when the node has an image
-   * @param {Network.Groups} grouplist    A list with groups. Needed for
-   *                                            retrieving group options
-   * @param {Object}               constants    An object with default values for
-   *                                            example for the color
-   *
-   */
-
-  var Node = (function () {
-    function Node(options, body, imagelist, grouplist, globalOptions) {
-      _classCallCheck(this, Node);
-
-      this.options = util.bridgeObject(globalOptions);
-      this.body = body;
-
-      this.edges = []; // all edges connected to this node
-
-      // set defaults for the options
-      this.id = undefined;
-      this.imagelist = imagelist;
-      this.grouplist = grouplist;
-
-      // state options
-      this.x = undefined;
-      this.y = undefined;
-      this.baseSize = this.options.size;
-      this.baseFontSize = this.options.font.size;
-      this.predefinedPosition = false; // used to check if initial fit should just take the range or approximate
-      this.selected = false;
-      this.hover = false;
-
-      this.labelModule = new _sharedLabel2['default'](this.body, this.options);
-      this.setOptions(options);
-    }
-
-    _createClass(Node, [{
-      key: 'attachEdge',
-
-      /**
-       * Attach a edge to the node
-       * @param {Edge} edge
-       */
-      value: function attachEdge(edge) {
-        if (this.edges.indexOf(edge) === -1) {
-          this.edges.push(edge);
-        }
-      }
-    }, {
-      key: 'detachEdge',
-
-      /**
-       * Detach a edge from the node
-       * @param {Edge} edge
-       */
-      value: function detachEdge(edge) {
-        var index = this.edges.indexOf(edge);
-        if (index != -1) {
-          this.edges.splice(index, 1);
-        }
-      }
-    }, {
-      key: 'togglePhysics',
-
-      /**
-       * Enable or disable the physics.
-       * @param status
-       */
-      value: function togglePhysics(status) {
-        this.options.physics = status;
-      }
-    }, {
-      key: 'setOptions',
-
-      /**
-       * Set or overwrite options for the node
-       * @param {Object} options an object with options
-       * @param {Object} constants  and object with default, global options
-       */
-      value: function setOptions(options) {
-        if (!options) {
-          return;
-        }
-
-        // basic options
-        if (options.id !== undefined) {
-          this.id = options.id;
-        }
-
-        if (this.id === undefined) {
-          throw 'Node must have an id';
-        }
-
-        if (options.x !== undefined) {
-          this.x = parseInt(options.x);this.predefinedPosition = true;
-        }
-        if (options.y !== undefined) {
-          this.y = parseInt(options.y);this.predefinedPosition = true;
-        }
-        if (options.size !== undefined) {
-          this.baseSize = options.size;
-        }
-        if (options.value !== undefined) {
-          options.value = parseInt(options.value);
-        }
-
-        // this transforms all shorthands into fully defined options
-        Node.parseOptions(this.options, options, true);
-
-        // copy group options
-        if (typeof options.group === 'number' || typeof options.group === 'string' && options.group != '') {
-          var groupObj = this.grouplist.get(options.group);
-          util.deepExtend(this.options, groupObj);
-          // the color object needs to be completely defined. Since groups can partially overwrite the colors, we parse it again, just in case.
-          this.options.color = util.parseColor(this.options.color);
-        }
-
-        // load the images
-        if (this.options.image !== undefined && this.options.image != '') {
-          if (this.imagelist) {
-            this.imageObj = this.imagelist.load(this.options.image, this.options.brokenImage);
-          } else {
-            throw 'No imagelist provided';
-          }
-        }
-
-        this.updateShape();
-        this.updateLabelModule();
-
-        // reset the size of the node, this can be changed
-        this._reset();
-      }
-    }, {
-      key: 'updateLabelModule',
-      value: function updateLabelModule() {
-        if (this.options.label === undefined || this.options.label === null) {
-          this.options.label = '';
-        }
-        this.labelModule.setOptions(this.options, true);
-        if (this.labelModule.baseSize !== undefined) {
-          this.baseFontSize = this.labelModule.baseSize;
-        }
-      }
-    }, {
-      key: 'updateShape',
-      value: function updateShape() {
-        // choose draw method depending on the shape
-        switch (this.options.shape) {
-          case 'box':
-            this.shape = new _nodesShapesBox2['default'](this.options, this.body, this.labelModule);
-            break;
-          case 'circle':
-            this.shape = new _nodesShapesCircle2['default'](this.options, this.body, this.labelModule);
-            break;
-          case 'circularImage':
-            this.shape = new _nodesShapesCircularImage2['default'](this.options, this.body, this.labelModule, this.imageObj);
-            break;
-          case 'database':
-            this.shape = new _nodesShapesDatabase2['default'](this.options, this.body, this.labelModule);
-            break;
-          case 'diamond':
-            this.shape = new _nodesShapesDiamond2['default'](this.options, this.body, this.labelModule);
-            break;
-          case 'dot':
-            this.shape = new _nodesShapesDot2['default'](this.options, this.body, this.labelModule);
-            break;
-          case 'ellipse':
-            this.shape = new _nodesShapesEllipse2['default'](this.options, this.body, this.labelModule);
-            break;
-          case 'icon':
-            this.shape = new _nodesShapesIcon2['default'](this.options, this.body, this.labelModule);
-            break;
-          case 'image':
-            this.shape = new _nodesShapesImage2['default'](this.options, this.body, this.labelModule, this.imageObj);
-            break;
-          case 'square':
-            this.shape = new _nodesShapesSquare2['default'](this.options, this.body, this.labelModule);
-            break;
-          case 'star':
-            this.shape = new _nodesShapesStar2['default'](this.options, this.body, this.labelModule);
-            break;
-          case 'text':
-            this.shape = new _nodesShapesText2['default'](this.options, this.body, this.labelModule);
-            break;
-          case 'triangle':
-            this.shape = new _nodesShapesTriangle2['default'](this.options, this.body, this.labelModule);
-            break;
-          case 'triangleDown':
-            this.shape = new _nodesShapesTriangleDown2['default'](this.options, this.body, this.labelModule);
-            break;
-          default:
-            this.shape = new _nodesShapesEllipse2['default'](this.options, this.body, this.labelModule);
-            break;
-        }
-        this._reset();
-      }
-    }, {
-      key: 'select',
-
-      /**
-       * select this node
-       */
-      value: function select() {
-        this.selected = true;
-        this._reset();
-      }
-    }, {
-      key: 'unselect',
-
-      /**
-       * unselect this node
-       */
-      value: function unselect() {
-        this.selected = false;
-        this._reset();
-      }
-    }, {
-      key: '_reset',
-
-      /**
-       * Reset the calculated size of the node, forces it to recalculate its size
-       * @private
-       */
-      value: function _reset() {
-        this.shape.width = undefined;
-        this.shape.height = undefined;
-      }
-    }, {
-      key: 'getTitle',
-
-      /**
-       * get the title of this node.
-       * @return {string} title    The title of the node, or undefined when no title
-       *                           has been set.
-       */
-      value: function getTitle() {
-        return this.options.title;
-      }
-    }, {
-      key: 'distanceToBorder',
-
-      /**
-       * Calculate the distance to the border of the Node
-       * @param {CanvasRenderingContext2D}   ctx
-       * @param {Number} angle        Angle in radians
-       * @returns {number} distance   Distance to the border in pixels
-       */
-      value: function distanceToBorder(ctx, angle) {
-        return this.shape.distanceToBorder(ctx, angle);
-      }
-    }, {
-      key: 'isFixed',
-
-      /**
-       * Check if this node has a fixed x and y position
-       * @return {boolean}      true if fixed, false if not
-       */
-      value: function isFixed() {
-        return this.options.fixed.x && this.options.fixed.y;
-      }
-    }, {
-      key: 'isSelected',
-
-      /**
-       * check if this node is selecte
-       * @return {boolean} selected   True if node is selected, else false
-       */
-      value: function isSelected() {
-        return this.selected;
-      }
-    }, {
-      key: 'getValue',
-
-      /**
-       * Retrieve the value of the node. Can be undefined
-       * @return {Number} value
-       */
-      value: function getValue() {
-        return this.options.value;
-      }
-    }, {
-      key: 'setValueRange',
-
-      /**
-       * Adjust the value range of the node. The node will adjust it's size
-       * based on its value.
-       * @param {Number} min
-       * @param {Number} max
-       */
-      value: function setValueRange(min, max, total) {
-        if (this.options.value !== undefined) {
-          var scale = this.options.scaling.customScalingFunction(min, max, total, this.options.value);
-          var sizeDiff = this.options.scaling.max - this.options.scaling.min;
-          if (this.options.scaling.label.enabled === true) {
-            var fontDiff = this.options.scaling.label.max - this.options.scaling.label.min;
-            this.options.font.size = this.options.scaling.label.min + scale * fontDiff;
-          }
-          this.options.size = this.options.scaling.min + scale * sizeDiff;
-        } else {
-          this.options.size = this.baseSize;
-          this.options.font.size = this.baseFontSize;
-        }
-      }
-    }, {
-      key: 'draw',
-
-      /**
-       * Draw this node in the given canvas
-       * The 2d context of a HTML canvas can be retrieved by canvas.getContext("2d");
-       * @param {CanvasRenderingContext2D}   ctx
-       */
-      value: function draw(ctx) {
-        this.shape.draw(ctx, this.x, this.y, this.selected, this.hover);
-      }
-    }, {
-      key: 'updateBoundingBox',
-
-      /**
-       * Update the bounding box of the shape
-       */
-      value: function updateBoundingBox() {
-        this.shape.updateBoundingBox(this.x, this.y);
-      }
-    }, {
-      key: 'resize',
-
-      /**
-       * Recalculate the size of this node in the given canvas
-       * The 2d context of a HTML canvas can be retrieved by canvas.getContext("2d");
-       * @param {CanvasRenderingContext2D}   ctx
-       */
-      value: function resize(ctx) {
-        this.shape.resize(ctx);
-      }
-    }, {
-      key: 'isOverlappingWith',
-
-      /**
-       * Check if this object is overlapping with the provided object
-       * @param {Object} obj   an object with parameters left, top, right, bottom
-       * @return {boolean}     True if location is located on node
-       */
-      value: function isOverlappingWith(obj) {
-        return this.shape.left < obj.right && this.shape.left + this.shape.width > obj.left && this.shape.top < obj.bottom && this.shape.top + this.shape.height > obj.top;
-      }
-    }, {
-      key: 'isBoundingBoxOverlappingWith',
-
-      /**
-       * Check if this object is overlapping with the provided object
-       * @param {Object} obj   an object with parameters left, top, right, bottom
-       * @return {boolean}     True if location is located on node
-       */
-      value: function isBoundingBoxOverlappingWith(obj) {
-        return this.shape.boundingBox.left < obj.right && this.shape.boundingBox.right > obj.left && this.shape.boundingBox.top < obj.bottom && this.shape.boundingBox.bottom > obj.top;
-      }
-    }], [{
-      key: 'parseOptions',
-
-      /**
-       * This process all possible shorthands in the new options and makes sure that the parentOptions are fully defined.
-       * Static so it can also be used by the handler.
-       * @param parentOptions
-       * @param newOptions
-       */
-      value: function parseOptions(parentOptions, newOptions) {
-        var allowDeletion = arguments[2] === undefined ? false : arguments[2];
-
-        var fields = ['color', 'font', 'fixed', 'shadow'];
-        util.selectiveNotDeepExtend(fields, parentOptions, newOptions);
-
-        // merge the shadow options into the parent.
-        util.mergeOptions(parentOptions, newOptions, 'shadow');
-
-        // individual shape newOptions
-        if (newOptions.color !== undefined && newOptions.color !== null) {
-          var parsedColor = util.parseColor(newOptions.color);
-          util.fillIfDefined(parentOptions.color, parsedColor);
-        } else if (allowDeletion === true) {
-          parentOptions.color = undefined;
-          delete parentOptions.color;
-        }
-
-        if (newOptions.fixed !== undefined && newOptions.fixed !== null) {
-          if (typeof newOptions.fixed === 'boolean') {
-            parentOptions.fixed.x = newOptions.fixed;
-            parentOptions.fixed.y = newOptions.fixed;
-          } else {
-            if (newOptions.fixed.x !== undefined && typeof newOptions.fixed.x === 'boolean') {
-              parentOptions.fixed.x = newOptions.fixed.x;
-            }
-            if (newOptions.fixed.y !== undefined && typeof newOptions.fixed.y === 'boolean') {
-              parentOptions.fixed.y = newOptions.fixed.y;
-            }
-          }
-        }
-
-        if (newOptions.font !== undefined) {
-          _sharedLabel2['default'].parseOptions(parentOptions.font, newOptions);
-        }
-
-        if (newOptions.scaling !== undefined) {
-          util.mergeOptions(parentOptions.scaling, newOptions.scaling, 'label');
-        }
-      }
-    }]);
-
-    return Node;
-  })();
-
-  exports['default'] = Node;
-  module.exports = exports['default'];
-
-/***/ },
-/* 75 */
-/***/ function(module, exports, __webpack_require__) {
-
-  'use strict';
-
-  Object.defineProperty(exports, '__esModule', {
-    value: true
-  });
-
-  var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
-
-  function _slicedToArray(arr, i) { if (Array.isArray(arr)) { return arr; } else if (Symbol.iterator in Object(arr)) { var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i['return']) _i['return'](); } finally { if (_d) throw _e; } } return _arr; } else { throw new TypeError('Invalid attempt to destructure non-iterable instance'); } }
-
-  function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
-
-  var util = __webpack_require__(1);
-
-  var Label = (function () {
-    function Label(body, options) {
-      _classCallCheck(this, Label);
-
-      this.body = body;
-
-      this.baseSize = undefined;
-      this.setOptions(options);
-      this.size = { top: 0, left: 0, width: 0, height: 0, yLine: 0 }; // could be cached
-    }
-
-    _createClass(Label, [{
-      key: 'setOptions',
-      value: function setOptions(options) {
-        var allowDeletion = arguments[1] === undefined ? false : arguments[1];
-
-        this.options = options;
-
-        if (options.label !== undefined) {
-          this.labelDirty = true;
-        }
-
-        if (options.font !== undefined) {
-          Label.parseOptions(this.options.font, options, allowDeletion);
-          if (typeof options.font === 'string') {
-            this.baseSize = this.options.font.size;
-          } else if (typeof options.font === 'object') {
-            if (options.font.size !== undefined) {
-              this.baseSize = options.font.size;
-            }
-          }
-        }
-      }
-    }, {
-      key: 'draw',
-
-      /**
-       * Main function. This is called from anything that wants to draw a label.
-       * @param ctx
-       * @param x
-       * @param y
-       * @param selected
-       * @param baseline
-       */
-      value: function draw(ctx, x, y, selected) {
-        var baseline = arguments[4] === undefined ? 'middle' : arguments[4];
-
-        // if no label, return
-        if (this.options.label === undefined) return;
-
-        // check if we have to render the label
-        var viewFontSize = this.options.font.size * this.body.view.scale;
-        if (this.options.label && viewFontSize < this.options.scaling.label.drawThreshold - 1) return;
-
-        // update the size cache if required
-        this.calculateLabelSize(ctx, selected, x, y, baseline);
-
-        // create the fontfill background
-        this._drawBackground(ctx);
-        // draw text
-        this._drawText(ctx, selected, x, y, baseline);
-      }
-    }, {
-      key: '_drawBackground',
-
-      /**
-       * Draws the label background
-       * @param {CanvasRenderingContext2D} ctx
-       * @private
-       */
-      value: function _drawBackground(ctx) {
-        if (this.options.font.background !== undefined && this.options.font.background !== 'none') {
-          ctx.fillStyle = this.options.font.background;
-
-          var lineMargin = 2;
-
-          switch (this.options.font.align) {
-            case 'middle':
-              ctx.fillRect(-this.size.width * 0.5, -this.size.height * 0.5, this.size.width, this.size.height);
-              break;
-            case 'top':
-              ctx.fillRect(-this.size.width * 0.5, -(this.size.height + lineMargin), this.size.width, this.size.height);
-              break;
-            case 'bottom':
-              ctx.fillRect(-this.size.width * 0.5, lineMargin, this.size.width, this.size.height);
-              break;
-            default:
-              ctx.fillRect(this.size.left, this.size.top - 0.5 * lineMargin, this.size.width, this.size.height);
-              break;
-          }
-        }
-      }
-    }, {
-      key: '_drawText',
-
-      /**
-       *
-       * @param ctx
-       * @param x
-       * @param baseline
-       * @private
-       */
-      value: function _drawText(ctx, selected, x, y) {
-        var baseline = arguments[4] === undefined ? 'middle' : arguments[4];
-
-        var fontSize = this.options.font.size;
-        var viewFontSize = fontSize * this.body.view.scale;
-        // this ensures that there will not be HUGE letters on screen by setting an upper limit on the visible text size (regardless of zoomLevel)
-        if (viewFontSize >= this.options.scaling.label.maxVisible) {
-          fontSize = Number(this.options.scaling.label.maxVisible) / this.body.view.scale;
-        }
-
-        var yLine = this.size.yLine;
-
-        var _getColor = this._getColor(viewFontSize);
-
-        var _getColor2 = _slicedToArray(_getColor, 2);
-
-        var fontColor = _getColor2[0];
-        var strokeColor = _getColor2[1];
-
-        var _setAlignment = this._setAlignment(ctx, x, yLine, baseline);
-
-        var _setAlignment2 = _slicedToArray(_setAlignment, 2);
-
-        x = _setAlignment2[0];
-        yLine = _setAlignment2[1];
-
-        // configure context for drawing the text
-        ctx.font = (selected ? 'bold ' : '') + fontSize + 'px ' + this.options.font.face;
-        ctx.fillStyle = fontColor;
-        ctx.textAlign = 'center';
-
-        // set the strokeWidth
-        if (this.options.font.strokeWidth > 0) {
-          ctx.lineWidth = this.options.font.strokeWidth;
-          ctx.strokeStyle = strokeColor;
-          ctx.lineJoin = 'round';
-        }
-
-        // draw the text
-        for (var i = 0; i < this.lineCount; i++) {
-          if (this.options.font.strokeWidth > 0) {
-            ctx.strokeText(this.lines[i], x, yLine);
-          }
-          ctx.fillText(this.lines[i], x, yLine);
-          yLine += fontSize;
-        }
-      }
-    }, {
-      key: '_setAlignment',
-      value: function _setAlignment(ctx, x, yLine, baseline) {
-        // check for label alignment (for edges)
-        // TODO: make alignment for nodes
-        if (this.options.font.align !== 'horizontal') {
-          x = 0;
-          yLine = 0;
-
-          var lineMargin = 2;
-          if (this.options.font.align === 'top') {
-            ctx.textBaseline = 'alphabetic';
-            yLine -= 2 * lineMargin; // distance from edge, required because we use alphabetic. Alphabetic has less difference between browsers
-          } else if (this.options.font.align === 'bottom') {
-            ctx.textBaseline = 'hanging';
-            yLine += 2 * lineMargin; // distance from edge, required because we use hanging. Hanging has less difference between browsers
-          } else {
-            ctx.textBaseline = 'middle';
-          }
-        } else {
-          ctx.textBaseline = baseline;
-        }
-
-        return [x, yLine];
-      }
-    }, {
-      key: '_getColor',
-
-      /**
-       * fade in when relative scale is between threshold and threshold - 1.
-       * If the relative scale would be smaller than threshold -1 the draw function would have returned before coming here.
-       *
-       * @param viewFontSize
-       * @returns {*[]}
-       * @private
-       */
-      value: function _getColor(viewFontSize) {
-        var fontColor = this.options.font.color || '#000000';
-        var strokeColor = this.options.font.strokeColor || '#ffffff';
-        if (viewFontSize <= this.options.scaling.label.drawThreshold) {
-          var opacity = Math.max(0, Math.min(1, 1 - (this.options.scaling.label.drawThreshold - viewFontSize)));
-          fontColor = util.overrideOpacity(fontColor, opacity);
-          strokeColor = util.overrideOpacity(strokeColor, opacity);
-        }
-        return [fontColor, strokeColor];
-      }
-    }, {
-      key: 'getTextSize',
-
-      /**
-       *
-       * @param ctx
-       * @param selected
-       * @returns {{width: number, height: number}}
-       */
-      value: function getTextSize(ctx) {
-        var selected = arguments[1] === undefined ? false : arguments[1];
-
-        var size = {
-          width: this._processLabel(ctx, selected),
-          height: this.options.font.size * this.lineCount,
-          lineCount: this.lineCount
-        };
-        return size;
-      }
-    }, {
-      key: 'calculateLabelSize',
-
-      /**
-       *
-       * @param ctx
-       * @param selected
-       * @param x
-       * @param y
-       * @param baseline
-       */
-      value: function calculateLabelSize(ctx, selected) {
-        var x = arguments[2] === undefined ? 0 : arguments[2];
-        var y = arguments[3] === undefined ? 0 : arguments[3];
-        var baseline = arguments[4] === undefined ? 'middle' : arguments[4];
-
-        if (this.labelDirty === true) {
-          this.size.width = this._processLabel(ctx, selected);
-        }
-        this.size.height = this.options.font.size * this.lineCount;
-        this.size.left = x - this.size.width * 0.5;
-        this.size.top = y - this.size.height * 0.5;
-        this.size.yLine = y + (1 - this.lineCount) * 0.5 * this.options.font.size;
-        if (baseline === 'hanging') {
-          this.size.top += 0.5 * this.options.font.size;
-          this.size.top += 4; // distance from node, required because we use hanging. Hanging has less difference between browsers
-          this.size.yLine += 4; // distance from node
-        }
-
-        this.labelDirty = false;
-      }
-    }, {
-      key: '_processLabel',
-
-      /**
-       * This calculates the width as well as explodes the label string and calculates the amount of lines.
-       * @param ctx
-       * @param selected
-       * @returns {number}
-       * @private
-       */
-      value: function _processLabel(ctx, selected) {
-        var width = 0;
-        var lines = [''];
-        var lineCount = 0;
-        if (this.options.label !== undefined) {
-          lines = String(this.options.label).split('\n');
-          lineCount = lines.length;
-          ctx.font = (selected ? 'bold ' : '') + this.options.font.size + 'px ' + this.options.font.face;
-          width = ctx.measureText(lines[0]).width;
-          for (var i = 1; i < lineCount; i++) {
-            var lineWidth = ctx.measureText(lines[i]).width;
-            width = lineWidth > width ? lineWidth : width;
-          }
-        }
-        this.lines = lines;
-        this.lineCount = lineCount;
-
-        return width;
-      }
-    }], [{
-      key: 'parseOptions',
-      value: function parseOptions(parentOptions, newOptions) {
-        var allowDeletion = arguments[2] === undefined ? false : arguments[2];
-
-        if (typeof newOptions.font === 'string') {
-          var newOptionsArray = newOptions.font.split(' ');
-          parentOptions.size = newOptionsArray[0].replace('px', '');
-          parentOptions.face = newOptionsArray[1];
-          parentOptions.color = newOptionsArray[2];
-        } else if (typeof newOptions.font === 'object') {
-          util.fillIfDefined(parentOptions, newOptions.font, allowDeletion);
-        }
-        parentOptions.size = Number(parentOptions.size);
-      }
-    }]);
-
-    return Label;
-  })();
-
-  exports['default'] = Label;
-  module.exports = exports['default'];
-
-/***/ },
-/* 76 */
-/***/ function(module, exports, __webpack_require__) {
-
-  'use strict';
-
-  Object.defineProperty(exports, '__esModule', {
-    value: true
-  });
-
-  var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
-
-  function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
-
-  function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
-
-  var _sharedLabel = __webpack_require__(75);
-
-  var _sharedLabel2 = _interopRequireDefault(_sharedLabel);
-
-  var _edgesBezierEdgeDynamic = __webpack_require__(106);
-
-  var _edgesBezierEdgeDynamic2 = _interopRequireDefault(_edgesBezierEdgeDynamic);
-
-  var _edgesBezierEdgeStatic = __webpack_require__(107);
-
-  var _edgesBezierEdgeStatic2 = _interopRequireDefault(_edgesBezierEdgeStatic);
-
-  var _edgesStraightEdge = __webpack_require__(108);
-
-  var _edgesStraightEdge2 = _interopRequireDefault(_edgesStraightEdge);
-
-  var util = __webpack_require__(1);
-
-  /**
-   * @class Edge
-   *
-   * A edge connects two nodes
-   * @param {Object} properties     Object with options. Must contain
-   *                                At least options from and to.
-   *                                Available options: from (number),
-   *                                to (number), label (string, color (string),
-   *                                width (number), style (string),
-   *                                length (number), title (string)
-   * @param {Network} network       A Network object, used to find and edge to
-   *                                nodes.
-   * @param {Object} constants      An object with default values for
-   *                                example for the color
-   */
-
-  var Edge = (function () {
-    function Edge(options, body, globalOptions) {
-      _classCallCheck(this, Edge);
-
-      if (body === undefined) {
-        throw 'No body provided';
-      }
-      this.options = util.bridgeObject(globalOptions);
-      this.body = body;
-
-      // initialize variables
-      this.id = undefined;
-      this.fromId = undefined;
-      this.toId = undefined;
-      this.selected = false;
-      this.hover = false;
-      this.labelDirty = true;
-      this.colorDirty = true;
-
-      this.baseWidth = this.options.width;
-      this.baseFontSize = this.options.font.size;
-
-      this.from = undefined; // a node
-      this.to = undefined; // a node
-
-      this.edgeType = undefined;
-
-      this.connected = false;
-
-      this.labelModule = new _sharedLabel2['default'](this.body, this.options);
-
-      this.setOptions(options);
-    }
-
-    _createClass(Edge, [{
-      key: 'setOptions',
-
-      /**
-       * Set or overwrite options for the edge
-       * @param {Object} options  an object with options
-       * @param doNotEmit
-       */
-      value: function setOptions(options) {
-        if (!options) {
-          return;
-        }
-        this.colorDirty = true;
-
-        Edge.parseOptions(this.options, options, true);
-
-        if (options.id !== undefined) {
-          this.id = options.id;
-        }
-        if (options.from !== undefined) {
-          this.fromId = options.from;
-        }
-        if (options.to !== undefined) {
-          this.toId = options.to;
-        }
-        if (options.title !== undefined) {
-          this.title = options.title;
-        }
-        if (options.value !== undefined) {
-          options.value = parseInt(options.value);
-        }
-
-        // A node is connected when it has a from and to node that both exist in the network.body.nodes.
-        this.connect();
-
-        // update label Module
-        this.updateLabelModule();
-
-        var dataChanged = this.updateEdgeType();
-
-        // if anything has been updates, reset the selection width and the hover width
-        this._setInteractionWidths();
-
-        return dataChanged;
-      }
-    }, {
-      key: 'updateLabelModule',
-
-      /**
-       * update the options in the label module
-       */
-      value: function updateLabelModule() {
-        this.labelModule.setOptions(this.options, true);
-        if (this.labelModule.baseSize !== undefined) {
-          this.baseFontSize = this.labelModule.baseSize;
-        }
-      }
-    }, {
-      key: 'updateEdgeType',
-
-      /**
-       * update the edge type, set the options
-       * @returns {boolean}
-       */
-      value: function updateEdgeType() {
-        var dataChanged = false;
-        var changeInType = true;
-        if (this.edgeType !== undefined) {
-          if (this.edgeType instanceof _edgesBezierEdgeDynamic2['default'] && this.options.smooth.enabled === true && this.options.smooth.type === 'dynamic') {
-            changeInType = false;
-          }
-          if (this.edgeType instanceof _edgesBezierEdgeStatic2['default'] && this.options.smooth.enabled === true && this.options.smooth.type !== 'dynamic') {
-            changeInType = false;
-          }
-          if (this.edgeType instanceof _edgesStraightEdge2['default'] && this.options.smooth.enabled === false) {
-            changeInType = false;
-          }
-
-          if (changeInType === true) {
-            dataChanged = this.edgeType.cleanup();
-          }
-        }
-
-        if (changeInType === true) {
-          if (this.options.smooth.enabled === true) {
-            if (this.options.smooth.type === 'dynamic') {
-              dataChanged = true;
-              this.edgeType = new _edgesBezierEdgeDynamic2['default'](this.options, this.body, this.labelModule);
-            } else {
-              this.edgeType = new _edgesBezierEdgeStatic2['default'](this.options, this.body, this.labelModule);
-            }
-          } else {
-            this.edgeType = new _edgesStraightEdge2['default'](this.options, this.body, this.labelModule);
-          }
-        } else {
-          // if nothing changes, we just set the options.
-          this.edgeType.setOptions(this.options);
-        }
-
-        return dataChanged;
-      }
-    }, {
-      key: 'togglePhysics',
-
-      /**
-       * Enable or disable the physics.
-       * @param status
-       */
-      value: function togglePhysics(status) {
-        this.options.physics = status;
-        this.edgeType.togglePhysics(status);
-      }
-    }, {
-      key: 'connect',
-
-      /**
-       * Connect an edge to its nodes
-       */
-      value: function connect() {
-        this.disconnect();
-
-        this.from = this.body.nodes[this.fromId] || undefined;
-        this.to = this.body.nodes[this.toId] || undefined;
-        this.connected = this.from !== undefined && this.to !== undefined;
-
-        if (this.connected === true) {
-          this.from.attachEdge(this);
-          this.to.attachEdge(this);
-        } else {
-          if (this.from) {
-            this.from.detachEdge(this);
-          }
-          if (this.to) {
-            this.to.detachEdge(this);
-          }
-        }
-      }
-    }, {
-      key: 'disconnect',
-
-      /**
-       * Disconnect an edge from its nodes
-       */
-      value: function disconnect() {
-        if (this.from) {
-          this.from.detachEdge(this);
-          this.from = undefined;
-        }
-        if (this.to) {
-          this.to.detachEdge(this);
-          this.to = undefined;
-        }
-
-        this.connected = false;
-      }
-    }, {
-      key: 'getTitle',
-
-      /**
-       * get the title of this edge.
-       * @return {string} title    The title of the edge, or undefined when no title
-       *                           has been set.
-       */
-      value: function getTitle() {
-        return this.title;
-      }
-    }, {
-      key: 'isSelected',
-
-      /**
-       * check if this node is selecte
-       * @return {boolean} selected   True if node is selected, else false
-       */
-      value: function isSelected() {
-        return this.selected;
-      }
-    }, {
-      key: 'getValue',
-
-      /**
-       * Retrieve the value of the edge. Can be undefined
-       * @return {Number} value
-       */
-      value: function getValue() {
-        return this.options.value;
-      }
-    }, {
-      key: 'setValueRange',
-
-      /**
-       * Adjust the value range of the edge. The edge will adjust it's width
-       * based on its value.
-       * @param {Number} min
-       * @param {Number} max
-       * @param total
-       */
-      value: function setValueRange(min, max, total) {
-        if (this.options.value !== undefined) {
-          var scale = this.options.scaling.customScalingFunction(min, max, total, this.options.value);
-          var widthDiff = this.options.scaling.max - this.options.scaling.min;
-          if (this.options.scaling.label.enabled === true) {
-            var fontDiff = this.options.scaling.label.max - this.options.scaling.label.min;
-            this.options.font.size = this.options.scaling.label.min + scale * fontDiff;
-          }
-          this.options.width = this.options.scaling.min + scale * widthDiff;
-        } else {
-          this.options.width = this.baseWidth;
-          this.options.font.size = this.baseFontSize;
-        }
-
-        this._setInteractionWidths();
-      }
-    }, {
-      key: '_setInteractionWidths',
-      value: function _setInteractionWidths() {
-        if (typeof this.options.hoverWidth === 'function') {
-          this.edgeType.hoverWidth = this.options.hoverWidth(this.options.width);
-        } else {
-          this.edgeType.hoverWidth = this.options.hoverWidth + this.options.width;
-        }
-
-        if (typeof this.options.selectionWidth === 'function') {
-          this.edgeType.selectionWidth = this.options.selectionWidth(this.options.width);
-        } else {
-          this.edgeType.selectionWidth = this.options.selectionWidth + this.options.width;
-        }
-      }
-    }, {
-      key: 'draw',
-
-      /**
-       * Redraw a edge
-       * Draw this edge in the given canvas
-       * The 2d context of a HTML canvas can be retrieved by canvas.getContext("2d");
-       * @param {CanvasRenderingContext2D}   ctx
-       */
-      value: function draw(ctx) {
-        var via = this.edgeType.drawLine(ctx, this.selected, this.hover);
-        this.drawArrows(ctx, via);
-        this.drawLabel(ctx, via);
-      }
-    }, {
-      key: 'drawArrows',
-      value: function drawArrows(ctx, viaNode) {
-        if (this.options.arrows.from.enabled === true) {
-          this.edgeType.drawArrowHead(ctx, 'from', viaNode, this.selected, this.hover);
-        }
-        if (this.options.arrows.middle.enabled === true) {
-          this.edgeType.drawArrowHead(ctx, 'middle', viaNode, this.selected, this.hover);
-        }
-        if (this.options.arrows.to.enabled === true) {
-          this.edgeType.drawArrowHead(ctx, 'to', viaNode, this.selected, this.hover);
-        }
-      }
-    }, {
-      key: 'drawLabel',
-      value: function drawLabel(ctx, viaNode) {
-        if (this.options.label !== undefined) {
-          // set style
-          var node1 = this.from;
-          var node2 = this.to;
-          var selected = this.from.selected || this.to.selected || this.selected;
-          if (node1.id != node2.id) {
-            var point = this.edgeType.getPoint(0.5, viaNode);
-            ctx.save();
-
-            // if the label has to be rotated:
-            if (this.options.font.align !== 'horizontal') {
-              this.labelModule.calculateLabelSize(ctx, selected, point.x, point.y);
-              ctx.translate(point.x, this.labelModule.size.yLine);
-              this._rotateForLabelAlignment(ctx);
-            }
-
-            // draw the label
-            this.labelModule.draw(ctx, point.x, point.y, selected);
-            ctx.restore();
-          } else {
-            var x, y;
-            var radius = this.options.selfReferenceSize;
-            if (node1.shape.width > node1.shape.height) {
-              x = node1.x + node1.shape.width * 0.5;
-              y = node1.y - radius;
-            } else {
-              x = node1.x + radius;
-              y = node1.y - node1.shape.height * 0.5;
-            }
-            point = this._pointOnCircle(x, y, radius, 0.125);
-            this.labelModule.draw(ctx, point.x, point.y, selected);
-          }
-        }
-      }
-    }, {
-      key: 'isOverlappingWith',
-
-      /**
-       * Check if this object is overlapping with the provided object
-       * @param {Object} obj   an object with parameters left, top
-       * @return {boolean}     True if location is located on the edge
-       */
-      value: function isOverlappingWith(obj) {
-        if (this.connected) {
-          var distMax = 10;
-          var xFrom = this.from.x;
-          var yFrom = this.from.y;
-          var xTo = this.to.x;
-          var yTo = this.to.y;
-          var xObj = obj.left;
-          var yObj = obj.top;
-
-          var dist = this.edgeType.getDistanceToEdge(xFrom, yFrom, xTo, yTo, xObj, yObj);
-
-          return dist < distMax;
-        } else {
-          return false;
-        }
-      }
-    }, {
-      key: '_rotateForLabelAlignment',
-
-      /**
-       * Rotates the canvas so the text is most readable
-       * @param {CanvasRenderingContext2D} ctx
-       * @private
-       */
-      value: function _rotateForLabelAlignment(ctx) {
-        var dy = this.from.y - this.to.y;
-        var dx = this.from.x - this.to.x;
-        var angleInDegrees = Math.atan2(dy, dx);
-
-        // rotate so label it is readable
-        if (angleInDegrees < -1 && dx < 0 || angleInDegrees > 0 && dx < 0) {
-          angleInDegrees = angleInDegrees + Math.PI;
-        }
-
-        ctx.rotate(angleInDegrees);
-      }
-    }, {
-      key: '_pointOnCircle',
-
-      /**
-       * Get a point on a circle
-       * @param {Number} x
-       * @param {Number} y
-       * @param {Number} radius
-       * @param {Number} percentage. Value between 0 (line start) and 1 (line end)
-       * @return {Object} point
-       * @private
-       */
-      value: function _pointOnCircle(x, y, radius, percentage) {
-        var angle = percentage * 2 * Math.PI;
-        return {
-          x: x + radius * Math.cos(angle),
-          y: y - radius * Math.sin(angle)
-        };
-      }
-    }, {
-      key: 'select',
-      value: function select() {
-        this.selected = true;
-      }
-    }, {
-      key: 'unselect',
-      value: function unselect() {
-        this.selected = false;
-      }
-    }], [{
-      key: 'parseOptions',
-      value: function parseOptions(parentOptions, newOptions) {
-        var allowDeletion = arguments[2] === undefined ? false : arguments[2];
-
-        var fields = ['id', 'from', 'hidden', 'hoverWidth', 'label', 'length', 'line', 'opacity', 'physics', 'selectionWidth', 'selfReferenceSize', 'to', 'title', 'value', 'width'];
-
-        // only deep extend the items in the field array. These do not have shorthand.
-        util.selectiveDeepExtend(fields, parentOptions, newOptions, allowDeletion);
-
-        util.mergeOptions(parentOptions, newOptions, 'smooth');
-        util.mergeOptions(parentOptions, newOptions, 'shadow');
-
-        if (newOptions.dashes !== undefined && newOptions.dashes !== null) {
-          parentOptions.dashes = newOptions.dashes;
-        } else if (allowDeletion === true) {
-          parentOptions.dashes = undefined;
-          delete parentOptions.dashes;
-        }
-
-        // set the scaling newOptions
-        if (newOptions.scaling !== undefined && newOptions.scaling !== null) {
-          if (newOptions.scaling.min !== undefined) {
-            parentOptions.scaling.min = newOptions.scaling.min;
-          }
-          if (newOptions.scaling.max !== undefined) {
-            parentOptions.scaling.max = newOptions.scaling.max;
-          }
-          util.mergeOptions(parentOptions.scaling, newOptions.scaling, 'label');
-        } else if (allowDeletion === true) {
-          parentOptions.scaling = undefined;
-          delete parentOptions.scaling;
-        }
-
-        // hanlde multiple input cases for arrows
-        if (newOptions.arrows !== undefined && newOptions.arrows !== null) {
-          if (typeof newOptions.arrows === 'string') {
-            var arrows = newOptions.arrows.toLowerCase();
-            if (arrows.indexOf('to') != -1) {
-              parentOptions.arrows.to.enabled = true;
-            }
-            if (arrows.indexOf('middle') != -1) {
-              parentOptions.arrows.middle.enabled = true;
-            }
-            if (arrows.indexOf('from') != -1) {
-              parentOptions.arrows.from.enabled = true;
-            }
-          } else if (typeof newOptions.arrows === 'object') {
-            util.mergeOptions(parentOptions.arrows, newOptions.arrows, 'to');
-            util.mergeOptions(parentOptions.arrows, newOptions.arrows, 'middle');
-            util.mergeOptions(parentOptions.arrows, newOptions.arrows, 'from');
-          } else {
-            throw new Error('The arrow newOptions can only be an object or a string. Refer to the documentation. You used:' + JSON.stringify(newOptions.arrows));
-          }
-        } else if (allowDeletion === true) {
-          parentOptions.arrows = undefined;
-          delete parentOptions.arrows;
-        }
-
-        // hanlde multiple input cases for color
-        if (newOptions.color !== undefined && newOptions.color !== null) {
-          if (util.isString(newOptions.color)) {
-            parentOptions.color.color = newOptions.color;
-            parentOptions.color.highlight = newOptions.color;
-            parentOptions.color.hover = newOptions.color;
-            parentOptions.color.inherit = false;
-          } else {
-            var colorsDefined = false;
-            if (newOptions.color.color !== undefined) {
-              parentOptions.color.color = newOptions.color.color;colorsDefined = true;
-            }
-            if (newOptions.color.highlight !== undefined) {
-              parentOptions.color.highlight = newOptions.color.highlight;colorsDefined = true;
-            }
-            if (newOptions.color.hover !== undefined) {
-              parentOptions.color.hover = newOptions.color.hover;colorsDefined = true;
-            }
-            if (newOptions.color.inherit !== undefined) {
-              parentOptions.color.inherit = newOptions.color.inherit;
-            }
-            if (newOptions.color.opacity !== undefined) {
-              parentOptions.color.opacity = Math.min(1, Math.max(0, newOptions.color.opacity));
-            }
-
-            if (newOptions.color.inherit === undefined && colorsDefined === true) {
-              parentOptions.color.inherit = false;
-            }
-          }
-        } else if (allowDeletion === true) {
-          parentOptions.color = undefined;
-          delete parentOptions.color;
-        }
-      }
-    }]);
-
-    return Edge;
-  })();
-
-  exports['default'] = Edge;
-  module.exports = exports['default'];
-
-/***/ },
-/* 77 */
-/***/ function(module, exports, __webpack_require__) {
-
   "use strict";
 
   Object.defineProperty(exports, "__esModule", {
@@ -36433,7 +35079,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports["default"];
 
 /***/ },
-/* 78 */
+/* 75 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
@@ -36528,7 +35174,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports["default"];
 
 /***/ },
-/* 79 */
+/* 76 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
@@ -36619,7 +35265,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports["default"];
 
 /***/ },
-/* 80 */
+/* 77 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
@@ -36645,7 +35291,6 @@ return /******/ (function(modules) { // webpackBootstrap
       key: "setOptions",
       value: function setOptions(options) {
         this.options = options;
-        this.overlapAvoidanceFactor = 1 - Math.max(0, Math.min(1, this.options.avoidOverlap)); // if 1 then min distance = 0.5, if 0.5 then min distance = 0.5 + 0.5*node.shape.radius
       }
     }, {
       key: "solve",
@@ -36700,19 +35345,9 @@ return /******/ (function(modules) { // webpackBootstrap
        * @private
        */
       value: function _calculateSpringForce(node1, node2, edgeLength) {
-        var dx = undefined,
-            dy = undefined;
-        if (this.overlapAvoidanceFactor < 1) {
-          var nodesWidth = this.overlapAvoidanceFactor * (node1.shape.radius + node2.shape.radius);
-          dx = node1.x - node2.x - nodesWidth;
-          dy = node1.y - node2.y - nodesWidth;
-        } else {
-          dx = node1.x - node2.x;
-          dy = node1.y - node2.y;
-        }
-
-        var distance = Math.sqrt(dx * dx + dy * dy);
-        distance = distance === 0 ? 0.01 : distance;
+        var dx = node1.x - node2.x;
+        var dy = node1.y - node2.y;
+        var distance = Math.max(Math.sqrt(dx * dx + dy * dy), 0.01);
 
         // the 1/distance is so the fx and fy can be calculated without sine or cosine.
         var springForce = this.options.springConstant * (edgeLength - distance) / distance;
@@ -36740,7 +35375,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports["default"];
 
 /***/ },
-/* 81 */
+/* 78 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
@@ -36861,7 +35496,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports["default"];
 
 /***/ },
-/* 82 */
+/* 79 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
@@ -36930,7 +35565,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports["default"];
 
 /***/ },
-/* 83 */
+/* 80 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
@@ -36951,7 +35586,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; }
 
-  var _BarnesHutSolver2 = __webpack_require__(77);
+  var _BarnesHutSolver2 = __webpack_require__(74);
 
   var _BarnesHutSolver3 = _interopRequireDefault(_BarnesHutSolver2);
 
@@ -37006,7 +35641,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports["default"];
 
 /***/ },
-/* 84 */
+/* 81 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
@@ -37027,7 +35662,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; }
 
-  var _CentralGravitySolver2 = __webpack_require__(82);
+  var _CentralGravitySolver2 = __webpack_require__(79);
 
   var _CentralGravitySolver3 = _interopRequireDefault(_CentralGravitySolver2);
 
@@ -37064,7 +35699,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports["default"];
 
 /***/ },
-/* 85 */
+/* 82 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -37083,7 +35718,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; }
 
-  var _Node2 = __webpack_require__(74);
+  var _Node2 = __webpack_require__(85);
 
   var _Node3 = _interopRequireDefault(_Node2);
 
@@ -37111,7 +35746,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 86 */
+/* 83 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -37127,7 +35762,7 @@ return /******/ (function(modules) { // webpackBootstrap
   var util = __webpack_require__(1);
   var Hammer = __webpack_require__(41);
   var hammerUtil = __webpack_require__(49);
-  var keycharm = __webpack_require__(88);
+  var keycharm = __webpack_require__(87);
 
   var NavigationHandler = (function () {
     function NavigationHandler(body, canvas) {
@@ -37381,7 +36016,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 87 */
+/* 84 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -37508,7 +36143,1068 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 88 */
+/* 85 */
+/***/ function(module, exports, __webpack_require__) {
+
+  'use strict';
+
+  Object.defineProperty(exports, '__esModule', {
+    value: true
+  });
+
+  var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
+
+  function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
+
+  function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
+
+  var _sharedLabel = __webpack_require__(91);
+
+  var _sharedLabel2 = _interopRequireDefault(_sharedLabel);
+
+  var _nodesShapesBox = __webpack_require__(92);
+
+  var _nodesShapesBox2 = _interopRequireDefault(_nodesShapesBox);
+
+  var _nodesShapesCircle = __webpack_require__(93);
+
+  var _nodesShapesCircle2 = _interopRequireDefault(_nodesShapesCircle);
+
+  var _nodesShapesCircularImage = __webpack_require__(94);
+
+  var _nodesShapesCircularImage2 = _interopRequireDefault(_nodesShapesCircularImage);
+
+  var _nodesShapesDatabase = __webpack_require__(95);
+
+  var _nodesShapesDatabase2 = _interopRequireDefault(_nodesShapesDatabase);
+
+  var _nodesShapesDiamond = __webpack_require__(96);
+
+  var _nodesShapesDiamond2 = _interopRequireDefault(_nodesShapesDiamond);
+
+  var _nodesShapesDot = __webpack_require__(97);
+
+  var _nodesShapesDot2 = _interopRequireDefault(_nodesShapesDot);
+
+  var _nodesShapesEllipse = __webpack_require__(98);
+
+  var _nodesShapesEllipse2 = _interopRequireDefault(_nodesShapesEllipse);
+
+  var _nodesShapesIcon = __webpack_require__(99);
+
+  var _nodesShapesIcon2 = _interopRequireDefault(_nodesShapesIcon);
+
+  var _nodesShapesImage = __webpack_require__(100);
+
+  var _nodesShapesImage2 = _interopRequireDefault(_nodesShapesImage);
+
+  var _nodesShapesSquare = __webpack_require__(101);
+
+  var _nodesShapesSquare2 = _interopRequireDefault(_nodesShapesSquare);
+
+  var _nodesShapesStar = __webpack_require__(102);
+
+  var _nodesShapesStar2 = _interopRequireDefault(_nodesShapesStar);
+
+  var _nodesShapesText = __webpack_require__(103);
+
+  var _nodesShapesText2 = _interopRequireDefault(_nodesShapesText);
+
+  var _nodesShapesTriangle = __webpack_require__(104);
+
+  var _nodesShapesTriangle2 = _interopRequireDefault(_nodesShapesTriangle);
+
+  var _nodesShapesTriangleDown = __webpack_require__(105);
+
+  var _nodesShapesTriangleDown2 = _interopRequireDefault(_nodesShapesTriangleDown);
+
+  var _sharedValidator = __webpack_require__(46);
+
+  var _sharedValidator2 = _interopRequireDefault(_sharedValidator);
+
+  var util = __webpack_require__(1);
+
+  /**
+   * @class Node
+   * A node. A node can be connected to other nodes via one or multiple edges.
+   * @param {object} options An object containing options for the node. All
+   *                            options are optional, except for the id.
+   *                              {number} id     Id of the node. Required
+   *                              {string} label  Text label for the node
+   *                              {number} x      Horizontal position of the node
+   *                              {number} y      Vertical position of the node
+   *                              {string} shape  Node shape, available:
+   *                                              "database", "circle", "ellipse",
+   *                                              "box", "image", "text", "dot",
+   *                                              "star", "triangle", "triangleDown",
+   *                                              "square", "icon"
+   *                              {string} image  An image url
+   *                              {string} title  An title text, can be HTML
+   *                              {anytype} group A group name or number
+   * @param {Network.Images} imagelist    A list with images. Only needed
+   *                                            when the node has an image
+   * @param {Network.Groups} grouplist    A list with groups. Needed for
+   *                                            retrieving group options
+   * @param {Object}               constants    An object with default values for
+   *                                            example for the color
+   *
+   */
+
+  var Node = (function () {
+    function Node(options, body, imagelist, grouplist, globalOptions) {
+      _classCallCheck(this, Node);
+
+      this.options = util.bridgeObject(globalOptions);
+      this.body = body;
+
+      this.edges = []; // all edges connected to this node
+
+      // set defaults for the options
+      this.id = undefined;
+      this.imagelist = imagelist;
+      this.grouplist = grouplist;
+
+      // state options
+      this.x = undefined;
+      this.y = undefined;
+      this.baseSize = this.options.size;
+      this.baseFontSize = this.options.font.size;
+      this.predefinedPosition = false; // used to check if initial fit should just take the range or approximate
+      this.selected = false;
+      this.hover = false;
+
+      this.labelModule = new _sharedLabel2['default'](this.body, this.options);
+      this.setOptions(options);
+    }
+
+    _createClass(Node, [{
+      key: 'attachEdge',
+
+      /**
+       * Attach a edge to the node
+       * @param {Edge} edge
+       */
+      value: function attachEdge(edge) {
+        if (this.edges.indexOf(edge) === -1) {
+          this.edges.push(edge);
+        }
+      }
+    }, {
+      key: 'detachEdge',
+
+      /**
+       * Detach a edge from the node
+       * @param {Edge} edge
+       */
+      value: function detachEdge(edge) {
+        var index = this.edges.indexOf(edge);
+        if (index != -1) {
+          this.edges.splice(index, 1);
+        }
+      }
+    }, {
+      key: 'togglePhysics',
+
+      /**
+       * Enable or disable the physics.
+       * @param status
+       */
+      value: function togglePhysics(status) {
+        this.options.physics = status;
+      }
+    }, {
+      key: 'setOptions',
+
+      /**
+       * Set or overwrite options for the node
+       * @param {Object} options an object with options
+       * @param {Object} constants  and object with default, global options
+       */
+      value: function setOptions(options) {
+        if (!options) {
+          return;
+        }
+        // basic options
+        if (options.id !== undefined) {
+          this.id = options.id;
+        }
+
+        if (this.id === undefined) {
+          throw 'Node must have an id';
+        }
+
+        if (options.x !== undefined) {
+          this.x = parseInt(options.x);this.predefinedPosition = true;
+        }
+        if (options.y !== undefined) {
+          this.y = parseInt(options.y);this.predefinedPosition = true;
+        }
+        if (options.size !== undefined) {
+          this.baseSize = options.size;
+        }
+        if (options.value !== undefined) {
+          options.value = parseInt(options.value);
+        }
+
+        // this transforms all shorthands into fully defined options
+        Node.parseOptions(this.options, options, true);
+
+        // copy group options
+        if (typeof options.group === 'number' || typeof options.group === 'string' && options.group != '') {
+          var groupObj = this.grouplist.get(options.group);
+          util.deepExtend(this.options, groupObj);
+          // the color object needs to be completely defined. Since groups can partially overwrite the colors, we parse it again, just in case.
+          this.options.color = util.parseColor(this.options.color);
+        }
+
+        // load the images
+        if (this.options.image !== undefined && this.options.image != '') {
+          if (this.imagelist) {
+            this.imageObj = this.imagelist.load(this.options.image, this.options.brokenImage);
+          } else {
+            throw 'No imagelist provided';
+          }
+        }
+
+        this.updateShape();
+        this.updateLabelModule();
+
+        // reset the size of the node, this can be changed
+        this._reset();
+      }
+    }, {
+      key: 'updateLabelModule',
+      value: function updateLabelModule() {
+        if (this.options.label === undefined || this.options.label === null) {
+          this.options.label = '';
+        }
+        this.labelModule.setOptions(this.options, true);
+        if (this.labelModule.baseSize !== undefined) {
+          this.baseFontSize = this.labelModule.baseSize;
+        }
+      }
+    }, {
+      key: 'updateShape',
+      value: function updateShape() {
+        // choose draw method depending on the shape
+        switch (this.options.shape) {
+          case 'box':
+            this.shape = new _nodesShapesBox2['default'](this.options, this.body, this.labelModule);
+            break;
+          case 'circle':
+            this.shape = new _nodesShapesCircle2['default'](this.options, this.body, this.labelModule);
+            break;
+          case 'circularImage':
+            this.shape = new _nodesShapesCircularImage2['default'](this.options, this.body, this.labelModule, this.imageObj);
+            break;
+          case 'database':
+            this.shape = new _nodesShapesDatabase2['default'](this.options, this.body, this.labelModule);
+            break;
+          case 'diamond':
+            this.shape = new _nodesShapesDiamond2['default'](this.options, this.body, this.labelModule);
+            break;
+          case 'dot':
+            this.shape = new _nodesShapesDot2['default'](this.options, this.body, this.labelModule);
+            break;
+          case 'ellipse':
+            this.shape = new _nodesShapesEllipse2['default'](this.options, this.body, this.labelModule);
+            break;
+          case 'icon':
+            this.shape = new _nodesShapesIcon2['default'](this.options, this.body, this.labelModule);
+            break;
+          case 'image':
+            this.shape = new _nodesShapesImage2['default'](this.options, this.body, this.labelModule, this.imageObj);
+            break;
+          case 'square':
+            this.shape = new _nodesShapesSquare2['default'](this.options, this.body, this.labelModule);
+            break;
+          case 'star':
+            this.shape = new _nodesShapesStar2['default'](this.options, this.body, this.labelModule);
+            break;
+          case 'text':
+            this.shape = new _nodesShapesText2['default'](this.options, this.body, this.labelModule);
+            break;
+          case 'triangle':
+            this.shape = new _nodesShapesTriangle2['default'](this.options, this.body, this.labelModule);
+            break;
+          case 'triangleDown':
+            this.shape = new _nodesShapesTriangleDown2['default'](this.options, this.body, this.labelModule);
+            break;
+          default:
+            this.shape = new _nodesShapesEllipse2['default'](this.options, this.body, this.labelModule);
+            break;
+        }
+        this._reset();
+      }
+    }, {
+      key: 'select',
+
+      /**
+       * select this node
+       */
+      value: function select() {
+        this.selected = true;
+        this._reset();
+      }
+    }, {
+      key: 'unselect',
+
+      /**
+       * unselect this node
+       */
+      value: function unselect() {
+        this.selected = false;
+        this._reset();
+      }
+    }, {
+      key: '_reset',
+
+      /**
+       * Reset the calculated size of the node, forces it to recalculate its size
+       * @private
+       */
+      value: function _reset() {
+        this.shape.width = undefined;
+        this.shape.height = undefined;
+      }
+    }, {
+      key: 'getTitle',
+
+      /**
+       * get the title of this node.
+       * @return {string} title    The title of the node, or undefined when no title
+       *                           has been set.
+       */
+      value: function getTitle() {
+        return this.options.title;
+      }
+    }, {
+      key: 'distanceToBorder',
+
+      /**
+       * Calculate the distance to the border of the Node
+       * @param {CanvasRenderingContext2D}   ctx
+       * @param {Number} angle        Angle in radians
+       * @returns {number} distance   Distance to the border in pixels
+       */
+      value: function distanceToBorder(ctx, angle) {
+        return this.shape.distanceToBorder(ctx, angle);
+      }
+    }, {
+      key: 'isFixed',
+
+      /**
+       * Check if this node has a fixed x and y position
+       * @return {boolean}      true if fixed, false if not
+       */
+      value: function isFixed() {
+        return this.options.fixed.x && this.options.fixed.y;
+      }
+    }, {
+      key: 'isSelected',
+
+      /**
+       * check if this node is selecte
+       * @return {boolean} selected   True if node is selected, else false
+       */
+      value: function isSelected() {
+        return this.selected;
+      }
+    }, {
+      key: 'getValue',
+
+      /**
+       * Retrieve the value of the node. Can be undefined
+       * @return {Number} value
+       */
+      value: function getValue() {
+        return this.options.value;
+      }
+    }, {
+      key: 'setValueRange',
+
+      /**
+       * Adjust the value range of the node. The node will adjust it's size
+       * based on its value.
+       * @param {Number} min
+       * @param {Number} max
+       */
+      value: function setValueRange(min, max, total) {
+        if (this.options.value !== undefined) {
+          var scale = this.options.scaling.customScalingFunction(min, max, total, this.options.value);
+          var sizeDiff = this.options.scaling.max - this.options.scaling.min;
+          if (this.options.scaling.label.enabled === true) {
+            var fontDiff = this.options.scaling.label.max - this.options.scaling.label.min;
+            this.options.font.size = this.options.scaling.label.min + scale * fontDiff;
+          }
+          this.options.size = this.options.scaling.min + scale * sizeDiff;
+        } else {
+          this.options.size = this.baseSize;
+          this.options.font.size = this.baseFontSize;
+        }
+      }
+    }, {
+      key: 'draw',
+
+      /**
+       * Draw this node in the given canvas
+       * The 2d context of a HTML canvas can be retrieved by canvas.getContext("2d");
+       * @param {CanvasRenderingContext2D}   ctx
+       */
+      value: function draw(ctx) {
+        this.shape.draw(ctx, this.x, this.y, this.selected, this.hover);
+      }
+    }, {
+      key: 'updateBoundingBox',
+
+      /**
+       * Update the bounding box of the shape
+       */
+      value: function updateBoundingBox() {
+        this.shape.updateBoundingBox(this.x, this.y);
+      }
+    }, {
+      key: 'resize',
+
+      /**
+       * Recalculate the size of this node in the given canvas
+       * The 2d context of a HTML canvas can be retrieved by canvas.getContext("2d");
+       * @param {CanvasRenderingContext2D}   ctx
+       */
+      value: function resize(ctx) {
+        this.shape.resize(ctx);
+      }
+    }, {
+      key: 'isOverlappingWith',
+
+      /**
+       * Check if this object is overlapping with the provided object
+       * @param {Object} obj   an object with parameters left, top, right, bottom
+       * @return {boolean}     True if location is located on node
+       */
+      value: function isOverlappingWith(obj) {
+        return this.shape.left < obj.right && this.shape.left + this.shape.width > obj.left && this.shape.top < obj.bottom && this.shape.top + this.shape.height > obj.top;
+      }
+    }, {
+      key: 'isBoundingBoxOverlappingWith',
+
+      /**
+       * Check if this object is overlapping with the provided object
+       * @param {Object} obj   an object with parameters left, top, right, bottom
+       * @return {boolean}     True if location is located on node
+       */
+      value: function isBoundingBoxOverlappingWith(obj) {
+        return this.shape.boundingBox.left < obj.right && this.shape.boundingBox.right > obj.left && this.shape.boundingBox.top < obj.bottom && this.shape.boundingBox.bottom > obj.top;
+      }
+    }], [{
+      key: 'parseOptions',
+
+      /**
+       * This process all possible shorthands in the new options and makes sure that the parentOptions are fully defined.
+       * Static so it can also be used by the handler.
+       * @param parentOptions
+       * @param newOptions
+       */
+      value: function parseOptions(parentOptions, newOptions) {
+        var allowDeletion = arguments[2] === undefined ? false : arguments[2];
+
+        var fields = ['color', 'font', 'fixed', 'shadow'];
+        util.selectiveNotDeepExtend(fields, parentOptions, newOptions, allowDeletion);
+
+        // merge the shadow options into the parent.
+        util.mergeOptions(parentOptions, newOptions, 'shadow');
+
+        // individual shape newOptions
+        if (newOptions.color !== undefined && newOptions.color !== null) {
+          var parsedColor = util.parseColor(newOptions.color);
+          util.fillIfDefined(parentOptions.color, parsedColor);
+        } else if (allowDeletion === true && newOptions.color === null) {
+          parentOptions.color = undefined;
+          delete parentOptions.color;
+        }
+
+        if (newOptions.fixed !== undefined && newOptions.fixed !== null) {
+          if (typeof newOptions.fixed === 'boolean') {
+            parentOptions.fixed.x = newOptions.fixed;
+            parentOptions.fixed.y = newOptions.fixed;
+          } else {
+            if (newOptions.fixed.x !== undefined && typeof newOptions.fixed.x === 'boolean') {
+              parentOptions.fixed.x = newOptions.fixed.x;
+            }
+            if (newOptions.fixed.y !== undefined && typeof newOptions.fixed.y === 'boolean') {
+              parentOptions.fixed.y = newOptions.fixed.y;
+            }
+          }
+        }
+
+        if (newOptions.font !== undefined) {
+          _sharedLabel2['default'].parseOptions(parentOptions.font, newOptions);
+        }
+
+        if (newOptions.scaling !== undefined) {
+          util.mergeOptions(parentOptions.scaling, newOptions.scaling, 'label');
+        }
+      }
+    }]);
+
+    return Node;
+  })();
+
+  exports['default'] = Node;
+  module.exports = exports['default'];
+
+/***/ },
+/* 86 */
+/***/ function(module, exports, __webpack_require__) {
+
+  'use strict';
+
+  Object.defineProperty(exports, '__esModule', {
+    value: true
+  });
+
+  var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
+
+  function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
+
+  function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
+
+  var _sharedLabel = __webpack_require__(91);
+
+  var _sharedLabel2 = _interopRequireDefault(_sharedLabel);
+
+  var _edgesBezierEdgeDynamic = __webpack_require__(106);
+
+  var _edgesBezierEdgeDynamic2 = _interopRequireDefault(_edgesBezierEdgeDynamic);
+
+  var _edgesBezierEdgeStatic = __webpack_require__(107);
+
+  var _edgesBezierEdgeStatic2 = _interopRequireDefault(_edgesBezierEdgeStatic);
+
+  var _edgesStraightEdge = __webpack_require__(108);
+
+  var _edgesStraightEdge2 = _interopRequireDefault(_edgesStraightEdge);
+
+  var util = __webpack_require__(1);
+
+  /**
+   * @class Edge
+   *
+   * A edge connects two nodes
+   * @param {Object} properties     Object with options. Must contain
+   *                                At least options from and to.
+   *                                Available options: from (number),
+   *                                to (number), label (string, color (string),
+   *                                width (number), style (string),
+   *                                length (number), title (string)
+   * @param {Network} network       A Network object, used to find and edge to
+   *                                nodes.
+   * @param {Object} constants      An object with default values for
+   *                                example for the color
+   */
+
+  var Edge = (function () {
+    function Edge(options, body, globalOptions) {
+      _classCallCheck(this, Edge);
+
+      if (body === undefined) {
+        throw 'No body provided';
+      }
+      this.options = util.bridgeObject(globalOptions);
+      this.body = body;
+
+      // initialize variables
+      this.id = undefined;
+      this.fromId = undefined;
+      this.toId = undefined;
+      this.selected = false;
+      this.hover = false;
+      this.labelDirty = true;
+      this.colorDirty = true;
+
+      this.baseWidth = this.options.width;
+      this.baseFontSize = this.options.font.size;
+
+      this.from = undefined; // a node
+      this.to = undefined; // a node
+
+      this.edgeType = undefined;
+
+      this.connected = false;
+
+      this.labelModule = new _sharedLabel2['default'](this.body, this.options);
+
+      this.setOptions(options);
+    }
+
+    _createClass(Edge, [{
+      key: 'setOptions',
+
+      /**
+       * Set or overwrite options for the edge
+       * @param {Object} options  an object with options
+       * @param doNotEmit
+       */
+      value: function setOptions(options) {
+        if (!options) {
+          return;
+        }
+        this.colorDirty = true;
+
+        Edge.parseOptions(this.options, options, true);
+
+        if (options.id !== undefined) {
+          this.id = options.id;
+        }
+        if (options.from !== undefined) {
+          this.fromId = options.from;
+        }
+        if (options.to !== undefined) {
+          this.toId = options.to;
+        }
+        if (options.title !== undefined) {
+          this.title = options.title;
+        }
+        if (options.value !== undefined) {
+          options.value = parseInt(options.value);
+        }
+
+        // A node is connected when it has a from and to node that both exist in the network.body.nodes.
+        this.connect();
+
+        // update label Module
+        this.updateLabelModule();
+
+        var dataChanged = this.updateEdgeType();
+
+        // if anything has been updates, reset the selection width and the hover width
+        this._setInteractionWidths();
+
+        return dataChanged;
+      }
+    }, {
+      key: 'updateLabelModule',
+
+      /**
+       * update the options in the label module
+       */
+      value: function updateLabelModule() {
+        this.labelModule.setOptions(this.options, true);
+        if (this.labelModule.baseSize !== undefined) {
+          this.baseFontSize = this.labelModule.baseSize;
+        }
+      }
+    }, {
+      key: 'updateEdgeType',
+
+      /**
+       * update the edge type, set the options
+       * @returns {boolean}
+       */
+      value: function updateEdgeType() {
+        var dataChanged = false;
+        var changeInType = true;
+        if (this.edgeType !== undefined) {
+          if (this.edgeType instanceof _edgesBezierEdgeDynamic2['default'] && this.options.smooth.enabled === true && this.options.smooth.type === 'dynamic') {
+            changeInType = false;
+          }
+          if (this.edgeType instanceof _edgesBezierEdgeStatic2['default'] && this.options.smooth.enabled === true && this.options.smooth.type !== 'dynamic') {
+            changeInType = false;
+          }
+          if (this.edgeType instanceof _edgesStraightEdge2['default'] && this.options.smooth.enabled === false) {
+            changeInType = false;
+          }
+
+          if (changeInType === true) {
+            dataChanged = this.edgeType.cleanup();
+          }
+        }
+
+        if (changeInType === true) {
+          if (this.options.smooth.enabled === true) {
+            if (this.options.smooth.type === 'dynamic') {
+              dataChanged = true;
+              this.edgeType = new _edgesBezierEdgeDynamic2['default'](this.options, this.body, this.labelModule);
+            } else {
+              this.edgeType = new _edgesBezierEdgeStatic2['default'](this.options, this.body, this.labelModule);
+            }
+          } else {
+            this.edgeType = new _edgesStraightEdge2['default'](this.options, this.body, this.labelModule);
+          }
+        } else {
+          // if nothing changes, we just set the options.
+          this.edgeType.setOptions(this.options);
+        }
+
+        return dataChanged;
+      }
+    }, {
+      key: 'togglePhysics',
+
+      /**
+       * Enable or disable the physics.
+       * @param status
+       */
+      value: function togglePhysics(status) {
+        this.options.physics = status;
+        this.edgeType.togglePhysics(status);
+      }
+    }, {
+      key: 'connect',
+
+      /**
+       * Connect an edge to its nodes
+       */
+      value: function connect() {
+        this.disconnect();
+
+        this.from = this.body.nodes[this.fromId] || undefined;
+        this.to = this.body.nodes[this.toId] || undefined;
+        this.connected = this.from !== undefined && this.to !== undefined;
+
+        if (this.connected === true) {
+          this.from.attachEdge(this);
+          this.to.attachEdge(this);
+        } else {
+          if (this.from) {
+            this.from.detachEdge(this);
+          }
+          if (this.to) {
+            this.to.detachEdge(this);
+          }
+        }
+      }
+    }, {
+      key: 'disconnect',
+
+      /**
+       * Disconnect an edge from its nodes
+       */
+      value: function disconnect() {
+        if (this.from) {
+          this.from.detachEdge(this);
+          this.from = undefined;
+        }
+        if (this.to) {
+          this.to.detachEdge(this);
+          this.to = undefined;
+        }
+
+        this.connected = false;
+      }
+    }, {
+      key: 'getTitle',
+
+      /**
+       * get the title of this edge.
+       * @return {string} title    The title of the edge, or undefined when no title
+       *                           has been set.
+       */
+      value: function getTitle() {
+        return this.title;
+      }
+    }, {
+      key: 'isSelected',
+
+      /**
+       * check if this node is selecte
+       * @return {boolean} selected   True if node is selected, else false
+       */
+      value: function isSelected() {
+        return this.selected;
+      }
+    }, {
+      key: 'getValue',
+
+      /**
+       * Retrieve the value of the edge. Can be undefined
+       * @return {Number} value
+       */
+      value: function getValue() {
+        return this.options.value;
+      }
+    }, {
+      key: 'setValueRange',
+
+      /**
+       * Adjust the value range of the edge. The edge will adjust it's width
+       * based on its value.
+       * @param {Number} min
+       * @param {Number} max
+       * @param total
+       */
+      value: function setValueRange(min, max, total) {
+        if (this.options.value !== undefined) {
+          var scale = this.options.scaling.customScalingFunction(min, max, total, this.options.value);
+          var widthDiff = this.options.scaling.max - this.options.scaling.min;
+          if (this.options.scaling.label.enabled === true) {
+            var fontDiff = this.options.scaling.label.max - this.options.scaling.label.min;
+            this.options.font.size = this.options.scaling.label.min + scale * fontDiff;
+          }
+          this.options.width = this.options.scaling.min + scale * widthDiff;
+        } else {
+          this.options.width = this.baseWidth;
+          this.options.font.size = this.baseFontSize;
+        }
+
+        this._setInteractionWidths();
+      }
+    }, {
+      key: '_setInteractionWidths',
+      value: function _setInteractionWidths() {
+        if (typeof this.options.hoverWidth === 'function') {
+          this.edgeType.hoverWidth = this.options.hoverWidth(this.options.width);
+        } else {
+          this.edgeType.hoverWidth = this.options.hoverWidth + this.options.width;
+        }
+
+        if (typeof this.options.selectionWidth === 'function') {
+          this.edgeType.selectionWidth = this.options.selectionWidth(this.options.width);
+        } else {
+          this.edgeType.selectionWidth = this.options.selectionWidth + this.options.width;
+        }
+      }
+    }, {
+      key: 'draw',
+
+      /**
+       * Redraw a edge
+       * Draw this edge in the given canvas
+       * The 2d context of a HTML canvas can be retrieved by canvas.getContext("2d");
+       * @param {CanvasRenderingContext2D}   ctx
+       */
+      value: function draw(ctx) {
+        var via = this.edgeType.drawLine(ctx, this.selected, this.hover);
+        this.drawArrows(ctx, via);
+        this.drawLabel(ctx, via);
+      }
+    }, {
+      key: 'drawArrows',
+      value: function drawArrows(ctx, viaNode) {
+        if (this.options.arrows.from.enabled === true) {
+          this.edgeType.drawArrowHead(ctx, 'from', viaNode, this.selected, this.hover);
+        }
+        if (this.options.arrows.middle.enabled === true) {
+          this.edgeType.drawArrowHead(ctx, 'middle', viaNode, this.selected, this.hover);
+        }
+        if (this.options.arrows.to.enabled === true) {
+          this.edgeType.drawArrowHead(ctx, 'to', viaNode, this.selected, this.hover);
+        }
+      }
+    }, {
+      key: 'drawLabel',
+      value: function drawLabel(ctx, viaNode) {
+        if (this.options.label !== undefined) {
+          // set style
+          var node1 = this.from;
+          var node2 = this.to;
+          var selected = this.from.selected || this.to.selected || this.selected;
+          if (node1.id != node2.id) {
+            var point = this.edgeType.getPoint(0.5, viaNode);
+            ctx.save();
+
+            // if the label has to be rotated:
+            if (this.options.font.align !== 'horizontal') {
+              this.labelModule.calculateLabelSize(ctx, selected, point.x, point.y);
+              ctx.translate(point.x, this.labelModule.size.yLine);
+              this._rotateForLabelAlignment(ctx);
+            }
+
+            // draw the label
+            this.labelModule.draw(ctx, point.x, point.y, selected);
+            ctx.restore();
+          } else {
+            var x, y;
+            var radius = this.options.selfReferenceSize;
+            if (node1.shape.width > node1.shape.height) {
+              x = node1.x + node1.shape.width * 0.5;
+              y = node1.y - radius;
+            } else {
+              x = node1.x + radius;
+              y = node1.y - node1.shape.height * 0.5;
+            }
+            point = this._pointOnCircle(x, y, radius, 0.125);
+            this.labelModule.draw(ctx, point.x, point.y, selected);
+          }
+        }
+      }
+    }, {
+      key: 'isOverlappingWith',
+
+      /**
+       * Check if this object is overlapping with the provided object
+       * @param {Object} obj   an object with parameters left, top
+       * @return {boolean}     True if location is located on the edge
+       */
+      value: function isOverlappingWith(obj) {
+        if (this.connected) {
+          var distMax = 10;
+          var xFrom = this.from.x;
+          var yFrom = this.from.y;
+          var xTo = this.to.x;
+          var yTo = this.to.y;
+          var xObj = obj.left;
+          var yObj = obj.top;
+
+          var dist = this.edgeType.getDistanceToEdge(xFrom, yFrom, xTo, yTo, xObj, yObj);
+
+          return dist < distMax;
+        } else {
+          return false;
+        }
+      }
+    }, {
+      key: '_rotateForLabelAlignment',
+
+      /**
+       * Rotates the canvas so the text is most readable
+       * @param {CanvasRenderingContext2D} ctx
+       * @private
+       */
+      value: function _rotateForLabelAlignment(ctx) {
+        var dy = this.from.y - this.to.y;
+        var dx = this.from.x - this.to.x;
+        var angleInDegrees = Math.atan2(dy, dx);
+
+        // rotate so label it is readable
+        if (angleInDegrees < -1 && dx < 0 || angleInDegrees > 0 && dx < 0) {
+          angleInDegrees = angleInDegrees + Math.PI;
+        }
+
+        ctx.rotate(angleInDegrees);
+      }
+    }, {
+      key: '_pointOnCircle',
+
+      /**
+       * Get a point on a circle
+       * @param {Number} x
+       * @param {Number} y
+       * @param {Number} radius
+       * @param {Number} percentage. Value between 0 (line start) and 1 (line end)
+       * @return {Object} point
+       * @private
+       */
+      value: function _pointOnCircle(x, y, radius, percentage) {
+        var angle = percentage * 2 * Math.PI;
+        return {
+          x: x + radius * Math.cos(angle),
+          y: y - radius * Math.sin(angle)
+        };
+      }
+    }, {
+      key: 'select',
+      value: function select() {
+        this.selected = true;
+      }
+    }, {
+      key: 'unselect',
+      value: function unselect() {
+        this.selected = false;
+      }
+    }], [{
+      key: 'parseOptions',
+      value: function parseOptions(parentOptions, newOptions) {
+        var allowDeletion = arguments[2] === undefined ? false : arguments[2];
+
+        var fields = ['id', 'from', 'hidden', 'hoverWidth', 'label', 'length', 'line', 'opacity', 'physics', 'selectionWidth', 'selfReferenceSize', 'to', 'title', 'value', 'width'];
+
+        // only deep extend the items in the field array. These do not have shorthand.
+        util.selectiveDeepExtend(fields, parentOptions, newOptions, allowDeletion);
+
+        util.mergeOptions(parentOptions, newOptions, 'smooth');
+        util.mergeOptions(parentOptions, newOptions, 'shadow');
+
+        if (newOptions.dashes !== undefined && newOptions.dashes !== null) {
+          parentOptions.dashes = newOptions.dashes;
+        } else if (allowDeletion === true && newOptions.dashes === null) {
+          parentOptions.dashes = undefined;
+          delete parentOptions.dashes;
+        }
+
+        // set the scaling newOptions
+        if (newOptions.scaling !== undefined && newOptions.scaling !== null) {
+          if (newOptions.scaling.min !== undefined) {
+            parentOptions.scaling.min = newOptions.scaling.min;
+          }
+          if (newOptions.scaling.max !== undefined) {
+            parentOptions.scaling.max = newOptions.scaling.max;
+          }
+          util.mergeOptions(parentOptions.scaling, newOptions.scaling, 'label');
+        } else if (allowDeletion === true && newOptions.scaling === null) {
+          parentOptions.scaling = undefined;
+          delete parentOptions.scaling;
+        }
+
+        // hanlde multiple input cases for arrows
+        if (newOptions.arrows !== undefined && newOptions.arrows !== null) {
+          if (typeof newOptions.arrows === 'string') {
+            var arrows = newOptions.arrows.toLowerCase();
+            if (arrows.indexOf('to') != -1) {
+              parentOptions.arrows.to.enabled = true;
+            }
+            if (arrows.indexOf('middle') != -1) {
+              parentOptions.arrows.middle.enabled = true;
+            }
+            if (arrows.indexOf('from') != -1) {
+              parentOptions.arrows.from.enabled = true;
+            }
+          } else if (typeof newOptions.arrows === 'object') {
+            util.mergeOptions(parentOptions.arrows, newOptions.arrows, 'to');
+            util.mergeOptions(parentOptions.arrows, newOptions.arrows, 'middle');
+            util.mergeOptions(parentOptions.arrows, newOptions.arrows, 'from');
+          } else {
+            throw new Error('The arrow newOptions can only be an object or a string. Refer to the documentation. You used:' + JSON.stringify(newOptions.arrows));
+          }
+        } else if (allowDeletion === true && newOptions.arrows === null) {
+          parentOptions.arrows = undefined;
+          delete parentOptions.arrows;
+        }
+
+        // hanlde multiple input cases for color
+        if (newOptions.color !== undefined && newOptions.color !== null) {
+          if (util.isString(newOptions.color)) {
+            parentOptions.color.color = newOptions.color;
+            parentOptions.color.highlight = newOptions.color;
+            parentOptions.color.hover = newOptions.color;
+            parentOptions.color.inherit = false;
+          } else {
+            var colorsDefined = false;
+            if (newOptions.color.color !== undefined) {
+              parentOptions.color.color = newOptions.color.color;colorsDefined = true;
+            }
+            if (newOptions.color.highlight !== undefined) {
+              parentOptions.color.highlight = newOptions.color.highlight;colorsDefined = true;
+            }
+            if (newOptions.color.hover !== undefined) {
+              parentOptions.color.hover = newOptions.color.hover;colorsDefined = true;
+            }
+            if (newOptions.color.inherit !== undefined) {
+              parentOptions.color.inherit = newOptions.color.inherit;
+            }
+            if (newOptions.color.opacity !== undefined) {
+              parentOptions.color.opacity = Math.min(1, Math.max(0, newOptions.color.opacity));
+            }
+
+            if (newOptions.color.inherit === undefined && colorsDefined === true) {
+              parentOptions.color.inherit = false;
+            }
+          }
+        } else if (allowDeletion === true && newOptions.color === null) {
+          parentOptions.color = undefined;
+          delete parentOptions.color;
+        }
+      }
+    }]);
+
+    return Edge;
+  })();
+
+  exports['default'] = Edge;
+  module.exports = exports['default'];
+
+/***/ },
+/* 87 */
 /***/ function(module, exports, __webpack_require__) {
 
   var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;"use strict";
@@ -37706,7 +37402,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 89 */
+/* 88 */
 /***/ function(module, exports, __webpack_require__) {
 
   function webpackContext(req) {
@@ -37715,11 +37411,11 @@ return /******/ (function(modules) { // webpackBootstrap
   webpackContext.keys = function() { return []; };
   webpackContext.resolve = webpackContext;
   module.exports = webpackContext;
-  webpackContext.id = 89;
+  webpackContext.id = 88;
 
 
 /***/ },
-/* 90 */
+/* 89 */
 /***/ function(module, exports, __webpack_require__) {
 
   module.exports = function(module) {
@@ -37735,12 +37431,327 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 91 */
+/* 90 */
 /***/ function(module, exports, __webpack_require__) {
 
   /* WEBPACK VAR INJECTION */(function(__webpack_amd_options__) {module.exports = __webpack_amd_options__;
 
   /* WEBPACK VAR INJECTION */}.call(exports, {}))
+
+/***/ },
+/* 91 */
+/***/ function(module, exports, __webpack_require__) {
+
+  'use strict';
+
+  Object.defineProperty(exports, '__esModule', {
+    value: true
+  });
+
+  var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
+
+  function _slicedToArray(arr, i) { if (Array.isArray(arr)) { return arr; } else if (Symbol.iterator in Object(arr)) { var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i['return']) _i['return'](); } finally { if (_d) throw _e; } } return _arr; } else { throw new TypeError('Invalid attempt to destructure non-iterable instance'); } }
+
+  function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
+
+  var util = __webpack_require__(1);
+
+  var Label = (function () {
+    function Label(body, options) {
+      _classCallCheck(this, Label);
+
+      this.body = body;
+
+      this.baseSize = undefined;
+      this.setOptions(options);
+      this.size = { top: 0, left: 0, width: 0, height: 0, yLine: 0 }; // could be cached
+    }
+
+    _createClass(Label, [{
+      key: 'setOptions',
+      value: function setOptions(options) {
+        var allowDeletion = arguments[1] === undefined ? false : arguments[1];
+
+        this.options = options;
+
+        if (options.label !== undefined) {
+          this.labelDirty = true;
+        }
+
+        if (options.font !== undefined) {
+          Label.parseOptions(this.options.font, options, allowDeletion);
+          if (typeof options.font === 'string') {
+            this.baseSize = this.options.font.size;
+          } else if (typeof options.font === 'object') {
+            if (options.font.size !== undefined) {
+              this.baseSize = options.font.size;
+            }
+          }
+        }
+      }
+    }, {
+      key: 'draw',
+
+      /**
+       * Main function. This is called from anything that wants to draw a label.
+       * @param ctx
+       * @param x
+       * @param y
+       * @param selected
+       * @param baseline
+       */
+      value: function draw(ctx, x, y, selected) {
+        var baseline = arguments[4] === undefined ? 'middle' : arguments[4];
+
+        // if no label, return
+        if (this.options.label === undefined) return;
+
+        // check if we have to render the label
+        var viewFontSize = this.options.font.size * this.body.view.scale;
+        if (this.options.label && viewFontSize < this.options.scaling.label.drawThreshold - 1) return;
+
+        // update the size cache if required
+        this.calculateLabelSize(ctx, selected, x, y, baseline);
+
+        // create the fontfill background
+        this._drawBackground(ctx);
+        // draw text
+        this._drawText(ctx, selected, x, y, baseline);
+      }
+    }, {
+      key: '_drawBackground',
+
+      /**
+       * Draws the label background
+       * @param {CanvasRenderingContext2D} ctx
+       * @private
+       */
+      value: function _drawBackground(ctx) {
+        if (this.options.font.background !== undefined && this.options.font.background !== 'none') {
+          ctx.fillStyle = this.options.font.background;
+
+          var lineMargin = 2;
+
+          switch (this.options.font.align) {
+            case 'middle':
+              ctx.fillRect(-this.size.width * 0.5, -this.size.height * 0.5, this.size.width, this.size.height);
+              break;
+            case 'top':
+              ctx.fillRect(-this.size.width * 0.5, -(this.size.height + lineMargin), this.size.width, this.size.height);
+              break;
+            case 'bottom':
+              ctx.fillRect(-this.size.width * 0.5, lineMargin, this.size.width, this.size.height);
+              break;
+            default:
+              ctx.fillRect(this.size.left, this.size.top - 0.5 * lineMargin, this.size.width, this.size.height);
+              break;
+          }
+        }
+      }
+    }, {
+      key: '_drawText',
+
+      /**
+       *
+       * @param ctx
+       * @param x
+       * @param baseline
+       * @private
+       */
+      value: function _drawText(ctx, selected, x, y) {
+        var baseline = arguments[4] === undefined ? 'middle' : arguments[4];
+
+        var fontSize = this.options.font.size;
+        var viewFontSize = fontSize * this.body.view.scale;
+        // this ensures that there will not be HUGE letters on screen by setting an upper limit on the visible text size (regardless of zoomLevel)
+        if (viewFontSize >= this.options.scaling.label.maxVisible) {
+          fontSize = Number(this.options.scaling.label.maxVisible) / this.body.view.scale;
+        }
+
+        var yLine = this.size.yLine;
+
+        var _getColor = this._getColor(viewFontSize);
+
+        var _getColor2 = _slicedToArray(_getColor, 2);
+
+        var fontColor = _getColor2[0];
+        var strokeColor = _getColor2[1];
+
+        var _setAlignment = this._setAlignment(ctx, x, yLine, baseline);
+
+        var _setAlignment2 = _slicedToArray(_setAlignment, 2);
+
+        x = _setAlignment2[0];
+        yLine = _setAlignment2[1];
+
+        // configure context for drawing the text
+        ctx.font = (selected ? 'bold ' : '') + fontSize + 'px ' + this.options.font.face;
+        ctx.fillStyle = fontColor;
+        ctx.textAlign = 'center';
+
+        // set the strokeWidth
+        if (this.options.font.strokeWidth > 0) {
+          ctx.lineWidth = this.options.font.strokeWidth;
+          ctx.strokeStyle = strokeColor;
+          ctx.lineJoin = 'round';
+        }
+
+        // draw the text
+        for (var i = 0; i < this.lineCount; i++) {
+          if (this.options.font.strokeWidth > 0) {
+            ctx.strokeText(this.lines[i], x, yLine);
+          }
+          ctx.fillText(this.lines[i], x, yLine);
+          yLine += fontSize;
+        }
+      }
+    }, {
+      key: '_setAlignment',
+      value: function _setAlignment(ctx, x, yLine, baseline) {
+        // check for label alignment (for edges)
+        // TODO: make alignment for nodes
+        if (this.options.font.align !== 'horizontal') {
+          x = 0;
+          yLine = 0;
+
+          var lineMargin = 2;
+          if (this.options.font.align === 'top') {
+            ctx.textBaseline = 'alphabetic';
+            yLine -= 2 * lineMargin; // distance from edge, required because we use alphabetic. Alphabetic has less difference between browsers
+          } else if (this.options.font.align === 'bottom') {
+            ctx.textBaseline = 'hanging';
+            yLine += 2 * lineMargin; // distance from edge, required because we use hanging. Hanging has less difference between browsers
+          } else {
+            ctx.textBaseline = 'middle';
+          }
+        } else {
+          ctx.textBaseline = baseline;
+        }
+
+        return [x, yLine];
+      }
+    }, {
+      key: '_getColor',
+
+      /**
+       * fade in when relative scale is between threshold and threshold - 1.
+       * If the relative scale would be smaller than threshold -1 the draw function would have returned before coming here.
+       *
+       * @param viewFontSize
+       * @returns {*[]}
+       * @private
+       */
+      value: function _getColor(viewFontSize) {
+        var fontColor = this.options.font.color || '#000000';
+        var strokeColor = this.options.font.strokeColor || '#ffffff';
+        if (viewFontSize <= this.options.scaling.label.drawThreshold) {
+          var opacity = Math.max(0, Math.min(1, 1 - (this.options.scaling.label.drawThreshold - viewFontSize)));
+          fontColor = util.overrideOpacity(fontColor, opacity);
+          strokeColor = util.overrideOpacity(strokeColor, opacity);
+        }
+        return [fontColor, strokeColor];
+      }
+    }, {
+      key: 'getTextSize',
+
+      /**
+       *
+       * @param ctx
+       * @param selected
+       * @returns {{width: number, height: number}}
+       */
+      value: function getTextSize(ctx) {
+        var selected = arguments[1] === undefined ? false : arguments[1];
+
+        var size = {
+          width: this._processLabel(ctx, selected),
+          height: this.options.font.size * this.lineCount,
+          lineCount: this.lineCount
+        };
+        return size;
+      }
+    }, {
+      key: 'calculateLabelSize',
+
+      /**
+       *
+       * @param ctx
+       * @param selected
+       * @param x
+       * @param y
+       * @param baseline
+       */
+      value: function calculateLabelSize(ctx, selected) {
+        var x = arguments[2] === undefined ? 0 : arguments[2];
+        var y = arguments[3] === undefined ? 0 : arguments[3];
+        var baseline = arguments[4] === undefined ? 'middle' : arguments[4];
+
+        if (this.labelDirty === true) {
+          this.size.width = this._processLabel(ctx, selected);
+        }
+        this.size.height = this.options.font.size * this.lineCount;
+        this.size.left = x - this.size.width * 0.5;
+        this.size.top = y - this.size.height * 0.5;
+        this.size.yLine = y + (1 - this.lineCount) * 0.5 * this.options.font.size;
+        if (baseline === 'hanging') {
+          this.size.top += 0.5 * this.options.font.size;
+          this.size.top += 4; // distance from node, required because we use hanging. Hanging has less difference between browsers
+          this.size.yLine += 4; // distance from node
+        }
+
+        this.labelDirty = false;
+      }
+    }, {
+      key: '_processLabel',
+
+      /**
+       * This calculates the width as well as explodes the label string and calculates the amount of lines.
+       * @param ctx
+       * @param selected
+       * @returns {number}
+       * @private
+       */
+      value: function _processLabel(ctx, selected) {
+        var width = 0;
+        var lines = [''];
+        var lineCount = 0;
+        if (this.options.label !== undefined) {
+          lines = String(this.options.label).split('\n');
+          lineCount = lines.length;
+          ctx.font = (selected ? 'bold ' : '') + this.options.font.size + 'px ' + this.options.font.face;
+          width = ctx.measureText(lines[0]).width;
+          for (var i = 1; i < lineCount; i++) {
+            var lineWidth = ctx.measureText(lines[i]).width;
+            width = lineWidth > width ? lineWidth : width;
+          }
+        }
+        this.lines = lines;
+        this.lineCount = lineCount;
+
+        return width;
+      }
+    }], [{
+      key: 'parseOptions',
+      value: function parseOptions(parentOptions, newOptions) {
+        var allowDeletion = arguments[2] === undefined ? false : arguments[2];
+
+        if (typeof newOptions.font === 'string') {
+          var newOptionsArray = newOptions.font.split(' ');
+          parentOptions.size = newOptionsArray[0].replace('px', '');
+          parentOptions.face = newOptionsArray[1];
+          parentOptions.color = newOptionsArray[2];
+        } else if (typeof newOptions.font === 'object') {
+          util.fillIfDefined(parentOptions, newOptions.font, allowDeletion);
+        }
+        parentOptions.size = Number(parentOptions.size);
+      }
+    }]);
+
+    return Label;
+  })();
+
+  exports['default'] = Label;
+  module.exports = exports['default'];
 
 /***/ },
 /* 92 */
