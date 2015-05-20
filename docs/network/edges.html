@@ -11,7 +11,7 @@
 
     <!-- Bootstrap core CSS -->
     <link href="../css/bootstrap.css" rel="stylesheet">
-    <link href="../css/newdocs.css" rel="stylesheet">
+    <link href="../css/style.css" rel="stylesheet">
 
     <link href="../css/prettify.css" type="text/css" rel="stylesheet"/>
     <script type="text/javascript" src="../js/googleAnalytics.js"></script>
@@ -191,17 +191,17 @@ network.setOptions(options);
 </pre>
 
     <p>These options can also be set per individual edge.</p>
-    <table class="moduleTable" id="optionTable">
+    <table class="options" id="optionTable">
         <tr>
-            <th>name</th>
-            <th>type</th>
-            <th>default</th>
-            <th>description</th>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Default</th>
+            <th>Description</th>
         </tr>
         <tr class='toggle collapsible' onclick="toggleTable('optionTable','arrows', this);">
             <td><span parent="arrows" class="right-caret"></span> arrows</td>
-            <td class="mid">Object or String</td>
-            <td class="mid"><code>undefined</code></td>
+            <td>Object or String</td>
+            <td><code>undefined</code></td>
             <td>To draw an arrow with default settings a string can be supplied. For example: <code>arrows:'to, from,
                 middle'</code> or <code>'to;from'</code>, any combination with any seperating symbol is fine. If you
                 want to control the size of the arrowheads, you can supply an object.
@@ -209,42 +209,42 @@ network.setOptions(options);
         </tr>
         <tr parent="arrows" class="hidden">
             <td class="indent">arrows.to</td>
-            <td class="mid">Object or Boolean</td>
-            <td class="mid"><code>Object</code></td>
+            <td>Object or Boolean</td>
+            <td><code>Object</code></td>
             <td>When true, an arrowhead on the 'to' side of the edge is drawn, pointing to the 'to' node with default
                 settings. To customize the size of the arrow, supply an object.
             </td>
         </tr>
         <tr parent="arrows" class="hidden">
             <td class="indent2">arrows.to.enabled</td>
-            <td class="mid">Boolean</td>
-            <td class="mid"><code>false</code></td>
+            <td>Boolean</td>
+            <td><code>false</code></td>
             <td>Toggle the arrow on or off. This option is optional, if undefined and the scaleFactor property is set,
                 enabled will be set to true.
             </td>
         </tr>
         <tr parent="arrows" class="hidden">
             <td class="indent2">arrows.to.scaleFactor</td>
-            <td class="mid">Number</td>
-            <td class="mid"><code>1</code></td>
+            <td>Number</td>
+            <td><code>1</code></td>
             <td>The scale factor allows you to change the size of the arrowhead.</td>
         </tr>
         <tr parent="arrows" class="hidden">
             <td class="indent">arrows.middle</td>
-            <td class="mid">Object or Boolean</td>
-            <td class="mid"><code>Object</code></td>
+            <td>Object or Boolean</td>
+            <td><code>Object</code></td>
             <td>Exactly the same as the to object but with an arrowhead in the center of the edge.</td>
         </tr>
         <tr parent="arrows" class="hidden">
             <td class="indent">arrows.from</td>
-            <td class="mid">Object or Boolean</td>
-            <td class="mid"><code>Object</code></td>
+            <td>Object or Boolean</td>
+            <td><code>Object</code></td>
             <td>Exactly the same as the to object but with an arrowhead at the from node of the edge.</td>
         </tr>
         <tr class='toggle collapsible' onclick="toggleTable('optionTable','color', this);">
             <td><span parent="color" class="right-caret"></span> color</td>
-            <td class="mid">Object or String</td>
-            <td class="mid"><code>Object</code></td>
+            <td>Object or String</td>
+            <td><code>Object</code></td>
             <td>The color object contains the color information of the edge in every situation. When the edge only needs
                 a single color, a color value like <code>'rgb(120,32,14)'</code>, <code>'#ffffff'</code> or
                 <code>'red'</code> can be supplied instead of an object.
@@ -252,30 +252,30 @@ network.setOptions(options);
         </tr>
         <tr parent="color" class="hidden">
             <td class="indent">color.color</td>
-            <td class="mid">String</td>
-            <td class="mid"><code>'#848484'</code></td>
+            <td>String</td>
+            <td><code>'#848484'</code></td>
             <td>The color of the border of the node when it is not selected or hovered over <i>(assuming hover is
                 enabled in the interaction module)</i>.
             </td>
         </tr>
         <tr parent="color" class="hidden">
             <td class="indent">color.highlight</td>
-            <td class="mid">String</td>
-            <td class="mid"><code>'#848484'</code></td>
+            <td>String</td>
+            <td><code>'#848484'</code></td>
             <td>The color the edge when it is selected.</td>
         </tr>
         <tr parent="color" class="hidden">
             <td class="indent">color.hover</td>
-            <td class="mid">String</td>
-            <td class="mid"><code>'#848484'</code></td>
+            <td>String</td>
+            <td><code>'#848484'</code></td>
             <td>The color the edge when the mouse hovers over it <i>(assuming hover is enabled in the interaction
                 module)</i>.
             </td>
         </tr>
         <tr parent="color" class="hidden">
             <td class="indent">color.inherit</td>
-            <td class="mid">String or Boolean</td>
-            <td class="mid"><code>'from'</code></td>
+            <td>String or Boolean</td>
+            <td><code>'from'</code></td>
             <td><i>When color, highlight or hover are defined, inherit is set to false!</i>
                 <br><br>Supported options are: <code>true, false, 'from','to','both'</code>.
                 <br><br>The default value is 'from' which does the same as true: the edge will inherit the color from
@@ -288,8 +288,8 @@ network.setOptions(options);
         </tr>
         <tr parent="color" class="hidden">
             <td class="indent">color.opacity</td>
-            <td class="mid">Number</td>
-            <td class="mid"><code>1.0</code></td>
+            <td>Number</td>
+            <td><code>1.0</code></td>
             <td>It can be useful to set the opacity of an edge without manually changing all the colors. The opacity
                 option will convert all colors (also when using inherit) to adhere to the supplied opacity. The allowed
                 range of the opacity option is between <code>0 and 1</code>. This is only done once so the performance
@@ -298,8 +298,8 @@ network.setOptions(options);
         </tr>
         <tr>
             <td>dashes</td>
-            <td class="mid">Array or Boolean</td>
-            <td class="mid"><code>false</code></td>
+            <td>Array or Boolean</td>
+            <td><code>false</code></td>
             <td>When true, the edge will be drawn as a dashed line. You can customize the dashes by supplying an Array.
                 Array formart: Array of numbers, gap length, dash length, gap length, dash length, ... etc. The array is
                 repeated until the distance is filled.
@@ -308,56 +308,56 @@ network.setOptions(options);
         </tr>
         <tr class='toggle collapsible' onclick="toggleTable('optionTable','font', this);">
             <td><span parent="font" class="right-caret"></span> font</td>
-            <td class="mid">Object or String</td>
-            <td class="mid"><code>false</code></td>
+            <td>Object or String</td>
+            <td><code>false</code></td>
             <td>This object defines the details of the label. A shorthand is also supported in the form <code>'size face
                 color'</code> for example: <code>'14px arial red'</code>.
             </td>
         </tr>
         <tr parent="font" class="hidden">
             <td class="indent">font.color</td>
-            <td class="mid">String</td>
-            <td class="mid"><code>'#343434'</code></td>
+            <td>String</td>
+            <td><code>'#343434'</code></td>
             <td>Color of the label text.</td>
         </tr>
         <tr parent="font" class="hidden">
             <td class="indent">font.size</td>
-            <td class="mid">Number</td>
-            <td class="mid"><code>14</code></td>
+            <td>Number</td>
+            <td><code>14</code></td>
             <td>Size of the label text.</td>
         </tr>
         <tr parent="font" class="hidden">
             <td class="indent">font.face</td>
-            <td class="mid">String</td>
-            <td class="mid"><code>'arial'</code></td>
+            <td>String</td>
+            <td><code>'arial'</code></td>
             <td>Font face (or font family) of the label text.</td>
         </tr>
         <tr parent="font" class="hidden">
             <td class="indent">font.background</td>
-            <td class="mid">String</td>
-            <td class="mid"><code>undefined</code></td>
+            <td>String</td>
+            <td><code>undefined</code></td>
             <td>When not <code>undefined</code> but a <b>color string</b>, a background rectangle will be drawn behind
                 the label in the supplied color.
             </td>
         </tr>
         <tr parent="font" class="hidden">
             <td class="indent">font.strokeWidth</td>
-            <td class="mid">Number</td>
-            <td class="mid"><code>2</code></td>
+            <td>Number</td>
+            <td><code>2</code></td>
             <td>As an alternative to the background rectangle, a stroke can be drawn around the text. When a value
                 higher than 0 is supplied, the stroke will be drawn.
             </td>
         </tr>
         <tr parent="font" class="hidden">
             <td class="indent">font.strokeColor</td>
-            <td class="mid">String</td>
-            <td class="mid"><code>'#ffffff'</code></td>
+            <td>String</td>
+            <td><code>'#ffffff'</code></td>
             <td>This is the color of the stroke <i>assuming the value for stroke is higher than 0</i>.</td>
         </tr>
         <tr parent="font" class="hidden">
             <td class="indent">font.align</td>
-            <td class="mid">String</td>
-            <td class="mid"><code>'horizontal'</code></td>
+            <td>String</td>
+            <td><code>'horizontal'</code></td>
             <td>Possible options: <code>'horizontal','top','middle','bottom'</code>. The alignment determines how the
                 label is aligned over the edge. The default value <code>horizontal</code> aligns the label horizontally,
                 regardless of the orientation of the edge. When an option other than <code>horizontal</code> is chosen,
@@ -366,14 +366,14 @@ network.setOptions(options);
         </tr>
         <tr>
             <td>hidden</td>
-            <td class="mid">Boolean</td>
-            <td class="mid"><code>false</code></td>
+            <td>Boolean</td>
+            <td><code>false</code></td>
             <td>When true, the edge is not drawn. It is part still part of the physics simulation however!</td>
         </tr>
         <tr>
             <td>hoverWidth</td>
-            <td class="mid">Number or Function</td>
-            <td class="mid"><code>0.5</code></td>
+            <td>Number or Function</td>
+            <td><code>0.5</code></td>
             <td>Assuming the hover behaviour is enabled in the <a href="./interaction.html">interaction module</a>, the
                 hoverWidth determines the width of the edge when the user hovers over it with the mouse. If a number is
                 supplied, this number will be <b>added</b> to the width.
@@ -394,34 +394,34 @@ var options: {
 
         <tr>
             <td>id</td>
-            <td class="mid">String</td>
-            <td class="mid"><code>undefined</code></td>
+            <td>String</td>
+            <td><code>undefined</code></td>
             <td>The id of the edge. The id is optional for edges. When not supplied, an UUID will be assigned to the edge.</td>
         </tr>
         <tr>
             <td>label</td>
-            <td class="mid">String</td>
-            <td class="mid"><code>undefined</code></td>
+            <td>String</td>
+            <td><code>undefined</code></td>
             <td>The label of the edge. HTML does not work in here because the network uses HTML5 Canvas.</td>
         </tr>
         <tr>
             <td>length</td>
-            <td class="mid">Number</td>
-            <td class="mid"><code>undefined</code></td>
+            <td>Number</td>
+            <td><code>undefined</code></td>
             <td>The physics simulation gives edges a spring length. This value can override the length of the spring in
                 rest.
             </td>
         </tr>
         <tr>
             <td>physics</td>
-            <td class="mid">Boolean</td>
-            <td class="mid"><code>true</code></td>
+            <td>Boolean</td>
+            <td><code>true</code></td>
             <td>When true, the edge is part of the physics simulation. When false, it will not act as a spring.</td>
         </tr>
         <tr class='toggle collapsible' onclick="toggleTable('optionTable','scaling', this);">
             <td><span parent="scaling" class="right-caret"></span> scaling</td>
-            <td class="mid">Object</td>
-            <td class="mid"><code>Object</code></td>
+            <td>Object</td>
+            <td><code>Object</code></td>
             <td>If the <code>value</code> option is specified, the width of the edges will be scaled according to the
                 properties in this object. Keep in mind that when using scaling, the <code>width</code> option is
                 neglected.
@@ -429,58 +429,58 @@ var options: {
         </tr>
         <tr parent="scaling" class="hidden">
             <td class="indent">scaling.min</td>
-            <td class="mid">Number</td>
-            <td class="mid"><code>1</code></td>
+            <td>Number</td>
+            <td><code>1</code></td>
             <td>If edges have a value, their widths are determined by the value, the scaling function and the min max
                 values. The min value is the minimum allowed value.
             </td>
         </tr>
         <tr parent="scaling" class="hidden">
             <td class="indent">scaling.max</td>
-            <td class="mid">Number</td>
-            <td class="mid"><code>15</code></td>
+            <td>Number</td>
+            <td><code>15</code></td>
             <td>This is the maximum allowed width when the edges are scaled using the value option.</td>
         </tr>
         <tr parent="scaling" class="hidden">
             <td class="indent">scaling.label</td>
-            <td class="mid">Object or Boolean</td>
-            <td class="mid"><code>Object</code></td>
+            <td>Object or Boolean</td>
+            <td><code>Object</code></td>
             <td>When false, the label is not allowed to scale with the edge. If true it will scale using default
                 settigns. For further customization, you can supply an object.
             </td>
         </tr>
         <tr parent="scaling" class="hidden">
             <td class="indent2">scaling.label.enabled</td>
-            <td class="mid">Boolean</td>
-            <td class="mid"><code>false</code></td>
+            <td>Boolean</td>
+            <td><code>false</code></td>
             <td>Toggle the scaling of the label on or off. If this option is not defined, it is set to true if any of
                 the properties in this object are defined.
             </td>
         </tr>
         <tr parent="scaling" class="hidden">
             <td class="indent2">scaling.label.min</td>
-            <td class="mid">Number</td>
-            <td class="mid"><code>14</code></td>
+            <td>Number</td>
+            <td><code>14</code></td>
             <td>The minimum font-size used for labels when scaling.</td>
         </tr>
         <tr parent="scaling" class="hidden">
             <td class="indent2">scaling.label.max</td>
-            <td class="mid">Number</td>
-            <td class="mid"><code>30</code></td>
+            <td>Number</td>
+            <td><code>30</code></td>
             <td>The maximum font-size used for labels when scaling.</td>
         </tr>
         <tr parent="scaling" class="hidden">
             <td class="indent2">scaling.label.maxVisible</td>
-            <td class="mid">Number</td>
-            <td class="mid"><code>30</code></td>
+            <td>Number</td>
+            <td><code>30</code></td>
             <td>When zooming in, the font is drawn larger as well. You can limit the perceived font size using this
                 option. If set to 30, the font will never look larger than size 30 zoomed at 100%.
             </td>
         </tr>
         <tr parent="scaling" class="hidden">
             <td class="indent2">scaling.label.drawThreshold</td>
-            <td class="mid">Number</td>
-            <td class="mid"><code>3</code></td>
+            <td>Number</td>
+            <td><code>3</code></td>
             <td>When zooming out, the font will be drawn smaller. This defines a lower limit for when the font is drawn.
                 When using font scaling, you can use this together with the maxVisible to first show labels of important
                 edges when zoomed out and only show the rest when zooming in.
@@ -488,8 +488,8 @@ var options: {
         </tr>
         <tr parent="scaling" class="hidden">
             <td class="indent">scaling.customScalingFunction</td>
-            <td class="mid">Function</td>
-            <td class="mid">in description</td>
+            <td>Function</td>
+            <td>in description</td>
             <td>If edges have <code>value</code> fields, this function determines how the size of the nodes are scaled
                 based on their values. The default function is:
 <pre>
@@ -515,8 +515,8 @@ myWidth = minWidth + diff * scale;
         </tr>
         <tr>
             <td>selectionWidth</td>
-            <td class="mid">Number or Function</td>
-            <td class="mid"><code>1</code></td>
+            <td>Number or Function</td>
+            <td><code>1</code></td>
             <td>The selectionWidth determines the width of the edge when the edge is selected. If a number is supplied,
                 this number will be <b>added</b> to the width.
                 Because the width can be altered by the value and the scaling functions, a constant multiplier or added
@@ -535,48 +535,48 @@ var options: {
         </tr>
         <tr>
             <td>selfReferenceSize</td>
-            <td class="mid">Number</td>
-            <td class="mid"><code>false</code></td>
+            <td>Number</td>
+            <td><code>false</code></td>
             <td>When the to and from nodes are the same, a circle is drawn. This is the radius of that circle.</td>
         </tr>
         <tr class='toggle collapsible' onclick="toggleTable('optionTable','shadow', this);">
             <td><span parent="shadow" class="right-caret"></span> shadow</td>
-            <td class="mid">Object or Boolean</td>
-            <td class="mid"><code>Object</code></td>
+            <td>Object or Boolean</td>
+            <td><code>Object</code></td>
             <td>When true, the edge casts a shadow using the default settings. This can be further refined by supplying
                 an object.
             </td>
         </tr>
         <tr parent="shadow" class="hidden">
             <td class="indent">shadow.enabled</td>
-            <td class="mid">Boolean</td>
-            <td class="mid"><code>false</code></td>
+            <td>Boolean</td>
+            <td><code>false</code></td>
             <td>Toggle the casting of shadows. If this option is not defined, it is set to true if any of the properties
                 in this object are defined.
             </td>
         </tr>
         <tr parent="shadow" class="hidden">
             <td class="indent">shadow.size</td>
-            <td class="mid">Number</td>
-            <td class="mid"><code>10</code></td>
+            <td>Number</td>
+            <td><code>10</code></td>
             <td>The blur size of the shadow.</td>
         </tr>
         <tr parent="shadow" class="hidden">
             <td class="indent">shadow.x</td>
-            <td class="mid">Number</td>
-            <td class="mid"><code>5</code></td>
+            <td>Number</td>
+            <td><code>5</code></td>
             <td>The x offset.</td>
         </tr>
         <tr parent="shadow" class="hidden">
             <td class="indent">shadow.y</td>
-            <td class="mid">Number</td>
-            <td class="mid"><code>5</code></td>
+            <td>Number</td>
+            <td><code>5</code></td>
             <td>The y offset.</td>
         </tr>
         <tr class='toggle collapsible' onclick="toggleTable('optionTable','smooth', this);">
             <td><span parent="smooth" class="right-caret"></span> smooth</td>
-            <td class="mid">Object or Boolean</td>
-            <td class="mid"><code>Object</code></td>
+            <td>Object or Boolean</td>
+            <td><code>Object</code></td>
             <td>When true, the edge is drawn as a dynamic quadratic bezier curve. The drawing of these curves takes longer than
                 that of straight curves but it looks better.
                 There is a difference between dynamic smooth curves and static smooth curves. The dynamic smooth curves
@@ -586,16 +586,16 @@ var options: {
         </tr>
         <tr parent="smooth" class="hidden">
             <td class="indent">smooth.enabled</td>
-            <td class="mid">Boolean</td>
-            <td class="mid"><code>true</code></td>
+            <td>Boolean</td>
+            <td><code>true</code></td>
             <td>Toggle smooth curves on and off. This is an optional option. If any of the other properties in this
                 object are set, this option will be set to true.
             </td>
         </tr>
         <tr parent="smooth" class="hidden">
             <td class="indent">smooth.type</td>
-            <td class="mid">String</td>
-            <td class="mid"><code>'dynamic'</code></td>
+            <td>String</td>
+            <td><code>'dynamic'</code></td>
             <td>Possible options: <code>'dynamic', 'continuous', 'discrete', 'diagonalCross', 'straightCross', 'horizontal',
                 'vertical', 'curvedCW', 'curvedCCW'</code>. Take a look at our example 26 to see what these look like
                 and pick the one that you like best!
@@ -606,29 +606,29 @@ var options: {
         </tr>
         <tr parent="smooth" class="hidden">
             <td class="indent">smooth.roundness</td>
-            <td class="mid">Number</td>
-            <td class="mid"><code>0.5</code></td>
+            <td>Number</td>
+            <td><code>0.5</code></td>
             <td>Accepted range: <code>0 .. 1.0</code>. This parameter tweaks the roundness of the smooth curves for all types EXCEPT dynamic.
             </td>
         </tr>
         <tr>
             <td>title</td>
-            <td class="mid">String</td>
-            <td class="mid"><code>undefined</code></td>
+            <td>String</td>
+            <td><code>undefined</code></td>
             <td>The title is shown in a pop-up when the mouse moves over the edge.</td>
         </tr>
         <tr>
             <td>value</td>
-            <td class="mid">Number</td>
-            <td class="mid"><code>undefined</code></td>
+            <td>Number</td>
+            <td><code>undefined</code></td>
             <td>When a value is set, the edges' width will be scaled using the options in the scaling object defined
                 above.
             </td>
         </tr>
         <tr>
             <td>width</td>
-            <td class="mid">Number</td>
-            <td class="mid"><code>1</code></td>
+            <td>Number</td>
+            <td><code>1</code></td>
             <td>The width of the edge. If value is set, this is not used.</td>
         </tr>
     </table>

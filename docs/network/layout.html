@@ -10,7 +10,7 @@
 
     <!-- Bootstrap core CSS -->
     <link href="../css/bootstrap.css" rel="stylesheet">
-    <link href="../css/newdocs.css" rel="stylesheet">
+    <link href="../css/style.css" rel="stylesheet">
 
     <!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
     <!--[if lt IE 9]>
@@ -109,14 +109,14 @@ var options = {
 network.setOptions(options);
 </pre>
     <p>When enabling the hierarchical layout, it overrules some of the other options. The physics is set to the hierarchical repulsion solver and dynamic smooth edges are converted to static smooth edges.</p>
-    <table class="moduleTable" id="optionTable">
-        <tr><th>name</th><th>type</th><th>default</th><td>description</td></tr>
-        <tr><td>randomSeed</td><td class="mid">Number</td><td class="mid"><code>undefined</code></td>               <td>When NOT using the hierarchical layout, the nodes are randomly positioned initially. This means that the settled result is different every time. If you provide a random seed manually, the layout will be the same every time. Ideally you try with an undefined seed, reload until you are happy with the layout and use the <code>getSeed()</code> method to ascertain the seed.</td></tr>
-        <tr class='toggle collapsible' onclick="toggleTable('optionTable','hierarchical', this);"><td><span parent="repulsion" class="right-caret"></span> hierarchical</td><td class="mid">Object or Boolean</td><td class="mid"><code>Object</code></td>      <td>When true, the layout engine positions the nodes in a hierarchical fashion using default settings. For customization you can supply an object.</td></tr>
-        <tr parent="hierarchical" class="hidden"><td class="indent">hierarchical.enabled</td><td class="mid">Boolean</td><td class="mid"><code>false</code></td>        <td>Toggle the usage of the hierarchical layout system. If this option is not defined, it is set to true if any of the properties in this object are defined.</td></tr>
-        <tr parent="hierarchical" class="hidden"><td class="indent">hierarchical.levelSeparation</td><td class="mid">Number</td><td class="mid"><code>150</code></td>   <td>The distance between the different levels.</td></tr>
-        <tr parent="hierarchical" class="hidden"><td class="indent">hierarchical.direction</td><td class="mid">String</td><td class="mid"><code>'UD'</code></td>        <td>The direction of the hierarchical layout. The available options are: <code>UD, DU, LR, RL</code>. To simplify: up-down, down-up, left-right, right-left.</td></tr>
-        <tr parent="hierarchical" class="hidden"><td class="indent">hierarchical.sortMethod</td><td class="mid">String</td><td class="mid"><code>'hubsize'</code></td>  <td>The algorithm used to ascertain the levels of the nodes based on the data. The possible options are: <code>hubsize, directed</code>. <br><br>
+    <table class="options" id="optionTable">
+        <tr><th>Name</th><th>Type</th><th>Default</th><td>Description</td></tr>
+        <tr><td>randomSeed</td><td>Number</td><td><code>undefined</code></td>               <td>When NOT using the hierarchical layout, the nodes are randomly positioned initially. This means that the settled result is different every time. If you provide a random seed manually, the layout will be the same every time. Ideally you try with an undefined seed, reload until you are happy with the layout and use the <code>getSeed()</code> method to ascertain the seed.</td></tr>
+        <tr class='toggle collapsible' onclick="toggleTable('optionTable','hierarchical', this);"><td><span parent="repulsion" class="right-caret"></span> hierarchical</td><td>Object or Boolean</td><td><code>Object</code></td>      <td>When true, the layout engine positions the nodes in a hierarchical fashion using default settings. For customization you can supply an object.</td></tr>
+        <tr parent="hierarchical" class="hidden"><td class="indent">hierarchical.enabled</td><td>Boolean</td><td><code>false</code></td>        <td>Toggle the usage of the hierarchical layout system. If this option is not defined, it is set to true if any of the properties in this object are defined.</td></tr>
+        <tr parent="hierarchical" class="hidden"><td class="indent">hierarchical.levelSeparation</td><td>Number</td><td><code>150</code></td>   <td>The distance between the different levels.</td></tr>
+        <tr parent="hierarchical" class="hidden"><td class="indent">hierarchical.direction</td><td>String</td><td><code>'UD'</code></td>        <td>The direction of the hierarchical layout. The available options are: <code>UD, DU, LR, RL</code>. To simplify: up-down, down-up, left-right, right-left.</td></tr>
+        <tr parent="hierarchical" class="hidden"><td class="indent">hierarchical.sortMethod</td><td>String</td><td><code>'hubsize'</code></td>  <td>The algorithm used to ascertain the levels of the nodes based on the data. The possible options are: <code>hubsize, directed</code>. <br><br>
             Hubsize takes the nodes with the most edges and puts them at the top. From that the rest of the hierarchy is evaluated. <br><br>
             Directed adheres to the to and from data of the edges. A --> B so B is a level lower than A.</td></tr>
     </table>

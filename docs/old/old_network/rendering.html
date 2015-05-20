@@ -90,7 +90,7 @@ var options = {
 network.setOptions(options);
 </pre>
     <p>All of the individual options are explained here:</p>
-    <table class="moduleTable">
+    <table>
         <tr class="header"><td>name</td><td>type</td><td>default</td><td>description</td></tr>
         <tr><td>hideEdgesOnDrag</td><td class="mid">Boolean</td><td class="mid"><code>false</code></td><td>When true, the edges are not drawn when dragging the view. This can greatly speed up responsiveness on dragging, improving user experience.</td></tr>
         <tr><td>hideNodesOnDrag</td><td class="mid">Boolean</td><td class="mid"><code>false</code></td><td>When true, the nodes are not drawn when dragging the view. This can greatly speed up responsiveness on dragging, improving user experience.</td></tr>
@@ -98,14 +98,14 @@ network.setOptions(options);
 
     <h3>Methods</h3>
     <p>This is a list of all the methods in the public API. Options can be set directly to the module or you can use the setOptions method of the network itself and use the module name as an object name.</p>
-    <table class="moduleTable">
+    <table>
         <tr class="header"><td>name</td><td>returns</td><td>description</td></tr>
         <tr><td>redraw()</td><td class="mid">none</td><td>Redraw the network.</td></tr>
     </table>
 
     <h3>Events</h3>
     <p>These events are fired by the renderer and can be used to move and draw custom elements on the same canvas as the rest of the network.</p>
-    <table class="moduleTable">
+    <table>
         <tr class="header"><td>name</td><td class="properties">properties</td><td>description</td></tr>
         <tr><td>initRedraw</td><td class="mid">none</td><td>Fired before the redrawing begins. The simulation step has completed at this point. Can be used to move custom elements before starting drawing the new frame.</td>
         <tr><td>beforeDrawing</td><td class="mid"><code>canvas context</code></td><td>Fired after the canvas has been cleared, scaled and translated to the viewing position but before all edges and nodes are drawn. Can be used to draw behind the network.</td>

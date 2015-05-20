@@ -84,7 +84,7 @@
 
     <h3>Methods</h3>
     <p>This is a list of all the methods in the public API. Options can be set directly to the module or you can use the setOptions method of the network itself and use the module name as an object name.</p>
-    <table class="moduleTable">
+    <table>
         <tr class="header"><td class="name">name</td><td>returns</td><td>description</td></tr>
         <tr><td>findNode(<br>
             &nbsp;&nbsp;<code>String nodeId</code><br>)</td>   <td class="mid">Array</td>   <td>Nodes can be in clusters. Clusters can also be in clusters. This function returns and array of nodeIds showing where the node is. Example: <br>
@@ -113,7 +113,7 @@
     <br>
     <h4 id="optionsObject">Cluster options object</h4>
     <p>The options object supplied to the cluster functions can contain these properties:</p>
-    <table class="moduleTable">
+    <table>
         <tr class="header"><td class="name">name</td><td>Type</td><td>description</td></tr>
         <tr><td>joinCondition(<br>&nbsp;&nbsp;<code>Object nodeOptions</code><br>)</td>     <td class="mid">Function</td>
             <td><i>Optional for all but the cluster method. </i> The cluster module loops over all nodes that are selected to be in the cluster and calls this function with their data as argument.

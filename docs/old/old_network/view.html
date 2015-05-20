@@ -1,6 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
-<head>
+<html lang="en"><head>
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -69,56 +68,82 @@
 
 <a href="https://github.com/almende/vis" class="hidden-xs hidden-sm hidden-md"><img style="position: absolute; top: 0; right: 0; border: 0;" src="https://camo.githubusercontent.com/38ef81f8aca64bb9a64448d0d70f1308ef5341ab/68747470733a2f2f73332e616d617a6f6e6177732e636f6d2f6769746875622f726962626f6e732f666f726b6d655f72696768745f6461726b626c75655f3132313632312e706e67" alt="Fork me on GitHub" data-canonical-src="https://s3.amazonaws.com/github/ribbons/forkme_right_darkblue_121621.png"></a>
 <div class="container full">
-    <h1>Network - selection</h1>
-    <p>Handles the selection of nodes and edges.</p>
+    <h1>Network - view</h1>
+    <p>Acts as the camera that looks on the canvas. Does the animation, zooming and focusing.</p>
 
     <h3>Options</h3>
-    <p>The options for the selection have to be contained in an object titled 'selection'.</p>
-    <p>Click on the options shown to show how these options are supposed to be used.</p>
-    <ul class="nav nav-tabs">
-        <li role="presentation" class="active" onclick="hideOptions('fullTab','fullOptions');" id="hiddenTab"><a href="#">options hidden</a></li>
-        <li role="presentation" onclick="toggleTab('fullTab','fullOptions');" id="fullTab"><a href="#">options shown</a></li>
-    </ul>
-    <br>
-<pre class="prettyprint lang-js options hidden" id="fullOptions">
-var options = {
-  selection:{
-    selectable: true,
-    selectConnectedEdges: false
-  }
-}
-
-network.setOptions(options);
-</pre>
-    <p>All of the individual options are explained here:</p>
-    <table class="moduleTable">
-        <tr class="header"><td>name</td><td>type</td><td>default</td><td>description</td></tr>
-        <tr><td>selectable</td>             <td class="mid">Boolean</td><td class="mid"><code>true</code></td><td>When true, the nodes and edges can be selected by the user.</td></tr>
-        <tr><td>selectConnectedEdges</td>   <td class="mid">Boolean</td><td class="mid"><code>true</code></td><td>When true, on selecting a node, its connecting edges are highlighted.</td></tr>
-    </table>
+    <p>The view has no options.</p>
 
     <h3>Methods</h3>
     <p>This is a list of all the methods in the public API. Options can be set directly to the module or you can use the setOptions method of the network itself and use the module name as an object name.</p>
-    <table class="moduleTable">
+    <table>
         <tr class="header"><td class="methodName">name</td><td>returns</td><td>description</td></tr>
-        <tr><td>getSelection()</td>             <td class="mid">
+        <tr><td>getScale()</td>      <td class="mid">Number</td><td>Returns the current scale of the network. 1.0 is comparible to 100%, 0 is zoomed out infinitely.</td></tr>
+        <tr><td>getPosition()</td>   <td class="mid">Number</td><td>Returns the current central focus point of the camera.</td></tr>
+        <tr><td>fit(<code>[Object options]</code>)</td><td class="mid">none</td><td>Zooms out so all nodes fit on the canvas. You can supply options to customize this:
 <pre class="code">
 {
-  nodes: [Array of selected nodeIds],
-  edges: [Array of selected edgeIds]
-}</pre> </td><td>Returns an object with selected nodes and edges ids.</td></tr>
+  nodes:[Array of nodeIds],
+  animation: { // -------------------> can be a boolean too!
+    duration: Number
+    easingFunction: String
+  }
+}
+</pre>
+            The nodes can be used to zoom to fit only specific nodes in the view. <br /><br />
+            The other options are explained in the <code>moveTo()</code> description below.
+            All options are optional for the fit method.
+        </td></tr>
+        <tr><td>focus(<br>
+            &nbsp;&nbsp;&nbsp;<code>String nodeId</code>,<br>
+            &nbsp;&nbsp;&nbsp;<code>[Object options]</code><br>)</td><td class="mid">none</td>
+            <td>You can focus on a node with this function. What that means is the view will lock onto that node, if it is moving, the view will also move accordingly. If the view is dragged by the user, the focus is broken.
+                You can supply options to customize the effect:
+<pre class="code">
+{
+  scale: Number,
+  offset: {x:Number, y:Number}
+  locked: boolean
+  animation: { // -------------------> can be a boolean too!
+    duration: Number
+    easingFunction: String
+  }
+}
+</pre>
+        All options except for locked are explained in the <code>moveTo()</code> description below. Locked denotes whether or not the view remains locked to the node once the zoom-in animation is finished. Default value is true. The options object is optional in the focus method.</td></tr>
+        <tr><td>moveTo(<code>Object options</code>)</td>      <td class="mid">none</td><td>You can animate or move the camera using the moveTo method. Options are:
+<pre class="code">
+{
+  position: {x:Number, y:Number},
+  scale: Number,
+  offset: {x:Number, y:Number}
+  animation: { // -------------------> can be a boolean too!
+    duration: Number
+    easingFunction: String
+  }
+}
+</pre>
+            The position (in canvas units!) is the position of the central focus point of the camera. <br><br>
+            The scale is the target zoomlevel. Default value is 1.0. <br><br>
+            The offset (in DOM units) is how many pixels from the center the view is focussed.  Default value is {x:0,y:0}.<br><br>
+            For animation you can either use a Boolean to use it with the default options or disable it or you can define the duration (in milliseconds) and easing function manually. Available are:
+            <code>linear, easeInQuad, easeOutQuad, easeInOutQuad, easeInCubic, easeOutCubic, easeInOutCubic, easeInQuart, easeOutQuart, easeInOutQuart, easeInQuint, easeOutQuint, easeInOutQuint</code>. <br><br>
+            <i>You will have to define at least a scale or a position. Otherwise, there is nothing to move to.</i>
+        </td></tr>
 
-        <tr><td>getSelectedNodes()</td>         <td class="mid"><code>[nodeId1, nodeId2, ..]</code></td><td>Returns an array of selected node ids.</td></tr>
-        <tr><td>getSelectedEdges()</td>         <td class="mid"><code>[edgeId1, edgeId2, ..]</code></td><td>Returns an array of selected edge ids.</td></tr>
-        <tr><td>getNodeAt(<br>&nbsp;&nbsp;&nbsp;<code><i>{x: xPosition DOM,<br>&nbsp;&nbsp; y: yPosition DOM}</i></code><br>)</td>         <td class="mid">nodeId</td><td>Returns a nodeId or undefined. The DOM positions are expected to be in pixels from the top left corner of the canvas.</td></tr>
-        <tr><td>getEdgeAt(<br>&nbsp;&nbsp;&nbsp;<code><i>{x: xPosition DOM,<br>&nbsp;&nbsp; y: yPosition DOM}</i></code><br>)</td>         <td class="mid">edgeId</code></td><td>Returns a edgeId or undefined. The DOM positions are expected to be in pixels from the top left corner of the canvas..</td></tr>
-        <tr><td>selectNodes(<br>&nbsp;&nbsp;&nbsp;<code><i>Array with nodeIds</i></code>,<br>&nbsp;&nbsp;&nbsp;<code><i>[Boolean highlightEdges]</i></code><br>)</td>  <td class="mid">none</td><td>Selects the nodes corresponding to the id's in the input array. If highlightEdges is true or undefined, the neighbouring edges will also be selected. This method unselects all other objects before selecting its own objects. <i>Does not fire events</i>.</td></tr>
-        <tr><td>selectEdges(<br>&nbsp;&nbsp;&nbsp;<code><i>Array with edgeIds</i></code><br>)</td>      <td class="mid">none</td><td>Selects the edges corresponding to the id's in the input array. This method unselects all other objects before selecting its own objects. <i>Does not fire events</i>.</td></tr>
-        <tr><td>unselectAll()</td>               <td class="mid">none</td>                              <td>Unselect all objects. <i>Does not fire events</i>.</td></tr>
+
+
+    <tr><td>releaseNode()</td><td class="mid">none</td><td>Programatically release the focussed node.</td></tr>
+
+
     </table>
 
     <h3>Events</h3>
-    <p>The selection handler does not fire events. All related events are fired by the <a href="./interaction.html">interaction module</a> because they are triggered by user interaction.</p>
+    <p>These events are fired by the renderer and can be used to move and draw custom elements on the same canvas as the rest of the network.</p>
+    <table>
+        <tr class="header"><td>name</td><td class="properties">properties</td><td>description</td></tr>
+        <tr><td>animationFinished</td><td class="mid">none</td><td>Fired when an animation is finished.</td>
+    </table>
 
     <br />
     <br />
@@ -136,3 +161,4 @@ network.setOptions(options);
 <script src="../js/bootstrap.min.js"></script>
 <!-- IE10 viewport hack for Surface/desktop Windows 8 bug -->
 <script src="../js/ie10-viewport-bug-workaround.js"></script>
+

@@ -11,7 +11,7 @@
 
     <!-- Bootstrap core CSS -->
     <link href="../css/bootstrap.css" rel="stylesheet">
-    <link href="../css/newdocs.css" rel="stylesheet">
+    <link href="../css/style.css" rel="stylesheet">
 
     <!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
     <!--[if lt IE 9]>
@@ -196,7 +196,7 @@
     </div>
 
     <h3>Modules</h3>
-    <table class="moduleTable">
+    <table class="modules">
         <tr>
             <td width="120px"><a href="./configure.html">configure</a></td>
             <td>Generates an interactive option editor with filtering.</td>
@@ -280,17 +280,17 @@ network.setOptions(options);
 </pre>
         <p>The individual options are explained below. The ones referring to modules are explained in the corresponding
             module.</p>
-        <table class="moduleTable">
+        <table class="options">
             <tr>
-                <th>name</th>
-                <th>type</th>
-                <th>default</th>
-                <th>description</th>
+                <th>Name</th>
+                <th>Type</th>
+                <th>Default</th>
+                <th>Description</th>
             </tr>
             <tr>
                 <td>autoResize</td>
-                <td class="mid">Boolean</td>
-                <td class="mid"><code>true</code></td>
+                <td>Boolean</td>
+                <td><code>true</code></td>
                 <td>If true, the Network will automatically detect when its container is resized, and redraw itself
                     accordingly. If false, the Network can be forced to repaint after its container has been resized
                     using the function redraw() and setSize().
@@ -298,20 +298,20 @@ network.setOptions(options);
             </tr>
             <tr>
                 <td>width</td>
-                <td class="mid">String</td>
-                <td class="mid"><code>'100%'</code></td>
+                <td>String</td>
+                <td><code>'100%'</code></td>
                 <td>the width of the canvas. Can be in percentages or pixels (ie. <code>'400px'</code>).</td>
             </tr>
             <tr>
                 <td>height</td>
-                <td class="mid">String</td>
-                <td class="mid"><code>'100%'</code></td>
+                <td>String</td>
+                <td><code>'100%'</code></td>
                 <td>the height of the canvas. Can be in percentages or pixels (ie. <code>'400px'</code>).</td>
             </tr>
             <tr>
                 <td>locale</td>
-                <td class="mid">String</td>
-                <td class="mid"><code>'en'</code></td>
+                <td>String</td>
+                <td><code>'en'</code></td>
                 <td>Select the locale. By default, the language is English. If you want to use another language, you
                     will
                     need to define your own locale and refer to it here.
@@ -319,8 +319,8 @@ network.setOptions(options);
             </tr>
             <tr>
                 <td>locales</td>
-                <td class="mid">Object</td>
-                <td class="mid">defaultLocales</td>
+                <td>Object</td>
+                <td>defaultLocales</td>
                 <td>Locales object. By default only <code>'en'</code> and <code>'nl'</code> are supported. Take a look
                     at
                     the <a href="#locales" data-scroll=""
@@ -330,8 +330,8 @@ network.setOptions(options);
             </tr>
             <tr>
                 <td>clickToUse</td>
-                <td class="mid">Boolean</td>
-                <td class="mid">false</td>
+                <td>Boolean</td>
+                <td>false</td>
                 <td>Locales object. By default only <code>'en'</code> and <code>'nl'</code> are supported. Take a look
                     at
                     the <a href="#locales" data-scroll=""
@@ -341,57 +341,57 @@ network.setOptions(options);
             </tr>
             <tr>
                 <td>configure</td>
-                <td class="mid">Object</td>
-                <td class="mid">Object</td>
+                <td>Object</td>
+                <td>Object</td>
                 <td><a href="./configure.html">All options in this object are explained in the configure module.</a>
                 </td>
             </tr>
             <tr>
                 <td>edges</td>
-                <td class="mid">Object</td>
-                <td class="mid">Object</td>
+                <td>Object</td>
+                <td>Object</td>
                 <td><a href="./edges.html">All options in this object are explained in the edges module.</a>
                 </td>
             </tr>
             <tr>
                 <td>nodes</td>
-                <td class="mid">Object</td>
-                <td class="mid">Object</td>
+                <td>Object</td>
+                <td>Object</td>
                 <td><a href="./nodes.html">All options in this object are explained in the nodes module.</a>
                 </td>
             </tr>
             <tr>
                 <td>groups</td>
-                <td class="mid">Object</td>
-                <td class="mid">Object</td>
+                <td>Object</td>
+                <td>Object</td>
                 <td><a href="./groups.html">All options in this object are explained in the groups module.</a>
                 </td>
             </tr>
             <tr>
                 <td>layout</td>
-                <td class="mid">Object</td>
-                <td class="mid">Object</td>
+                <td>Object</td>
+                <td>Object</td>
                 <td><a href="./layout.html">All options in this object are explained in the layout module.</a>
                 </td>
             </tr>
             <tr>
                 <td>interaction</td>
-                <td class="mid">Object</td>
-                <td class="mid">Object</td>
+                <td>Object</td>
+                <td>Object</td>
                 <td><a href="./interaction.html">All options in this object are explained in the interaction module.</a>
                 </td>
             </tr>
             <tr>
                 <td>manipulation</td>
-                <td class="mid">Object</td>
-                <td class="mid">Object</td>
+                <td>Object</td>
+                <td>Object</td>
                 <td><a href="./manipulation.html">All options in this object are explained in the manipulation module.</a>
                 </td>
             </tr>
             <tr>
                 <td>physics</td>
-                <td class="mid">Object</td>
-                <td class="mid">Object</td>
+                <td>Object</td>
+                <td>Object</td>
                 <td><a href="./physics.html">All options in this object are explained in the physics module.</a>
                 </td>
             </tr>
@@ -429,7 +429,7 @@ var locales = {
         <p>This is a list of all the methods in the public API. They have been grouped by category, which correspond to
             the
             modules listed above.</p>
-        <table class="moduleTable" id="methodTable">
+        <table class="methods-collapsable" id="methodTable">
             <tr class="subHeader">
                 <td colspan="2">Global methods for the network.</td>
             </tr>
@@ -1019,14 +1019,14 @@ var locales = {
         <h4 id="optionsObject">Cluster methods options object</h4>
 
         <p>The options object supplied to the cluster functions can contain these properties:</p>
-        <table class="moduleTable">
+        <table class="methods">
             <tr>
-                <th class="name">name</th>
+                <th class="name">Name</th>
                 <th>Type</th>
-                <th>description</th>
+                <th>Description</th>
             </tr>
             <tr>
-                <td>joinCondition(<br>&nbsp;&nbsp;<code>Object nodeOptions</code><br>)</td>
+                <td>joinCondition(<br>&nbsp;&nbsp;<code>nodeOptions:&nbsp;Object</code><br>)</td>
                 <td class="midMethods">Function</td>
                 <td><i>Optional for all but the cluster method. </i> The cluster module loops over all nodes that are
                     selected to be in the cluster and calls this function with their data as argument.
@@ -1055,7 +1055,7 @@ network.clustering.cluster(options);
                 </td>
             </tr>
             <tr>
-                <td>processProperties(<br>&nbsp;&nbsp;<code>Object nodeOptions</code><br>)</td>
+                <td>processProperties(<br>&nbsp;&nbsp;<code>nodeOptions:&nbsp;Object</code><br>)</td>
                 <td class="midMethods">Function</td>
                 <td><i>Optional. </i> Before creating the new cluster node, this (optional) function will be called with
                     the
@@ -1119,18 +1119,18 @@ var options = {
         <p>This is a list of all the events in the public API. They are collected here from all individual modules.</p>
 
         <p>These events are fired by the interaction module. They are related to user input.</p>
-        <table class="moduleTable">
+        <table class="events">
             <tr>
-                <th class="eventName">name</th>
-                <th class="eventProperties">properties</th>
-                <th>description</th>
+                <th>Name</th>
+                <th>Properties</th>
+                <th>Description</th>
             </tr>
             <tr class="subHeader">
                 <td colspan="3">Events triggered by human interaction, selection, dragging etc.</td>
             </tr>
             <tr class="">
                 <td>click</td>
-                <td class="mid">
+                <td>
 <pre class="code">
 {
   nodes: [Array of selected nodeIds],
@@ -1147,7 +1147,7 @@ var options = {
             </tr>
             <tr class="">
                 <td>doubleClick</td>
-                <td class="mid">same as <code>click</code>.</td>
+                <td>same as <code>click</code>.</td>
                 <td>Fired when the user double clicks the mouse or double taps on a touchscreen device. Since a double
                     click
                     is in fact 2 clicks, 2 click events are fired, followed by a double click event. If you do not want
@@ -1159,7 +1159,7 @@ var options = {
             </tr>
             <tr class="">
                 <td>oncontext</td>
-                <td class="mid">same as <code>click</code>.</td>
+                <td>same as <code>click</code>.</td>
                 <td>Fired when the user click on the canvas with the right mouse button. The right mouse button does not
                     select by default. You can use <a href="./selection.html">getNodeAt</a> to select the node if you
                     want.
@@ -1167,7 +1167,7 @@ var options = {
             </tr>
             <tr class="">
                 <td>hold</td>
-                <td class="mid">same as <code>click</code>.</td>
+                <td>same as <code>click</code>.</td>
                 <td>Fired when the user clicks and holds the mouse or taps and holds on a touchscreen device. A click
                     event
                     is also fired in this case.
@@ -1175,13 +1175,13 @@ var options = {
             </tr>
             <tr class="">
                 <td>release</td>
-                <td class="mid">same as <code>click</code>.</td>
+                <td>same as <code>click</code>.</td>
                 <td>Fired after drawing on the canvas has been completed. Can be used to draw on top of the network.
                 </td>
             </tr>
             <tr class="">
                 <td>select</td>
-                <td class="mid">same as <code>click</code>.</td>
+                <td>same as <code>click</code>.</td>
                 <td>Fired when the selection has changed by user action. This means a node or edge has been selected,
                     added
                     to the selection or deselected. <b>All select events are only triggered on click and hold</b>.
@@ -1189,17 +1189,17 @@ var options = {
             </tr>
             <tr class="">
                 <td>selectNode</td>
-                <td class="mid">same as <code>click</code>.</td>
+                <td>same as <code>click</code>.</td>
                 <td>Fired when a node has been selected by the user.</td>
             </tr>
             <tr class="">
                 <td>selectEdge</td>
-                <td class="mid">same as <code>click</code>.</td>
+                <td>same as <code>click</code>.</td>
                 <td>Fired when a edge has been selected by the user.</td>
             </tr>
             <tr class="">
                 <td>deselectNode</td>
-                <td class="mid"><pre class="code">
+                <td><pre class="code">
 {
   nodes: [Array of selected nodeIds],
   edges: [Array of selected edgeIds],
@@ -1223,7 +1223,7 @@ var options = {
             </tr>
             <tr class="">
                 <td>deselectEdge</td>
-                <td class="mid">same as <code>deselectNode</code>.</td>
+                <td>same as <code>deselectNode</code>.</td>
                 <td>Fired when a edge (or edges) has (or have) been deselected by the user. The previous selection is
                     the
                     list of nodes and edges that were selected before the last user event.
@@ -1231,32 +1231,32 @@ var options = {
             </tr>
             <tr class="">
                 <td>dragStart</td>
-                <td class="mid">same as <code>click</code>.</td>
+                <td>same as <code>click</code>.</td>
                 <td>Fired when starting a drag.</td>
             </tr>
             <tr class="">
                 <td>dragging</td>
-                <td class="mid">same as <code>click</code>.</td>
+                <td>same as <code>click</code>.</td>
                 <td>Fired when dragging node(s) or the view.</td>
             </tr>
             <tr class="">
                 <td>dragEnd</td>
-                <td class="mid">same as <code>click</code>.</td>
+                <td>same as <code>click</code>.</td>
                 <td>Fired when the drag has finished.</td>
             </tr>
             <tr class="">
                 <td>zoom</td>
-                <td class="mid"><code>{direction:'+'/'-'}</code></td>
+                <td><code>{direction:'+'/'-'}</code></td>
                 <td>Fired when the user zooms in or out. The properties tell you which direction the zoom is in.</td>
             </tr>
             <tr class="">
                 <td>showPopup</td>
-                <td class="mid"><code>id of item corresponding to popup</code></td>
+                <td><code>id of item corresponding to popup</code></td>
                 <td>Fired when the popup (tooltip) is shown.</td>
             </tr>
             <tr class="">
                 <td>hidePopup</td>
-                <td class="mid">none</td>
+                <td>none</td>
                 <td>Fired when the popup (tooltip) is hidden.</td>
             </tr>
             <tr class="subHeader ">
@@ -1264,14 +1264,14 @@ var options = {
             </tr>
             <tr class="">
                 <td>startStabilizing</td>
-                <td class="mid">none</td>
+                <td>none</td>
                 <td>Fired when stabilization starts. This is also the case when you drag a node and the physics
                     simulation
                     restarts to stabilize again. Stabilization does not neccesarily imply 'without showing'.
                 </td>
             <tr class="">
                 <td>stabilizationProgress</td>
-                <td class="mid">
+                <td>
 <pre class="code">
 {
   iterations: Number // iterations so far,
@@ -1285,14 +1285,14 @@ var options = {
             </tr>
             <tr class="">
                 <td>stabilizationIterationsDone</td>
-                <td class="mid">none</td>
+                <td>none</td>
                 <td>Fired when the 'hidden' stabilization finishes. This does not necessarily mean the network is
                     stabilized; it could also mean that the amount of iterations defined in the options has been
                     reached.
                 </td>
             <tr class="">
                 <td>stabilized</td>
-                <td class="mid">
+                <td>
 <pre class="code">
 {
   iterations: Number // iterations it took
@@ -1309,7 +1309,7 @@ var options = {
             </tr>
             <tr class="">
                 <td>resize</td>
-                <td class="mid">
+                <td>
 <pre class="code">
 {
   width: Number     // the new width  of the canvas
@@ -1335,21 +1335,21 @@ var options = {
             </tr>
             <tr class="">
                 <td>initRedraw</td>
-                <td class="mid">none</td>
+                <td>none</td>
                 <td>Fired before the redrawing begins. The simulation step has completed at this point. Can be used to
                     move
                     custom elements before starting drawing the new frame.
                 </td>
             <tr class="">
                 <td>beforeDrawing</td>
-                <td class="mid"><code>canvas context</code></td>
+                <td><code>canvas context</code></td>
                 <td>Fired after the canvas has been cleared, scaled and translated to the viewing position but before
                     all
                     edges and nodes are drawn. Can be used to draw behind the network.
                 </td>
             <tr class="">
                 <td>afterDrawing</td>
-                <td class="mid"><code>canvas context</code></td>
+                <td><code>canvas context</code></td>
                 <td>Fired after drawing on the canvas has been completed. Can be used to draw on top of the network.
                 </td>
             </tr>
@@ -1358,7 +1358,7 @@ var options = {
             </tr>
             <tr class="">
                 <td>animationFinished</td>
-                <td class="mid">none</td>
+                <td>none</td>
                 <td>Fired when an animation is finished.</td>
         </table>
 
@@ -1444,17 +1444,17 @@ var network = new vis.Network(container, data);
         <h4>Gephi parser options</h4>
 
         There are a few options you can use to tell Vis what to do with the data from Gephi.
-        <table class="moduleTable">
+        <table class="options">
             <tr>
-                <th>name</th>
-                <th>type</th>
-                <th>default</th>
-                <th>description</th>
+                <th>Name</th>
+                <th>Type</th>
+                <th>Default</th>
+                <th>Description</th>
             </tr>
             <tr>
                 <td>nodes.fixed</td>
-                <td class="mid">Boolean</td>
-                <td class="mid"><code>true</code></td>
+                <td>Boolean</td>
+                <td><code>true</code></td>
                 <td>When false, the nodes will move according to the physics model after import. If true, the nodes do
                     not move at all. If set to true, the node positions have to be defined to avoid infinite recursion
                     errors in the physics.
@@ -1462,16 +1462,16 @@ var network = new vis.Network(container, data);
             </tr>
             <tr>
                 <td>nodes.parseColor</td>
-                <td class="mid">Boolean</td>
-                <td class="mid"><code>false</code></td>
+                <td>Boolean</td>
+                <td><code>false</code></td>
                 <td>If true, the color will be parsed by the vis parser, generating extra colors for the borders,
                     highlighs and hover. If false, the node will be the supplied color.
                 </td>
             </tr>
             <tr>
                 <td>edges.inheritColor</td>
-                <td class="mid">Boolean</td>
-                <td class="mid"><code>false</code></td>
+                <td>Boolean</td>
+                <td><code>false</code></td>
                 <td>When true, the color supplied by gephi is ignored and the inherit color mode is used with the global
                     setting.
                 </td>
