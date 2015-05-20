@@ -4,8 +4,8 @@
 <head>
   <meta http-equiv="content-type" content="text/html; charset=UTF8">
   <title>Dynamic Data - Importing from Gephi (JSON)</title>
-  <script type="text/javascript" src="../../dist/vis.js"></script>
-  <link type="text/css" rel="stylesheet" href="../../dist/vis.css">
+  <script type="text/javascript" src="../../../../dist/vis.js"></script>
+  <link type="text/css" rel="stylesheet" href="../../../../dist/vis.css">
 
   <style type="text/css">
     #mynetwork {
@@ -49,7 +49,7 @@
       color: red;
     }
   </style>
-  <script src="../googleAnalytics.js"></script>
+  <script src="../../../googleAnalytics.js"></script>
 </head>
 
 <body>
@@ -68,7 +68,7 @@
 </div>
 
 <p>
-  <label><input type="checkbox" id="allowedToMove"/> Allow to move after import.</label><br>
+  <label><input type="checkbox" id="fixed" checked="checked"/> Fix in place after import.</label><br>
   <label><input type="checkbox" id="parseColor"/> Parse the color instead of
     copy (adds borders, highlights etc.)</label>
 </p>
@@ -84,15 +84,15 @@
   var nodes = new vis.DataSet();
   var edges = new vis.DataSet();
   var gephiImported;
-  var allowedToMoveCheckbox = document.getElementById('allowedToMove');
-  allowedToMoveCheckbox.onchange = redrawAll;
+  var fixedCheckbox = document.getElementById('fixed');
+  fixedCheckbox.onchange = redrawAll;
 
   var parseColorCheckbox = document.getElementById('parseColor');
   parseColorCheckbox.onchange = redrawAll;
 
   var nodeContent = document.getElementById('nodeContent');
 
-  loadJSON('./data/WorldCup2014.json', redrawAll);
+  loadJSON('../../data/WorldCup2014.json', redrawAll);
 
   var container = document.getElementById('mynetwork');
   var data = {
@@ -108,16 +108,13 @@
     },
     edges: {
       width: 0.15,
-      color: {
-        inherit: 'from'
-      },
       smooth: {
-        dynamic: false,
         type: 'continuous'
       }
     },
     interaction: {
-      tooltipDelay: 200
+      tooltipDelay: 200,
+      hideEdgesOnDrag: true
     },
     physics: {
       stabilization: false,
@@ -126,9 +123,6 @@
         springConstant: 0.002,
         springLength: 150
       }
-    },
-    rendering: {
-      hideEdgesOnDrag: true
     }
   };
 
@@ -148,10 +142,11 @@
     nodes.clear();
     edges.clear();
 
-    var allowedToMove = allowedToMoveCheckbox.checked;
+    var fixed = fixedCheckbox.checked;
     var parseColor = parseColorCheckbox.checked;
+
     var parsed = vis.network.gephiParser.parseGephi(gephiJSON, {
-      allowedToMove: allowedToMove,
+      fixed: fixed,
       parseColor: parseColor
     });
 
@@ -160,32 +155,10 @@
     edges.add(parsed.edges);
 
     var data = nodes.get(2); // get the data from node 2
-    nodeContent.innerHTML = syntaxHighlight(data); // show the data in the div
+    nodeContent.innerHTML = JSON.stringify(data,undefined,3); // show the data in the div
     network.fit(); // zoom to fit
   }
 
-  // from http://stackoverflow.com/questions/4810841/how-can-i-pretty-print-json-using-javascript
-  function syntaxHighlight(json) {
-    if (typeof json != 'string') {
-      json = JSON.stringify(json, null, 2);
-    }
-    json = json.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-    return json.replace(/("(\\u[a-zA-Z0-9]{4}|\\[^u]|[^\\"])*"(\s*:)?|\b(true|false|null)\b|-?\d+(?:\.\d*)?(?:[eE][+\-]?\d+)?)/g, function (match) {
-      var cls = 'number';
-      if (/^"/.test(match)) {
-        if (/:$/.test(match)) {
-          cls = 'key';
-        } else {
-          cls = 'string';
-        }
-      } else if (/true|false/.test(match)) {
-        cls = 'boolean';
-      } else if (/null/.test(match)) {
-        cls = 'null';
-      }
-      return '<span class="' + cls + '">' + match + '</span>';
-    });
-  }
 
   function loadJSON(path, success, error) {
     var xhr = new XMLHttpRequest();
