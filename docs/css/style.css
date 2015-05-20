@@ -7,7 +7,8 @@ body {
     /*font-family: Lustria, Georgia, Times, "Times New Roman", serif !important;*/
     font-size:16px;
     line-height: 1.5em;
-    background: url('../img/crosswordStrong.png') /* Background pattern from subtlepatterns.com */
+    background: url('../img/crosswordStrong.png'); /* Background pattern from subtlepatterns.com */
+    height: 100%;
 }
 
 
@@ -66,9 +67,6 @@ div.full {
     div.full {
         padding: 80px 80px 160px 80px;
     }
-}
-
-table {
 }
 
 table th,
