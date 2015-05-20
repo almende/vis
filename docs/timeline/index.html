@@ -479,9 +479,16 @@ var options = {
 
     <tr>
       <td>configure</td>
-      <td class="mid">boolean</td>
+      <td class="mid">boolean or function</td>
       <td class="mid"><code>false</code></td>
-      <td>When true, a configurator is loaded where all configuration options of the Timeline can be changed live.</td>
+      <td>When true, a configurator is loaded where all configuration options of the Timeline can be changed live.
+
+        The displayed options can be filtered by providing a filter function. This function is invoked with two arguments: the current <code>option</code> and the <code>path</code> (an Array) of the option within the options object. The option will be displayed when the filter function returns true. For example to only display format options:
+        <pre class="prettyprint lang-js">
+function (option, path) {
+  return option === 'format' || path.indexOf('format') !== -1;
+}</pre>
+      </td>
     </tr>
 
     <tr>

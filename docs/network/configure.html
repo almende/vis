@@ -141,11 +141,10 @@ network.setOptions(options);
                 selection, renderer. Feel free to come up with a fun seperating character. Finally, when supplied an
                 array of strings, any of the previously mentioned fields are accepted. <br><br>
                 When supplying a function, you receive two arguments. The option and the path of the option within the options object. If it returns true, the options will be shown in the configurator. Example:
-                <pre class="code">
+                <pre class="prettyprint lang-js">
 function (option, path) {
   return path.indexOf('physics') !== -1;
-}
-                </pre>
+}</pre>
                 This only shows the physics options.
             </td>
         </tr>
