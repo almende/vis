@@ -1021,13 +1021,13 @@ var locales = {
         <p>The options object supplied to the cluster functions can contain these properties:</p>
         <table class="methods">
             <tr>
-                <th class="name">Name</th>
+                <th>Name</th>
                 <th>Type</th>
                 <th>Description</th>
             </tr>
             <tr>
                 <td>joinCondition(<br>&nbsp;&nbsp;<code>nodeOptions:&nbsp;Object</code><br>)</td>
-                <td class="midMethods">Function</td>
+                <td>Function</td>
                 <td><i>Optional for all but the cluster method. </i> The cluster module loops over all nodes that are
                     selected to be in the cluster and calls this function with their data as argument.
                     If this function returns true, this node will be added to the cluster. You have access to all
@@ -1056,7 +1056,7 @@ network.clustering.cluster(options);
             </tr>
             <tr>
                 <td>processProperties(<br>&nbsp;&nbsp;<code>nodeOptions:&nbsp;Object</code><br>)</td>
-                <td class="midMethods">Function</td>
+                <td>Function</td>
                 <td><i>Optional. </i> Before creating the new cluster node, this (optional) function will be called with
                     the
                     properties supplied by you (<code>clusterNodeProperties</code>), all contained nodes and all
@@ -1069,12 +1069,15 @@ network.clustering.cluster(options);
                     cluster:
 <pre class="prettyprint lang-js">
 var options = {
-  processProperties: function (clusterOptions, childNodes, childEdges) {
+  processProperties: function (clusterOptions,
+      childNodes, childEdges) {
     var totalMass = 0;
     var totalValue = 0;
     for (var i = 0; i < childNodes.length; i++) {
-        totalMass += childNodes[i].mass;
-        totalValue = childNodes[i].value ? totalValue + childNodes[i].value : totalValue;
+      totalMass += childNodes[i].mass;
+      totalValue = childNodes[i].value
+        ? totalValue + childNodes[i].value
+        : totalValue;
     }
     clusterOptions.mass = totalMass;
     if (totalValue > 0) {
@@ -1088,7 +1091,7 @@ var options = {
             </tr>
             <tr>
                 <td>clusterNodeProperties</td>
-                <td class="midMethods">Object</td>
+                <td>Object</td>
                 <td><i>Optional. </i> This is an object containing the options for the cluster node. All options
                     described
                     in the <a href="./nodes.html">nodes module</a> are allowed. This allows you to style your cluster
@@ -1100,7 +1103,7 @@ var options = {
             </tr>
             <tr>
                 <td>clusterEdgeProperties</td>
-                <td class="midMethods">Object</td>
+                <td>Object</td>
                 <td><i>Optional. </i> This is an object containing the options for the edges connected to the cluster.
                     All
                     options described in the <a href="./edges.html">edges module</a> are allowed. Using this, you can
