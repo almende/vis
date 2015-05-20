@@ -135,7 +135,7 @@
 
       // create an array with nodes
       nodes = new vis.DataSet();
-      nodes.subscribe('*', function () {
+      nodes.on('*', function () {
         $('#nodes').html(toJSON(nodes.get()));
       });
       nodes.add([
@@ -148,7 +148,7 @@
 
       // create an array with edges
       edges = new vis.DataSet();
-      edges.subscribe('*', function () {
+      edges.on('*', function () {
         $('#edges').html(toJSON(edges.get()));
       });
       edges.add([

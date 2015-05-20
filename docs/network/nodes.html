@@ -80,7 +80,7 @@
     <h3>Options</h3>
     <p>The options for the nodes have to be contained in an object titled 'nodes'. All of these options can be supplied per node as well. Obviously, 'id' should not be defined globally but per node. Options defined
         in the global nodes object, are applied to all nodes. If a node has options of its own, those will be used instead of the global options.</p>
-    <p><b><i>When you have given a node an option, you will override the global option for that property. If you then set that option to <code>undefined</code> or <code>null</code>,
+    <p><b><i>When you have given a node an option, you will override the global option for that property. If you then set that option to <code>null</code>,
         it will revert back to the default value.</i></b>
     </p>
     <p>Click on the full options or shorthand options to show how these options are supposed to be used.</p>
@@ -143,7 +143,7 @@ var options = {
         min: 14,
         max: 30,
         maxVisible: 30,
-        drawThreshold: 3
+        drawThreshold: 6
       },
       customScalingFunction: function (min,max,total,value) {
         if (max === min) {
@@ -507,7 +507,7 @@ network.setOptions(options);
         <tr parent="scaling" class="hidden">
             <td class="indent2">scaling.label.drawThreshold</td>
             <td>Number</td>
-            <td><code>3</code></td>
+            <td><code>6</code></td>
             <td>When zooming out, the font will be drawn smaller. This defines a lower limit for when the font is drawn.
                 When using font scaling, you can use this together with the maxVisible to first show labels of important
                 nodes when zoomed out and only show the rest when zooming in.
