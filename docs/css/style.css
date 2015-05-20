@@ -93,6 +93,7 @@ The following tables are used:
 - A table 'methods' with methods.               Columns: Method, Return Type, Description
 - A table 'events' with events.                 Columns: Name, Properties, Description
 - A table 'styles' with styles.                 Columns: Description, Values
+- A table 'datatypes' with data types.          Columns: Name, Description, Examples
 */
 table.properties td:nth-child(2),
 table.properties td:nth-child(3),
