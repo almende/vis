@@ -11,7 +11,7 @@
 
     <!-- Bootstrap core CSS -->
     <link href="../css/bootstrap.css" rel="stylesheet">
-    <link href="../css/newdocs.css" rel="stylesheet">
+    <link href="../css/style.css" rel="stylesheet">
 
     <link href="../css/prettify.css" type="text/css" rel="stylesheet" />
     <script type="text/javascript" src="../js/toggleTable.js"></script>
@@ -105,17 +105,17 @@ var options = {
 network.setOptions(options);
 </pre>
     <p>All of the individual options are explained here:</p>
-    <table class="moduleTable">
+    <table class="options">
         <tr>
-            <th>name</th>
-            <th>type</th>
-            <th>default</th>
-            <th>description</th>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Default</th>
+            <th>Description</th>
         </tr>
         <tr>
             <td>useDefaultGroups</td>
-            <td class="mid">Boolean</td>
-            <td class="mid"><code>true</code></td>
+            <td>Boolean</td>
+            <td><code>true</code></td>
             <td>If your nodes have groups defined that are not in the Groups module, the module loops over the groups it
                 does have, allocating one for each unknown group. When all are used, it goes back to the first group. By
                 setting this to false, the default groups will not be used in this cycle.
@@ -123,8 +123,8 @@ network.setOptions(options);
         </tr>
         <tr>
             <td>group*</td>
-            <td class="mid">Object</td>
-            <td class="mid"><code></code></td>
+            <td>Object</td>
+            <td><code></code></td>
             <td>
                 You can add multiple groups containing styling information that applies to a certain subset of groups.
                 All options described in the <a href="./nodes.html">nodes module</a> that make sense can be used here

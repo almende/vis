@@ -10,7 +10,7 @@
 
   <!-- Bootstrap core CSS -->
   <link href="../css/bootstrap.css" rel="stylesheet">
-  <link href="../css/newdocs.css" rel="stylesheet">
+  <link href="../css/style.css" rel="stylesheet">
 
 
   <!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
@@ -230,7 +230,7 @@ var items = [
     The item properties are defined as:
   </p>
 
-  <table class="moduleTable" >
+  <table class="properties">
     <tr>
       <th>Name</th>
       <th>Type</th>
@@ -239,8 +239,8 @@ var items = [
     </tr>
     <tr>
       <td>className</td>
-      <td class="mid">String</td>
-      <td class="mid">no</td>
+      <td>String</td>
+      <td>no</td>
       <td>This field is optional. A className can be used to give items
         an individual css style. For example, when an item has className
         'red', one can define a css style like:
@@ -256,22 +256,22 @@ var items = [
     </tr>
     <tr>
       <td>content</td>
-      <td class="mid">String</td>
-      <td class="mid">yes</td>
+      <td>String</td>
+      <td>yes</td>
       <td>The contents of the item. This can be plain text or html code.</td>
     </tr>
     <tr>
       <td>end</td>
-      <td class="mid">Date or number or string or Moment</td>
-      <td class="mid">no</td>
+      <td>Date or number or string or Moment</td>
+      <td>no</td>
       <td>The end date of the item. The end date is optional, and can be left <code>null</code>.
         If end date is provided, the item is displayed as a range.
         If not, the item is displayed as a box.</td>
     </tr>
     <tr>
       <td>group</td>
-      <td class="mid">any type</td>
-      <td class="mid">no</td>
+      <td>any type</td>
+      <td>no</td>
       <td>This field is optional. When the group column is provided,
         all items with the same group are placed on one line.
         A vertical axis is displayed showing the groups.
@@ -281,22 +281,22 @@ var items = [
     </tr>
     <tr>
       <td>id</td>
-      <td class="mid">String or Number</td>
-      <td class="mid">no</td>
+      <td>String or Number</td>
+      <td>no</td>
       <td>An id for the item. Using an id is not required but highly
         recommended. An id is needed when dynamically adding, updating,
         and removing items in a DataSet.</td>
     </tr>
     <tr>
       <td>start</td>
-      <td class="mid">Date or number or string or Moment</td>
-      <td class="mid">yes</td>
+      <td>Date or number or string or Moment</td>
+      <td>yes</td>
       <td>The start date of the item, for example <code>new Date(2010,9,23)</code>.</td>
     </tr>
     <tr>
       <td>style</td>
-      <td class="mid">String</td>
-      <td class="mid">no</td>
+      <td>String</td>
+      <td>no</td>
       <td>
         A css text string to apply custom styling for an individual item, for
         example <code>"color: red; background-color: pink;"</code>.
@@ -304,8 +304,8 @@ var items = [
     </tr>
     <tr>
       <td>subgroup</td>
-      <td class="mid">String or Number</td>
-      <td class="mid">none</td>
+      <td>String or Number</td>
+      <td>none</td>
       <td>The id of a subgroup.
         Groups all items within a group per subgroup, and positions them on the
         same height instead of staking them on top of each other. can be ordered
@@ -314,16 +314,16 @@ var items = [
     </tr>
     <tr>
       <td>title</td>
-      <td class="mid">String</td>
-      <td class="mid">none</td>
+      <td>String</td>
+      <td>none</td>
       <td>Add a title for the item, displayed when holding the mouse on the item.
         The title can only contain plain text.
       </td>
     </tr>
     <tr>
       <td>type</td>
-      <td class="mid">String</td>
-      <td class="mid">no</td>
+      <td>String</td>
+      <td>no</td>
       <td>The type of the item. Can be 'box' (default), 'point', 'range', or 'background'.
         Types 'box' and 'point' need a start date, the types 'range' and 'background' needs both a start and end date.
       </td>
@@ -360,7 +360,7 @@ var groups = [
     Groups can have the following properties:
   </p>
 
-  <table class="moduleTable" >
+  <table class="properties">
     <tr>
       <th>Name</th>
       <th>Type</th>
@@ -369,8 +369,8 @@ var groups = [
     </tr>
     <tr>
       <td>className</td>
-      <td class="mid">String</td>
-      <td class="mid">no</td>
+      <td>String</td>
+      <td>no</td>
       <td>This field is optional. A className can be used to give groups
         an individual css style. For example, when a group has className
         'red', one can define a css style
@@ -385,22 +385,22 @@ var groups = [
     </tr>
     <tr>
       <td>content</td>
-      <td class="mid">String</td>
-      <td class="mid">yes</td>
+      <td>String</td>
+      <td>yes</td>
       <td>The contents of the group. This can be plain text or html code.</td>
     </tr>
     <tr>
       <td>id</td>
-      <td class="mid">String or Number</td>
-      <td class="mid">yes</td>
+      <td>String or Number</td>
+      <td>yes</td>
       <td>An id for the group. The group will display all items having a
         property <code>group</code> which matches the <code>id</code>
         of the group.</td>
     </tr>
     <tr>
       <td>style</td>
-      <td class="mid">String</td>
-      <td class="mid">no</td>
+      <td>String</td>
+      <td>no</td>
       <td>
         A css text string to apply custom styling for an individual group label, for
         example <code>"color: red; background-color: pink;"</code>.
@@ -408,16 +408,16 @@ var groups = [
     </tr>
     <tr>
       <td>subgroupOrder</td>
-      <td class="mid">String or Function</td>
-      <td class="mid">none</td>
+      <td>String or Function</td>
+      <td>none</td>
       <td>Order the subgroups by a field name or custom sort function.
         By default, groups are ordered by first-come, first-show.
       </td>
     </tr>
     <tr>
       <td>title</td>
-      <td class="mid">String</td>
-      <td class="mid">none</td>
+      <td>String</td>
+      <td>none</td>
       <td>A title for the group, displayed when holding the mouse on the groups label.
         The title can only contain plain text.
       </td>
@@ -447,7 +447,7 @@ var options = {
     The following options are available.
   </p>
 
-  <table class="moduleTable" id="optionTable">
+  <table class="options" id="optionTable">
     <tr>
       <th>Name</th>
       <th>Type</th>
@@ -457,78 +457,85 @@ var options = {
 
     <tr>
       <td>align</td>
-      <td class="mid">String</td>
-      <td class="mid"><code>'center'</code></td>
+      <td>String</td>
+      <td><code>'center'</code></td>
       <td>Alignment of items with type 'box', 'range', and 'background'. Available values are 'auto' (default), 'center', 'left', or 'right'. For 'box' items, the 'auto' alignment is 'center'. For 'range' items, the auto alignment is dynamic: positioned left and shifted such that the contents is always visible on screen.</td>
     </tr>
 
     <tr>
       <td>autoResize</td>
-      <td class="mid">boolean</td>
-      <td class="mid"><code>true</code></td>
+      <td>boolean</td>
+      <td><code>true</code></td>
       <td>If true, the Timeline will automatically detect when its container is resized, and redraw itself accordingly. If false, the Timeline can be forced to repaint after its container has been resized using the function <code>redraw()</code>.</td>
     </tr>
 
     <tr>
       <td>clickToUse</td>
-      <td class="mid">boolean</td>
-      <td class="mid"><code>false</code></td>
+      <td>boolean</td>
+      <td><code>false</code></td>
       <td>When a Timeline is configured to be <code>clickToUse</code>, it will react to mouse and touch events only when active.
         When active, a blue shadow border is displayed around the Timeline. The Timeline is set active by clicking on it, and is changed to inactive again by clicking outside the Timeline or by pressing the ESC key.</td>
     </tr>
 
     <tr>
       <td>configure</td>
-      <td class="mid">boolean</td>
-      <td class="mid"><code>false</code></td>
-      <td>When true, a configurator is loaded where all configuration options of the Timeline can be changed live.</td>
+      <td>boolean or function</td>
+      <td><code>false</code></td>
+      <td>When true, a configurator is loaded where all configuration options of the Timeline can be changed live.
+
+        The displayed options can be filtered by providing a filter function. This function is invoked with two arguments: the current <code>option</code> and the <code>path</code> (an Array) of the option within the options object. The option will be displayed when the filter function returns true. For example to only display format options:
+        <pre class="prettyprint lang-js">
+function (option, path) {
+  return option === 'format' || path.indexOf('format') !== -1;
+}</pre>
+      </td>
     </tr>
 
     <tr>
       <td>dataAttributes</td>
-      <td class="mid">string[] or 'all'</string></td>
-      <td class="mid"><code>false</code></td>
+      <td>string[] or 'all'</string></td>
+      <td><code>false</code></td>
       <td>An array of fields optionally defined on the timeline items that will be appended as <code>data-</code> attributes to the DOM element of the items.<br>
         If value is <code>'all'</code> then each field defined on the timeline item will become a <code>data-</code> attribute.</td>
     </tr>
 
     <tr class='toggle collapsible' onclick="toggleTable('optionTable','editable', this);">
       <td><span parent="editable" class="right-caret"></span> editable</td>
-      <td class="mid">boolean or Object</td>
-      <td class="mid"><code>false</code></td>
+      <td>boolean or Object</td>
+      <td><code>false</code></td>
       <td>If true, the items in the timeline can be manipulated. Only applicable when option <code>selectable</code> is <code><code>true</code></code>. See also the callbacks <code>onAdd</code>, <code>onUpdate</code>, <code>onMove</code>, and <code>onRemove</code>. When <code>editable</code> is an object, one can enable or disable individual manipulation actions.
         See section <a href="#Editing_Items">Editing Items</a> for a detailed explanation.
       </td>
     </tr>
     <tr parent="editable" class="hidden">
       <td class="indent">editable.add</td>
-      <td class="mid">boolean</td>
-      <td class="mid"><code>false</code></td>
+      <td>boolean</td>
+      <td><code>false</code></td>
       <td>If true, new items can be created by double tapping an empty space in the Timeline. See section <a href="#Editing_Items">Editing Items</a> for a detailed explanation.</td>
     </tr>
     <tr parent="editable" class="hidden">
       <td class="indent">editable.remove</td>
-      <td class="mid">boolean</td>
-      <td class="mid"><code>false</code></td>
+      <td>boolean</td>
+      <td><code>false</code></td>
       <td>If true, items can be deleted by first selecting them, and then clicking the delete button on the top right of the item. See section <a href="#Editing_Items">Editing Items</a> for a detailed explanation.</td>
     </tr>
     <tr parent="editable" class="hidden">
       <td class="indent">editable.updateGroup</td>
-      <td class="mid">boolean</td>
-      <td class="mid"><code>false</code></td>
+      <td>boolean</td>
+      <td><code>false</code></td>
       <td>If true, items can be dragged from one group to another. Only applicable when the Timeline has groups. See section <a href="#Editing_Items">Editing Items</a> for a detailed explanation.</td>
     </tr>
     <tr parent="editable" class="hidden">
       <td class="indent">editable.updateTime</td>
-      <td class="mid">boolean</td>
-      <td class="mid"><code>false</code></td>
+      <td>boolean</td>
+      <td><code>false</code></td>
       <td>If true, items can be dragged to another moment in time. See section <a href="#Editing_Items">Editing Items</a> for a detailed explanation.</td>
     </tr>
 
     <tr>
       <td>end</td>
-      <td class="mid">Date or Number or String or Moment</td>
-      <td class="mid">none</td>
+      <td>Date or Number or String or Moment</td>
+      <td>none</td>
       <td>The initial end date for the axis of the timeline.
         If not provided, the latest date present in the items set is taken as
         end date.</td>
@@ -536,8 +543,8 @@ var options = {
 
     <tr>
       <td>format</td>
-      <td class="mid">Object</td>
-      <td class="mid">none</td>
+      <td>Object</td>
+      <td>none</td>
       <td>
         Apply custom date formatting of the labels on the time axis. The default value of <code>format</code> is:
       <pre class="prettyprint lang-js">{
@@ -569,8 +576,8 @@ var options = {
 
     <tr>
       <td>groupOrder</td>
-      <td class="mid">String or Function</td>
-      <td class="mid">none</td>
+      <td>String or Function</td>
+      <td>none</td>
       <td>Order the groups by a field name or custom sort function.
         By default, groups are not ordered.
       </td>
@@ -578,8 +585,8 @@ var options = {
 
     <tr>
       <td>height</td>
-      <td class="mid">number or String</td>
-      <td class="mid">none</td>
+      <td>number or String</td>
+      <td>none</td>
       <td>The height of the timeline in pixels or as a percentage.
         When height is undefined or null, the height of the timeline is automatically
         adjusted to fit the contents.
@@ -591,8 +598,8 @@ var options = {
 
     <tr>
       <td>hiddenDates</td>
-      <td class="mid">Object</td>
-      <td class="mid">none</td>
+      <td>Object</td>
+      <td>none</td>
       <td>This option allows you to hide specific timespans from the time axis. The dates can be supplied as an object:
         <code>{start: '2014-03-21 00:00:00', end: '2014-03-28 00:00:00', [repeat:'daily']}</code> or as an Array of these objects. The repeat argument is optional.
         The possible values are (case-sensitive): <code>daily, weekly, monthly, yearly</code>. To hide a weekend, pick any Saturday as start and the following Monday as end
@@ -601,53 +608,53 @@ var options = {
     </tr>
     <tr>
       <td>locale</td>
-      <td class="mid">String</td>
-      <td class="mid">none</td>
+      <td>String</td>
+      <td>none</td>
       <td>Select a locale for the Timeline. See section <a href="#Localization">Localization</a> for more information.</td>
     </tr>
 
     <tr>
       <td>locales</td>
-      <td class="mid">Object</td>
-      <td class="mid">none</td>
+      <td>Object</td>
+      <td>none</td>
       <td>A map with i18n locales. See section <a href="#Localization">Localization</a> for more information.</td>
     </tr>
 
     <tr class='toggle collapsible' onclick="toggleTable('optionTable','margin', this);">
       <td><span parent="margin" class="right-caret"></span> margin</td>
-      <td class="mid">number or Object</td>
-      <td class="mid">Object</td>
+      <td>number or Object</td>
+      <td>Object</td>
       <td>When a number, applies the margin to <code>margin.axis</code>, <code>margin.item.horizontal</code>, and <code>margin.item.vertical</code>.</td>
     </tr>
     <tr parent="margin" class="hidden">
       <td class="indent">margin.axis</td>
-      <td class="mid">number</td>
-      <td class="mid"><code>20</code></td>
+      <td>number</td>
+      <td><code>20</code></td>
       <td>The minimal margin in pixels between items and the time axis.</td>
     </tr>
     <tr parent="margin" class="hidden">
       <td class="indent">margin.item</td>
-      <td class="mid">number</td>
-      <td class="mid"><code>10</code></td>
+      <td>number</td>
+      <td><code>10</code></td>
       <td>The minimal margin in pixels between items in both horizontal and vertical direction.</td>
     </tr>
     <tr parent="margin" class="hidden">
       <td class="indent2">margin.item.horizontal</td>
-      <td class="mid">number</td>
-      <td class="mid"><code>10</code></td>
+      <td>number</td>
+      <td><code>10</code></td>
       <td>The minimal horizontal margin in pixels between items.</td>
     </tr>
     <tr parent="margin" class="hidden">
       <td class="indent2">margin.item.vertical</td>
-      <td class="mid">number</td>
-      <td class="mid"><code>10</code></td>
+      <td>number</td>
+      <td><code>10</code></td>
       <td>The minimal vertical margin in pixels between items.</td>
     </tr>
 
     <tr>
       <td>max</td>
-      <td class="mid">Date or Number or String or Moment</td>
-      <td class="mid">none</td>
+      <td>Date or Number or String or Moment</td>
+      <td>none</td>
       <td>Set a maximum Date for the visible range.
         It will not be possible to move beyond this maximum.
       </td>
@@ -655,15 +662,15 @@ var options = {
 
     <tr>
       <td>maxHeight</td>
-      <td class="mid">number or String</td>
-      <td class="mid">none</td>
+      <td>number or String</td>
+      <td>none</td>
       <td>Specifies the maximum height for the Timeline. Can be a number in pixels or a string like "300px".</td>
     </tr>
 
     <tr>
       <td>min</td>
-      <td class="mid">Date or Number or String or Moment</td>
-      <td class="mid">none</td>
+      <td>Date or Number or String or Moment</td>
+      <td>none</td>
       <td>Set a minimum Date for the visible range.
         It will not be possible to move beyond this minimum.
       </td>
@@ -671,15 +678,15 @@ var options = {
 
     <tr>
       <td>minHeight</td>
-      <td class="mid">number or String</td>
-      <td class="mid">none</td>
+      <td>number or String</td>
+      <td>none</td>
       <td>Specifies the minimum height for the Timeline. Can be a number in pixels or a string like "300px".</td>
     </tr>
 
     <tr>
       <td>moveable</td>
-      <td class="mid">boolean</td>
-      <td class="mid"><code>true</code></td>
+      <td>boolean</td>
+      <td><code>true</code></td>
       <td>
         Specifies whether the Timeline can be moved and zoomed by dragging the window.
         See also option <code>zoomable</code>.
@@ -688,8 +695,8 @@ var options = {
 
     <tr>
       <td>multiselect</td>
-      <td class="mid">boolean</td>
-      <td class="mid"><code>false</code></td>
+      <td>boolean</td>
+      <td><code>false</code></td>
       <td>
         If true, multiple items can be selected using ctrl+click, shift+click, or by holding items.
         Only applicable when option <code>selectable</code> is <code>true</code>.
@@ -698,48 +705,48 @@ var options = {
 
     <tr>
       <td>onAdd</td>
-      <td class="mid">function</td>
-      <td class="mid">none</td>
+      <td>function</td>
+      <td>none</td>
       <td>Callback function triggered when an item is about to be added: when the user double taps an empty space in the Timeline. See section <a href="#Editing_Items">Editing Items</a> for more information. Only applicable when both options <code>selectable</code> and <code>editable.add</code> are set <code><code>true</code></code>.
       </td>
     </tr>
 
     <tr>
       <td>onUpdate</td>
-      <td class="mid">function</td>
-      <td class="mid">none</td>
+      <td>function</td>
+      <td>none</td>
       <td>Callback function triggered when an item is about to be updated, when the user double taps an item in the Timeline. See section <a href="#Editing_Items">Editing Items</a> for more information. Only applicable when both options <code>selectable</code> and <code>editable.updateTime</code> or <code>editable.updateGroup</code> are set <code><code>true</code></code>.
       </td>
     </tr>
 
     <tr>
       <td>onMove</td>
-      <td class="mid">function</td>
-      <td class="mid">none</td>
+      <td>function</td>
+      <td>none</td>
       <td>Callback function triggered when an item has been moved: after the user has dragged the item to an other position. See section <a href="#Editing_Items">Editing Items</a> for more information. Only applicable when both options <code>selectable</code> and <code>editable.updateTime</code> or <code>editable.updateGroup</code> are set <code><code>true</code></code>.
       </td>
     </tr>
 
     <tr>
       <td>onMoving</td>
-      <td class="mid">function</td>
-      <td class="mid">none</td>
+      <td>function</td>
+      <td>none</td>
       <td>Callback function triggered repeatedly when an item is being moved. See section <a href="#Editing_Items">Editing Items</a> for more information. Only applicable when both options <code>selectable</code> and <code>editable.updateTime</code> or <code>editable.updateGroup</code> are set <code><code>true</code></code>.
       </td>
     </tr>
 
     <tr>
       <td>onRemove</td>
-      <td class="mid">function</td>
-      <td class="mid">none</td>
+      <td>function</td>
+      <td>none</td>
       <td>Callback function triggered when an item is about to be removed: when the user tapped the delete button on the top right of a selected item. See section <a href="#Editing_Items">Editing Items</a> for more information. Only applicable when both options <code>selectable</code> and <code>editable.remove</code> are set <code><code>true</code></code>.
       </td>
     </tr>
 
     <tr>
       <td>order</td>
-      <td class="mid">function</td>
-      <td class="mid">none</td>
+      <td>function</td>
+      <td>none</td>
       <td>
         <p>Provide a custom sort function to order the items. The order of the
           items is determining the way they are stacked. The function
@@ -752,43 +759,43 @@ var options = {
 
     <tr class='toggle collapsible' onclick="toggleTable('optionTable','orientation', this);">
       <td><span parent="orientation" class="right-caret"></span> orientation</td>
-      <td class="mid">String or Object</td>
-      <td class="mid"><code>'bottom'</code></td>
+      <td>String or Object</td>
+      <td><code>'bottom'</code></td>
       <td>Orientation of the timelines axis and items. When orientation is a string, the value is applied to both items and axis. Can be 'top', 'bottom' (default), or 'both'.</td>
     </tr>
     <tr parent="orientation" class="hidden">
       <td class="indent">orientation.axis</td>
-      <td class="mid">String</td>
-      <td class="mid"><code>'bottom'</code></td>
+      <td>String</td>
+      <td><code>'bottom'</code></td>
       <td>Orientation of the timeline axis: 'top', 'bottom' (default), or 'both'. If orientation is 'bottom', the time axis is drawn at the bottom. When 'top', the axis is drawn on top. When 'both', two axes are drawn, both on top and at the bottom.</td>
     </tr>
     <tr parent="orientation" class="hidden">
       <td class="indent">orientation.item</td>
-      <td class="mid">String</td>
-      <td class="mid"><code>'bottom'</code></td>
+      <td>String</td>
+      <td><code>'bottom'</code></td>
       <td>Orientation of the timeline items: 'top' or 'bottom' (default). Determines whether items are aligned to the top or bottom of the Timeline.</td>
     </tr>
 
 
     <tr>
       <td>selectable</td>
-      <td class="mid">boolean</td>
-      <td class="mid"><code>true</code></td>
+      <td>boolean</td>
+      <td><code>true</code></td>
       <td>If true, the items on the timeline can be selected. Multiple items can be selected by long pressing them, or by using ctrl+click or shift+click. The event <code>select</code> is fired each time the selection has changed (see section <a href="#Events">Events</a>).</td>
     </tr>
 
     <tr>
       <td>showCurrentTime</td>
-      <td class="mid">boolean</td>
-      <td class="mid"><code>true</code></td>
+      <td>boolean</td>
+      <td><code>true</code></td>
       <td>Show a vertical bar at the current time.</td>
     </tr>
 
     <tr>
     <tr>
       <td>showMajorLabels</td>
-      <td class="mid">boolean</td>
-      <td class="mid"><code>true</code></td>
+      <td>boolean</td>
+      <td><code>true</code></td>
       <td>By default, the timeline shows both minor and major date labels on the
         time axis.
         For example the minor labels show minutes and the major labels show hours.
@@ -798,8 +805,8 @@ var options = {
 
     <tr>
       <td>showMinorLabels</td>
-      <td class="mid">boolean</td>
-      <td class="mid"><code>true</code></td>
+      <td>boolean</td>
+      <td><code>true</code></td>
       <td>By default, the timeline shows both minor and major date labels on the
         time axis.
         For example the minor labels show minutes and the major labels show hours.
@@ -811,15 +818,15 @@ var options = {
 
     <tr>
       <td>stack</td>
-      <td class="mid">boolean</td>
-      <td class="mid"><code>true</code></td>
+      <td>boolean</td>
+      <td><code>true</code></td>
       <td>If true (default), items will be stacked on top of each other such that they do not overlap.</td>
     </tr>
 
     <tr>
       <td>snap</td>
-      <td class="mid">function or null</td>
-      <td class="mid">function</td>
+      <td>function or null</td>
+      <td>function</td>
       <td>When moving items on the Timeline, they will be snapped to nice dates like full hours or days, depending on the current scale. The <code>snap</code> function can be replaced with a custom function, or can be set to <code>null</code> to disable snapping. The signature of the snap function is:
         <pre class="prettyprint lang-js">function snap(date: Date, scale: string, step: number) : Date or number</pre>
         The parameter <code>scale</code> can be can be 'millisecond', 'second', 'minute', 'hour', 'weekday, 'day, 'month, or 'year'. The parameter <code>step</code> is a number like 1, 2, 4, 5.
@@ -828,29 +835,29 @@ var options = {
 
     <tr>
       <td>start</td>
-      <td class="mid">Date or Number or String or Moment</td>
-      <td class="mid">none</td>
+      <td>Date or Number or String or Moment</td>
+      <td>none</td>
       <td>The initial start date for the axis of the timeline.
         If not provided, the earliest date present in the events is taken as start date.</td>
     </tr>
 
     <tr>
       <td>template</td>
-      <td class="mid">function</td>
-      <td class="mid">none</td>
+      <td>function</td>
+      <td>none</td>
       <td>A template function used to generate the contents of the items. The function is called by the Timeline with an items data as argument, and must return HTML code as result. When the option template is specified, the items do not need to have a field <code>content</code>. See section <a href="#Templates">Templates</a> for a detailed explanation.</td>
     </tr>
 
     <tr class='toggle collapsible' onclick="toggleTable('optionTable','timeAxis', this);">
       <td><span parent="timeAxis" class="right-caret"></span> timeAxis</td>
-      <td class="mid">Object</td>
-      <td class="mid"><code>Object</code></td>
+      <td>Object</td>
+      <td><code>Object</code></td>
       <td>Specify a fixed scale and step size for the time axis.</td>
     </tr>
     <tr parent="timeAxis" class="hidden">
       <td class="indent">timeAxis.scale</td>
-      <td class="mid">String</td>
-      <td class="mid">none</td>
+      <td>String</td>
+      <td>none</td>
       <td>Set a fixed scale for the time axis of the Timeline. Choose from <code>'millisecond'</code>, <code>'second'</code>, <code>'minute'</code>, <code>'hour'</code>, <code>'weekday'</code>, <code>'day'</code>, <code>'month'</code>, <code>'year'</code>. Example usage:
   <pre class="prettyprint lang-js">var options = {
   timeAxis: {scale: 'minute', step: 5}
@@ -859,8 +866,8 @@ var options = {
     </tr>
     <tr parent="timeAxis" class="hidden">
       <td class="indent">timeAxis.step</td>
-      <td class="mid">number</td>
-      <td class="mid"><code>1</code></td>
+      <td>number</td>
+      <td><code>1</code></td>
       <td>
         Set a fixed step size for the time axis. Only applicable when used together with <code>timeAxis.scale</code>.
         Choose for example 1, 2, 5, or 10.</td>
@@ -868,23 +875,23 @@ var options = {
 
     <tr>
       <td>type</td>
-      <td class="mid">String</td>
-      <td class="mid">none</td>
+      <td>String</td>
+      <td>none</td>
       <td>Specifies the default type for the timeline items. Choose from 'box', 'point', 'range', and 'background'. Note that individual items can override this default type. If undefined, the Timeline will auto detect the type from the items data: if a start and end date is available, a 'range' will be created, and else, a 'box' is created. Items of type 'background' are not editable.
       </td>
     </tr>
 
     <tr>
       <td>width</td>
-      <td class="mid">String or Number</td>
-      <td class="mid"><code>'100%'</code></td>
+      <td>String or Number</td>
+      <td><code>'100%'</code></td>
       <td>The width of the timeline in pixels or as a percentage.</td>
     </tr>
 
     <tr>
       <td>zoomable</td>
-      <td class="mid">boolean</td>
-      <td class="mid"><code>true</code></td>
+      <td>boolean</td>
+      <td><code>true</code></td>
       <td>
         Specifies whether the Timeline can be zoomed by pinching or scrolling in the window.
         Only applicable when option <code>moveable</code> is set <code><code>true</code></code>.
@@ -893,8 +900,8 @@ var options = {
 
     <tr>
       <td>zoomMax</td>
-      <td class="mid">number</td>
-      <td class="mid"><code>315360000000000</code></td>
+      <td>number</td>
+      <td><code>315360000000000</code></td>
       <td>Set a maximum zoom interval for the visible range in milliseconds.
         It will not be possible to zoom out further than this maximum.
         Default value equals about 10000 years.
@@ -903,8 +910,8 @@ var options = {
 
     <tr>
       <td>zoomMin</td>
-      <td class="mid">number</td>
-      <td class="mid"><code>10</code></td>
+      <td>number</td>
+      <td><code>10</code></td>
       <td>Set a minimum zoom interval for the visible range in milliseconds.
         It will not be possible to zoom in further than this minimum.
       </td>
@@ -918,7 +925,7 @@ var options = {
     The Timeline supports the following methods.
   </p>
 
-  <table class="moduleTable" >
+  <table class="methods">
     <tr>
       <th>Method</th>
       <th>Return&nbsp;Type</th>
@@ -927,7 +934,7 @@ var options = {
 
     <tr>
       <td>addCustomTime([time] [, id])</td>
-      <td class="mid">number or String</td>
+      <td>number or String</td>
       <td>
         Add new vertical bar representing a custom time that can be dragged by the user.
         Parameter <code>time</code> can be a Date, Number, or String, and is <code>new Date()</code> by default.
@@ -938,14 +945,14 @@ var options = {
 
     <tr>
       <td>destroy()</td>
-      <td class="mid">none</td>
+      <td>none</td>
       <td>Destroy the Timeline. The timeline is removed from memory. all DOM elements and event listeners are cleaned up.
       </td>
     </tr>
 
     <tr>
       <td>fit([options])</td>
-      <td class="mid">none</td>
+      <td>none</td>
       <td>Adjust the visible window such that it fits all items. See also function <code>focus(id)</code>.
         Available options:
         <ul>
@@ -957,7 +964,7 @@ var options = {
 
     <tr>
       <td>focus(id or ids [, options])</td>
-      <td class="mid">none</td>
+      <td>none</td>
       <td>Adjust the visible window such that the selected item (or multiple items) are centered on screen. See also function <code>fit()</code>. Available options:
         <ul>
           <li><code>animation: boolean or {duration: number, easingFunction: string}</code><br>If true (default) or an Object, the range is animated smoothly to the new window. An object can be provided to specify duration and easing function. Default duration is 500 ms, and default easing function is <code>'easeInOutQuad'</code>. Available easing functions: <code>"linear"</code>, <code>"easeInQuad"</code>, <code>"easeOutQuad"</code>, <code>"easeInOutQuad"</code>, <code>"easeInCubic"</code>, <code>"easeOutCubic"</code>, <code>"easeInOutCubic"</code>, <code>"easeInQuart"</code>, <code>"easeOutQuart"</code>, <code>"easeInOutQuart"</code>, <code>"easeInQuint"</code>, <code>"easeOutQuint"</code>, <code>"easeInOutQuint"</code>.</li>
@@ -967,21 +974,21 @@ var options = {
 
     <tr>
       <td>getCurrentTime()</td>
-      <td class="mid">Date</td>
+      <td>Date</td>
       <td>Get the current time. Only applicable when option <code>showCurrentTime</code> is true.
       </td>
     </tr>
 
     <tr>
       <td>getCustomTime([id])</td>
-      <td class="mid">Date</td>
+      <td>Date</td>
       <td>Retrieve the custom time from the custom time bar with given id. Id is <code>undefined</code> by default.
       </td>
     </tr>
 
     <tr id="getEventProperties">
       <td>getEventProperties(event)</td>
-      <td class="mid">Object</td>
+      <td>Object</td>
       <td>
         Returns an Object with relevant properties from an event:
         <ul>
@@ -1001,25 +1008,25 @@ var options = {
 
     <tr>
       <td>getSelection()</td>
-      <td class="mid">number[]</td>
+      <td>number[]</td>
       <td>Get an array with the ids of the currently selected items.</td>
     </tr>
 
     <tr>
       <td>getVisibleItems()</td>
-      <td class="mid">number[]</td>
+      <td>number[]</td>
       <td>Get an array with the ids of the currently visible items.</td>
     </tr>
 
     <tr>
       <td>getWindow()</td>
-      <td class="mid">Object</td>
+      <td>Object</td>
       <td>Get the current visible window. Returns an object with properties <code>start: Date</code> and <code>end: Date</code>.</td>
     </tr>
 
     <tr>
       <td>moveTo(time [, options])</td>
-      <td class="mid">none</td>
+      <td>none</td>
       <td>Move the window such that given time is centered on screen. Parameter <code>time</code> can be a <code>Date</code>, <code>Number</code>, or <code>String</code>. Available options:
         <ul>
           <li><code>animation: boolean or {duration: number, easingFunction: string}</code><br>If true (default) or an Object, the range is animated smoothly to the new window. An object can be provided to specify duration and easing function. Default duration is 500 ms, and default easing function is <code>'easeInOutQuad'</code>. Available easing functions: <code>"linear"</code>, <code>"easeInQuad"</code>, <code>"easeOutQuad"</code>, <code>"easeInOutQuad"</code>, <code>"easeInCubic"</code>, <code>"easeOutCubic"</code>, <code>"easeInOutCubic"</code>, <code>"easeInQuart"</code>, <code>"easeOutQuart"</code>, <code>"easeInOutQuart"</code>, <code>"easeInQuint"</code>, <code>"easeOutQuint"</code>, <code>"easeInOutQuint"</code>.</li>
@@ -1029,19 +1036,19 @@ var options = {
 
     <tr>
       <td>on(event, callback)</td>
-      <td class="mid">none</td>
+      <td>none</td>
       <td>Create an event listener. The callback function is invoked every time the event is triggered. Avialable events: <code>rangechange</code>, <code>rangechanged</code>, <code>select</code>. The callback function is invoked as <code>callback(properties)</code>, where <code>properties</code> is an object containing event specific properties. See section <a href="#Events">Events for more information</a>.</td>
     </tr>
 
     <tr>
       <td>off(event, callback)</td>
-      <td class="mid">none</td>
+      <td>none</td>
       <td>Remove an event listener created before via function <code>on(event, callback)</code>. See section <a href="#Events">Events for more information</a>.</td>
     </tr>
 
     <tr>
       <td>redraw()</td>
-      <td class="mid">none</td>
+      <td>none</td>
       <td>Force a redraw of the Timeline. The size of all items will be recalculated.
         Can be useful to manually redraw when option <code>autoResize=false</code> and the window
         has been resized, or when the items CSS has been changed.
@@ -1050,7 +1057,7 @@ var options = {
 
     <tr>
       <td>removeCustomTime(id)</td>
-      <td class="mid">none</td>
+      <td>none</td>
       <td>
         Remove vertical bars previously added to the timeline via <code>addCustomTime</code> method. Parameter <code>id</code> is the ID of the custom vertical bar returned by <code>addCustomTime</code> method.
       </td>
@@ -1058,7 +1065,7 @@ var options = {
 
     <tr>
       <td>setCurrentTime(time)</td>
-      <td class="mid">none</td>
+      <td>none</td>
       <td>Set a current time. This can be used for example to ensure that a client's time is synchronized with a shared server time.
         <code>time</code> can be a Date object, numeric timestamp, or ISO date string.
         Only applicable when option <code>showCurrentTime</code> is true.</td>
@@ -1066,7 +1073,7 @@ var options = {
 
     <tr>
       <td>setCustomTime(time [, id])</td>
-      <td class="mid">none</td>
+      <td>none</td>
       <td>Adjust the time of a custom time bar.
         Parameter <code>time</code> can be a Date object, numeric timestamp, or ISO date string.
         Parameter <code>id</code> is the idof the custom time bar, and is <code>undefined</code> by default.
@@ -1075,7 +1082,7 @@ var options = {
 
     <tr>
       <td>setData({<br>&nbsp;&nbsp;groups: groups,<br>&nbsp;&nbsp;items: items<br>})</td>
-      <td class="mid">none</td>
+      <td>none</td>
       <td>Set both groups and items at once. Both properties are optional. This is a convenience method for individually calling both <code>setItems(items)</code> and <code>setGroups(groups)</code>.
         Both <code>items</code> and <code>groups</code> can be an Array with Objects,
         a DataSet, or a DataView. For each of the groups, the items of the
@@ -1086,7 +1093,7 @@ var options = {
 
     <tr>
       <td>setGroups(groups)</td>
-      <td class="mid">none</td>
+      <td>none</td>
       <td>Set a data set with groups for the Timeline.
         <code>groups</code> can be an Array with Objects,
         a DataSet, or a DataView. For each of the groups, the items of the
@@ -1097,7 +1104,7 @@ var options = {
 
     <tr>
       <td>setItems(items)</td>
-      <td class="mid">none</td>
+      <td>none</td>
       <td>Set a data set with items for the Timeline.
         <code>items</code> can be an Array with Objects,
         a DataSet, or a DataView.
@@ -1106,14 +1113,14 @@ var options = {
 
     <tr>
       <td>setOptions(options)</td>
-      <td class="mid">none</td>
+      <td>none</td>
       <td>Set or update options. It is possible to change any option of the timeline at any time. You can for example switch orientation on the fly.
       </td>
     </tr>
 
     <tr>
       <td>setSelection(id or ids [, options])</td>
-      <td class="mid">none</td>
+      <td>none</td>
       <td>Select one or multiple items by their id. The currently selected items will be unselected. To unselect all selected items, call `setSelection([])`. Available options:
         <ul>
           <li><code>focus: boolean</code><br>If true, focus will be set to the selected item(s)</li>
@@ -1124,7 +1131,7 @@ var options = {
 
     <tr>
       <td>setWindow(start, end [, options])</td>
-      <td class="mid">none</td>
+      <td>none</td>
       <td>Set the current visible window. The parameters <code>start</code> and <code>end</code> can be a <code>Date</code>, <code>Number</code>, or <code>String</code>. If the parameter value of <code>start</code> or <code>end</code> is null, the parameter will be left unchanged. Available options:
         <ul>
           <li><code>animation: boolean or {duration: number, easingFunction: string}</code><br>If true (default) or an Object, the range is animated smoothly to the new window. An object can be provided to specify duration and easing function. Default duration is 500 ms, and default easing function is <code>'easeInOutQuad'</code>. Available easing functions: <code>"linear"</code>, <code>"easeInQuad"</code>, <code>"easeOutQuad"</code>, <code>"easeInOutQuad"</code>, <code>"easeInCubic"</code>, <code>"easeOutCubic"</code>, <code>"easeInOutCubic"</code>, <code>"easeInQuart"</code>, <code>"easeOutQuart"</code>, <code>"easeInOutQuart"</code>, <code>"easeInQuint"</code>, <code>"easeOutQuint"</code>, <code>"easeInOutQuint"</code>.</li>
@@ -1175,30 +1182,27 @@ timeline.off('select', onSelect);
     The following events are available.
   </p>
 
-  <table class="moduleTable" >
-    <colgroup>
-      <col style="width: 20%;">
-      <col style="width: 40%;">
-      <col style="width: 40%;">
-    </colgroup>
-
+  <table class="events">
     <tr>
-      <th>name</th>
-      <th>Description</th>
+      <th>Name</th>
       <th>Properties</th>
+      <th>Description</th>
     </tr>
 
     <tr>
       <td>click</td>
-      <td>Fired when clicked inside the Timeline.
-      </td>
       <td>
         Passes a properties object as returned by the method <a href="#getEventProperties"><code>Timeline.getEventProperties(event)</code></a>.
+      </td>
+      <td>Fired when clicked inside the Timeline.
       </td>
     </tr>
 
     <tr>
       <td>contextmenu</td>
+      <td>
+        Passes a properties object as returned by the method <a href="#getEventProperties"><code>Timeline.getEventProperties(event)</code></a>.
+      </td>
       <td>Fired when right-clicked inside the Timeline. Note that in order to prevent the context menu from showing up, default behavior of the event must be stopped:
 <pre class="prettyprint lang-js">timeline.on('contextmenu', function (props) {
   alert('Right click!');
@@ -1206,37 +1210,32 @@ timeline.off('select', onSelect);
 });
 </pre>
       </td>
-      <td>
-        Passes a properties object as returned by the method <a href="#getEventProperties"><code>Timeline.getEventProperties(event)</code></a>.
-      </td>
     </tr>
 
     <tr>
       <td>doubleClick</td>
-      <td>Fired when double clicked inside the Timeline.
-      </td>
       <td>
         Passes a properties object as returned by the method <a href="#getEventProperties"><code>Timeline.getEventProperties(event)</code></a>.
+      </td>
+      <td>Fired when double clicked inside the Timeline.
       </td>
     </tr>
 
     <tr>
       <td>rangechange</td>
-      <td>Fired repeatedly when the timeline window is being changed.
-      </td>
       <td>
         <ul>
           <li><code>start</code> (Number): timestamp of the current start of the window.</li>
           <li><code>end</code> (Number): timestamp of the current end of the window.</li>
           <li><code>byUser</code> (Boolean): change happened because of user drag/zoom.</li>
         </ul>
+      </td>
+      <td>Fired repeatedly when the timeline window is being changed.
       </td>
     </tr>
 
     <tr>
       <td>rangechanged</td>
-      <td>Fired once after the timeline window has been changed.
-      </td>
       <td>
         <ul>
           <li><code>start</code> (Number): timestamp of the current start of the window.</li>
@@ -1244,44 +1243,46 @@ timeline.off('select', onSelect);
           <li><code>byUser</code> (Boolean): change happened because of user drag/zoom.</li>
         </ul>
       </td>
+      <td>Fired once after the timeline window has been changed.
+      </td>
     </tr>
 
     <tr>
       <td>select</td>
-      <td>Fired after the user selects or deselects items by tapping or holding them.
-        When a use taps an already selected item, the select event is fired again.
-        Not fired when the method <code>setSelection</code>is executed.
-      </td>
       <td>
         <ul>
           <li><code>items</code>: an array with the ids of the selected items</li>
         </ul>
       </td>
+      <td>Fired after the user selects or deselects items by tapping or holding them.
+        When a use taps an already selected item, the select event is fired again.
+        Not fired when the method <code>setSelection</code>is executed.
+      </td>
     </tr>
 
     <tr>
       <td>timechange</td>
-      <td>Fired repeatedly when the user is dragging the custom time bar.
-        Only available when the custom time bar is enabled.
-      </td>
       <td>
         <ul>
           <li><code>id</code> (Number or String): custom time bar id.</li>
           <li><code>time</code> (Date): the custom time.</li>
         </ul>
+      </td>
+      <td>Fired repeatedly when the user is dragging the custom time bar.
+        Only available when the custom time bar is enabled.
       </td>
     </tr>
 
     <tr>
       <td>timechanged</td>
-      <td>Fired once after the user has dragged the custom time bar.
-        Only available when the custom time bar is enabled.
-      </td>
       <td>
         <ul>
           <li><code>id</code> (Number or String): custom time bar id.</li>
           <li><code>time</code> (Date): the custom time.</li>
         </ul>
+      </td>
+      <td>Fired once after the user has dragged the custom time bar.
+        Only available when the custom time bar is enabled.
       </td>
     </tr>
 
@@ -1469,7 +1470,7 @@ var options = {
     Timeline comes with support for the following locales:
   </p>
 
-  <table class="moduleTable" >
+  <table>
     <tr>
       <th>Language</th>
       <th>Code</th>
@@ -1520,33 +1521,33 @@ var options = {
     The following classes are available:
   </p>
 
-  <table class="moduleTable" >
+  <table class="styles">
     <tr>
-      <th>Description</th><th>values</th>
+      <th>Description</th><th>Values</th>
     </tr>
     <tr>
-      <td>Alternating columns</td><td class="mid"><code>vis-even</code>, <code>vis-odd</code></td>
+      <td>Alternating columns</td><td><code>vis-even</code>, <code>vis-odd</code></td>
     </tr>
     <tr>
-      <td>Current date</td><td class="mid"><code>vis-today</code>, <code>vis-tomorrow</code>, <code>vis-yesterday</code>, <code>vis-current-week</code>, <code>vis-current-month</code>, <code>vis-current-year</code></td>
+      <td>Current date</td><td><code>vis-today</code>, <code>vis-tomorrow</code>, <code>vis-yesterday</code>, <code>vis-current-week</code>, <code>vis-current-month</code>, <code>vis-current-year</code></td>
     </tr>
     <tr>
-      <td>Hours</td><td class="mid"><code>vis-h0</code>, <code>vis-h1</code>, ..., <code>vis-h23</code></td>
+      <td>Hours</td><td><code>vis-h0</code>, <code>vis-h1</code>, ..., <code>vis-h23</code></td>
     </tr>
     <tr>
-      <td>Grouped hours</td><td class="mid"><code>vis-h0-h4</code> to <code>vis-h20-h24</code></td>
+      <td>Grouped hours</td><td><code>vis-h0-h4</code> to <code>vis-h20-h24</code></td>
     </tr>
     <tr>
-      <td>Weekday</td><td class="mid"><code>vis-monday</code>, <code>vis-tuesday</code>, <code>vis-wednesday</code>, <code>vis-thursday</code>, <code>vis-friday</code>, <code>vis-saturday</code>, <code>vis-sunday</code></td>
+      <td>Weekday</td><td><code>vis-monday</code>, <code>vis-tuesday</code>, <code>vis-wednesday</code>, <code>vis-thursday</code>, <code>vis-friday</code>, <code>vis-saturday</code>, <code>vis-sunday</code></td>
     </tr>
     <tr>
-      <td>Days</td><td class="mid"><code>vis-date1</code>, <code>vis-date2</code>, ..., <code>vis-date31</code></td>
+      <td>Days</td><td><code>vis-date1</code>, <code>vis-date2</code>, ..., <code>vis-date31</code></td>
     </tr>
     <tr>
-      <td>Months</td><td class="mid"><code>vis-januari</code>, <code>vis-februari</code>, <code>vis-march</code>, <code>vis-april</code>, <code>vis-may</code>, <code>vis-june</code>, <code>vis-july</code>, <code>vis-august</code>, <code>vis-september</code>, <code>vis-october</code>, <code>vis-november</code>, <code>vis-december</code></td>
+      <td>Months</td><td><code>vis-januari</code>, <code>vis-februari</code>, <code>vis-march</code>, <code>vis-april</code>, <code>vis-may</code>, <code>vis-june</code>, <code>vis-july</code>, <code>vis-august</code>, <code>vis-september</code>, <code>vis-october</code>, <code>vis-november</code>, <code>vis-december</code></td>
     </tr>
     <tr>
-      <td>Years</td><td class="mid"><code>vis-year2014</code>, <code>vis-year2015</code>, ...</td>
+      <td>Years</td><td><code>vis-year2014</code>, <code>vis-year2015</code>, ...</td>
     </tr>
   </table>
 

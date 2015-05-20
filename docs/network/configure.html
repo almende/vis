@@ -13,7 +13,7 @@
 
     <!-- Bootstrap core CSS -->
     <link href="../css/bootstrap.css" rel="stylesheet">
-    <link href="../css/newdocs.css" rel="stylesheet">
+    <link href="../css/style.css" rel="stylesheet">
 
 
     <!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
@@ -118,41 +118,40 @@ network.setOptions(options);
 
     <p>As shown above, alternative to supplying an object, you can supply a <code>String</code>, <code>Array</code>, <code>Function</code> or
         <code>Boolean</code>. These will do the same as the filter option described below.</p>
-    <table class="moduleTable">
+    <table class="options">
         <tr>
-            <th>name</th>
-            <th>type</th>
-            <th>default</th>
-            <th>description</th>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Default</th>
+            <th>Description</th>
         </tr>
         <tr>
             <td>enabled</td>
-            <td class="mid">Boolean</td>
-            <td class="mid"><code>true</code></td>
+            <td>Boolean</td>
+            <td><code>true</code></td>
             <td>Toggle the configuration interface on or off. This is an optional parameter. If left undefined and any of the other properties of this object are defined, this will be set to true.
             </td>
         </tr>
         <tr>
             <td>filter</td>
-            <td class="mid">String, Array, Boolean, Function</td>
-            <td class="mid"><code>true</code></td>
+            <td>String, Array, Boolean, Function</td>
+            <td><code>true</code></td>
             <td>When a boolean, true gives you all options, false will not show any. If a string is supplied, any
                 combination of the following is allowed: nodes, edges, layout, interaction, manipulation, physics,
                 selection, renderer. Feel free to come up with a fun seperating character. Finally, when supplied an
                 array of strings, any of the previously mentioned fields are accepted. <br><br>
                 When supplying a function, you receive two arguments. The option and the path of the option within the options object. If it returns true, the options will be shown in the configurator. Example:
-                <pre class="code">
+                <pre class="prettyprint lang-js">
 function (option, path) {
   return path.indexOf('physics') !== -1;
-}
-                </pre>
+}</pre>
                 This only shows the physics options.
             </td>
         </tr>
         <tr>
             <td>container</td>
-            <td class="mid">DOM element</td>
-            <td class="mid"><code>undefined</code></td>
+            <td>DOM element</td>
+            <td><code>undefined</code></td>
             <td>This allows you to put the configure list in another HTML container than below the network.</td>
         </tr>
     </table>
