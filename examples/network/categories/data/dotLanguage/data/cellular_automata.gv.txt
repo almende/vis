@@ -3,7 +3,7 @@ digraph G  {
   //       unrecognized attributes are ignored
 
   node[width=.25,height=.375,fontsize=15]
-  node [shape=filled fillcolor=#F1AAF0]
+  node [shape=filled color=#FF00FF fillcolor=#F1AAF0]
   0-> 0 ;
   1-> 1 ;
   2-> 2 ;
