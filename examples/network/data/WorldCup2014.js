@@ -9968,8 +9968,3 @@ var edges = [
   {from: 732, to: 733},
   {from: 734, to: 735}
 ];
-
-var data = {
-  nodes: nodes,
-  edges: edges
-};
