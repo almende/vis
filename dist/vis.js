@@ -19398,7 +19398,9 @@ return /******/ (function(modules) { // webpackBootstrap
         var localSearchThreshold = 8;
         var globalSearchThreshold = 4;
 
-        if (globalSearch.distance <= globalSearchThreshold && localSearch.distance > globalSearch.distance) {
+        if (localSearch.indexMatch !== undefined) {
+          console.log('%cUnknown option detected: "' + option + '" in ' + Validator.printLocation(localSearch.path, option, '') + 'Perhaps it was incomplete? Did you mean: "' + localSearch.indexMatch + '"?\n\n', printStyle);
+        } else if (globalSearch.distance <= globalSearchThreshold && localSearch.distance > globalSearch.distance) {
           console.log('%cUnknown option detected: "' + option + '" in ' + Validator.printLocation(localSearch.path, option, '') + 'Perhaps it was misplaced? Matching option found at: ' + Validator.printLocation(globalSearch.path, globalSearch.closestMatch, ''), printStyle);
         } else if (localSearch.distance <= localSearchThreshold) {
           console.log('%cUnknown option detected: "' + option + '". Did you mean "' + localSearch.closestMatch + '"?' + Validator.printLocation(localSearch.path, option), printStyle);
@@ -19426,6 +19428,8 @@ return /******/ (function(modules) { // webpackBootstrap
         var min = 1000000000;
         var closestMatch = '';
         var closestMatchPath = [];
+        var lowerCaseOption = option.toLowerCase();
+        var indexMatch = undefined;
         for (var op in options) {
           var type = Validator.getType(options[op]);
           var distance = undefined;
@@ -19435,8 +19439,12 @@ return /******/ (function(modules) { // webpackBootstrap
               closestMatch = result.closestMatch;
               closestMatchPath = result.path;
               min = result.distance;
+              indexMatch = result.indexMatch;
             }
           } else {
+            if (op.toLowerCase().indexOf(lowerCaseOption) !== -1) {
+              indexMatch = op;
+            }
             distance = Validator.levenshteinDistance(option, op);
             if (min > distance) {
               closestMatch = op;
@@ -19445,7 +19453,7 @@ return /******/ (function(modules) { // webpackBootstrap
             }
           }
         }
-        return { closestMatch: closestMatch, path: closestMatchPath, distance: min };
+        return { closestMatch: closestMatch, path: closestMatchPath, distance: min, indexMatch: indexMatch };
       }
     }, {
       key: 'printLocation',
@@ -20951,7 +20959,7 @@ return /******/ (function(modules) { // webpackBootstrap
             min: 14,
             max: 30,
             maxVisible: 30,
-            drawThreshold: 6
+            drawThreshold: 5
           },
           customScalingFunction: function customScalingFunction(min, max, total, value) {
             if (max === min) {
@@ -21409,7 +21417,7 @@ return /******/ (function(modules) { // webpackBootstrap
             min: 14,
             max: 30,
             maxVisible: 30,
-            drawThreshold: 6
+            drawThreshold: 5
           },
           customScalingFunction: function customScalingFunction(min, max, total, value) {
             if (max === min) {
