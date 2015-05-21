@@ -551,16 +551,18 @@ var locales = {
             </tr>
             <tr class="collapsible toggle" onclick="toggleTable('methodTable','clusterByHubsize', this);">
                 <td colspan="2"><span parent="clusterByHubsize" class="right-caret"></span> clusterByHubsize(
-                    <code>Number hubsize</code>,
+                    <code>[Number hubsize]</code>,
                     <code>[Object options]</code>)
                 </td>
             </tr>
             <tr class="hidden" parent="clusterByHubsize">
                 <td class="midMethods">Returns: none</td>
                 <td>This method checks all nodes in the network and those with a equal or higher amount of edges than
-                    specified with the <code>hubsize</code> qualify. Cluster by connection is performed on each of them.
-                    The
-                    options object is described for <code>clusterByConnection</code> and does the same here.
+                    specified with the <code>hubsize</code> qualify. If a hubsize is not defined, the hubsize will be determined as the average
+                    value plus two standard deviations. <br><br>
+
+                    For all qualifying nodes, clusterByConnection is performed on each of them.
+                    The options object is described for <code>clusterByConnection</code> and does the same here.
                 </td>
             </tr>
             <tr class="collapsible toggle" onclick="toggleTable('methodTable','clusterOutliers', this);">
@@ -569,7 +571,9 @@ var locales = {
             </tr>
             <tr class="hidden" parent="clusterOutliers">
                 <td class="midMethods">Returns: none</td>
-                <td>This method will cluster all nodes with 1 edge with their respective connected node.</td>
+                <td>This method will cluster all nodes with 1 edge with their respective connected node.
+                    The options object is explained in full <a data-scroll="" data-options="{ &quot;easing&quot;: &quot;easeInCubic&quot; }" href="#optionsObject">below</a>.
+                </td>
             </tr>
             <tr class="collapsible toggle" onclick="toggleTable('methodTable','findNode', this);">
                 <td colspan="2"><span parent="findNode" class="right-caret"></span> findNode(
@@ -1055,7 +1059,9 @@ network.clustering.cluster(options);
                 </td>
             </tr>
             <tr>
-                <td>processProperties(<br>&nbsp;&nbsp;<code>nodeOptions:&nbsp;Object</code><br>)</td>
+                <td>processProperties(<br>&nbsp;&nbsp;<code>clusterOptions:&nbsp;Object</code>,<br>
+                    &nbsp;&nbsp;<code>childNodesOptions:&nbsp;Array</code>,<br>
+                    &nbsp;&nbsp;<code>childEdgesOptions:&nbsp;Array</code><br>)</td>
                 <td>Function</td>
                 <td><i>Optional. </i> Before creating the new cluster node, this (optional) function will be called with
                     the

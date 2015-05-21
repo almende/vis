@@ -34,17 +34,20 @@
     }
   </style>
 
-  <script type="text/javascript" src="../../dist/vis.js"></script>
-  <link href="../../dist/vis.css" rel="stylesheet" type="text/css" />
+  <script type="text/javascript" src="../../exampleUtil.js"></script>
+  <script type="text/javascript" src="../../../../dist/vis.js"></script>
+  <link href="../../../../dist/vis.css" rel="stylesheet" type="text/css" />
 
   <script type="text/javascript">
     var nodes = null;
     var edges = null;
     var network = null;
-
-    var doButton, focusButton, showButton;
+    var offsetx, offsety, scale, positionx, positiony, duration, easingFunction, doButton, focusButton, showButton;
     var statusUpdateSpan;
     var finishMessage = '';
+    var showInterval = false;
+    var showPhase = 1;
+    var amountOfNodes = 25;
 
     function destroy() {
       if (network !== null) {
@@ -53,65 +56,28 @@
       }
     }
 
+    function updateValues() {
+      offsetx = parseInt(document.getElementById('offsetx').value);
+      offsety = parseInt(document.getElementById('offsety').value);
+      duration = parseInt(document.getElementById('duration').value);
+      scale = parseFloat(document.getElementById('scale').value);
+      positionx = parseInt(document.getElementById('positionx').value);
+      positiony = parseInt(document.getElementById('positiony').value);
+      easingFunction = document.getElementById('easingFunction').value;
+    }
+
     function draw() {
       destroy();
       statusUpdateSpan = document.getElementById('statusUpdate');
       doButton = document.getElementById('btnDo');
       focusButton = document.getElementById('btnFocus');
       showButton = document.getElementById('btnShow');
-      nodes = [];
-      edges = [];
-      var connectionCount = [];
 
       // randomly create some nodes and edges
-      var nodeCount = 25;
-      for (var i = 0; i < nodeCount; i++) {
-        nodes.push({
-          id: i,
-          label: String(i)
-        });
-
-        connectionCount[i] = 0;
-
-        // create edges in a scale-free-network way
-        if (i == 1) {
-          var from = i;
-          var to = 0;
-          edges.push({
-            from: from,
-            to: to
-          });
-          connectionCount[from]++;
-          connectionCount[to]++;
-        }
-        else if (i > 1) {
-          var conn = edges.length * 2;
-          var rand = Math.floor(Math.random() * conn);
-          var cum = 0;
-          var j = 0;
-          while (j < connectionCount.length && cum < rand) {
-            cum += connectionCount[j];
-            j++;
-          }
-
-
-          var from = i;
-          var to = j;
-          edges.push({
-            from: from,
-            to: to
-          });
-          connectionCount[from]++;
-          connectionCount[to]++;
-        }
-      }
+      var data = getScaleFreeNetwork(amountOfNodes);
 
       // create a network
       var container = document.getElementById('mynetwork');
-      var data = {
-        nodes: nodes,
-        edges: edges
-      };
       var options = {
         physics: {
           stabilization: {
@@ -133,28 +99,20 @@
       })
     }
 
-    function zoomExtentAnimated() {
-      var offsetx = parseInt(document.getElementById('offsetx').value);
-      var offsety = parseInt(document.getElementById('offsety').value);
-      var duration = parseInt(document.getElementById('duration').value);
-      var easingFunction = document.getElementById('easingFunction').value;
+    function fitAnimated() {
+      updateValues();
 
       var options = {offset: {x:offsetx,y:offsety},
         duration: duration,
         easingFunction: easingFunction
       };
-      statusUpdateSpan.innerHTML = 'Doing ZoomExtent() Animation.';
+      statusUpdateSpan.innerHTML = 'Doing fit() Animation.';
       finishMessage = 'Animation finished.';
-      network.fit(options);
+      network.fit({animation:options});
     }
 
     function doDefaultAnimation() {
-      var offsetx = parseInt(document.getElementById('offsetx').value);
-      var offsety = parseInt(document.getElementById('offsety').value);
-      var scale = parseFloat(document.getElementById('scale').value);
-      var positionx = parseInt(document.getElementById('positionx').value);
-      var positiony = parseInt(document.getElementById('positiony').value);
-      var easingFunction = document.getElementById('easingFunction').value;
+      updateValues();
 
       var options = {
         position: {x:positionx,y:positiony},
@@ -168,13 +126,7 @@
     }
 
     function doAnimation() {
-      var offsetx = parseInt(document.getElementById('offsetx').value);
-      var offsety = parseInt(document.getElementById('offsety').value);
-      var duration = parseInt(document.getElementById('duration').value);
-      var scale = parseFloat(document.getElementById('scale').value);
-      var positionx = parseInt(document.getElementById('positionx').value);
-      var positiony = parseInt(document.getElementById('positiony').value);
-      var easingFunction = document.getElementById('easingFunction').value;
+      updateValues();
 
       var options = {
         position: {x:positionx,y:positiony},
@@ -191,13 +143,9 @@
     }
 
     function focusRandom() {
-      var nodeId = Math.floor(Math.random() * 25);
-      var offsetx = parseInt(document.getElementById('offsetx').value);
-      var offsety = parseInt(document.getElementById('offsety').value);
-      var duration = parseInt(document.getElementById('duration').value);
-      var scale = parseFloat(document.getElementById('scale').value);
-      var easingFunction = document.getElementById('easingFunction').value;
+      updateValues();
 
+      var nodeId = Math.floor(Math.random() * amountOfNodes);
       var options = {
         // position: {x:positionx,y:positiony}, // this is not relevant when focusing on nodes
         scale: scale,
@@ -213,9 +161,9 @@
     }
 
 
-    var showInterval = false;
-    var showPhase = 1;
+
     function startShow() {
+      updateValues();
       if (showInterval !== false) {
         showInterval = false;
         showButton.value = 'Start a show!';
@@ -223,7 +171,6 @@
       }
       else {
         showButton.value = 'Stop the show!';
-        var duration = parseInt(document.getElementById('duration').value);
         focusRandom();
         setTimeout(doTheShow, duration);
         showInterval = true;
@@ -231,31 +178,31 @@
     }
 
     function doTheShow() {
+      updateValues();
       if (showInterval == true) {
-        var duration = parseInt(document.getElementById('duration').value);
         if (showPhase == 0) {
           focusRandom();
           showPhase = 1;
         }
         else {
-          zoomExtentAnimated();
+          fitAnimated();
           showPhase = 0;
         }
         setTimeout(doTheShow, duration);
       }
     }
   </script>
-  <script src="../googleAnalytics.js"></script>
+  <script src="../../../googleAnalytics.js"></script>
 </head>
 
 <body onload="draw();">
 <h2>Camera animations</h2>
 <div style="width:700px; font-size:14px;">
   You can move the view around programmatically using the .moveTo(options) function. The options supplied to this function can
-  also be (partially) supplied to the .zoomExtent() and .focusOnNode() methods. These are explained in the docs.
+  also be (partially) supplied to the .fit() and .focusOnNode() methods. These are explained in the docs.
   <br /><br/>
   The buttons below take the fields from the table when they can. For instance, the "Animate with default settings." takes the position, scale and offset while using
-  the default animation values for duration and easing function. The focusOnNode takes everything except the position and the zoomExtent takes only the duration and easing function.
+  the default animation values for duration and easing function. The focusOnNode takes everything except the position and the fit takes only the duration and easing function.
   <br/><br/>
   Here you can see a full description of the options you can supply to moveTo:
 </div>
@@ -290,7 +237,7 @@ var moveToOptions = {
       <td>offset y</td><td><input type="text" value="0" id="offsety" style="width:170px;"> px</td>
     </tr>
     <tr>
-      <td>duration</td><td><input type="text" value="2500" id="duration" style="width:170px;"> ms</td>
+      <td>duration</td><td><input type="text" value="1000" id="duration" style="width:170px;"> ms</td>
     </tr>
     <tr>
       <td>easingFunction</td><td>
@@ -317,7 +264,7 @@ var moveToOptions = {
     Examples:
     <input type="button" onclick="doAnimation();" value="Animate with above settings." style="width:300px;" id="btnDo"> <br/>
     <input type="button" onclick="doDefaultAnimation();" value="Animate with default settings." style="width:300px;" id="btnDoDefault"> <br/>
-    <input type="button" onclick="zoomExtentAnimated();" value="Animated ZoomExtent()." style="width:300px;" id="btnZoom"> <br/>
+    <input type="button" onclick="fitAnimated();" value="Animated fit()." style="width:300px;" id="btnZoom"> <br/>
     <input type="button" onclick="focusRandom();" value="Focus on random node." style="width:300px;" id="btnFocus"><br/>
     <input type="button" onclick="startShow();" value="Start a show!" style="width:300px;" id="btnShow"><br/>
   </div>
