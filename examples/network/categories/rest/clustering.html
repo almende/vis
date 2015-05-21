@@ -42,12 +42,12 @@ Click any of the buttons below to cluster the network. On every push the network
   // create an array with nodes
   var nodes = [
     {id: 1,  label: 'Node 1', color:'orange'},
-    {id: 2,  label: 'Node 2', color:'DarkViolet'},
+    {id: 2,  label: 'Node 2', color:'DarkViolet', font:{color:'white'}},
     {id: 3,  label: 'Node 3', color:'orange'},
-    {id: 4,  label: 'Node 4', color:'DarkViolet'},
+    {id: 4,  label: 'Node 4', color:'DarkViolet', font:{color:'white'}},
     {id: 5,  label: 'Node 5', color:'orange'},
     {id: 6,  label: 'cid = 1', cid:1, color:'orange'},
-    {id: 7,  label: 'cid = 1', cid:1, color:'DarkViolet'},
+    {id: 7,  label: 'cid = 1', cid:1, color:'DarkViolet', font:{color:'white'}},
     {id: 8,  label: 'cid = 1', cid:1, color:'lime'},
     {id: 9,  label: 'cid = 1', cid:1, color:'orange'},
     {id: 10, label: 'cid = 1', cid:1, color:'lime'}
@@ -72,7 +72,7 @@ Click any of the buttons below to cluster the network. On every push the network
     nodes: nodes,
     edges: edges
   };
-  var options = {layout:{randomSeed:8},nodes:{font:{strokeWidth:5}}};
+  var options = {layout:{randomSeed:8}};
   var network = new vis.Network(container, data, options);
   network.on("selectNode", function(params) {
       if (params.nodes.length == 1) {

@@ -16193,8 +16193,8 @@ return /******/ (function(modules) { // webpackBootstrap
   Network.prototype.getScale = function () {
     return this.view.getScale.apply(this.view, arguments);
   };
-  Network.prototype.getPosition = function () {
-    return this.view.getPosition.apply(this.view, arguments);
+  Network.prototype.getViewPosition = function () {
+    return this.view.getViewPosition.apply(this.view, arguments);
   };
   Network.prototype.fit = function () {
     return this.view.fit.apply(this.view, arguments);
@@ -22575,28 +22575,41 @@ return /******/ (function(modules) { // webpackBootstrap
           var childNodesObj = {};
           var childEdgesObj = {};
           var nodeId = this.body.nodeIndices[i];
-          if (this.body.nodes[nodeId].edges.length === 1) {
+          var visibleEdges = 0;
+          var edge = undefined;
+          for (var j = 0; j < this.body.nodes[nodeId].edges.length; j++) {
+            if (this.body.nodes[nodeId].edges[j].options.hidden === false) {
+              visibleEdges++;
+              edge = this.body.nodes[nodeId].edges[j];
+            }
+          }
+
+          if (visibleEdges === 1) {
             // this is an outlier
-            var edge = this.body.nodes[nodeId].edges[0];
             var childNodeId = this._getConnectedId(edge, nodeId);
             if (childNodeId !== nodeId) {
               if (options.joinCondition === undefined) {
-                childEdgesObj[edge.id] = edge;
-                childNodesObj[nodeId] = this.body.nodes[nodeId];
-                childNodesObj[childNodeId] = this.body.nodes[childNodeId];
+                if (this._checkIfUsed(clusters, nodeId, edge.id) === false && this._checkIfUsed(clusters, childNodeId, edge.id) === false) {
+                  childEdgesObj[edge.id] = edge;
+                  childNodesObj[nodeId] = this.body.nodes[nodeId];
+                  childNodesObj[childNodeId] = this.body.nodes[childNodeId];
+                }
               } else {
                 var clonedOptions = this._cloneOptions(this.body.nodes[nodeId]);
-                if (options.joinCondition(clonedOptions) === true) {
+                if (options.joinCondition(clonedOptions) === true && this._checkIfUsed(clusters, nodeId, edge.id) === false) {
                   childEdgesObj[edge.id] = edge;
                   childNodesObj[nodeId] = this.body.nodes[nodeId];
                 }
                 clonedOptions = this._cloneOptions(this.body.nodes[childNodeId]);
-                if (options.joinCondition(clonedOptions) === true) {
+                if (options.joinCondition(clonedOptions) === true && this._checkIfUsed(clusters, nodeId, edge.id) === false) {
                   childEdgesObj[edge.id] = edge;
                   childNodesObj[childNodeId] = this.body.nodes[childNodeId];
                 }
               }
-              clusters.push({ nodes: childNodesObj, edges: childEdgesObj });
+
+              if (Object.keys(childNodesObj).length > 0 && Object.keys(childEdgesObj).length > 0) {
+                clusters.push({ nodes: childNodesObj, edges: childEdgesObj });
+              }
             }
           }
         }
@@ -22608,6 +22621,17 @@ return /******/ (function(modules) { // webpackBootstrap
         if (refreshData === true) {
           this.body.emitter.emit('_dataChanged');
         }
+      }
+    }, {
+      key: '_checkIfUsed',
+      value: function _checkIfUsed(clusters, nodeId, edgeId) {
+        for (var i = 0; i < clusters.length; i++) {
+          var cluster = clusters[i];
+          if (cluster.nodes[nodeId] !== undefined || cluster.edges[edgeId] !== undefined) {
+            return true;
+          }
+        }
+        return false;
       }
     }, {
       key: 'clusterByConnection',
@@ -22792,12 +22816,6 @@ return /******/ (function(modules) { // webpackBootstrap
 
         var clusterNodeProperties = util.deepExtend({}, options.clusterNodeProperties);
 
-        // check if we have an unique id;
-        if (clusterNodeProperties.id === undefined) {
-          clusterNodeProperties.id = 'cluster:' + util.randomUUID();
-        }
-        var clusterId = clusterNodeProperties.id;
-
         // construct the clusterNodeProperties
         if (options.processProperties !== undefined) {
           // get the childNode options
@@ -22819,6 +22837,12 @@ return /******/ (function(modules) { // webpackBootstrap
             throw new Error('The processProperties function does not return properties!');
           }
         }
+
+        // check if we have an unique id;
+        if (clusterNodeProperties.id === undefined) {
+          clusterNodeProperties.id = 'cluster:' + util.randomUUID();
+        }
+        var clusterId = clusterNodeProperties.id;
 
         if (clusterNodeProperties.label === undefined) {
           clusterNodeProperties.label = 'cluster';
@@ -22988,7 +23012,8 @@ return /******/ (function(modules) { // webpackBootstrap
               edge.disconnect();
               delete this.body.edges[edgeId];
             } else {
-              // one of the nodes connected to this edge is in a cluster. We give the edge to that cluster and make a new temporary edge.
+
+              // one of the nodes connected to this edge is in a cluster. We give the edge to that cluster so it will be released when that cluster is opened.
               if (this.clusteredNodes[edge.fromId] !== undefined || this.clusteredNodes[edge.toId] !== undefined) {
                 var fromId = undefined,
                     toId = undefined;
@@ -22997,22 +23022,25 @@ return /******/ (function(modules) { // webpackBootstrap
                 var _clusterNode = this.body.nodes[clusterId];
                 _clusterNode.containedEdges[edgeId] = edge;
 
-                if (this.clusteredNodes[edge.fromId] !== undefined) {
-                  fromId = clusterId;
-                  toId = edge.toId;
-                } else {
-                  fromId = edge.fromId;
-                  toId = clusterId;
+                // if both from and to nodes are visible, we create a new temporary edge
+                if (edge.from.options.hidden !== true && edge.to.options.hidden !== true) {
+                  if (this.clusteredNodes[edge.fromId] !== undefined) {
+                    fromId = clusterId;
+                    toId = edge.toId;
+                  } else {
+                    fromId = edge.fromId;
+                    toId = clusterId;
+                  }
+
+                  var clonedOptions = this._cloneOptions(edge, 'edge');
+                  var id = 'clusterEdge:' + util.randomUUID();
+                  util.deepExtend(clonedOptions, _clusterNode.clusterEdgeProperties);
+                  util.deepExtend(clonedOptions, { from: fromId, to: toId, hidden: false, physics: true, id: id });
+                  var newEdge = this.body.functions.createEdge(clonedOptions);
+
+                  this.body.edges[id] = newEdge;
+                  this.body.edges[id].connect();
                 }
-
-                var clonedOptions = this._cloneOptions(edge, 'edge');
-                var id = 'clusterEdge:' + util.randomUUID();
-                util.deepExtend(clonedOptions, _clusterNode.clusterEdgeProperties);
-                util.deepExtend(clonedOptions, { from: fromId, to: toId, hidden: false, physics: true, id: id });
-                var newEdge = this.body.functions.createEdge(clonedOptions);
-
-                this.body.edges[id] = newEdge;
-                this.body.edges[id].connect();
               } else {
                 edge.options.hidden = false;
                 edge.togglePhysics(true);
@@ -24289,8 +24317,8 @@ return /******/ (function(modules) { // webpackBootstrap
         return this.body.view.scale;
       }
     }, {
-      key: "getPosition",
-      value: function getPosition() {
+      key: "getViewPosition",
+      value: function getViewPosition() {
         return { x: this.body.view.translation.x, y: this.body.view.translation.y };
       }
     }]);
@@ -24756,9 +24784,9 @@ return /******/ (function(modules) { // webpackBootstrap
           this.body.emitter.emit('_requestRedraw');
 
           if (scaleOld < scale) {
-            this.body.emitter.emit('zoom', { direction: '+' });
+            this.body.emitter.emit('zoom', { direction: '+', scale: this.body.view.scale });
           } else {
-            this.body.emitter.emit('zoom', { direction: '-' });
+            this.body.emitter.emit('zoom', { direction: '-', scale: this.body.view.scale });
           }
         }
       }

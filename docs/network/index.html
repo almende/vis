@@ -466,6 +466,33 @@ var locales = {
                     container with the module name to contain its options.
                 </td>
             </tr>
+            <tr class="collapsible toggle" onclick="toggleTable('methodTable','onEvent', this);">
+                <td colspan="2"><span parent="onEvent" class="right-caret"></span> on(<code>String event name, Function callback</code>)
+                </td>
+            </tr>
+            <tr class="hidden" parent="onEvent">
+                <td class="midMethods">Returns: none</td>
+                <td>Set an event listener. Depending on the type of event you get different parameters for the callback function. Look at the event section of the documentation for more information.
+                </td>
+            </tr>
+            <tr class="collapsible toggle" onclick="toggleTable('methodTable','offEvent', this);">
+                <td colspan="2"><span parent="offEvent" class="right-caret"></span> off(<code>String event name, Function callback</code>)
+                </td>
+            </tr>
+            <tr class="hidden" parent="offEvent">
+                <td class="midMethods">Returns: none</td>
+                <td>Remove an event listener. The function you supply has to be the exact same as the one you used in the on function. If no function is supplied, all listeners will be removed. Look at the event section of the documentation for more information.
+                </td>
+            </tr>
+            <tr class="collapsible toggle" onclick="toggleTable('methodTable','onceEvent', this);">
+                <td colspan="2"><span parent="onceEvent" class="right-caret"></span> once(<code>String event name, Function callback</code>)
+                </td>
+            </tr>
+            <tr class="hidden" parent="onceEvent">
+                <td class="midMethods">Returns: none</td>
+                <td>Set an event listener only once. After it has taken place, the event listener will be removed. Depending on the type of event you get different parameters for the callback function. Look at the event section of the documentation for more information.
+                </td>
+            </tr>
 
 
             <tr class="subHeader">
@@ -914,11 +941,11 @@ var locales = {
                 </td>
             </tr>
             <tr class="collapsible toggle" onclick="toggleTable('methodTable','clusterByHubsize', this);">
-                <td colspan="2"><span parent="clusterByHubsize" class="right-caret"></span> getPosition()</td>
+                <td colspan="2"><span parent="clusterByHubsize" class="right-caret"></span> getViewPosition()</td>
             </tr>
             <tr class="hidden" parent="clusterByHubsize">
                 <td class="midMethods">Returns: Number</td>
-                <td>Returns the current central focus point of the camera.</td>
+                <td>Returns the current central focus point of the view.</td>
             </tr>
 
             <tr class="collapsible toggle" onclick="toggleTable('methodTable','fit', this);">
@@ -1255,8 +1282,8 @@ var options = {
             </tr>
             <tr class="">
                 <td>zoom</td>
-                <td><code>{direction:'+'/'-'}</code></td>
-                <td>Fired when the user zooms in or out. The properties tell you which direction the zoom is in.</td>
+                <td><code>{direction:'+'/'-', scale: Number}</code></td>
+                <td>Fired when the user zooms in or out. The properties tell you which direction the zoom is in. The scale is a number greater than 0, which is the same that you get with network.getScale().</td>
             </tr>
             <tr class="">
                 <td>showPopup</td>
