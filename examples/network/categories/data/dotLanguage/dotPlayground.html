@@ -111,7 +111,7 @@
     The examples marked with a star (*) come straight from the <a href="http://www.graphviz.org/Gallery.php">GraphViz gallery</a>.
   </p>
   <div>
-    <button id="draw">Draw</button>
+    <button id="draw" title="Draw the DOT graph (Ctrl+Enter)">Draw</button>
     <span id="error"></span>
   </div>
 </div>
@@ -172,6 +172,14 @@ digraph {
 
   $(window).resize(resize);
   $(window).load(draw);
+
+  $('#data').keydown(function (event) {
+    if (event.ctrlKey && event.keyCode === 13) { // Ctrl+Enter
+      draw();
+      event.stopPropagation();
+      event.preventDefault();
+    }
+  });
 
   function resize() {
     $('#contents').height($('body').height() - $('#header').height() - 30);
