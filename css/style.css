@@ -24,7 +24,7 @@ img.header {
 }
 
 div.wall {
-    background-image: url("./images/wall.png");
+    background-image: url("../images/wall.png");
     background-repeat: no-repeat;
     background-size:cover;
     margin-top:5px;
