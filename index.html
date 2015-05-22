@@ -11,6 +11,10 @@
     <!-- Bootstrap core CSS -->
     <link href="./css/bootstrap.css" rel="stylesheet">
 
+
+    <!-- Webpage styling -->
+    <link href="./css/style.css" rel="stylesheet">
+
     <!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
     <!--[if lt IE 9]>
     <script src="https://oss.maxcdn.com/html5shiv/3.7.2/html5shiv.min.js"></script>
@@ -21,67 +25,6 @@
     <script language="JavaScript">
         smoothScroll.init();
     </script>
-    <style>
-        body {
-            font-family: Lustria,Georgia,Times,"Times New Roman",serif !important;
-            font-size:16px;
-        }
-
-        a.btn {
-            width:130px;
-        }
-        a.header{
-            color:#8bb9fb;
-        }
-
-        img.icon {
-            position:relative;
-            top:-2px;
-        }
-
-        img.featurette-image {
-            border-radius:4px;
-        }
-
-        img.header {
-            margin-bottom:10px;
-        }
-
-        div.wall {
-            background-image: url("./images/wall.png");
-            background-repeat: no-repeat;
-            margin-top:5px;
-        }
-
-        div.trans {
-            background-color: rgba(0,0,0,0);
-        }
-
-        div.jumbo {
-            color: #fff;
-            text-align: center;
-            text-shadow: 1px 1px 3px rgba(0, 0, 0, 1);
-        }
-
-        div.navbar-wrapper {
-            background-color:#07508E;
-            border-bottom: 3px solid #ffffff;
-        }
-
-        h2.featurette-heading {
-            font-size:50px;
-        }
-
-        div.valign_parent {
-            display:inline-flex;
-            height: 457px;
-
-        }
-        div.valign_child {
-            margin:auto 0px;
-        }
-
-    </style>
 </head>
 <!-- NAVBAR
 ================================================== -->
@@ -157,36 +100,58 @@
 
     <!-- Three columns of text below the carousel -->
     <div class="row">
-        <div class="col-md-3">
-            <a href="./network_examples.html"><img class="img-thumbnail"  src="./images/network.png"alt="network examples" style="width: 240px; height: 140px;"></a>
-            <h2>Network</h2>
-            <p>Display dynamic, automatically organised, customizable network views.</p>
-            <p><a class="btn btn-default" href="./network_examples.html" role="button">View examples »</a></p>
-            <p><a class="btn btn-primary" href="./docs/network.html" role="button">View docs »</a></p>
+        <div class="col-md-4">
+            <div class="vis-component">
+                <a href="./network_examples.html"><img class="img-thumbnail"  src="./images/network.png"alt="network examples" style="width: 240px; height: 140px;"></a>
+                <h2>Network</h2>
+                <p>Display dynamic, automatically organised, customizable network views.</p>
+                <p><a class="btn btn-default" href="./network_examples.html" role="button">View examples &raquo;</a></p>
+                <p><a class="btn btn-primary" href="./docs/network" role="button">View docs &raquo;</a></p>
+            </div>
         </div><!-- /.col-lg-4 -->
         <hr class="featurette-divider visible-xs">
-        <div class="col-md-3">
-            <a href="./timeline_examples.html"><img class="img-thumbnail"  src="./images/timeline.png" alt="timeline examples" style="width: 240px; height: 140px;"></a>
-            <h2>Timeline</h2>
-            <p>Create a fully customizable, interactive timeline with items and ranges.</p>
-            <p><a class="btn btn-default" href="./timeline_examples.html" role="button">View examples »</a></p>
-            <p><a class="btn btn-primary" href="./docs/timeline.html" role="button">View docs »</a></p>
+        <div class="col-md-4">
+            <div class="vis-component">
+                <a href="./timeline_examples.html"><img class="img-thumbnail"  src="./images/timeline.png" alt="timeline examples" style="width: 240px; height: 140px;"></a>
+                <h2>Timeline</h2>
+                <p>Create a fully customizable, interactive timeline with items and ranges.</p>
+                <p><a class="btn btn-default" href="./timeline_examples.html" role="button">View examples &raquo;</a></p>
+                <p><a class="btn btn-primary" href="./docs/timeline" role="button">View docs &raquo;</a></p>
+            </div>
         </div><!-- /.col-lg-4 -->
         <hr class="featurette-divider visible-xs">
-        <div class="col-md-3">
-            <a href="./graph2d_examples.html"><img class="img-thumbnail"  src="./images/graph2d.png" alt="graph2d examples" style="width: 240px; height: 140px;"></a>
-            <h2>Graph2d</h2>
-            <p>Draw graphs and bar charts on an interactive timeline and personalize it any way you want.</p>
-            <p><a class="btn btn-default" href="./graph2d_examples.html" role="button">View examples »</a></p>
-            <p><a class="btn btn-primary" href="./docs/graph2d.html" role="button">View docs »</a></p>
+        <div class="col-md-4">
+            <div class="vis-component">
+                <a href="./graph2d_examples.html"><img class="img-thumbnail"  src="./images/graph2d.png" alt="graph2d examples" style="width: 240px; height: 140px;"></a>
+                <h2>Graph2d</h2>
+                <p>Draw graphs and bar charts on an interactive timeline and personalize it any way you want.</p>
+                <p><a class="btn btn-default" href="./graph2d_examples.html" role="button">View examples &raquo;</a></p>
+                <p><a class="btn btn-primary" href="./docs/graph2d" role="button">View docs &raquo;</a></p>
+            </div>
+        </div><!-- /.col-lg-4 -->
+    </div><!-- /.row -->
+
+
+    <!-- Three columns of text below the carousel -->
+    <div class="row">
+
+        <div class="col-md-4">
+            <div class="vis-component">
+                <a href="./graph3d_examples.html"><img class="img-thumbnail" src="./images/graph3d.png" alt="graph3d examples" style="width: 240px; height: 140px;"></a>
+                <h2>Graph3d</h2>
+                <p>Create interactive, animated 3d graphs. Surfaces, lines, dots and block styling out of the box.</p>
+                <p><a class="btn btn-default" href="./graph3d_examples.html" role="button">View examples &raquo;</a></p>
+                <p><a class="btn btn-primary" href="./docs/graph3d" role="button">View docs &raquo;</a></p>
+            </div>
         </div><!-- /.col-lg-4 -->
         <hr class="featurette-divider visible-xs">
-        <div class="col-md-3">
-            <a href="./graph3d_examples.html"><img class="img-thumbnail" src="./images/graph3d.png" alt="graph3d examples" style="width: 240px; height: 140px;"></a>
-            <h2>Graph3d</h2>
-            <p>Create interactive, animated 3d graphs. Surfaces, lines, dots and block styling out of the box.</p>
-            <p><a class="btn btn-default" href="./graph3d_examples.html" role="button">View examples »</a></p>
-            <p><a class="btn btn-primary" href="./docs/graph3d.html" role="button">View docs »</a></p>
+        <div class="col-md-4">
+            <div class="vis-component">
+                <a href="./docs/dataset"><img class="img-thumbnail"  src="./images/dataset.png" alt="DataSet docs" style="width: 240px;"></a>
+                <h2>DataSet</h2>
+                <p>Manage unstructured data using DataSet. Add, update, and remove data, and listen for changes in the data.</p>
+                <p><a class="btn btn-primary" href="./docs/dataset" role="button">View docs &raquo;</a></p>
+            </div>
         </div><!-- /.col-lg-4 -->
     </div><!-- /.row -->
 
