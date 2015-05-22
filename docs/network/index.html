@@ -715,7 +715,7 @@ var locales = {
 
 
             <tr class="subHeader">
-                <td colspan="2">Methods to get information on nodes.</td>
+                <td colspan="2">Methods to get information on nodes and edges.</td>
             </tr>
             <tr class="collapsible toggle" onclick="toggleTable('methodTable','getPositions', this);">
                 <td colspan="2"><span parent="getPositions" class="right-caret"></span> getPositions(<code><i>[Array of
@@ -787,19 +787,20 @@ var locales = {
             </tr>
             <tr class="collapsible toggle" onclick="toggleTable('methodTable','getConnectedNodes', this);">
                 <td colspan="2"><span parent="getConnectedNodes" class="right-caret"></span> getConnectedNodes(<code><i>String
-                    nodeId</i></code>)
+                    nodeId or edgeId</i></code>)
                 </td>
             </tr>
             <tr class="hidden" parent="getConnectedNodes">
                 <td class="midMethods">Returns: Array</td>
-                <td>Returns an array of nodeIds of the all the nodes that are directly connected to this node.</td>
+                <td>Returns an array of nodeIds of the all the nodes that are directly connected to this node. If you supply an edgeId,
+                vis will first match the id to nodes. If no match is found, it will search in the edgelist and return an array: <code>[fromId, toId]</code>.</td>
             </tr>
-            <tr class="collapsible toggle" onclick="toggleTable('methodTable','getEdges', this);">
-                <td colspan="2"><span parent="getEdges" class="right-caret"></span> getEdges(<code><i>String
+            <tr class="collapsible toggle" onclick="toggleTable('methodTable','getConnectedEdges', this);">
+                <td colspan="2"><span parent="getConnectedEdges" class="right-caret"></span> getConnectedEdges(<code><i>String
                     nodeId</i></code>)
                 </td>
             </tr>
-            <tr class="hidden" parent="getEdges">
+            <tr class="hidden" parent="getConnectedEdges">
                 <td class="midMethods">Returns: Array</td>
                 <td>Returns an array of edgeIds of the edges connected to this node.</td>
             </tr>
