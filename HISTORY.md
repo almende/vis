@@ -2,7 +2,7 @@
 http://visjs.org
 
 
-## not yet released, version 4.0.0-SNAPSHOT
+## 2015-05-22, version 4.0.0
 
 ### General
 
@@ -69,20 +69,6 @@ it future proof for maintainability, extendability and clarity. A summary of new
 - Dropped support for Google visualization DataTable.
 - Dropped support for appending data returned by `DataSet.get()` to an existing
   Array or DataTable.
-
-
-## not yet released, version 3.12.1-SNAPSHOT
-
-### Timeline
-
-- Fixed #761: Timeline and Graph2d throwing an error when locale is not found.
-  Gives a warning message instead.
-- Fixed #782: Contents of items created from a template being unnecessary 
-  recreated on click, causing mouse events to get lost.
-
-### Network
-
-- Fixed titles not working when any of the nodes has id `0`.
 
 
 ## 2015-04-07, version 3.12.0

@@ -4,7 +4,7 @@
  *
  * A dynamic, browser-based visualization library.
  *
- * @version 4.0.0-SNAPSHOT
+ * @version 4.0.0
  * @date    2015-05-22
  *
  * @license
@@ -84,7 +84,7 @@ return /******/ (function(modules) { // webpackBootstrap
   // utils
   'use strict';
 
-  exports.util = __webpack_require__(1);
+  exports.util = __webpack_require__(57);
   exports.DOMutil = __webpack_require__(2);
 
   // data
@@ -115,9 +115,9 @@ return /******/ (function(modules) { // webpackBootstrap
 
     components: {
       items: {
-        Item: __webpack_require__(20),
-        BackgroundItem: __webpack_require__(21),
-        BoxItem: __webpack_require__(22),
+        Item: __webpack_require__(21),
+        BackgroundItem: __webpack_require__(22),
+        BoxItem: __webpack_require__(20),
         PointItem: __webpack_require__(23),
         RangeItem: __webpack_require__(24)
       },
@@ -164,1341 +164,738 @@ return /******/ (function(modules) { // webpackBootstrap
 /* 1 */
 /***/ function(module, exports, __webpack_require__) {
 
-  // utility functions
-
-  // first check if moment.js is already loaded in the browser window, if so,
-  // use this instance. Else, load via commonjs.
-
   'use strict';
 
-  var moment = __webpack_require__(40);
-  var uuid = __webpack_require__(42);
+  Object.defineProperty(exports, '__esModule', {
+    value: true
+  });
 
-  /**
-   * Test whether given object is a number
-   * @param {*} object
-   * @return {Boolean} isNumber
-   */
-  exports.isNumber = function (object) {
-    return object instanceof Number || typeof object == 'number';
-  };
+  var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
 
-  exports.recursiveDOMDelete = function (DOMobject) {
-    while (DOMobject.hasChildNodes() == true) {
-      exports.recursiveDOMDelete(DOMobject.firstChild);
-      DOMobject.removeChild(DOMobject.firstChild);
-    }
-  };
+  function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
 
-  /**
-   * this function gives you a range between 0 and 1 based on the min and max values in the set, the total sum of all values and the current value.
-   *
-   * @param min
-   * @param max
-   * @param total
-   * @param value
-   * @returns {number}
-   */
-  exports.giveRange = function (min, max, total, value) {
-    if (max == min) {
-      return 0.5;
-    } else {
-      var scale = 1 / (max - min);
-      return Math.max(0, (value - min) * scale);
-    }
-  };
+  function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
 
-  /**
-   * Test whether given object is a string
-   * @param {*} object
-   * @return {Boolean} isString
-   */
-  exports.isString = function (object) {
-    return object instanceof String || typeof object == 'string';
-  };
+  var _componentsNodesCluster = __webpack_require__(85);
 
-  /**
-   * Test whether given object is a Date, or a String containing a Date
-   * @param {Date | String} object
-   * @return {Boolean} isDate
-   */
-  exports.isDate = function (object) {
-    if (object instanceof Date) {
-      return true;
-    } else if (exports.isString(object)) {
-      // test whether this string contains a date
-      var match = ASPDateRegex.exec(object);
-      if (match) {
-        return true;
-      } else if (!isNaN(Date.parse(object))) {
-        return true;
-      }
-    }
+  var _componentsNodesCluster2 = _interopRequireDefault(_componentsNodesCluster);
 
-    return false;
-  };
+  var util = __webpack_require__(57);
 
-  /**
-   * Create a semi UUID
-   * source: http://stackoverflow.com/a/105074/1262753
-   * @return {String} uuid
-   */
-  exports.randomUUID = function () {
-    return uuid.v4();
-  };
+  var ClusterEngine = (function () {
+    function ClusterEngine(body) {
+      var _this = this;
 
-  /**
-   * assign all keys of an object that are not nested objects to a certain value (used for color objects).
-   * @param obj
-   * @param value
-   */
-  exports.assignAllKeys = function (obj, value) {
-    for (var prop in obj) {
-      if (obj.hasOwnProperty(prop)) {
-        if (typeof obj[prop] !== 'object') {
-          obj[prop] = value;
-        }
-      }
-    }
-  };
+      _classCallCheck(this, ClusterEngine);
 
-  /**
-   * Fill an object with a possibly partially defined other object. Only copies values if the a object has an object requiring values.
-   * That means an object is not created on a property if only the b object has it.
-   * @param obj
-   * @param value
-   */
-  exports.fillIfDefined = function (a, b) {
-    var allowDeletion = arguments[2] === undefined ? false : arguments[2];
+      this.body = body;
+      this.clusteredNodes = {};
 
-    for (var prop in a) {
-      if (b[prop] !== undefined) {
-        if (typeof b[prop] !== 'object') {
-          if ((b[prop] === undefined || b[prop] === null) && a[prop] !== undefined && allowDeletion === true) {
-            delete a[prop];
-          } else {
-            a[prop] = b[prop];
-          }
-        } else {
-          if (typeof a[prop] === 'object') {
-            exports.fillIfDefined(a[prop], b[prop], allowDeletion);
-          }
-        }
-      }
-    }
-  };
+      this.options = {};
+      this.defaultOptions = {};
+      util.extend(this.options, this.defaultOptions);
 
-  /**
-   * Extend object a with the properties of object b or a series of objects
-   * Only properties with defined values are copied
-   * @param {Object} a
-   * @param {... Object} b
-   * @return {Object} a
-   */
-  exports.protoExtend = function (a, b) {
-    for (var i = 1; i < arguments.length; i++) {
-      var other = arguments[i];
-      for (var prop in other) {
-        a[prop] = other[prop];
-      }
-    }
-    return a;
-  };
-
-  /**
-   * Extend object a with the properties of object b or a series of objects
-   * Only properties with defined values are copied
-   * @param {Object} a
-   * @param {... Object} b
-   * @return {Object} a
-   */
-  exports.extend = function (a, b) {
-    for (var i = 1; i < arguments.length; i++) {
-      var other = arguments[i];
-      for (var prop in other) {
-        if (other.hasOwnProperty(prop)) {
-          a[prop] = other[prop];
-        }
-      }
-    }
-    return a;
-  };
-
-  /**
-   * Extend object a with selected properties of object b or a series of objects
-   * Only properties with defined values are copied
-   * @param {Array.<String>} props
-   * @param {Object} a
-   * @param {Object} b
-   * @return {Object} a
-   */
-  exports.selectiveExtend = function (props, a, b) {
-    if (!Array.isArray(props)) {
-      throw new Error('Array with property names expected as first argument');
-    }
-
-    for (var i = 2; i < arguments.length; i++) {
-      var other = arguments[i];
-
-      for (var p = 0; p < props.length; p++) {
-        var prop = props[p];
-        if (other.hasOwnProperty(prop)) {
-          a[prop] = other[prop];
-        }
-      }
-    }
-    return a;
-  };
-
-  /**
-   * Extend object a with selected properties of object b or a series of objects
-   * Only properties with defined values are copied
-   * @param {Array.<String>} props
-   * @param {Object} a
-   * @param {Object} b
-   * @return {Object} a
-   */
-  exports.selectiveDeepExtend = function (props, a, b) {
-    var allowDeletion = arguments[3] === undefined ? false : arguments[3];
-
-    // TODO: add support for Arrays to deepExtend
-    if (Array.isArray(b)) {
-      throw new TypeError('Arrays are not supported by deepExtend');
-    }
-    for (var i = 2; i < arguments.length; i++) {
-      var other = arguments[i];
-      for (var p = 0; p < props.length; p++) {
-        var prop = props[p];
-        if (other.hasOwnProperty(prop)) {
-          if (b[prop] && b[prop].constructor === Object) {
-            if (a[prop] === undefined) {
-              a[prop] = {};
-            }
-            if (a[prop].constructor === Object) {
-              exports.deepExtend(a[prop], b[prop], false, allowDeletion);
-            } else {
-              if (b[prop] === null && a[prop] !== undefined && allowDeletion === true) {
-                delete a[prop];
-              } else {
-                a[prop] = b[prop];
-              }
-            }
-          } else if (Array.isArray(b[prop])) {
-            throw new TypeError('Arrays are not supported by deepExtend');
-          } else {
-            a[prop] = b[prop];
-          }
-        }
-      }
-    }
-    return a;
-  };
-
-  /**
-   * Extend object a with selected properties of object b or a series of objects
-   * Only properties with defined values are copied
-   * @param {Array.<String>} props
-   * @param {Object} a
-   * @param {Object} b
-   * @return {Object} a
-   */
-  exports.selectiveNotDeepExtend = function (props, a, b) {
-    var allowDeletion = arguments[3] === undefined ? false : arguments[3];
-
-    // TODO: add support for Arrays to deepExtend
-    if (Array.isArray(b)) {
-      throw new TypeError('Arrays are not supported by deepExtend');
-    }
-    for (var prop in b) {
-      if (b.hasOwnProperty(prop)) {
-        if (props.indexOf(prop) == -1) {
-          if (b[prop] && b[prop].constructor === Object) {
-            if (a[prop] === undefined) {
-              a[prop] = {};
-            }
-            if (a[prop].constructor === Object) {
-              exports.deepExtend(a[prop], b[prop]);
-            } else {
-              if (b[prop] === null && a[prop] !== undefined && allowDeletion === true) {
-                delete a[prop];
-              } else {
-                a[prop] = b[prop];
-              }
-            }
-          } else if (Array.isArray(b[prop])) {
-            throw new TypeError('Arrays are not supported by deepExtend');
-          } else {
-            a[prop] = b[prop];
-          }
-        }
-      }
-    }
-    return a;
-  };
-
-  /**
-   * Deep extend an object a with the properties of object b
-   * @param {Object} a
-   * @param {Object} b
-   * @param [Boolean] protoExtend --> optional parameter. If true, the prototype values will also be extended.
-   *                                  (ie. the options objects that inherit from others will also get the inherited options)
-   * @param [Boolean] global      --> optional parameter. If true, the values of fields that are null will not deleted
-   * @returns {Object}
-   */
-  exports.deepExtend = function (a, b, protoExtend, allowDeletion) {
-    for (var prop in b) {
-      if (b.hasOwnProperty(prop) || protoExtend === true) {
-        if (b[prop] && b[prop].constructor === Object) {
-          if (a[prop] === undefined) {
-            a[prop] = {};
-          }
-          if (a[prop].constructor === Object) {
-            exports.deepExtend(a[prop], b[prop], protoExtend);
-          } else {
-            if (b[prop] === null && a[prop] !== undefined && allowDeletion === true) {
-              delete a[prop];
-            } else {
-              a[prop] = b[prop];
-            }
-          }
-        } else if (Array.isArray(b[prop])) {
-          a[prop] = [];
-          for (var i = 0; i < b[prop].length; i++) {
-            a[prop].push(b[prop][i]);
-          }
-        } else {
-          a[prop] = b[prop];
-        }
-      }
-    }
-    return a;
-  };
-
-  /**
-   * Test whether all elements in two arrays are equal.
-   * @param {Array} a
-   * @param {Array} b
-   * @return {boolean} Returns true if both arrays have the same length and same
-   *                   elements.
-   */
-  exports.equalArray = function (a, b) {
-    if (a.length != b.length) return false;
-
-    for (var i = 0, len = a.length; i < len; i++) {
-      if (a[i] != b[i]) return false;
-    }
-
-    return true;
-  };
-
-  /**
-   * Convert an object to another type
-   * @param {Boolean | Number | String | Date | Moment | Null | undefined} object
-   * @param {String | undefined} type   Name of the type. Available types:
-   *                                    'Boolean', 'Number', 'String',
-   *                                    'Date', 'Moment', ISODate', 'ASPDate'.
-   * @return {*} object
-   * @throws Error
-   */
-  exports.convert = function (object, type) {
-    var match;
-
-    if (object === undefined) {
-      return undefined;
-    }
-    if (object === null) {
-      return null;
-    }
-
-    if (!type) {
-      return object;
-    }
-    if (!(typeof type === 'string') && !(type instanceof String)) {
-      throw new Error('Type must be a string');
-    }
-
-    //noinspection FallthroughInSwitchStatementJS
-    switch (type) {
-      case 'boolean':
-      case 'Boolean':
-        return Boolean(object);
-
-      case 'number':
-      case 'Number':
-        return Number(object.valueOf());
-
-      case 'string':
-      case 'String':
-        return String(object);
-
-      case 'Date':
-        if (exports.isNumber(object)) {
-          return new Date(object);
-        }
-        if (object instanceof Date) {
-          return new Date(object.valueOf());
-        } else if (moment.isMoment(object)) {
-          return new Date(object.valueOf());
-        }
-        if (exports.isString(object)) {
-          match = ASPDateRegex.exec(object);
-          if (match) {
-            // object is an ASP date
-            return new Date(Number(match[1])); // parse number
-          } else {
-            return moment(object).toDate(); // parse string
-          }
-        } else {
-          throw new Error('Cannot convert object of type ' + exports.getType(object) + ' to type Date');
-        }
-
-      case 'Moment':
-        if (exports.isNumber(object)) {
-          return moment(object);
-        }
-        if (object instanceof Date) {
-          return moment(object.valueOf());
-        } else if (moment.isMoment(object)) {
-          return moment(object);
-        }
-        if (exports.isString(object)) {
-          match = ASPDateRegex.exec(object);
-          if (match) {
-            // object is an ASP date
-            return moment(Number(match[1])); // parse number
-          } else {
-            return moment(object); // parse string
-          }
-        } else {
-          throw new Error('Cannot convert object of type ' + exports.getType(object) + ' to type Date');
-        }
-
-      case 'ISODate':
-        if (exports.isNumber(object)) {
-          return new Date(object);
-        } else if (object instanceof Date) {
-          return object.toISOString();
-        } else if (moment.isMoment(object)) {
-          return object.toDate().toISOString();
-        } else if (exports.isString(object)) {
-          match = ASPDateRegex.exec(object);
-          if (match) {
-            // object is an ASP date
-            return new Date(Number(match[1])).toISOString(); // parse number
-          } else {
-            return new Date(object).toISOString(); // parse string
-          }
-        } else {
-          throw new Error('Cannot convert object of type ' + exports.getType(object) + ' to type ISODate');
-        }
-
-      case 'ASPDate':
-        if (exports.isNumber(object)) {
-          return '/Date(' + object + ')/';
-        } else if (object instanceof Date) {
-          return '/Date(' + object.valueOf() + ')/';
-        } else if (exports.isString(object)) {
-          match = ASPDateRegex.exec(object);
-          var value;
-          if (match) {
-            // object is an ASP date
-            value = new Date(Number(match[1])).valueOf(); // parse number
-          } else {
-            value = new Date(object).valueOf(); // parse string
-          }
-          return '/Date(' + value + ')/';
-        } else {
-          throw new Error('Cannot convert object of type ' + exports.getType(object) + ' to type ASPDate');
-        }
-
-      default:
-        throw new Error('Unknown type "' + type + '"');
-    }
-  };
-
-  // parse ASP.Net Date pattern,
-  // for example '/Date(1198908717056)/' or '/Date(1198908717056-0700)/'
-  // code from http://momentjs.com/
-  var ASPDateRegex = /^\/?Date\((\-?\d+)/i;
-
-  /**
-   * Get the type of an object, for example exports.getType([]) returns 'Array'
-   * @param {*} object
-   * @return {String} type
-   */
-  exports.getType = function (object) {
-    var type = typeof object;
-
-    if (type == 'object') {
-      if (object === null) {
-        return 'null';
-      }
-      if (object instanceof Boolean) {
-        return 'Boolean';
-      }
-      if (object instanceof Number) {
-        return 'Number';
-      }
-      if (object instanceof String) {
-        return 'String';
-      }
-      if (Array.isArray(object)) {
-        return 'Array';
-      }
-      if (object instanceof Date) {
-        return 'Date';
-      }
-      return 'Object';
-    } else if (type == 'number') {
-      return 'Number';
-    } else if (type == 'boolean') {
-      return 'Boolean';
-    } else if (type == 'string') {
-      return 'String';
-    } else if (type === undefined) {
-      return 'undefined';
-    }
-
-    return type;
-  };
-
-  /**
-   * Used to extend an array and copy it. This is used to propagate paths recursively.
-   *
-   * @param arr
-   * @param newValue
-   * @returns {Array}
-   */
-  exports.copyAndExtendArray = function (arr, newValue) {
-    var newArr = [];
-    for (var i = 0; i < arr.length; i++) {
-      newArr.push(arr[i]);
-    }
-    newArr.push(newValue);
-    return newArr;
-  };
-
-  /**
-   * Used to extend an array and copy it. This is used to propagate paths recursively.
-   *
-   * @param arr
-   * @param newValue
-   * @returns {Array}
-   */
-  exports.copyArray = function (arr) {
-    var newArr = [];
-    for (var i = 0; i < arr.length; i++) {
-      newArr.push(arr[i]);
-    }
-    return newArr;
-  };
-
-  /**
-   * Retrieve the absolute left value of a DOM element
-   * @param {Element} elem        A dom element, for example a div
-   * @return {number} left        The absolute left position of this element
-   *                              in the browser page.
-   */
-  exports.getAbsoluteLeft = function (elem) {
-    return elem.getBoundingClientRect().left;
-  };
-
-  /**
-   * Retrieve the absolute top value of a DOM element
-   * @param {Element} elem        A dom element, for example a div
-   * @return {number} top        The absolute top position of this element
-   *                              in the browser page.
-   */
-  exports.getAbsoluteTop = function (elem) {
-    return elem.getBoundingClientRect().top;
-  };
-
-  /**
-   * add a className to the given elements style
-   * @param {Element} elem
-   * @param {String} className
-   */
-  exports.addClassName = function (elem, className) {
-    var classes = elem.className.split(' ');
-    if (classes.indexOf(className) == -1) {
-      classes.push(className); // add the class to the array
-      elem.className = classes.join(' ');
-    }
-  };
-
-  /**
-   * add a className to the given elements style
-   * @param {Element} elem
-   * @param {String} className
-   */
-  exports.removeClassName = function (elem, className) {
-    var classes = elem.className.split(' ');
-    var index = classes.indexOf(className);
-    if (index != -1) {
-      classes.splice(index, 1); // remove the class from the array
-      elem.className = classes.join(' ');
-    }
-  };
-
-  /**
-   * For each method for both arrays and objects.
-   * In case of an array, the built-in Array.forEach() is applied.
-   * In case of an Object, the method loops over all properties of the object.
-   * @param {Object | Array} object   An Object or Array
-   * @param {function} callback       Callback method, called for each item in
-   *                                  the object or array with three parameters:
-   *                                  callback(value, index, object)
-   */
-  exports.forEach = function (object, callback) {
-    var i, len;
-    if (Array.isArray(object)) {
-      // array
-      for (i = 0, len = object.length; i < len; i++) {
-        callback(object[i], i, object);
-      }
-    } else {
-      // object
-      for (i in object) {
-        if (object.hasOwnProperty(i)) {
-          callback(object[i], i, object);
-        }
-      }
-    }
-  };
-
-  /**
-   * Convert an object into an array: all objects properties are put into the
-   * array. The resulting array is unordered.
-   * @param {Object} object
-   * @param {Array} array
-   */
-  exports.toArray = function (object) {
-    var array = [];
-
-    for (var prop in object) {
-      if (object.hasOwnProperty(prop)) array.push(object[prop]);
-    }
-
-    return array;
-  };
-
-  /**
-   * Update a property in an object
-   * @param {Object} object
-   * @param {String} key
-   * @param {*} value
-   * @return {Boolean} changed
-   */
-  exports.updateProperty = function (object, key, value) {
-    if (object[key] !== value) {
-      object[key] = value;
-      return true;
-    } else {
-      return false;
-    }
-  };
-
-  /**
-   * Add and event listener. Works for all browsers
-   * @param {Element}     element    An html element
-   * @param {string}      action     The action, for example "click",
-   *                                 without the prefix "on"
-   * @param {function}    listener   The callback function to be executed
-   * @param {boolean}     [useCapture]
-   */
-  exports.addEventListener = function (element, action, listener, useCapture) {
-    if (element.addEventListener) {
-      if (useCapture === undefined) useCapture = false;
-
-      if (action === 'mousewheel' && navigator.userAgent.indexOf('Firefox') >= 0) {
-        action = 'DOMMouseScroll'; // For Firefox
-      }
-
-      element.addEventListener(action, listener, useCapture);
-    } else {
-      element.attachEvent('on' + action, listener); // IE browsers
-    }
-  };
-
-  /**
-   * Remove an event listener from an element
-   * @param {Element}     element         An html dom element
-   * @param {string}      action          The name of the event, for example "mousedown"
-   * @param {function}    listener        The listener function
-   * @param {boolean}     [useCapture]
-   */
-  exports.removeEventListener = function (element, action, listener, useCapture) {
-    if (element.removeEventListener) {
-      // non-IE browsers
-      if (useCapture === undefined) useCapture = false;
-
-      if (action === 'mousewheel' && navigator.userAgent.indexOf('Firefox') >= 0) {
-        action = 'DOMMouseScroll'; // For Firefox
-      }
-
-      element.removeEventListener(action, listener, useCapture);
-    } else {
-      // IE browsers
-      element.detachEvent('on' + action, listener);
-    }
-  };
-
-  /**
-   * Cancels the event if it is cancelable, without stopping further propagation of the event.
-   */
-  exports.preventDefault = function (event) {
-    if (!event) event = window.event;
-
-    if (event.preventDefault) {
-      event.preventDefault(); // non-IE browsers
-    } else {
-      event.returnValue = false; // IE browsers
-    }
-  };
-
-  /**
-   * Get HTML element which is the target of the event
-   * @param {Event} event
-   * @return {Element} target element
-   */
-  exports.getTarget = function (event) {
-    // code from http://www.quirksmode.org/js/events_properties.html
-    if (!event) {
-      event = window.event;
-    }
-
-    var target;
-
-    if (event.target) {
-      target = event.target;
-    } else if (event.srcElement) {
-      target = event.srcElement;
-    }
-
-    if (target.nodeType != undefined && target.nodeType == 3) {
-      // defeat Safari bug
-      target = target.parentNode;
-    }
-
-    return target;
-  };
-
-  /**
-   * Check if given element contains given parent somewhere in the DOM tree
-   * @param {Element} element
-   * @param {Element} parent
-   */
-  exports.hasParent = function (element, parent) {
-    var e = element;
-
-    while (e) {
-      if (e === parent) {
-        return true;
-      }
-      e = e.parentNode;
-    }
-
-    return false;
-  };
-
-  exports.option = {};
-
-  /**
-   * Convert a value into a boolean
-   * @param {Boolean | function | undefined} value
-   * @param {Boolean} [defaultValue]
-   * @returns {Boolean} bool
-   */
-  exports.option.asBoolean = function (value, defaultValue) {
-    if (typeof value == 'function') {
-      value = value();
-    }
-
-    if (value != null) {
-      return value != false;
-    }
-
-    return defaultValue || null;
-  };
-
-  /**
-   * Convert a value into a number
-   * @param {Boolean | function | undefined} value
-   * @param {Number} [defaultValue]
-   * @returns {Number} number
-   */
-  exports.option.asNumber = function (value, defaultValue) {
-    if (typeof value == 'function') {
-      value = value();
-    }
-
-    if (value != null) {
-      return Number(value) || defaultValue || null;
-    }
-
-    return defaultValue || null;
-  };
-
-  /**
-   * Convert a value into a string
-   * @param {String | function | undefined} value
-   * @param {String} [defaultValue]
-   * @returns {String} str
-   */
-  exports.option.asString = function (value, defaultValue) {
-    if (typeof value == 'function') {
-      value = value();
-    }
-
-    if (value != null) {
-      return String(value);
-    }
-
-    return defaultValue || null;
-  };
-
-  /**
-   * Convert a size or location into a string with pixels or a percentage
-   * @param {String | Number | function | undefined} value
-   * @param {String} [defaultValue]
-   * @returns {String} size
-   */
-  exports.option.asSize = function (value, defaultValue) {
-    if (typeof value == 'function') {
-      value = value();
-    }
-
-    if (exports.isString(value)) {
-      return value;
-    } else if (exports.isNumber(value)) {
-      return value + 'px';
-    } else {
-      return defaultValue || null;
-    }
-  };
-
-  /**
-   * Convert a value into a DOM element
-   * @param {HTMLElement | function | undefined} value
-   * @param {HTMLElement} [defaultValue]
-   * @returns {HTMLElement | null} dom
-   */
-  exports.option.asElement = function (value, defaultValue) {
-    if (typeof value == 'function') {
-      value = value();
-    }
-
-    return value || defaultValue || null;
-  };
-
-  /**
-   * http://stackoverflow.com/questions/5623838/rgb-to-hex-and-hex-to-rgb
-   *
-   * @param {String} hex
-   * @returns {{r: *, g: *, b: *}} | 255 range
-   */
-  exports.hexToRGB = function (hex) {
-    // Expand shorthand form (e.g. "03F") to full form (e.g. "0033FF")
-    var shorthandRegex = /^#?([a-f\d])([a-f\d])([a-f\d])$/i;
-    hex = hex.replace(shorthandRegex, function (m, r, g, b) {
-      return r + r + g + g + b + b;
-    });
-    var result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
-    return result ? {
-      r: parseInt(result[1], 16),
-      g: parseInt(result[2], 16),
-      b: parseInt(result[3], 16)
-    } : null;
-  };
-
-  /**
-   * This function takes color in hex format or rgb() or rgba() format and overrides the opacity. Returns rgba() string.
-   * @param color
-   * @param opacity
-   * @returns {*}
-   */
-  exports.overrideOpacity = function (color, opacity) {
-    if (color.indexOf('rgba') != -1) {
-      return color;
-    } else if (color.indexOf('rgb') != -1) {
-      var rgb = color.substr(color.indexOf('(') + 1).replace(')', '').split(',');
-      return 'rgba(' + rgb[0] + ',' + rgb[1] + ',' + rgb[2] + ',' + opacity + ')';
-    } else {
-      var rgb = exports.hexToRGB(color);
-      if (rgb == null) {
-        return color;
-      } else {
-        return 'rgba(' + rgb.r + ',' + rgb.g + ',' + rgb.b + ',' + opacity + ')';
-      }
-    }
-  };
-
-  /**
-   *
-   * @param red     0 -- 255
-   * @param green   0 -- 255
-   * @param blue    0 -- 255
-   * @returns {string}
-   * @constructor
-   */
-  exports.RGBToHex = function (red, green, blue) {
-    return '#' + ((1 << 24) + (red << 16) + (green << 8) + blue).toString(16).slice(1);
-  };
-
-  /**
-   * Parse a color property into an object with border, background, and
-   * highlight colors
-   * @param {Object | String} color
-   * @return {Object} colorObject
-   */
-  exports.parseColor = function (color) {
-    var c;
-    if (exports.isString(color) === true) {
-      if (exports.isValidRGB(color) === true) {
-        var rgb = color.substr(4).substr(0, color.length - 5).split(',').map(function (value) {
-          return parseInt(value);
-        });
-        color = exports.RGBToHex(rgb[0], rgb[1], rgb[2]);
-      }
-      if (exports.isValidHex(color) === true) {
-        var hsv = exports.hexToHSV(color);
-        var lighterColorHSV = { h: hsv.h, s: hsv.s * 0.8, v: Math.min(1, hsv.v * 1.02) };
-        var darkerColorHSV = { h: hsv.h, s: Math.min(1, hsv.s * 1.25), v: hsv.v * 0.8 };
-        var darkerColorHex = exports.HSVToHex(darkerColorHSV.h, darkerColorHSV.s, darkerColorHSV.v);
-        var lighterColorHex = exports.HSVToHex(lighterColorHSV.h, lighterColorHSV.s, lighterColorHSV.v);
-        c = {
-          background: color,
-          border: darkerColorHex,
-          highlight: {
-            background: lighterColorHex,
-            border: darkerColorHex
-          },
-          hover: {
-            background: lighterColorHex,
-            border: darkerColorHex
-          }
-        };
-      } else {
-        c = {
-          background: color,
-          border: color,
-          highlight: {
-            background: color,
-            border: color
-          },
-          hover: {
-            background: color,
-            border: color
-          }
-        };
-      }
-    } else {
-      c = {};
-      c.background = color.background || undefined;
-      c.border = color.border || undefined;
-
-      if (exports.isString(color.highlight)) {
-        c.highlight = {
-          border: color.highlight,
-          background: color.highlight
-        };
-      } else {
-        c.highlight = {};
-        c.highlight.background = color.highlight && color.highlight.background || undefined;
-        c.highlight.border = color.highlight && color.highlight.border || undefined;
-      }
-
-      if (exports.isString(color.hover)) {
-        c.hover = {
-          border: color.hover,
-          background: color.hover
-        };
-      } else {
-        c.hover = {};
-        c.hover.background = color.hover && color.hover.background || undefined;
-        c.hover.border = color.hover && color.hover.border || undefined;
-      }
-    }
-
-    return c;
-  };
-
-  /**
-   * http://www.javascripter.net/faq/rgb2hsv.htm
-   *
-   * @param red
-   * @param green
-   * @param blue
-   * @returns {*}
-   * @constructor
-   */
-  exports.RGBToHSV = function (red, green, blue) {
-    red = red / 255;green = green / 255;blue = blue / 255;
-    var minRGB = Math.min(red, Math.min(green, blue));
-    var maxRGB = Math.max(red, Math.max(green, blue));
-
-    // Black-gray-white
-    if (minRGB == maxRGB) {
-      return { h: 0, s: 0, v: minRGB };
-    }
-
-    // Colors other than black-gray-white:
-    var d = red == minRGB ? green - blue : blue == minRGB ? red - green : blue - red;
-    var h = red == minRGB ? 3 : blue == minRGB ? 1 : 5;
-    var hue = 60 * (h - d / (maxRGB - minRGB)) / 360;
-    var saturation = (maxRGB - minRGB) / maxRGB;
-    var value = maxRGB;
-    return { h: hue, s: saturation, v: value };
-  };
-
-  var cssUtil = {
-    // split a string with css styles into an object with key/values
-    split: function split(cssText) {
-      var styles = {};
-
-      cssText.split(';').forEach(function (style) {
-        if (style.trim() != '') {
-          var parts = style.split(':');
-          var key = parts[0].trim();
-          var value = parts[1].trim();
-          styles[key] = value;
-        }
+      this.body.emitter.on('_resetData', function () {
+        _this.clusteredNodes = {};
       });
-
-      return styles;
-    },
-
-    // build a css text string from an object with key/values
-    join: function join(styles) {
-      return Object.keys(styles).map(function (key) {
-        return key + ': ' + styles[key];
-      }).join('; ');
     }
-  };
 
-  /**
-   * Append a string with css styles to an element
-   * @param {Element} element
-   * @param {String} cssText
-   */
-  exports.addCssText = function (element, cssText) {
-    var currentStyles = cssUtil.split(element.style.cssText);
-    var newStyles = cssUtil.split(cssText);
-    var styles = exports.extend(currentStyles, newStyles);
-
-    element.style.cssText = cssUtil.join(styles);
-  };
-
-  /**
-   * Remove a string with css styles from an element
-   * @param {Element} element
-   * @param {String} cssText
-   */
-  exports.removeCssText = function (element, cssText) {
-    var styles = cssUtil.split(element.style.cssText);
-    var removeStyles = cssUtil.split(cssText);
-
-    for (var key in removeStyles) {
-      if (removeStyles.hasOwnProperty(key)) {
-        delete styles[key];
+    _createClass(ClusterEngine, [{
+      key: 'setOptions',
+      value: function setOptions(options) {
+        if (options !== undefined) {}
       }
-    }
+    }, {
+      key: 'clusterByHubsize',
 
-    element.style.cssText = cssUtil.join(styles);
-  };
+      /**
+      *
+      * @param hubsize
+      * @param options
+      */
+      value: function clusterByHubsize(hubsize, options) {
+        if (hubsize === undefined) {
+          hubsize = this._getHubSize();
+        } else if (tyepof(hubsize) === 'object') {
+          options = this._checkOptions(hubsize);
+          hubsize = this._getHubSize();
+        }
 
-  /**
-   * https://gist.github.com/mjijackson/5311256
-   * @param h
-   * @param s
-   * @param v
-   * @returns {{r: number, g: number, b: number}}
-   * @constructor
-   */
-  exports.HSVToRGB = function (h, s, v) {
-    var r, g, b;
-
-    var i = Math.floor(h * 6);
-    var f = h * 6 - i;
-    var p = v * (1 - s);
-    var q = v * (1 - f * s);
-    var t = v * (1 - (1 - f) * s);
-
-    switch (i % 6) {
-      case 0:
-        r = v, g = t, b = p;break;
-      case 1:
-        r = q, g = v, b = p;break;
-      case 2:
-        r = p, g = v, b = t;break;
-      case 3:
-        r = p, g = q, b = v;break;
-      case 4:
-        r = t, g = p, b = v;break;
-      case 5:
-        r = v, g = p, b = q;break;
-    }
-
-    return { r: Math.floor(r * 255), g: Math.floor(g * 255), b: Math.floor(b * 255) };
-  };
-
-  exports.HSVToHex = function (h, s, v) {
-    var rgb = exports.HSVToRGB(h, s, v);
-    return exports.RGBToHex(rgb.r, rgb.g, rgb.b);
-  };
-
-  exports.hexToHSV = function (hex) {
-    var rgb = exports.hexToRGB(hex);
-    return exports.RGBToHSV(rgb.r, rgb.g, rgb.b);
-  };
-
-  exports.isValidHex = function (hex) {
-    var isOk = /(^#[0-9A-F]{6}$)|(^#[0-9A-F]{3}$)/i.test(hex);
-    return isOk;
-  };
-
-  exports.isValidRGB = function (rgb) {
-    rgb = rgb.replace(' ', '');
-    var isOk = /rgb\((\d{1,3}),(\d{1,3}),(\d{1,3})\)/i.test(rgb);
-    return isOk;
-  };
-  exports.isValidRGBA = function (rgba) {
-    rgba = rgba.replace(' ', '');
-    var isOk = /rgba\((\d{1,3}),(\d{1,3}),(\d{1,3}),(.{1,3})\)/i.test(rgba);
-    return isOk;
-  };
-
-  /**
-   * This recursively redirects the prototype of JSON objects to the referenceObject
-   * This is used for default options.
-   *
-   * @param referenceObject
-   * @returns {*}
-   */
-  exports.selectiveBridgeObject = function (fields, referenceObject) {
-    if (typeof referenceObject == 'object') {
-      var objectTo = Object.create(referenceObject);
-      for (var i = 0; i < fields.length; i++) {
-        if (referenceObject.hasOwnProperty(fields[i])) {
-          if (typeof referenceObject[fields[i]] == 'object') {
-            objectTo[fields[i]] = exports.bridgeObject(referenceObject[fields[i]]);
+        var nodesToCluster = [];
+        for (var i = 0; i < this.body.nodeIndices.length; i++) {
+          var node = this.body.nodes[this.body.nodeIndices[i]];
+          if (node.edges.length >= hubsize) {
+            nodesToCluster.push(node.id);
           }
         }
-      }
-      return objectTo;
-    } else {
-      return null;
-    }
-  };
 
-  /**
-   * This recursively redirects the prototype of JSON objects to the referenceObject
-   * This is used for default options.
-   *
-   * @param referenceObject
-   * @returns {*}
-   */
-  exports.bridgeObject = function (referenceObject) {
-    if (typeof referenceObject == 'object') {
-      var objectTo = Object.create(referenceObject);
-      for (var i in referenceObject) {
-        if (referenceObject.hasOwnProperty(i)) {
-          if (typeof referenceObject[i] == 'object') {
-            objectTo[i] = exports.bridgeObject(referenceObject[i]);
+        for (var i = 0; i < nodesToCluster.length; i++) {
+          this.clusterByConnection(nodesToCluster[i], options, false);
+        }
+        this.body.emitter.emit('_dataChanged');
+      }
+    }, {
+      key: 'cluster',
+
+      /**
+      * loop over all nodes, check if they adhere to the condition and cluster if needed.
+      * @param options
+      * @param refreshData
+      */
+      value: function cluster() {
+        var options = arguments[0] === undefined ? {} : arguments[0];
+        var refreshData = arguments[1] === undefined ? true : arguments[1];
+
+        if (options.joinCondition === undefined) {
+          throw new Error('Cannot call clusterByNodeData without a joinCondition function in the options.');
+        }
+
+        // check if the options object is fine, append if needed
+        options = this._checkOptions(options);
+
+        var childNodesObj = {};
+        var childEdgesObj = {};
+
+        // collect the nodes that will be in the cluster
+        for (var i = 0; i < this.body.nodeIndices.length; i++) {
+          var nodeId = this.body.nodeIndices[i];
+          var node = this.body.nodes[nodeId];
+          var clonedOptions = this._cloneOptions(node);
+          if (options.joinCondition(clonedOptions) === true) {
+            childNodesObj[nodeId] = this.body.nodes[nodeId];
+
+            // collect the nodes that will be in the cluster
+            for (var _i = 0; _i < node.edges.length; _i++) {
+              var edge = node.edges[_i];
+              childEdgesObj[edge.id] = edge;
+            }
           }
         }
+
+        this._cluster(childNodesObj, childEdgesObj, options, refreshData);
       }
-      return objectTo;
-    } else {
-      return null;
-    }
-  };
+    }, {
+      key: 'clusterOutliers',
 
-  /**
-   * this is used to set the options of subobjects in the options object. A requirement of these subobjects
-   * is that they have an 'enabled' element which is optional for the user but mandatory for the program.
-   *
-   * @param [object] mergeTarget | this is either this.options or the options used for the groups.
-   * @param [object] options     | options
-   * @param [String] option      | this is the option key in the options argument
-   * @private
-   */
-  exports.mergeOptions = function (mergeTarget, options, option) {
-    var allowDeletion = arguments[3] === undefined ? false : arguments[3];
+      /**
+      * Cluster all nodes in the network that have only 1 edge
+      * @param options
+      * @param refreshData
+      */
+      value: function clusterOutliers(options) {
+        var refreshData = arguments[1] === undefined ? true : arguments[1];
 
-    if (options[option] === null) {
-      mergeTarget[option] = undefined;
-      delete mergeTarget[option];
-    } else {
-      if (options[option] !== undefined) {
-        if (typeof options[option] === 'boolean') {
-          mergeTarget[option].enabled = options[option];
+        options = this._checkOptions(options);
+        var clusters = [];
+
+        // collect the nodes that will be in the cluster
+        for (var i = 0; i < this.body.nodeIndices.length; i++) {
+          var childNodesObj = {};
+          var childEdgesObj = {};
+          var nodeId = this.body.nodeIndices[i];
+          var visibleEdges = 0;
+          var edge = undefined;
+          for (var j = 0; j < this.body.nodes[nodeId].edges.length; j++) {
+            if (this.body.nodes[nodeId].edges[j].options.hidden === false) {
+              visibleEdges++;
+              edge = this.body.nodes[nodeId].edges[j];
+            }
+          }
+
+          if (visibleEdges === 1) {
+            // this is an outlier
+            var childNodeId = this._getConnectedId(edge, nodeId);
+            if (childNodeId !== nodeId) {
+              if (options.joinCondition === undefined) {
+                if (this._checkIfUsed(clusters, nodeId, edge.id) === false && this._checkIfUsed(clusters, childNodeId, edge.id) === false) {
+                  childEdgesObj[edge.id] = edge;
+                  childNodesObj[nodeId] = this.body.nodes[nodeId];
+                  childNodesObj[childNodeId] = this.body.nodes[childNodeId];
+                }
+              } else {
+                var clonedOptions = this._cloneOptions(this.body.nodes[nodeId]);
+                if (options.joinCondition(clonedOptions) === true && this._checkIfUsed(clusters, nodeId, edge.id) === false) {
+                  childEdgesObj[edge.id] = edge;
+                  childNodesObj[nodeId] = this.body.nodes[nodeId];
+                }
+                clonedOptions = this._cloneOptions(this.body.nodes[childNodeId]);
+                if (options.joinCondition(clonedOptions) === true && this._checkIfUsed(clusters, nodeId, edge.id) === false) {
+                  childEdgesObj[edge.id] = edge;
+                  childNodesObj[childNodeId] = this.body.nodes[childNodeId];
+                }
+              }
+
+              if (Object.keys(childNodesObj).length > 0 && Object.keys(childEdgesObj).length > 0) {
+                clusters.push({ nodes: childNodesObj, edges: childEdgesObj });
+              }
+            }
+          }
+        }
+
+        for (var i = 0; i < clusters.length; i++) {
+          this._cluster(clusters[i].nodes, clusters[i].edges, options, false);
+        }
+
+        if (refreshData === true) {
+          this.body.emitter.emit('_dataChanged');
+        }
+      }
+    }, {
+      key: '_checkIfUsed',
+      value: function _checkIfUsed(clusters, nodeId, edgeId) {
+        for (var i = 0; i < clusters.length; i++) {
+          var cluster = clusters[i];
+          if (cluster.nodes[nodeId] !== undefined || cluster.edges[edgeId] !== undefined) {
+            return true;
+          }
+        }
+        return false;
+      }
+    }, {
+      key: 'clusterByConnection',
+
+      /**
+      * suck all connected nodes of a node into the node.
+      * @param nodeId
+      * @param options
+      * @param refreshData
+      */
+      value: function clusterByConnection(nodeId, options) {
+        var refreshData = arguments[2] === undefined ? true : arguments[2];
+
+        // kill conditions
+        if (nodeId === undefined) {
+          throw new Error('No nodeId supplied to clusterByConnection!');
+        }
+        if (this.body.nodes[nodeId] === undefined) {
+          throw new Error('The nodeId given to clusterByConnection does not exist!');
+        }
+
+        var node = this.body.nodes[nodeId];
+        options = this._checkOptions(options, node);
+        if (options.clusterNodeProperties.x === undefined) {
+          options.clusterNodeProperties.x = node.x;
+        }
+        if (options.clusterNodeProperties.y === undefined) {
+          options.clusterNodeProperties.y = node.y;
+        }
+        if (options.clusterNodeProperties.fixed === undefined) {
+          options.clusterNodeProperties.fixed = {};
+          options.clusterNodeProperties.fixed.x = node.options.fixed.x;
+          options.clusterNodeProperties.fixed.y = node.options.fixed.y;
+        }
+
+        var childNodesObj = {};
+        var childEdgesObj = {};
+        var parentNodeId = node.id;
+        var parentClonedOptions = this._cloneOptions(node);
+        childNodesObj[parentNodeId] = node;
+
+        // collect the nodes that will be in the cluster
+        for (var i = 0; i < node.edges.length; i++) {
+          var edge = node.edges[i];
+          var childNodeId = this._getConnectedId(edge, parentNodeId);
+
+          if (childNodeId !== parentNodeId) {
+            if (options.joinCondition === undefined) {
+              childEdgesObj[edge.id] = edge;
+              childNodesObj[childNodeId] = this.body.nodes[childNodeId];
+            } else {
+              // clone the options and insert some additional parameters that could be interesting.
+              var childClonedOptions = this._cloneOptions(this.body.nodes[childNodeId]);
+              if (options.joinCondition(parentClonedOptions, childClonedOptions) === true) {
+                childEdgesObj[edge.id] = edge;
+                childNodesObj[childNodeId] = this.body.nodes[childNodeId];
+              }
+            }
+          } else {
+            childEdgesObj[edge.id] = edge;
+          }
+        }
+
+        this._cluster(childNodesObj, childEdgesObj, options, refreshData);
+      }
+    }, {
+      key: '_cloneOptions',
+
+      /**
+      * This returns a clone of the options or options of the edge or node to be used for construction of new edges or check functions for new nodes.
+      * @param objId
+      * @param type
+      * @returns {{}}
+      * @private
+      */
+      value: function _cloneOptions(item, type) {
+        var clonedOptions = {};
+        if (type === undefined || type === 'node') {
+          util.deepExtend(clonedOptions, item.options, true);
+          clonedOptions.x = item.x;
+          clonedOptions.y = item.y;
+          clonedOptions.amountOfConnections = item.edges.length;
         } else {
-          if (options[option].enabled === undefined) {
-            mergeTarget[option].enabled = true;
-          }
-          for (var prop in options[option]) {
-            if (options[option].hasOwnProperty(prop)) {
-              mergeTarget[option][prop] = options[option][prop];
+          util.deepExtend(clonedOptions, item.options, true);
+        }
+        return clonedOptions;
+      }
+    }, {
+      key: '_createClusterEdges',
+
+      /**
+      * This function creates the edges that will be attached to the cluster.
+      *
+      * @param childNodesObj
+      * @param childEdgesObj
+      * @param newEdges
+      * @param options
+      * @private
+      */
+      value: function _createClusterEdges(childNodesObj, childEdgesObj, newEdges, clusterNodeProperties, clusterEdgeProperties) {
+        var edge = undefined,
+            childNodeId = undefined,
+            childNode = undefined,
+            toId = undefined,
+            fromId = undefined,
+            otherNodeId = undefined;
+
+        var childKeys = Object.keys(childNodesObj);
+        for (var i = 0; i < childKeys.length; i++) {
+          childNodeId = childKeys[i];
+          childNode = childNodesObj[childNodeId];
+
+          // construct new edges from the cluster to others
+          for (var j = 0; j < childNode.edges.length; j++) {
+            edge = childNode.edges[j];
+            childEdgesObj[edge.id] = edge;
+
+            // childNodeId position will be replaced by the cluster.
+            if (edge.toId == childNodeId) {
+              // this is a double equals because ints and strings can be interchanged here.
+              toId = clusterNodeProperties.id;
+              fromId = edge.fromId;
+              otherNodeId = fromId;
+            } else {
+              toId = edge.toId;
+              fromId = clusterNodeProperties.id;
+              otherNodeId = toId;
+            }
+
+            // if the node connected to the cluster is also in the cluster we do not need a new edge.
+            if (childNodesObj[otherNodeId] === undefined) {
+              var clonedOptions = this._cloneOptions(edge, 'edge');
+              util.deepExtend(clonedOptions, clusterEdgeProperties);
+              clonedOptions.from = fromId;
+              clonedOptions.to = toId;
+              clonedOptions.id = 'clusterEdge:' + util.randomUUID();
+              newEdges.push(this.body.functions.createEdge(clonedOptions));
             }
           }
         }
       }
-    }
-  };
+    }, {
+      key: '_checkOptions',
 
-  /**
-   * This function does a binary search for a visible item in a sorted list. If we find a visible item, the code that uses
-   * this function will then iterate in both directions over this sorted list to find all visible items.
-   *
-   * @param {Item[]} orderedItems       | Items ordered by start
-   * @param {function} searchFunction   | -1 is lower, 0 is found, 1 is higher
-   * @param {String} field
-   * @param {String} field2
-   * @returns {number}
-   * @private
-   */
-  exports.binarySearchCustom = function (orderedItems, searchFunction, field, field2) {
-    var maxIterations = 10000;
-    var iteration = 0;
-    var low = 0;
-    var high = orderedItems.length - 1;
+      /**
+      * This function checks the options that can be supplied to the different cluster functions
+      * for certain fields and inserts defaults if needed
+      * @param options
+      * @returns {*}
+      * @private
+      */
+      value: function _checkOptions() {
+        var options = arguments[0] === undefined ? {} : arguments[0];
 
-    while (low <= high && iteration < maxIterations) {
-      var middle = Math.floor((low + high) / 2);
+        if (options.clusterEdgeProperties === undefined) {
+          options.clusterEdgeProperties = {};
+        }
+        if (options.clusterNodeProperties === undefined) {
+          options.clusterNodeProperties = {};
+        }
 
-      var item = orderedItems[middle];
-      var value = field2 === undefined ? item[field] : item[field][field2];
-
-      var searchResult = searchFunction(value);
-      if (searchResult == 0) {
-        // jihaa, found a visible item!
-        return middle;
-      } else if (searchResult == -1) {
-        // it is too small --> increase low
-        low = middle + 1;
-      } else {
-        // it is too big --> decrease high
-        high = middle - 1;
+        return options;
       }
+    }, {
+      key: '_cluster',
 
-      iteration++;
-    }
+      /**
+      *
+      * @param {Object}    childNodesObj         | object with node objects, id as keys, same as childNodes except it also contains a source node
+      * @param {Object}    childEdgesObj         | object with edge objects, id as keys
+      * @param {Array}     options               | object with {clusterNodeProperties, clusterEdgeProperties, processProperties}
+      * @param {Boolean}   refreshData | when true, do not wrap up
+      * @private
+      */
+      value: function _cluster(childNodesObj, childEdgesObj, options) {
+        var refreshData = arguments[3] === undefined ? true : arguments[3];
 
-    return -1;
-  };
+        // kill condition: no children so cant cluster
+        if (Object.keys(childNodesObj).length === 0) {
+          return;
+        }
 
-  /**
-   * This function does a binary search for a specific value in a sorted array. If it does not exist but is in between of
-   * two values, we return either the one before or the one after, depending on user input
-   * If it is found, we return the index, else -1.
-   *
-   * @param {Array} orderedItems
-   * @param {{start: number, end: number}} target
-   * @param {String} field
-   * @param {String} sidePreference   'before' or 'after'
-   * @returns {number}
-   * @private
-   */
-  exports.binarySearchValue = function (orderedItems, target, field, sidePreference) {
-    var maxIterations = 10000;
-    var iteration = 0;
-    var low = 0;
-    var high = orderedItems.length - 1;
-    var prevValue, value, nextValue, middle;
+        var clusterNodeProperties = util.deepExtend({}, options.clusterNodeProperties);
 
-    while (low <= high && iteration < maxIterations) {
-      // get a new guess
-      middle = Math.floor(0.5 * (high + low));
-      prevValue = orderedItems[Math.max(0, middle - 1)][field];
-      value = orderedItems[middle][field];
-      nextValue = orderedItems[Math.min(orderedItems.length - 1, middle + 1)][field];
+        // construct the clusterNodeProperties
+        if (options.processProperties !== undefined) {
+          // get the childNode options
+          var childNodesOptions = [];
+          for (var nodeId in childNodesObj) {
+            var clonedOptions = this._cloneOptions(childNodesObj[nodeId]);
+            childNodesOptions.push(clonedOptions);
+          }
 
-      if (value == target) {
-        // we found the target
-        return middle;
-      } else if (prevValue < target && value > target) {
-        // target is in between of the previous and the current
-        return sidePreference == 'before' ? Math.max(0, middle - 1) : middle;
-      } else if (value < target && nextValue > target) {
-        // target is in between of the current and the next
-        return sidePreference == 'before' ? middle : Math.min(orderedItems.length - 1, middle + 1);
-      } else {
-        // didnt find the target, we need to change our boundaries.
-        if (value < target) {
-          // it is too small --> increase low
-          low = middle + 1;
-        } else {
-          // it is too big --> decrease high
-          high = middle - 1;
+          // get clusterproperties based on childNodes
+          var childEdgesOptions = [];
+          for (var edgeId in childEdgesObj) {
+            var clonedOptions = this._cloneOptions(childEdgesObj[edgeId], 'edge');
+            childEdgesOptions.push(clonedOptions);
+          }
+
+          clusterNodeProperties = options.processProperties(clusterNodeProperties, childNodesOptions, childEdgesOptions);
+          if (!clusterNodeProperties) {
+            throw new Error('The processProperties function does not return properties!');
+          }
+        }
+
+        // check if we have an unique id;
+        if (clusterNodeProperties.id === undefined) {
+          clusterNodeProperties.id = 'cluster:' + util.randomUUID();
+        }
+        var clusterId = clusterNodeProperties.id;
+
+        if (clusterNodeProperties.label === undefined) {
+          clusterNodeProperties.label = 'cluster';
+        }
+
+        // give the clusterNode a postion if it does not have one.
+        var pos = undefined;
+        if (clusterNodeProperties.x === undefined) {
+          pos = this._getClusterPosition(childNodesObj);
+          clusterNodeProperties.x = pos.x;
+        }
+        if (clusterNodeProperties.y === undefined) {
+          if (pos === undefined) {
+            pos = this._getClusterPosition(childNodesObj);
+          }
+          clusterNodeProperties.y = pos.y;
+        }
+
+        // force the ID to remain the same
+        clusterNodeProperties.id = clusterId;
+
+        // create the clusterNode
+        var clusterNode = this.body.functions.createNode(clusterNodeProperties, _componentsNodesCluster2['default']);
+        clusterNode.isCluster = true;
+        clusterNode.containedNodes = childNodesObj;
+        clusterNode.containedEdges = childEdgesObj;
+        // cache a copy from the cluster edge properties if we have to reconnect others later on
+        clusterNode.clusterEdgeProperties = options.clusterEdgeProperties;
+
+        // finally put the cluster node into global
+        this.body.nodes[clusterNodeProperties.id] = clusterNode;
+
+        // create the new edges that will connect to the cluster
+        var newEdges = [];
+        this._createClusterEdges(childNodesObj, childEdgesObj, newEdges, clusterNodeProperties, options.clusterEdgeProperties);
+
+        // disable the childEdges
+        for (var edgeId in childEdgesObj) {
+          if (childEdgesObj.hasOwnProperty(edgeId)) {
+            if (this.body.edges[edgeId] !== undefined) {
+              var edge = this.body.edges[edgeId];
+              edge.togglePhysics(false);
+              edge.options.hidden = true;
+            }
+          }
+        }
+
+        // disable the childNodes
+        for (var nodeId in childNodesObj) {
+          if (childNodesObj.hasOwnProperty(nodeId)) {
+            this.clusteredNodes[nodeId] = { clusterId: clusterNodeProperties.id, node: this.body.nodes[nodeId] };
+            this.body.nodes[nodeId].togglePhysics(false);
+            this.body.nodes[nodeId].options.hidden = true;
+          }
+        }
+
+        // push new edges to global
+        for (var i = 0; i < newEdges.length; i++) {
+          this.body.edges[newEdges[i].id] = newEdges[i];
+          this.body.edges[newEdges[i].id].connect();
+        }
+
+        // set ID to undefined so no duplicates arise
+        clusterNodeProperties.id = undefined;
+
+        // wrap up
+        if (refreshData === true) {
+          this.body.emitter.emit('_dataChanged');
         }
       }
-      iteration++;
-    }
+    }, {
+      key: 'isCluster',
 
-    // didnt find anything. Return -1.
-    return -1;
-  };
+      /**
+      * Check if a node is a cluster.
+      * @param nodeId
+      * @returns {*}
+      */
+      value: function isCluster(nodeId) {
+        if (this.body.nodes[nodeId] !== undefined) {
+          return this.body.nodes[nodeId].isCluster === true;
+        } else {
+          console.log('Node does not exist.');
+          return false;
+        }
+      }
+    }, {
+      key: '_getClusterPosition',
 
-  /*
-   * Easing Functions - inspired from http://gizma.com/easing/
-   * only considering the t value for the range [0, 1] => [0, 1]
-   * https://gist.github.com/gre/1650294
-   */
-  exports.easingFunctions = {
-    // no easing, no acceleration
-    linear: function linear(t) {
-      return t;
-    },
-    // accelerating from zero velocity
-    easeInQuad: function easeInQuad(t) {
-      return t * t;
-    },
-    // decelerating to zero velocity
-    easeOutQuad: function easeOutQuad(t) {
-      return t * (2 - t);
-    },
-    // acceleration until halfway, then deceleration
-    easeInOutQuad: function easeInOutQuad(t) {
-      return t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t;
-    },
-    // accelerating from zero velocity
-    easeInCubic: function easeInCubic(t) {
-      return t * t * t;
-    },
-    // decelerating to zero velocity
-    easeOutCubic: function easeOutCubic(t) {
-      return --t * t * t + 1;
-    },
-    // acceleration until halfway, then deceleration
-    easeInOutCubic: function easeInOutCubic(t) {
-      return t < 0.5 ? 4 * t * t * t : (t - 1) * (2 * t - 2) * (2 * t - 2) + 1;
-    },
-    // accelerating from zero velocity
-    easeInQuart: function easeInQuart(t) {
-      return t * t * t * t;
-    },
-    // decelerating to zero velocity
-    easeOutQuart: function easeOutQuart(t) {
-      return 1 - --t * t * t * t;
-    },
-    // acceleration until halfway, then deceleration
-    easeInOutQuart: function easeInOutQuart(t) {
-      return t < 0.5 ? 8 * t * t * t * t : 1 - 8 * --t * t * t * t;
-    },
-    // accelerating from zero velocity
-    easeInQuint: function easeInQuint(t) {
-      return t * t * t * t * t;
-    },
-    // decelerating to zero velocity
-    easeOutQuint: function easeOutQuint(t) {
-      return 1 + --t * t * t * t * t;
-    },
-    // acceleration until halfway, then deceleration
-    easeInOutQuint: function easeInOutQuint(t) {
-      return t < 0.5 ? 16 * t * t * t * t * t : 1 + 16 * --t * t * t * t * t;
-    }
-  };
+      /**
+      * get the position of the cluster node based on what's inside
+      * @param {object} childNodesObj    | object with node objects, id as keys
+      * @returns {{x: number, y: number}}
+      * @private
+      */
+      value: function _getClusterPosition(childNodesObj) {
+        var childKeys = Object.keys(childNodesObj);
+        var minX = childNodesObj[childKeys[0]].x;
+        var maxX = childNodesObj[childKeys[0]].x;
+        var minY = childNodesObj[childKeys[0]].y;
+        var maxY = childNodesObj[childKeys[0]].y;
+        var node = undefined;
+        for (var i = 1; i < childKeys.length; i++) {
+          node = childNodesObj[childKeys[i]];
+          minX = node.x < minX ? node.x : minX;
+          maxX = node.x > maxX ? node.x : maxX;
+          minY = node.y < minY ? node.y : minY;
+          maxY = node.y > maxY ? node.y : maxY;
+        }
+
+        return { x: 0.5 * (minX + maxX), y: 0.5 * (minY + maxY) };
+      }
+    }, {
+      key: 'openCluster',
+
+      /**
+      * Open a cluster by calling this function.
+      * @param {String}  clusterNodeId | the ID of the cluster node
+      * @param {Boolean} refreshData | wrap up afterwards if not true
+      */
+      value: function openCluster(clusterNodeId) {
+        var refreshData = arguments[1] === undefined ? true : arguments[1];
+
+        // kill conditions
+        if (clusterNodeId === undefined) {
+          throw new Error('No clusterNodeId supplied to openCluster.');
+        }
+        if (this.body.nodes[clusterNodeId] === undefined) {
+          throw new Error('The clusterNodeId supplied to openCluster does not exist.');
+        }
+        if (this.body.nodes[clusterNodeId].containedNodes === undefined) {
+          console.log('The node:' + clusterNodeId + ' is not a cluster.');
+          return;
+        }
+        var clusterNode = this.body.nodes[clusterNodeId];
+        var containedNodes = clusterNode.containedNodes;
+        var containedEdges = clusterNode.containedEdges;
+
+        // release nodes
+        for (var nodeId in containedNodes) {
+          if (containedNodes.hasOwnProperty(nodeId)) {
+            var containedNode = this.body.nodes[nodeId];
+            containedNode = containedNodes[nodeId];
+            // inherit position
+            containedNode.x = clusterNode.x;
+            containedNode.y = clusterNode.y;
+
+            // inherit speed
+            containedNode.vx = clusterNode.vx;
+            containedNode.vy = clusterNode.vy;
+
+            containedNode.options.hidden = false;
+            containedNode.togglePhysics(true);
+
+            delete this.clusteredNodes[nodeId];
+          }
+        }
+
+        // release edges
+        for (var edgeId in containedEdges) {
+          if (containedEdges.hasOwnProperty(edgeId)) {
+            var edge = containedEdges[edgeId];
+            // if this edge was a temporary edge and it's connected nodes do not exist anymore, we remove it from the data
+            if (this.body.nodes[edge.fromId] === undefined || this.body.nodes[edge.toId] === undefined) {
+              edge.edgeType.cleanup();
+              // this removes the edge from node.edges, which is why edgeIds is formed
+              edge.disconnect();
+              delete this.body.edges[edgeId];
+            } else {
+
+              // one of the nodes connected to this edge is in a cluster. We give the edge to that cluster so it will be released when that cluster is opened.
+              if (this.clusteredNodes[edge.fromId] !== undefined || this.clusteredNodes[edge.toId] !== undefined) {
+                var fromId = undefined,
+                    toId = undefined;
+                var clusteredNode = this.clusteredNodes[edge.fromId] || this.clusteredNodes[edge.toId];
+                var clusterId = clusteredNode.clusterId;
+                var _clusterNode = this.body.nodes[clusterId];
+                _clusterNode.containedEdges[edgeId] = edge;
+
+                // if both from and to nodes are visible, we create a new temporary edge
+                if (edge.from.options.hidden !== true && edge.to.options.hidden !== true) {
+                  if (this.clusteredNodes[edge.fromId] !== undefined) {
+                    fromId = clusterId;
+                    toId = edge.toId;
+                  } else {
+                    fromId = edge.fromId;
+                    toId = clusterId;
+                  }
+
+                  var clonedOptions = this._cloneOptions(edge, 'edge');
+                  var id = 'clusterEdge:' + util.randomUUID();
+                  util.deepExtend(clonedOptions, _clusterNode.clusterEdgeProperties);
+                  util.deepExtend(clonedOptions, { from: fromId, to: toId, hidden: false, physics: true, id: id });
+                  var newEdge = this.body.functions.createEdge(clonedOptions);
+
+                  this.body.edges[id] = newEdge;
+                  this.body.edges[id].connect();
+                }
+              } else {
+                edge.options.hidden = false;
+                edge.togglePhysics(true);
+              }
+            }
+          }
+        }
+
+        // remove all temporary edges
+        for (var i = 0; i < clusterNode.edges.length; i++) {
+          var edgeId = clusterNode.edges[i].id;
+          this.body.edges[edgeId].edgeType.cleanup();
+          // this removes the edge from node.edges, which is why edgeIds is formed
+          this.body.edges[edgeId].disconnect();
+          delete this.body.edges[edgeId];
+        }
+
+        // remove clusterNode
+        delete this.body.nodes[clusterNodeId];
+
+        if (refreshData === true) {
+          this.body.emitter.emit('_dataChanged');
+        }
+      }
+    }, {
+      key: '_connectEdge',
+
+      /**
+      * Connect an edge that was previously contained from cluster A to cluster B if the node that it was originally connected to
+      * is currently residing in cluster B
+      * @param edge
+      * @param nodeId
+      * @param from
+      * @private
+      */
+      value: function _connectEdge(edge, nodeId, from) {
+        var clusterStack = this.findNode(nodeId);
+        if (from === true) {
+          edge.from = clusterStack[clusterStack.length - 1];
+          edge.fromId = clusterStack[clusterStack.length - 1].id;
+          clusterStack.pop();
+          edge.fromArray = clusterStack;
+        } else {
+          edge.to = clusterStack[clusterStack.length - 1];
+          edge.toId = clusterStack[clusterStack.length - 1].id;
+          clusterStack.pop();
+          edge.toArray = clusterStack;
+        }
+        edge.connect();
+      }
+    }, {
+      key: 'findNode',
+
+      /**
+      * Get the stack clusterId's that a certain node resides in. cluster A -> cluster B -> cluster C -> node
+      * @param nodeId
+      * @returns {Array}
+      * @private
+      */
+      value: function findNode(nodeId) {
+        var stack = [];
+        var max = 100;
+        var counter = 0;
+
+        while (this.clusteredNodes[nodeId] !== undefined && counter < max) {
+          stack.push(this.clusteredNodes[nodeId].node);
+          nodeId = this.clusteredNodes[nodeId].clusterId;
+          counter++;
+        }
+        stack.push(this.body.nodes[nodeId]);
+        return stack;
+      }
+    }, {
+      key: '_getConnectedId',
+
+      /**
+      * Get the Id the node is connected to
+      * @param edge
+      * @param nodeId
+      * @returns {*}
+      * @private
+      */
+      value: function _getConnectedId(edge, nodeId) {
+        if (edge.toId != nodeId) {
+          return edge.toId;
+        } else if (edge.fromId != nodeId) {
+          return edge.fromId;
+        } else {
+          return edge.fromId;
+        }
+      }
+    }, {
+      key: '_getHubSize',
+
+      /**
+      * We determine how many connections denote an important hub.
+      * We take the mean + 2*std as the important hub size. (Assuming a normal distribution of data, ~2.2%)
+      *
+      * @private
+      */
+      value: function _getHubSize() {
+        var average = 0;
+        var averageSquared = 0;
+        var hubCounter = 0;
+        var largestHub = 0;
+
+        for (var i = 0; i < this.body.nodeIndices.length; i++) {
+          var node = this.body.nodes[this.body.nodeIndices[i]];
+          if (node.edges.length > largestHub) {
+            largestHub = node.edges.length;
+          }
+          average += node.edges.length;
+          averageSquared += Math.pow(node.edges.length, 2);
+          hubCounter += 1;
+        }
+        average = average / hubCounter;
+        averageSquared = averageSquared / hubCounter;
+
+        var letiance = averageSquared - Math.pow(average, 2);
+        var standardDeviation = Math.sqrt(letiance);
+
+        var hubThreshold = Math.floor(average + 2 * standardDeviation);
+
+        // always have at least one to cluster
+        if (hubThreshold > largestHub) {
+          hubThreshold = largestHub;
+        }
+
+        return hubThreshold;
+      }
+    }]);
+
+    return ClusterEngine;
+  })();
+
+  exports['default'] = ClusterEngine;
+  module.exports = exports['default'];
 
 /***/ },
 /* 2 */
@@ -1708,7 +1105,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   'use strict';
 
-  var util = __webpack_require__(1);
+  var util = __webpack_require__(57);
   var Queue = __webpack_require__(5);
 
   /**
@@ -2603,7 +2000,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   'use strict';
 
-  var util = __webpack_require__(1);
+  var util = __webpack_require__(57);
   var DataSet = __webpack_require__(3);
 
   /**
@@ -3156,10 +2553,10 @@ return /******/ (function(modules) { // webpackBootstrap
 
   'use strict';
 
-  var Emitter = __webpack_require__(43);
+  var Emitter = __webpack_require__(69);
   var DataSet = __webpack_require__(3);
   var DataView = __webpack_require__(4);
-  var util = __webpack_require__(1);
+  var util = __webpack_require__(57);
   var Point3d = __webpack_require__(10);
   var Point2d = __webpack_require__(9);
   var Camera = __webpack_require__(7);
@@ -5827,7 +5224,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   'use strict';
 
-  var util = __webpack_require__(1);
+  var util = __webpack_require__(57);
 
   /**
    * @constructor Slider
@@ -6319,23 +5716,23 @@ return /******/ (function(modules) { // webpackBootstrap
 
   'use strict';
 
-  var Emitter = __webpack_require__(43);
+  var Emitter = __webpack_require__(69);
   var Hammer = __webpack_require__(41);
-  var util = __webpack_require__(1);
+  var util = __webpack_require__(57);
   var DataSet = __webpack_require__(3);
   var DataView = __webpack_require__(4);
   var Range = __webpack_require__(17);
-  var Core = __webpack_require__(44);
+  var Core = __webpack_require__(43);
   var TimeAxis = __webpack_require__(35);
   var CurrentTime = __webpack_require__(26);
   var CustomTime = __webpack_require__(27);
   var ItemSet = __webpack_require__(32);
 
-  var Configurator = __webpack_require__(45);
-  var Validator = __webpack_require__(46)['default'];
-  var printStyle = __webpack_require__(46).printStyle;
-  var allOptions = __webpack_require__(47).allOptions;
-  var configureOptions = __webpack_require__(47).configureOptions;
+  var Configurator = __webpack_require__(44);
+  var Validator = __webpack_require__(45)['default'];
+  var printStyle = __webpack_require__(45).printStyle;
+  var allOptions = __webpack_require__(46).allOptions;
+  var configureOptions = __webpack_require__(46).configureOptions;
 
   /**
    * Create a timeline visualization
@@ -6760,23 +6157,23 @@ return /******/ (function(modules) { // webpackBootstrap
 
   'use strict';
 
-  var Emitter = __webpack_require__(43);
+  var Emitter = __webpack_require__(69);
   var Hammer = __webpack_require__(41);
-  var util = __webpack_require__(1);
+  var util = __webpack_require__(57);
   var DataSet = __webpack_require__(3);
   var DataView = __webpack_require__(4);
   var Range = __webpack_require__(17);
-  var Core = __webpack_require__(44);
+  var Core = __webpack_require__(43);
   var TimeAxis = __webpack_require__(35);
   var CurrentTime = __webpack_require__(26);
   var CustomTime = __webpack_require__(27);
   var LineGraph = __webpack_require__(34);
 
-  var Configurator = __webpack_require__(45);
-  var Validator = __webpack_require__(46)['default'];
-  var printStyle = __webpack_require__(46).printStyle;
-  var allOptions = __webpack_require__(48).allOptions;
-  var configureOptions = __webpack_require__(48).configureOptions;
+  var Configurator = __webpack_require__(44);
+  var Validator = __webpack_require__(45)['default'];
+  var printStyle = __webpack_require__(45).printStyle;
+  var allOptions = __webpack_require__(47).allOptions;
+  var configureOptions = __webpack_require__(47).configureOptions;
 
   /**
    * Create a timeline visualization
@@ -7777,8 +7174,8 @@ return /******/ (function(modules) { // webpackBootstrap
 
   'use strict';
 
-  var util = __webpack_require__(1);
-  var hammerUtil = __webpack_require__(49);
+  var util = __webpack_require__(57);
+  var hammerUtil = __webpack_require__(48);
   var moment = __webpack_require__(40);
   var Component = __webpack_require__(25);
   var DateUtil = __webpack_require__(15);
@@ -8579,7 +7976,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   var moment = __webpack_require__(40);
   var DateUtil = __webpack_require__(15);
-  var util = __webpack_require__(1);
+  var util = __webpack_require__(57);
 
   /**
    * @constructor  TimeStep
@@ -9267,8 +8664,230 @@ return /******/ (function(modules) { // webpackBootstrap
 
   'use strict';
 
+  var Item = __webpack_require__(21);
+  var util = __webpack_require__(57);
+
+  /**
+   * @constructor BoxItem
+   * @extends Item
+   * @param {Object} data             Object containing parameters start
+   *                                  content, className.
+   * @param {{toScreen: function, toTime: function}} conversion
+   *                                  Conversion functions from time to screen and vice versa
+   * @param {Object} [options]        Configuration options
+   *                                  // TODO: describe available options
+   */
+  function BoxItem(data, conversion, options) {
+    this.props = {
+      dot: {
+        width: 0,
+        height: 0
+      },
+      line: {
+        width: 0,
+        height: 0
+      }
+    };
+
+    // validate data
+    if (data) {
+      if (data.start == undefined) {
+        throw new Error('Property "start" missing in item ' + data);
+      }
+    }
+
+    Item.call(this, data, conversion, options);
+  }
+
+  BoxItem.prototype = new Item(null, null, null);
+
+  /**
+   * Check whether this item is visible inside given range
+   * @returns {{start: Number, end: Number}} range with a timestamp for start and end
+   * @returns {boolean} True if visible
+   */
+  BoxItem.prototype.isVisible = function (range) {
+    // determine visibility
+    // TODO: account for the real width of the item. Right now we just add 1/4 to the window
+    var interval = (range.end - range.start) / 4;
+    return this.data.start > range.start - interval && this.data.start < range.end + interval;
+  };
+
+  /**
+   * Repaint the item
+   */
+  BoxItem.prototype.redraw = function () {
+    var dom = this.dom;
+    if (!dom) {
+      // create DOM
+      this.dom = {};
+      dom = this.dom;
+
+      // create main box
+      dom.box = document.createElement('DIV');
+
+      // contents box (inside the background box). used for making margins
+      dom.content = document.createElement('DIV');
+      dom.content.className = 'vis-item-content';
+      dom.box.appendChild(dom.content);
+
+      // line to axis
+      dom.line = document.createElement('DIV');
+      dom.line.className = 'vis-line';
+
+      // dot on axis
+      dom.dot = document.createElement('DIV');
+      dom.dot.className = 'vis-dot';
+
+      // attach this item as attribute
+      dom.box['timeline-item'] = this;
+
+      this.dirty = true;
+    }
+
+    // append DOM to parent DOM
+    if (!this.parent) {
+      throw new Error('Cannot redraw item: no parent attached');
+    }
+    if (!dom.box.parentNode) {
+      var foreground = this.parent.dom.foreground;
+      if (!foreground) throw new Error('Cannot redraw item: parent has no foreground container element');
+      foreground.appendChild(dom.box);
+    }
+    if (!dom.line.parentNode) {
+      var background = this.parent.dom.background;
+      if (!background) throw new Error('Cannot redraw item: parent has no background container element');
+      background.appendChild(dom.line);
+    }
+    if (!dom.dot.parentNode) {
+      var axis = this.parent.dom.axis;
+      if (!background) throw new Error('Cannot redraw item: parent has no axis container element');
+      axis.appendChild(dom.dot);
+    }
+    this.displayed = true;
+
+    // Update DOM when item is marked dirty. An item is marked dirty when:
+    // - the item is not yet rendered
+    // - the item's data is changed
+    // - the item is selected/deselected
+    if (this.dirty) {
+      this._updateContents(this.dom.content);
+      this._updateTitle(this.dom.box);
+      this._updateDataAttributes(this.dom.box);
+      this._updateStyle(this.dom.box);
+
+      // update class
+      var className = (this.data.className ? ' ' + this.data.className : '') + (this.selected ? ' vis-selected' : '');
+      dom.box.className = 'vis-item vis-box' + className;
+      dom.line.className = 'vis-item vis-line' + className;
+      dom.dot.className = 'vis-item vis-dot' + className;
+
+      // recalculate size
+      this.props.dot.height = dom.dot.offsetHeight;
+      this.props.dot.width = dom.dot.offsetWidth;
+      this.props.line.width = dom.line.offsetWidth;
+      this.width = dom.box.offsetWidth;
+      this.height = dom.box.offsetHeight;
+
+      this.dirty = false;
+    }
+
+    this._repaintDeleteButton(dom.box);
+  };
+
+  /**
+   * Show the item in the DOM (when not already displayed). The items DOM will
+   * be created when needed.
+   */
+  BoxItem.prototype.show = function () {
+    if (!this.displayed) {
+      this.redraw();
+    }
+  };
+
+  /**
+   * Hide the item from the DOM (when visible)
+   */
+  BoxItem.prototype.hide = function () {
+    if (this.displayed) {
+      var dom = this.dom;
+
+      if (dom.box.parentNode) dom.box.parentNode.removeChild(dom.box);
+      if (dom.line.parentNode) dom.line.parentNode.removeChild(dom.line);
+      if (dom.dot.parentNode) dom.dot.parentNode.removeChild(dom.dot);
+
+      this.displayed = false;
+    }
+  };
+
+  /**
+   * Reposition the item horizontally
+   * @Override
+   */
+  BoxItem.prototype.repositionX = function () {
+    var start = this.conversion.toScreen(this.data.start);
+    var align = this.options.align;
+    var left;
+
+    // calculate left position of the box
+    if (align == 'right') {
+      this.left = start - this.width;
+    } else if (align == 'left') {
+      this.left = start;
+    } else {
+      // default or 'center'
+      this.left = start - this.width / 2;
+    }
+
+    // reposition box
+    this.dom.box.style.left = this.left + 'px';
+
+    // reposition line
+    this.dom.line.style.left = start - this.props.line.width / 2 + 'px';
+
+    // reposition dot
+    this.dom.dot.style.left = start - this.props.dot.width / 2 + 'px';
+  };
+
+  /**
+   * Reposition the item vertically
+   * @Override
+   */
+  BoxItem.prototype.repositionY = function () {
+    var orientation = this.options.orientation.item;
+    var box = this.dom.box;
+    var line = this.dom.line;
+    var dot = this.dom.dot;
+
+    if (orientation == 'top') {
+      box.style.top = (this.top || 0) + 'px';
+
+      line.style.top = '0';
+      line.style.height = this.parent.top + this.top + 1 + 'px';
+      line.style.bottom = '';
+    } else {
+      // orientation 'bottom'
+      var itemSetHeight = this.parent.itemSet.props.height; // TODO: this is nasty
+      var lineHeight = itemSetHeight - this.parent.top - this.parent.height + this.top;
+
+      box.style.top = (this.parent.height - this.top - this.height || 0) + 'px';
+      line.style.top = itemSetHeight - lineHeight + 'px';
+      line.style.bottom = '0';
+    }
+
+    dot.style.top = -this.props.dot.height / 2 + 'px';
+  };
+
+  module.exports = BoxItem;
+
+/***/ },
+/* 21 */
+/***/ function(module, exports, __webpack_require__) {
+
+  'use strict';
+
   var Hammer = __webpack_require__(41);
-  var util = __webpack_require__(1);
+  var util = __webpack_require__(57);
 
   /**
    * @constructor Item
@@ -9536,13 +9155,13 @@ return /******/ (function(modules) { // webpackBootstrap
   // should be implemented by the item
 
 /***/ },
-/* 21 */
+/* 22 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
 
   var Hammer = __webpack_require__(41);
-  var Item = __webpack_require__(20);
+  var Item = __webpack_require__(21);
   var BackgroundGroup = __webpack_require__(31);
   var RangeItem = __webpack_require__(24);
 
@@ -9757,234 +9376,12 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = BackgroundItem;
 
 /***/ },
-/* 22 */
-/***/ function(module, exports, __webpack_require__) {
-
-  'use strict';
-
-  var Item = __webpack_require__(20);
-  var util = __webpack_require__(1);
-
-  /**
-   * @constructor BoxItem
-   * @extends Item
-   * @param {Object} data             Object containing parameters start
-   *                                  content, className.
-   * @param {{toScreen: function, toTime: function}} conversion
-   *                                  Conversion functions from time to screen and vice versa
-   * @param {Object} [options]        Configuration options
-   *                                  // TODO: describe available options
-   */
-  function BoxItem(data, conversion, options) {
-    this.props = {
-      dot: {
-        width: 0,
-        height: 0
-      },
-      line: {
-        width: 0,
-        height: 0
-      }
-    };
-
-    // validate data
-    if (data) {
-      if (data.start == undefined) {
-        throw new Error('Property "start" missing in item ' + data);
-      }
-    }
-
-    Item.call(this, data, conversion, options);
-  }
-
-  BoxItem.prototype = new Item(null, null, null);
-
-  /**
-   * Check whether this item is visible inside given range
-   * @returns {{start: Number, end: Number}} range with a timestamp for start and end
-   * @returns {boolean} True if visible
-   */
-  BoxItem.prototype.isVisible = function (range) {
-    // determine visibility
-    // TODO: account for the real width of the item. Right now we just add 1/4 to the window
-    var interval = (range.end - range.start) / 4;
-    return this.data.start > range.start - interval && this.data.start < range.end + interval;
-  };
-
-  /**
-   * Repaint the item
-   */
-  BoxItem.prototype.redraw = function () {
-    var dom = this.dom;
-    if (!dom) {
-      // create DOM
-      this.dom = {};
-      dom = this.dom;
-
-      // create main box
-      dom.box = document.createElement('DIV');
-
-      // contents box (inside the background box). used for making margins
-      dom.content = document.createElement('DIV');
-      dom.content.className = 'vis-item-content';
-      dom.box.appendChild(dom.content);
-
-      // line to axis
-      dom.line = document.createElement('DIV');
-      dom.line.className = 'vis-line';
-
-      // dot on axis
-      dom.dot = document.createElement('DIV');
-      dom.dot.className = 'vis-dot';
-
-      // attach this item as attribute
-      dom.box['timeline-item'] = this;
-
-      this.dirty = true;
-    }
-
-    // append DOM to parent DOM
-    if (!this.parent) {
-      throw new Error('Cannot redraw item: no parent attached');
-    }
-    if (!dom.box.parentNode) {
-      var foreground = this.parent.dom.foreground;
-      if (!foreground) throw new Error('Cannot redraw item: parent has no foreground container element');
-      foreground.appendChild(dom.box);
-    }
-    if (!dom.line.parentNode) {
-      var background = this.parent.dom.background;
-      if (!background) throw new Error('Cannot redraw item: parent has no background container element');
-      background.appendChild(dom.line);
-    }
-    if (!dom.dot.parentNode) {
-      var axis = this.parent.dom.axis;
-      if (!background) throw new Error('Cannot redraw item: parent has no axis container element');
-      axis.appendChild(dom.dot);
-    }
-    this.displayed = true;
-
-    // Update DOM when item is marked dirty. An item is marked dirty when:
-    // - the item is not yet rendered
-    // - the item's data is changed
-    // - the item is selected/deselected
-    if (this.dirty) {
-      this._updateContents(this.dom.content);
-      this._updateTitle(this.dom.box);
-      this._updateDataAttributes(this.dom.box);
-      this._updateStyle(this.dom.box);
-
-      // update class
-      var className = (this.data.className ? ' ' + this.data.className : '') + (this.selected ? ' vis-selected' : '');
-      dom.box.className = 'vis-item vis-box' + className;
-      dom.line.className = 'vis-item vis-line' + className;
-      dom.dot.className = 'vis-item vis-dot' + className;
-
-      // recalculate size
-      this.props.dot.height = dom.dot.offsetHeight;
-      this.props.dot.width = dom.dot.offsetWidth;
-      this.props.line.width = dom.line.offsetWidth;
-      this.width = dom.box.offsetWidth;
-      this.height = dom.box.offsetHeight;
-
-      this.dirty = false;
-    }
-
-    this._repaintDeleteButton(dom.box);
-  };
-
-  /**
-   * Show the item in the DOM (when not already displayed). The items DOM will
-   * be created when needed.
-   */
-  BoxItem.prototype.show = function () {
-    if (!this.displayed) {
-      this.redraw();
-    }
-  };
-
-  /**
-   * Hide the item from the DOM (when visible)
-   */
-  BoxItem.prototype.hide = function () {
-    if (this.displayed) {
-      var dom = this.dom;
-
-      if (dom.box.parentNode) dom.box.parentNode.removeChild(dom.box);
-      if (dom.line.parentNode) dom.line.parentNode.removeChild(dom.line);
-      if (dom.dot.parentNode) dom.dot.parentNode.removeChild(dom.dot);
-
-      this.displayed = false;
-    }
-  };
-
-  /**
-   * Reposition the item horizontally
-   * @Override
-   */
-  BoxItem.prototype.repositionX = function () {
-    var start = this.conversion.toScreen(this.data.start);
-    var align = this.options.align;
-    var left;
-
-    // calculate left position of the box
-    if (align == 'right') {
-      this.left = start - this.width;
-    } else if (align == 'left') {
-      this.left = start;
-    } else {
-      // default or 'center'
-      this.left = start - this.width / 2;
-    }
-
-    // reposition box
-    this.dom.box.style.left = this.left + 'px';
-
-    // reposition line
-    this.dom.line.style.left = start - this.props.line.width / 2 + 'px';
-
-    // reposition dot
-    this.dom.dot.style.left = start - this.props.dot.width / 2 + 'px';
-  };
-
-  /**
-   * Reposition the item vertically
-   * @Override
-   */
-  BoxItem.prototype.repositionY = function () {
-    var orientation = this.options.orientation.item;
-    var box = this.dom.box;
-    var line = this.dom.line;
-    var dot = this.dom.dot;
-
-    if (orientation == 'top') {
-      box.style.top = (this.top || 0) + 'px';
-
-      line.style.top = '0';
-      line.style.height = this.parent.top + this.top + 1 + 'px';
-      line.style.bottom = '';
-    } else {
-      // orientation 'bottom'
-      var itemSetHeight = this.parent.itemSet.props.height; // TODO: this is nasty
-      var lineHeight = itemSetHeight - this.parent.top - this.parent.height + this.top;
-
-      box.style.top = (this.parent.height - this.top - this.height || 0) + 'px';
-      line.style.top = itemSetHeight - lineHeight + 'px';
-      line.style.bottom = '0';
-    }
-
-    dot.style.top = -this.props.dot.height / 2 + 'px';
-  };
-
-  module.exports = BoxItem;
-
-/***/ },
 /* 23 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
 
-  var Item = __webpack_require__(20);
+  var Item = __webpack_require__(21);
 
   /**
    * @constructor PointItem
@@ -10170,7 +9567,7 @@ return /******/ (function(modules) { // webpackBootstrap
   'use strict';
 
   var Hammer = __webpack_require__(41);
-  var Item = __webpack_require__(20);
+  var Item = __webpack_require__(21);
 
   /**
    * @constructor RangeItem
@@ -10523,10 +9920,10 @@ return /******/ (function(modules) { // webpackBootstrap
 
   'use strict';
 
-  var util = __webpack_require__(1);
+  var util = __webpack_require__(57);
   var Component = __webpack_require__(25);
   var moment = __webpack_require__(40);
-  var locales = __webpack_require__(50);
+  var locales = __webpack_require__(49);
 
   /**
    * A current time bar
@@ -10700,10 +10097,10 @@ return /******/ (function(modules) { // webpackBootstrap
   'use strict';
 
   var Hammer = __webpack_require__(41);
-  var util = __webpack_require__(1);
+  var util = __webpack_require__(57);
   var Component = __webpack_require__(25);
   var moment = __webpack_require__(40);
-  var locales = __webpack_require__(50);
+  var locales = __webpack_require__(49);
 
   /**
    * A custom time bar
@@ -10938,7 +10335,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   'use strict';
 
-  var util = __webpack_require__(1);
+  var util = __webpack_require__(57);
   var DOMutil = __webpack_require__(2);
   var Component = __webpack_require__(25);
   var DataStep = __webpack_require__(16);
@@ -11542,11 +10939,11 @@ return /******/ (function(modules) { // webpackBootstrap
 
   'use strict';
 
-  var util = __webpack_require__(1);
+  var util = __webpack_require__(57);
   var DOMutil = __webpack_require__(2);
-  var Line = __webpack_require__(51);
-  var Bar = __webpack_require__(52);
-  var Points = __webpack_require__(53);
+  var Line = __webpack_require__(50);
+  var Bar = __webpack_require__(51);
+  var Points = __webpack_require__(52);
 
   /**
    * /**
@@ -11736,7 +11133,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   'use strict';
 
-  var util = __webpack_require__(1);
+  var util = __webpack_require__(57);
   var stack = __webpack_require__(18);
   var RangeItem = __webpack_require__(24);
 
@@ -12322,7 +11719,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   'use strict';
 
-  var util = __webpack_require__(1);
+  var util = __webpack_require__(57);
   var Group = __webpack_require__(30);
 
   /**
@@ -12387,17 +11784,17 @@ return /******/ (function(modules) { // webpackBootstrap
   'use strict';
 
   var Hammer = __webpack_require__(41);
-  var util = __webpack_require__(1);
+  var util = __webpack_require__(57);
   var DataSet = __webpack_require__(3);
   var DataView = __webpack_require__(4);
   var TimeStep = __webpack_require__(19);
   var Component = __webpack_require__(25);
   var Group = __webpack_require__(30);
   var BackgroundGroup = __webpack_require__(31);
-  var BoxItem = __webpack_require__(22);
+  var BoxItem = __webpack_require__(20);
   var PointItem = __webpack_require__(23);
   var RangeItem = __webpack_require__(24);
-  var BackgroundItem = __webpack_require__(21);
+  var BackgroundItem = __webpack_require__(22);
 
   var UNGROUPED = '__ungrouped__'; // reserved group id for ungrouped items
   var BACKGROUND = '__background__'; // reserved group id for background items without group
@@ -13995,7 +13392,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   'use strict';
 
-  var util = __webpack_require__(1);
+  var util = __webpack_require__(57);
   var DOMutil = __webpack_require__(2);
   var Component = __webpack_require__(25);
 
@@ -14209,7 +13606,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   'use strict';
 
-  var util = __webpack_require__(1);
+  var util = __webpack_require__(57);
   var DOMutil = __webpack_require__(2);
   var DataSet = __webpack_require__(3);
   var DataView = __webpack_require__(4);
@@ -14217,8 +13614,8 @@ return /******/ (function(modules) { // webpackBootstrap
   var DataAxis = __webpack_require__(28);
   var GraphGroup = __webpack_require__(29);
   var Legend = __webpack_require__(33);
-  var BarFunctions = __webpack_require__(52);
-  var LineFunctions = __webpack_require__(51);
+  var BarFunctions = __webpack_require__(51);
+  var LineFunctions = __webpack_require__(50);
 
   var UNGROUPED = '__ungrouped__'; // reserved group id for ungrouped items
 
@@ -15185,7 +14582,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   'use strict';
 
-  var util = __webpack_require__(1);
+  var util = __webpack_require__(57);
   var Component = __webpack_require__(25);
   var TimeStep = __webpack_require__(19);
   var DateUtil = __webpack_require__(15);
@@ -15623,81 +15020,81 @@ return /******/ (function(modules) { // webpackBootstrap
 /* 36 */
 /***/ function(module, exports, __webpack_require__) {
 
+  // Load custom shapes into CanvasRenderingContext2D
   'use strict';
 
   function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
 
-  var _modulesGroups = __webpack_require__(54);
+  var _modulesGroups = __webpack_require__(53);
 
   var _modulesGroups2 = _interopRequireDefault(_modulesGroups);
 
-  var _modulesNodesHandler = __webpack_require__(55);
+  var _modulesNodesHandler = __webpack_require__(54);
 
   var _modulesNodesHandler2 = _interopRequireDefault(_modulesNodesHandler);
 
-  var _modulesEdgesHandler = __webpack_require__(56);
+  var _modulesEdgesHandler = __webpack_require__(55);
 
   var _modulesEdgesHandler2 = _interopRequireDefault(_modulesEdgesHandler);
 
-  var _modulesPhysicsEngine = __webpack_require__(57);
+  var _modulesPhysicsEngine = __webpack_require__(56);
 
   var _modulesPhysicsEngine2 = _interopRequireDefault(_modulesPhysicsEngine);
 
-  var _modulesClustering = __webpack_require__(58);
+  var _modulesClustering = __webpack_require__(1);
 
   var _modulesClustering2 = _interopRequireDefault(_modulesClustering);
 
-  var _modulesCanvasRenderer = __webpack_require__(59);
+  var _modulesCanvasRenderer = __webpack_require__(58);
 
   var _modulesCanvasRenderer2 = _interopRequireDefault(_modulesCanvasRenderer);
 
-  var _modulesCanvas = __webpack_require__(60);
+  var _modulesCanvas = __webpack_require__(59);
 
   var _modulesCanvas2 = _interopRequireDefault(_modulesCanvas);
 
-  var _modulesView = __webpack_require__(61);
+  var _modulesView = __webpack_require__(60);
 
   var _modulesView2 = _interopRequireDefault(_modulesView);
 
-  var _modulesInteractionHandler = __webpack_require__(62);
+  var _modulesInteractionHandler = __webpack_require__(61);
 
   var _modulesInteractionHandler2 = _interopRequireDefault(_modulesInteractionHandler);
 
-  var _modulesSelectionHandler = __webpack_require__(63);
+  var _modulesSelectionHandler = __webpack_require__(62);
 
   var _modulesSelectionHandler2 = _interopRequireDefault(_modulesSelectionHandler);
 
-  var _modulesLayoutEngine = __webpack_require__(64);
+  var _modulesLayoutEngine = __webpack_require__(63);
 
   var _modulesLayoutEngine2 = _interopRequireDefault(_modulesLayoutEngine);
 
-  var _modulesManipulationSystem = __webpack_require__(65);
+  var _modulesManipulationSystem = __webpack_require__(64);
 
   var _modulesManipulationSystem2 = _interopRequireDefault(_modulesManipulationSystem);
 
-  var _sharedConfigurator = __webpack_require__(45);
+  var _sharedConfigurator = __webpack_require__(44);
 
   var _sharedConfigurator2 = _interopRequireDefault(_sharedConfigurator);
 
-  var _sharedValidator = __webpack_require__(46);
+  var _sharedValidator = __webpack_require__(45);
 
   var _sharedValidator2 = _interopRequireDefault(_sharedValidator);
 
-  var _optionsJs = __webpack_require__(66);
+  var _optionsJs = __webpack_require__(65);
 
-  // Load custom shapes into CanvasRenderingContext2D
-  __webpack_require__(67);
+  __webpack_require__(66);
 
-  var Emitter = __webpack_require__(43);
+  var Emitter = __webpack_require__(69);
   var Hammer = __webpack_require__(41);
-  var util = __webpack_require__(1);
+  var util = __webpack_require__(57);
   var DataSet = __webpack_require__(3);
   var DataView = __webpack_require__(4);
   var dotparser = __webpack_require__(38);
   var gephiParser = __webpack_require__(39);
   var Images = __webpack_require__(37);
-  var Activator = __webpack_require__(68);
-  var locales = __webpack_require__(69);
+  var Activator = __webpack_require__(67);
+  var locales = __webpack_require__(68);
 
   /**
    * @constructor Network
@@ -17508,188 +16905,18 @@ return /******/ (function(modules) { // webpackBootstrap
 /* 43 */
 /***/ function(module, exports, __webpack_require__) {
 
-  
-  /**
-   * Expose `Emitter`.
-   */
-
-  module.exports = Emitter;
-
-  /**
-   * Initialize a new `Emitter`.
-   *
-   * @api public
-   */
-
-  function Emitter(obj) {
-    if (obj) return mixin(obj);
-  };
-
-  /**
-   * Mixin the emitter properties.
-   *
-   * @param {Object} obj
-   * @return {Object}
-   * @api private
-   */
-
-  function mixin(obj) {
-    for (var key in Emitter.prototype) {
-      obj[key] = Emitter.prototype[key];
-    }
-    return obj;
-  }
-
-  /**
-   * Listen on the given `event` with `fn`.
-   *
-   * @param {String} event
-   * @param {Function} fn
-   * @return {Emitter}
-   * @api public
-   */
-
-  Emitter.prototype.on =
-  Emitter.prototype.addEventListener = function(event, fn){
-    this._callbacks = this._callbacks || {};
-    (this._callbacks[event] = this._callbacks[event] || [])
-      .push(fn);
-    return this;
-  };
-
-  /**
-   * Adds an `event` listener that will be invoked a single
-   * time then automatically removed.
-   *
-   * @param {String} event
-   * @param {Function} fn
-   * @return {Emitter}
-   * @api public
-   */
-
-  Emitter.prototype.once = function(event, fn){
-    var self = this;
-    this._callbacks = this._callbacks || {};
-
-    function on() {
-      self.off(event, on);
-      fn.apply(this, arguments);
-    }
-
-    on.fn = fn;
-    this.on(event, on);
-    return this;
-  };
-
-  /**
-   * Remove the given callback for `event` or all
-   * registered callbacks.
-   *
-   * @param {String} event
-   * @param {Function} fn
-   * @return {Emitter}
-   * @api public
-   */
-
-  Emitter.prototype.off =
-  Emitter.prototype.removeListener =
-  Emitter.prototype.removeAllListeners =
-  Emitter.prototype.removeEventListener = function(event, fn){
-    this._callbacks = this._callbacks || {};
-
-    // all
-    if (0 == arguments.length) {
-      this._callbacks = {};
-      return this;
-    }
-
-    // specific event
-    var callbacks = this._callbacks[event];
-    if (!callbacks) return this;
-
-    // remove all handlers
-    if (1 == arguments.length) {
-      delete this._callbacks[event];
-      return this;
-    }
-
-    // remove specific handler
-    var cb;
-    for (var i = 0; i < callbacks.length; i++) {
-      cb = callbacks[i];
-      if (cb === fn || cb.fn === fn) {
-        callbacks.splice(i, 1);
-        break;
-      }
-    }
-    return this;
-  };
-
-  /**
-   * Emit `event` with the given args.
-   *
-   * @param {String} event
-   * @param {Mixed} ...
-   * @return {Emitter}
-   */
-
-  Emitter.prototype.emit = function(event){
-    this._callbacks = this._callbacks || {};
-    var args = [].slice.call(arguments, 1)
-      , callbacks = this._callbacks[event];
-
-    if (callbacks) {
-      callbacks = callbacks.slice(0);
-      for (var i = 0, len = callbacks.length; i < len; ++i) {
-        callbacks[i].apply(this, args);
-      }
-    }
-
-    return this;
-  };
-
-  /**
-   * Return array of callbacks for `event`.
-   *
-   * @param {String} event
-   * @return {Array}
-   * @api public
-   */
-
-  Emitter.prototype.listeners = function(event){
-    this._callbacks = this._callbacks || {};
-    return this._callbacks[event] || [];
-  };
-
-  /**
-   * Check if this emitter has `event` handlers.
-   *
-   * @param {String} event
-   * @return {Boolean}
-   * @api public
-   */
-
-  Emitter.prototype.hasListeners = function(event){
-    return !! this.listeners(event).length;
-  };
-
-
-/***/ },
-/* 44 */
-/***/ function(module, exports, __webpack_require__) {
-
   'use strict';
 
-  var Emitter = __webpack_require__(43);
+  var Emitter = __webpack_require__(69);
   var Hammer = __webpack_require__(41);
-  var hammerUtil = __webpack_require__(49);
-  var util = __webpack_require__(1);
+  var hammerUtil = __webpack_require__(48);
+  var util = __webpack_require__(57);
   var DataSet = __webpack_require__(3);
   var DataView = __webpack_require__(4);
   var Range = __webpack_require__(17);
   var ItemSet = __webpack_require__(32);
   var TimeAxis = __webpack_require__(35);
-  var Activator = __webpack_require__(68);
+  var Activator = __webpack_require__(67);
   var DateUtil = __webpack_require__(15);
   var CustomTime = __webpack_require__(27);
 
@@ -18641,7 +17868,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = Core;
 
 /***/ },
-/* 45 */
+/* 44 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -18660,7 +17887,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   var _ColorPicker2 = _interopRequireDefault(_ColorPicker);
 
-  var util = __webpack_require__(1);
+  var util = __webpack_require__(57);
 
   /**
    * The way this works is for all properties of this.possible options, you can supply the property name in any form to list the options.
@@ -19316,7 +18543,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 46 */
+/* 45 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -19329,7 +18556,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
 
-  var util = __webpack_require__(1);
+  var util = __webpack_require__(57);
 
   var errorFound = false;
   var allOptions = undefined;
@@ -19585,9 +18812,9 @@ return /******/ (function(modules) { // webpackBootstrap
       // http://en.wikibooks.org/wiki/Algorithm_Implementation/Strings/Levenshtein_distance#JavaScript
       /*
        Copyright (c) 2011 Andrei Mackenzie
-         Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
-         The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
-         THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+        Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+        The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+        THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
        */
       value: function levenshteinDistance(a, b) {
         if (a.length === 0) return b.length;
@@ -19635,14 +18862,9 @@ return /******/ (function(modules) { // webpackBootstrap
   // item is a function, which is allowed
 
 /***/ },
-/* 47 */
+/* 46 */
 /***/ function(module, exports, __webpack_require__) {
 
-  'use strict';
-
-  Object.defineProperty(exports, '__esModule', {
-    value: true
-  });
   /**
    * This object contains all possible options. It will check if the types are correct, if required if the option is one
    * of the allowed values.
@@ -19650,6 +18872,11 @@ return /******/ (function(modules) { // webpackBootstrap
    * __any__ means that the name of the property does not matter.
    * __type__ is a required field for all objects and contains the allowed types of all objects
    */
+  'use strict';
+
+  Object.defineProperty(exports, '__esModule', {
+    value: true
+  });
   var string = 'string';
   var boolean = 'boolean';
   var number = 'number';
@@ -19852,14 +19079,9 @@ return /******/ (function(modules) { // webpackBootstrap
   exports.configureOptions = configureOptions;
 
 /***/ },
-/* 48 */
+/* 47 */
 /***/ function(module, exports, __webpack_require__) {
 
-  'use strict';
-
-  Object.defineProperty(exports, '__esModule', {
-    value: true
-  });
   /**
    * This object contains all possible options. It will check if the types are correct, if required if the option is one
    * of the allowed values.
@@ -19867,6 +19089,11 @@ return /******/ (function(modules) { // webpackBootstrap
    * __any__ means that the name of the property does not matter.
    * __type__ is a required field for all objects and contains the allowed types of all objects
    */
+  'use strict';
+
+  Object.defineProperty(exports, '__esModule', {
+    value: true
+  });
   var string = 'string';
   var boolean = 'boolean';
   var number = 'number';
@@ -20123,7 +19350,7 @@ return /******/ (function(modules) { // webpackBootstrap
   exports.configureOptions = configureOptions;
 
 /***/ },
-/* 49 */
+/* 48 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -20195,7 +19422,7 @@ return /******/ (function(modules) { // webpackBootstrap
   exports.offRelease = exports.offTouch;
 
 /***/ },
-/* 50 */
+/* 49 */
 /***/ function(module, exports, __webpack_require__) {
 
   // English
@@ -20217,13 +19444,13 @@ return /******/ (function(modules) { // webpackBootstrap
   exports['nl_BE'] = exports['nl'];
 
 /***/ },
-/* 51 */
+/* 50 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
 
   var DOMutil = __webpack_require__(2);
-  var Points = __webpack_require__(53);
+  var Points = __webpack_require__(52);
 
   function Line(groupId, options) {
     this.groupId = groupId;
@@ -20512,13 +19739,13 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = Line;
 
 /***/ },
-/* 52 */
+/* 51 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
 
   var DOMutil = __webpack_require__(2);
-  var Points = __webpack_require__(53);
+  var Points = __webpack_require__(52);
 
   function Bargraph(groupId, options) {
     this.groupId = groupId;
@@ -20760,7 +19987,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = Bargraph;
 
 /***/ },
-/* 53 */
+/* 52 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -20807,7 +20034,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = Points;
 
 /***/ },
-/* 54 */
+/* 53 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
@@ -20820,7 +20047,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
-  var util = __webpack_require__(1);
+  var util = __webpack_require__(57);
 
   /**
    * @class Groups
@@ -20949,7 +20176,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports["default"];
 
 /***/ },
-/* 55 */
+/* 54 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -20972,7 +20199,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   var _componentsSharedLabel2 = _interopRequireDefault(_componentsSharedLabel);
 
-  var util = __webpack_require__(1);
+  var util = __webpack_require__(57);
   var DataSet = __webpack_require__(3);
   var DataView = __webpack_require__(4);
 
@@ -21424,7 +20651,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 56 */
+/* 55 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -21447,7 +20674,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   var _componentsSharedLabel2 = _interopRequireDefault(_componentsSharedLabel);
 
-  var util = __webpack_require__(1);
+  var util = __webpack_require__(57);
   var DataSet = __webpack_require__(3);
   var DataView = __webpack_require__(4);
 
@@ -21858,7 +21085,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 57 */
+/* 56 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -21905,7 +21132,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   var _componentsPhysicsFA2BasedCentralGravitySolver2 = _interopRequireDefault(_componentsPhysicsFA2BasedCentralGravitySolver);
 
-  var util = __webpack_require__(1);
+  var util = __webpack_require__(57);
 
   var PhysicsEngine = (function () {
     function PhysicsEngine(body) {
@@ -22481,744 +21708,1347 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 58 */
+/* 57 */
 /***/ function(module, exports, __webpack_require__) {
+
+  // utility functions
+
+  // first check if moment.js is already loaded in the browser window, if so,
+  // use this instance. Else, load via commonjs.
 
   'use strict';
 
-  Object.defineProperty(exports, '__esModule', {
-    value: true
-  });
+  var moment = __webpack_require__(40);
+  var uuid = __webpack_require__(42);
 
-  var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
+  /**
+   * Test whether given object is a number
+   * @param {*} object
+   * @return {Boolean} isNumber
+   */
+  exports.isNumber = function (object) {
+    return object instanceof Number || typeof object == 'number';
+  };
 
-  function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
+  exports.recursiveDOMDelete = function (DOMobject) {
+    while (DOMobject.hasChildNodes() == true) {
+      exports.recursiveDOMDelete(DOMobject.firstChild);
+      DOMobject.removeChild(DOMobject.firstChild);
+    }
+  };
 
-  function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
+  /**
+   * this function gives you a range between 0 and 1 based on the min and max values in the set, the total sum of all values and the current value.
+   *
+   * @param min
+   * @param max
+   * @param total
+   * @param value
+   * @returns {number}
+   */
+  exports.giveRange = function (min, max, total, value) {
+    if (max == min) {
+      return 0.5;
+    } else {
+      var scale = 1 / (max - min);
+      return Math.max(0, (value - min) * scale);
+    }
+  };
 
-  var _componentsNodesCluster = __webpack_require__(85);
+  /**
+   * Test whether given object is a string
+   * @param {*} object
+   * @return {Boolean} isString
+   */
+  exports.isString = function (object) {
+    return object instanceof String || typeof object == 'string';
+  };
 
-  var _componentsNodesCluster2 = _interopRequireDefault(_componentsNodesCluster);
-
-  var util = __webpack_require__(1);
-
-  var ClusterEngine = (function () {
-    function ClusterEngine(body) {
-      var _this = this;
-
-      _classCallCheck(this, ClusterEngine);
-
-      this.body = body;
-      this.clusteredNodes = {};
-
-      this.options = {};
-      this.defaultOptions = {};
-      util.extend(this.options, this.defaultOptions);
-
-      this.body.emitter.on('_resetData', function () {
-        _this.clusteredNodes = {};
-      });
+  /**
+   * Test whether given object is a Date, or a String containing a Date
+   * @param {Date | String} object
+   * @return {Boolean} isDate
+   */
+  exports.isDate = function (object) {
+    if (object instanceof Date) {
+      return true;
+    } else if (exports.isString(object)) {
+      // test whether this string contains a date
+      var match = ASPDateRegex.exec(object);
+      if (match) {
+        return true;
+      } else if (!isNaN(Date.parse(object))) {
+        return true;
+      }
     }
 
-    _createClass(ClusterEngine, [{
-      key: 'setOptions',
-      value: function setOptions(options) {
-        if (options !== undefined) {}
-      }
-    }, {
-      key: 'clusterByHubsize',
+    return false;
+  };
 
-      /**
-      *
-      * @param hubsize
-      * @param options
-      */
-      value: function clusterByHubsize(hubsize, options) {
-        if (hubsize === undefined) {
-          hubsize = this._getHubSize();
-        } else if (tyepof(hubsize) === 'object') {
-          options = this._checkOptions(hubsize);
-          hubsize = this._getHubSize();
-        }
+  /**
+   * Create a semi UUID
+   * source: http://stackoverflow.com/a/105074/1262753
+   * @return {String} uuid
+   */
+  exports.randomUUID = function () {
+    return uuid.v4();
+  };
 
-        var nodesToCluster = [];
-        for (var i = 0; i < this.body.nodeIndices.length; i++) {
-          var node = this.body.nodes[this.body.nodeIndices[i]];
-          if (node.edges.length >= hubsize) {
-            nodesToCluster.push(node.id);
-          }
-        }
-
-        for (var i = 0; i < nodesToCluster.length; i++) {
-          this.clusterByConnection(nodesToCluster[i], options, false);
-        }
-        this.body.emitter.emit('_dataChanged');
-      }
-    }, {
-      key: 'cluster',
-
-      /**
-      * loop over all nodes, check if they adhere to the condition and cluster if needed.
-      * @param options
-      * @param refreshData
-      */
-      value: function cluster() {
-        var options = arguments[0] === undefined ? {} : arguments[0];
-        var refreshData = arguments[1] === undefined ? true : arguments[1];
-
-        if (options.joinCondition === undefined) {
-          throw new Error('Cannot call clusterByNodeData without a joinCondition function in the options.');
-        }
-
-        // check if the options object is fine, append if needed
-        options = this._checkOptions(options);
-
-        var childNodesObj = {};
-        var childEdgesObj = {};
-
-        // collect the nodes that will be in the cluster
-        for (var i = 0; i < this.body.nodeIndices.length; i++) {
-          var nodeId = this.body.nodeIndices[i];
-          var node = this.body.nodes[nodeId];
-          var clonedOptions = this._cloneOptions(node);
-          if (options.joinCondition(clonedOptions) === true) {
-            childNodesObj[nodeId] = this.body.nodes[nodeId];
-
-            // collect the nodes that will be in the cluster
-            for (var _i = 0; _i < node.edges.length; _i++) {
-              var edge = node.edges[_i];
-              childEdgesObj[edge.id] = edge;
-            }
-          }
-        }
-
-        this._cluster(childNodesObj, childEdgesObj, options, refreshData);
-      }
-    }, {
-      key: 'clusterOutliers',
-
-      /**
-      * Cluster all nodes in the network that have only 1 edge
-      * @param options
-      * @param refreshData
-      */
-      value: function clusterOutliers(options) {
-        var refreshData = arguments[1] === undefined ? true : arguments[1];
-
-        options = this._checkOptions(options);
-        var clusters = [];
-
-        // collect the nodes that will be in the cluster
-        for (var i = 0; i < this.body.nodeIndices.length; i++) {
-          var childNodesObj = {};
-          var childEdgesObj = {};
-          var nodeId = this.body.nodeIndices[i];
-          var visibleEdges = 0;
-          var edge = undefined;
-          for (var j = 0; j < this.body.nodes[nodeId].edges.length; j++) {
-            if (this.body.nodes[nodeId].edges[j].options.hidden === false) {
-              visibleEdges++;
-              edge = this.body.nodes[nodeId].edges[j];
-            }
-          }
-
-          if (visibleEdges === 1) {
-            // this is an outlier
-            var childNodeId = this._getConnectedId(edge, nodeId);
-            if (childNodeId !== nodeId) {
-              if (options.joinCondition === undefined) {
-                if (this._checkIfUsed(clusters, nodeId, edge.id) === false && this._checkIfUsed(clusters, childNodeId, edge.id) === false) {
-                  childEdgesObj[edge.id] = edge;
-                  childNodesObj[nodeId] = this.body.nodes[nodeId];
-                  childNodesObj[childNodeId] = this.body.nodes[childNodeId];
-                }
-              } else {
-                var clonedOptions = this._cloneOptions(this.body.nodes[nodeId]);
-                if (options.joinCondition(clonedOptions) === true && this._checkIfUsed(clusters, nodeId, edge.id) === false) {
-                  childEdgesObj[edge.id] = edge;
-                  childNodesObj[nodeId] = this.body.nodes[nodeId];
-                }
-                clonedOptions = this._cloneOptions(this.body.nodes[childNodeId]);
-                if (options.joinCondition(clonedOptions) === true && this._checkIfUsed(clusters, nodeId, edge.id) === false) {
-                  childEdgesObj[edge.id] = edge;
-                  childNodesObj[childNodeId] = this.body.nodes[childNodeId];
-                }
-              }
-
-              if (Object.keys(childNodesObj).length > 0 && Object.keys(childEdgesObj).length > 0) {
-                clusters.push({ nodes: childNodesObj, edges: childEdgesObj });
-              }
-            }
-          }
-        }
-
-        for (var i = 0; i < clusters.length; i++) {
-          this._cluster(clusters[i].nodes, clusters[i].edges, options, false);
-        }
-
-        if (refreshData === true) {
-          this.body.emitter.emit('_dataChanged');
+  /**
+   * assign all keys of an object that are not nested objects to a certain value (used for color objects).
+   * @param obj
+   * @param value
+   */
+  exports.assignAllKeys = function (obj, value) {
+    for (var prop in obj) {
+      if (obj.hasOwnProperty(prop)) {
+        if (typeof obj[prop] !== 'object') {
+          obj[prop] = value;
         }
       }
-    }, {
-      key: '_checkIfUsed',
-      value: function _checkIfUsed(clusters, nodeId, edgeId) {
-        for (var i = 0; i < clusters.length; i++) {
-          var cluster = clusters[i];
-          if (cluster.nodes[nodeId] !== undefined || cluster.edges[edgeId] !== undefined) {
-            return true;
-          }
-        }
-        return false;
-      }
-    }, {
-      key: 'clusterByConnection',
+    }
+  };
 
-      /**
-      * suck all connected nodes of a node into the node.
-      * @param nodeId
-      * @param options
-      * @param refreshData
-      */
-      value: function clusterByConnection(nodeId, options) {
-        var refreshData = arguments[2] === undefined ? true : arguments[2];
+  /**
+   * Fill an object with a possibly partially defined other object. Only copies values if the a object has an object requiring values.
+   * That means an object is not created on a property if only the b object has it.
+   * @param obj
+   * @param value
+   */
+  exports.fillIfDefined = function (a, b) {
+    var allowDeletion = arguments[2] === undefined ? false : arguments[2];
 
-        // kill conditions
-        if (nodeId === undefined) {
-          throw new Error('No nodeId supplied to clusterByConnection!');
-        }
-        if (this.body.nodes[nodeId] === undefined) {
-          throw new Error('The nodeId given to clusterByConnection does not exist!');
-        }
-
-        var node = this.body.nodes[nodeId];
-        options = this._checkOptions(options, node);
-        if (options.clusterNodeProperties.x === undefined) {
-          options.clusterNodeProperties.x = node.x;
-        }
-        if (options.clusterNodeProperties.y === undefined) {
-          options.clusterNodeProperties.y = node.y;
-        }
-        if (options.clusterNodeProperties.fixed === undefined) {
-          options.clusterNodeProperties.fixed = {};
-          options.clusterNodeProperties.fixed.x = node.options.fixed.x;
-          options.clusterNodeProperties.fixed.y = node.options.fixed.y;
-        }
-
-        var childNodesObj = {};
-        var childEdgesObj = {};
-        var parentNodeId = node.id;
-        var parentClonedOptions = this._cloneOptions(node);
-        childNodesObj[parentNodeId] = node;
-
-        // collect the nodes that will be in the cluster
-        for (var i = 0; i < node.edges.length; i++) {
-          var edge = node.edges[i];
-          var childNodeId = this._getConnectedId(edge, parentNodeId);
-
-          if (childNodeId !== parentNodeId) {
-            if (options.joinCondition === undefined) {
-              childEdgesObj[edge.id] = edge;
-              childNodesObj[childNodeId] = this.body.nodes[childNodeId];
-            } else {
-              // clone the options and insert some additional parameters that could be interesting.
-              var childClonedOptions = this._cloneOptions(this.body.nodes[childNodeId]);
-              if (options.joinCondition(parentClonedOptions, childClonedOptions) === true) {
-                childEdgesObj[edge.id] = edge;
-                childNodesObj[childNodeId] = this.body.nodes[childNodeId];
-              }
-            }
+    for (var prop in a) {
+      if (b[prop] !== undefined) {
+        if (typeof b[prop] !== 'object') {
+          if ((b[prop] === undefined || b[prop] === null) && a[prop] !== undefined && allowDeletion === true) {
+            delete a[prop];
           } else {
-            childEdgesObj[edge.id] = edge;
+            a[prop] = b[prop];
           }
-        }
-
-        this._cluster(childNodesObj, childEdgesObj, options, refreshData);
-      }
-    }, {
-      key: '_cloneOptions',
-
-      /**
-      * This returns a clone of the options or options of the edge or node to be used for construction of new edges or check functions for new nodes.
-      * @param objId
-      * @param type
-      * @returns {{}}
-      * @private
-      */
-      value: function _cloneOptions(item, type) {
-        var clonedOptions = {};
-        if (type === undefined || type === 'node') {
-          util.deepExtend(clonedOptions, item.options, true);
-          clonedOptions.x = item.x;
-          clonedOptions.y = item.y;
-          clonedOptions.amountOfConnections = item.edges.length;
         } else {
-          util.deepExtend(clonedOptions, item.options, true);
+          if (typeof a[prop] === 'object') {
+            exports.fillIfDefined(a[prop], b[prop], allowDeletion);
+          }
         }
-        return clonedOptions;
       }
-    }, {
-      key: '_createClusterEdges',
+    }
+  };
 
-      /**
-      * This function creates the edges that will be attached to the cluster.
-      *
-      * @param childNodesObj
-      * @param childEdgesObj
-      * @param newEdges
-      * @param options
-      * @private
-      */
-      value: function _createClusterEdges(childNodesObj, childEdgesObj, newEdges, clusterNodeProperties, clusterEdgeProperties) {
-        var edge = undefined,
-            childNodeId = undefined,
-            childNode = undefined,
-            toId = undefined,
-            fromId = undefined,
-            otherNodeId = undefined;
+  /**
+   * Extend object a with the properties of object b or a series of objects
+   * Only properties with defined values are copied
+   * @param {Object} a
+   * @param {... Object} b
+   * @return {Object} a
+   */
+  exports.protoExtend = function (a, b) {
+    for (var i = 1; i < arguments.length; i++) {
+      var other = arguments[i];
+      for (var prop in other) {
+        a[prop] = other[prop];
+      }
+    }
+    return a;
+  };
 
-        var childKeys = Object.keys(childNodesObj);
-        for (var i = 0; i < childKeys.length; i++) {
-          childNodeId = childKeys[i];
-          childNode = childNodesObj[childNodeId];
+  /**
+   * Extend object a with the properties of object b or a series of objects
+   * Only properties with defined values are copied
+   * @param {Object} a
+   * @param {... Object} b
+   * @return {Object} a
+   */
+  exports.extend = function (a, b) {
+    for (var i = 1; i < arguments.length; i++) {
+      var other = arguments[i];
+      for (var prop in other) {
+        if (other.hasOwnProperty(prop)) {
+          a[prop] = other[prop];
+        }
+      }
+    }
+    return a;
+  };
 
-          // construct new edges from the cluster to others
-          for (var j = 0; j < childNode.edges.length; j++) {
-            edge = childNode.edges[j];
-            childEdgesObj[edge.id] = edge;
+  /**
+   * Extend object a with selected properties of object b or a series of objects
+   * Only properties with defined values are copied
+   * @param {Array.<String>} props
+   * @param {Object} a
+   * @param {Object} b
+   * @return {Object} a
+   */
+  exports.selectiveExtend = function (props, a, b) {
+    if (!Array.isArray(props)) {
+      throw new Error('Array with property names expected as first argument');
+    }
 
-            // childNodeId position will be replaced by the cluster.
-            if (edge.toId == childNodeId) {
-              // this is a double equals because ints and strings can be interchanged here.
-              toId = clusterNodeProperties.id;
-              fromId = edge.fromId;
-              otherNodeId = fromId;
+    for (var i = 2; i < arguments.length; i++) {
+      var other = arguments[i];
+
+      for (var p = 0; p < props.length; p++) {
+        var prop = props[p];
+        if (other.hasOwnProperty(prop)) {
+          a[prop] = other[prop];
+        }
+      }
+    }
+    return a;
+  };
+
+  /**
+   * Extend object a with selected properties of object b or a series of objects
+   * Only properties with defined values are copied
+   * @param {Array.<String>} props
+   * @param {Object} a
+   * @param {Object} b
+   * @return {Object} a
+   */
+  exports.selectiveDeepExtend = function (props, a, b) {
+    var allowDeletion = arguments[3] === undefined ? false : arguments[3];
+
+    // TODO: add support for Arrays to deepExtend
+    if (Array.isArray(b)) {
+      throw new TypeError('Arrays are not supported by deepExtend');
+    }
+    for (var i = 2; i < arguments.length; i++) {
+      var other = arguments[i];
+      for (var p = 0; p < props.length; p++) {
+        var prop = props[p];
+        if (other.hasOwnProperty(prop)) {
+          if (b[prop] && b[prop].constructor === Object) {
+            if (a[prop] === undefined) {
+              a[prop] = {};
+            }
+            if (a[prop].constructor === Object) {
+              exports.deepExtend(a[prop], b[prop], false, allowDeletion);
             } else {
-              toId = edge.toId;
-              fromId = clusterNodeProperties.id;
-              otherNodeId = toId;
-            }
-
-            // if the node connected to the cluster is also in the cluster we do not need a new edge.
-            if (childNodesObj[otherNodeId] === undefined) {
-              var clonedOptions = this._cloneOptions(edge, 'edge');
-              util.deepExtend(clonedOptions, clusterEdgeProperties);
-              clonedOptions.from = fromId;
-              clonedOptions.to = toId;
-              clonedOptions.id = 'clusterEdge:' + util.randomUUID();
-              newEdges.push(this.body.functions.createEdge(clonedOptions));
-            }
-          }
-        }
-      }
-    }, {
-      key: '_checkOptions',
-
-      /**
-      * This function checks the options that can be supplied to the different cluster functions
-      * for certain fields and inserts defaults if needed
-      * @param options
-      * @returns {*}
-      * @private
-      */
-      value: function _checkOptions() {
-        var options = arguments[0] === undefined ? {} : arguments[0];
-
-        if (options.clusterEdgeProperties === undefined) {
-          options.clusterEdgeProperties = {};
-        }
-        if (options.clusterNodeProperties === undefined) {
-          options.clusterNodeProperties = {};
-        }
-
-        return options;
-      }
-    }, {
-      key: '_cluster',
-
-      /**
-      *
-      * @param {Object}    childNodesObj         | object with node objects, id as keys, same as childNodes except it also contains a source node
-      * @param {Object}    childEdgesObj         | object with edge objects, id as keys
-      * @param {Array}     options               | object with {clusterNodeProperties, clusterEdgeProperties, processProperties}
-      * @param {Boolean}   refreshData | when true, do not wrap up
-      * @private
-      */
-      value: function _cluster(childNodesObj, childEdgesObj, options) {
-        var refreshData = arguments[3] === undefined ? true : arguments[3];
-
-        // kill condition: no children so cant cluster
-        if (Object.keys(childNodesObj).length === 0) {
-          return;
-        }
-
-        var clusterNodeProperties = util.deepExtend({}, options.clusterNodeProperties);
-
-        // construct the clusterNodeProperties
-        if (options.processProperties !== undefined) {
-          // get the childNode options
-          var childNodesOptions = [];
-          for (var nodeId in childNodesObj) {
-            var clonedOptions = this._cloneOptions(childNodesObj[nodeId]);
-            childNodesOptions.push(clonedOptions);
-          }
-
-          // get clusterproperties based on childNodes
-          var childEdgesOptions = [];
-          for (var edgeId in childEdgesObj) {
-            var clonedOptions = this._cloneOptions(childEdgesObj[edgeId], 'edge');
-            childEdgesOptions.push(clonedOptions);
-          }
-
-          clusterNodeProperties = options.processProperties(clusterNodeProperties, childNodesOptions, childEdgesOptions);
-          if (!clusterNodeProperties) {
-            throw new Error('The processProperties function does not return properties!');
-          }
-        }
-
-        // check if we have an unique id;
-        if (clusterNodeProperties.id === undefined) {
-          clusterNodeProperties.id = 'cluster:' + util.randomUUID();
-        }
-        var clusterId = clusterNodeProperties.id;
-
-        if (clusterNodeProperties.label === undefined) {
-          clusterNodeProperties.label = 'cluster';
-        }
-
-        // give the clusterNode a postion if it does not have one.
-        var pos = undefined;
-        if (clusterNodeProperties.x === undefined) {
-          pos = this._getClusterPosition(childNodesObj);
-          clusterNodeProperties.x = pos.x;
-        }
-        if (clusterNodeProperties.y === undefined) {
-          if (pos === undefined) {
-            pos = this._getClusterPosition(childNodesObj);
-          }
-          clusterNodeProperties.y = pos.y;
-        }
-
-        // force the ID to remain the same
-        clusterNodeProperties.id = clusterId;
-
-        // create the clusterNode
-        var clusterNode = this.body.functions.createNode(clusterNodeProperties, _componentsNodesCluster2['default']);
-        clusterNode.isCluster = true;
-        clusterNode.containedNodes = childNodesObj;
-        clusterNode.containedEdges = childEdgesObj;
-        // cache a copy from the cluster edge properties if we have to reconnect others later on
-        clusterNode.clusterEdgeProperties = options.clusterEdgeProperties;
-
-        // finally put the cluster node into global
-        this.body.nodes[clusterNodeProperties.id] = clusterNode;
-
-        // create the new edges that will connect to the cluster
-        var newEdges = [];
-        this._createClusterEdges(childNodesObj, childEdgesObj, newEdges, clusterNodeProperties, options.clusterEdgeProperties);
-
-        // disable the childEdges
-        for (var edgeId in childEdgesObj) {
-          if (childEdgesObj.hasOwnProperty(edgeId)) {
-            if (this.body.edges[edgeId] !== undefined) {
-              var edge = this.body.edges[edgeId];
-              edge.togglePhysics(false);
-              edge.options.hidden = true;
-            }
-          }
-        }
-
-        // disable the childNodes
-        for (var nodeId in childNodesObj) {
-          if (childNodesObj.hasOwnProperty(nodeId)) {
-            this.clusteredNodes[nodeId] = { clusterId: clusterNodeProperties.id, node: this.body.nodes[nodeId] };
-            this.body.nodes[nodeId].togglePhysics(false);
-            this.body.nodes[nodeId].options.hidden = true;
-          }
-        }
-
-        // push new edges to global
-        for (var i = 0; i < newEdges.length; i++) {
-          this.body.edges[newEdges[i].id] = newEdges[i];
-          this.body.edges[newEdges[i].id].connect();
-        }
-
-        // set ID to undefined so no duplicates arise
-        clusterNodeProperties.id = undefined;
-
-        // wrap up
-        if (refreshData === true) {
-          this.body.emitter.emit('_dataChanged');
-        }
-      }
-    }, {
-      key: 'isCluster',
-
-      /**
-      * Check if a node is a cluster.
-      * @param nodeId
-      * @returns {*}
-      */
-      value: function isCluster(nodeId) {
-        if (this.body.nodes[nodeId] !== undefined) {
-          return this.body.nodes[nodeId].isCluster === true;
-        } else {
-          console.log('Node does not exist.');
-          return false;
-        }
-      }
-    }, {
-      key: '_getClusterPosition',
-
-      /**
-      * get the position of the cluster node based on what's inside
-      * @param {object} childNodesObj    | object with node objects, id as keys
-      * @returns {{x: number, y: number}}
-      * @private
-      */
-      value: function _getClusterPosition(childNodesObj) {
-        var childKeys = Object.keys(childNodesObj);
-        var minX = childNodesObj[childKeys[0]].x;
-        var maxX = childNodesObj[childKeys[0]].x;
-        var minY = childNodesObj[childKeys[0]].y;
-        var maxY = childNodesObj[childKeys[0]].y;
-        var node = undefined;
-        for (var i = 1; i < childKeys.length; i++) {
-          node = childNodesObj[childKeys[i]];
-          minX = node.x < minX ? node.x : minX;
-          maxX = node.x > maxX ? node.x : maxX;
-          minY = node.y < minY ? node.y : minY;
-          maxY = node.y > maxY ? node.y : maxY;
-        }
-
-        return { x: 0.5 * (minX + maxX), y: 0.5 * (minY + maxY) };
-      }
-    }, {
-      key: 'openCluster',
-
-      /**
-      * Open a cluster by calling this function.
-      * @param {String}  clusterNodeId | the ID of the cluster node
-      * @param {Boolean} refreshData | wrap up afterwards if not true
-      */
-      value: function openCluster(clusterNodeId) {
-        var refreshData = arguments[1] === undefined ? true : arguments[1];
-
-        // kill conditions
-        if (clusterNodeId === undefined) {
-          throw new Error('No clusterNodeId supplied to openCluster.');
-        }
-        if (this.body.nodes[clusterNodeId] === undefined) {
-          throw new Error('The clusterNodeId supplied to openCluster does not exist.');
-        }
-        if (this.body.nodes[clusterNodeId].containedNodes === undefined) {
-          console.log('The node:' + clusterNodeId + ' is not a cluster.');
-          return;
-        }
-        var clusterNode = this.body.nodes[clusterNodeId];
-        var containedNodes = clusterNode.containedNodes;
-        var containedEdges = clusterNode.containedEdges;
-
-        // release nodes
-        for (var nodeId in containedNodes) {
-          if (containedNodes.hasOwnProperty(nodeId)) {
-            var containedNode = this.body.nodes[nodeId];
-            containedNode = containedNodes[nodeId];
-            // inherit position
-            containedNode.x = clusterNode.x;
-            containedNode.y = clusterNode.y;
-
-            // inherit speed
-            containedNode.vx = clusterNode.vx;
-            containedNode.vy = clusterNode.vy;
-
-            containedNode.options.hidden = false;
-            containedNode.togglePhysics(true);
-
-            delete this.clusteredNodes[nodeId];
-          }
-        }
-
-        // release edges
-        for (var edgeId in containedEdges) {
-          if (containedEdges.hasOwnProperty(edgeId)) {
-            var edge = containedEdges[edgeId];
-            // if this edge was a temporary edge and it's connected nodes do not exist anymore, we remove it from the data
-            if (this.body.nodes[edge.fromId] === undefined || this.body.nodes[edge.toId] === undefined) {
-              edge.edgeType.cleanup();
-              // this removes the edge from node.edges, which is why edgeIds is formed
-              edge.disconnect();
-              delete this.body.edges[edgeId];
-            } else {
-
-              // one of the nodes connected to this edge is in a cluster. We give the edge to that cluster so it will be released when that cluster is opened.
-              if (this.clusteredNodes[edge.fromId] !== undefined || this.clusteredNodes[edge.toId] !== undefined) {
-                var fromId = undefined,
-                    toId = undefined;
-                var clusteredNode = this.clusteredNodes[edge.fromId] || this.clusteredNodes[edge.toId];
-                var clusterId = clusteredNode.clusterId;
-                var _clusterNode = this.body.nodes[clusterId];
-                _clusterNode.containedEdges[edgeId] = edge;
-
-                // if both from and to nodes are visible, we create a new temporary edge
-                if (edge.from.options.hidden !== true && edge.to.options.hidden !== true) {
-                  if (this.clusteredNodes[edge.fromId] !== undefined) {
-                    fromId = clusterId;
-                    toId = edge.toId;
-                  } else {
-                    fromId = edge.fromId;
-                    toId = clusterId;
-                  }
-
-                  var clonedOptions = this._cloneOptions(edge, 'edge');
-                  var id = 'clusterEdge:' + util.randomUUID();
-                  util.deepExtend(clonedOptions, _clusterNode.clusterEdgeProperties);
-                  util.deepExtend(clonedOptions, { from: fromId, to: toId, hidden: false, physics: true, id: id });
-                  var newEdge = this.body.functions.createEdge(clonedOptions);
-
-                  this.body.edges[id] = newEdge;
-                  this.body.edges[id].connect();
-                }
+              if (b[prop] === null && a[prop] !== undefined && allowDeletion === true) {
+                delete a[prop];
               } else {
-                edge.options.hidden = false;
-                edge.togglePhysics(true);
+                a[prop] = b[prop];
               }
             }
+          } else if (Array.isArray(b[prop])) {
+            throw new TypeError('Arrays are not supported by deepExtend');
+          } else {
+            a[prop] = b[prop];
           }
         }
-
-        // remove all temporary edges
-        for (var i = 0; i < clusterNode.edges.length; i++) {
-          var edgeId = clusterNode.edges[i].id;
-          this.body.edges[edgeId].edgeType.cleanup();
-          // this removes the edge from node.edges, which is why edgeIds is formed
-          this.body.edges[edgeId].disconnect();
-          delete this.body.edges[edgeId];
-        }
-
-        // remove clusterNode
-        delete this.body.nodes[clusterNodeId];
-
-        if (refreshData === true) {
-          this.body.emitter.emit('_dataChanged');
-        }
       }
-    }, {
-      key: '_connectEdge',
+    }
+    return a;
+  };
 
-      /**
-      * Connect an edge that was previously contained from cluster A to cluster B if the node that it was originally connected to
-      * is currently residing in cluster B
-      * @param edge
-      * @param nodeId
-      * @param from
-      * @private
-      */
-      value: function _connectEdge(edge, nodeId, from) {
-        var clusterStack = this.findNode(nodeId);
-        if (from === true) {
-          edge.from = clusterStack[clusterStack.length - 1];
-          edge.fromId = clusterStack[clusterStack.length - 1].id;
-          clusterStack.pop();
-          edge.fromArray = clusterStack;
-        } else {
-          edge.to = clusterStack[clusterStack.length - 1];
-          edge.toId = clusterStack[clusterStack.length - 1].id;
-          clusterStack.pop();
-          edge.toArray = clusterStack;
-        }
-        edge.connect();
-      }
-    }, {
-      key: 'findNode',
+  /**
+   * Extend object a with selected properties of object b or a series of objects
+   * Only properties with defined values are copied
+   * @param {Array.<String>} props
+   * @param {Object} a
+   * @param {Object} b
+   * @return {Object} a
+   */
+  exports.selectiveNotDeepExtend = function (props, a, b) {
+    var allowDeletion = arguments[3] === undefined ? false : arguments[3];
 
-      /**
-      * Get the stack clusterId's that a certain node resides in. cluster A -> cluster B -> cluster C -> node
-      * @param nodeId
-      * @returns {Array}
-      * @private
-      */
-      value: function findNode(nodeId) {
-        var stack = [];
-        var max = 100;
-        var counter = 0;
-
-        while (this.clusteredNodes[nodeId] !== undefined && counter < max) {
-          stack.push(this.clusteredNodes[nodeId].node);
-          nodeId = this.clusteredNodes[nodeId].clusterId;
-          counter++;
-        }
-        stack.push(this.body.nodes[nodeId]);
-        return stack;
-      }
-    }, {
-      key: '_getConnectedId',
-
-      /**
-      * Get the Id the node is connected to
-      * @param edge
-      * @param nodeId
-      * @returns {*}
-      * @private
-      */
-      value: function _getConnectedId(edge, nodeId) {
-        if (edge.toId != nodeId) {
-          return edge.toId;
-        } else if (edge.fromId != nodeId) {
-          return edge.fromId;
-        } else {
-          return edge.fromId;
-        }
-      }
-    }, {
-      key: '_getHubSize',
-
-      /**
-      * We determine how many connections denote an important hub.
-      * We take the mean + 2*std as the important hub size. (Assuming a normal distribution of data, ~2.2%)
-      *
-      * @private
-      */
-      value: function _getHubSize() {
-        var average = 0;
-        var averageSquared = 0;
-        var hubCounter = 0;
-        var largestHub = 0;
-
-        for (var i = 0; i < this.body.nodeIndices.length; i++) {
-          var node = this.body.nodes[this.body.nodeIndices[i]];
-          if (node.edges.length > largestHub) {
-            largestHub = node.edges.length;
+    // TODO: add support for Arrays to deepExtend
+    if (Array.isArray(b)) {
+      throw new TypeError('Arrays are not supported by deepExtend');
+    }
+    for (var prop in b) {
+      if (b.hasOwnProperty(prop)) {
+        if (props.indexOf(prop) == -1) {
+          if (b[prop] && b[prop].constructor === Object) {
+            if (a[prop] === undefined) {
+              a[prop] = {};
+            }
+            if (a[prop].constructor === Object) {
+              exports.deepExtend(a[prop], b[prop]);
+            } else {
+              if (b[prop] === null && a[prop] !== undefined && allowDeletion === true) {
+                delete a[prop];
+              } else {
+                a[prop] = b[prop];
+              }
+            }
+          } else if (Array.isArray(b[prop])) {
+            throw new TypeError('Arrays are not supported by deepExtend');
+          } else {
+            a[prop] = b[prop];
           }
-          average += node.edges.length;
-          averageSquared += Math.pow(node.edges.length, 2);
-          hubCounter += 1;
         }
-        average = average / hubCounter;
-        averageSquared = averageSquared / hubCounter;
-
-        var letiance = averageSquared - Math.pow(average, 2);
-        var standardDeviation = Math.sqrt(letiance);
-
-        var hubThreshold = Math.floor(average + 2 * standardDeviation);
-
-        // always have at least one to cluster
-        if (hubThreshold > largestHub) {
-          hubThreshold = largestHub;
-        }
-
-        return hubThreshold;
       }
-    }]);
+    }
+    return a;
+  };
 
-    return ClusterEngine;
-  })();
+  /**
+   * Deep extend an object a with the properties of object b
+   * @param {Object} a
+   * @param {Object} b
+   * @param [Boolean] protoExtend --> optional parameter. If true, the prototype values will also be extended.
+   *                                  (ie. the options objects that inherit from others will also get the inherited options)
+   * @param [Boolean] global      --> optional parameter. If true, the values of fields that are null will not deleted
+   * @returns {Object}
+   */
+  exports.deepExtend = function (a, b, protoExtend, allowDeletion) {
+    for (var prop in b) {
+      if (b.hasOwnProperty(prop) || protoExtend === true) {
+        if (b[prop] && b[prop].constructor === Object) {
+          if (a[prop] === undefined) {
+            a[prop] = {};
+          }
+          if (a[prop].constructor === Object) {
+            exports.deepExtend(a[prop], b[prop], protoExtend);
+          } else {
+            if (b[prop] === null && a[prop] !== undefined && allowDeletion === true) {
+              delete a[prop];
+            } else {
+              a[prop] = b[prop];
+            }
+          }
+        } else if (Array.isArray(b[prop])) {
+          a[prop] = [];
+          for (var i = 0; i < b[prop].length; i++) {
+            a[prop].push(b[prop][i]);
+          }
+        } else {
+          a[prop] = b[prop];
+        }
+      }
+    }
+    return a;
+  };
 
-  exports['default'] = ClusterEngine;
-  module.exports = exports['default'];
+  /**
+   * Test whether all elements in two arrays are equal.
+   * @param {Array} a
+   * @param {Array} b
+   * @return {boolean} Returns true if both arrays have the same length and same
+   *                   elements.
+   */
+  exports.equalArray = function (a, b) {
+    if (a.length != b.length) return false;
+
+    for (var i = 0, len = a.length; i < len; i++) {
+      if (a[i] != b[i]) return false;
+    }
+
+    return true;
+  };
+
+  /**
+   * Convert an object to another type
+   * @param {Boolean | Number | String | Date | Moment | Null | undefined} object
+   * @param {String | undefined} type   Name of the type. Available types:
+   *                                    'Boolean', 'Number', 'String',
+   *                                    'Date', 'Moment', ISODate', 'ASPDate'.
+   * @return {*} object
+   * @throws Error
+   */
+  exports.convert = function (object, type) {
+    var match;
+
+    if (object === undefined) {
+      return undefined;
+    }
+    if (object === null) {
+      return null;
+    }
+
+    if (!type) {
+      return object;
+    }
+    if (!(typeof type === 'string') && !(type instanceof String)) {
+      throw new Error('Type must be a string');
+    }
+
+    //noinspection FallthroughInSwitchStatementJS
+    switch (type) {
+      case 'boolean':
+      case 'Boolean':
+        return Boolean(object);
+
+      case 'number':
+      case 'Number':
+        return Number(object.valueOf());
+
+      case 'string':
+      case 'String':
+        return String(object);
+
+      case 'Date':
+        if (exports.isNumber(object)) {
+          return new Date(object);
+        }
+        if (object instanceof Date) {
+          return new Date(object.valueOf());
+        } else if (moment.isMoment(object)) {
+          return new Date(object.valueOf());
+        }
+        if (exports.isString(object)) {
+          match = ASPDateRegex.exec(object);
+          if (match) {
+            // object is an ASP date
+            return new Date(Number(match[1])); // parse number
+          } else {
+            return moment(object).toDate(); // parse string
+          }
+        } else {
+          throw new Error('Cannot convert object of type ' + exports.getType(object) + ' to type Date');
+        }
+
+      case 'Moment':
+        if (exports.isNumber(object)) {
+          return moment(object);
+        }
+        if (object instanceof Date) {
+          return moment(object.valueOf());
+        } else if (moment.isMoment(object)) {
+          return moment(object);
+        }
+        if (exports.isString(object)) {
+          match = ASPDateRegex.exec(object);
+          if (match) {
+            // object is an ASP date
+            return moment(Number(match[1])); // parse number
+          } else {
+            return moment(object); // parse string
+          }
+        } else {
+          throw new Error('Cannot convert object of type ' + exports.getType(object) + ' to type Date');
+        }
+
+      case 'ISODate':
+        if (exports.isNumber(object)) {
+          return new Date(object);
+        } else if (object instanceof Date) {
+          return object.toISOString();
+        } else if (moment.isMoment(object)) {
+          return object.toDate().toISOString();
+        } else if (exports.isString(object)) {
+          match = ASPDateRegex.exec(object);
+          if (match) {
+            // object is an ASP date
+            return new Date(Number(match[1])).toISOString(); // parse number
+          } else {
+            return new Date(object).toISOString(); // parse string
+          }
+        } else {
+          throw new Error('Cannot convert object of type ' + exports.getType(object) + ' to type ISODate');
+        }
+
+      case 'ASPDate':
+        if (exports.isNumber(object)) {
+          return '/Date(' + object + ')/';
+        } else if (object instanceof Date) {
+          return '/Date(' + object.valueOf() + ')/';
+        } else if (exports.isString(object)) {
+          match = ASPDateRegex.exec(object);
+          var value;
+          if (match) {
+            // object is an ASP date
+            value = new Date(Number(match[1])).valueOf(); // parse number
+          } else {
+            value = new Date(object).valueOf(); // parse string
+          }
+          return '/Date(' + value + ')/';
+        } else {
+          throw new Error('Cannot convert object of type ' + exports.getType(object) + ' to type ASPDate');
+        }
+
+      default:
+        throw new Error('Unknown type "' + type + '"');
+    }
+  };
+
+  // parse ASP.Net Date pattern,
+  // for example '/Date(1198908717056)/' or '/Date(1198908717056-0700)/'
+  // code from http://momentjs.com/
+  var ASPDateRegex = /^\/?Date\((\-?\d+)/i;
+
+  /**
+   * Get the type of an object, for example exports.getType([]) returns 'Array'
+   * @param {*} object
+   * @return {String} type
+   */
+  exports.getType = function (object) {
+    var type = typeof object;
+
+    if (type == 'object') {
+      if (object === null) {
+        return 'null';
+      }
+      if (object instanceof Boolean) {
+        return 'Boolean';
+      }
+      if (object instanceof Number) {
+        return 'Number';
+      }
+      if (object instanceof String) {
+        return 'String';
+      }
+      if (Array.isArray(object)) {
+        return 'Array';
+      }
+      if (object instanceof Date) {
+        return 'Date';
+      }
+      return 'Object';
+    } else if (type == 'number') {
+      return 'Number';
+    } else if (type == 'boolean') {
+      return 'Boolean';
+    } else if (type == 'string') {
+      return 'String';
+    } else if (type === undefined) {
+      return 'undefined';
+    }
+
+    return type;
+  };
+
+  /**
+   * Used to extend an array and copy it. This is used to propagate paths recursively.
+   *
+   * @param arr
+   * @param newValue
+   * @returns {Array}
+   */
+  exports.copyAndExtendArray = function (arr, newValue) {
+    var newArr = [];
+    for (var i = 0; i < arr.length; i++) {
+      newArr.push(arr[i]);
+    }
+    newArr.push(newValue);
+    return newArr;
+  };
+
+  /**
+   * Used to extend an array and copy it. This is used to propagate paths recursively.
+   *
+   * @param arr
+   * @param newValue
+   * @returns {Array}
+   */
+  exports.copyArray = function (arr) {
+    var newArr = [];
+    for (var i = 0; i < arr.length; i++) {
+      newArr.push(arr[i]);
+    }
+    return newArr;
+  };
+
+  /**
+   * Retrieve the absolute left value of a DOM element
+   * @param {Element} elem        A dom element, for example a div
+   * @return {number} left        The absolute left position of this element
+   *                              in the browser page.
+   */
+  exports.getAbsoluteLeft = function (elem) {
+    return elem.getBoundingClientRect().left;
+  };
+
+  /**
+   * Retrieve the absolute top value of a DOM element
+   * @param {Element} elem        A dom element, for example a div
+   * @return {number} top        The absolute top position of this element
+   *                              in the browser page.
+   */
+  exports.getAbsoluteTop = function (elem) {
+    return elem.getBoundingClientRect().top;
+  };
+
+  /**
+   * add a className to the given elements style
+   * @param {Element} elem
+   * @param {String} className
+   */
+  exports.addClassName = function (elem, className) {
+    var classes = elem.className.split(' ');
+    if (classes.indexOf(className) == -1) {
+      classes.push(className); // add the class to the array
+      elem.className = classes.join(' ');
+    }
+  };
+
+  /**
+   * add a className to the given elements style
+   * @param {Element} elem
+   * @param {String} className
+   */
+  exports.removeClassName = function (elem, className) {
+    var classes = elem.className.split(' ');
+    var index = classes.indexOf(className);
+    if (index != -1) {
+      classes.splice(index, 1); // remove the class from the array
+      elem.className = classes.join(' ');
+    }
+  };
+
+  /**
+   * For each method for both arrays and objects.
+   * In case of an array, the built-in Array.forEach() is applied.
+   * In case of an Object, the method loops over all properties of the object.
+   * @param {Object | Array} object   An Object or Array
+   * @param {function} callback       Callback method, called for each item in
+   *                                  the object or array with three parameters:
+   *                                  callback(value, index, object)
+   */
+  exports.forEach = function (object, callback) {
+    var i, len;
+    if (Array.isArray(object)) {
+      // array
+      for (i = 0, len = object.length; i < len; i++) {
+        callback(object[i], i, object);
+      }
+    } else {
+      // object
+      for (i in object) {
+        if (object.hasOwnProperty(i)) {
+          callback(object[i], i, object);
+        }
+      }
+    }
+  };
+
+  /**
+   * Convert an object into an array: all objects properties are put into the
+   * array. The resulting array is unordered.
+   * @param {Object} object
+   * @param {Array} array
+   */
+  exports.toArray = function (object) {
+    var array = [];
+
+    for (var prop in object) {
+      if (object.hasOwnProperty(prop)) array.push(object[prop]);
+    }
+
+    return array;
+  };
+
+  /**
+   * Update a property in an object
+   * @param {Object} object
+   * @param {String} key
+   * @param {*} value
+   * @return {Boolean} changed
+   */
+  exports.updateProperty = function (object, key, value) {
+    if (object[key] !== value) {
+      object[key] = value;
+      return true;
+    } else {
+      return false;
+    }
+  };
+
+  /**
+   * Add and event listener. Works for all browsers
+   * @param {Element}     element    An html element
+   * @param {string}      action     The action, for example "click",
+   *                                 without the prefix "on"
+   * @param {function}    listener   The callback function to be executed
+   * @param {boolean}     [useCapture]
+   */
+  exports.addEventListener = function (element, action, listener, useCapture) {
+    if (element.addEventListener) {
+      if (useCapture === undefined) useCapture = false;
+
+      if (action === 'mousewheel' && navigator.userAgent.indexOf('Firefox') >= 0) {
+        action = 'DOMMouseScroll'; // For Firefox
+      }
+
+      element.addEventListener(action, listener, useCapture);
+    } else {
+      element.attachEvent('on' + action, listener); // IE browsers
+    }
+  };
+
+  /**
+   * Remove an event listener from an element
+   * @param {Element}     element         An html dom element
+   * @param {string}      action          The name of the event, for example "mousedown"
+   * @param {function}    listener        The listener function
+   * @param {boolean}     [useCapture]
+   */
+  exports.removeEventListener = function (element, action, listener, useCapture) {
+    if (element.removeEventListener) {
+      // non-IE browsers
+      if (useCapture === undefined) useCapture = false;
+
+      if (action === 'mousewheel' && navigator.userAgent.indexOf('Firefox') >= 0) {
+        action = 'DOMMouseScroll'; // For Firefox
+      }
+
+      element.removeEventListener(action, listener, useCapture);
+    } else {
+      // IE browsers
+      element.detachEvent('on' + action, listener);
+    }
+  };
+
+  /**
+   * Cancels the event if it is cancelable, without stopping further propagation of the event.
+   */
+  exports.preventDefault = function (event) {
+    if (!event) event = window.event;
+
+    if (event.preventDefault) {
+      event.preventDefault(); // non-IE browsers
+    } else {
+      event.returnValue = false; // IE browsers
+    }
+  };
+
+  /**
+   * Get HTML element which is the target of the event
+   * @param {Event} event
+   * @return {Element} target element
+   */
+  exports.getTarget = function (event) {
+    // code from http://www.quirksmode.org/js/events_properties.html
+    if (!event) {
+      event = window.event;
+    }
+
+    var target;
+
+    if (event.target) {
+      target = event.target;
+    } else if (event.srcElement) {
+      target = event.srcElement;
+    }
+
+    if (target.nodeType != undefined && target.nodeType == 3) {
+      // defeat Safari bug
+      target = target.parentNode;
+    }
+
+    return target;
+  };
+
+  /**
+   * Check if given element contains given parent somewhere in the DOM tree
+   * @param {Element} element
+   * @param {Element} parent
+   */
+  exports.hasParent = function (element, parent) {
+    var e = element;
+
+    while (e) {
+      if (e === parent) {
+        return true;
+      }
+      e = e.parentNode;
+    }
+
+    return false;
+  };
+
+  exports.option = {};
+
+  /**
+   * Convert a value into a boolean
+   * @param {Boolean | function | undefined} value
+   * @param {Boolean} [defaultValue]
+   * @returns {Boolean} bool
+   */
+  exports.option.asBoolean = function (value, defaultValue) {
+    if (typeof value == 'function') {
+      value = value();
+    }
+
+    if (value != null) {
+      return value != false;
+    }
+
+    return defaultValue || null;
+  };
+
+  /**
+   * Convert a value into a number
+   * @param {Boolean | function | undefined} value
+   * @param {Number} [defaultValue]
+   * @returns {Number} number
+   */
+  exports.option.asNumber = function (value, defaultValue) {
+    if (typeof value == 'function') {
+      value = value();
+    }
+
+    if (value != null) {
+      return Number(value) || defaultValue || null;
+    }
+
+    return defaultValue || null;
+  };
+
+  /**
+   * Convert a value into a string
+   * @param {String | function | undefined} value
+   * @param {String} [defaultValue]
+   * @returns {String} str
+   */
+  exports.option.asString = function (value, defaultValue) {
+    if (typeof value == 'function') {
+      value = value();
+    }
+
+    if (value != null) {
+      return String(value);
+    }
+
+    return defaultValue || null;
+  };
+
+  /**
+   * Convert a size or location into a string with pixels or a percentage
+   * @param {String | Number | function | undefined} value
+   * @param {String} [defaultValue]
+   * @returns {String} size
+   */
+  exports.option.asSize = function (value, defaultValue) {
+    if (typeof value == 'function') {
+      value = value();
+    }
+
+    if (exports.isString(value)) {
+      return value;
+    } else if (exports.isNumber(value)) {
+      return value + 'px';
+    } else {
+      return defaultValue || null;
+    }
+  };
+
+  /**
+   * Convert a value into a DOM element
+   * @param {HTMLElement | function | undefined} value
+   * @param {HTMLElement} [defaultValue]
+   * @returns {HTMLElement | null} dom
+   */
+  exports.option.asElement = function (value, defaultValue) {
+    if (typeof value == 'function') {
+      value = value();
+    }
+
+    return value || defaultValue || null;
+  };
+
+  /**
+   * http://stackoverflow.com/questions/5623838/rgb-to-hex-and-hex-to-rgb
+   *
+   * @param {String} hex
+   * @returns {{r: *, g: *, b: *}} | 255 range
+   */
+  exports.hexToRGB = function (hex) {
+    // Expand shorthand form (e.g. "03F") to full form (e.g. "0033FF")
+    var shorthandRegex = /^#?([a-f\d])([a-f\d])([a-f\d])$/i;
+    hex = hex.replace(shorthandRegex, function (m, r, g, b) {
+      return r + r + g + g + b + b;
+    });
+    var result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+    return result ? {
+      r: parseInt(result[1], 16),
+      g: parseInt(result[2], 16),
+      b: parseInt(result[3], 16)
+    } : null;
+  };
+
+  /**
+   * This function takes color in hex format or rgb() or rgba() format and overrides the opacity. Returns rgba() string.
+   * @param color
+   * @param opacity
+   * @returns {*}
+   */
+  exports.overrideOpacity = function (color, opacity) {
+    if (color.indexOf('rgba') != -1) {
+      return color;
+    } else if (color.indexOf('rgb') != -1) {
+      var rgb = color.substr(color.indexOf('(') + 1).replace(')', '').split(',');
+      return 'rgba(' + rgb[0] + ',' + rgb[1] + ',' + rgb[2] + ',' + opacity + ')';
+    } else {
+      var rgb = exports.hexToRGB(color);
+      if (rgb == null) {
+        return color;
+      } else {
+        return 'rgba(' + rgb.r + ',' + rgb.g + ',' + rgb.b + ',' + opacity + ')';
+      }
+    }
+  };
+
+  /**
+   *
+   * @param red     0 -- 255
+   * @param green   0 -- 255
+   * @param blue    0 -- 255
+   * @returns {string}
+   * @constructor
+   */
+  exports.RGBToHex = function (red, green, blue) {
+    return '#' + ((1 << 24) + (red << 16) + (green << 8) + blue).toString(16).slice(1);
+  };
+
+  /**
+   * Parse a color property into an object with border, background, and
+   * highlight colors
+   * @param {Object | String} color
+   * @return {Object} colorObject
+   */
+  exports.parseColor = function (color) {
+    var c;
+    if (exports.isString(color) === true) {
+      if (exports.isValidRGB(color) === true) {
+        var rgb = color.substr(4).substr(0, color.length - 5).split(',').map(function (value) {
+          return parseInt(value);
+        });
+        color = exports.RGBToHex(rgb[0], rgb[1], rgb[2]);
+      }
+      if (exports.isValidHex(color) === true) {
+        var hsv = exports.hexToHSV(color);
+        var lighterColorHSV = { h: hsv.h, s: hsv.s * 0.8, v: Math.min(1, hsv.v * 1.02) };
+        var darkerColorHSV = { h: hsv.h, s: Math.min(1, hsv.s * 1.25), v: hsv.v * 0.8 };
+        var darkerColorHex = exports.HSVToHex(darkerColorHSV.h, darkerColorHSV.s, darkerColorHSV.v);
+        var lighterColorHex = exports.HSVToHex(lighterColorHSV.h, lighterColorHSV.s, lighterColorHSV.v);
+        c = {
+          background: color,
+          border: darkerColorHex,
+          highlight: {
+            background: lighterColorHex,
+            border: darkerColorHex
+          },
+          hover: {
+            background: lighterColorHex,
+            border: darkerColorHex
+          }
+        };
+      } else {
+        c = {
+          background: color,
+          border: color,
+          highlight: {
+            background: color,
+            border: color
+          },
+          hover: {
+            background: color,
+            border: color
+          }
+        };
+      }
+    } else {
+      c = {};
+      c.background = color.background || undefined;
+      c.border = color.border || undefined;
+
+      if (exports.isString(color.highlight)) {
+        c.highlight = {
+          border: color.highlight,
+          background: color.highlight
+        };
+      } else {
+        c.highlight = {};
+        c.highlight.background = color.highlight && color.highlight.background || undefined;
+        c.highlight.border = color.highlight && color.highlight.border || undefined;
+      }
+
+      if (exports.isString(color.hover)) {
+        c.hover = {
+          border: color.hover,
+          background: color.hover
+        };
+      } else {
+        c.hover = {};
+        c.hover.background = color.hover && color.hover.background || undefined;
+        c.hover.border = color.hover && color.hover.border || undefined;
+      }
+    }
+
+    return c;
+  };
+
+  /**
+   * http://www.javascripter.net/faq/rgb2hsv.htm
+   *
+   * @param red
+   * @param green
+   * @param blue
+   * @returns {*}
+   * @constructor
+   */
+  exports.RGBToHSV = function (red, green, blue) {
+    red = red / 255;green = green / 255;blue = blue / 255;
+    var minRGB = Math.min(red, Math.min(green, blue));
+    var maxRGB = Math.max(red, Math.max(green, blue));
+
+    // Black-gray-white
+    if (minRGB == maxRGB) {
+      return { h: 0, s: 0, v: minRGB };
+    }
+
+    // Colors other than black-gray-white:
+    var d = red == minRGB ? green - blue : blue == minRGB ? red - green : blue - red;
+    var h = red == minRGB ? 3 : blue == minRGB ? 1 : 5;
+    var hue = 60 * (h - d / (maxRGB - minRGB)) / 360;
+    var saturation = (maxRGB - minRGB) / maxRGB;
+    var value = maxRGB;
+    return { h: hue, s: saturation, v: value };
+  };
+
+  var cssUtil = {
+    // split a string with css styles into an object with key/values
+    split: function split(cssText) {
+      var styles = {};
+
+      cssText.split(';').forEach(function (style) {
+        if (style.trim() != '') {
+          var parts = style.split(':');
+          var key = parts[0].trim();
+          var value = parts[1].trim();
+          styles[key] = value;
+        }
+      });
+
+      return styles;
+    },
+
+    // build a css text string from an object with key/values
+    join: function join(styles) {
+      return Object.keys(styles).map(function (key) {
+        return key + ': ' + styles[key];
+      }).join('; ');
+    }
+  };
+
+  /**
+   * Append a string with css styles to an element
+   * @param {Element} element
+   * @param {String} cssText
+   */
+  exports.addCssText = function (element, cssText) {
+    var currentStyles = cssUtil.split(element.style.cssText);
+    var newStyles = cssUtil.split(cssText);
+    var styles = exports.extend(currentStyles, newStyles);
+
+    element.style.cssText = cssUtil.join(styles);
+  };
+
+  /**
+   * Remove a string with css styles from an element
+   * @param {Element} element
+   * @param {String} cssText
+   */
+  exports.removeCssText = function (element, cssText) {
+    var styles = cssUtil.split(element.style.cssText);
+    var removeStyles = cssUtil.split(cssText);
+
+    for (var key in removeStyles) {
+      if (removeStyles.hasOwnProperty(key)) {
+        delete styles[key];
+      }
+    }
+
+    element.style.cssText = cssUtil.join(styles);
+  };
+
+  /**
+   * https://gist.github.com/mjijackson/5311256
+   * @param h
+   * @param s
+   * @param v
+   * @returns {{r: number, g: number, b: number}}
+   * @constructor
+   */
+  exports.HSVToRGB = function (h, s, v) {
+    var r, g, b;
+
+    var i = Math.floor(h * 6);
+    var f = h * 6 - i;
+    var p = v * (1 - s);
+    var q = v * (1 - f * s);
+    var t = v * (1 - (1 - f) * s);
+
+    switch (i % 6) {
+      case 0:
+        r = v, g = t, b = p;break;
+      case 1:
+        r = q, g = v, b = p;break;
+      case 2:
+        r = p, g = v, b = t;break;
+      case 3:
+        r = p, g = q, b = v;break;
+      case 4:
+        r = t, g = p, b = v;break;
+      case 5:
+        r = v, g = p, b = q;break;
+    }
+
+    return { r: Math.floor(r * 255), g: Math.floor(g * 255), b: Math.floor(b * 255) };
+  };
+
+  exports.HSVToHex = function (h, s, v) {
+    var rgb = exports.HSVToRGB(h, s, v);
+    return exports.RGBToHex(rgb.r, rgb.g, rgb.b);
+  };
+
+  exports.hexToHSV = function (hex) {
+    var rgb = exports.hexToRGB(hex);
+    return exports.RGBToHSV(rgb.r, rgb.g, rgb.b);
+  };
+
+  exports.isValidHex = function (hex) {
+    var isOk = /(^#[0-9A-F]{6}$)|(^#[0-9A-F]{3}$)/i.test(hex);
+    return isOk;
+  };
+
+  exports.isValidRGB = function (rgb) {
+    rgb = rgb.replace(' ', '');
+    var isOk = /rgb\((\d{1,3}),(\d{1,3}),(\d{1,3})\)/i.test(rgb);
+    return isOk;
+  };
+  exports.isValidRGBA = function (rgba) {
+    rgba = rgba.replace(' ', '');
+    var isOk = /rgba\((\d{1,3}),(\d{1,3}),(\d{1,3}),(.{1,3})\)/i.test(rgba);
+    return isOk;
+  };
+
+  /**
+   * This recursively redirects the prototype of JSON objects to the referenceObject
+   * This is used for default options.
+   *
+   * @param referenceObject
+   * @returns {*}
+   */
+  exports.selectiveBridgeObject = function (fields, referenceObject) {
+    if (typeof referenceObject == 'object') {
+      var objectTo = Object.create(referenceObject);
+      for (var i = 0; i < fields.length; i++) {
+        if (referenceObject.hasOwnProperty(fields[i])) {
+          if (typeof referenceObject[fields[i]] == 'object') {
+            objectTo[fields[i]] = exports.bridgeObject(referenceObject[fields[i]]);
+          }
+        }
+      }
+      return objectTo;
+    } else {
+      return null;
+    }
+  };
+
+  /**
+   * This recursively redirects the prototype of JSON objects to the referenceObject
+   * This is used for default options.
+   *
+   * @param referenceObject
+   * @returns {*}
+   */
+  exports.bridgeObject = function (referenceObject) {
+    if (typeof referenceObject == 'object') {
+      var objectTo = Object.create(referenceObject);
+      for (var i in referenceObject) {
+        if (referenceObject.hasOwnProperty(i)) {
+          if (typeof referenceObject[i] == 'object') {
+            objectTo[i] = exports.bridgeObject(referenceObject[i]);
+          }
+        }
+      }
+      return objectTo;
+    } else {
+      return null;
+    }
+  };
+
+  /**
+   * this is used to set the options of subobjects in the options object. A requirement of these subobjects
+   * is that they have an 'enabled' element which is optional for the user but mandatory for the program.
+   *
+   * @param [object] mergeTarget | this is either this.options or the options used for the groups.
+   * @param [object] options     | options
+   * @param [String] option      | this is the option key in the options argument
+   * @private
+   */
+  exports.mergeOptions = function (mergeTarget, options, option) {
+    var allowDeletion = arguments[3] === undefined ? false : arguments[3];
+
+    if (options[option] === null) {
+      mergeTarget[option] = undefined;
+      delete mergeTarget[option];
+    } else {
+      if (options[option] !== undefined) {
+        if (typeof options[option] === 'boolean') {
+          mergeTarget[option].enabled = options[option];
+        } else {
+          if (options[option].enabled === undefined) {
+            mergeTarget[option].enabled = true;
+          }
+          for (var prop in options[option]) {
+            if (options[option].hasOwnProperty(prop)) {
+              mergeTarget[option][prop] = options[option][prop];
+            }
+          }
+        }
+      }
+    }
+  };
+
+  /**
+   * This function does a binary search for a visible item in a sorted list. If we find a visible item, the code that uses
+   * this function will then iterate in both directions over this sorted list to find all visible items.
+   *
+   * @param {Item[]} orderedItems       | Items ordered by start
+   * @param {function} searchFunction   | -1 is lower, 0 is found, 1 is higher
+   * @param {String} field
+   * @param {String} field2
+   * @returns {number}
+   * @private
+   */
+  exports.binarySearchCustom = function (orderedItems, searchFunction, field, field2) {
+    var maxIterations = 10000;
+    var iteration = 0;
+    var low = 0;
+    var high = orderedItems.length - 1;
+
+    while (low <= high && iteration < maxIterations) {
+      var middle = Math.floor((low + high) / 2);
+
+      var item = orderedItems[middle];
+      var value = field2 === undefined ? item[field] : item[field][field2];
+
+      var searchResult = searchFunction(value);
+      if (searchResult == 0) {
+        // jihaa, found a visible item!
+        return middle;
+      } else if (searchResult == -1) {
+        // it is too small --> increase low
+        low = middle + 1;
+      } else {
+        // it is too big --> decrease high
+        high = middle - 1;
+      }
+
+      iteration++;
+    }
+
+    return -1;
+  };
+
+  /**
+   * This function does a binary search for a specific value in a sorted array. If it does not exist but is in between of
+   * two values, we return either the one before or the one after, depending on user input
+   * If it is found, we return the index, else -1.
+   *
+   * @param {Array} orderedItems
+   * @param {{start: number, end: number}} target
+   * @param {String} field
+   * @param {String} sidePreference   'before' or 'after'
+   * @returns {number}
+   * @private
+   */
+  exports.binarySearchValue = function (orderedItems, target, field, sidePreference) {
+    var maxIterations = 10000;
+    var iteration = 0;
+    var low = 0;
+    var high = orderedItems.length - 1;
+    var prevValue, value, nextValue, middle;
+
+    while (low <= high && iteration < maxIterations) {
+      // get a new guess
+      middle = Math.floor(0.5 * (high + low));
+      prevValue = orderedItems[Math.max(0, middle - 1)][field];
+      value = orderedItems[middle][field];
+      nextValue = orderedItems[Math.min(orderedItems.length - 1, middle + 1)][field];
+
+      if (value == target) {
+        // we found the target
+        return middle;
+      } else if (prevValue < target && value > target) {
+        // target is in between of the previous and the current
+        return sidePreference == 'before' ? Math.max(0, middle - 1) : middle;
+      } else if (value < target && nextValue > target) {
+        // target is in between of the current and the next
+        return sidePreference == 'before' ? middle : Math.min(orderedItems.length - 1, middle + 1);
+      } else {
+        // didnt find the target, we need to change our boundaries.
+        if (value < target) {
+          // it is too small --> increase low
+          low = middle + 1;
+        } else {
+          // it is too big --> decrease high
+          high = middle - 1;
+        }
+      }
+      iteration++;
+    }
+
+    // didnt find anything. Return -1.
+    return -1;
+  };
+
+  /*
+   * Easing Functions - inspired from http://gizma.com/easing/
+   * only considering the t value for the range [0, 1] => [0, 1]
+   * https://gist.github.com/gre/1650294
+   */
+  exports.easingFunctions = {
+    // no easing, no acceleration
+    linear: function linear(t) {
+      return t;
+    },
+    // accelerating from zero velocity
+    easeInQuad: function easeInQuad(t) {
+      return t * t;
+    },
+    // decelerating to zero velocity
+    easeOutQuad: function easeOutQuad(t) {
+      return t * (2 - t);
+    },
+    // acceleration until halfway, then deceleration
+    easeInOutQuad: function easeInOutQuad(t) {
+      return t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t;
+    },
+    // accelerating from zero velocity
+    easeInCubic: function easeInCubic(t) {
+      return t * t * t;
+    },
+    // decelerating to zero velocity
+    easeOutCubic: function easeOutCubic(t) {
+      return --t * t * t + 1;
+    },
+    // acceleration until halfway, then deceleration
+    easeInOutCubic: function easeInOutCubic(t) {
+      return t < 0.5 ? 4 * t * t * t : (t - 1) * (2 * t - 2) * (2 * t - 2) + 1;
+    },
+    // accelerating from zero velocity
+    easeInQuart: function easeInQuart(t) {
+      return t * t * t * t;
+    },
+    // decelerating to zero velocity
+    easeOutQuart: function easeOutQuart(t) {
+      return 1 - --t * t * t * t;
+    },
+    // acceleration until halfway, then deceleration
+    easeInOutQuart: function easeInOutQuart(t) {
+      return t < 0.5 ? 8 * t * t * t * t : 1 - 8 * --t * t * t * t;
+    },
+    // accelerating from zero velocity
+    easeInQuint: function easeInQuint(t) {
+      return t * t * t * t * t;
+    },
+    // decelerating to zero velocity
+    easeOutQuint: function easeOutQuint(t) {
+      return 1 + --t * t * t * t * t;
+    },
+    // acceleration until halfway, then deceleration
+    easeInOutQuint: function easeInOutQuint(t) {
+      return t < 0.5 ? 16 * t * t * t * t * t : 1 + 16 * --t * t * t * t * t;
+    }
+  };
 
 /***/ },
-/* 59 */
+/* 58 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -23235,7 +23065,7 @@ return /******/ (function(modules) { // webpackBootstrap
     window.requestAnimationFrame = window.requestAnimationFrame || window.mozRequestAnimationFrame || window.webkitRequestAnimationFrame || window.msRequestAnimationFrame;
   }
 
-  var util = __webpack_require__(1);
+  var util = __webpack_require__(57);
 
   var CanvasRenderer = (function () {
     function CanvasRenderer(body, canvas) {
@@ -23598,7 +23428,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 60 */
+/* 59 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -23612,9 +23442,9 @@ return /******/ (function(modules) { // webpackBootstrap
   function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
 
   var Hammer = __webpack_require__(41);
-  var hammerUtil = __webpack_require__(49);
+  var hammerUtil = __webpack_require__(48);
 
-  var util = __webpack_require__(1);
+  var util = __webpack_require__(57);
 
   /**
    * Create the main frame for the Network.
@@ -23966,7 +23796,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 61 */
+/* 60 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
@@ -23979,7 +23809,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
-  var util = __webpack_require__(1);
+  var util = __webpack_require__(57);
 
   var View = (function () {
     function View(body, canvas) {
@@ -24368,7 +24198,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports["default"];
 
 /***/ },
-/* 62 */
+/* 61 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -24391,7 +24221,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   var _componentsPopup2 = _interopRequireDefault(_componentsPopup);
 
-  var util = __webpack_require__(1);
+  var util = __webpack_require__(57);
 
   var InteractionHandler = (function () {
     function InteractionHandler(body, canvas, selectionHandler) {
@@ -25074,7 +24904,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 63 */
+/* 62 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
@@ -25089,7 +24919,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   var Node = __webpack_require__(74);
   var Edge = __webpack_require__(76);
-  var util = __webpack_require__(1);
+  var util = __webpack_require__(57);
 
   var SelectionHandler = (function () {
     function SelectionHandler(body, canvas) {
@@ -25794,7 +25624,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports["default"];
 
 /***/ },
-/* 64 */
+/* 63 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -25807,7 +25637,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
 
-  var util = __webpack_require__(1);
+  var util = __webpack_require__(57);
 
   var LayoutEngine = (function () {
     function LayoutEngine(body) {
@@ -26291,7 +26121,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 65 */
+/* 64 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -26304,9 +26134,9 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
 
-  var util = __webpack_require__(1);
+  var util = __webpack_require__(57);
   var Hammer = __webpack_require__(41);
-  var hammerUtil = __webpack_require__(49);
+  var hammerUtil = __webpack_require__(48);
 
   /**
    * clears the toolbar div element of children
@@ -27486,14 +27316,9 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 66 */
+/* 65 */
 /***/ function(module, exports, __webpack_require__) {
 
-  'use strict';
-
-  Object.defineProperty(exports, '__esModule', {
-    value: true
-  });
   /**
    * This object contains all possible options. It will check if the types are correct, if required if the option is one
    * of the allowed values.
@@ -27501,6 +27326,11 @@ return /******/ (function(modules) { // webpackBootstrap
    * __any__ means that the name of the property does not matter.
    * __type__ is a required field for all objects and contains the allowed types of all objects
    */
+  'use strict';
+
+  Object.defineProperty(exports, '__esModule', {
+    value: true
+  });
   var string = 'string';
   var boolean = 'boolean';
   var number = 'number';
@@ -27963,7 +27793,7 @@ return /******/ (function(modules) { // webpackBootstrap
   exports.configureOptions = configureOptions;
 
 /***/ },
-/* 67 */
+/* 66 */
 /***/ function(module, exports, __webpack_require__) {
 
   /**
@@ -28250,15 +28080,15 @@ return /******/ (function(modules) { // webpackBootstrap
   }
 
 /***/ },
-/* 68 */
+/* 67 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
 
   var keycharm = __webpack_require__(88);
-  var Emitter = __webpack_require__(43);
+  var Emitter = __webpack_require__(69);
   var Hammer = __webpack_require__(41);
-  var util = __webpack_require__(1);
+  var util = __webpack_require__(57);
 
   /**
    * Turn an element into an clickToUse element.
@@ -28403,7 +28233,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = Activator;
 
 /***/ },
-/* 69 */
+/* 68 */
 /***/ function(module, exports, __webpack_require__) {
 
   // English
@@ -28447,11 +28277,181 @@ return /******/ (function(modules) { // webpackBootstrap
   exports['nl_BE'] = exports['nl'];
 
 /***/ },
+/* 69 */
+/***/ function(module, exports, __webpack_require__) {
+
+  
+  /**
+   * Expose `Emitter`.
+   */
+
+  module.exports = Emitter;
+
+  /**
+   * Initialize a new `Emitter`.
+   *
+   * @api public
+   */
+
+  function Emitter(obj) {
+    if (obj) return mixin(obj);
+  };
+
+  /**
+   * Mixin the emitter properties.
+   *
+   * @param {Object} obj
+   * @return {Object}
+   * @api private
+   */
+
+  function mixin(obj) {
+    for (var key in Emitter.prototype) {
+      obj[key] = Emitter.prototype[key];
+    }
+    return obj;
+  }
+
+  /**
+   * Listen on the given `event` with `fn`.
+   *
+   * @param {String} event
+   * @param {Function} fn
+   * @return {Emitter}
+   * @api public
+   */
+
+  Emitter.prototype.on =
+  Emitter.prototype.addEventListener = function(event, fn){
+    this._callbacks = this._callbacks || {};
+    (this._callbacks[event] = this._callbacks[event] || [])
+      .push(fn);
+    return this;
+  };
+
+  /**
+   * Adds an `event` listener that will be invoked a single
+   * time then automatically removed.
+   *
+   * @param {String} event
+   * @param {Function} fn
+   * @return {Emitter}
+   * @api public
+   */
+
+  Emitter.prototype.once = function(event, fn){
+    var self = this;
+    this._callbacks = this._callbacks || {};
+
+    function on() {
+      self.off(event, on);
+      fn.apply(this, arguments);
+    }
+
+    on.fn = fn;
+    this.on(event, on);
+    return this;
+  };
+
+  /**
+   * Remove the given callback for `event` or all
+   * registered callbacks.
+   *
+   * @param {String} event
+   * @param {Function} fn
+   * @return {Emitter}
+   * @api public
+   */
+
+  Emitter.prototype.off =
+  Emitter.prototype.removeListener =
+  Emitter.prototype.removeAllListeners =
+  Emitter.prototype.removeEventListener = function(event, fn){
+    this._callbacks = this._callbacks || {};
+
+    // all
+    if (0 == arguments.length) {
+      this._callbacks = {};
+      return this;
+    }
+
+    // specific event
+    var callbacks = this._callbacks[event];
+    if (!callbacks) return this;
+
+    // remove all handlers
+    if (1 == arguments.length) {
+      delete this._callbacks[event];
+      return this;
+    }
+
+    // remove specific handler
+    var cb;
+    for (var i = 0; i < callbacks.length; i++) {
+      cb = callbacks[i];
+      if (cb === fn || cb.fn === fn) {
+        callbacks.splice(i, 1);
+        break;
+      }
+    }
+    return this;
+  };
+
+  /**
+   * Emit `event` with the given args.
+   *
+   * @param {String} event
+   * @param {Mixed} ...
+   * @return {Emitter}
+   */
+
+  Emitter.prototype.emit = function(event){
+    this._callbacks = this._callbacks || {};
+    var args = [].slice.call(arguments, 1)
+      , callbacks = this._callbacks[event];
+
+    if (callbacks) {
+      callbacks = callbacks.slice(0);
+      for (var i = 0, len = callbacks.length; i < len; ++i) {
+        callbacks[i].apply(this, args);
+      }
+    }
+
+    return this;
+  };
+
+  /**
+   * Return array of callbacks for `event`.
+   *
+   * @param {String} event
+   * @return {Array}
+   * @api public
+   */
+
+  Emitter.prototype.listeners = function(event){
+    this._callbacks = this._callbacks || {};
+    return this._callbacks[event] || [];
+  };
+
+  /**
+   * Check if this emitter has `event` handlers.
+   *
+   * @param {String} event
+   * @return {Boolean}
+   * @api public
+   */
+
+  Emitter.prototype.hasListeners = function(event){
+    return !! this.listeners(event).length;
+  };
+
+
+/***/ },
 /* 70 */
 /***/ function(module, exports, __webpack_require__) {
 
   /* WEBPACK VAR INJECTION */(function(module) {//! moment.js
-  //! version : 2.10.2
+  //! version : 2.10.3
   //! authors : Tim Wood, Iskren Chernev, Moment.js contributors
   //! license : MIT
   //! momentjs.com
@@ -28474,28 +28474,12 @@ return /******/ (function(modules) { // webpackBootstrap
           hookCallback = callback;
       }
 
-      function defaultParsingFlags() {
-          // We need to deep clone this object.
-          return {
-              empty           : false,
-              unusedTokens    : [],
-              unusedInput     : [],
-              overflow        : -2,
-              charsLeftOver   : 0,
-              nullInput       : false,
-              invalidMonth    : null,
-              invalidFormat   : false,
-              userInvalidated : false,
-              iso             : false
-          };
-      }
-
       function isArray(input) {
           return Object.prototype.toString.call(input) === '[object Array]';
       }
 
       function isDate(input) {
-          return Object.prototype.toString.call(input) === '[object Date]' || input instanceof Date;
+          return input instanceof Date || Object.prototype.toString.call(input) === '[object Date]';
       }
 
       function map(arr, fn) {
@@ -28532,21 +28516,45 @@ return /******/ (function(modules) { // webpackBootstrap
           return createLocalOrUTC(input, format, locale, strict, true).utc();
       }
 
+      function defaultParsingFlags() {
+          // We need to deep clone this object.
+          return {
+              empty           : false,
+              unusedTokens    : [],
+              unusedInput     : [],
+              overflow        : -2,
+              charsLeftOver   : 0,
+              nullInput       : false,
+              invalidMonth    : null,
+              invalidFormat   : false,
+              userInvalidated : false,
+              iso             : false
+          };
+      }
+
+      function getParsingFlags(m) {
+          if (m._pf == null) {
+              m._pf = defaultParsingFlags();
+          }
+          return m._pf;
+      }
+
       function valid__isValid(m) {
           if (m._isValid == null) {
+              var flags = getParsingFlags(m);
               m._isValid = !isNaN(m._d.getTime()) &&
-                  m._pf.overflow < 0 &&
-                  !m._pf.empty &&
-                  !m._pf.invalidMonth &&
-                  !m._pf.nullInput &&
-                  !m._pf.invalidFormat &&
-                  !m._pf.userInvalidated;
+                  flags.overflow < 0 &&
+                  !flags.empty &&
+                  !flags.invalidMonth &&
+                  !flags.nullInput &&
+                  !flags.invalidFormat &&
+                  !flags.userInvalidated;
 
               if (m._strict) {
                   m._isValid = m._isValid &&
-                      m._pf.charsLeftOver === 0 &&
-                      m._pf.unusedTokens.length === 0 &&
-                      m._pf.bigHour === undefined;
+                      flags.charsLeftOver === 0 &&
+                      flags.unusedTokens.length === 0 &&
+                      flags.bigHour === undefined;
               }
           }
           return m._isValid;
@@ -28555,10 +28563,10 @@ return /******/ (function(modules) { // webpackBootstrap
       function valid__createInvalid (flags) {
           var m = create_utc__createUTC(NaN);
           if (flags != null) {
-              extend(m._pf, flags);
+              extend(getParsingFlags(m), flags);
           }
           else {
-              m._pf.userInvalidated = true;
+              getParsingFlags(m).userInvalidated = true;
           }
 
           return m;
@@ -28594,7 +28602,7 @@ return /******/ (function(modules) { // webpackBootstrap
               to._offset = from._offset;
           }
           if (typeof from._pf !== 'undefined') {
-              to._pf = from._pf;
+              to._pf = getParsingFlags(from);
           }
           if (typeof from._locale !== 'undefined') {
               to._locale = from._locale;
@@ -28629,7 +28637,7 @@ return /******/ (function(modules) { // webpackBootstrap
       }
 
       function isMoment (obj) {
-          return obj instanceof Moment || (obj != null && hasOwnProp(obj, '_isAMomentObject'));
+          return obj instanceof Moment || (obj != null && obj._isAMomentObject != null);
       }
 
       function toInt(argumentForCoercion) {
@@ -29067,7 +29075,7 @@ return /******/ (function(modules) { // webpackBootstrap
           if (month != null) {
               array[MONTH] = month;
           } else {
-              config._pf.invalidMonth = input;
+              getParsingFlags(config).invalidMonth = input;
           }
       });
 
@@ -29151,7 +29159,7 @@ return /******/ (function(modules) { // webpackBootstrap
           var overflow;
           var a = m._a;
 
-          if (a && m._pf.overflow === -2) {
+          if (a && getParsingFlags(m).overflow === -2) {
               overflow =
                   a[MONTH]       < 0 || a[MONTH]       > 11  ? MONTH :
                   a[DATE]        < 1 || a[DATE]        > daysInMonth(a[YEAR], a[MONTH]) ? DATE :
@@ -29161,11 +29169,11 @@ return /******/ (function(modules) { // webpackBootstrap
                   a[MILLISECOND] < 0 || a[MILLISECOND] > 999 ? MILLISECOND :
                   -1;
 
-              if (m._pf._overflowDayOfYear && (overflow < YEAR || overflow > DATE)) {
+              if (getParsingFlags(m)._overflowDayOfYear && (overflow < YEAR || overflow > DATE)) {
                   overflow = DATE;
               }
 
-              m._pf.overflow = overflow;
+              getParsingFlags(m).overflow = overflow;
           }
 
           return m;
@@ -29178,10 +29186,12 @@ return /******/ (function(modules) { // webpackBootstrap
       }
 
       function deprecate(msg, fn) {
-          var firstTime = true;
+          var firstTime = true,
+              msgWithStack = msg + '\n' + (new Error()).stack;
+
           return extend(function () {
               if (firstTime) {
-                  warn(msg);
+                  warn(msgWithStack);
                   firstTime = false;
               }
               return fn.apply(this, arguments);
@@ -29226,7 +29236,7 @@ return /******/ (function(modules) { // webpackBootstrap
               match = from_string__isoRegex.exec(string);
 
           if (match) {
-              config._pf.iso = true;
+              getParsingFlags(config).iso = true;
               for (i = 0, l = isoDates.length; i < l; i++) {
                   if (isoDates[i][1].exec(string)) {
                       // match[5] should be 'T' or undefined
@@ -29506,7 +29516,7 @@ return /******/ (function(modules) { // webpackBootstrap
               yearToUse = defaults(config._a[YEAR], currentDate[YEAR]);
 
               if (config._dayOfYear > daysInYear(yearToUse)) {
-                  config._pf._overflowDayOfYear = true;
+                  getParsingFlags(config)._overflowDayOfYear = true;
               }
 
               date = createUTCDate(yearToUse, 0, config._dayOfYear);
@@ -29602,7 +29612,7 @@ return /******/ (function(modules) { // webpackBootstrap
           }
 
           config._a = [];
-          config._pf.empty = true;
+          getParsingFlags(config).empty = true;
 
           // This array is used to make a Date, either with `new Date` or `Date.UTC`
           var string = '' + config._i,
@@ -29618,7 +29628,7 @@ return /******/ (function(modules) { // webpackBootstrap
               if (parsedInput) {
                   skipped = string.substr(0, string.indexOf(parsedInput));
                   if (skipped.length > 0) {
-                      config._pf.unusedInput.push(skipped);
+                      getParsingFlags(config).unusedInput.push(skipped);
                   }
                   string = string.slice(string.indexOf(parsedInput) + parsedInput.length);
                   totalParsedInputLength += parsedInput.length;
@@ -29626,27 +29636,29 @@ return /******/ (function(modules) { // webpackBootstrap
               // don't parse if it's not a known token
               if (formatTokenFunctions[token]) {
                   if (parsedInput) {
-                      config._pf.empty = false;
+                      getParsingFlags(config).empty = false;
                   }
                   else {
-                      config._pf.unusedTokens.push(token);
+                      getParsingFlags(config).unusedTokens.push(token);
                   }
                   addTimeToArrayFromToken(token, parsedInput, config);
               }
               else if (config._strict && !parsedInput) {
-                  config._pf.unusedTokens.push(token);
+                  getParsingFlags(config).unusedTokens.push(token);
               }
           }
 
           // add remaining unparsed input length to the string
-          config._pf.charsLeftOver = stringLength - totalParsedInputLength;
+          getParsingFlags(config).charsLeftOver = stringLength - totalParsedInputLength;
           if (string.length > 0) {
-              config._pf.unusedInput.push(string);
+              getParsingFlags(config).unusedInput.push(string);
           }
 
           // clear _12h flag if hour is <= 12
-          if (config._pf.bigHour === true && config._a[HOUR] <= 12) {
-              config._pf.bigHour = undefined;
+          if (getParsingFlags(config).bigHour === true &&
+                  config._a[HOUR] <= 12 &&
+                  config._a[HOUR] > 0) {
+              getParsingFlags(config).bigHour = undefined;
           }
           // handle meridiem
           config._a[HOUR] = meridiemFixWrap(config._locale, config._a[HOUR], config._meridiem);
@@ -29690,7 +29702,7 @@ return /******/ (function(modules) { // webpackBootstrap
               currentScore;
 
           if (config._f.length === 0) {
-              config._pf.invalidFormat = true;
+              getParsingFlags(config).invalidFormat = true;
               config._d = new Date(NaN);
               return;
           }
@@ -29701,7 +29713,6 @@ return /******/ (function(modules) { // webpackBootstrap
               if (config._useUTC != null) {
                   tempConfig._useUTC = config._useUTC;
               }
-              tempConfig._pf = defaultParsingFlags();
               tempConfig._f = config._f[i];
               configFromStringAndFormat(tempConfig);
 
@@ -29710,12 +29721,12 @@ return /******/ (function(modules) { // webpackBootstrap
               }
 
               // if there is any input that was not parsed add a penalty for that format
-              currentScore += tempConfig._pf.charsLeftOver;
+              currentScore += getParsingFlags(tempConfig).charsLeftOver;
 
               //or tokens
-              currentScore += tempConfig._pf.unusedTokens.length * 10;
+              currentScore += getParsingFlags(tempConfig).unusedTokens.length * 10;
 
-              tempConfig._pf.score = currentScore;
+              getParsingFlags(tempConfig).score = currentScore;
 
               if (scoreToBeat == null || currentScore < scoreToBeat) {
                   scoreToBeat = currentScore;
@@ -29758,6 +29769,8 @@ return /******/ (function(modules) { // webpackBootstrap
               configFromStringAndArray(config);
           } else if (format) {
               configFromStringAndFormat(config);
+          } else if (isDate(input)) {
+              config._d = input;
           } else {
               configFromInput(config);
           }
@@ -29810,7 +29823,6 @@ return /******/ (function(modules) { // webpackBootstrap
           c._i = input;
           c._f = format;
           c._strict = strict;
-          c._pf = defaultParsingFlags();
 
           return createFromConfig(c);
       }
@@ -30384,11 +30396,25 @@ return /******/ (function(modules) { // webpackBootstrap
       }
 
       function from (time, withoutSuffix) {
+          if (!this.isValid()) {
+              return this.localeData().invalidDate();
+          }
           return create__createDuration({to: this, from: time}).locale(this.locale()).humanize(!withoutSuffix);
       }
 
       function fromNow (withoutSuffix) {
           return this.from(local__createLocal(), withoutSuffix);
+      }
+
+      function to (time, withoutSuffix) {
+          if (!this.isValid()) {
+              return this.localeData().invalidDate();
+          }
+          return create__createDuration({from: this, to: time}).locale(this.locale()).humanize(!withoutSuffix);
+      }
+
+      function toNow (withoutSuffix) {
+          return this.to(local__createLocal(), withoutSuffix);
       }
 
       function locale (key) {
@@ -30493,11 +30519,11 @@ return /******/ (function(modules) { // webpackBootstrap
       }
 
       function parsingFlags () {
-          return extend({}, this._pf);
+          return extend({}, getParsingFlags(this));
       }
 
       function invalidAt () {
-          return this._pf.overflow;
+          return getParsingFlags(this).overflow;
       }
 
       addFormatToken(0, ['gg', 2], 0, function () {
@@ -30648,7 +30674,7 @@ return /******/ (function(modules) { // webpackBootstrap
           if (weekday != null) {
               week.d = weekday;
           } else {
-              config._pf.invalidWeekday = input;
+              getParsingFlags(config).invalidWeekday = input;
           }
       });
 
@@ -30773,7 +30799,7 @@ return /******/ (function(modules) { // webpackBootstrap
       });
       addParseToken(['h', 'hh'], function (input, array, config) {
           array[HOUR] = toInt(input);
-          config._pf.bigHour = true;
+          getParsingFlags(config).bigHour = true;
       });
 
       // LOCALES
@@ -30890,6 +30916,8 @@ return /******/ (function(modules) { // webpackBootstrap
       momentPrototype__proto.format       = format;
       momentPrototype__proto.from         = from;
       momentPrototype__proto.fromNow      = fromNow;
+      momentPrototype__proto.to           = to;
+      momentPrototype__proto.toNow        = toNow;
       momentPrototype__proto.get          = getSet;
       momentPrototype__proto.invalidAt    = invalidAt;
       momentPrototype__proto.isAfter      = isAfter;
@@ -31078,7 +31106,7 @@ return /******/ (function(modules) { // webpackBootstrap
           }
           // Lenient ordinal parsing accepts just a number in addition to
           // number + (possibly) stuff coming from _ordinalParseLenient.
-          this._ordinalParseLenient = new RegExp(this._ordinalParse.source + '|' + /\d{1,2}/.source);
+          this._ordinalParseLenient = new RegExp(this._ordinalParse.source + '|' + (/\d{1,2}/).source);
       }
 
       var prototype__proto = Locale.prototype;
@@ -31295,13 +31323,13 @@ return /******/ (function(modules) { // webpackBootstrap
               // handle milliseconds separately because of floating point math errors (issue #1867)
               days = this._days + Math.round(yearsToDays(this._months / 12));
               switch (units) {
-                  case 'week'   : return days / 7            + milliseconds / 6048e5;
-                  case 'day'    : return days                + milliseconds / 864e5;
-                  case 'hour'   : return days * 24           + milliseconds / 36e5;
-                  case 'minute' : return days * 24 * 60      + milliseconds / 6e4;
-                  case 'second' : return days * 24 * 60 * 60 + milliseconds / 1000;
+                  case 'week'   : return days / 7     + milliseconds / 6048e5;
+                  case 'day'    : return days         + milliseconds / 864e5;
+                  case 'hour'   : return days * 24    + milliseconds / 36e5;
+                  case 'minute' : return days * 1440  + milliseconds / 6e4;
+                  case 'second' : return days * 86400 + milliseconds / 1000;
                   // Math.floor prevents floating point math errors here
-                  case 'millisecond': return Math.floor(days * 24 * 60 * 60 * 1000) + milliseconds;
+                  case 'millisecond': return Math.floor(days * 864e5) + milliseconds;
                   default: throw new Error('Unknown unit ' + units);
               }
           }
@@ -31502,7 +31530,7 @@ return /******/ (function(modules) { // webpackBootstrap
       // Side effect imports
 
 
-      utils_hooks__hooks.version = '2.10.2';
+      utils_hooks__hooks.version = '2.10.3';
 
       setHookCallback(local__createLocal);
 
@@ -31533,7 +31561,7 @@ return /******/ (function(modules) { // webpackBootstrap
       return _moment;
 
   }));
-  /* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(90)(module)))
+  /* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(107)(module)))
 
 /***/ },
 /* 71 */
@@ -34219,7 +34247,7 @@ return /******/ (function(modules) { // webpackBootstrap
       prefixed: prefixed
   });
 
-  if ("function" == TYPE_FUNCTION && __webpack_require__(91)) {
+  if ("function" == TYPE_FUNCTION && __webpack_require__(108)) {
       !(__WEBPACK_AMD_DEFINE_RESULT__ = function() {
           return Hammer;
       }.call(exports, __webpack_require__, exports, module), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__));
@@ -34247,8 +34275,8 @@ return /******/ (function(modules) { // webpackBootstrap
   function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
 
   var Hammer = __webpack_require__(41);
-  var hammerUtil = __webpack_require__(49);
-  var util = __webpack_require__(1);
+  var hammerUtil = __webpack_require__(48);
+  var util = __webpack_require__(57);
 
   var ColorPicker = (function () {
     function ColorPicker() {
@@ -34832,67 +34860,67 @@ return /******/ (function(modules) { // webpackBootstrap
 
   var _sharedLabel2 = _interopRequireDefault(_sharedLabel);
 
-  var _nodesShapesBox = __webpack_require__(92);
+  var _nodesShapesBox = __webpack_require__(90);
 
   var _nodesShapesBox2 = _interopRequireDefault(_nodesShapesBox);
 
-  var _nodesShapesCircle = __webpack_require__(93);
+  var _nodesShapesCircle = __webpack_require__(91);
 
   var _nodesShapesCircle2 = _interopRequireDefault(_nodesShapesCircle);
 
-  var _nodesShapesCircularImage = __webpack_require__(94);
+  var _nodesShapesCircularImage = __webpack_require__(92);
 
   var _nodesShapesCircularImage2 = _interopRequireDefault(_nodesShapesCircularImage);
 
-  var _nodesShapesDatabase = __webpack_require__(95);
+  var _nodesShapesDatabase = __webpack_require__(93);
 
   var _nodesShapesDatabase2 = _interopRequireDefault(_nodesShapesDatabase);
 
-  var _nodesShapesDiamond = __webpack_require__(96);
+  var _nodesShapesDiamond = __webpack_require__(94);
 
   var _nodesShapesDiamond2 = _interopRequireDefault(_nodesShapesDiamond);
 
-  var _nodesShapesDot = __webpack_require__(97);
+  var _nodesShapesDot = __webpack_require__(95);
 
   var _nodesShapesDot2 = _interopRequireDefault(_nodesShapesDot);
 
-  var _nodesShapesEllipse = __webpack_require__(98);
+  var _nodesShapesEllipse = __webpack_require__(96);
 
   var _nodesShapesEllipse2 = _interopRequireDefault(_nodesShapesEllipse);
 
-  var _nodesShapesIcon = __webpack_require__(99);
+  var _nodesShapesIcon = __webpack_require__(97);
 
   var _nodesShapesIcon2 = _interopRequireDefault(_nodesShapesIcon);
 
-  var _nodesShapesImage = __webpack_require__(100);
+  var _nodesShapesImage = __webpack_require__(98);
 
   var _nodesShapesImage2 = _interopRequireDefault(_nodesShapesImage);
 
-  var _nodesShapesSquare = __webpack_require__(101);
+  var _nodesShapesSquare = __webpack_require__(99);
 
   var _nodesShapesSquare2 = _interopRequireDefault(_nodesShapesSquare);
 
-  var _nodesShapesStar = __webpack_require__(102);
+  var _nodesShapesStar = __webpack_require__(100);
 
   var _nodesShapesStar2 = _interopRequireDefault(_nodesShapesStar);
 
-  var _nodesShapesText = __webpack_require__(103);
+  var _nodesShapesText = __webpack_require__(101);
 
   var _nodesShapesText2 = _interopRequireDefault(_nodesShapesText);
 
-  var _nodesShapesTriangle = __webpack_require__(104);
+  var _nodesShapesTriangle = __webpack_require__(102);
 
   var _nodesShapesTriangle2 = _interopRequireDefault(_nodesShapesTriangle);
 
-  var _nodesShapesTriangleDown = __webpack_require__(105);
+  var _nodesShapesTriangleDown = __webpack_require__(103);
 
   var _nodesShapesTriangleDown2 = _interopRequireDefault(_nodesShapesTriangleDown);
 
-  var _sharedValidator = __webpack_require__(46);
+  var _sharedValidator = __webpack_require__(45);
 
   var _sharedValidator2 = _interopRequireDefault(_sharedValidator);
 
-  var util = __webpack_require__(1);
+  var util = __webpack_require__(57);
 
   /**
    * @class Node
@@ -35343,7 +35371,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
 
-  var util = __webpack_require__(1);
+  var util = __webpack_require__(57);
 
   var Label = (function () {
     function Label(body, options) {
@@ -35662,19 +35690,19 @@ return /******/ (function(modules) { // webpackBootstrap
 
   var _sharedLabel2 = _interopRequireDefault(_sharedLabel);
 
-  var _edgesBezierEdgeDynamic = __webpack_require__(106);
+  var _edgesBezierEdgeDynamic = __webpack_require__(104);
 
   var _edgesBezierEdgeDynamic2 = _interopRequireDefault(_edgesBezierEdgeDynamic);
 
-  var _edgesBezierEdgeStatic = __webpack_require__(107);
+  var _edgesBezierEdgeStatic = __webpack_require__(105);
 
   var _edgesBezierEdgeStatic2 = _interopRequireDefault(_edgesBezierEdgeStatic);
 
-  var _edgesStraightEdge = __webpack_require__(108);
+  var _edgesStraightEdge = __webpack_require__(106);
 
   var _edgesStraightEdge2 = _interopRequireDefault(_edgesStraightEdge);
 
-  var util = __webpack_require__(1);
+  var util = __webpack_require__(57);
 
   /**
    * @class Edge
@@ -37187,9 +37215,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
 
-  var _get = function get(_x, _x2, _x3) { var _again = true; _function: while (_again) { desc = parent = getter = undefined; _again = false; var object = _x,
-      property = _x2,
-      receiver = _x3; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { _x = parent; _x2 = property; _x3 = receiver; _again = true; continue _function; } } else if ("value" in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } } };
+  var _get = function get(_x, _x2, _x3) { var _again = true; _function: while (_again) { var object = _x, property = _x2, receiver = _x3; desc = parent = getter = undefined; _again = false; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { _x = parent; _x2 = property; _x3 = receiver; _again = true; continue _function; } } else if ("value" in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } } };
 
   function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { "default": obj }; }
 
@@ -37263,9 +37289,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
 
-  var _get = function get(_x, _x2, _x3) { var _again = true; _function: while (_again) { desc = parent = getter = undefined; _again = false; var object = _x,
-      property = _x2,
-      receiver = _x3; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { _x = parent; _x2 = property; _x3 = receiver; _again = true; continue _function; } } else if ("value" in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } } };
+  var _get = function get(_x, _x2, _x3) { var _again = true; _function: while (_again) { var object = _x, property = _x2, receiver = _x3; desc = parent = getter = undefined; _again = false; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { _x = parent; _x2 = property; _x3 = receiver; _again = true; continue _function; } } else if ("value" in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } } };
 
   function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { "default": obj }; }
 
@@ -37319,9 +37343,7 @@ return /******/ (function(modules) { // webpackBootstrap
     value: true
   });
 
-  var _get = function get(_x, _x2, _x3) { var _again = true; _function: while (_again) { desc = parent = getter = undefined; _again = false; var object = _x,
-      property = _x2,
-      receiver = _x3; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { _x = parent; _x2 = property; _x3 = receiver; _again = true; continue _function; } } else if ('value' in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } } };
+  var _get = function get(_x, _x2, _x3) { var _again = true; _function: while (_again) { var object = _x, property = _x2, receiver = _x3; desc = parent = getter = undefined; _again = false; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { _x = parent; _x2 = property; _x3 = receiver; _again = true; continue _function; } } else if ('value' in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } } };
 
   function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
 
@@ -37370,9 +37392,9 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
 
-  var util = __webpack_require__(1);
+  var util = __webpack_require__(57);
   var Hammer = __webpack_require__(41);
-  var hammerUtil = __webpack_require__(49);
+  var hammerUtil = __webpack_require__(48);
   var keycharm = __webpack_require__(88);
 
   var NavigationHandler = (function () {
@@ -37630,16 +37652,6 @@ return /******/ (function(modules) { // webpackBootstrap
 /* 87 */
 /***/ function(module, exports, __webpack_require__) {
 
-  'use strict';
-
-  Object.defineProperty(exports, '__esModule', {
-    value: true
-  });
-
-  var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
-
-  function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
-
   /**
    * Popup is a class to create a popup window with some text
    * @param {Element}  container     The container object.
@@ -37649,6 +37661,15 @@ return /******/ (function(modules) { // webpackBootstrap
    * @param {Object} [style]     An object containing borderColor,
    *                             backgroundColor, etc.
    */
+  'use strict';
+
+  Object.defineProperty(exports, '__esModule', {
+    value: true
+  });
+
+  var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
+
+  function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
 
   var Popup = (function () {
     function Popup(container) {
@@ -37783,6 +37804,7 @@ return /******/ (function(modules) { // webpackBootstrap
       var preventDefault = options && options.preventDefault || false;
 
       var container = options && options.container || window;
+
       var _exportFunctions = {};
       var _bound = {keydown:{}, keyup:{}};
       var _keys = {};
@@ -37968,30 +37990,6 @@ return /******/ (function(modules) { // webpackBootstrap
 /* 90 */
 /***/ function(module, exports, __webpack_require__) {
 
-  module.exports = function(module) {
-  	if(!module.webpackPolyfill) {
-  		module.deprecate = function() {};
-  		module.paths = [];
-  		// module.parent = undefined by default
-  		module.children = [];
-  		module.webpackPolyfill = 1;
-  	}
-  	return module;
-  }
-
-
-/***/ },
-/* 91 */
-/***/ function(module, exports, __webpack_require__) {
-
-  /* WEBPACK VAR INJECTION */(function(__webpack_amd_options__) {module.exports = __webpack_amd_options__;
-
-  /* WEBPACK VAR INJECTION */}.call(exports, {}))
-
-/***/ },
-/* 92 */
-/***/ function(module, exports, __webpack_require__) {
-
   'use strict';
 
   Object.defineProperty(exports, '__esModule', {
@@ -38000,9 +37998,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
 
-  var _get = function get(_x, _x2, _x3) { var _again = true; _function: while (_again) { desc = parent = getter = undefined; _again = false; var object = _x,
-      property = _x2,
-      receiver = _x3; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { _x = parent; _x2 = property; _x3 = receiver; _again = true; continue _function; } } else if ('value' in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } } };
+  var _get = function get(_x, _x2, _x3) { var _again = true; _function: while (_again) { var object = _x, property = _x2, receiver = _x3; desc = parent = getter = undefined; _again = false; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { _x = parent; _x2 = property; _x3 = receiver; _again = true; continue _function; } } else if ('value' in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } } };
 
   function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
 
@@ -38013,8 +38009,6 @@ return /******/ (function(modules) { // webpackBootstrap
   var _utilNodeBase = __webpack_require__(109);
 
   var _utilNodeBase2 = _interopRequireDefault(_utilNodeBase);
-
-  'use strict';
 
   var Box = (function (_NodeBase) {
     function Box(options, body, labelModule) {
@@ -38098,7 +38092,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 93 */
+/* 91 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -38109,9 +38103,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
 
-  var _get = function get(_x, _x2, _x3) { var _again = true; _function: while (_again) { desc = parent = getter = undefined; _again = false; var object = _x,
-      property = _x2,
-      receiver = _x3; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { _x = parent; _x2 = property; _x3 = receiver; _again = true; continue _function; } } else if ('value' in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } } };
+  var _get = function get(_x, _x2, _x3) { var _again = true; _function: while (_again) { var object = _x, property = _x2, receiver = _x3; desc = parent = getter = undefined; _again = false; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { _x = parent; _x2 = property; _x3 = receiver; _again = true; continue _function; } } else if ('value' in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } } };
 
   function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
 
@@ -38122,8 +38114,6 @@ return /******/ (function(modules) { // webpackBootstrap
   var _utilCircleImageBase = __webpack_require__(110);
 
   var _utilCircleImageBase2 = _interopRequireDefault(_utilCircleImageBase);
-
-  'use strict';
 
   var Circle = (function (_CircleImageBase) {
     function Circle(options, body, labelModule) {
@@ -38192,7 +38182,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 94 */
+/* 92 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -38203,9 +38193,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
 
-  var _get = function get(_x, _x2, _x3) { var _again = true; _function: while (_again) { desc = parent = getter = undefined; _again = false; var object = _x,
-      property = _x2,
-      receiver = _x3; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { _x = parent; _x2 = property; _x3 = receiver; _again = true; continue _function; } } else if ('value' in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } } };
+  var _get = function get(_x, _x2, _x3) { var _again = true; _function: while (_again) { var object = _x, property = _x2, receiver = _x3; desc = parent = getter = undefined; _again = false; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { _x = parent; _x2 = property; _x3 = receiver; _again = true; continue _function; } } else if ('value' in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } } };
 
   function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
 
@@ -38216,8 +38204,6 @@ return /******/ (function(modules) { // webpackBootstrap
   var _utilCircleImageBase = __webpack_require__(110);
 
   var _utilCircleImageBase2 = _interopRequireDefault(_utilCircleImageBase);
-
-  'use strict';
 
   var CircularImage = (function (_CircleImageBase) {
     function CircularImage(options, body, labelModule, imageObj) {
@@ -38301,7 +38287,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 95 */
+/* 93 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -38312,9 +38298,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
 
-  var _get = function get(_x, _x2, _x3) { var _again = true; _function: while (_again) { desc = parent = getter = undefined; _again = false; var object = _x,
-      property = _x2,
-      receiver = _x3; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { _x = parent; _x2 = property; _x3 = receiver; _again = true; continue _function; } } else if ('value' in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } } };
+  var _get = function get(_x, _x2, _x3) { var _again = true; _function: while (_again) { var object = _x, property = _x2, receiver = _x3; desc = parent = getter = undefined; _again = false; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { _x = parent; _x2 = property; _x3 = receiver; _again = true; continue _function; } } else if ('value' in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } } };
 
   function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
 
@@ -38325,8 +38309,6 @@ return /******/ (function(modules) { // webpackBootstrap
   var _utilNodeBase = __webpack_require__(109);
 
   var _utilNodeBase2 = _interopRequireDefault(_utilNodeBase);
-
-  'use strict';
 
   var Database = (function (_NodeBase) {
     function Database(options, body, labelModule) {
@@ -38410,7 +38392,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 96 */
+/* 94 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -38421,9 +38403,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
 
-  var _get = function get(_x, _x2, _x3) { var _again = true; _function: while (_again) { desc = parent = getter = undefined; _again = false; var object = _x,
-      property = _x2,
-      receiver = _x3; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { _x = parent; _x2 = property; _x3 = receiver; _again = true; continue _function; } } else if ('value' in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } } };
+  var _get = function get(_x, _x2, _x3) { var _again = true; _function: while (_again) { var object = _x, property = _x2, receiver = _x3; desc = parent = getter = undefined; _again = false; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { _x = parent; _x2 = property; _x3 = receiver; _again = true; continue _function; } } else if ('value' in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } } };
 
   function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
 
@@ -38434,8 +38414,6 @@ return /******/ (function(modules) { // webpackBootstrap
   var _utilShapeBase = __webpack_require__(111);
 
   var _utilShapeBase2 = _interopRequireDefault(_utilShapeBase);
-
-  'use strict';
 
   var Diamond = (function (_ShapeBase) {
     function Diamond(options, body, labelModule) {
@@ -38470,7 +38448,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 97 */
+/* 95 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -38481,9 +38459,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
 
-  var _get = function get(_x, _x2, _x3) { var _again = true; _function: while (_again) { desc = parent = getter = undefined; _again = false; var object = _x,
-      property = _x2,
-      receiver = _x3; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { _x = parent; _x2 = property; _x3 = receiver; _again = true; continue _function; } } else if ('value' in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } } };
+  var _get = function get(_x, _x2, _x3) { var _again = true; _function: while (_again) { var object = _x, property = _x2, receiver = _x3; desc = parent = getter = undefined; _again = false; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { _x = parent; _x2 = property; _x3 = receiver; _again = true; continue _function; } } else if ('value' in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } } };
 
   function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
 
@@ -38494,8 +38470,6 @@ return /******/ (function(modules) { // webpackBootstrap
   var _utilShapeBase = __webpack_require__(111);
 
   var _utilShapeBase2 = _interopRequireDefault(_utilShapeBase);
-
-  'use strict';
 
   var Dot = (function (_ShapeBase) {
     function Dot(options, body, labelModule) {
@@ -38530,7 +38504,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 98 */
+/* 96 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -38541,9 +38515,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
 
-  var _get = function get(_x, _x2, _x3) { var _again = true; _function: while (_again) { desc = parent = getter = undefined; _again = false; var object = _x,
-      property = _x2,
-      receiver = _x3; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { _x = parent; _x2 = property; _x3 = receiver; _again = true; continue _function; } } else if ('value' in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } } };
+  var _get = function get(_x, _x2, _x3) { var _again = true; _function: while (_again) { var object = _x, property = _x2, receiver = _x3; desc = parent = getter = undefined; _again = false; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { _x = parent; _x2 = property; _x3 = receiver; _again = true; continue _function; } } else if ('value' in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } } };
 
   function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
 
@@ -38554,8 +38526,6 @@ return /******/ (function(modules) { // webpackBootstrap
   var _utilNodeBase = __webpack_require__(109);
 
   var _utilNodeBase2 = _interopRequireDefault(_utilNodeBase);
-
-  'use strict';
 
   var Ellipse = (function (_NodeBase) {
     function Ellipse(options, body, labelModule) {
@@ -38641,7 +38611,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 99 */
+/* 97 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -38652,9 +38622,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
 
-  var _get = function get(_x, _x2, _x3) { var _again = true; _function: while (_again) { desc = parent = getter = undefined; _again = false; var object = _x,
-      property = _x2,
-      receiver = _x3; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { _x = parent; _x2 = property; _x3 = receiver; _again = true; continue _function; } } else if ('value' in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } } };
+  var _get = function get(_x, _x2, _x3) { var _again = true; _function: while (_again) { var object = _x, property = _x2, receiver = _x3; desc = parent = getter = undefined; _again = false; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { _x = parent; _x2 = property; _x3 = receiver; _again = true; continue _function; } } else if ('value' in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } } };
 
   function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
 
@@ -38665,8 +38633,6 @@ return /******/ (function(modules) { // webpackBootstrap
   var _utilNodeBase = __webpack_require__(109);
 
   var _utilNodeBase2 = _interopRequireDefault(_utilNodeBase);
-
-  'use strict';
 
   var Icon = (function (_NodeBase) {
     function Icon(options, body, labelModule) {
@@ -38761,7 +38727,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 100 */
+/* 98 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -38772,9 +38738,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
 
-  var _get = function get(_x, _x2, _x3) { var _again = true; _function: while (_again) { desc = parent = getter = undefined; _again = false; var object = _x,
-      property = _x2,
-      receiver = _x3; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { _x = parent; _x2 = property; _x3 = receiver; _again = true; continue _function; } } else if ('value' in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } } };
+  var _get = function get(_x, _x2, _x3) { var _again = true; _function: while (_again) { var object = _x, property = _x2, receiver = _x3; desc = parent = getter = undefined; _again = false; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { _x = parent; _x2 = property; _x3 = receiver; _again = true; continue _function; } } else if ('value' in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } } };
 
   function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
 
@@ -38785,8 +38749,6 @@ return /******/ (function(modules) { // webpackBootstrap
   var _utilCircleImageBase = __webpack_require__(110);
 
   var _utilCircleImageBase2 = _interopRequireDefault(_utilCircleImageBase);
-
-  'use strict';
 
   var Image = (function (_CircleImageBase) {
     function Image(options, body, labelModule, imageObj) {
@@ -38852,7 +38814,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 101 */
+/* 99 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -38863,9 +38825,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
 
-  var _get = function get(_x, _x2, _x3) { var _again = true; _function: while (_again) { desc = parent = getter = undefined; _again = false; var object = _x,
-      property = _x2,
-      receiver = _x3; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { _x = parent; _x2 = property; _x3 = receiver; _again = true; continue _function; } } else if ('value' in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } } };
+  var _get = function get(_x, _x2, _x3) { var _again = true; _function: while (_again) { var object = _x, property = _x2, receiver = _x3; desc = parent = getter = undefined; _again = false; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { _x = parent; _x2 = property; _x3 = receiver; _again = true; continue _function; } } else if ('value' in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } } };
 
   function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
 
@@ -38876,8 +38836,6 @@ return /******/ (function(modules) { // webpackBootstrap
   var _utilShapeBase = __webpack_require__(111);
 
   var _utilShapeBase2 = _interopRequireDefault(_utilShapeBase);
-
-  'use strict';
 
   var Square = (function (_ShapeBase) {
     function Square(options, body, labelModule) {
@@ -38913,7 +38871,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 102 */
+/* 100 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -38924,9 +38882,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
 
-  var _get = function get(_x, _x2, _x3) { var _again = true; _function: while (_again) { desc = parent = getter = undefined; _again = false; var object = _x,
-      property = _x2,
-      receiver = _x3; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { _x = parent; _x2 = property; _x3 = receiver; _again = true; continue _function; } } else if ('value' in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } } };
+  var _get = function get(_x, _x2, _x3) { var _again = true; _function: while (_again) { var object = _x, property = _x2, receiver = _x3; desc = parent = getter = undefined; _again = false; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { _x = parent; _x2 = property; _x3 = receiver; _again = true; continue _function; } } else if ('value' in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } } };
 
   function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
 
@@ -38937,8 +38893,6 @@ return /******/ (function(modules) { // webpackBootstrap
   var _utilShapeBase = __webpack_require__(111);
 
   var _utilShapeBase2 = _interopRequireDefault(_utilShapeBase);
-
-  'use strict';
 
   var Star = (function (_ShapeBase) {
     function Star(options, body, labelModule) {
@@ -38973,7 +38927,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 103 */
+/* 101 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -38984,9 +38938,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
 
-  var _get = function get(_x, _x2, _x3) { var _again = true; _function: while (_again) { desc = parent = getter = undefined; _again = false; var object = _x,
-      property = _x2,
-      receiver = _x3; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { _x = parent; _x2 = property; _x3 = receiver; _again = true; continue _function; } } else if ('value' in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } } };
+  var _get = function get(_x, _x2, _x3) { var _again = true; _function: while (_again) { var object = _x, property = _x2, receiver = _x3; desc = parent = getter = undefined; _again = false; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { _x = parent; _x2 = property; _x3 = receiver; _again = true; continue _function; } } else if ('value' in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } } };
 
   function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
 
@@ -38997,8 +38949,6 @@ return /******/ (function(modules) { // webpackBootstrap
   var _utilNodeBase = __webpack_require__(109);
 
   var _utilNodeBase2 = _interopRequireDefault(_utilNodeBase);
-
-  'use strict';
 
   var Text = (function (_NodeBase) {
     function Text(options, body, labelModule) {
@@ -39062,7 +39012,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 104 */
+/* 102 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -39073,9 +39023,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
 
-  var _get = function get(_x, _x2, _x3) { var _again = true; _function: while (_again) { desc = parent = getter = undefined; _again = false; var object = _x,
-      property = _x2,
-      receiver = _x3; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { _x = parent; _x2 = property; _x3 = receiver; _again = true; continue _function; } } else if ('value' in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } } };
+  var _get = function get(_x, _x2, _x3) { var _again = true; _function: while (_again) { var object = _x, property = _x2, receiver = _x3; desc = parent = getter = undefined; _again = false; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { _x = parent; _x2 = property; _x3 = receiver; _again = true; continue _function; } } else if ('value' in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } } };
 
   function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
 
@@ -39086,8 +39034,6 @@ return /******/ (function(modules) { // webpackBootstrap
   var _utilShapeBase = __webpack_require__(111);
 
   var _utilShapeBase2 = _interopRequireDefault(_utilShapeBase);
-
-  'use strict';
 
   var Triangle = (function (_ShapeBase) {
     function Triangle(options, body, labelModule) {
@@ -39122,7 +39068,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 105 */
+/* 103 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -39133,9 +39079,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
 
-  var _get = function get(_x, _x2, _x3) { var _again = true; _function: while (_again) { desc = parent = getter = undefined; _again = false; var object = _x,
-      property = _x2,
-      receiver = _x3; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { _x = parent; _x2 = property; _x3 = receiver; _again = true; continue _function; } } else if ('value' in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } } };
+  var _get = function get(_x, _x2, _x3) { var _again = true; _function: while (_again) { var object = _x, property = _x2, receiver = _x3; desc = parent = getter = undefined; _again = false; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { _x = parent; _x2 = property; _x3 = receiver; _again = true; continue _function; } } else if ('value' in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } } };
 
   function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
 
@@ -39146,8 +39090,6 @@ return /******/ (function(modules) { // webpackBootstrap
   var _utilShapeBase = __webpack_require__(111);
 
   var _utilShapeBase2 = _interopRequireDefault(_utilShapeBase);
-
-  'use strict';
 
   var TriangleDown = (function (_ShapeBase) {
     function TriangleDown(options, body, labelModule) {
@@ -39182,7 +39124,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 106 */
+/* 104 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -39193,9 +39135,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
 
-  var _get = function get(_x, _x2, _x3) { var _again = true; _function: while (_again) { desc = parent = getter = undefined; _again = false; var object = _x,
-      property = _x2,
-      receiver = _x3; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { _x = parent; _x2 = property; _x3 = receiver; _again = true; continue _function; } } else if ('value' in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } } };
+  var _get = function get(_x, _x2, _x3) { var _again = true; _function: while (_again) { var object = _x, property = _x2, receiver = _x3; desc = parent = getter = undefined; _again = false; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { _x = parent; _x2 = property; _x3 = receiver; _again = true; continue _function; } } else if ('value' in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } } };
 
   function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
 
@@ -39340,7 +39280,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 107 */
+/* 105 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -39351,9 +39291,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
 
-  var _get = function get(_x4, _x5, _x6) { var _again = true; _function: while (_again) { desc = parent = getter = undefined; _again = false; var object = _x4,
-      property = _x5,
-      receiver = _x6; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { _x4 = parent; _x5 = property; _x6 = receiver; _again = true; continue _function; } } else if ('value' in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } } };
+  var _get = function get(_x4, _x5, _x6) { var _again = true; _function: while (_again) { var object = _x4, property = _x5, receiver = _x6; desc = parent = getter = undefined; _again = false; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { _x4 = parent; _x5 = property; _x6 = receiver; _again = true; continue _function; } } else if ('value' in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } } };
 
   function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
 
@@ -39606,7 +39544,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 108 */
+/* 106 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -39617,9 +39555,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
 
-  var _get = function get(_x, _x2, _x3) { var _again = true; _function: while (_again) { desc = parent = getter = undefined; _again = false; var object = _x,
-      property = _x2,
-      receiver = _x3; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { _x = parent; _x2 = property; _x3 = receiver; _again = true; continue _function; } } else if ('value' in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } } };
+  var _get = function get(_x, _x2, _x3) { var _again = true; _function: while (_again) { var object = _x, property = _x2, receiver = _x3; desc = parent = getter = undefined; _again = false; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { _x = parent; _x2 = property; _x3 = receiver; _again = true; continue _function; } } else if ('value' in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } } };
 
   function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
 
@@ -39718,6 +39654,30 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
+/* 107 */
+/***/ function(module, exports, __webpack_require__) {
+
+  module.exports = function(module) {
+  	if(!module.webpackPolyfill) {
+  		module.deprecate = function() {};
+  		module.paths = [];
+  		// module.parent = undefined by default
+  		module.children = [];
+  		module.webpackPolyfill = 1;
+  	}
+  	return module;
+  }
+
+
+/***/ },
+/* 108 */
+/***/ function(module, exports, __webpack_require__) {
+
+  /* WEBPACK VAR INJECTION */(function(__webpack_amd_options__) {module.exports = __webpack_amd_options__;
+
+  /* WEBPACK VAR INJECTION */}.call(exports, {}))
+
+/***/ },
 /* 109 */
 /***/ function(module, exports, __webpack_require__) {
 
@@ -39797,9 +39757,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
 
-  var _get = function get(_x, _x2, _x3) { var _again = true; _function: while (_again) { desc = parent = getter = undefined; _again = false; var object = _x,
-      property = _x2,
-      receiver = _x3; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { _x = parent; _x2 = property; _x3 = receiver; _again = true; continue _function; } } else if ('value' in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } } };
+  var _get = function get(_x, _x2, _x3) { var _again = true; _function: while (_again) { var object = _x, property = _x2, receiver = _x3; desc = parent = getter = undefined; _again = false; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { _x = parent; _x2 = property; _x3 = receiver; _again = true; continue _function; } } else if ('value' in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } } };
 
   function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
 
@@ -39932,9 +39890,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
 
-  var _get = function get(_x, _x2, _x3) { var _again = true; _function: while (_again) { desc = parent = getter = undefined; _again = false; var object = _x,
-      property = _x2,
-      receiver = _x3; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { _x = parent; _x2 = property; _x3 = receiver; _again = true; continue _function; } } else if ('value' in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } } };
+  var _get = function get(_x, _x2, _x3) { var _again = true; _function: while (_again) { var object = _x, property = _x2, receiver = _x3; desc = parent = getter = undefined; _again = false; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { _x = parent; _x2 = property; _x3 = receiver; _again = true; continue _function; } } else if ('value' in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } } };
 
   function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
 
@@ -40033,9 +39989,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
 
-  var _get = function get(_x2, _x3, _x4) { var _again = true; _function: while (_again) { desc = parent = getter = undefined; _again = false; var object = _x2,
-      property = _x3,
-      receiver = _x4; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { _x2 = parent; _x3 = property; _x4 = receiver; _again = true; continue _function; } } else if ('value' in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } } };
+  var _get = function get(_x2, _x3, _x4) { var _again = true; _function: while (_again) { var object = _x2, property = _x3, receiver = _x4; desc = parent = getter = undefined; _again = false; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { _x2 = parent; _x3 = property; _x4 = receiver; _again = true; continue _function; } } else if ('value' in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } } };
 
   function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
 
@@ -40186,7 +40140,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
 
-  var util = __webpack_require__(1);
+  var util = __webpack_require__(57);
 
   var EdgeBase = (function () {
     function EdgeBase(options, body, labelModule) {
