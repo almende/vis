@@ -7,9 +7,9 @@ http://visjs.org
 ### General
 
 - Changed the build scripts to include a transpilation of ES6 to ES5
-  (using http://6to5.org), so we can use ES6 features in the vis.js code.
+  (using http://babel.org), so we can use ES6 features in the vis.js code.
   When creating a custom bundle using browserify, one now needs to add a
-  transform step using `6to5ify`, this is described in README.md.
+  transform step using `babelify`, this is described in README.md.
 
 ### Timeline
 
