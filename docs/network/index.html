@@ -190,7 +190,7 @@
 &lt;/body&gt;
 &lt;/html&gt;
 </pre>
-    <p><a href="http://visjs.org/examples/network/01_basic_usage.html" target="_blank">The result of the code above will be the basic example which is shown here.</a></p>
+    <p><a href="http://visjs.org/examples/network/basic_usage.html" target="_blank">The result of the code above will be the basic example which is shown here.</a></p>
 
     <br>
     </div>
@@ -1439,8 +1439,7 @@ var network = new vis.Network(container, data, options);
         <p>
             Network can import data straight from an exported json file from gephi. You can get the JSON exporter here:
             <a href="https://marketplace.gephi.org/plugin/json-exporter/" target="_blank">https://marketplace.gephi.org/plugin/json-exporter/</a>.
-            An example exists showing how to get a JSON file into Vis: <a
-                href="../examples/network/30_importing_from_gephi.html">30_importing_from_gephi</a>.
+            An example exists showing how to get a JSON file into Vis:
         </p>
 
         <p>
@@ -1449,7 +1448,7 @@ var network = new vis.Network(container, data, options);
 
 <pre class="prettyprint lang-js">
 // load the JSON file containing the Gephi network.
-var gephiJSON = loadJSON("./data/WorldCup2014.json"); // code in example 30
+var gephiJSON = loadJSON("./datasources/WorldCup2014.json"); // code in <a href="../examples/network/data/importing_from_gephi.html">importing_from_gephi</a>.
 
 // you can customize the result like with these options. These are explained below.
 // These are the default options.

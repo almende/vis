@@ -31,11 +31,38 @@ http://visjs.org
 
 ### Graph2d
 
+- New option structure.
+- Cleaned up docs.
+- Fixed #628: stacking order.
+- Fixed #624: sorting order.
+- Fixed #616: stacking with negative bars.
+- Fixed #728: alignment issues.
 - Fixed #716: Height of graph `2px` too large when configuring a fixed height.
 
 ### Network
 
-- Rebuilt the cluster system
+The network has been completely rewritten. The new modular setup using ES6 classes makes
+it future proof for maintainability, extendability and clarity. A summary of new features:
+- New examples, categorized by topic.
+- New docs.
+- New option structure, adhering to the modular setup on the backend.
+- New events for user interaction.
+- New render events for drawing custom elements on the canvas.
+- New physics events for making a loading bar during stabilization.
+- A lot of new methods that make extending easier.
+- Manipulation system now works without the UI neccesarily.
+- Nodes and edges can cast shadows.
+- Configurator system to dynamically change almost all options.
+- Validator has been created for the network's options, warning you about typo's and suggesting alternatives.
+- Diamond shape for nodes.
+- Unified the label code so edges and nodes have the same label settings.
+- InheritColors for edges can be set to both, making a gradient fade between two node colors.
+- Redesigned the clustering system giving full control over it.
+- Random seed can be saved so the network will be the same every time you start it.
+- New physics solver based on ForceAtlas2 as implemented in gephi.]
+- New avoidOverlap option for physics.
+- Many, many bugfixes.
+
 
 ### DataSet
 
