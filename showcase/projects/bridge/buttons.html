@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html>
+<head lang="en">
+    <meta charset="UTF-8">
+    <title></title>
+    <script src="./js/hammer.js"></script>
+    <script src="./js/es6-shim.min.js"></script>
+    <script src="./js/eve.js"></script>
+    <script src="./js/inputAgent.js"></script>
+    <script src="./js/jquery.min.js"></script>
+    <script src="./js/bootstrap.min.js"></script>
+    <script language="JavaScript">
+        var inputProxy;
+    </script>
+    <script src="./js/init.js"></script>
+    <script language="JavaScript">
+        // to run this, also have webHttp.js running in node.
+        eve.system.init({
+            transports: [
+                {
+                    type: 'ws',
+                    url: 'ws://agents/:id'
+                },
+                {
+                    type: 'http'
+                }
+            ]
+        });
+
+        var proxyAddress = 'ws://afternoon-beyond-2302.herokuapp.com/agents/proxy';
+        var proxyAddressHTTP = 'https://afternoon-beyond-2302.herokuapp.com/agents/proxy';
+
+//        proxyAddress = 'ws://127.0.0.1:5000/agents/proxy';
+//        proxyAddressHTTP = 'http://127.0.0.1:5000/agents/proxy';
+
+        inputProxy = new inputAgent('inputAgent', proxyAddress);
+
+        inputProxy.wakeProxy(proxyAddressHTTP);
+
+        inputProxy.connectToProxy();
+        inputProxy.getEventTypes().then(function (reply) {
+            initButtons(reply);
+        }).catch(function (err) {
+            console.error(err);
+        });
+
+        inputProxy.getTimelineEvents().then(function (reply) {
+            console.log(reply);
+        }).catch(function (err) {
+            console.error(err);
+        });
+
+    </script>
+
+    <link rel="stylesheet" href="./css/bootstrap.min.css">
+    <style>
+        div.newEvent {
+            position: relative;
+            margin: 10px;
+            padding: 10px;
+            width: 300px;
+            border: 1px solid #dddddd;
+            border-radius: 5px;
+            height: 200px;
+            background-color: #ffffff;
+        }
+
+        div.timelineEvent {
+            position: relative;
+            margin: 10px;
+            padding: 10px;
+            width: 300px;
+            border: 1px solid #dddddd;
+            border-radius: 5px;
+            height: 140px;
+            background-color: #ffffff;
+        }
+
+        div.resetEvents {
+            margin: -210px 10px 10px 320px;
+            padding: 10px;
+            width: 160px;
+            border: 1px solid #dddddd;
+            border-radius: 5px;
+            height: 200px;
+        }
+
+        p.alabel {
+            display: inline-block;
+            width: 90px;
+        }
+
+        div.content {
+            margin: 10px;
+        }
+
+        button {
+            margin: 5px;
+        }
+
+        #buttonBunch {
+
+        }
+
+        h3 {
+            margin-left: 10px;
+        }
+
+        div.overlay {
+            position: absolute;
+            top: 0px;
+            left: 0px;
+            display: none;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 12;
+        }
+
+        html, body {
+            width: 100%;
+            height: 100%;
+        }
+
+        h1 {
+            color: #ffffff;
+        }
+
+        div.colors {
+            display: inline-block;
+            width: 30px;
+            height: 20px;
+            border: 0px solid #dddddd;
+            border-radius: 3px;
+        }
+
+        div.colors.red {background-color: #ff0000;}
+        div.colors.white {border-width:1px;  background-color: #ffffff;}
+        div.colors.magenta {background-color: #ff21cb;}
+        div.colors.orange {background-color: #ffa42a;}
+        div.colors.green {background-color: #00ce34;}
+
+        button.red {background-color: #ff0000;}
+        button.white {color:#aaaaaa;border-width:1px;  background-color: #ffffff;}
+        button.magenta {background-color: #ff21cb;}
+        button.orange {background-color: #ffa42a;}
+        button.green {background-color: #00ce34;}
+
+        div.colors.selected {
+            box-shadow: 0px 0px 5px #0bd1ff;
+        }
+    </style>
+
+</head>
+<body>
+<div class="overlay" id="overlayNC">
+    <h1>Connection has been lost. Please refresh the page.</h1>
+</div>
+<div class="overlay" id="overlay">
+    <div class="timelineEvent" id="newTimelineEvent">
+        <h4>When does the event start?</h4>
+        Start event: <select id="delaySelect">
+        <option value="0">Now</option>
+        <option value="5">5 minutes</option>
+        <option value="15">15 minutes</option>
+        <option value="30">30 minutes</option>
+        <option value="45">45 minutes</option>
+        <option value="60">1 hour</option>
+        <option value="120">2 hours</option>
+        <option value="180">3 hours</option>
+    </select>
+        <br/>
+        <br/>
+        <button type="button" class="btn btn-danger pull-left" onclick="hideOverlay()">
+            cancel
+        </button>
+        <button type="button" class="btn btn-primary pull-right" onclick="newTimelineEvent()">
+            create Event
+        </button>
+    </div>
+</div>
+<div class="newEvent">
+    <h4>create new event type:</h4>
+
+    <p class="alabel">Name:</p><input id="newEvent"><br/>
+
+    <p class="alabel">Color:</p>
+
+    <div class="colors red" onclick="selectColor('red','colorRed');" id="colorRed"></div>
+    <div class="colors white selected" onclick="selectColor('white','colorWhite');" id="colorWhite"></div>
+    <div class="colors green" onclick="selectColor('green','colorGreen');" id="colorGreen"></div>
+    <div class="colors orange" onclick="selectColor('orange','colorOrange');" id="colorOrange"></div>
+    <div class="colors magenta" onclick="selectColor('magenta','colorMagenta');" id="colorMagenta"></div>
+    <br/>
+    <!--<p class="alabel">range:</p><input type="checkbox" id="range"><br />-->
+    <button type="button" class="btn btn-primary pull-right" onclick="newEvent()">
+        create
+    </button>
+</div>
+<div class="resetEvents">
+    <button type="button" class="btn btn-danger" onclick="resetEvents()">
+        Reset all events
+    </button>
+    <br/>
+    <br/>
+    <button type="button" class="btn btn-danger" onclick="resetTimelineData()">
+        Remove data
+    </button>
+</div>
+
+<h3>cick one of the buttons to create a new event on the timeline</h3>
+
+<div class='content' id="buttonBunch">
+
+</div>
+
+
+</body>
+</html>

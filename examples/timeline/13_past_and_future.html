@@ -1,5 +1,5 @@
 <html>
-<head>
+<head><script>(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)})(window,document,'script','//www.google-analytics.com/analytics.js','ga');ga('create', 'UA-61231638-1', 'auto');ga('send', 'pageview');</script>
   <title>Timeline | Past and future</title>
 
   <style type="text/css">
@@ -80,7 +80,7 @@
   // set a custom range from -2 minute to +3 minutes current time
   var start = new Date((new Date()).getTime() - 2 * 60 * 1000);
   var end   = new Date((new Date()).getTime() + 3 * 60 * 1000);
-  timeline.setWindow(start, end);
+  timeline.setWindow(start, end, {animate: false});
 
 </script>
 

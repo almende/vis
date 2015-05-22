@@ -1,6 +1,6 @@
 <html>
 
-<head>
+<head><script>(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)})(window,document,'script','//www.google-analytics.com/analytics.js','ga');ga('create', 'UA-61231638-1', 'auto');ga('send', 'pageview');</script>
   <title>vis.js | Graph2d documentation</title>
   <style>
     td.greenField {
@@ -174,6 +174,12 @@ var items = [
     <td>number | string</td>
     <td>no</td>
     <td>The ID of the group this point belongs to.</td>
+  </tr>
+  <tr>
+    <td>label</td>
+    <td>object</td>
+    <td>no</td>
+    <td>A label object which will be displayed near to the item. A label object has one requirement - a <b> content </b> property. In addition you can set the <b> xOffset, yOffset and className </b> for further appearance customisations </td>
   </tr>
 </table>
 
@@ -672,7 +678,7 @@ The options colored in green can also be used as options for the groups. All opt
     <td>orientation</td>
     <td>String</td>
     <td>'bottom'</td>
-    <td>Orientation of the timeline: 'top' or 'bottom' (default). If orientation is 'bottom', the time axis is drawn at the bottom, and if 'top', the axis is drawn on top.</td>
+    <td>Orientation of the timeline: 'top', 'bottom' (default), or 'both'. If orientation is 'bottom', the time axis is drawn at the bottom. When 'top', the axis is drawn on top. When 'both', two axes are drawn, both on top and at the bottom.</td>
   </tr>
 
   <tr>
@@ -738,6 +744,22 @@ The options colored in green can also be used as options for the groups. All opt
   </tr>
 
   <tr>
+    <td>timeAxis.scale</td>
+    <td>string</td>
+    <td>none</td>
+    <td>Set a fixed scale for the time axis of the Timeline. Choose from <code>'millisecond'</code>, <code>'second'</code>, <code>'minute'</code>, <code>'hour'</code>, <code>'weekday'</code>, <code>'day'</code>, <code>'month'</code>, <code>'year'</code>.</td>
+  </tr>
+
+  <tr>
+    <td>timeAxis.step</td>
+    <td>number</td>
+    <td>1</td>
+    <td>
+      Set a fixed step size for the time axis. Only applicable when used together with <code>timeAxis.scale</code>.
+      Choose for example 1, 2, 5, or 10.</td>
+  </tr>
+
+  <tr>
     <td>width</td>
     <td>String</td>
     <td>'100%'</td>
@@ -792,9 +814,48 @@ Graph2d.clear({options: true}); // clear options only
   </tr>
 
   <tr>
+    <td>click</td>
+    <td>Fired when clicked inside the Graph2d.
+    </td>
+    <td>
+      Passes a properties object as returned by the method <a href="#getEventProperties"><code>Graph2d.getEventProperties(event)</code></a>.
+    </td>
+  </tr>
+
+  <tr>
+    <td>contextmenu</td>
+    <td>Fired when right-clicked inside the Graph2d. Note that in order to prevent the context menu from showing up, default behavior of the event must be stopped:
+<pre class="prettyprint lang-js">graph2d.on('contextmenu', function (props) {
+  alert('Right click!');
+  props.event.preventDefault();
+});
+</pre>
+    </td>
+    <td>
+      Passes a properties object as returned by the method <a href="#getEventProperties"><code>Graph2d.getEventProperties(event)</code></a>.
+    </td>
+  </tr>
+
+  <tr>
     <td>destroy()</td>
     <td>none</td>
     <td>Destroy the Graph2d. The Graph2d is removed from memory. all DOM elements and event listeners are cleaned up.
+    </td>
+  </tr>
+
+  <tr>
+    <td>doubleClick</td>
+    <td>Fired when double clicked inside the Graph2d.
+    </td>
+    <td>
+      Passes a properties object as returned by the method <a href="#getEventProperties"><code>Graph2d.getEventProperties(event)</code></a>.
+    </td>
+  </tr>
+
+  <tr>
+    <td>fit()</td>
+    <td>none</td>
+    <td>Adjust the visible window such that it fits all items.
     </td>
   </tr>
 
@@ -809,6 +870,24 @@ Graph2d.clear({options: true}); // clear options only
     <td>getCustomTime()</td>
     <td>Date</td>
     <td>Retrieve the custom time. Only applicable when the option <code>showCustomTime</code> is true.
+    </td>
+  </tr>
+
+  <tr id="getEventProperties">
+    <td>getEventProperties(event)</td>
+    <td>Object</td>
+    <td>
+      Returns an Object with relevant properties from an event:
+      <ul>
+        <li><code>pageX</code> (Number): absolute horizontal position of the click event.</li>
+        <li><code>pageY</code> (Number): absolute vertical position of the click event.</li>
+        <li><code>x</code> (Number): relative horizontal position of the click event.</li>
+        <li><code>y</code> (Number): relative vertical position of the click event.</li>
+        <li><code>time</code> (Date): Date of the clicked event.</li>
+        <li><code>value</code> (Number[]): The data value of the click event. The array contains one value when there is one data axis visible, and two values when there are two visible data axes.</li>
+        <li><code>what</code> (String | null): name of the clicked thing: <code>background</code>, <code>axis</code>, <code>dat-axis</code>, <code>custom-time</code>, or <code>current-time</code>, <code>legend</code>.</li>
+        <li><code>event</code> (Object): the original click event.</li>
+      </ul>
     </td>
   </tr>
 
@@ -832,9 +911,13 @@ Graph2d.clear({options: true}); // clear options only
   </tr>
 
   <tr>
-    <td>fit()</td>
+    <td>hiddenDates</td>
+    <td>Object</td>
     <td>none</td>
-    <td>Adjust the visible window such that it fits all items.
+    <td>This option allows you to hide specific timespans from the time axis. The dates can be supplied as an object:
+      <code>{start: '2014-03-21 00:00:00', end: '2014-03-28 00:00:00', [repeat:'daily']}</code> or as an Array of these objects. The repeat argument is optional.
+      The possible values are (case-sensitive): <code>daily, weekly, monthly, yearly</code>. To hide a weekend, pick any Saturday as start and the following Monday as end
+      and set repeat to weekly.
     </td>
   </tr>
 

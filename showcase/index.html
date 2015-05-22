@@ -1,13 +1,13 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
+<head><script>(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)})(window,document,'script','//www.google-analytics.com/analytics.js','ga');ga('create', 'UA-61231638-1', 'auto');ga('send', 'pageview');</script>
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>vis.js showcase</title>
     <link rel="icon" HREF="favicon.ico">
     <!-- Bootstrap -->
-    <link href="../css/bootstrap.min.css" rel="stylesheet">
+    <link href="../css/bootstrap.css" rel="stylesheet">
 
     <!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
     <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
@@ -20,7 +20,14 @@
     <style>
         body {
             font-family: Lustria,Georgia,Times,"Times New Roman",serif !important;
-            padding:10px;
+        }
+        div.navbar-wrapper {
+            background-color:#07508E;
+            border-bottom: 3px solid #ffffff;
+            font-size:16px;
+        }
+        div.contentWrapper {
+            padding:20px;
         }
 
         a:link {color: #8bb9fb;}
@@ -39,7 +46,7 @@
             border: 1px solid #dddddd;
             border-radius:5px;
             width:880px;
-            height:350px;
+            max-height:350px;
             margin:30px;
         }
 
@@ -67,8 +74,41 @@
 
 </head>
 <body>
-<h1>Showcase projects</h1>
 
+
+<div class="navbar-wrapper">
+    <div class="container">
+        <nav class="navbar navbar-inverse navbar-static-top" role="navigation">
+            <div class="container">
+                <div class="navbar-header">
+                    <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
+                        <span class="sr-only">Toggle navigation</span>
+                        <span class="icon-bar"></span>
+                        <span class="icon-bar"></span>
+                        <span class="icon-bar"></span>
+                    </button>
+                    <a class="navbar-brand hidden-sm" href="../index.html">vis.js</a>
+                </div>
+                <div id="navbar" class="navbar-collapse collapse">
+                    <ul class="nav navbar-nav">
+                        <li><a href="../index.html#modules">Modules</a></li>
+                        <li><a href="../docs/index.html" target="_blank">Documentation <img class="icon" src="../images/external-link-icons/external-link-icon-white.png"></a></li>
+                        <li><a href="../blog.html">Blog</a></li>
+                        <li><a href="../index.html#download_install">Download</a></li>
+                        <li class="active"><a href="">Showcase</a></li>
+                        <li><a href="../index.html#contribute">Contribute</a></li>
+                        <li><a href="../featureRequests.html">Feature requests</a></li>
+                        <li><a href="../index.html#licenses">License</a></li>
+                    </ul>
+                </div>
+            </div>
+        </nav>
+
+    </div>
+</div>
+
+<div class="contentWrapper">
+    <h1>Showcase projects</h1>
 <div class="container-fluid">
     These are projects we made using vis, or ones we received from the community. If you'd like your project to be featured here, please <a href="https://github.com/almende/vis/issues" target="_blank">post an issue on our Git page</a>.
     <div class="row">
@@ -167,8 +207,27 @@
             </div>
         </div>
     </div>
-</div>
 
+    <div class="row">
+        <div class="col-md-12 col-lg-6">
+            <a href="http://felixhayashi.github.io/TW5-TiddlyMap/index.html">
+                <img src="./images/tiddlywiki.png" class="showcase img-responsive">
+            </a>
+            <div class="description">
+                <div class="descriptionHeader">
+                    <a href="http://tiddlywiki.com/"> TiddlyWiki</a>
+                </div>
+                <div class="descriptionContent">
+                    The vis graphs are neatly embedded in the overall wiki content and can support the text at any place. Also, since vis allows click events on nodes,
+                    articles can comfortably opened from any graph, which helps the user in quickly jumping between topics.
+                    Thus, a graph-wiki-hybrid is created which makes it incredibly easy to integrate, link and visualize ideas and topics.
+                </div>
+            </div>
+        </div>
+
+    </div>
+</div>
+</div>
 <br /><br /><br /><br />
 
 <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->

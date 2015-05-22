@@ -1,0 +1,84 @@
+<html>
+<head><script>(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)})(window,document,'script','//www.google-analytics.com/analytics.js','ga');ga('create', 'UA-61231638-1', 'auto');ga('send', 'pageview');</script>
+  <title>Timeline | Bridge</title>
+
+  <script src="js/vis/vis.js"></script>
+
+  <script src="js/eve.js"></script>
+    <script src="js/timelineAgent.js"></script>
+  <link href="js/vis/vis.css" rel="stylesheet" type="text/css" />
+
+  <link href="./css/timelineStyle.css" rel="stylesheet" type="text/css" />
+
+</head>
+<body>
+<p>This page demonstrates the Timeline with custom css classes for individual items.</p>
+
+<div id="mytimeline"></div>
+
+<script type="text/javascript">
+  var connected = false;
+  // create data
+  // note that months are zero-based in the JavaScript Date object
+  var data = new vis.DataSet();
+
+  // called from agent
+  function addToDataset(item) {
+      console.log(item)
+      data.add(item);
+  }
+  // called from agent
+  function clearDataset() {
+      data.clear();
+  }
+
+  function sessionClosed() {
+      if (connected === true) {
+          document.getElementById("overlayNC").style.display = 'block';
+      }
+  }
+
+  // specify options
+  var options = {
+    editable: true
+  };
+
+  // to run this, also have webHttp.js running in node.
+  eve.system.init({
+      transports: [
+          {
+              type: 'ws',
+              url: 'ws://agents/:id'
+          },
+          {
+              type: 'http'
+          }
+      ]
+  });
+
+  var proxyAddress = 'ws://afternoon-beyond-2302.herokuapp.com/agents/proxy';
+  var proxyAddressHTTP = 'https://afternoon-beyond-2302.herokuapp.com/agents/proxy';
+
+//  proxyAddress = 'ws://127.0.0.1:5000/agents/proxy';
+//  proxyAddressHTTP = 'http://127.0.0.1:5000/agents/proxy';
+
+  timelineProxy = new timelineAgent('timelineAgent', proxyAddress);
+
+  timelineProxy.wakeProxy(proxyAddressHTTP);
+
+  timelineProxy.connectToProxy();
+
+  timelineProxy.getTimelineEvents().then(function (reply) {
+      addToDataset(reply);
+  }).catch(function (err) {
+      console.error(err);
+  });
+
+
+  // create the timeline
+  var container = document.getElementById('mytimeline');
+  timeline = new vis.Timeline(container, data, options);
+
+</script>
+</body>
+</html>

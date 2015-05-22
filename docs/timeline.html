@@ -1,6 +1,6 @@
 <html>
 
-<head>
+<head><script>(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)})(window,document,'script','//www.google-analytics.com/analytics.js','ga');ga('create', 'UA-61231638-1', 'auto');ga('send', 'pageview');</script>
   <title>vis.js | timeline documentation</title>
 
   <link href='css/prettify.css' type='text/css' rel='stylesheet'>
@@ -205,7 +205,7 @@ var items = [
   </tr>
   <tr>
     <td>end</td>
-    <td>Date</td>
+    <td>Date | number | string | Moment</td>
     <td>no</td>
     <td>The end date of the item. The end date is optional, and can be left <code>null</code>.
       If end date is provided, the item is displayed as a range.
@@ -232,7 +232,7 @@ var items = [
   </tr>
   <tr>
     <td>start</td>
-    <td>Date</td>
+    <td>Date | number | string | Moment</td>
     <td>yes</td>
     <td>The start date of the item, for example <code>new Date(2010,9,23)</code>.</td>
   </tr>
@@ -468,7 +468,7 @@ var options = {
 
 <tr>
     <td>end</td>
-    <td>Date | Number | String</td>
+    <td>Date | Number | String | Moment</td>
     <td>none</td>
     <td>The initial end date for the axis of the timeline.
         If not provided, the latest date present in the items set is taken as
@@ -555,6 +555,13 @@ var options = {
 </tr>
 
 <tr>
+    <td>margin</td>
+    <td>Number | Object</td>
+    <td>Object</td>
+    <td>When a number, applies the margin to <code>margin.axis</code>, <code>margin.item.horizontal</code>, and <code>margin.item.vertical</code>.</td>
+</tr>
+
+<tr>
     <td>margin.axis</td>
     <td>Number</td>
     <td>20</td>
@@ -584,7 +591,7 @@ var options = {
 
 <tr>
     <td>max</td>
-    <td>Date | Number | String</td>
+    <td>Date | Number | String | Moment</td>
     <td>none</td>
     <td>Set a maximum Date for the visible range.
         It will not be possible to move beyond this maximum.
@@ -600,7 +607,7 @@ var options = {
 
 <tr>
     <td>min</td>
-    <td>Date | Number | String</td>
+    <td>Date | Number | String | Moment</td>
     <td>none</td>
     <td>Set a minimum Date for the visible range.
         It will not be possible to move beyond this minimum.
@@ -664,24 +671,39 @@ var options = {
     </td>
 </tr>
 
-<!-- TODO: cleanup option order
 <tr>
   <td>order</td>
   <td>Function</td>
   <td>none</td>
-  <td>Provide a custom sort function to order the items. The order of the
+  <td>
+    <p>Provide a custom sort function to order the items. The order of the
     items is determining the way they are stacked. The function
-    order is called with two parameters, both of type
-    `vis.components.items.Item`.
+    order is called with two arguments containing the data of two items to be
+    compared.
+    </p>
+    <p style="font-style: italic">WARNING: Use with caution. Custom ordering is not suitable for large amounts of items. On load, the Timeline will render all items once to determine their width and height. Keep the number of items in this configuration limited to a maximum of a few hundred items.</p>
   </td>
 </tr>
--->
 
 <tr>
     <td>orientation</td>
+    <td>String | Object</td>
+    <td>'bottom'</td>
+    <td>Orientation of the timelines axis and items. When orientation is a string, the value is applied to both items and axis. Can be 'top', 'bottom' (default), or 'both'.</td>
+</tr>
+
+<tr>
+    <td>orientation.axis</td>
     <td>String</td>
     <td>'bottom'</td>
-    <td>Orientation of the timeline: 'top' or 'bottom' (default). If orientation is 'bottom', the time axis is drawn at the bottom, and if 'top', the axis is drawn on top.</td>
+    <td>Orientation of the timeline axis: 'top', 'bottom' (default), or 'both'. If orientation is 'bottom', the time axis is drawn at the bottom. When 'top', the axis is drawn on top. When 'both', two axes are drawn, both on top and at the bottom.</td>
+</tr>
+
+<tr>
+    <td>orientation.item</td>
+    <td>String</td>
+    <td>'bottom'</td>
+    <td>Orientation of the timeline items: 'top' or 'bottom' (default). Determines whether items are aligned to the top or bottom of the Timeline.</td>
 </tr>
 
 <tr>
@@ -742,6 +764,7 @@ var options = {
         <code>showMinorLabels</code> are false, no horizontal axis will be
         visible.</td>
 </tr>
+
 <tr>
     <td>stack</td>
     <td>Boolean</td>
@@ -750,8 +773,18 @@ var options = {
 </tr>
 
 <tr>
+    <td>snap</td>
+    <td>function | null</td>
+    <td>function</td>
+    <td>When moving items on the Timeline, they will be snapped to nice dates like full hours or days, depending on the current scale. The <code>snap</code> function can be replaced with a custom function, or can be set to <code>null</code> to disable snapping. The signature of the snap function is:
+    <pre class="prettyprint lang-js">function snap(date: Date, scale: string, step: number) : Date | number</pre>
+    The parameter <code>scale</code> can be can be 'millisecond', 'second', 'minute', 'hour', 'weekday, 'day, 'month, or 'year'. The parameter <code>step</code> is a number like 1, 2, 4, 5.
+    </td>
+</tr>
+
+<tr>
     <td>start</td>
-    <td>Date | Number | String</td>
+    <td>Date | Number | String | Moment</td>
     <td>none</td>
     <td>The initial start date for the axis of the timeline.
         If not provided, the earliest date present in the events is taken as start date.</td>
@@ -762,6 +795,26 @@ var options = {
     <td>Function</td>
     <td>none</td>
     <td>A template function used to generate the contents of the items. The function is called by the Timeline with an items data as argument, and must return HTML code as result. When the option template is specified, the items do not need to have a field <code>content</code>. See section <a href="#Templates">Templates</a> for a detailed explanation.</td>
+</tr>
+
+<tr>
+  <td>timeAxis.scale</td>
+  <td>string</td>
+  <td>none</td>
+  <td>Set a fixed scale for the time axis of the Timeline. Choose from <code>'millisecond'</code>, <code>'second'</code>, <code>'minute'</code>, <code>'hour'</code>, <code>'weekday'</code>, <code>'day'</code>, <code>'month'</code>, <code>'year'</code>. Example usage:
+  <pre class="prettyprint lang-js">var options = {
+  timeAxis: {scale: 'minute', step: 5}
+}</pre>
+  </td>
+</tr>
+
+<tr>
+    <td>timeAxis.step</td>
+    <td>number</td>
+    <td>1</td>
+    <td>
+      Set a fixed step size for the time axis. Only applicable when used together with <code>timeAxis.scale</code>.
+      Choose for example 1, 2, 5, or 10.</td>
 </tr>
 
 <tr>
@@ -824,6 +877,15 @@ var options = {
   </tr>
 
   <tr>
+    <td>addCustomTime(time[, id])</td>
+    <td>Number | String</td>
+    <td>
+      Only applicable when the option showCustomTime is true.<br>
+      Add new vertical bar representing custom time that can be dragged by the user. Parameter <code>time</code> can be a Date, Number, or String. Parameter <code>id</code> can be Number or String. If <code>id</code> is provided, it will be used as ID for the new vertical bar, otherwise the ID will be auto generated.<br>
+      Returns ID of the newly created bar.
+    </td>
+  </tr>
+  <tr>
     <td>clear([what])</td>
     <td>none</td>
     <td>
@@ -872,9 +934,29 @@ timeline.clear({options: true}); // clear options only
   </tr>
 
   <tr>
-    <td>getCustomTime()</td>
+    <td>getCustomTime([id])</td>
     <td>Date</td>
-    <td>Retrieve the custom time. Only applicable when the option <code>showCustomTime</code> is true.
+    <td>Retrieve the custom time. Only applicable when the option <code>showCustomTime</code> is true. If parameter <code>id</code> is provided, time of the custom time bar under that ID is returned.
+    </td>
+  </tr>
+
+  <tr id="getEventProperties">
+    <td>getEventProperties(event)</td>
+    <td>Object</td>
+    <td>
+      Returns an Object with relevant properties from an event:
+      <ul>
+        <li><code>group</code> (Number | null): the id of the clicked group.</li>
+        <li><code>item</code> (Number | null): the id of the clicked item.</li>
+        <li><code>pageX</code> (Number): absolute horizontal position of the click event.</li>
+        <li><code>pageY</code> (Number): absolute vertical position of the click event.</li>
+        <li><code>x</code> (Number): relative horizontal position of the click event.</li>
+        <li><code>y</code> (Number): relative vertical position of the click event.</li>
+        <li><code>time</code> (Date): Date of the clicked event.</li>
+        <li><code>snappedTime</code> (Date): Date of the clicked event, snapped to a nice value.</li>
+        <li><code>what</code> (String | null): name of the clicked thing: <code>item</code>, <code>background</code>, <code>axis</code>, <code>group-label</code>, <code>custom-time</code>, or <code>current-time</code>.</li>
+        <li><code>event</code> (Object): the original click event.</li>
+      </ul>
     </td>
   </tr>
 
@@ -921,7 +1003,17 @@ timeline.clear({options: true}); // clear options only
   <tr>
     <td>redraw()</td>
     <td>none</td>
-    <td>Force a redraw of the Timeline. Can be useful to manually redraw when option autoResize=false.
+    <td>Force a redraw of the Timeline. The size of all items will be recalculated.
+      Can be useful to manually redraw when option <code>autoResize=false</code> and the window
+      has been resized, or when the items CSS has been changed.
+    </td>
+  </tr>
+
+  <tr>
+    <td>removeCustomTime(id)</td>
+    <td>none</td>
+    <td>
+      Remove vertical bars previously added to the timeline via <code>addCustomTime</code> method. Parameter <code>id</code> is the ID of the custom vertical bar returned by <code>addCustomTime</code> method.
     </td>
   </tr>
 
@@ -934,9 +1026,9 @@ timeline.clear({options: true}); // clear options only
   </tr>
 
   <tr>
-    <td>setCustomTime(time)</td>
+    <td>setCustomTime(time [, id])</td>
     <td>none</td>
-    <td>Adjust the custom time bar. Only applicable when the option <code>showCustomTime</code> is true. <code>time</code> can be a Date object, numeric timestamp, or ISO date string.
+    <td>Adjust the custom time bar. Only applicable when the option <code>showCustomTime</code> is true. Parameter <code>time</code> can be a Date object, numeric timestamp, or ISO date string. Parameter <code>id</code> represents ID of the custom time bar, provided by <code>addCustomTime</code> method and can be a Number or String.
     </td>
   </tr>
 
@@ -1042,35 +1134,70 @@ timeline.off('select', onSelect);
     <th>Description</th>
     <th>Properties</th>
   </tr>
-    <tr>
-        <td>finishedRedraw</td>
-        <td>Fired after a redraw is complete. When moving the timeline around, this could be fired frequently.
-        </td>
-        <td>
-            none.
-        </td>
-    </tr>
 
-    <tr>
+  <tr>
+    <td>click</td>
+    <td>Fired when clicked inside the Timeline.
+    </td>
+    <td>
+      Passes a properties object as returned by the method <a href="#getEventProperties"><code>Timeline.getEventProperties(event)</code></a>.
+    </td>
+  </tr>
+
+  <tr>
+    <td>contextmenu</td>
+    <td>Fired when right-clicked inside the Timeline. Note that in order to prevent the context menu from showing up, default behavior of the event must be stopped:
+<pre class="prettyprint lang-js">timeline.on('contextmenu', function (props) {
+  alert('Right click!');
+  props.event.preventDefault();
+});
+</pre>
+    </td>
+    <td>
+      Passes a properties object as returned by the method <a href="#getEventProperties"><code>Timeline.getEventProperties(event)</code></a>.
+    </td>
+  </tr>
+
+  <tr>
+    <td>doubleClick</td>
+    <td>Fired when double clicked inside the Timeline.
+    </td>
+    <td>
+      Passes a properties object as returned by the method <a href="#getEventProperties"><code>Timeline.getEventProperties(event)</code></a>.
+    </td>
+  </tr>
+
+  <tr>
+    <td>finishedRedraw</td>
+    <td>Fired after a redraw is complete. When moving the timeline around, this could be fired frequently.
+    </td>
+    <td>
+      none.
+    </td>
+  </tr>
+
+  <tr>
     <td>rangechange</td>
-    <td>Fired repeatedly when the user is dragging the timeline window.
+    <td>Fired repeatedly when the timeline window is being changed.
     </td>
     <td>
       <ul>
         <li><code>start</code> (Number): timestamp of the current start of the window.</li>
         <li><code>end</code> (Number): timestamp of the current end of the window.</li>
+        <li><code>byUser</code> (Boolean): change happened because of user drag/zoom.</li>
       </ul>
     </td>
   </tr>
 
   <tr>
     <td>rangechanged</td>
-    <td>Fired once after the user has dragged the timeline window.
+    <td>Fired once after the timeline window has been changed.
     </td>
     <td>
       <ul>
         <li><code>start</code> (Number): timestamp of the current start of the window.</li>
         <li><code>end</code> (Number): timestamp of the current end of the window.</li>
+        <li><code>byUser</code> (Boolean): change happened because of user drag/zoom.</li>
       </ul>
     </td>
   </tr>
@@ -1095,6 +1222,7 @@ timeline.off('select', onSelect);
     </td>
     <td>
       <ul>
+        <li><code>id</code> (Number | String): Vertical bar ID.</li>
         <li><code>time</code> (Date): the current time.</li>
       </ul>
     </td>
@@ -1107,6 +1235,7 @@ timeline.off('select', onSelect);
     </td>
     <td>
       <ul>
+        <li><code>id</code> (Number | String): Vertical bar ID.</li>
         <li><code>time</code> (Date): the current time.</li>
       </ul>
     </td>
@@ -1116,8 +1245,16 @@ timeline.off('select', onSelect);
 
 <h2 id="Editing_Items">Editing Items</h2>
 <p>
-  When the Timeline is configured to be editable (both options <code>selectable</code> and <code>editable</code> are <code>true</code>), the user can move items by dragging them, can create a new item by double tapping on an empty space, can update an item by double tapping it, and can delete a selected item by clicking the delete button on the top right.
+  When the Timeline is configured to be editable (both options <code>selectable</code> and <code>editable</code> are <code>true</code>), the user can:
 </p>
+<ul>
+  <li>Select an item by clicking it, and use ctrl+click to or shift+click to select multiple items</li>
+  <li>Move selected items by dragging them.</li>
+  <li>Create a new item by double tapping on an empty space.</li>
+  <li>Create a new range item by dragging on an empty space with the ctrl key down.</li>
+  <li>Update an item by double tapping it.</li>
+  <li>Delete a selected item by clicking the delete button on the top right.</li>
+</ul>
 
 <p>Option <code>editable</code> accepts a boolean or an object. When <code>editable</code> is a boolean, all manipulation actions will be either enabled or disabled. When <code>editable</code> is an object, one can enable individual manipulation actions:</p>
 
