@@ -22,23 +22,6 @@
     <link href="./dist/vis.css" rel="stylesheet" type="text/css" />
     <link href="./css/examples.css" rel="stylesheet" type="text/css" />
 
-    <style>
-        a.exampleLink:before {
-            content:'';
-            display:inline-block;
-            margin-left:15px;
-            width: 15px;
-            height: 10px;
-            border-top: 5px solid transparent;
-            border-bottom: 5px solid transparent;
-            border-left: 5px solid #688fba;
-        }
-        a.exampleLink {
-            display:block;
-            text-decoration: underline;
-        }
-    </style>
-
 </head>
 <body onload="prettyPrint(); loadVis();">
 
@@ -76,10 +59,13 @@
 
 <div class="contentWrapper">
 <h1>Network Examples</h1>
-    We have seperated the examples into groups to make it easier to navigate them. For the documentation, please click the button below: <br><br>
-    <a class="btn btn-primary" href="./docs/network.html" role="button">View docs »</a>
+    This page contains examples which show how to use Network. For the documentation, please click the button below: <br><br>
+    <a class="btn btn-primary" href="./docs/network" role="button">View docs »</a>
 
-<h3>node styles</h3>
+    <h3>basic usage</h3>
+    <a class='exampleLink' href="examples/network/basic_usage.html">basic usage</a>
+
+    <h3>node styles</h3>
     <a class='exampleLink' href="examples/network/nodeStyles/colors.html">colors</a>
     <a class='exampleLink' href="examples/network/nodeStyles/groups.html">groups</a>
     <a class='exampleLink' href="examples/network/nodeStyles/customGroups.html">custom groups</a>
@@ -89,43 +75,51 @@
     <a class='exampleLink' href="examples/network/nodeStyles/circular_images.html">circular images</a>
     <a class='exampleLink' href="examples/network/nodeStyles/shadows.html">node shadows</a>
     <a class='exampleLink' href="examples/network/nodeStyles/shapes.html">node shapes</a>
-<h3>edge styles</h3>
+
+    <h3>edge styles</h3>
     <a class='exampleLink' href="examples/network/edgeStyles/arrows.html">arrows (also combined with dashes)</a>
     <a class='exampleLink' href="examples/network/edgeStyles/colors.html">different colors</a>
     <a class='exampleLink' href="examples/network/edgeStyles/dashes.html">dashes</a>
     <a class='exampleLink' href="examples/network/edgeStyles/smooth.html">smooth curves</a>
     <a class='exampleLink' href="examples/network/edgeStyles/smoothWorldCup.html">smooth curves in action</a>
-<h3>labels</h3>
+
+    <h3>labels</h3>
     <a class='exampleLink' href="examples/network/labels/label_alignment.html">label alignment (for edges only)</a>
     <a class='exampleLink' href="examples/network/labels/label_background.html">label background</a>
     <a class='exampleLink' href="examples/network/labels/label_color_and_size.html">colors and sizes</a>
     <a class='exampleLink' href="examples/network/labels/label_stroke.html">label stroke</a>
     <a class='exampleLink' href="examples/network/labels/multiline_text.html">multiline text</a>
-<h3>layout</h3>
+
+    <h3>layout</h3>
     <a class='exampleLink' href="examples/network/layout/hierarchical_layout.html">hierarchical layout</a>
     <a class='exampleLink' href="examples/network/layout/hierarchical_layout_methods.html">hierarchical layout - different methods</a>
     <a class='exampleLink' href="examples/network/layout/hierarchical_layout_userdefined.html">hierarchical layout - user defined</a>
     <a class='exampleLink' href="examples/network/layout/randomSeed.html">set the random seed so every network will be the same</a>
-<h3>events</h3>
+
+    <h3>events</h3>
     <a class='exampleLink' href="examples/network/events/interactionEvents.html">interaction events, click, rightclick, drag etc.</a>
     <a class='exampleLink' href="examples/network/events/physicsEvents.html">physics events, stabilization etc.</a>
     <a class='exampleLink' href="examples/network/events/renderEvents.html">rendering events, use to draw custom items on the canvas.</a>
-<h3>dynamic data</h3>
+
+    <h3>dynamic data</h3>
     <a class='exampleLink' href="examples/network/data/datasets.html">dataset for dynamic data</a>
     <a class='exampleLink' href="examples/network/data/dynamic_data.html">dynamic data, playground</a>
     <a class='exampleLink' href="examples/network/data/importing_from_gephi.html">importing data from gephi</a>
     <a class='exampleLink' href="examples/network/data/scaling_custom.html">scaling the nodes with the value.</a>
     <a class='exampleLink' href="examples/network/data/scaling_nodes_edges.html">scaling the nodes and edges with the value.</a>
     <a class='exampleLink' href="examples/network/data/scaling_nodes_edges_labels.html">scaling the nodes, edges and labels with the value.</a>
-<h3>physics</h3>
+
+    <h3>physics</h3>
     <a class='exampleLink' href="examples/network/physics/physicsConfiguration.html">physics configuration</a>
-<h3>example applications</h3>
+
+    <h3>example applications</h3>
     <a class='exampleLink' href="examples/network/exampleApplications/les_miserables.html">les miserables cast</a>
     <a class='exampleLink' href="examples/network/exampleApplications/loadingBar.html">loading bar during stabilization</a>
     <a class='exampleLink' href="examples/network/exampleApplications/neighbourhood_highlight.html">neighbourhood heighlight</a>
     <a class='exampleLink' href="examples/network/exampleApplications/nodeLegend.html">using nodes as a legend</a>
     <a class='exampleLink' href="examples/network/exampleApplications/worldCupPerformance.html">performance test with the worldcup data</a>
-<h3>other</h3>
+
+    <h3>other</h3>
     <a class='exampleLink' href="examples/network/other/animationShowcase.html">animation showcase</a>
     <a class='exampleLink' href="examples/network/other/clustering.html">clustering possibilities</a>
     <a class='exampleLink' href="examples/network/other/clusteringByZoom.html">clustering by zoom</a>

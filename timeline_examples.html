@@ -4,7 +4,6 @@
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-
     <title>Timeline Examples</title>
     <link rel="icon" HREF="favicon.ico">
     <!-- Bootstrap -->
@@ -17,41 +16,11 @@
     <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
     <![endif]-->
 
-
     <link href="./css/prettify.css" rel="stylesheet" type="text/css" />
     <script type="text/javascript" src="./js/prettify/prettify.js"></script>
     <script src="./dist/vis.js"></script>
     <link href="./dist/vis.css" rel="stylesheet" type="text/css" />
-
     <link href="./css/examples.css" rel="stylesheet" type="text/css" />
-
-    <style>
-        img.example {
-            height:150px;
-        }
-    </style>
-    <script language="JavaScript">
-        function loadVis() {
-            // DOM element where the Timeline will be attached
-            var container = document.getElementById('visualization');
-
-            // Create a DataSet (allows two way data-binding)
-            var items = new vis.DataSet([
-                {id: 1, content: 'item 1', start: '2014-04-20'},
-                {id: 2, content: 'item 2', start: '2014-04-14'},
-                {id: 3, content: 'item 3', start: '2014-04-18'},
-                {id: 4, content: 'item 4', start: '2014-04-16', end: '2014-04-19'},
-                {id: 5, content: 'item 5', start: '2014-04-25'},
-                {id: 6, content: 'item 6', start: '2014-04-27', type: 'point'}
-            ]);
-
-            // Configuration for the Timeline
-            var options = {height:'552px', clickToUse:true};
-
-            // Create a Timeline
-            var timeline = new vis.Timeline(container, items, options);
-        }
-    </script>
 
 </head>
 <body onload="prettyPrint(); loadVis();">
@@ -87,258 +56,68 @@
 
     </div>
 </div>
+
 <div class="contentWrapper">
-<h1>Timeline Examples</h1>
-<a class="btn btn-default" href="#allExamples" role="button">View all examples »</a>  <a class="btn btn-primary" href="./docs/timeline.html" role="button">View docs »</a>
+    <h1>Timeline Examples</h1>
+    This page contains examples which show how to use Timeline. For the documentation, please click the button below: <br><br>
+    <a class="btn btn-primary" href="./docs/timeline" role="button">View docs »</a>
 
-<div class="textHTMLContent">This small code example shows the easiest way to get a timline up and running. This code has been taken from example 1. The working example is shown next to it. Click it to start the interaction.</div>
-<pre class="prettyprint lang-html">
-&lt;div id="visualization"&gt;&lt;/div&gt;
+    <h3>basic_usage</h3>
+    <a class='exampleLink' href="examples/timeline/basicUsage.html">basic usage</a>
 
-&lt;script type="text/javascript"&gt;
-  // DOM element where the Timeline will be attached
-  var container = document.getElementById('visualization');
+    <h3>interaction</h3>
+    <a class='exampleLink' href="examples/timeline/interaction/animateWindow.html">animate window</a>
+    <a class='exampleLink' href="examples/timeline/interaction/clickToUse.html">click to use</a>
+    <a class='exampleLink' href="examples/timeline/interaction/eventListeners.html">event listeners</a>
+    <a class='exampleLink' href="examples/timeline/interaction/limitMoveAndZoom.html">limit move and zoom of the window</a>
+    <a class='exampleLink' href="examples/timeline/interaction/navigationMenu.html">navigation menu</a>
+    <a class='exampleLink' href="examples/timeline/interaction/setSelection.html">set selection</a>
 
-  // Create a DataSet (allows two way data-binding)
-  var items = new vis.DataSet([
-    {id: 1, content: 'item 1', start: '2014-04-20'},
-    {id: 2, content: 'item 2', start: '2014-04-14'},
-    {id: 3, content: 'item 3', start: '2014-04-18'},
-    {id: 4, content: 'item 4', start: '2014-04-16'}
-    {id: 5, content: 'item 5', start: '2014-04-25'},
-    {id: 6, content: 'item 6', start: '2014-04-27'}
-  ]);
+    <h3>editing</h3>
+    <a class='exampleLink' href="examples/timeline/editing/customSnappingOfItems.html">custom snapping of items</a>
+    <a class='exampleLink' href="examples/timeline/editing/editingItems.html">editing items</a>
+    <a class='exampleLink' href="examples/timeline/editing/editingItemsCallbacks.html">editing items, manipulate using callbacks</a>
+    <a class='exampleLink' href="examples/timeline/editing/updateDataOnEvent.html">update data on event</a>
 
-  // Configuration for the Timeline
-  var options = {};
+    <h3>items</h3>
+    <a class='exampleLink' href="examples/timeline/items/htmlContents.html">HTML contents</a>
+    <a class='exampleLink' href="examples/timeline/items/pointItems.html">point items</a>
+    <a class='exampleLink' href="examples/timeline/items/backgroundAreas.html">background areas</a>
+    <a class='exampleLink' href="examples/timeline/items/backgroundAreasWithGroups.html">background areas with groups</a>
+    <a class='exampleLink' href="examples/timeline/items/itemOrdering.html">item ordering</a>
+    <a class='exampleLink' href="examples/timeline/items/rangeOverflowItem.html">range overflow item</a>
 
-  // Create a Timeline
-  var timeline = new vis.Timeline(
-    container,
-    items,
-    options
-    );
-&lt;/script&gt;</pre>
-<div id="visualization"></div>
+    <h3>groups</h3>
+    <a class='exampleLink' href="examples/timeline/groups/groups.html">groups</a>
+    <a class='exampleLink' href="examples/timeline/groups/groupsOrdering.html">ordering of groups</a>
+    <a class='exampleLink' href="examples/timeline/groups/subgroups.html">subgroups</a>
 
-<h2 id="allExamples">All examples</h2>
-<div class="container-fluid">
-    <div class="col-lg-2 col-md-3 col-sm-6">
-        <a href="examples/timeline/01_basic.html">
-            <img class="example img-responsive" src="./images/exampleScreenshots/timeline/1.png">
-            <div class="exampleTitle">basic usage</div>
-        </a>
-    </div>
-    <div class="col-lg-2 col-md-3 col-sm-6">
-        <a href="examples/timeline/02_interactive.html">
-            <img class="example img-responsive" src="./images/exampleScreenshots/timeline/2.png">
-            <div class="exampleTitle">interactive</div>
-        </a>
-    </div>
-    <div class="col-lg-2 col-md-3 col-sm-6">
-        <a href="examples/timeline/03_performance.html">
-            <img class="example img-responsive" src="./images/exampleScreenshots/timeline/3.png">
-            <div class="exampleTitle">performance</div>
-        </a>
-    </div>
-    <div class="col-lg-2 col-md-3 col-sm-6">
-        <a href="examples/timeline/04_html_data.html">
-            <img class="example img-responsive" src="./images/exampleScreenshots/timeline/4.png">
-            <div class="exampleTitle">html data</div>
-        </a>
-    </div>
-    <div class="col-lg-2 col-md-3 col-sm-6">
-        <a href="examples/timeline/05_groups.html">
-            <img class="example img-responsive" src="./images/exampleScreenshots/timeline/5.png">
-            <div class="exampleTitle">groups</div>
-        </a>
-    </div>
-    <div class="col-lg-2 col-md-3 col-sm-6">
-        <a href="examples/timeline/06_event_listeners.html">
-            <img class="example img-responsive" src="./images/exampleScreenshots/timeline/6.png">
-            <div class="exampleTitle">event listeners</div>
-        </a>
-    </div>
-    <div class="col-lg-2 col-md-3 col-sm-6">
-        <a href="examples/timeline/07_custom_time_bar.html">
-            <img class="example img-responsive" src="./images/exampleScreenshots/timeline/7.png">
-            <div class="exampleTitle">custom time bar</div>
-        </a>
-    </div>
-    <div class="col-lg-2 col-md-3 col-sm-6">
-        <a href="examples/timeline/08_edit_items.html">
-            <img class="example img-responsive" src="./images/exampleScreenshots/timeline/8.png">
-            <div class="exampleTitle">edit items</div>
-        </a>
-    </div>
-    <div class="col-lg-2 col-md-3 col-sm-6">
-        <a href="examples/timeline/09_order_groups.html">
-            <img class="example img-responsive" src="./images/exampleScreenshots/timeline/9.png">
-            <div class="exampleTitle">order groups</div>
-        </a>
-    </div>
-    <div class="col-lg-2 col-md-3 col-sm-6">
-        <a href="examples/timeline/10_limit_move_and_zoom.html">
-            <img class="example img-responsive" src="./images/exampleScreenshots/timeline/10.png">
-            <div class="exampleTitle">limit move and zoom</div>
-        </a>
-    </div>
-    <div class="col-lg-2 col-md-3 col-sm-6">
-        <a href="examples/timeline/11_points.html">
-            <img class="example img-responsive" src="./images/exampleScreenshots/timeline/11.png">
-            <div class="exampleTitle">points</div>
-        </a>
-    </div>
-    <div class="col-lg-2 col-md-3 col-sm-6">
-        <a href="examples/timeline/12_custom_styling.html">
-            <img class="example img-responsive" src="./images/exampleScreenshots/timeline/12.png">
-            <div class="exampleTitle">custom styling</div>
-        </a>
-    </div>
-    <div class="col-lg-2 col-md-3 col-sm-6">
-        <a href="examples/timeline/13_past_and_future.html">
-            <img class="example img-responsive" src="./images/exampleScreenshots/timeline/13.png">
-            <div class="exampleTitle">past and future</div>
-        </a>
-    </div>
-    <div class="col-lg-2 col-md-3 col-sm-6">
-        <a href="examples/timeline/14_group_performance.html">
-            <img class="example img-responsive" src="./images/exampleScreenshots/timeline/14.png">
-            <div class="exampleTitle">group performance</div>
-        </a>
-    </div>
-    <div class="col-lg-2 col-md-3 col-sm-6">
-        <a href="examples/timeline/15_item_class_names.html">
-            <img class="example img-responsive" src="./images/exampleScreenshots/timeline/15.png">
-            <div class="exampleTitle">item class names</div>
-        </a>
-    </div>
-    <div class="col-lg-2 col-md-3 col-sm-6">
-        <a href="examples/timeline/16_navigation_menu.html">
-            <img class="example img-responsive" src="./images/exampleScreenshots/timeline/16.png">
-            <div class="exampleTitle">navigation menu</div>
-        </a>
-    </div>
-    <div class="col-lg-2 col-md-3 col-sm-6">
-        <a href="examples/timeline/17_data_serialization.html">
-            <img class="example img-responsive" src="./images/exampleScreenshots/timeline/17.png">
-            <div class="exampleTitle">data serialization</div>
-        </a>
-    </div>
-    <div class="col-lg-2 col-md-3 col-sm-6">
-        <a href="examples/timeline/18_range_overflow.html">
-            <img class="example img-responsive" src="./images/exampleScreenshots/timeline/18.png">
-            <div class="exampleTitle">range overflow</div>
-        </a>
-    </div>
-    <div class="col-lg-2 col-md-3 col-sm-6">
-        <a href="examples/timeline/19_localization.html">
-            <img class="example img-responsive" src="./images/exampleScreenshots/timeline/19.png">
-            <div class="exampleTitle">localization</div>
-        </a>
-    </div>
-    <div class="col-lg-2 col-md-3 col-sm-6">
-        <a href="examples/timeline/20_click_to_use.html">
-            <img class="example img-responsive" src="./images/exampleScreenshots/timeline/20.png">
-            <div class="exampleTitle">click to use</div>
-        </a>
-    </div>
-    <div class="col-lg-2 col-md-3 col-sm-6">
-        <a href="examples/timeline/21_set_selection.html">
-            <img class="example img-responsive" src="./images/exampleScreenshots/timeline/21.png">
-            <div class="exampleTitle">set selection</div>
-        </a>
-    </div>
-    <div class="col-lg-2 col-md-3 col-sm-6">
-        <a href="examples/timeline/22_window_adjustment.html">
-            <img class="example img-responsive" src="./images/exampleScreenshots/timeline/22.png">
-            <div class="exampleTitle">window adjustment</div>
-        </a>
-    </div>
-    <div class="col-lg-2 col-md-3 col-sm-6">
-        <a href="examples/timeline/23_data_attributes.html">
-            <img class="example img-responsive" src="./images/exampleScreenshots/timeline/23.png">
-            <div class="exampleTitle">data attributes</div>
-        </a>
-    </div>
-    <div class="col-lg-2 col-md-3 col-sm-6">
-        <a href="examples/timeline/24_all_data_attributes.html">
-            <img class="example img-responsive" src="./images/exampleScreenshots/timeline/24.png">
-            <div class="exampleTitle">all data attributes</div>
-        </a>
-    </div>
-    <div class="col-lg-2 col-md-3 col-sm-6">
-        <a href="examples/timeline/25_background_areas.html">
-            <img class="example img-responsive" src="./images/exampleScreenshots/timeline/25.png">
-            <div class="exampleTitle">background areas</div>
-        </a>
-    </div>
-    <div class="col-lg-2 col-md-3 col-sm-6">
-        <a href="examples/timeline/26_external_data.html">
-            <img class="example img-responsive" src="./images/exampleScreenshots/timeline/26.png">
-            <div class="exampleTitle">external data</div>
-        </a>
-    </div>
-    <div class="col-lg-2 col-md-3 col-sm-6">
-        <a href="examples/timeline/27_templates.html">
-            <img class="example img-responsive" src="./images/exampleScreenshots/timeline/27.png">
-            <div class="exampleTitle">templates</div>
-        </a>
-    </div>
-    <!--there is no example 28?-->
-    <div class="col-lg-2 col-md-3 col-sm-6">
-        <a href="examples/timeline/29_hiding_times.html">
-            <img class="example img-responsive" src="./images/exampleScreenshots/timeline/29.png">
-            <div class="exampleTitle">hiding times</div>
-        </a>
-    </div>
-    <div class="col-lg-2 col-md-3 col-sm-6">
-        <a href="examples/timeline/30_subgroups.html">
-            <img class="example img-responsive" src="./images/exampleScreenshots/timeline/30.png">
-            <div class="exampleTitle">subgroups</div>
-        </a>
-    </div>
-    <div class="col-lg-2 col-md-3 col-sm-6">
-        <a href="examples/timeline/31_background_areas_with_groups.html">
-            <img class="example img-responsive" src="./images/exampleScreenshots/timeline/31.png">
-            <div class="exampleTitle">background areas with groups</div>
-        </a>
-    </div>
-    <div class="col-lg-2 col-md-3 col-sm-6">
-        <a href="examples/timeline/32_grid_styling.html">
-            <img class="example img-responsive" src="./images/exampleScreenshots/timeline/32.png">
-            <div class="exampleTitle">grid styling</div>
-        </a>
-    </div>
-    <div class="col-lg-2 col-md-3 col-sm-6">
-        <a href="examples/timeline/33_custom_snapping.html">
-            <img class="example img-responsive" src="./images/exampleScreenshots/timeline/33.png">
-            <div class="exampleTitle">custom snapping</div>
-        </a>
-    </div>
-    <div class="col-lg-2 col-md-3 col-sm-6">
-        <a href="examples/timeline/34_add_custom_timebar.html">
-            <img class="example img-responsive" src="./images/exampleScreenshots/timeline/34.png">
-            <div class="exampleTitle">add custom timebar</div>
-        </a>
-    </div>
-    <div class="col-lg-2 col-md-3 col-sm-6">
-        <a href="examples/timeline/35_item_ordering.html">
-            <img class="example img-responsive" src="./images/exampleScreenshots/timeline/35.png">
-            <div class="exampleTitle">item ordering</div>
-        </a>
-    </div>
-    <div class="col-lg-2 col-md-3 col-sm-6">
-        <a href="examples/timeline/requirejs/requirejs_example.html">
-            <img class="example img-responsive" src="./images/exampleScreenshots/timeline/requirejs.png">
-            <div class="exampleTitle">requirejs example</div>
-        </a>
-    </div>
+    <h3>styling</h3>
+    <a class='exampleLink' href="examples/timeline/styling/itemClassNames.html">item class names</a>
+    <a class='exampleLink' href="examples/timeline/styling/itemTemplates.html">item templates</a>
+    <a class='exampleLink' href="examples/timeline/styling/axisOrientation.html">axis orientation</a>
+    <a class='exampleLink' href="examples/timeline/styling/customCss.html">custom CSS</a>
+    <a class='exampleLink' href="examples/timeline/styling/gridStyling.html">grid styling</a>
+
+    <h3>data handling</h3>
+    <a class='exampleLink' href="examples/timeline/dataHandling/dataSerialization.html">data serialization</a>
+    <a class='exampleLink' href="examples/timeline/dataHandling/loadExternalData.html">load external data</a>
+
+    <h3>other</h3>
+    <a class='exampleLink' href="examples/timeline/other/customTimeBars.html">custom time bars</a>
+    <a class='exampleLink' href="examples/timeline/other/dataAttributes.html">data attributes</a>
+    <a class='exampleLink' href="examples/timeline/other/dataAttributesAll.html">all data attributes</a>
+    <a class='exampleLink' href="examples/timeline/other/groupsPerformance.html">perforance of groups</a>
+    <a class='exampleLink' href="examples/timeline/other/hidingPeriods.html">hiding periods</a>
+    <a class='exampleLink' href="examples/timeline/other/localization.html">localization</a>
+    <a class='exampleLink' href="examples/timeline/other/performance.html">performance</a>
+
 </div>
 <br />
 <br />
 <br />
 <br />
+
 </div>
 <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>

@@ -59,3 +59,19 @@ div.exampleTitle {
     border-bottom-left-radius:5px;
     border-bottom-right-radius:5px;
 }
+
+a.exampleLink:before {
+    content:'';
+    display:inline-block;
+    margin-left:15px;
+    width: 15px;
+    height: 10px;
+    border-top: 5px solid transparent;
+    border-bottom: 5px solid transparent;
+    border-left: 5px solid #688fba;
+}
+
+a.exampleLink {
+    display:block;
+    text-decoration: underline;
+}
