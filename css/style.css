@@ -1,6 +1,5 @@
-
 body {
-    font-family: Lustria,Georgia,Times,"Times New Roman",serif !important;
+    /*font-family: Lustria,Georgia,Times,"Times New Roman",serif !important;*/
     font-size:16px;
 }
 
@@ -25,8 +24,9 @@ img.header {
 }
 
 div.wall {
-    background-image: url("../images/wall.png");
+    background-image: url("./images/wall.png");
     background-repeat: no-repeat;
+    background-size:cover;
     margin-top:5px;
 }
 
@@ -51,7 +51,7 @@ h2.featurette-heading {
 
 div.valign_parent {
     display:inline-flex;
-    height: 457px;
+    min-height: 457px;
 
 }
 div.valign_child {
