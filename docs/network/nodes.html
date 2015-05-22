@@ -1,0 +1,643 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="">
+    <meta name="author" content="">
+    <link rel="icon" HREF="favicon.ico">
+    <title>vis.js - A dynamic, browser based visualization library.</title>
+
+    <!-- Bootstrap core CSS -->
+    <link href="../css/bootstrap.css" rel="stylesheet">
+    <link href="../css/style.css" rel="stylesheet">
+
+    <!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
+    <!--[if lt IE 9]>
+    <script src="https://oss.maxcdn.com/html5shiv/3.7.2/html5shiv.min.js"></script>
+    <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
+    <![endif]-->
+
+
+    <link href="../css/prettify.css" type="text/css" rel="stylesheet"/>
+    <script type="text/javascript" src="../js/googleAnalytics.js"></script>
+    <script type="text/javascript" src="../js/prettify/prettify.js"></script>
+
+    <script src="../js/smooth-scroll.min.js"></script>
+    <script language="JavaScript">
+        smoothScroll.init();
+    </script>
+
+    <script type="text/javascript" src="../js/toggleTable.js"></script>
+</head>
+<body onload="prettyPrint();">
+
+<div class="navbar-wrapper">
+    <div class="container">
+        <nav class="navbar navbar-inverse navbar-static-top" role="navigation">
+            <div class="container">
+                <div class="navbar-header">
+                    <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar"
+                            aria-expanded="false" aria-controls="navbar">
+                        <span class="sr-only">Toggle navigation</span>
+                        <span class="icon-bar"></span>
+                        <span class="icon-bar"></span>
+                        <span class="icon-bar"></span>
+                    </button>
+                    <a class="navbar-brand hidden-sm" href="./index.html">vis.js</a>
+                </div>
+                <div id="navbar" class="navbar-collapse collapse">
+                    <ul class="nav navbar-nav">
+                        <li><a href="http://www.visjs.org/index.html#modules">Modules</a></li>
+                        <li class="active"><a href="./docs/index.html" target="_blank">Documentation <img class="icon"
+                                                                                                          src="../img/external-link-icons/external-link-icon-white.png"></a>
+                        </li>
+                        <li><a href="http://www.visjs.org/blog.html">Blog</a></li>
+                        <li><a href="http://www.visjs.org/index.html#download_install">Download</a></li>
+                        <li><a href="http://www.visjs.org/showcase/index.html">Showcase</a></li>
+                        <li><a href="http://www.visjs.org/index.html#contribute">Contribute</a></li>
+                        <li><a href="http://www.visjs.org/featureRequests.html">Feature requests</a></li>
+                        <li><a href="http://www.visjs.org/index.html#licenses">License</a></li>
+                    </ul>
+                </div>
+            </div>
+        </nav>
+    </div>
+</div>
+
+<a href="https://github.com/almende/vis" class="hidden-xs hidden-sm hidden-md"><img
+        style="position: absolute; top: 0; right: 0; border: 0;"
+        src="https://camo.githubusercontent.com/38ef81f8aca64bb9a64448d0d70f1308ef5341ab/68747470733a2f2f73332e616d617a6f6e6177732e636f6d2f6769746875622f726962626f6e732f666f726b6d655f72696768745f6461726b626c75655f3132313632312e706e67"
+        alt="Fork me on GitHub"
+        data-canonical-src="https://s3.amazonaws.com/github/ribbons/forkme_right_darkblue_121621.png"></a>
+
+<div class="container full">
+    <h1>Network - nodes</h1>
+
+    <p>Handles the creation and deletion of nodes and contains the global node options and styles.</p>
+
+    <h3>Options</h3>
+    <p>The options for the nodes have to be contained in an object titled 'nodes'. All of these options can be supplied per node as well. Obviously, 'id' should not be defined globally but per node. Options defined
+        in the global nodes object, are applied to all nodes. If a node has options of its own, those will be used instead of the global options.</p>
+    <p><b><i>When you have given a node an option, you will override the global option for that property. If you then set that option to <code>null</code>,
+        it will revert back to the default value.</i></b>
+    </p>
+    <p>Click on the full options or shorthand options to show how these options are supposed to be used.</p>
+    <ul class="nav nav-tabs">
+        <li role="presentation" class="active" onclick="toggleTab(this)"><a href="#">options hidden</a></li>
+        <li role="presentation" onclick="toggleTab(this);" targetNode="fullOptions"><a href="#">full options</a></li>
+        <li role="presentation" onclick="toggleTab(this);" targetNode="shortOptions"><a href="#">shorthand options</a></li>
+    </ul>
+    <br>
+<pre class="prettyprint lang-js options top hidden" id="fullOptions">
+// these are all options in full.
+var options = {
+  nodes:{
+    borderWidth: 1,
+    borderWidthSelected: undefined,
+    brokenImage:undefined,
+    color: {
+      border: '#2B7CE9',
+      background: '#97C2FC',
+      highlight: {
+        border: '#2B7CE9',
+        background: '#D2E5FF'
+      },
+      hover: {
+        border: '#2B7CE9',
+        background: '#D2E5FF'
+      }
+    },
+    fixed: {
+      x:false,
+      y:false
+    },
+    font: {
+      color: '#343434',
+      size: 14, // px
+      face: 'arial',
+      background: 'none',
+      strokeWidth: 0, // px
+      strokeColor: '#ffffff',
+      align: 'horizontal'
+    },
+    group: undefined,
+    hidden: false,
+    icon: {
+      face: 'FontAwesome',
+      code: undefined,
+      size: 50,  //50,
+      color:'#2B7CE9'
+    },
+    image: undefined,
+    label: undefined,
+    level: undefined,
+    mass: 1,
+    physics: true,
+    scaling: {
+      min: 10,
+      max: 30,
+      label: {
+        enabled: false,
+        min: 14,
+        max: 30,
+        maxVisible: 30,
+        drawThreshold: 5
+      },
+      customScalingFunction: function (min,max,total,value) {
+        if (max === min) {
+          return 0.5;
+        }
+        else {
+          let scale = 1 / (max - min);
+          return Math.max(0,(value - min)*scale);
+        }
+      }
+    },
+    shadow:{
+      enabled: false,
+      size:10,
+      x:5,
+      y:5
+    },
+    shape: 'ellipse',
+    size: 25,
+    title: undefined,
+    value: undefined,
+    x: undefined,
+    y: undefined
+  }
+}
+
+network.setOptions(options);
+</pre>
+
+<pre class="prettyprint lang-js options top hidden" id="shortOptions">
+// only the options that have shorthand notations are shown.
+var options = {
+  nodes:{
+    color: '#ff0000',
+    fixed: false,
+    font: '12px arial red',
+    scaling: {
+      label: true
+    },
+    shadow: true
+  }
+}
+network.setOptions(options);
+</pre>
+
+    <p>These options can also be set per individual node. All of the individual options are explained here:</p>
+    <table class="options" id="optionTable">
+        <tr>
+            <th>Name</th>
+            <th>Type</th>
+            <th>Default</th>
+            <th>Description</th>
+        </tr>
+        <tr>
+            <td>borderWidth</td>
+            <td>Number</td>
+            <td><code>1</code></td>
+            <td>The width of the border of the node.</td>
+        </tr>
+        <tr>
+            <td>borderWidthSelected</td>
+            <td>Number</td>
+            <td><code>undefined</code></td>
+            <td>The width of the border of the node when it is selected. When undefined, the borderWidth is used</td>
+        </tr>
+        <tr>
+            <td>brokenImage</td>
+            <td>String</td>
+            <td><code>undefined</code></td>
+            <td>When the shape is set to <code>image</code> or <code>circularImage</code>, this option can be an URL to
+                a backup image in case the URL supplied in the image option cannot be resolved.
+            </td>
+        </tr>
+        <tr class='toggle collapsible' onclick="toggleTable('optionTable','color', this);">
+            <td><span parent="color" class="right-caret"></span> color</td>
+            <td>Object or String</td>
+            <td><code>Object</code></td>
+            <td>The color object contains the color information of the node in every situation. When the node only needs
+                a single color, a color value like <code>'rgba(120,32,14,1)'</code>, <code>'#ffffff'</code> or <code>'red'</code>
+                can be supplied instead of an object.
+            </td>
+        </tr>
+        <tr parent="color" class="hidden">
+            <td class="indent">color.border</td>
+            <td>String</td>
+            <td><code>'#2B7CE9'</code></td>
+            <td>The color of the border of the node when it is not selected or hovered over <i>(assuming hover is
+                enabled in the interaction module)</i>.
+            </td>
+        </tr>
+        <tr parent="color" class="hidden">
+            <td class="indent">color.background</td>
+            <td>String</td>
+            <td><code>'#D2E5FF'</code></td>
+            <td>The color of the background of the node when it is not selected or hovered over <i>(assuming hover is
+                enabled in the interaction module)</i>.
+            </td>
+        </tr>
+        <tr parent="color" class="hidden">
+            <td class="indent">color.highlight</td>
+            <td>Object or String</td>
+            <td><code>Object</code></td>
+            <td>The color the node when it is selected. Alternatively you can just supply a string color value.</td>
+        </tr>
+        <tr parent="color" class="hidden">
+            <td class="indent2">color.highlight.border</td>
+            <td>String</td>
+            <td><code>'#2B7CE9'</code></td>
+            <td>The color of the border of the node when it is selected.</td>
+        </tr>
+        <tr parent="color" class="hidden">
+            <td class="indent2">color.highlight.background</td>
+            <td>String</td>
+            <td><code>'#D2E5FF'</code></td>
+            <td>The color of the background of the node when it is selected.</td>
+        </tr>
+        <tr parent="color" class="hidden">
+            <td class="indent">color.hover</td>
+            <td>Object or String</td>
+            <td><code>Object</code></td>
+            <td>The color the node when the mouse hovers over it <i>(assuming hover is enabled in the interaction
+                module)</i>. Shorthand like above is also supported.
+            </td>
+        </tr>
+        <tr parent="color" class="hidden">
+            <td class="indent2">color.hover.border</td>
+            <td>String</td>
+            <td><code>'#2B7CE9'</code></td>
+            <td>The color of the border of the node when the mouse hovers over it <i>(assuming hover is enabled in the
+                interaction module)</i>.
+            </td>
+        </tr>
+        <tr parent="color" class="hidden">
+            <td class="indent2">color.hover.background</td>
+            <td>String</td>
+            <td><code>'#D2E5FF'</code></td>
+            <td>The color of the background of the node when the mouse hovers over it <i>(assuming hover is enabled in
+                the interaction module)</i>.
+            </td>
+        </tr>
+
+        <tr class='toggle collapsible' onclick="toggleTable('optionTable','fixed', this);">
+            <td><span parent="fixed" class="right-caret"></span> fixed</td>
+            <td>Object or Boolean</td>
+            <td><code>Object</code></td>
+            <td>When true, the node will not move but IS part of the physics simulation. When defined as an object,
+                movement in either X or Y direction can be disabled.
+            </td>
+        </tr>
+        <tr parent="fixed" class="hidden">
+            <td class="indent">fixed.x</td>
+            <td>Boolean</td>
+            <td><code>false</code></td>
+            <td>When true, the node will not move in the X direction.</td>
+        </tr>
+        <tr parent="fixed" class="hidden">
+            <td class="indent">fixed.y</td>
+            <td>Boolean</td>
+            <td><code>false</code></td>
+            <td>When true, the node will not move in the Y direction.</td>
+        </tr>
+        <tr class='toggle collapsible' onclick="toggleTable('optionTable','font', this);">
+            <td><span parent="font" class="right-caret"></span> font</td>
+            <td>Object or String</td>
+            <td><code>false</code></td>
+            <td>This object defines the details of the label. A shorthand is also supported in the form <code>'size face
+                color'</code> for example: <code>'14px arial red'</code>.
+            </td>
+        </tr>
+        <tr parent="font" class="hidden">
+            <td class="indent">font.color</td>
+            <td>String</td>
+            <td><code>'#343434'</code></td>
+            <td>Color of the label text.</td>
+        </tr>
+        <tr parent="font" class="hidden">
+            <td class="indent">font.size</td>
+            <td>Number</td>
+            <td><code>14</code></td>
+            <td>Size of the label text.</td>
+        </tr>
+        <tr parent="font" class="hidden">
+            <td class="indent">font.face</td>
+            <td>String</td>
+            <td><code>'arial'</code></td>
+            <td>Font face (or font family) of the label text.</td>
+        </tr>
+        <tr parent="font" class="hidden">
+            <td class="indent">font.background</td>
+            <td>String</td>
+            <td><code>undefined</code></td>
+            <td>When not <code>undefined</code> but a <b>color string</b>, a background rectangle will be drawn behind
+                the label in the supplied color.
+            </td>
+        </tr>
+        <tr parent="font" class="hidden">
+            <td class="indent">font.strokeWidth</td>
+            <td>Number</td>
+            <td><code>0</code></td>
+            <td>As an alternative to the background rectangle, a stroke can be drawn around the text. When a value
+                higher than 0 is supplied, the stroke will be drawn.
+            </td>
+        </tr>
+        <tr parent="font" class="hidden">
+            <td class="indent">font.strokeColor</td>
+            <td>String</td>
+            <td><code>'#ffffff'</code></td>
+            <td>This is the color of the stroke <i>assuming the value for stroke is higher than 0</i>.</td>
+        </tr>
+        <tr>
+            <td>group</td>
+            <td>String</td>
+            <td><code>undefined</code></td>
+            <td>When not <code>undefined</code>, the</td>
+        </tr>
+        <tr>
+            <td>hidden</td>
+            <td>Boolean</td>
+            <td><code>false</code></td>
+            <td>When true, the node will not be shown. It will still be part of the physics simulation though!</td>
+        </tr>
+        <tr class='toggle collapsible' onclick="toggleTable('optionTable','icon', this);">
+            <td><span parent="icon" class="right-caret"></span> icon</td>
+            <td>Object</td>
+            <td><code>Object</code></td>
+            <td>These options are only used when the shape is set to <code>icon</code>.</td>
+        </tr>
+        <tr parent="icon" class="hidden">
+            <td class="indent">icon.face</td>
+            <td>String</td>
+            <td><code>'FontAwesome'</code></td>
+            <td>These options are only used when the shape is set to <code>icon</code>. The possible options for the
+                face are: <code>'FontAwesome'</code> and <code>'Ionicons'</code>.
+            </td>
+        </tr>
+        <tr parent="icon" class="hidden">
+            <td class="indent">icon.code</td>
+            <td>String</td>
+            <td><code>undefined</code></td>
+            <td>This is the code of the icon, for example <code>'\uf007'</code>.</td>
+        </tr>
+        <tr parent="icon" class="hidden">
+            <td class="indent">icon.size</td>
+            <td>Number</td>
+            <td><code>50</code></td>
+            <td>The size of the icon.</td>
+        </tr>
+        <tr parent="icon" class="hidden">
+            <td class="indent">icon.color</td>
+            <td>String</td>
+            <td><code>'#2B7CE9'</code></td>
+            <td>The color of the icon.</td>
+        </tr>
+        <tr>
+            <td>id</td>
+            <td>String</td>
+            <td><code>undefined</code></td>
+            <td>The id of the node. The id is mandatory for nodes and they have to be unique. This should obviously be set per node, not globally.</td>
+        </tr>
+        <tr>
+            <td>image</td>
+            <td>String</td>
+            <td><code>undefined</code></td>
+            <td>When the shape is set to <code>image</code> or <code>circularImage</code>, this option should be the URL
+                to an image. If the image cannot be found, the brokenImage option can be used.
+            </td>
+        </tr>
+        <tr>
+            <td>label</td>
+            <td>String</td>
+            <td><code>undefined</code></td>
+            <td>The label is the piece of text shown in or under the node, depending on the shape.</td>
+        </tr>
+        <tr>
+            <td>level</td>
+            <td>Number</td>
+            <td><code>undefined</code></td>
+            <td>When using the hierarchical layout, the level determines where the node is going to be positioned.</td>
+        </tr>
+        <tr>
+            <td>mass</td>
+            <td>Number</td>
+            <td><code>1</code></td>
+            <td>The barnesHut physics model (which is enabled by default) is based on an inverted gravity model. By
+                increasing the mass of a node, you increase it's repulsion. Values lower than 1 are not recommended.
+            </td>
+        </tr>
+        <tr>
+            <td>physics</td>
+            <td>Boolean</td>
+            <td><code>true</code></td>
+            <td>When false, the node is not part of the physics simulation. It will not move except for from manual
+                dragging.
+            </td>
+        </tr>
+        <tr class='toggle collapsible' onclick="toggleTable('optionTable','scaling', this);">
+            <td><span parent="scaling" class="right-caret"></span> scaling</td>
+            <td>Object</td>
+            <td><code>Object</code></td>
+            <td>If the <code>value</code> option is specified, the size of the nodes will be scaled according to the
+                properties in this object. All node shapes can be scaled, but some only when label scaling is enabled as
+                their size is based on the size of the label.
+                Only scalable when label scaling is enabled are:
+                <code>ellipse</code>, <code>circle</code>, <code>database</code>, <code>box</code>, <code>text</code>.
+                Always scalable are:
+                <code>image</code>, <code>circularImage</code>, <code>diamond</code>, <code>dot</code>,
+                <code>star</code>, <code>triangle</code>, <code>triangleDown</code>, <code>square</code> and
+                <code>icon</code>. Keep in mind that when using scaling, the <code>size</code> option is neglected.
+            </td>
+        </tr>
+        <tr parent="scaling" class="hidden">
+            <td class="indent">scaling.min</td>
+            <td>Number</td>
+            <td><code>10</code></td>
+            <td>If nodes have a value, their sizes are determined by the value, the scaling function and the min max
+                values. The min value is the minimum allowed value.
+            </td>
+        </tr>
+        <tr parent="scaling" class="hidden">
+            <td class="indent">scaling.max</td>
+            <td>Number</td>
+            <td><code>30</code></td>
+            <td>This is the maximum allowed size when the nodes are scaled using the value option.</td>
+        </tr>
+        <tr parent="scaling" class="hidden">
+            <td class="indent">scaling.label</td>
+            <td>Object or Boolean</td>
+            <td><code>Object</code></td>
+            <td>This can be false if the label is not allowed to scale with the node. If true it will scale using
+                default settigns. For further customization, you can supply an object.
+            </td>
+        </tr>
+        <tr parent="scaling" class="hidden">
+            <td class="indent2">scaling.label.enabled</td>
+            <td>Boolean</td>
+            <td><code>false</code></td>
+            <td>Toggle the scaling of the label on or off. If this option is not defined, it is set to true if any of
+                the properties in this object are defined.
+            </td>
+        </tr>
+        <tr parent="scaling" class="hidden">
+            <td class="indent2">scaling.label.min</td>
+            <td>Number</td>
+            <td><code>14</code></td>
+            <td>The minimum font-size used for labels when scaling.</td>
+        </tr>
+        <tr parent="scaling" class="hidden">
+            <td class="indent2">scaling.label.max</td>
+            <td>Number</td>
+            <td><code>30</code></td>
+            <td>The maximum font-size used for labels when scaling.</td>
+        </tr>
+        <tr parent="scaling" class="hidden">
+            <td class="indent2">scaling.label.maxVisible</td>
+            <td>Number</td>
+            <td><code>30</code></td>
+            <td>When zooming in, the font is drawn larger as well. You can limit the perceived font size using this
+                option. If set to 30, the font will never look larger than size 30 zoomed at 100%.
+            </td>
+        </tr>
+        <tr parent="scaling" class="hidden">
+            <td class="indent2">scaling.label.drawThreshold</td>
+            <td>Number</td>
+            <td><code>5</code></td>
+            <td>When zooming out, the font will be drawn smaller. This defines a lower limit for when the font is drawn.
+                When using font scaling, you can use this together with the maxVisible to first show labels of important
+                nodes when zoomed out and only show the rest when zooming in.
+            </td>
+        </tr>
+        <tr parent="scaling" class="hidden">
+            <td class="indent">scaling.customScalingFunction</td>
+            <td>Function</td>
+            <td>in description</td>
+            <td>If nodes have <code>value</code> fields, this function determines how the size of the nodes are scaled
+                based on their values. The default function is:
+<pre>
+function (min,max,total,value) {
+  if (max === min) {
+    return 0.5;
+  }
+  else {
+    var scale = 1 / (max - min);
+    return Math.max(0,(value - min)*scale);
+  }
+}
+</pre>
+                The function receives the minimum value of the set, the maximum value, the total sum of all values and
+                finally the value of the node or edge it works on. <b>It has to return a value between 0 and 1.</b> The
+                nodes and edges then calculate their size as follows:
+<pre>
+var scale = customScalingFunction(min,max,total,value);
+var diff = maxSize - minSize;
+mySize = minSize + diff * scale;
+</pre>
+            </td>
+        </tr>
+        <tr class='toggle collapsible' onclick="toggleTable('optionTable','shadow', this);">
+            <td><span parent="shadow" class="right-caret"></span> shadow</td>
+            <td>Object or Boolean</td>
+            <td><code>Object</code></td>
+            <td>When true, the node casts a shadow using the default settings. This can be further refined by supplying
+                an object.
+            </td>
+        </tr>
+        <tr parent="shadow" class="hidden">
+            <td class="indent">shadow.enabled</td>
+            <td>Boolean</td>
+            <td><code>false</code></td>
+            <td>Toggle the casting of shadows. If this option is not defined, it is set to true if any of the properties
+                in this object are defined.
+            </td>
+        </tr>
+        <tr parent="shadow" class="hidden">
+            <td class="indent">shadow.size</td>
+            <td>Number</td>
+            <td><code>10</code></td>
+            <td>The blur size of the shadow.</td>
+        </tr>
+        <tr parent="shadow" class="hidden">
+            <td class="indent">shadow.x</td>
+            <td>Number</td>
+            <td><code>5</code></td>
+            <td>The x offset.</td>
+        </tr>
+        <tr parent="shadow" class="hidden">
+            <td class="indent">shadow.y</td>
+            <td>Number</td>
+            <td><code>5</code></td>
+            <td>The y offset.</td>
+        </tr>
+        <tr>
+            <td>shape</td>
+            <td>String</td>
+            <td><code>'ellipse'</code></td>
+            <td>The shape defines what the node looks like. There are two types of nodes. One type has the label inside
+                of it and the other type has the label underneath it. The types with the label inside of it are:
+                <code>ellipse</code>, <code>circle</code>, <code>database</code>, <code>box</code>, <code>text</code>.
+                The ones with the label outside of it are: <code>image</code>, <code>circularImage</code>,
+                <code>diamond</code>, <code>dot</code>, <code>star</code>, <code>triangle</code>,
+                <code>triangleDown</code>, <code>square</code> and <code>icon</code>.
+            </td>
+        </tr>
+        <tr>
+            <td>size</td>
+            <td>Number</td>
+            <td><code>25</code></td>
+            <td>The size is used to determine the size of node shapes that do not have the label inside of them. These
+                shapes are: <code>image</code>, <code>circularImage</code>, <code>diamond</code>, <code>dot</code>,
+                <code>star</code>, <code>triangle</code>, <code>triangleDown</code>, <code>square</code> and
+                <code>icon</code></td>
+        </tr>
+        <tr>
+            <td>title</td>
+            <td>String or Element</td>
+            <td><code>undefined</code></td>
+            <td>Title to be displayed when the user hovers over the node. The title can be an HTML element or a string
+                containing plain text or HTML.
+            </td>
+        </tr>
+        <tr>
+            <td>value</td>
+            <td>Number</td>
+            <td><code>undefined</code></td>
+            <td>When a value is set, the nodes will be scaled using the options in the scaling object defined above.
+            </td>
+        </tr>
+        <tr>
+            <td>x</td>
+            <td>Number</td>
+            <td><code>undefined</code></td>
+            <td>This gives a node an initial x position. When using the hierarchical layout, either the x or y position
+                is set by the layout engine depending on the type of view. The other value remains untouched. When using
+                stabilization, the stabilized position may be different from the initial one. To lock the node to that
+                position use the physics or fixed options.
+            </td>
+        </tr>
+        <tr>
+            <td>y</td>
+            <td>Number</td>
+            <td><code>undefined</code></td>
+            <td>This gives a node an initial y position. When using the hierarchical layout, either the x or y position
+                is set by the layout engine depending on the type of view. The other value remains untouched. When using
+                stabilization, the stabilized position may be different from the initial one. To lock the node to that
+                position use the physics or fixed options.
+            </td>
+        </tr>
+    </table>
+
+</div>
+
+<!-- Bootstrap core JavaScript
+================================================== -->
+<!-- Placed at the end of the document so the pages load faster -->
+<script src="../js/jquery.min.js"></script>
+<script src="../js/bootstrap.min.js"></script>
+<!-- IE10 viewport hack for Surface/desktop Windows 8 bug -->
+<script src="../js/ie10-viewport-bug-workaround.js"></script>

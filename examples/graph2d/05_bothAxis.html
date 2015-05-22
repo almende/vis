@@ -1,42 +1,41 @@
 <!DOCTYPE HTML>
 <html>
-<head><script>(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)})(window,document,'script','//www.google-analytics.com/analytics.js','ga');ga('create', 'UA-61231638-1', 'auto');ga('send', 'pageview');</script>
+<head>
     <title>Graph2d | Both Axis Example</title>
     <link href="../../dist/vis.css" rel="stylesheet" type="text/css" />
+    <script src="../../dist/vis.js"></script>
+
     <style type="text/css">
         body, html {
             font-family: sans-serif;
         }
 
-        .customStyle1 {
+        .custom-style1 {
             fill: #f2ea00;
             fill-opacity:0;
             stroke-width:2px;
             stroke: #b3ab00;
         }
 
-        .customStyle2 {
+        .custom-style2 {
             fill: #00a0f2;
-            fill-opacity:0;
             stroke-width:2px;
             stroke: #050092;
         }
 
-        .customStyle3 {
+        .custom-style3 {
             fill: #00f201;
             fill-opacity:0;
             stroke-width:2px;
             stroke: #029200;
         }
-        path.customStyle3.fill {
+        path.custom-style3.vis-fill {
             fill-opacity:0.5 !important;
             stroke: none;
         }
     </style>
 
-    <script src="../../dist/vis.js"></script>
-
-</head>
+<script>(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)})(window,document,'script','//www.google-analytics.com/analytics.js','ga');ga('create', 'UA-61231638-1', 'auto');ga('send', 'pageview');</script></head>
 <body>
 <h2>Graph2d | Both Axis Example</h2>
 <div style="width:700px; font-size:14px; text-align: justify;">
@@ -57,7 +56,7 @@
     groups.add({
         id: 0,
         content: names[0],
-        className: 'customStyle1',
+        className: 'custom-style1',
         options: {
             drawPoints: {
                 style: 'square' // square, circle
@@ -70,7 +69,7 @@
     groups.add({
         id: 1,
         content: names[1],
-        className: 'customStyle2',
+        className: 'custom-style2',
         options: {
             style:'bar',
             drawPoints: {style: 'circle',
@@ -90,7 +89,7 @@
     groups.add({
         id: 3,
         content: names[3],
-        className: 'customStyle3',
+        className: 'custom-style3',
         options: {
             yAxisOrientation: 'right', // right, left
             drawPoints: {
