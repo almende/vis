@@ -100,7 +100,8 @@ var options = {
   configure: {
     enabled: true,
     filter: 'nodes,edges',
-    container: undefined
+    container: undefined,
+    showButton: true
   }
 }
 
@@ -153,6 +154,12 @@ function (option, path) {
             <td>DOM element</td>
             <td><code>undefined</code></td>
             <td>This allows you to put the configure list in another HTML container than below the network.</td>
+        </tr>
+        <tr>
+            <td>showButton</td>
+            <td>Boolean</td>
+            <td><code>true</code></td>
+            <td>Show the generate options button at the bottom of the configurator.</td>
         </tr>
     </table>
 

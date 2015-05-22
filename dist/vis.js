@@ -3156,7 +3156,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   'use strict';
 
-  var Emitter = __webpack_require__(69);
+  var Emitter = __webpack_require__(43);
   var DataSet = __webpack_require__(3);
   var DataView = __webpack_require__(4);
   var util = __webpack_require__(1);
@@ -6319,23 +6319,23 @@ return /******/ (function(modules) { // webpackBootstrap
 
   'use strict';
 
-  var Emitter = __webpack_require__(69);
+  var Emitter = __webpack_require__(43);
   var Hammer = __webpack_require__(41);
   var util = __webpack_require__(1);
   var DataSet = __webpack_require__(3);
   var DataView = __webpack_require__(4);
   var Range = __webpack_require__(17);
-  var Core = __webpack_require__(43);
+  var Core = __webpack_require__(44);
   var TimeAxis = __webpack_require__(35);
   var CurrentTime = __webpack_require__(26);
   var CustomTime = __webpack_require__(27);
   var ItemSet = __webpack_require__(32);
 
-  var Configurator = __webpack_require__(44);
-  var Validator = __webpack_require__(45)['default'];
-  var printStyle = __webpack_require__(45).printStyle;
-  var allOptions = __webpack_require__(46).allOptions;
-  var configureOptions = __webpack_require__(46).configureOptions;
+  var Configurator = __webpack_require__(45);
+  var Validator = __webpack_require__(46)['default'];
+  var printStyle = __webpack_require__(46).printStyle;
+  var allOptions = __webpack_require__(47).allOptions;
+  var configureOptions = __webpack_require__(47).configureOptions;
 
   /**
    * Create a timeline visualization
@@ -6760,23 +6760,23 @@ return /******/ (function(modules) { // webpackBootstrap
 
   'use strict';
 
-  var Emitter = __webpack_require__(69);
+  var Emitter = __webpack_require__(43);
   var Hammer = __webpack_require__(41);
   var util = __webpack_require__(1);
   var DataSet = __webpack_require__(3);
   var DataView = __webpack_require__(4);
   var Range = __webpack_require__(17);
-  var Core = __webpack_require__(43);
+  var Core = __webpack_require__(44);
   var TimeAxis = __webpack_require__(35);
   var CurrentTime = __webpack_require__(26);
   var CustomTime = __webpack_require__(27);
   var LineGraph = __webpack_require__(34);
 
-  var Configurator = __webpack_require__(44);
-  var Validator = __webpack_require__(45)['default'];
-  var printStyle = __webpack_require__(45).printStyle;
-  var allOptions = __webpack_require__(47).allOptions;
-  var configureOptions = __webpack_require__(47).configureOptions;
+  var Configurator = __webpack_require__(45);
+  var Validator = __webpack_require__(46)['default'];
+  var printStyle = __webpack_require__(46).printStyle;
+  var allOptions = __webpack_require__(48).allOptions;
+  var configureOptions = __webpack_require__(48).configureOptions;
 
   /**
    * Create a timeline visualization
@@ -7778,7 +7778,7 @@ return /******/ (function(modules) { // webpackBootstrap
   'use strict';
 
   var util = __webpack_require__(1);
-  var hammerUtil = __webpack_require__(48);
+  var hammerUtil = __webpack_require__(49);
   var moment = __webpack_require__(40);
   var Component = __webpack_require__(25);
   var DateUtil = __webpack_require__(15);
@@ -10526,7 +10526,7 @@ return /******/ (function(modules) { // webpackBootstrap
   var util = __webpack_require__(1);
   var Component = __webpack_require__(25);
   var moment = __webpack_require__(40);
-  var locales = __webpack_require__(49);
+  var locales = __webpack_require__(50);
 
   /**
    * A current time bar
@@ -10703,7 +10703,7 @@ return /******/ (function(modules) { // webpackBootstrap
   var util = __webpack_require__(1);
   var Component = __webpack_require__(25);
   var moment = __webpack_require__(40);
-  var locales = __webpack_require__(49);
+  var locales = __webpack_require__(50);
 
   /**
    * A custom time bar
@@ -11544,9 +11544,9 @@ return /******/ (function(modules) { // webpackBootstrap
 
   var util = __webpack_require__(1);
   var DOMutil = __webpack_require__(2);
-  var Line = __webpack_require__(50);
-  var Bar = __webpack_require__(51);
-  var Points = __webpack_require__(52);
+  var Line = __webpack_require__(51);
+  var Bar = __webpack_require__(52);
+  var Points = __webpack_require__(53);
 
   /**
    * /**
@@ -14217,8 +14217,8 @@ return /******/ (function(modules) { // webpackBootstrap
   var DataAxis = __webpack_require__(28);
   var GraphGroup = __webpack_require__(29);
   var Legend = __webpack_require__(33);
-  var BarFunctions = __webpack_require__(51);
-  var LineFunctions = __webpack_require__(50);
+  var BarFunctions = __webpack_require__(52);
+  var LineFunctions = __webpack_require__(51);
 
   var UNGROUPED = '__ungrouped__'; // reserved group id for ungrouped items
 
@@ -15627,68 +15627,68 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
 
-  var _modulesGroups = __webpack_require__(53);
+  var _modulesGroups = __webpack_require__(54);
 
   var _modulesGroups2 = _interopRequireDefault(_modulesGroups);
 
-  var _modulesNodesHandler = __webpack_require__(54);
+  var _modulesNodesHandler = __webpack_require__(55);
 
   var _modulesNodesHandler2 = _interopRequireDefault(_modulesNodesHandler);
 
-  var _modulesEdgesHandler = __webpack_require__(55);
+  var _modulesEdgesHandler = __webpack_require__(56);
 
   var _modulesEdgesHandler2 = _interopRequireDefault(_modulesEdgesHandler);
 
-  var _modulesPhysicsEngine = __webpack_require__(56);
+  var _modulesPhysicsEngine = __webpack_require__(57);
 
   var _modulesPhysicsEngine2 = _interopRequireDefault(_modulesPhysicsEngine);
 
-  var _modulesClustering = __webpack_require__(57);
+  var _modulesClustering = __webpack_require__(58);
 
   var _modulesClustering2 = _interopRequireDefault(_modulesClustering);
 
-  var _modulesCanvasRenderer = __webpack_require__(58);
+  var _modulesCanvasRenderer = __webpack_require__(59);
 
   var _modulesCanvasRenderer2 = _interopRequireDefault(_modulesCanvasRenderer);
 
-  var _modulesCanvas = __webpack_require__(59);
+  var _modulesCanvas = __webpack_require__(60);
 
   var _modulesCanvas2 = _interopRequireDefault(_modulesCanvas);
 
-  var _modulesView = __webpack_require__(60);
+  var _modulesView = __webpack_require__(61);
 
   var _modulesView2 = _interopRequireDefault(_modulesView);
 
-  var _modulesInteractionHandler = __webpack_require__(61);
+  var _modulesInteractionHandler = __webpack_require__(62);
 
   var _modulesInteractionHandler2 = _interopRequireDefault(_modulesInteractionHandler);
 
-  var _modulesSelectionHandler = __webpack_require__(62);
+  var _modulesSelectionHandler = __webpack_require__(63);
 
   var _modulesSelectionHandler2 = _interopRequireDefault(_modulesSelectionHandler);
 
-  var _modulesLayoutEngine = __webpack_require__(63);
+  var _modulesLayoutEngine = __webpack_require__(64);
 
   var _modulesLayoutEngine2 = _interopRequireDefault(_modulesLayoutEngine);
 
-  var _modulesManipulationSystem = __webpack_require__(64);
+  var _modulesManipulationSystem = __webpack_require__(65);
 
   var _modulesManipulationSystem2 = _interopRequireDefault(_modulesManipulationSystem);
 
-  var _sharedConfigurator = __webpack_require__(44);
+  var _sharedConfigurator = __webpack_require__(45);
 
   var _sharedConfigurator2 = _interopRequireDefault(_sharedConfigurator);
 
-  var _sharedValidator = __webpack_require__(45);
+  var _sharedValidator = __webpack_require__(46);
 
   var _sharedValidator2 = _interopRequireDefault(_sharedValidator);
 
-  var _optionsJs = __webpack_require__(65);
+  var _optionsJs = __webpack_require__(66);
 
   // Load custom shapes into CanvasRenderingContext2D
-  __webpack_require__(66);
+  __webpack_require__(67);
 
-  var Emitter = __webpack_require__(69);
+  var Emitter = __webpack_require__(43);
   var Hammer = __webpack_require__(41);
   var util = __webpack_require__(1);
   var DataSet = __webpack_require__(3);
@@ -15696,8 +15696,8 @@ return /******/ (function(modules) { // webpackBootstrap
   var dotparser = __webpack_require__(38);
   var gephiParser = __webpack_require__(39);
   var Images = __webpack_require__(37);
-  var Activator = __webpack_require__(67);
-  var locales = __webpack_require__(68);
+  var Activator = __webpack_require__(68);
+  var locales = __webpack_require__(69);
 
   /**
    * @constructor Network
@@ -16193,8 +16193,8 @@ return /******/ (function(modules) { // webpackBootstrap
   Network.prototype.getScale = function () {
     return this.view.getScale.apply(this.view, arguments);
   };
-  Network.prototype.getPosition = function () {
-    return this.view.getPosition.apply(this.view, arguments);
+  Network.prototype.getViewPosition = function () {
+    return this.view.getViewPosition.apply(this.view, arguments);
   };
   Network.prototype.fit = function () {
     return this.view.fit.apply(this.view, arguments);
@@ -16294,6 +16294,8 @@ return /******/ (function(modules) { // webpackBootstrap
    *
    * DOT language reference: http://www.graphviz.org/doc/info/lang.html
    *
+   * DOT language attributes: http://graphviz.org/content/attrs
+   *
    * @param {String} data     Text containing a graph in DOT-notation
    * @return {Object} graph   An object containing two parameters:
    *                          {Object[]} nodes
@@ -16305,6 +16307,20 @@ return /******/ (function(modules) { // webpackBootstrap
     dot = data;
     return parseGraph();
   }
+
+  // mapping of attributes from DOT (the keys) to vis.js (the values)
+  var NODE_ATTR_MAPPING = {
+    'fontsize': 'font.size',
+    'fontcolor': 'font.color',
+    'labelfontcolor': 'font.color',
+    'fontname': 'font.face',
+    'color': ['color.border', 'color.background'],
+    'fillcolor': 'color.background',
+    'tooltip': 'title',
+    'labeltooltip': 'title'
+  };
+  var EDGE_ATTR_MAPPING = Object.create(NODE_ATTR_MAPPING);
+  EDGE_ATTR_MAPPING.color = 'color.color';
 
   // token types enumeration
   var TOKENTYPE = {
@@ -17008,6 +17024,62 @@ return /******/ (function(modules) { // webpackBootstrap
   }
 
   /**
+   * Set a nested property on an object
+   * When nested objects are missing, they will be created.
+   * For example setProp({}, 'font.color', 'red') will return {font: {color: 'red'}}
+   * @param {Object} object
+   * @param {string} path   A dot separated string like 'font.color'
+   * @param {*} value       Value for the property
+   * @return {Object} Returns the original object, allows for chaining.
+   */
+  function setProp(object, path, value) {
+    var names = path.split('.');
+    var prop = names.pop();
+
+    // traverse over the nested objects
+    var obj = object;
+    for (var i = 0; i < names.length; i++) {
+      var name = names[i];
+      if (!(name in obj)) {
+        obj[name] = {};
+      }
+      obj = obj[name];
+    }
+
+    // set the property value
+    obj[prop] = value;
+
+    return object;
+  }
+
+  /**
+   * Convert an object with DOT attributes to their vis.js equivalents.
+   * @param {Object} attr     Object with DOT attributes
+   * @param {Object} mapping
+   * @return {Object}         Returns an object with vis.js attributes
+   */
+  function convertAttr(attr, mapping) {
+    var converted = {};
+
+    for (var prop in attr) {
+      if (attr.hasOwnProperty(prop)) {
+        var visProp = mapping[prop];
+        if (Array.isArray(visProp)) {
+          visProp.forEach(function (visPropI) {
+            setProp(converted, visPropI, attr[prop]);
+          });
+        } else if (typeof visProp === 'string') {
+          setProp(converted, visProp, attr[prop]);
+        } else {
+          setProp(converted, prop, attr[prop]);
+        }
+      }
+    }
+
+    return converted;
+  }
+
+  /**
    * Convert a string containing a graph in DOT language into a map containing
    * with nodes and edges in the format of graph.
    * @param {String} data         Text containing a graph in DOT-notation
@@ -17029,7 +17101,7 @@ return /******/ (function(modules) { // webpackBootstrap
           id: dotNode.id,
           label: String(dotNode.label || dotNode.id)
         };
-        merge(graphNode, dotNode.attr);
+        merge(graphNode, convertAttr(dotNode.attr, NODE_ATTR_MAPPING));
         if (graphNode.image) {
           graphNode.shape = 'image';
         }
@@ -17049,7 +17121,7 @@ return /******/ (function(modules) { // webpackBootstrap
           from: dotEdge.from,
           to: dotEdge.to
         };
-        merge(graphEdge, dotEdge.attr);
+        merge(graphEdge, convertAttr(dotEdge.attr, EDGE_ATTR_MAPPING));
         graphEdge.arrows = dotEdge.type === '->' ? 'to' : undefined;
 
         return graphEdge;
@@ -17064,6 +17136,9 @@ return /******/ (function(modules) { // webpackBootstrap
             id: dotEdge.from
           };
         }
+
+        // TODO: support of solid/dotted/dashed edges (attr = 'style')
+        // TODO: support for attributes 'dir' and 'arrowhead' (edge arrows)
 
         if (dotEdge.to instanceof Object) {
           to = dotEdge.to.nodes;
@@ -17429,18 +17504,188 @@ return /******/ (function(modules) { // webpackBootstrap
 /* 43 */
 /***/ function(module, exports, __webpack_require__) {
 
+  
+  /**
+   * Expose `Emitter`.
+   */
+
+  module.exports = Emitter;
+
+  /**
+   * Initialize a new `Emitter`.
+   *
+   * @api public
+   */
+
+  function Emitter(obj) {
+    if (obj) return mixin(obj);
+  };
+
+  /**
+   * Mixin the emitter properties.
+   *
+   * @param {Object} obj
+   * @return {Object}
+   * @api private
+   */
+
+  function mixin(obj) {
+    for (var key in Emitter.prototype) {
+      obj[key] = Emitter.prototype[key];
+    }
+    return obj;
+  }
+
+  /**
+   * Listen on the given `event` with `fn`.
+   *
+   * @param {String} event
+   * @param {Function} fn
+   * @return {Emitter}
+   * @api public
+   */
+
+  Emitter.prototype.on =
+  Emitter.prototype.addEventListener = function(event, fn){
+    this._callbacks = this._callbacks || {};
+    (this._callbacks[event] = this._callbacks[event] || [])
+      .push(fn);
+    return this;
+  };
+
+  /**
+   * Adds an `event` listener that will be invoked a single
+   * time then automatically removed.
+   *
+   * @param {String} event
+   * @param {Function} fn
+   * @return {Emitter}
+   * @api public
+   */
+
+  Emitter.prototype.once = function(event, fn){
+    var self = this;
+    this._callbacks = this._callbacks || {};
+
+    function on() {
+      self.off(event, on);
+      fn.apply(this, arguments);
+    }
+
+    on.fn = fn;
+    this.on(event, on);
+    return this;
+  };
+
+  /**
+   * Remove the given callback for `event` or all
+   * registered callbacks.
+   *
+   * @param {String} event
+   * @param {Function} fn
+   * @return {Emitter}
+   * @api public
+   */
+
+  Emitter.prototype.off =
+  Emitter.prototype.removeListener =
+  Emitter.prototype.removeAllListeners =
+  Emitter.prototype.removeEventListener = function(event, fn){
+    this._callbacks = this._callbacks || {};
+
+    // all
+    if (0 == arguments.length) {
+      this._callbacks = {};
+      return this;
+    }
+
+    // specific event
+    var callbacks = this._callbacks[event];
+    if (!callbacks) return this;
+
+    // remove all handlers
+    if (1 == arguments.length) {
+      delete this._callbacks[event];
+      return this;
+    }
+
+    // remove specific handler
+    var cb;
+    for (var i = 0; i < callbacks.length; i++) {
+      cb = callbacks[i];
+      if (cb === fn || cb.fn === fn) {
+        callbacks.splice(i, 1);
+        break;
+      }
+    }
+    return this;
+  };
+
+  /**
+   * Emit `event` with the given args.
+   *
+   * @param {String} event
+   * @param {Mixed} ...
+   * @return {Emitter}
+   */
+
+  Emitter.prototype.emit = function(event){
+    this._callbacks = this._callbacks || {};
+    var args = [].slice.call(arguments, 1)
+      , callbacks = this._callbacks[event];
+
+    if (callbacks) {
+      callbacks = callbacks.slice(0);
+      for (var i = 0, len = callbacks.length; i < len; ++i) {
+        callbacks[i].apply(this, args);
+      }
+    }
+
+    return this;
+  };
+
+  /**
+   * Return array of callbacks for `event`.
+   *
+   * @param {String} event
+   * @return {Array}
+   * @api public
+   */
+
+  Emitter.prototype.listeners = function(event){
+    this._callbacks = this._callbacks || {};
+    return this._callbacks[event] || [];
+  };
+
+  /**
+   * Check if this emitter has `event` handlers.
+   *
+   * @param {String} event
+   * @return {Boolean}
+   * @api public
+   */
+
+  Emitter.prototype.hasListeners = function(event){
+    return !! this.listeners(event).length;
+  };
+
+
+/***/ },
+/* 44 */
+/***/ function(module, exports, __webpack_require__) {
+
   'use strict';
 
-  var Emitter = __webpack_require__(69);
+  var Emitter = __webpack_require__(43);
   var Hammer = __webpack_require__(41);
-  var hammerUtil = __webpack_require__(48);
+  var hammerUtil = __webpack_require__(49);
   var util = __webpack_require__(1);
   var DataSet = __webpack_require__(3);
   var DataView = __webpack_require__(4);
   var Range = __webpack_require__(17);
   var ItemSet = __webpack_require__(32);
   var TimeAxis = __webpack_require__(35);
-  var Activator = __webpack_require__(67);
+  var Activator = __webpack_require__(68);
   var DateUtil = __webpack_require__(15);
   var CustomTime = __webpack_require__(27);
 
@@ -18392,7 +18637,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = Core;
 
 /***/ },
-/* 44 */
+/* 45 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -18407,7 +18652,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
 
-  var _ColorPicker = __webpack_require__(73);
+  var _ColorPicker = __webpack_require__(113);
 
   var _ColorPicker2 = _interopRequireDefault(_ColorPicker);
 
@@ -18443,7 +18688,8 @@ return /******/ (function(modules) { // webpackBootstrap
       this.defaultOptions = {
         enabled: false,
         filter: true,
-        container: undefined
+        container: undefined,
+        showButton: true
       };
       util.extend(this.options, this.defaultOptions);
 
@@ -18476,6 +18722,9 @@ return /******/ (function(modules) { // webpackBootstrap
             }
             if (options.filter !== undefined) {
               this.options.filter = options.filter;
+            }
+            if (options.showButton !== undefined) {
+              this.options.showButton = options.showButton;
             }
             if (options.enabled !== undefined) {
               enabled = options.enabled;
@@ -18525,7 +18774,7 @@ return /******/ (function(modules) { // webpackBootstrap
             show = false;
             if (typeof filter === 'function') {
               show = filter(option, []);
-              show = show || this._handleObject(this.configureOptions[option], [option]);
+              show = show || this._handleObject(this.configureOptions[option], [option], true);
             } else if (filter === true || filter.indexOf(option) !== -1) {
               show = true;
             }
@@ -18546,24 +18795,29 @@ return /******/ (function(modules) { // webpackBootstrap
             counter++;
           }
         }
-        var generateButton = document.createElement('div');
-        generateButton.className = 'vis-network-configuration button';
-        generateButton.innerHTML = 'generate options';
-        generateButton.onclick = function () {
-          _this._printOptions();
-        };
-        generateButton.onmouseover = function () {
-          generateButton.className = 'vis-network-configuration button hover';
-        };
-        generateButton.onmouseout = function () {
-          generateButton.className = 'vis-network-configuration button';
-        };
 
-        this.optionsContainer = document.createElement('div');
-        this.optionsContainer.className = 'vis-network-configuration vis-option-container';
+        if (this.options.showButton === true) {
+          (function () {
+            var generateButton = document.createElement('div');
+            generateButton.className = 'vis-network-configuration button';
+            generateButton.innerHTML = 'generate options';
+            generateButton.onclick = function () {
+              _this._printOptions();
+            };
+            generateButton.onmouseover = function () {
+              generateButton.className = 'vis-network-configuration button hover';
+            };
+            generateButton.onmouseout = function () {
+              generateButton.className = 'vis-network-configuration button';
+            };
 
-        this.domElements.push(this.optionsContainer);
-        this.domElements.push(generateButton);
+            _this.optionsContainer = document.createElement('div');
+            _this.optionsContainer.className = 'vis-network-configuration vis-option-container';
+
+            _this.domElements.push(_this.optionsContainer);
+            _this.domElements.push(generateButton);
+          })();
+        }
 
         this._push();
         this.colorPicker.insertTo(this.container);
@@ -18905,23 +19159,31 @@ return /******/ (function(modules) { // webpackBootstrap
        */
       value: function _handleObject(obj) {
         var path = arguments[1] === undefined ? [] : arguments[1];
+        var checkOnly = arguments[2] === undefined ? false : arguments[2];
 
         var show = false;
         var filter = this.options.filter;
         var visibleInSet = false;
         for (var subObj in obj) {
           if (obj.hasOwnProperty(subObj)) {
-            show = false;
+            show = true;
+            var item = obj[subObj];
+            var newPath = util.copyAndExtendArray(path, subObj);
             if (typeof filter === 'function') {
               show = filter(subObj, path);
-            } else if (filter === true) {
-              show = true;
+
+              // if needed we must go deeper into the object.
+              if (show === false) {
+                if (!(item instanceof Array) && typeof item !== 'string' && typeof item !== 'boolean' && item instanceof Object) {
+                  this.allowCreation = false;
+                  show = this._handleObject(item, newPath, true);
+                  this.allowCreation = checkOnly === false;
+                }
+              }
             }
 
             if (show !== false) {
               visibleInSet = true;
-              var item = obj[subObj];
-              var newPath = util.copyAndExtendArray(path, subObj);
               var value = this._getValue(newPath);
 
               if (item instanceof Array) {
@@ -19050,7 +19312,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 45 */
+/* 46 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -19369,7 +19631,7 @@ return /******/ (function(modules) { // webpackBootstrap
   // item is a function, which is allowed
 
 /***/ },
-/* 46 */
+/* 47 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -19586,7 +19848,7 @@ return /******/ (function(modules) { // webpackBootstrap
   exports.configureOptions = configureOptions;
 
 /***/ },
-/* 47 */
+/* 48 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -19857,7 +20119,7 @@ return /******/ (function(modules) { // webpackBootstrap
   exports.configureOptions = configureOptions;
 
 /***/ },
-/* 48 */
+/* 49 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -19929,7 +20191,7 @@ return /******/ (function(modules) { // webpackBootstrap
   exports.offRelease = exports.offTouch;
 
 /***/ },
-/* 49 */
+/* 50 */
 /***/ function(module, exports, __webpack_require__) {
 
   // English
@@ -19951,13 +20213,13 @@ return /******/ (function(modules) { // webpackBootstrap
   exports['nl_BE'] = exports['nl'];
 
 /***/ },
-/* 50 */
+/* 51 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
 
   var DOMutil = __webpack_require__(2);
-  var Points = __webpack_require__(52);
+  var Points = __webpack_require__(53);
 
   function Line(groupId, options) {
     this.groupId = groupId;
@@ -20246,13 +20508,13 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = Line;
 
 /***/ },
-/* 51 */
+/* 52 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
 
   var DOMutil = __webpack_require__(2);
-  var Points = __webpack_require__(52);
+  var Points = __webpack_require__(53);
 
   function Bargraph(groupId, options) {
     this.groupId = groupId;
@@ -20494,7 +20756,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = Bargraph;
 
 /***/ },
-/* 52 */
+/* 53 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -20541,7 +20803,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = Points;
 
 /***/ },
-/* 53 */
+/* 54 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
@@ -20683,7 +20945,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports["default"];
 
 /***/ },
-/* 54 */
+/* 55 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -20698,11 +20960,11 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
 
-  var _componentsNode = __webpack_require__(74);
+  var _componentsNode = __webpack_require__(73);
 
   var _componentsNode2 = _interopRequireDefault(_componentsNode);
 
-  var _componentsSharedLabel = __webpack_require__(75);
+  var _componentsSharedLabel = __webpack_require__(74);
 
   var _componentsSharedLabel2 = _interopRequireDefault(_componentsSharedLabel);
 
@@ -20739,7 +21001,7 @@ return /******/ (function(modules) { // webpackBootstrap
       this.options = {};
       this.defaultOptions = {
         borderWidth: 1,
-        borderWidthSelected: undefined,
+        borderWidthSelected: 2,
         brokenImage: undefined,
         color: {
           border: '#2B7CE9',
@@ -21114,12 +21376,14 @@ return /******/ (function(modules) { // webpackBootstrap
           var nodeObj = {}; // used to quickly check if node already exists
           for (var i = 0; i < node.edges.length; i++) {
             var edge = node.edges[i];
-            if (edge.toId === nodeId) {
+            if (edge.toId == nodeId) {
+              // these are double equals since ids can be numeric or string
               if (nodeObj[edge.fromId] === undefined) {
                 nodeList.push(edge.fromId);
                 nodeObj[edge.fromId] = true;
               }
-            } else if (edge.fromId === nodeId) {
+            } else if (edge.fromId == nodeId) {
+              // these are double equals since ids can be numeric or string
               if (nodeObj[edge.toId] === undefined) {
                 nodeList.push(edge.toId);
                 nodeObj[edge.toId] = true;
@@ -21156,7 +21420,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 55 */
+/* 56 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -21171,11 +21435,11 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
 
-  var _componentsEdge = __webpack_require__(76);
+  var _componentsEdge = __webpack_require__(75);
 
   var _componentsEdge2 = _interopRequireDefault(_componentsEdge);
 
-  var _componentsSharedLabel = __webpack_require__(75);
+  var _componentsSharedLabel = __webpack_require__(74);
 
   var _componentsSharedLabel2 = _interopRequireDefault(_componentsSharedLabel);
 
@@ -21256,7 +21520,7 @@ return /******/ (function(modules) { // webpackBootstrap
             }
           }
         },
-        selectionWidth: 1,
+        selectionWidth: 1.5,
         selfReferenceSize: 20,
         shadow: {
           enabled: false,
@@ -21575,7 +21839,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 56 */
+/* 57 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -21590,35 +21854,35 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
 
-  var _componentsPhysicsBarnesHutSolver = __webpack_require__(77);
+  var _componentsPhysicsBarnesHutSolver = __webpack_require__(76);
 
   var _componentsPhysicsBarnesHutSolver2 = _interopRequireDefault(_componentsPhysicsBarnesHutSolver);
 
-  var _componentsPhysicsRepulsionSolver = __webpack_require__(78);
+  var _componentsPhysicsRepulsionSolver = __webpack_require__(77);
 
   var _componentsPhysicsRepulsionSolver2 = _interopRequireDefault(_componentsPhysicsRepulsionSolver);
 
-  var _componentsPhysicsHierarchicalRepulsionSolver = __webpack_require__(79);
+  var _componentsPhysicsHierarchicalRepulsionSolver = __webpack_require__(78);
 
   var _componentsPhysicsHierarchicalRepulsionSolver2 = _interopRequireDefault(_componentsPhysicsHierarchicalRepulsionSolver);
 
-  var _componentsPhysicsSpringSolver = __webpack_require__(80);
+  var _componentsPhysicsSpringSolver = __webpack_require__(79);
 
   var _componentsPhysicsSpringSolver2 = _interopRequireDefault(_componentsPhysicsSpringSolver);
 
-  var _componentsPhysicsHierarchicalSpringSolver = __webpack_require__(81);
+  var _componentsPhysicsHierarchicalSpringSolver = __webpack_require__(80);
 
   var _componentsPhysicsHierarchicalSpringSolver2 = _interopRequireDefault(_componentsPhysicsHierarchicalSpringSolver);
 
-  var _componentsPhysicsCentralGravitySolver = __webpack_require__(82);
+  var _componentsPhysicsCentralGravitySolver = __webpack_require__(81);
 
   var _componentsPhysicsCentralGravitySolver2 = _interopRequireDefault(_componentsPhysicsCentralGravitySolver);
 
-  var _componentsPhysicsFA2BasedRepulsionSolver = __webpack_require__(83);
+  var _componentsPhysicsFA2BasedRepulsionSolver = __webpack_require__(82);
 
   var _componentsPhysicsFA2BasedRepulsionSolver2 = _interopRequireDefault(_componentsPhysicsFA2BasedRepulsionSolver);
 
-  var _componentsPhysicsFA2BasedCentralGravitySolver = __webpack_require__(84);
+  var _componentsPhysicsFA2BasedCentralGravitySolver = __webpack_require__(83);
 
   var _componentsPhysicsFA2BasedCentralGravitySolver2 = _interopRequireDefault(_componentsPhysicsFA2BasedCentralGravitySolver);
 
@@ -21685,7 +21949,7 @@ return /******/ (function(modules) { // webpackBootstrap
         stabilization: {
           enabled: true,
           iterations: 1000, // maximum number of iteration to stabilize
-          updateInterval: 100,
+          updateInterval: 50,
           onlyDynamicEdges: false,
           fit: true
         },
@@ -22198,22 +22462,22 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 57 */
+/* 58 */
 /***/ function(module, exports, __webpack_require__) {
 
-  "use strict";
+  'use strict';
 
-  Object.defineProperty(exports, "__esModule", {
+  Object.defineProperty(exports, '__esModule', {
     value: true
   });
 
-  var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
+  var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
 
-  function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { "default": obj }; }
+  function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
 
-  function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+  function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
 
-  var _componentsNodesCluster = __webpack_require__(85);
+  var _componentsNodesCluster = __webpack_require__(84);
 
   var _componentsNodesCluster2 = _interopRequireDefault(_componentsNodesCluster);
 
@@ -22221,6 +22485,8 @@ return /******/ (function(modules) { // webpackBootstrap
 
   var ClusterEngine = (function () {
     function ClusterEngine(body) {
+      var _this = this;
+
       _classCallCheck(this, ClusterEngine);
 
       this.body = body;
@@ -22229,15 +22495,19 @@ return /******/ (function(modules) { // webpackBootstrap
       this.options = {};
       this.defaultOptions = {};
       util.extend(this.options, this.defaultOptions);
+
+      this.body.emitter.on('_resetData', function () {
+        _this.clusteredNodes = {};
+      });
     }
 
     _createClass(ClusterEngine, [{
-      key: "setOptions",
+      key: 'setOptions',
       value: function setOptions(options) {
         if (options !== undefined) {}
       }
     }, {
-      key: "clusterByHubsize",
+      key: 'clusterByHubsize',
 
       /**
       *
@@ -22247,7 +22517,7 @@ return /******/ (function(modules) { // webpackBootstrap
       value: function clusterByHubsize(hubsize, options) {
         if (hubsize === undefined) {
           hubsize = this._getHubSize();
-        } else if (tyepof(hubsize) === "object") {
+        } else if (tyepof(hubsize) === 'object') {
           options = this._checkOptions(hubsize);
           hubsize = this._getHubSize();
         }
@@ -22263,10 +22533,10 @@ return /******/ (function(modules) { // webpackBootstrap
         for (var i = 0; i < nodesToCluster.length; i++) {
           this.clusterByConnection(nodesToCluster[i], options, false);
         }
-        this.body.emitter.emit("_dataChanged");
+        this.body.emitter.emit('_dataChanged');
       }
     }, {
-      key: "cluster",
+      key: 'cluster',
 
       /**
       * loop over all nodes, check if they adhere to the condition and cluster if needed.
@@ -22278,7 +22548,7 @@ return /******/ (function(modules) { // webpackBootstrap
         var refreshData = arguments[1] === undefined ? true : arguments[1];
 
         if (options.joinCondition === undefined) {
-          throw new Error("Cannot call clusterByNodeData without a joinCondition function in the options.");
+          throw new Error('Cannot call clusterByNodeData without a joinCondition function in the options.');
         }
 
         // check if the options object is fine, append if needed
@@ -22306,7 +22576,7 @@ return /******/ (function(modules) { // webpackBootstrap
         this._cluster(childNodesObj, childEdgesObj, options, refreshData);
       }
     }, {
-      key: "clusterOutliers",
+      key: 'clusterOutliers',
 
       /**
       * Cluster all nodes in the network that have only 1 edge
@@ -22324,28 +22594,41 @@ return /******/ (function(modules) { // webpackBootstrap
           var childNodesObj = {};
           var childEdgesObj = {};
           var nodeId = this.body.nodeIndices[i];
-          if (this.body.nodes[nodeId].edges.length === 1) {
+          var visibleEdges = 0;
+          var edge = undefined;
+          for (var j = 0; j < this.body.nodes[nodeId].edges.length; j++) {
+            if (this.body.nodes[nodeId].edges[j].options.hidden === false) {
+              visibleEdges++;
+              edge = this.body.nodes[nodeId].edges[j];
+            }
+          }
+
+          if (visibleEdges === 1) {
             // this is an outlier
-            var edge = this.body.nodes[nodeId].edges[0];
             var childNodeId = this._getConnectedId(edge, nodeId);
             if (childNodeId !== nodeId) {
               if (options.joinCondition === undefined) {
-                childEdgesObj[edge.id] = edge;
-                childNodesObj[nodeId] = this.body.nodes[nodeId];
-                childNodesObj[childNodeId] = this.body.nodes[childNodeId];
+                if (this._checkIfUsed(clusters, nodeId, edge.id) === false && this._checkIfUsed(clusters, childNodeId, edge.id) === false) {
+                  childEdgesObj[edge.id] = edge;
+                  childNodesObj[nodeId] = this.body.nodes[nodeId];
+                  childNodesObj[childNodeId] = this.body.nodes[childNodeId];
+                }
               } else {
                 var clonedOptions = this._cloneOptions(this.body.nodes[nodeId]);
-                if (options.joinCondition(clonedOptions) === true) {
+                if (options.joinCondition(clonedOptions) === true && this._checkIfUsed(clusters, nodeId, edge.id) === false) {
                   childEdgesObj[edge.id] = edge;
                   childNodesObj[nodeId] = this.body.nodes[nodeId];
                 }
                 clonedOptions = this._cloneOptions(this.body.nodes[childNodeId]);
-                if (options.joinCondition(clonedOptions) === true) {
+                if (options.joinCondition(clonedOptions) === true && this._checkIfUsed(clusters, nodeId, edge.id) === false) {
                   childEdgesObj[edge.id] = edge;
                   childNodesObj[childNodeId] = this.body.nodes[childNodeId];
                 }
               }
-              clusters.push({ nodes: childNodesObj, edges: childEdgesObj });
+
+              if (Object.keys(childNodesObj).length > 0 && Object.keys(childEdgesObj).length > 0) {
+                clusters.push({ nodes: childNodesObj, edges: childEdgesObj });
+              }
             }
           }
         }
@@ -22355,11 +22638,22 @@ return /******/ (function(modules) { // webpackBootstrap
         }
 
         if (refreshData === true) {
-          this.body.emitter.emit("_dataChanged");
+          this.body.emitter.emit('_dataChanged');
         }
       }
     }, {
-      key: "clusterByConnection",
+      key: '_checkIfUsed',
+      value: function _checkIfUsed(clusters, nodeId, edgeId) {
+        for (var i = 0; i < clusters.length; i++) {
+          var cluster = clusters[i];
+          if (cluster.nodes[nodeId] !== undefined || cluster.edges[edgeId] !== undefined) {
+            return true;
+          }
+        }
+        return false;
+      }
+    }, {
+      key: 'clusterByConnection',
 
       /**
       * suck all connected nodes of a node into the node.
@@ -22372,10 +22666,10 @@ return /******/ (function(modules) { // webpackBootstrap
 
         // kill conditions
         if (nodeId === undefined) {
-          throw new Error("No nodeId supplied to clusterByConnection!");
+          throw new Error('No nodeId supplied to clusterByConnection!');
         }
         if (this.body.nodes[nodeId] === undefined) {
-          throw new Error("The nodeId given to clusterByConnection does not exist!");
+          throw new Error('The nodeId given to clusterByConnection does not exist!');
         }
 
         var node = this.body.nodes[nodeId];
@@ -22423,7 +22717,7 @@ return /******/ (function(modules) { // webpackBootstrap
         this._cluster(childNodesObj, childEdgesObj, options, refreshData);
       }
     }, {
-      key: "_cloneOptions",
+      key: '_cloneOptions',
 
       /**
       * This returns a clone of the options or options of the edge or node to be used for construction of new edges or check functions for new nodes.
@@ -22434,7 +22728,7 @@ return /******/ (function(modules) { // webpackBootstrap
       */
       value: function _cloneOptions(item, type) {
         var clonedOptions = {};
-        if (type === undefined || type === "node") {
+        if (type === undefined || type === 'node') {
           util.deepExtend(clonedOptions, item.options, true);
           clonedOptions.x = item.x;
           clonedOptions.y = item.y;
@@ -22445,7 +22739,7 @@ return /******/ (function(modules) { // webpackBootstrap
         return clonedOptions;
       }
     }, {
-      key: "_createClusterEdges",
+      key: '_createClusterEdges',
 
       /**
       * This function creates the edges that will be attached to the cluster.
@@ -22488,18 +22782,18 @@ return /******/ (function(modules) { // webpackBootstrap
 
             // if the node connected to the cluster is also in the cluster we do not need a new edge.
             if (childNodesObj[otherNodeId] === undefined) {
-              var clonedOptions = this._cloneOptions(edge, "edge");
+              var clonedOptions = this._cloneOptions(edge, 'edge');
               util.deepExtend(clonedOptions, clusterEdgeProperties);
               clonedOptions.from = fromId;
               clonedOptions.to = toId;
-              clonedOptions.id = "clusterEdge:" + util.randomUUID();
+              clonedOptions.id = 'clusterEdge:' + util.randomUUID();
               newEdges.push(this.body.functions.createEdge(clonedOptions));
             }
           }
         }
       }
     }, {
-      key: "_checkOptions",
+      key: '_checkOptions',
 
       /**
       * This function checks the options that can be supplied to the different cluster functions
@@ -22521,7 +22815,7 @@ return /******/ (function(modules) { // webpackBootstrap
         return options;
       }
     }, {
-      key: "_cluster",
+      key: '_cluster',
 
       /**
       *
@@ -22541,12 +22835,6 @@ return /******/ (function(modules) { // webpackBootstrap
 
         var clusterNodeProperties = util.deepExtend({}, options.clusterNodeProperties);
 
-        // check if we have an unique id;
-        if (clusterNodeProperties.id === undefined) {
-          clusterNodeProperties.id = "cluster:" + util.randomUUID();
-        }
-        var clusterId = clusterNodeProperties.id;
-
         // construct the clusterNodeProperties
         if (options.processProperties !== undefined) {
           // get the childNode options
@@ -22559,18 +22847,24 @@ return /******/ (function(modules) { // webpackBootstrap
           // get clusterproperties based on childNodes
           var childEdgesOptions = [];
           for (var edgeId in childEdgesObj) {
-            var clonedOptions = this._cloneOptions(childEdgesObj[edgeId], "edge");
+            var clonedOptions = this._cloneOptions(childEdgesObj[edgeId], 'edge');
             childEdgesOptions.push(clonedOptions);
           }
 
           clusterNodeProperties = options.processProperties(clusterNodeProperties, childNodesOptions, childEdgesOptions);
           if (!clusterNodeProperties) {
-            throw new Error("The processProperties function does not return properties!");
+            throw new Error('The processProperties function does not return properties!');
           }
         }
 
+        // check if we have an unique id;
+        if (clusterNodeProperties.id === undefined) {
+          clusterNodeProperties.id = 'cluster:' + util.randomUUID();
+        }
+        var clusterId = clusterNodeProperties.id;
+
         if (clusterNodeProperties.label === undefined) {
-          clusterNodeProperties.label = "cluster";
+          clusterNodeProperties.label = 'cluster';
         }
 
         // give the clusterNode a postion if it does not have one.
@@ -22590,7 +22884,7 @@ return /******/ (function(modules) { // webpackBootstrap
         clusterNodeProperties.id = clusterId;
 
         // create the clusterNode
-        var clusterNode = this.body.functions.createNode(clusterNodeProperties, _componentsNodesCluster2["default"]);
+        var clusterNode = this.body.functions.createNode(clusterNodeProperties, _componentsNodesCluster2['default']);
         clusterNode.isCluster = true;
         clusterNode.containedNodes = childNodesObj;
         clusterNode.containedEdges = childEdgesObj;
@@ -22635,11 +22929,11 @@ return /******/ (function(modules) { // webpackBootstrap
 
         // wrap up
         if (refreshData === true) {
-          this.body.emitter.emit("_dataChanged");
+          this.body.emitter.emit('_dataChanged');
         }
       }
     }, {
-      key: "isCluster",
+      key: 'isCluster',
 
       /**
       * Check if a node is a cluster.
@@ -22650,12 +22944,12 @@ return /******/ (function(modules) { // webpackBootstrap
         if (this.body.nodes[nodeId] !== undefined) {
           return this.body.nodes[nodeId].isCluster === true;
         } else {
-          console.log("Node does not exist.");
+          console.log('Node does not exist.');
           return false;
         }
       }
     }, {
-      key: "_getClusterPosition",
+      key: '_getClusterPosition',
 
       /**
       * get the position of the cluster node based on what's inside
@@ -22681,7 +22975,7 @@ return /******/ (function(modules) { // webpackBootstrap
         return { x: 0.5 * (minX + maxX), y: 0.5 * (minY + maxY) };
       }
     }, {
-      key: "openCluster",
+      key: 'openCluster',
 
       /**
       * Open a cluster by calling this function.
@@ -22693,13 +22987,13 @@ return /******/ (function(modules) { // webpackBootstrap
 
         // kill conditions
         if (clusterNodeId === undefined) {
-          throw new Error("No clusterNodeId supplied to openCluster.");
+          throw new Error('No clusterNodeId supplied to openCluster.');
         }
         if (this.body.nodes[clusterNodeId] === undefined) {
-          throw new Error("The clusterNodeId supplied to openCluster does not exist.");
+          throw new Error('The clusterNodeId supplied to openCluster does not exist.');
         }
         if (this.body.nodes[clusterNodeId].containedNodes === undefined) {
-          console.log("The node:" + clusterNodeId + " is not a cluster.");
+          console.log('The node:' + clusterNodeId + ' is not a cluster.');
           return;
         }
         var clusterNode = this.body.nodes[clusterNodeId];
@@ -22737,7 +23031,8 @@ return /******/ (function(modules) { // webpackBootstrap
               edge.disconnect();
               delete this.body.edges[edgeId];
             } else {
-              // one of the nodes connected to this edge is in a cluster. We give the edge to that cluster and make a new temporary edge.
+
+              // one of the nodes connected to this edge is in a cluster. We give the edge to that cluster so it will be released when that cluster is opened.
               if (this.clusteredNodes[edge.fromId] !== undefined || this.clusteredNodes[edge.toId] !== undefined) {
                 var fromId = undefined,
                     toId = undefined;
@@ -22746,22 +23041,25 @@ return /******/ (function(modules) { // webpackBootstrap
                 var _clusterNode = this.body.nodes[clusterId];
                 _clusterNode.containedEdges[edgeId] = edge;
 
-                if (this.clusteredNodes[edge.fromId] !== undefined) {
-                  fromId = clusterId;
-                  toId = edge.toId;
-                } else {
-                  fromId = edge.fromId;
-                  toId = clusterId;
+                // if both from and to nodes are visible, we create a new temporary edge
+                if (edge.from.options.hidden !== true && edge.to.options.hidden !== true) {
+                  if (this.clusteredNodes[edge.fromId] !== undefined) {
+                    fromId = clusterId;
+                    toId = edge.toId;
+                  } else {
+                    fromId = edge.fromId;
+                    toId = clusterId;
+                  }
+
+                  var clonedOptions = this._cloneOptions(edge, 'edge');
+                  var id = 'clusterEdge:' + util.randomUUID();
+                  util.deepExtend(clonedOptions, _clusterNode.clusterEdgeProperties);
+                  util.deepExtend(clonedOptions, { from: fromId, to: toId, hidden: false, physics: true, id: id });
+                  var newEdge = this.body.functions.createEdge(clonedOptions);
+
+                  this.body.edges[id] = newEdge;
+                  this.body.edges[id].connect();
                 }
-
-                var clonedOptions = this._cloneOptions(edge, "edge");
-                var id = "clusterEdge:" + util.randomUUID();
-                util.deepExtend(clonedOptions, _clusterNode.clusterEdgeProperties);
-                util.deepExtend(clonedOptions, { from: fromId, to: toId, hidden: false, physics: true, id: id });
-                var newEdge = this.body.functions.createEdge(clonedOptions);
-
-                this.body.edges[id] = newEdge;
-                this.body.edges[id].connect();
               } else {
                 edge.options.hidden = false;
                 edge.togglePhysics(true);
@@ -22783,11 +23081,11 @@ return /******/ (function(modules) { // webpackBootstrap
         delete this.body.nodes[clusterNodeId];
 
         if (refreshData === true) {
-          this.body.emitter.emit("_dataChanged");
+          this.body.emitter.emit('_dataChanged');
         }
       }
     }, {
-      key: "_connectEdge",
+      key: '_connectEdge',
 
       /**
       * Connect an edge that was previously contained from cluster A to cluster B if the node that it was originally connected to
@@ -22813,7 +23111,7 @@ return /******/ (function(modules) { // webpackBootstrap
         edge.connect();
       }
     }, {
-      key: "findNode",
+      key: 'findNode',
 
       /**
       * Get the stack clusterId's that a certain node resides in. cluster A -> cluster B -> cluster C -> node
@@ -22835,7 +23133,7 @@ return /******/ (function(modules) { // webpackBootstrap
         return stack;
       }
     }, {
-      key: "_getConnectedId",
+      key: '_getConnectedId',
 
       /**
       * Get the Id the node is connected to
@@ -22854,7 +23152,7 @@ return /******/ (function(modules) { // webpackBootstrap
         }
       }
     }, {
-      key: "_getHubSize",
+      key: '_getHubSize',
 
       /**
       * We determine how many connections denote an important hub.
@@ -22897,11 +23195,11 @@ return /******/ (function(modules) { // webpackBootstrap
     return ClusterEngine;
   })();
 
-  exports["default"] = ClusterEngine;
-  module.exports = exports["default"];
+  exports['default'] = ClusterEngine;
+  module.exports = exports['default'];
 
 /***/ },
-/* 58 */
+/* 59 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -23281,7 +23579,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 59 */
+/* 60 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -23295,7 +23593,7 @@ return /******/ (function(modules) { // webpackBootstrap
   function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
 
   var Hammer = __webpack_require__(41);
-  var hammerUtil = __webpack_require__(48);
+  var hammerUtil = __webpack_require__(49);
 
   var util = __webpack_require__(1);
 
@@ -23649,7 +23947,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 60 */
+/* 61 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
@@ -24038,8 +24336,8 @@ return /******/ (function(modules) { // webpackBootstrap
         return this.body.view.scale;
       }
     }, {
-      key: "getPosition",
-      value: function getPosition() {
+      key: "getViewPosition",
+      value: function getViewPosition() {
         return { x: this.body.view.translation.x, y: this.body.view.translation.y };
       }
     }]);
@@ -24051,7 +24349,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports["default"];
 
 /***/ },
-/* 61 */
+/* 62 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -24066,11 +24364,11 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
 
-  var _componentsNavigationHandler = __webpack_require__(86);
+  var _componentsNavigationHandler = __webpack_require__(85);
 
   var _componentsNavigationHandler2 = _interopRequireDefault(_componentsNavigationHandler);
 
-  var _componentsPopup = __webpack_require__(87);
+  var _componentsPopup = __webpack_require__(86);
 
   var _componentsPopup2 = _interopRequireDefault(_componentsPopup);
 
@@ -24505,9 +24803,9 @@ return /******/ (function(modules) { // webpackBootstrap
           this.body.emitter.emit('_requestRedraw');
 
           if (scaleOld < scale) {
-            this.body.emitter.emit('zoom', { direction: '+' });
+            this.body.emitter.emit('zoom', { direction: '+', scale: this.body.view.scale });
           } else {
-            this.body.emitter.emit('zoom', { direction: '-' });
+            this.body.emitter.emit('zoom', { direction: '-', scale: this.body.view.scale });
           }
         }
       }
@@ -24757,7 +25055,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 62 */
+/* 63 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
@@ -24770,8 +25068,8 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
-  var Node = __webpack_require__(74);
-  var Edge = __webpack_require__(76);
+  var Node = __webpack_require__(73);
+  var Edge = __webpack_require__(75);
   var util = __webpack_require__(1);
 
   var SelectionHandler = (function () {
@@ -25477,7 +25775,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports["default"];
 
 /***/ },
-/* 63 */
+/* 64 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -25974,7 +26272,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 64 */
+/* 65 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -25989,7 +26287,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   var util = __webpack_require__(1);
   var Hammer = __webpack_require__(41);
-  var hammerUtil = __webpack_require__(48);
+  var hammerUtil = __webpack_require__(49);
 
   /**
    * clears the toolbar div element of children
@@ -27169,7 +27467,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 65 */
+/* 66 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -27199,6 +27497,7 @@ return /******/ (function(modules) { // webpackBootstrap
       enabled: { boolean: boolean },
       filter: { boolean: boolean, string: string, array: array, fn: fn },
       container: { dom: dom },
+      showButton: { boolean: boolean },
       __type__: { object: object, boolean: boolean, string: string, array: array, fn: fn }
     },
     edges: {
@@ -27499,11 +27798,11 @@ return /******/ (function(modules) { // webpackBootstrap
         min: [10, 0, 200, 1],
         max: [30, 0, 200, 1],
         label: {
-          enabled: true,
+          enabled: false,
           min: [14, 0, 200, 1],
           max: [30, 0, 200, 1],
           maxVisible: [30, 0, 200, 1],
-          drawThreshold: [3, 0, 20, 1]
+          drawThreshold: [5, 0, 20, 1]
         }
       },
       shadow: {
@@ -27534,12 +27833,12 @@ return /******/ (function(modules) { // webpackBootstrap
         size: [14, 0, 100, 1], // px
         face: ['arial', 'verdana', 'tahoma'],
         background: ['color', 'none'],
-        strokeWidth: [1, 0, 50, 1], // px
+        strokeWidth: [2, 0, 50, 1], // px
         strokeColor: ['color', '#ffffff'],
         align: ['horizontal', 'top', 'middle', 'bottom']
       },
       hidden: false,
-      hoverWidth: [2, 0, 5, 0.1],
+      hoverWidth: [1.5, 0, 5, 0.1],
       physics: true,
       scaling: {
         min: [1, 0, 100, 1],
@@ -27549,7 +27848,7 @@ return /******/ (function(modules) { // webpackBootstrap
           min: [14, 0, 200, 1],
           max: [30, 0, 200, 1],
           maxVisible: [30, 0, 200, 1],
-          drawThreshold: [3, 0, 20, 1]
+          drawThreshold: [5, 0, 20, 1]
         }
       },
       selectionWidth: [1.5, 0, 5, 0.1],
@@ -27568,7 +27867,7 @@ return /******/ (function(modules) { // webpackBootstrap
       width: [1, 0, 30, 1]
     },
     layout: {
-      randomSeed: [0, 0, 500, 1],
+      //randomSeed: [0, 0, 500, 1],
       hierarchical: {
         enabled: false,
         levelSeparation: [150, 20, 500, 5],
@@ -27604,37 +27903,37 @@ return /******/ (function(modules) { // webpackBootstrap
         gravitationalConstant: [-2000, -30000, 0, 50],
         centralGravity: [0.3, 0, 10, 0.05],
         springLength: [95, 0, 500, 5],
-        springConstant: [0.04, 0, 5, 0.005],
+        springConstant: [0.04, 0, 1.2, 0.005],
         damping: [0.09, 0, 1, 0.01],
         avoidOverlap: [0, 0, 1, 0.01]
       },
       forceAtlas2Based: {
         //theta: [0.5, 0.1, 1, 0.05],
-        gravitationalConstant: [-800, -3000, 0, 1],
+        gravitationalConstant: [-50, -500, 0, 1],
         centralGravity: [0.01, 0, 1, 0.005],
         springLength: [95, 0, 500, 5],
-        springConstant: [0.08, 0, 5, 0.005],
+        springConstant: [0.08, 0, 1.2, 0.005],
         damping: [0.4, 0, 1, 0.01],
         avoidOverlap: [0, 0, 1, 0.01]
       },
       repulsion: {
         centralGravity: [0.2, 0, 10, 0.05],
         springLength: [200, 0, 500, 5],
-        springConstant: [0.05, 0, 5, 0.005],
+        springConstant: [0.05, 0, 1.2, 0.005],
         nodeDistance: [100, 0, 500, 5],
         damping: [0.09, 0, 1, 0.01]
       },
       hierarchicalRepulsion: {
         centralGravity: [0.2, 0, 10, 0.05],
         springLength: [100, 0, 500, 5],
-        springConstant: [0.01, 0, 5, 0.005],
+        springConstant: [0.01, 0, 1.2, 0.005],
         nodeDistance: [120, 0, 500, 5],
         damping: [0.09, 0, 1, 0.01]
       },
       maxVelocity: [50, 0, 150, 1],
       minVelocity: [0.1, 0.01, 0.5, 0.01],
       solver: ['barnesHut', 'forceAtlas2Based', 'repulsion', 'hierarchicalRepulsion'],
-      timestep: [0.5, 0, 1, 0.05]
+      timestep: [0.5, 0.01, 1, 0.01]
     },
     global: {
       locale: ['en', 'nl']
@@ -27645,7 +27944,7 @@ return /******/ (function(modules) { // webpackBootstrap
   exports.configureOptions = configureOptions;
 
 /***/ },
-/* 66 */
+/* 67 */
 /***/ function(module, exports, __webpack_require__) {
 
   /**
@@ -27932,13 +28231,13 @@ return /******/ (function(modules) { // webpackBootstrap
   }
 
 /***/ },
-/* 67 */
+/* 68 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
 
-  var keycharm = __webpack_require__(88);
-  var Emitter = __webpack_require__(69);
+  var keycharm = __webpack_require__(87);
+  var Emitter = __webpack_require__(43);
   var Hammer = __webpack_require__(41);
   var util = __webpack_require__(1);
 
@@ -28085,7 +28384,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = Activator;
 
 /***/ },
-/* 68 */
+/* 69 */
 /***/ function(module, exports, __webpack_require__) {
 
   // English
@@ -28127,176 +28426,6 @@ return /******/ (function(modules) { // webpackBootstrap
   };
   exports['nl_NL'] = exports['nl'];
   exports['nl_BE'] = exports['nl'];
-
-/***/ },
-/* 69 */
-/***/ function(module, exports, __webpack_require__) {
-
-  
-  /**
-   * Expose `Emitter`.
-   */
-
-  module.exports = Emitter;
-
-  /**
-   * Initialize a new `Emitter`.
-   *
-   * @api public
-   */
-
-  function Emitter(obj) {
-    if (obj) return mixin(obj);
-  };
-
-  /**
-   * Mixin the emitter properties.
-   *
-   * @param {Object} obj
-   * @return {Object}
-   * @api private
-   */
-
-  function mixin(obj) {
-    for (var key in Emitter.prototype) {
-      obj[key] = Emitter.prototype[key];
-    }
-    return obj;
-  }
-
-  /**
-   * Listen on the given `event` with `fn`.
-   *
-   * @param {String} event
-   * @param {Function} fn
-   * @return {Emitter}
-   * @api public
-   */
-
-  Emitter.prototype.on =
-  Emitter.prototype.addEventListener = function(event, fn){
-    this._callbacks = this._callbacks || {};
-    (this._callbacks[event] = this._callbacks[event] || [])
-      .push(fn);
-    return this;
-  };
-
-  /**
-   * Adds an `event` listener that will be invoked a single
-   * time then automatically removed.
-   *
-   * @param {String} event
-   * @param {Function} fn
-   * @return {Emitter}
-   * @api public
-   */
-
-  Emitter.prototype.once = function(event, fn){
-    var self = this;
-    this._callbacks = this._callbacks || {};
-
-    function on() {
-      self.off(event, on);
-      fn.apply(this, arguments);
-    }
-
-    on.fn = fn;
-    this.on(event, on);
-    return this;
-  };
-
-  /**
-   * Remove the given callback for `event` or all
-   * registered callbacks.
-   *
-   * @param {String} event
-   * @param {Function} fn
-   * @return {Emitter}
-   * @api public
-   */
-
-  Emitter.prototype.off =
-  Emitter.prototype.removeListener =
-  Emitter.prototype.removeAllListeners =
-  Emitter.prototype.removeEventListener = function(event, fn){
-    this._callbacks = this._callbacks || {};
-
-    // all
-    if (0 == arguments.length) {
-      this._callbacks = {};
-      return this;
-    }
-
-    // specific event
-    var callbacks = this._callbacks[event];
-    if (!callbacks) return this;
-
-    // remove all handlers
-    if (1 == arguments.length) {
-      delete this._callbacks[event];
-      return this;
-    }
-
-    // remove specific handler
-    var cb;
-    for (var i = 0; i < callbacks.length; i++) {
-      cb = callbacks[i];
-      if (cb === fn || cb.fn === fn) {
-        callbacks.splice(i, 1);
-        break;
-      }
-    }
-    return this;
-  };
-
-  /**
-   * Emit `event` with the given args.
-   *
-   * @param {String} event
-   * @param {Mixed} ...
-   * @return {Emitter}
-   */
-
-  Emitter.prototype.emit = function(event){
-    this._callbacks = this._callbacks || {};
-    var args = [].slice.call(arguments, 1)
-      , callbacks = this._callbacks[event];
-
-    if (callbacks) {
-      callbacks = callbacks.slice(0);
-      for (var i = 0, len = callbacks.length; i < len; ++i) {
-        callbacks[i].apply(this, args);
-      }
-    }
-
-    return this;
-  };
-
-  /**
-   * Return array of callbacks for `event`.
-   *
-   * @param {String} event
-   * @return {Array}
-   * @api public
-   */
-
-  Emitter.prototype.listeners = function(event){
-    this._callbacks = this._callbacks || {};
-    return this._callbacks[event] || [];
-  };
-
-  /**
-   * Check if this emitter has `event` handlers.
-   *
-   * @param {String} event
-   * @return {Boolean}
-   * @api public
-   */
-
-  Emitter.prototype.hasListeners = function(event){
-    return !! this.listeners(event).length;
-  };
-
 
 /***/ },
 /* 70 */
@@ -31385,7 +31514,7 @@ return /******/ (function(modules) { // webpackBootstrap
       return _moment;
 
   }));
-  /* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(107)(module)))
+  /* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(89)(module)))
 
 /***/ },
 /* 71 */
@@ -34071,7 +34200,7 @@ return /******/ (function(modules) { // webpackBootstrap
       prefixed: prefixed
   });
 
-  if ("function" == TYPE_FUNCTION && __webpack_require__(108)) {
+  if ("function" == TYPE_FUNCTION && __webpack_require__(90)) {
       !(__WEBPACK_AMD_DEFINE_RESULT__ = function() {
           return Hammer;
       }.call(exports, __webpack_require__, exports, module), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__));
@@ -34096,651 +34225,71 @@ return /******/ (function(modules) { // webpackBootstrap
 
   var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
 
-  function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
-
-  var Hammer = __webpack_require__(41);
-  var hammerUtil = __webpack_require__(48);
-  var util = __webpack_require__(1);
-
-  var ColorPicker = (function () {
-    function ColorPicker() {
-      var pixelRatio = arguments[0] === undefined ? 1 : arguments[0];
-
-      _classCallCheck(this, ColorPicker);
-
-      this.pixelRatio = pixelRatio;
-      this.generated = false;
-      this.centerCoordinates = { x: 289 / 2, y: 289 / 2 };
-      this.r = 289 * 0.49;
-      this.color = { r: 255, g: 255, b: 255, a: 1 };
-      this.hueCircle = undefined;
-      this.initialColor = { r: 255, g: 255, b: 255, a: 1 };
-      this.previousColor = undefined;
-      this.applied = false;
-
-      // bound by
-      this.updateCallback = function () {};
-
-      // create all DOM elements
-      this._create();
-    }
-
-    _createClass(ColorPicker, [{
-      key: 'insertTo',
-
-      /**
-       * this inserts the colorPicker into a div from the DOM
-       * @param container
-       */
-      value: function insertTo(container) {
-        if (this.hammer !== undefined) {
-          this.hammer.destroy();
-          this.hammer = undefined;
-        }
-        this.container = container;
-        this.container.appendChild(this.frame);
-        this._bindHammer();
-
-        this._setSize();
-      }
-    }, {
-      key: 'setCallback',
-
-      /**
-       * the callback is executed on apply and save. Bind it to the application
-       * @param callback
-       */
-      value: function setCallback(callback) {
-        if (typeof callback === 'function') {
-          this.updateCallback = callback;
-        } else {
-          throw new Error('Function attempted to set as colorPicker callback is not a function.');
-        }
-      }
-    }, {
-      key: '_isColorString',
-      value: function _isColorString(color) {
-        var htmlColors = { black: '#000000', navy: '#000080', darkblue: '#00008B', mediumblue: '#0000CD', blue: '#0000FF', darkgreen: '#006400', green: '#008000', teal: '#008080', darkcyan: '#008B8B', deepskyblue: '#00BFFF', darkturquoise: '#00CED1', mediumspringgreen: '#00FA9A', lime: '#00FF00', springgreen: '#00FF7F', aqua: '#00FFFF', cyan: '#00FFFF', midnightblue: '#191970', dodgerblue: '#1E90FF', lightseagreen: '#20B2AA', forestgreen: '#228B22', seagreen: '#2E8B57', darkslategray: '#2F4F4F', limegreen: '#32CD32', mediumseagreen: '#3CB371', turquoise: '#40E0D0', royalblue: '#4169E1', steelblue: '#4682B4', darkslateblue: '#483D8B', mediumturquoise: '#48D1CC', indigo: '#4B0082', darkolivegreen: '#556B2F', cadetblue: '#5F9EA0', cornflowerblue: '#6495ED', mediumaquamarine: '#66CDAA', dimgray: '#696969', slateblue: '#6A5ACD', olivedrab: '#6B8E23', slategray: '#708090', lightslategray: '#778899', mediumslateblue: '#7B68EE', lawngreen: '#7CFC00', chartreuse: '#7FFF00', aquamarine: '#7FFFD4', maroon: '#800000', purple: '#800080', olive: '#808000', gray: '#808080', skyblue: '#87CEEB', lightskyblue: '#87CEFA', blueviolet: '#8A2BE2', darkred: '#8B0000', darkmagenta: '#8B008B', saddlebrown: '#8B4513', darkseagreen: '#8FBC8F', lightgreen: '#90EE90', mediumpurple: '#9370D8', darkviolet: '#9400D3', palegreen: '#98FB98', darkorchid: '#9932CC', yellowgreen: '#9ACD32', sienna: '#A0522D', brown: '#A52A2A', darkgray: '#A9A9A9', lightblue: '#ADD8E6', greenyellow: '#ADFF2F', paleturquoise: '#AFEEEE', lightsteelblue: '#B0C4DE', powderblue: '#B0E0E6', firebrick: '#B22222', darkgoldenrod: '#B8860B', mediumorchid: '#BA55D3', rosybrown: '#BC8F8F', darkkhaki: '#BDB76B', silver: '#C0C0C0', mediumvioletred: '#C71585', indianred: '#CD5C5C', peru: '#CD853F', chocolate: '#D2691E', tan: '#D2B48C', lightgrey: '#D3D3D3', palevioletred: '#D87093', thistle: '#D8BFD8', orchid: '#DA70D6', goldenrod: '#DAA520', crimson: '#DC143C', gainsboro: '#DCDCDC', plum: '#DDA0DD', burlywood: '#DEB887', lightcyan: '#E0FFFF', lavender: '#E6E6FA', darksalmon: '#E9967A', violet: '#EE82EE', palegoldenrod: '#EEE8AA', lightcoral: '#F08080', khaki: '#F0E68C', aliceblue: '#F0F8FF', honeydew: '#F0FFF0', azure: '#F0FFFF', sandybrown: '#F4A460', wheat: '#F5DEB3', beige: '#F5F5DC', whitesmoke: '#F5F5F5', mintcream: '#F5FFFA', ghostwhite: '#F8F8FF', salmon: '#FA8072', antiquewhite: '#FAEBD7', linen: '#FAF0E6', lightgoldenrodyellow: '#FAFAD2', oldlace: '#FDF5E6', red: '#FF0000', fuchsia: '#FF00FF', magenta: '#FF00FF', deeppink: '#FF1493', orangered: '#FF4500', tomato: '#FF6347', hotpink: '#FF69B4', coral: '#FF7F50', darkorange: '#FF8C00', lightsalmon: '#FFA07A', orange: '#FFA500', lightpink: '#FFB6C1', pink: '#FFC0CB', gold: '#FFD700', peachpuff: '#FFDAB9', navajowhite: '#FFDEAD', moccasin: '#FFE4B5', bisque: '#FFE4C4', mistyrose: '#FFE4E1', blanchedalmond: '#FFEBCD', papayawhip: '#FFEFD5', lavenderblush: '#FFF0F5', seashell: '#FFF5EE', cornsilk: '#FFF8DC', lemonchiffon: '#FFFACD', floralwhite: '#FFFAF0', snow: '#FFFAFA', yellow: '#FFFF00', lightyellow: '#FFFFE0', ivory: '#FFFFF0', white: '#FFFFFF' };
-        if (typeof color === 'string') {
-          return htmlColors[color];
-        }
-      }
-    }, {
-      key: 'setColor',
-
-      /**
-       * Set the color of the colorPicker
-       * Supported formats:
-       * 'red'                   --> HTML color string
-       * '#ffffff'               --> hex string
-       * 'rbg(255,255,255)'      --> rgb string
-       * 'rgba(255,255,255,1.0)' --> rgba string
-       * {r:255,g:255,b:255}     --> rgb object
-       * {r:255,g:255,b:255,a:1.0} --> rgba object
-       * @param color
-       * @param setInitial
-       */
-      value: function setColor(color) {
-        var setInitial = arguments[1] === undefined ? true : arguments[1];
-
-        if (color === 'none') {
-          return;
-        }
-
-        var rgba = undefined;
-
-        // if a html color shorthand is used, convert to hex
-        var htmlColor = this._isColorString(color);
-        if (htmlColor !== undefined) {
-          color = htmlColor;
-        }
-
-        // check format
-        if (util.isString(color) === true) {
-          if (util.isValidRGB(color) === true) {
-            var rgbaArray = color.substr(4).substr(0, color.length - 5).split(',');
-            rgba = { r: rgbaArray[0], g: rgbaArray[1], b: rgbaArray[2], a: 1 };
-          } else if (util.isValidRGBA(color) === true) {
-            var rgbaArray = color.substr(5).substr(0, color.length - 6).split(',');
-            rgba = { r: rgbaArray[0], g: rgbaArray[1], b: rgbaArray[2], a: rgbaArray[3] };
-          } else if (util.isValidHex(color) === true) {
-            var rgbObj = util.hexToRGB(color);
-            rgba = { r: rgbObj.r, g: rgbObj.g, b: rgbObj.b, a: 1 };
-          }
-        } else {
-          if (color instanceof Object) {
-            if (color.r !== undefined && color.g !== undefined && color.b !== undefined) {
-              var alpha = color.a !== undefined ? color.a : '1.0';
-              rgba = { r: color.r, g: color.g, b: color.b, a: alpha };
-            }
-          }
-        }
-
-        // set color
-        if (rgba === undefined) {
-          throw new Error('Unknown color passed to the colorPicker. Supported are strings: rgb, hex, rgba. Object: rgb ({r:r,g:g,b:b,[a:a]}). Supplied: ' + JSON.stringify(color));
-        } else {
-          this._setColor(rgba, setInitial);
-        }
-      }
-    }, {
-      key: 'show',
-
-      /**
-       * this shows the color picker at a location. The hue circle is constructed once and stored.
-       * @param x
-       * @param y
-       */
-      value: function show(x, y) {
-        this.applied = false;
-        this.frame.style.display = 'block';
-        this.frame.style.top = y + 'px';
-        this.frame.style.left = x + 'px';
-        this._generateHueCircle();
-      }
-    }, {
-      key: '_hide',
-
-      // ------------------------------------------ PRIVATE ----------------------------- //
-
-      /**
-       * Hide the picker. Is called by the cancel button.
-       * Optional boolean to store the previous color for easy access later on.
-       * @param storePrevious
-       * @private
-       */
-      value: function _hide() {
-        var storePrevious = arguments[0] === undefined ? true : arguments[0];
-
-        // store the previous color for next time;
-        if (storePrevious === true) {
-          this.previousColor = util.extend({}, this.color);
-        }
-
-        if (this.applied === true) {
-          this.updateCallback(this.initialColor);
-        }
-
-        this.frame.style.display = 'none';
-      }
-    }, {
-      key: '_save',
-
-      /**
-       * bound to the save button. Saves and hides.
-       * @private
-       */
-      value: function _save() {
-        this.updateCallback(this.color);
-        this.applied = false;
-        this._hide();
-      }
-    }, {
-      key: '_apply',
-
-      /**
-       * Bound to apply button. Saves but does not close. Is undone by the cancel button.
-       * @private
-       */
-      value: function _apply() {
-        this.applied = true;
-        this.updateCallback(this.color);
-        this._updatePicker(this.color);
-      }
-    }, {
-      key: '_loadLast',
-
-      /**
-       * load the color from the previous session.
-       * @private
-       */
-      value: function _loadLast() {
-        if (this.previousColor !== undefined) {
-          this.setColor(this.previousColor, false);
-        } else {
-          alert('There is no last color to load...');
-        }
-      }
-    }, {
-      key: '_setColor',
-
-      /**
-       * set the color, place the picker
-       * @param rgba
-       * @param setInitial
-       * @private
-       */
-      value: function _setColor(rgba) {
-        var setInitial = arguments[1] === undefined ? true : arguments[1];
-
-        // store the initial color
-        if (setInitial === true) {
-          this.initialColor = util.extend({}, rgba);
-        }
-
-        this.color = rgba;
-        var hsv = util.RGBToHSV(rgba.r, rgba.g, rgba.b);
-
-        var angleConvert = 2 * Math.PI;
-        var radius = this.r * hsv.s;
-        var x = this.centerCoordinates.x + radius * Math.sin(angleConvert * hsv.h);
-        var y = this.centerCoordinates.y + radius * Math.cos(angleConvert * hsv.h);
-
-        this.colorPickerSelector.style.left = x - 0.5 * this.colorPickerSelector.clientWidth + 'px';
-        this.colorPickerSelector.style.top = y - 0.5 * this.colorPickerSelector.clientHeight + 'px';
-
-        this._updatePicker(rgba);
-      }
-    }, {
-      key: '_setOpacity',
-
-      /**
-       * bound to opacity control
-       * @param value
-       * @private
-       */
-      value: function _setOpacity(value) {
-        this.color.a = value / 100;
-        this._updatePicker(this.color);
-      }
-    }, {
-      key: '_setBrightness',
-
-      /**
-       * bound to brightness control
-       * @param value
-       * @private
-       */
-      value: function _setBrightness(value) {
-        var hsv = util.RGBToHSV(this.color.r, this.color.g, this.color.b);
-        hsv.v = value / 100;
-        var rgba = util.HSVToRGB(hsv.h, hsv.s, hsv.v);
-        rgba['a'] = this.color.a;
-        this.color = rgba;
-        this._updatePicker();
-      }
-    }, {
-      key: '_updatePicker',
-
-      /**
-       * update the colorpicker. A black circle overlays the hue circle to mimic the brightness decreasing.
-       * @param rgba
-       * @private
-       */
-      value: function _updatePicker() {
-        var rgba = arguments[0] === undefined ? this.color : arguments[0];
-
-        var hsv = util.RGBToHSV(rgba.r, rgba.g, rgba.b);
-        var ctx = this.colorPickerCanvas.getContext('2d');
-        if (this.pixelRation === undefined) {
-          this.pixelRatio = (window.devicePixelRatio || 1) / (ctx.webkitBackingStorePixelRatio || ctx.mozBackingStorePixelRatio || ctx.msBackingStorePixelRatio || ctx.oBackingStorePixelRatio || ctx.backingStorePixelRatio || 1);
-        }
-        ctx.setTransform(this.pixelRatio, 0, 0, this.pixelRatio, 0, 0);
-
-        // clear the canvas
-        var w = this.colorPickerCanvas.clientWidth;
-        var h = this.colorPickerCanvas.clientHeight;
-        ctx.clearRect(0, 0, w, h);
-
-        ctx.putImageData(this.hueCircle, 0, 0);
-        ctx.fillStyle = 'rgba(0,0,0,' + (1 - hsv.v) + ')';
-        ctx.circle(this.centerCoordinates.x, this.centerCoordinates.y, this.r);
-        ctx.fill();
-
-        this.brightnessRange.value = 100 * hsv.v;
-        this.opacityRange.value = 100 * rgba.a;
-
-        this.initialColorDiv.style.backgroundColor = 'rgba(' + this.initialColor.r + ',' + this.initialColor.g + ',' + this.initialColor.b + ',' + this.initialColor.a + ')';
-        this.newColorDiv.style.backgroundColor = 'rgba(' + this.color.r + ',' + this.color.g + ',' + this.color.b + ',' + this.color.a + ')';
-      }
-    }, {
-      key: '_setSize',
-
-      /**
-       * used by create to set the size of the canvas.
-       * @private
-       */
-      value: function _setSize() {
-        this.colorPickerCanvas.style.width = '100%';
-        this.colorPickerCanvas.style.height = '100%';
-
-        this.colorPickerCanvas.width = 289 * this.pixelRatio;
-        this.colorPickerCanvas.height = 289 * this.pixelRatio;
-      }
-    }, {
-      key: '_create',
-
-      /**
-       * create all dom elements
-       * TODO: cleanup, lots of similar dom elements
-       * @private
-       */
-      value: function _create() {
-        this.frame = document.createElement('div');
-        this.frame.className = 'vis-color-picker';
-
-        this.colorPickerDiv = document.createElement('div');
-        this.colorPickerSelector = document.createElement('div');
-        this.colorPickerSelector.className = 'vis-selector';
-        this.colorPickerDiv.appendChild(this.colorPickerSelector);
-
-        this.colorPickerCanvas = document.createElement('canvas');
-        this.colorPickerDiv.appendChild(this.colorPickerCanvas);
-
-        if (!this.colorPickerCanvas.getContext) {
-          var noCanvas = document.createElement('DIV');
-          noCanvas.style.color = 'red';
-          noCanvas.style.fontWeight = 'bold';
-          noCanvas.style.padding = '10px';
-          noCanvas.innerHTML = 'Error: your browser does not support HTML canvas';
-          this.colorPickerCanvas.appendChild(noCanvas);
-        } else {
-          var ctx = this.colorPickerCanvas.getContext('2d');
-          this.pixelRatio = (window.devicePixelRatio || 1) / (ctx.webkitBackingStorePixelRatio || ctx.mozBackingStorePixelRatio || ctx.msBackingStorePixelRatio || ctx.oBackingStorePixelRatio || ctx.backingStorePixelRatio || 1);
-
-          this.colorPickerCanvas.getContext('2d').setTransform(this.pixelRatio, 0, 0, this.pixelRatio, 0, 0);
-        }
-
-        this.colorPickerDiv.className = 'vis-color';
-
-        this.opacityDiv = document.createElement('div');
-        this.opacityDiv.className = 'vis-opacity';
-
-        this.brightnessDiv = document.createElement('div');
-        this.brightnessDiv.className = 'vis-brightness';
-
-        this.arrowDiv = document.createElement('div');
-        this.arrowDiv.className = 'vis-arrow';
-
-        this.opacityRange = document.createElement('input');
-        this.opacityRange.type = 'range';
-        this.opacityRange.min = '0';
-        this.opacityRange.max = '100';
-        this.opacityRange.value = '100';
-        this.opacityRange.className = 'vis-range';
-
-        this.brightnessRange = document.createElement('input');
-        this.brightnessRange.type = 'range';
-        this.brightnessRange.min = '0';
-        this.brightnessRange.max = '100';
-        this.brightnessRange.value = '100';
-        this.brightnessRange.className = 'vis-range';
-
-        this.opacityDiv.appendChild(this.opacityRange);
-        this.brightnessDiv.appendChild(this.brightnessRange);
-
-        var me = this;
-        this.opacityRange.onchange = function () {
-          me._setOpacity(this.value);
-        };
-        this.opacityRange.oninput = function () {
-          me._setOpacity(this.value);
-        };
-        this.brightnessRange.onchange = function () {
-          me._setBrightness(this.value);
-        };
-        this.brightnessRange.oninput = function () {
-          me._setBrightness(this.value);
-        };
-
-        this.brightnessLabel = document.createElement('div');
-        this.brightnessLabel.className = 'vis-label vis-brightness';
-        this.brightnessLabel.innerHTML = 'brightness:';
-
-        this.opacityLabel = document.createElement('div');
-        this.opacityLabel.className = 'vis-label vis-opacity';
-        this.opacityLabel.innerHTML = 'opacity:';
-
-        this.newColorDiv = document.createElement('div');
-        this.newColorDiv.className = 'vis-new-color';
-        this.newColorDiv.innerHTML = 'new';
-
-        this.initialColorDiv = document.createElement('div');
-        this.initialColorDiv.className = 'vis-initial-color';
-        this.initialColorDiv.innerHTML = 'initial';
-
-        this.cancelButton = document.createElement('div');
-        this.cancelButton.className = 'vis-button vis-cancel';
-        this.cancelButton.innerHTML = 'cancel';
-        this.cancelButton.onclick = this._hide.bind(this, false);
-
-        this.applyButton = document.createElement('div');
-        this.applyButton.className = 'vis-button vis-apply';
-        this.applyButton.innerHTML = 'apply';
-        this.applyButton.onclick = this._apply.bind(this);
-
-        this.saveButton = document.createElement('div');
-        this.saveButton.className = 'vis-button vis-save';
-        this.saveButton.innerHTML = 'save';
-        this.saveButton.onclick = this._save.bind(this);
-
-        this.loadButton = document.createElement('div');
-        this.loadButton.className = 'vis-button vis-load';
-        this.loadButton.innerHTML = 'load last';
-        this.loadButton.onclick = this._loadLast.bind(this);
-
-        this.frame.appendChild(this.colorPickerDiv);
-        this.frame.appendChild(this.arrowDiv);
-        this.frame.appendChild(this.brightnessLabel);
-        this.frame.appendChild(this.brightnessDiv);
-        this.frame.appendChild(this.opacityLabel);
-        this.frame.appendChild(this.opacityDiv);
-        this.frame.appendChild(this.newColorDiv);
-        this.frame.appendChild(this.initialColorDiv);
-
-        this.frame.appendChild(this.cancelButton);
-        this.frame.appendChild(this.applyButton);
-        this.frame.appendChild(this.saveButton);
-        this.frame.appendChild(this.loadButton);
-      }
-    }, {
-      key: '_bindHammer',
-
-      /**
-       * bind hammer to the color picker
-       * @private
-       */
-      value: function _bindHammer() {
-        var _this = this;
-
-        this.drag = {};
-        this.pinch = {};
-        this.hammer = new Hammer(this.colorPickerCanvas);
-        this.hammer.get('pinch').set({ enable: true });
-
-        hammerUtil.onTouch(this.hammer, function (event) {
-          _this._moveSelector(event);
-        });
-        this.hammer.on('tap', function (event) {
-          _this._moveSelector(event);
-        });
-        this.hammer.on('panstart', function (event) {
-          _this._moveSelector(event);
-        });
-        this.hammer.on('panmove', function (event) {
-          _this._moveSelector(event);
-        });
-        this.hammer.on('panend', function (event) {
-          _this._moveSelector(event);
-        });
-      }
-    }, {
-      key: '_generateHueCircle',
-
-      /**
-       * generate the hue circle. This is relatively heavy (200ms) and is done only once on the first time it is shown.
-       * @private
-       */
-      value: function _generateHueCircle() {
-        if (this.generated === false) {
-          var ctx = this.colorPickerCanvas.getContext('2d');
-          if (this.pixelRation === undefined) {
-            this.pixelRatio = (window.devicePixelRatio || 1) / (ctx.webkitBackingStorePixelRatio || ctx.mozBackingStorePixelRatio || ctx.msBackingStorePixelRatio || ctx.oBackingStorePixelRatio || ctx.backingStorePixelRatio || 1);
-          }
-          ctx.setTransform(this.pixelRatio, 0, 0, this.pixelRatio, 0, 0);
-
-          // clear the canvas
-          var w = this.colorPickerCanvas.clientWidth;
-          var h = this.colorPickerCanvas.clientHeight;
-          ctx.clearRect(0, 0, w, h);
-
-          // draw hue circle
-          var x = undefined,
-              y = undefined,
-              hue = undefined,
-              sat = undefined;
-          this.centerCoordinates = { x: w * 0.5, y: h * 0.5 };
-          this.r = 0.49 * w;
-          var angleConvert = 2 * Math.PI / 360;
-          var hfac = 1 / 360;
-          var sfac = 1 / this.r;
-          var rgb = undefined;
-          for (hue = 0; hue < 360; hue++) {
-            for (sat = 0; sat < this.r; sat++) {
-              x = this.centerCoordinates.x + sat * Math.sin(angleConvert * hue);
-              y = this.centerCoordinates.y + sat * Math.cos(angleConvert * hue);
-              rgb = util.HSVToRGB(hue * hfac, sat * sfac, 1);
-              ctx.fillStyle = 'rgb(' + rgb.r + ',' + rgb.g + ',' + rgb.b + ')';
-              ctx.fillRect(x - 0.5, y - 0.5, 2, 2);
-            }
-          }
-          ctx.strokeStyle = 'rgba(0,0,0,1)';
-          ctx.circle(this.centerCoordinates.x, this.centerCoordinates.y, this.r);
-          ctx.stroke();
-
-          this.hueCircle = ctx.getImageData(0, 0, w, h);
-        }
-        this.generated = true;
-      }
-    }, {
-      key: '_moveSelector',
-
-      /**
-       * move the selector. This is called by hammer functions.
-       *
-       * @param event
-       * @private
-       */
-      value: function _moveSelector(event) {
-        var rect = this.colorPickerDiv.getBoundingClientRect();
-        var left = event.center.x - rect.left;
-        var top = event.center.y - rect.top;
-
-        var centerY = 0.5 * this.colorPickerDiv.clientHeight;
-        var centerX = 0.5 * this.colorPickerDiv.clientWidth;
-
-        var x = left - centerX;
-        var y = top - centerY;
-
-        var angle = Math.atan2(x, y);
-        var radius = 0.98 * Math.min(Math.sqrt(x * x + y * y), centerX);
-
-        var newTop = Math.cos(angle) * radius + centerY;
-        var newLeft = Math.sin(angle) * radius + centerX;
-
-        this.colorPickerSelector.style.top = newTop - 0.5 * this.colorPickerSelector.clientHeight + 'px';
-        this.colorPickerSelector.style.left = newLeft - 0.5 * this.colorPickerSelector.clientWidth + 'px';
-
-        // set color
-        var h = angle / (2 * Math.PI);
-        h = h < 0 ? h + 1 : h;
-        var s = radius / this.r;
-        var hsv = util.RGBToHSV(this.color.r, this.color.g, this.color.b);
-        hsv.h = h;
-        hsv.s = s;
-        var rgba = util.HSVToRGB(hsv.h, hsv.s, hsv.v);
-        rgba['a'] = this.color.a;
-        this.color = rgba;
-
-        // update previews
-        this.initialColorDiv.style.backgroundColor = 'rgba(' + this.initialColor.r + ',' + this.initialColor.g + ',' + this.initialColor.b + ',' + this.initialColor.a + ')';
-        this.newColorDiv.style.backgroundColor = 'rgba(' + this.color.r + ',' + this.color.g + ',' + this.color.b + ',' + this.color.a + ')';
-      }
-    }]);
-
-    return ColorPicker;
-  })();
-
-  exports['default'] = ColorPicker;
-  module.exports = exports['default'];
-
-/***/ },
-/* 74 */
-/***/ function(module, exports, __webpack_require__) {
-
-  'use strict';
-
-  Object.defineProperty(exports, '__esModule', {
-    value: true
-  });
-
-  var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
-
   function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
 
   function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
 
-  var _sharedLabel = __webpack_require__(75);
+  var _sharedLabel = __webpack_require__(74);
 
   var _sharedLabel2 = _interopRequireDefault(_sharedLabel);
 
-  var _nodesShapesBox = __webpack_require__(90);
+  var _nodesShapesBox = __webpack_require__(91);
 
   var _nodesShapesBox2 = _interopRequireDefault(_nodesShapesBox);
 
-  var _nodesShapesCircle = __webpack_require__(91);
+  var _nodesShapesCircle = __webpack_require__(92);
 
   var _nodesShapesCircle2 = _interopRequireDefault(_nodesShapesCircle);
 
-  var _nodesShapesCircularImage = __webpack_require__(92);
+  var _nodesShapesCircularImage = __webpack_require__(93);
 
   var _nodesShapesCircularImage2 = _interopRequireDefault(_nodesShapesCircularImage);
 
-  var _nodesShapesDatabase = __webpack_require__(93);
+  var _nodesShapesDatabase = __webpack_require__(94);
 
   var _nodesShapesDatabase2 = _interopRequireDefault(_nodesShapesDatabase);
 
-  var _nodesShapesDiamond = __webpack_require__(94);
+  var _nodesShapesDiamond = __webpack_require__(95);
 
   var _nodesShapesDiamond2 = _interopRequireDefault(_nodesShapesDiamond);
 
-  var _nodesShapesDot = __webpack_require__(95);
+  var _nodesShapesDot = __webpack_require__(96);
 
   var _nodesShapesDot2 = _interopRequireDefault(_nodesShapesDot);
 
-  var _nodesShapesEllipse = __webpack_require__(96);
+  var _nodesShapesEllipse = __webpack_require__(97);
 
   var _nodesShapesEllipse2 = _interopRequireDefault(_nodesShapesEllipse);
 
-  var _nodesShapesIcon = __webpack_require__(97);
+  var _nodesShapesIcon = __webpack_require__(98);
 
   var _nodesShapesIcon2 = _interopRequireDefault(_nodesShapesIcon);
 
-  var _nodesShapesImage = __webpack_require__(98);
+  var _nodesShapesImage = __webpack_require__(99);
 
   var _nodesShapesImage2 = _interopRequireDefault(_nodesShapesImage);
 
-  var _nodesShapesSquare = __webpack_require__(99);
+  var _nodesShapesSquare = __webpack_require__(100);
 
   var _nodesShapesSquare2 = _interopRequireDefault(_nodesShapesSquare);
 
-  var _nodesShapesStar = __webpack_require__(100);
+  var _nodesShapesStar = __webpack_require__(101);
 
   var _nodesShapesStar2 = _interopRequireDefault(_nodesShapesStar);
 
-  var _nodesShapesText = __webpack_require__(101);
+  var _nodesShapesText = __webpack_require__(102);
 
   var _nodesShapesText2 = _interopRequireDefault(_nodesShapesText);
 
-  var _nodesShapesTriangle = __webpack_require__(102);
+  var _nodesShapesTriangle = __webpack_require__(103);
 
   var _nodesShapesTriangle2 = _interopRequireDefault(_nodesShapesTriangle);
 
-  var _nodesShapesTriangleDown = __webpack_require__(103);
+  var _nodesShapesTriangleDown = __webpack_require__(104);
 
   var _nodesShapesTriangleDown2 = _interopRequireDefault(_nodesShapesTriangleDown);
 
-  var _sharedValidator = __webpack_require__(45);
+  var _sharedValidator = __webpack_require__(46);
 
   var _sharedValidator2 = _interopRequireDefault(_sharedValidator);
 
@@ -34855,6 +34404,7 @@ return /******/ (function(modules) { // webpackBootstrap
           throw 'Node must have an id';
         }
 
+        // set these options locally
         if (options.x !== undefined) {
           this.x = parseInt(options.x);this.predefinedPosition = true;
         }
@@ -34868,9 +34418,6 @@ return /******/ (function(modules) { // webpackBootstrap
           options.value = parseInt(options.value);
         }
 
-        // this transforms all shorthands into fully defined options
-        Node.parseOptions(this.options, options, true);
-
         // copy group options
         if (typeof options.group === 'number' || typeof options.group === 'string' && options.group != '') {
           var groupObj = this.grouplist.get(options.group);
@@ -34878,6 +34425,9 @@ return /******/ (function(modules) { // webpackBootstrap
           // the color object needs to be completely defined. Since groups can partially overwrite the colors, we parse it again, just in case.
           this.options.color = util.parseColor(this.options.color);
         }
+
+        // this transforms all shorthands into fully defined options
+        Node.parseOptions(this.options, options, true);
 
         // load the images
         if (this.options.image !== undefined && this.options.image != '') {
@@ -35179,7 +34729,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 75 */
+/* 74 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -35494,7 +35044,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 76 */
+/* 75 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -35509,19 +35059,19 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
 
-  var _sharedLabel = __webpack_require__(75);
+  var _sharedLabel = __webpack_require__(74);
 
   var _sharedLabel2 = _interopRequireDefault(_sharedLabel);
 
-  var _edgesBezierEdgeDynamic = __webpack_require__(104);
+  var _edgesBezierEdgeDynamic = __webpack_require__(105);
 
   var _edgesBezierEdgeDynamic2 = _interopRequireDefault(_edgesBezierEdgeDynamic);
 
-  var _edgesBezierEdgeStatic = __webpack_require__(105);
+  var _edgesBezierEdgeStatic = __webpack_require__(106);
 
   var _edgesBezierEdgeStatic2 = _interopRequireDefault(_edgesBezierEdgeStatic);
 
-  var _edgesStraightEdge = __webpack_require__(106);
+  var _edgesStraightEdge = __webpack_require__(107);
 
   var _edgesStraightEdge2 = _interopRequireDefault(_edgesStraightEdge);
 
@@ -36049,7 +35599,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 77 */
+/* 76 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
@@ -36541,7 +36091,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports["default"];
 
 /***/ },
-/* 78 */
+/* 77 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
@@ -36636,7 +36186,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports["default"];
 
 /***/ },
-/* 79 */
+/* 78 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
@@ -36727,7 +36277,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports["default"];
 
 /***/ },
-/* 80 */
+/* 79 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
@@ -36837,7 +36387,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports["default"];
 
 /***/ },
-/* 81 */
+/* 80 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
@@ -36958,7 +36508,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports["default"];
 
 /***/ },
-/* 82 */
+/* 81 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
@@ -37027,7 +36577,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports["default"];
 
 /***/ },
-/* 83 */
+/* 82 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
@@ -37048,7 +36598,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; }
 
-  var _BarnesHutSolver2 = __webpack_require__(77);
+  var _BarnesHutSolver2 = __webpack_require__(76);
 
   var _BarnesHutSolver3 = _interopRequireDefault(_BarnesHutSolver2);
 
@@ -37103,7 +36653,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports["default"];
 
 /***/ },
-/* 84 */
+/* 83 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
@@ -37124,7 +36674,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; }
 
-  var _CentralGravitySolver2 = __webpack_require__(82);
+  var _CentralGravitySolver2 = __webpack_require__(81);
 
   var _CentralGravitySolver3 = _interopRequireDefault(_CentralGravitySolver2);
 
@@ -37161,7 +36711,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports["default"];
 
 /***/ },
-/* 85 */
+/* 84 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -37180,7 +36730,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; }
 
-  var _Node2 = __webpack_require__(74);
+  var _Node2 = __webpack_require__(73);
 
   var _Node3 = _interopRequireDefault(_Node2);
 
@@ -37208,7 +36758,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 86 */
+/* 85 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -37223,8 +36773,8 @@ return /******/ (function(modules) { // webpackBootstrap
 
   var util = __webpack_require__(1);
   var Hammer = __webpack_require__(41);
-  var hammerUtil = __webpack_require__(48);
-  var keycharm = __webpack_require__(88);
+  var hammerUtil = __webpack_require__(49);
+  var keycharm = __webpack_require__(87);
 
   var NavigationHandler = (function () {
     function NavigationHandler(body, canvas) {
@@ -37478,7 +37028,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 87 */
+/* 86 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -37605,7 +37155,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 88 */
+/* 87 */
 /***/ function(module, exports, __webpack_require__) {
 
   var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;"use strict";
@@ -37803,7 +37353,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 89 */
+/* 88 */
 /***/ function(module, exports, __webpack_require__) {
 
   function webpackContext(req) {
@@ -37812,11 +37362,35 @@ return /******/ (function(modules) { // webpackBootstrap
   webpackContext.keys = function() { return []; };
   webpackContext.resolve = webpackContext;
   module.exports = webpackContext;
-  webpackContext.id = 89;
+  webpackContext.id = 88;
+
+
+/***/ },
+/* 89 */
+/***/ function(module, exports, __webpack_require__) {
+
+  module.exports = function(module) {
+  	if(!module.webpackPolyfill) {
+  		module.deprecate = function() {};
+  		module.paths = [];
+  		// module.parent = undefined by default
+  		module.children = [];
+  		module.webpackPolyfill = 1;
+  	}
+  	return module;
+  }
 
 
 /***/ },
 /* 90 */
+/***/ function(module, exports, __webpack_require__) {
+
+  /* WEBPACK VAR INJECTION */(function(__webpack_amd_options__) {module.exports = __webpack_amd_options__;
+
+  /* WEBPACK VAR INJECTION */}.call(exports, {}))
+
+/***/ },
+/* 91 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -37837,7 +37411,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; }
 
-  var _utilNodeBase = __webpack_require__(109);
+  var _utilNodeBase = __webpack_require__(108);
 
   var _utilNodeBase2 = _interopRequireDefault(_utilNodeBase);
 
@@ -37925,7 +37499,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 91 */
+/* 92 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -37946,7 +37520,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; }
 
-  var _utilCircleImageBase = __webpack_require__(110);
+  var _utilCircleImageBase = __webpack_require__(109);
 
   var _utilCircleImageBase2 = _interopRequireDefault(_utilCircleImageBase);
 
@@ -38019,7 +37593,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 92 */
+/* 93 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -38040,7 +37614,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; }
 
-  var _utilCircleImageBase = __webpack_require__(110);
+  var _utilCircleImageBase = __webpack_require__(109);
 
   var _utilCircleImageBase2 = _interopRequireDefault(_utilCircleImageBase);
 
@@ -38127,7 +37701,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 93 */
+/* 94 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -38148,7 +37722,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; }
 
-  var _utilNodeBase = __webpack_require__(109);
+  var _utilNodeBase = __webpack_require__(108);
 
   var _utilNodeBase2 = _interopRequireDefault(_utilNodeBase);
 
@@ -38236,7 +37810,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 94 */
+/* 95 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -38257,7 +37831,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; }
 
-  var _utilShapeBase = __webpack_require__(111);
+  var _utilShapeBase = __webpack_require__(110);
 
   var _utilShapeBase2 = _interopRequireDefault(_utilShapeBase);
 
@@ -38296,7 +37870,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 95 */
+/* 96 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -38317,7 +37891,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; }
 
-  var _utilShapeBase = __webpack_require__(111);
+  var _utilShapeBase = __webpack_require__(110);
 
   var _utilShapeBase2 = _interopRequireDefault(_utilShapeBase);
 
@@ -38356,7 +37930,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 96 */
+/* 97 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -38377,7 +37951,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; }
 
-  var _utilNodeBase = __webpack_require__(109);
+  var _utilNodeBase = __webpack_require__(108);
 
   var _utilNodeBase2 = _interopRequireDefault(_utilNodeBase);
 
@@ -38467,7 +38041,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 97 */
+/* 98 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -38488,7 +38062,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; }
 
-  var _utilNodeBase = __webpack_require__(109);
+  var _utilNodeBase = __webpack_require__(108);
 
   var _utilNodeBase2 = _interopRequireDefault(_utilNodeBase);
 
@@ -38587,7 +38161,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 98 */
+/* 99 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -38608,7 +38182,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; }
 
-  var _utilCircleImageBase = __webpack_require__(110);
+  var _utilCircleImageBase = __webpack_require__(109);
 
   var _utilCircleImageBase2 = _interopRequireDefault(_utilCircleImageBase);
 
@@ -38678,7 +38252,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 99 */
+/* 100 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -38699,7 +38273,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; }
 
-  var _utilShapeBase = __webpack_require__(111);
+  var _utilShapeBase = __webpack_require__(110);
 
   var _utilShapeBase2 = _interopRequireDefault(_utilShapeBase);
 
@@ -38739,7 +38313,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 100 */
+/* 101 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -38760,7 +38334,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; }
 
-  var _utilShapeBase = __webpack_require__(111);
+  var _utilShapeBase = __webpack_require__(110);
 
   var _utilShapeBase2 = _interopRequireDefault(_utilShapeBase);
 
@@ -38799,7 +38373,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 101 */
+/* 102 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -38820,7 +38394,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; }
 
-  var _utilNodeBase = __webpack_require__(109);
+  var _utilNodeBase = __webpack_require__(108);
 
   var _utilNodeBase2 = _interopRequireDefault(_utilNodeBase);
 
@@ -38888,7 +38462,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 102 */
+/* 103 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -38909,7 +38483,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; }
 
-  var _utilShapeBase = __webpack_require__(111);
+  var _utilShapeBase = __webpack_require__(110);
 
   var _utilShapeBase2 = _interopRequireDefault(_utilShapeBase);
 
@@ -38948,7 +38522,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 103 */
+/* 104 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -38969,7 +38543,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; }
 
-  var _utilShapeBase = __webpack_require__(111);
+  var _utilShapeBase = __webpack_require__(110);
 
   var _utilShapeBase2 = _interopRequireDefault(_utilShapeBase);
 
@@ -39008,7 +38582,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 104 */
+/* 105 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -39029,7 +38603,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; }
 
-  var _utilBezierEdgeBase = __webpack_require__(112);
+  var _utilBezierEdgeBase = __webpack_require__(111);
 
   var _utilBezierEdgeBase2 = _interopRequireDefault(_utilBezierEdgeBase);
 
@@ -39166,7 +38740,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 105 */
+/* 106 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -39187,7 +38761,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; }
 
-  var _utilBezierEdgeBase = __webpack_require__(112);
+  var _utilBezierEdgeBase = __webpack_require__(111);
 
   var _utilBezierEdgeBase2 = _interopRequireDefault(_utilBezierEdgeBase);
 
@@ -39432,7 +39006,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 106 */
+/* 107 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -39453,7 +39027,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; }
 
-  var _utilEdgeBase = __webpack_require__(113);
+  var _utilEdgeBase = __webpack_require__(112);
 
   var _utilEdgeBase2 = _interopRequireDefault(_utilEdgeBase);
 
@@ -39544,31 +39118,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 107 */
-/***/ function(module, exports, __webpack_require__) {
-
-  module.exports = function(module) {
-  	if(!module.webpackPolyfill) {
-  		module.deprecate = function() {};
-  		module.paths = [];
-  		// module.parent = undefined by default
-  		module.children = [];
-  		module.webpackPolyfill = 1;
-  	}
-  	return module;
-  }
-
-
-/***/ },
 /* 108 */
-/***/ function(module, exports, __webpack_require__) {
-
-  /* WEBPACK VAR INJECTION */(function(__webpack_amd_options__) {module.exports = __webpack_amd_options__;
-
-  /* WEBPACK VAR INJECTION */}.call(exports, {}))
-
-/***/ },
-/* 109 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -39636,7 +39186,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 110 */
+/* 109 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -39657,7 +39207,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; }
 
-  var _utilNodeBase = __webpack_require__(109);
+  var _utilNodeBase = __webpack_require__(108);
 
   var _utilNodeBase2 = _interopRequireDefault(_utilNodeBase);
 
@@ -39765,7 +39315,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 111 */
+/* 110 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -39786,7 +39336,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; }
 
-  var _utilNodeBase = __webpack_require__(109);
+  var _utilNodeBase = __webpack_require__(108);
 
   var _utilNodeBase2 = _interopRequireDefault(_utilNodeBase);
 
@@ -39866,7 +39416,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 112 */
+/* 111 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -39887,7 +39437,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; }
 
-  var _EdgeBase2 = __webpack_require__(113);
+  var _EdgeBase2 = __webpack_require__(112);
 
   var _EdgeBase3 = _interopRequireDefault(_EdgeBase2);
 
@@ -40015,7 +39565,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 113 */
+/* 112 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -40598,6 +40148,586 @@ return /******/ (function(modules) { // webpackBootstrap
   })();
 
   exports['default'] = EdgeBase;
+  module.exports = exports['default'];
+
+/***/ },
+/* 113 */
+/***/ function(module, exports, __webpack_require__) {
+
+  'use strict';
+
+  Object.defineProperty(exports, '__esModule', {
+    value: true
+  });
+
+  var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
+
+  function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
+
+  var Hammer = __webpack_require__(41);
+  var hammerUtil = __webpack_require__(49);
+  var util = __webpack_require__(1);
+
+  var ColorPicker = (function () {
+    function ColorPicker() {
+      var pixelRatio = arguments[0] === undefined ? 1 : arguments[0];
+
+      _classCallCheck(this, ColorPicker);
+
+      this.pixelRatio = pixelRatio;
+      this.generated = false;
+      this.centerCoordinates = { x: 289 / 2, y: 289 / 2 };
+      this.r = 289 * 0.49;
+      this.color = { r: 255, g: 255, b: 255, a: 1 };
+      this.hueCircle = undefined;
+      this.initialColor = { r: 255, g: 255, b: 255, a: 1 };
+      this.previousColor = undefined;
+      this.applied = false;
+
+      // bound by
+      this.updateCallback = function () {};
+
+      // create all DOM elements
+      this._create();
+    }
+
+    _createClass(ColorPicker, [{
+      key: 'insertTo',
+
+      /**
+       * this inserts the colorPicker into a div from the DOM
+       * @param container
+       */
+      value: function insertTo(container) {
+        if (this.hammer !== undefined) {
+          this.hammer.destroy();
+          this.hammer = undefined;
+        }
+        this.container = container;
+        this.container.appendChild(this.frame);
+        this._bindHammer();
+
+        this._setSize();
+      }
+    }, {
+      key: 'setCallback',
+
+      /**
+       * the callback is executed on apply and save. Bind it to the application
+       * @param callback
+       */
+      value: function setCallback(callback) {
+        if (typeof callback === 'function') {
+          this.updateCallback = callback;
+        } else {
+          throw new Error('Function attempted to set as colorPicker callback is not a function.');
+        }
+      }
+    }, {
+      key: '_isColorString',
+      value: function _isColorString(color) {
+        var htmlColors = { black: '#000000', navy: '#000080', darkblue: '#00008B', mediumblue: '#0000CD', blue: '#0000FF', darkgreen: '#006400', green: '#008000', teal: '#008080', darkcyan: '#008B8B', deepskyblue: '#00BFFF', darkturquoise: '#00CED1', mediumspringgreen: '#00FA9A', lime: '#00FF00', springgreen: '#00FF7F', aqua: '#00FFFF', cyan: '#00FFFF', midnightblue: '#191970', dodgerblue: '#1E90FF', lightseagreen: '#20B2AA', forestgreen: '#228B22', seagreen: '#2E8B57', darkslategray: '#2F4F4F', limegreen: '#32CD32', mediumseagreen: '#3CB371', turquoise: '#40E0D0', royalblue: '#4169E1', steelblue: '#4682B4', darkslateblue: '#483D8B', mediumturquoise: '#48D1CC', indigo: '#4B0082', darkolivegreen: '#556B2F', cadetblue: '#5F9EA0', cornflowerblue: '#6495ED', mediumaquamarine: '#66CDAA', dimgray: '#696969', slateblue: '#6A5ACD', olivedrab: '#6B8E23', slategray: '#708090', lightslategray: '#778899', mediumslateblue: '#7B68EE', lawngreen: '#7CFC00', chartreuse: '#7FFF00', aquamarine: '#7FFFD4', maroon: '#800000', purple: '#800080', olive: '#808000', gray: '#808080', skyblue: '#87CEEB', lightskyblue: '#87CEFA', blueviolet: '#8A2BE2', darkred: '#8B0000', darkmagenta: '#8B008B', saddlebrown: '#8B4513', darkseagreen: '#8FBC8F', lightgreen: '#90EE90', mediumpurple: '#9370D8', darkviolet: '#9400D3', palegreen: '#98FB98', darkorchid: '#9932CC', yellowgreen: '#9ACD32', sienna: '#A0522D', brown: '#A52A2A', darkgray: '#A9A9A9', lightblue: '#ADD8E6', greenyellow: '#ADFF2F', paleturquoise: '#AFEEEE', lightsteelblue: '#B0C4DE', powderblue: '#B0E0E6', firebrick: '#B22222', darkgoldenrod: '#B8860B', mediumorchid: '#BA55D3', rosybrown: '#BC8F8F', darkkhaki: '#BDB76B', silver: '#C0C0C0', mediumvioletred: '#C71585', indianred: '#CD5C5C', peru: '#CD853F', chocolate: '#D2691E', tan: '#D2B48C', lightgrey: '#D3D3D3', palevioletred: '#D87093', thistle: '#D8BFD8', orchid: '#DA70D6', goldenrod: '#DAA520', crimson: '#DC143C', gainsboro: '#DCDCDC', plum: '#DDA0DD', burlywood: '#DEB887', lightcyan: '#E0FFFF', lavender: '#E6E6FA', darksalmon: '#E9967A', violet: '#EE82EE', palegoldenrod: '#EEE8AA', lightcoral: '#F08080', khaki: '#F0E68C', aliceblue: '#F0F8FF', honeydew: '#F0FFF0', azure: '#F0FFFF', sandybrown: '#F4A460', wheat: '#F5DEB3', beige: '#F5F5DC', whitesmoke: '#F5F5F5', mintcream: '#F5FFFA', ghostwhite: '#F8F8FF', salmon: '#FA8072', antiquewhite: '#FAEBD7', linen: '#FAF0E6', lightgoldenrodyellow: '#FAFAD2', oldlace: '#FDF5E6', red: '#FF0000', fuchsia: '#FF00FF', magenta: '#FF00FF', deeppink: '#FF1493', orangered: '#FF4500', tomato: '#FF6347', hotpink: '#FF69B4', coral: '#FF7F50', darkorange: '#FF8C00', lightsalmon: '#FFA07A', orange: '#FFA500', lightpink: '#FFB6C1', pink: '#FFC0CB', gold: '#FFD700', peachpuff: '#FFDAB9', navajowhite: '#FFDEAD', moccasin: '#FFE4B5', bisque: '#FFE4C4', mistyrose: '#FFE4E1', blanchedalmond: '#FFEBCD', papayawhip: '#FFEFD5', lavenderblush: '#FFF0F5', seashell: '#FFF5EE', cornsilk: '#FFF8DC', lemonchiffon: '#FFFACD', floralwhite: '#FFFAF0', snow: '#FFFAFA', yellow: '#FFFF00', lightyellow: '#FFFFE0', ivory: '#FFFFF0', white: '#FFFFFF' };
+        if (typeof color === 'string') {
+          return htmlColors[color];
+        }
+      }
+    }, {
+      key: 'setColor',
+
+      /**
+       * Set the color of the colorPicker
+       * Supported formats:
+       * 'red'                   --> HTML color string
+       * '#ffffff'               --> hex string
+       * 'rbg(255,255,255)'      --> rgb string
+       * 'rgba(255,255,255,1.0)' --> rgba string
+       * {r:255,g:255,b:255}     --> rgb object
+       * {r:255,g:255,b:255,a:1.0} --> rgba object
+       * @param color
+       * @param setInitial
+       */
+      value: function setColor(color) {
+        var setInitial = arguments[1] === undefined ? true : arguments[1];
+
+        if (color === 'none') {
+          return;
+        }
+
+        var rgba = undefined;
+
+        // if a html color shorthand is used, convert to hex
+        var htmlColor = this._isColorString(color);
+        if (htmlColor !== undefined) {
+          color = htmlColor;
+        }
+
+        // check format
+        if (util.isString(color) === true) {
+          if (util.isValidRGB(color) === true) {
+            var rgbaArray = color.substr(4).substr(0, color.length - 5).split(',');
+            rgba = { r: rgbaArray[0], g: rgbaArray[1], b: rgbaArray[2], a: 1 };
+          } else if (util.isValidRGBA(color) === true) {
+            var rgbaArray = color.substr(5).substr(0, color.length - 6).split(',');
+            rgba = { r: rgbaArray[0], g: rgbaArray[1], b: rgbaArray[2], a: rgbaArray[3] };
+          } else if (util.isValidHex(color) === true) {
+            var rgbObj = util.hexToRGB(color);
+            rgba = { r: rgbObj.r, g: rgbObj.g, b: rgbObj.b, a: 1 };
+          }
+        } else {
+          if (color instanceof Object) {
+            if (color.r !== undefined && color.g !== undefined && color.b !== undefined) {
+              var alpha = color.a !== undefined ? color.a : '1.0';
+              rgba = { r: color.r, g: color.g, b: color.b, a: alpha };
+            }
+          }
+        }
+
+        // set color
+        if (rgba === undefined) {
+          throw new Error('Unknown color passed to the colorPicker. Supported are strings: rgb, hex, rgba. Object: rgb ({r:r,g:g,b:b,[a:a]}). Supplied: ' + JSON.stringify(color));
+        } else {
+          this._setColor(rgba, setInitial);
+        }
+      }
+    }, {
+      key: 'show',
+
+      /**
+       * this shows the color picker at a location. The hue circle is constructed once and stored.
+       * @param x
+       * @param y
+       */
+      value: function show(x, y) {
+        this.applied = false;
+        this.frame.style.display = 'block';
+        this.frame.style.top = y + 'px';
+        this.frame.style.left = x + 'px';
+        this._generateHueCircle();
+      }
+    }, {
+      key: '_hide',
+
+      // ------------------------------------------ PRIVATE ----------------------------- //
+
+      /**
+       * Hide the picker. Is called by the cancel button.
+       * Optional boolean to store the previous color for easy access later on.
+       * @param storePrevious
+       * @private
+       */
+      value: function _hide() {
+        var storePrevious = arguments[0] === undefined ? true : arguments[0];
+
+        // store the previous color for next time;
+        if (storePrevious === true) {
+          this.previousColor = util.extend({}, this.color);
+        }
+
+        if (this.applied === true) {
+          this.updateCallback(this.initialColor);
+        }
+
+        this.frame.style.display = 'none';
+      }
+    }, {
+      key: '_save',
+
+      /**
+       * bound to the save button. Saves and hides.
+       * @private
+       */
+      value: function _save() {
+        this.updateCallback(this.color);
+        this.applied = false;
+        this._hide();
+      }
+    }, {
+      key: '_apply',
+
+      /**
+       * Bound to apply button. Saves but does not close. Is undone by the cancel button.
+       * @private
+       */
+      value: function _apply() {
+        this.applied = true;
+        this.updateCallback(this.color);
+        this._updatePicker(this.color);
+      }
+    }, {
+      key: '_loadLast',
+
+      /**
+       * load the color from the previous session.
+       * @private
+       */
+      value: function _loadLast() {
+        if (this.previousColor !== undefined) {
+          this.setColor(this.previousColor, false);
+        } else {
+          alert('There is no last color to load...');
+        }
+      }
+    }, {
+      key: '_setColor',
+
+      /**
+       * set the color, place the picker
+       * @param rgba
+       * @param setInitial
+       * @private
+       */
+      value: function _setColor(rgba) {
+        var setInitial = arguments[1] === undefined ? true : arguments[1];
+
+        // store the initial color
+        if (setInitial === true) {
+          this.initialColor = util.extend({}, rgba);
+        }
+
+        this.color = rgba;
+        var hsv = util.RGBToHSV(rgba.r, rgba.g, rgba.b);
+
+        var angleConvert = 2 * Math.PI;
+        var radius = this.r * hsv.s;
+        var x = this.centerCoordinates.x + radius * Math.sin(angleConvert * hsv.h);
+        var y = this.centerCoordinates.y + radius * Math.cos(angleConvert * hsv.h);
+
+        this.colorPickerSelector.style.left = x - 0.5 * this.colorPickerSelector.clientWidth + 'px';
+        this.colorPickerSelector.style.top = y - 0.5 * this.colorPickerSelector.clientHeight + 'px';
+
+        this._updatePicker(rgba);
+      }
+    }, {
+      key: '_setOpacity',
+
+      /**
+       * bound to opacity control
+       * @param value
+       * @private
+       */
+      value: function _setOpacity(value) {
+        this.color.a = value / 100;
+        this._updatePicker(this.color);
+      }
+    }, {
+      key: '_setBrightness',
+
+      /**
+       * bound to brightness control
+       * @param value
+       * @private
+       */
+      value: function _setBrightness(value) {
+        var hsv = util.RGBToHSV(this.color.r, this.color.g, this.color.b);
+        hsv.v = value / 100;
+        var rgba = util.HSVToRGB(hsv.h, hsv.s, hsv.v);
+        rgba['a'] = this.color.a;
+        this.color = rgba;
+        this._updatePicker();
+      }
+    }, {
+      key: '_updatePicker',
+
+      /**
+       * update the colorpicker. A black circle overlays the hue circle to mimic the brightness decreasing.
+       * @param rgba
+       * @private
+       */
+      value: function _updatePicker() {
+        var rgba = arguments[0] === undefined ? this.color : arguments[0];
+
+        var hsv = util.RGBToHSV(rgba.r, rgba.g, rgba.b);
+        var ctx = this.colorPickerCanvas.getContext('2d');
+        if (this.pixelRation === undefined) {
+          this.pixelRatio = (window.devicePixelRatio || 1) / (ctx.webkitBackingStorePixelRatio || ctx.mozBackingStorePixelRatio || ctx.msBackingStorePixelRatio || ctx.oBackingStorePixelRatio || ctx.backingStorePixelRatio || 1);
+        }
+        ctx.setTransform(this.pixelRatio, 0, 0, this.pixelRatio, 0, 0);
+
+        // clear the canvas
+        var w = this.colorPickerCanvas.clientWidth;
+        var h = this.colorPickerCanvas.clientHeight;
+        ctx.clearRect(0, 0, w, h);
+
+        ctx.putImageData(this.hueCircle, 0, 0);
+        ctx.fillStyle = 'rgba(0,0,0,' + (1 - hsv.v) + ')';
+        ctx.circle(this.centerCoordinates.x, this.centerCoordinates.y, this.r);
+        ctx.fill();
+
+        this.brightnessRange.value = 100 * hsv.v;
+        this.opacityRange.value = 100 * rgba.a;
+
+        this.initialColorDiv.style.backgroundColor = 'rgba(' + this.initialColor.r + ',' + this.initialColor.g + ',' + this.initialColor.b + ',' + this.initialColor.a + ')';
+        this.newColorDiv.style.backgroundColor = 'rgba(' + this.color.r + ',' + this.color.g + ',' + this.color.b + ',' + this.color.a + ')';
+      }
+    }, {
+      key: '_setSize',
+
+      /**
+       * used by create to set the size of the canvas.
+       * @private
+       */
+      value: function _setSize() {
+        this.colorPickerCanvas.style.width = '100%';
+        this.colorPickerCanvas.style.height = '100%';
+
+        this.colorPickerCanvas.width = 289 * this.pixelRatio;
+        this.colorPickerCanvas.height = 289 * this.pixelRatio;
+      }
+    }, {
+      key: '_create',
+
+      /**
+       * create all dom elements
+       * TODO: cleanup, lots of similar dom elements
+       * @private
+       */
+      value: function _create() {
+        this.frame = document.createElement('div');
+        this.frame.className = 'vis-color-picker';
+
+        this.colorPickerDiv = document.createElement('div');
+        this.colorPickerSelector = document.createElement('div');
+        this.colorPickerSelector.className = 'vis-selector';
+        this.colorPickerDiv.appendChild(this.colorPickerSelector);
+
+        this.colorPickerCanvas = document.createElement('canvas');
+        this.colorPickerDiv.appendChild(this.colorPickerCanvas);
+
+        if (!this.colorPickerCanvas.getContext) {
+          var noCanvas = document.createElement('DIV');
+          noCanvas.style.color = 'red';
+          noCanvas.style.fontWeight = 'bold';
+          noCanvas.style.padding = '10px';
+          noCanvas.innerHTML = 'Error: your browser does not support HTML canvas';
+          this.colorPickerCanvas.appendChild(noCanvas);
+        } else {
+          var ctx = this.colorPickerCanvas.getContext('2d');
+          this.pixelRatio = (window.devicePixelRatio || 1) / (ctx.webkitBackingStorePixelRatio || ctx.mozBackingStorePixelRatio || ctx.msBackingStorePixelRatio || ctx.oBackingStorePixelRatio || ctx.backingStorePixelRatio || 1);
+
+          this.colorPickerCanvas.getContext('2d').setTransform(this.pixelRatio, 0, 0, this.pixelRatio, 0, 0);
+        }
+
+        this.colorPickerDiv.className = 'vis-color';
+
+        this.opacityDiv = document.createElement('div');
+        this.opacityDiv.className = 'vis-opacity';
+
+        this.brightnessDiv = document.createElement('div');
+        this.brightnessDiv.className = 'vis-brightness';
+
+        this.arrowDiv = document.createElement('div');
+        this.arrowDiv.className = 'vis-arrow';
+
+        this.opacityRange = document.createElement('input');
+        this.opacityRange.type = 'range';
+        this.opacityRange.min = '0';
+        this.opacityRange.max = '100';
+        this.opacityRange.value = '100';
+        this.opacityRange.className = 'vis-range';
+
+        this.brightnessRange = document.createElement('input');
+        this.brightnessRange.type = 'range';
+        this.brightnessRange.min = '0';
+        this.brightnessRange.max = '100';
+        this.brightnessRange.value = '100';
+        this.brightnessRange.className = 'vis-range';
+
+        this.opacityDiv.appendChild(this.opacityRange);
+        this.brightnessDiv.appendChild(this.brightnessRange);
+
+        var me = this;
+        this.opacityRange.onchange = function () {
+          me._setOpacity(this.value);
+        };
+        this.opacityRange.oninput = function () {
+          me._setOpacity(this.value);
+        };
+        this.brightnessRange.onchange = function () {
+          me._setBrightness(this.value);
+        };
+        this.brightnessRange.oninput = function () {
+          me._setBrightness(this.value);
+        };
+
+        this.brightnessLabel = document.createElement('div');
+        this.brightnessLabel.className = 'vis-label vis-brightness';
+        this.brightnessLabel.innerHTML = 'brightness:';
+
+        this.opacityLabel = document.createElement('div');
+        this.opacityLabel.className = 'vis-label vis-opacity';
+        this.opacityLabel.innerHTML = 'opacity:';
+
+        this.newColorDiv = document.createElement('div');
+        this.newColorDiv.className = 'vis-new-color';
+        this.newColorDiv.innerHTML = 'new';
+
+        this.initialColorDiv = document.createElement('div');
+        this.initialColorDiv.className = 'vis-initial-color';
+        this.initialColorDiv.innerHTML = 'initial';
+
+        this.cancelButton = document.createElement('div');
+        this.cancelButton.className = 'vis-button vis-cancel';
+        this.cancelButton.innerHTML = 'cancel';
+        this.cancelButton.onclick = this._hide.bind(this, false);
+
+        this.applyButton = document.createElement('div');
+        this.applyButton.className = 'vis-button vis-apply';
+        this.applyButton.innerHTML = 'apply';
+        this.applyButton.onclick = this._apply.bind(this);
+
+        this.saveButton = document.createElement('div');
+        this.saveButton.className = 'vis-button vis-save';
+        this.saveButton.innerHTML = 'save';
+        this.saveButton.onclick = this._save.bind(this);
+
+        this.loadButton = document.createElement('div');
+        this.loadButton.className = 'vis-button vis-load';
+        this.loadButton.innerHTML = 'load last';
+        this.loadButton.onclick = this._loadLast.bind(this);
+
+        this.frame.appendChild(this.colorPickerDiv);
+        this.frame.appendChild(this.arrowDiv);
+        this.frame.appendChild(this.brightnessLabel);
+        this.frame.appendChild(this.brightnessDiv);
+        this.frame.appendChild(this.opacityLabel);
+        this.frame.appendChild(this.opacityDiv);
+        this.frame.appendChild(this.newColorDiv);
+        this.frame.appendChild(this.initialColorDiv);
+
+        this.frame.appendChild(this.cancelButton);
+        this.frame.appendChild(this.applyButton);
+        this.frame.appendChild(this.saveButton);
+        this.frame.appendChild(this.loadButton);
+      }
+    }, {
+      key: '_bindHammer',
+
+      /**
+       * bind hammer to the color picker
+       * @private
+       */
+      value: function _bindHammer() {
+        var _this = this;
+
+        this.drag = {};
+        this.pinch = {};
+        this.hammer = new Hammer(this.colorPickerCanvas);
+        this.hammer.get('pinch').set({ enable: true });
+
+        hammerUtil.onTouch(this.hammer, function (event) {
+          _this._moveSelector(event);
+        });
+        this.hammer.on('tap', function (event) {
+          _this._moveSelector(event);
+        });
+        this.hammer.on('panstart', function (event) {
+          _this._moveSelector(event);
+        });
+        this.hammer.on('panmove', function (event) {
+          _this._moveSelector(event);
+        });
+        this.hammer.on('panend', function (event) {
+          _this._moveSelector(event);
+        });
+      }
+    }, {
+      key: '_generateHueCircle',
+
+      /**
+       * generate the hue circle. This is relatively heavy (200ms) and is done only once on the first time it is shown.
+       * @private
+       */
+      value: function _generateHueCircle() {
+        if (this.generated === false) {
+          var ctx = this.colorPickerCanvas.getContext('2d');
+          if (this.pixelRation === undefined) {
+            this.pixelRatio = (window.devicePixelRatio || 1) / (ctx.webkitBackingStorePixelRatio || ctx.mozBackingStorePixelRatio || ctx.msBackingStorePixelRatio || ctx.oBackingStorePixelRatio || ctx.backingStorePixelRatio || 1);
+          }
+          ctx.setTransform(this.pixelRatio, 0, 0, this.pixelRatio, 0, 0);
+
+          // clear the canvas
+          var w = this.colorPickerCanvas.clientWidth;
+          var h = this.colorPickerCanvas.clientHeight;
+          ctx.clearRect(0, 0, w, h);
+
+          // draw hue circle
+          var x = undefined,
+              y = undefined,
+              hue = undefined,
+              sat = undefined;
+          this.centerCoordinates = { x: w * 0.5, y: h * 0.5 };
+          this.r = 0.49 * w;
+          var angleConvert = 2 * Math.PI / 360;
+          var hfac = 1 / 360;
+          var sfac = 1 / this.r;
+          var rgb = undefined;
+          for (hue = 0; hue < 360; hue++) {
+            for (sat = 0; sat < this.r; sat++) {
+              x = this.centerCoordinates.x + sat * Math.sin(angleConvert * hue);
+              y = this.centerCoordinates.y + sat * Math.cos(angleConvert * hue);
+              rgb = util.HSVToRGB(hue * hfac, sat * sfac, 1);
+              ctx.fillStyle = 'rgb(' + rgb.r + ',' + rgb.g + ',' + rgb.b + ')';
+              ctx.fillRect(x - 0.5, y - 0.5, 2, 2);
+            }
+          }
+          ctx.strokeStyle = 'rgba(0,0,0,1)';
+          ctx.circle(this.centerCoordinates.x, this.centerCoordinates.y, this.r);
+          ctx.stroke();
+
+          this.hueCircle = ctx.getImageData(0, 0, w, h);
+        }
+        this.generated = true;
+      }
+    }, {
+      key: '_moveSelector',
+
+      /**
+       * move the selector. This is called by hammer functions.
+       *
+       * @param event
+       * @private
+       */
+      value: function _moveSelector(event) {
+        var rect = this.colorPickerDiv.getBoundingClientRect();
+        var left = event.center.x - rect.left;
+        var top = event.center.y - rect.top;
+
+        var centerY = 0.5 * this.colorPickerDiv.clientHeight;
+        var centerX = 0.5 * this.colorPickerDiv.clientWidth;
+
+        var x = left - centerX;
+        var y = top - centerY;
+
+        var angle = Math.atan2(x, y);
+        var radius = 0.98 * Math.min(Math.sqrt(x * x + y * y), centerX);
+
+        var newTop = Math.cos(angle) * radius + centerY;
+        var newLeft = Math.sin(angle) * radius + centerX;
+
+        this.colorPickerSelector.style.top = newTop - 0.5 * this.colorPickerSelector.clientHeight + 'px';
+        this.colorPickerSelector.style.left = newLeft - 0.5 * this.colorPickerSelector.clientWidth + 'px';
+
+        // set color
+        var h = angle / (2 * Math.PI);
+        h = h < 0 ? h + 1 : h;
+        var s = radius / this.r;
+        var hsv = util.RGBToHSV(this.color.r, this.color.g, this.color.b);
+        hsv.h = h;
+        hsv.s = s;
+        var rgba = util.HSVToRGB(hsv.h, hsv.s, hsv.v);
+        rgba['a'] = this.color.a;
+        this.color = rgba;
+
+        // update previews
+        this.initialColorDiv.style.backgroundColor = 'rgba(' + this.initialColor.r + ',' + this.initialColor.g + ',' + this.initialColor.b + ',' + this.initialColor.a + ')';
+        this.newColorDiv.style.backgroundColor = 'rgba(' + this.color.r + ',' + this.color.g + ',' + this.color.b + ',' + this.color.a + ')';
+      }
+    }]);
+
+    return ColorPicker;
+  })();
+
+  exports['default'] = ColorPicker;
   module.exports = exports['default'];
 
 /***/ }
