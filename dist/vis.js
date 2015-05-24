@@ -16528,8 +16528,11 @@ return /******/ (function(modules) { // webpackBootstrap
   Network.prototype.addNodeMode = function () {
     return this.manipulation.addNodeMode.apply(this.manipulation, arguments);
   };
+  Network.prototype.editNode = function () {
+    return this.manipulation.editNode.apply(this.manipulation, arguments);
+  };
   Network.prototype.editNodeMode = function () {
-    return this.manipulation.editNodeMode.apply(this.manipulation, arguments);
+    console.log('please use editNode instead of editNodeMode');return this.manipulation.editNode.apply(this.manipulation, arguments);
   };
   Network.prototype.addEdgeMode = function () {
     return this.manipulation.addEdgeMode.apply(this.manipulation, arguments);
@@ -26571,14 +26574,14 @@ return /******/ (function(modules) { // webpackBootstrap
         this._temporaryBindEvent('click', this._performAddNode.bind(this));
       }
     }, {
-      key: 'editNodeMode',
+      key: 'editNode',
 
       /**
        * call the bound function to handle the editing of the node. The node has to be selected.
        *
        * @private
        */
-      value: function editNodeMode() {
+      value: function editNode() {
         var _this2 = this;
 
         // when using the gui, enable edit mode if it wasnt already.
@@ -26599,7 +26602,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
             if (this.options.editNode.length === 2) {
               this.options.editNode(data, function (finalizedData) {
-                if (finalizedData !== null && finalizedData !== undefined && _this2.inMode === 'delete') {
+                if (finalizedData !== null && finalizedData !== undefined && _this2.inMode === 'editNode') {
                   // if for whatever reason the mode has changes (due to dataset change) disregard the callback) {
                   _this2.body.data.nodes.update(finalizedData);
                   _this2.showManipulatorToolbar();
@@ -27005,9 +27008,9 @@ return /******/ (function(modules) { // webpackBootstrap
     }, {
       key: '_createEditNodeButton',
       value: function _createEditNodeButton(locale) {
-        var button = this._createButton('editNodeMode', 'vis-button vis-edit', locale['editNode'] || this.options.locales['en']['editNode']);
+        var button = this._createButton('editNode', 'vis-button vis-edit', locale['editNode'] || this.options.locales['en']['editNode']);
         this.manipulationDiv.appendChild(button);
-        this._bindHammerToDiv(button, this.editNodeMode.bind(this));
+        this._bindHammerToDiv(button, this.editNode.bind(this));
       }
     }, {
       key: '_createEditEdgeButton',
