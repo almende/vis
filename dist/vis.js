@@ -806,10 +806,16 @@ return /******/ (function(modules) { // webpackBootstrap
     return object instanceof Number || typeof object == 'number';
   };
 
+  /**
+   * Remove everything in the DOM object
+   * @param DOMobject
+   */
   exports.recursiveDOMDelete = function (DOMobject) {
-    while (DOMobject.hasChildNodes() == true) {
-      exports.recursiveDOMDelete(DOMobject.firstChild);
-      DOMobject.removeChild(DOMobject.firstChild);
+    if (DOMobject) {
+      while (DOMobject.hasChildNodes() === true) {
+        exports.recursiveDOMDelete(DOMobject.firstChild);
+        DOMobject.removeChild(DOMobject.firstChild);
+      }
     }
   };
 
@@ -26964,9 +26970,15 @@ return /******/ (function(modules) { // webpackBootstrap
         util.recursiveDOMDelete(this.closeDiv);
 
         // remove the manipulation divs
-        this.canvas.frame.removeChild(this.manipulationDiv);
-        this.canvas.frame.removeChild(this.editModeDiv);
-        this.canvas.frame.removeChild(this.closeDiv);
+        if (this.manipulationDiv) {
+          this.canvas.frame.removeChild(this.manipulationDiv);
+        }
+        if (this.editModeDiv) {
+          this.canvas.frame.removeChild(this.editModeDiv);
+        }
+        if (this.closeDiv) {
+          this.canvas.frame.removeChild(this.manipulationDiv);
+        }
 
         // set the references to undefined
         this.manipulationDiv = undefined;
