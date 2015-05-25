@@ -16,6 +16,7 @@ http://visjs.org
 - Fixed clustering bug.
 - Added getNodesInCluster method.
 - Renamed editNodeMode to editNode, editNodeMode now give a deprication log message.
+- Added multiselect to the docs.
 
 ### Graph2d & Timeline
 
