@@ -17,6 +17,7 @@ http://visjs.org
 - Added getNodesInCluster method.
 - Renamed editNodeMode to editNode, editNodeMode now give a deprication log message.
 - Added multiselect to the docs.
+- Removed depricated dynamic entree, allow any smooth curve style for hierarchical layout.
 
 ### Graph2d & Timeline
 
