@@ -14,6 +14,8 @@ http://visjs.org
 - Fixed click to use.
 - Fixed getConnectedEdges method.
 - Fixed clustering bug.
+- Added getNodesInCluster method.
+- Renamed editNodeMode to editNode, editNodeMode now give a deprication log message.
 
 ### Graph2d & Timeline
 
