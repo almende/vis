@@ -19,6 +19,7 @@ http://visjs.org
 - Added multiselect to the docs.
 - Removed depricated dynamic entree, allow any smooth curve style for hierarchical layout.
 - Fixed bug with the moveTo and getViewPosition methods.
+- Fixed #861, brokenImage only working for one node if nodes have the same image.
 
 ### Graph2d & Timeline
 
