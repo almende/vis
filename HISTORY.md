@@ -21,14 +21,8 @@ http://visjs.org
 
 ### Graph2d & Timeline
 
-- Fixed #858, removed usage of deprictated unsubscribe from dataset.
-
-
-## not yet released, version 4.0.1-SNAPSHOT
-
-### Timeline, Graph2d
-
-- Fixed #872: error about deprecated function `unsubscribe`.
+- Fixed #858, #872, fixed usage of deprecated `unsubscribe` from DataSet.
+- Fixed #869: add className with id to custom time bars
 
 
 ## 2015-05-22, version 4.0.0
