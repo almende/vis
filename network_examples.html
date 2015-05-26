@@ -26,7 +26,7 @@
             margin:0px;
             padding:0px;
             position:relative;
-            height: 3083px;
+            height: 0px;
             width: 100%;
             z-index:0;
         }
@@ -35,7 +35,6 @@
             margin:0px;
             padding:0px;
             position:relative;
-            margin-top:-3083px;
             width: 100%;
             z-index:2;
             -webkit-touch-callout: none;
@@ -56,6 +55,12 @@
 
         function loadVis() {
             var linksContainer = document.getElementById('contentContainer');
+            var networkContainer = document.getElementById('networkContainer');
+            var linksContainerRect = linksContainer.getBoundingClientRect();
+            var linksContainerHeight = linksContainerRect.bottom - linksContainerRect.top;
+
+            networkContainer.style.height = linksContainerHeight + 'px';
+            linksContainer.style.marginTop = '-' + linksContainerHeight + 'px';
 
             var links = linksContainer.getElementsByTagName('a');
             var nodesArray = [];
@@ -129,16 +134,16 @@
             var firstLinkRect = firstLink.getBoundingClientRect();
             var firstLinkWidth = firstLinkRect.right - firstLinkRect.left;
             var firstLinkHeight = firstLinkRect.bottom - firstLinkRect.top;
-            var rect = networkContainer.getBoundingClientRect();
-            var width = rect.right - rect.left;
-            var height = rect.bottom - rect.top;
+            var networkContainerRect = networkContainer.getBoundingClientRect();
+            var networkContainerWidth = networkContainerRect.right - networkContainerRect.left;
+            var networkContainerHeight = networkContainerRect.bottom - networkContainerRect.top;
             var ydiff = linksContainer.offsetTop - networkContainer.offsetTop;
             network.moveTo({
                 scale: 1,
                 position: network.getPositions([0])[0],
                 offset: {
-                    x: -0.5 * width  + firstLinkPos.x + firstLinkWidth,
-                    y: -0.5 * height + firstLinkPos.y + ydiff + 0.5 * firstLinkHeight
+                    x: -0.5 * networkContainerWidth  + firstLinkPos.x + firstLinkWidth,
+                    y: -0.5 * networkContainerHeight + firstLinkPos.y + ydiff + 0.5 * firstLinkHeight
                 },
                 animation: false
             });
