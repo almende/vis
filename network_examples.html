@@ -59,8 +59,8 @@
             var linksContainerRect = linksContainer.getBoundingClientRect();
             var linksContainerHeight = linksContainerRect.bottom - linksContainerRect.top;
 
-            networkContainer.style.height = linksContainerHeight + 'px';
-            linksContainer.style.marginTop = '-' + linksContainerHeight + 'px';
+            networkContainer.style.height = (linksContainerHeight + LARGE_SIZE) + 'px';
+            linksContainer.style.marginTop = '-' + (linksContainerHeight + LARGE_SIZE) + 'px';
 
             var links = linksContainer.getElementsByTagName('a');
             var nodesArray = [];
@@ -70,6 +70,9 @@
             for (var i = 0; i < links.length; i++) {
                 var link = links[i];
                 if (link.className === 'exampleLink') {
+                    var hrefArray = link.getAttribute('href').split('/');
+                    var exampleName = hrefArray[hrefArray.length-1].replace('.html','');
+                    
                     var linkRect = link.getBoundingClientRect();
                     var linkWidth = linkRect.right - linkRect.left;
 
@@ -87,8 +90,8 @@
                         size:2,
                         fixed:true
                     });
-                    nodesArray.push({id:idCounter + "image",
-//                        label:link.innerHTML,
+                    nodesArray.push({id:idCounter + 'image',
+                        label:exampleName,
                         x:link.offsetLeft + 400 + 100 + (idCounter % 3) * 150,
                         y:link.offsetTop,
                         color:{
@@ -99,11 +102,11 @@
                             x:0,
                             y:0
                         },
-                        shape:'image',
-                        image:'./images/exampleScreenshots/network/'+(idCounter+1)+'.png',
+                        shape:'circle',
+                        image:'./images/exampleScreenshots/network/'+(exampleName)+'.png',
                         size:NORMAL_SIZE
                     });
-                    edgesArray.push({from: idCounter, to: idCounter+"image", arrows:'from'});
+                    edgesArray.push({from: idCounter, to: idCounter+'image', arrows:'from'});
                     idCounter += 1;
                 }
             }
@@ -265,8 +268,24 @@
     <a class='exampleLink' href="examples/network/data/scaling_nodes_edges.html">scaling the nodes and edges with the value.</a><br />
     <a class='exampleLink' href="examples/network/data/scaling_nodes_edges_labels.html">scaling the nodes, edges and labels with the value.</a><br />
 
+    <h3>dynamic configuration interface</h3>
+    <a class='exampleLink' href="examples/network/other/configuration.html">dynamic configuration</a><br />
+
+    <h3>data manipulation interface</h3>
+    <a class='exampleLink' href="examples/network/other/manipulation.html">manipulation interface and localization</a><br />
+
+    <h3>clustering</h3>
+    <a class='exampleLink' href="examples/network/other/clustering.html">clustering possibilities</a><br />
+    <a class='exampleLink' href="examples/network/other/clusteringByZoom.html">clustering by zoom</a><br />
+
     <h3>physics</h3>
     <a class='exampleLink' href="examples/network/physics/physicsConfiguration.html">physics configuration</a><br />
+
+    <h3>animation</h3>
+    <a class='exampleLink' href="examples/network/other/animationShowcase.html">animation showcase</a><br />
+
+    <h3>navigation buttons</h3>
+    <a class='exampleLink' href="examples/network/other/navigation.html">navigation buttons and keyboard shortcuts</a><br />
 
     <h3>example applications</h3>
     <a class='exampleLink' href="examples/network/exampleApplications/les_miserables.html">les miserables cast</a><br />
@@ -274,15 +293,9 @@
     <a class='exampleLink' href="examples/network/exampleApplications/neighbourhood_highlight.html">neighbourhood heighlight</a><br />
     <a class='exampleLink' href="examples/network/exampleApplications/nodeLegend.html">using nodes as a legend</a><br />
     <a class='exampleLink' href="examples/network/exampleApplications/worldCupPerformance.html">performance test with the worldcup data</a><br />
+    <a class='exampleLink' href="examples/network/other/performance.html">performance test with scale free network</a><br />
 
-    <h3>other</h3>
-    <a class='exampleLink' href="examples/network/other/animationShowcase.html">animation showcase</a><br />
-    <a class='exampleLink' href="examples/network/other/clustering.html">clustering possibilities</a><br />
-    <a class='exampleLink' href="examples/network/other/clusteringByZoom.html">clustering by zoom</a><br />
-    <a class='exampleLink' href="examples/network/other/configuration.html">dynamic configuration</a><br />
-    <a class='exampleLink' href="examples/network/other/manipulation.html">manipulation interface and localization</a><br />
-    <a class='exampleLink' href="examples/network/other/navigation.html">navigation buttons and keyboard shortcuts</a><br />
-    <a class='exampleLink' href="examples/network/other/performance.html">performance test with scale free network, customize the amount of nodes</a><br />
+
 </div>
 <br />
 <br />
