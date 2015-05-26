@@ -622,6 +622,15 @@ var locales = {
                 <td class="midMethods">Returns: Boolean</td>
                 <td>Returns true if the node whose ID has been supplied is a cluster.</td>
             </tr>
+            <tr class="collapsible toggle" onclick="toggleTable('methodTable','getNodesInCluster', this);">
+                <td colspan="2"><span parent="getNodesInCluster" class="right-caret"></span> getNodesInCluster(
+                    <code>String clusterNodeId</code>)
+            </tr>
+            <tr class="hidden" parent="getNodesInCluster">
+                <td class="midMethods">Returns: Array</td>
+                <td>Returns an array of all nodeIds of the nodes that would be released if you open the cluster.
+                </td>
+            </tr>
             <tr class="collapsible toggle" onclick="toggleTable('methodTable','openCluster', this);">
                 <td colspan="2"><span parent="openCluster" class="right-caret"></span> openCluster(
                     <code>String nodeId</code>)

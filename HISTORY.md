@@ -11,11 +11,19 @@ http://visjs.org
 - Fixed dynamic edges not correctly handling non-existent nodes.
 - Accepted pull from @killerDJO for fixing selected and hover colors for edges.
 - Fixed bug with rightmouse button, scroll center and popup positions using the wrong coordinates.
+- Fixed click to use.
+- Fixed getConnectedEdges method.
+- Fixed clustering bug.
+- Added getNodesInCluster method.
+- Renamed editNodeMode to editNode, editNodeMode now give a deprication log message.
+- Added multiselect to the docs.
+- Removed depricated dynamic entree, allow any smooth curve style for hierarchical layout.
 - Fixed bug with the moveTo and getViewPosition methods.
 
 ### Graph2d & Timeline
 
-- Fixed #858, removed usage of deprictated unsubscribe from dataset.
+- Fixed #858, #872, fixed usage of deprecated `unsubscribe` from DataSet.
+- Fixed #869: add className with id to custom time bars
 
 
 ## 2015-05-22, version 4.0.0
