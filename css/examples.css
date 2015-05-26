@@ -64,11 +64,11 @@ a.exampleLink:before {
     content:'';
     display:inline-block;
     margin-left:15px;
-    width: 15px;
-    height: 10px;
-    border-top: 5px solid transparent;
-    border-bottom: 5px solid transparent;
-    border-left: 5px solid #688fba;
+    margin-right:5px;
+    width: 2px;
+    height: 2px;
+    border-radius: 50%;
+    border:3px solid rgb(46, 109, 164);
 }
 
 a.exampleLink {
