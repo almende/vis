@@ -1,6 +1,28 @@
 # vis.js history
 http://visjs.org
 
+## UNRELEASED, version 4.0.1
+
+### Network
+
+- Fixed #866, manipulation can now be set to false without crashing.
+- Fixed #860, edit node mode now works as it should.
+- Fixed #859, images now resize again when they are loaded.
+- Fixed dynamic edges not correctly handling non-existent nodes.
+- Accepted pull from @killerDJO for fixing selected and hover colors for edges.
+- Fixed bug with rightmouse button, scroll center and popup positions using the wrong coordinates.
+- Fixed click to use.
+- Fixed getConnectedEdges method.
+- Fixed clustering bug.
+- Added getNodesInCluster method.
+- Renamed editNodeMode to editNode, editNodeMode now give a deprication log message.
+- Added multiselect to the docs.
+- Removed depricated dynamic entree, allow any smooth curve style for hierarchical layout.
+
+### Graph2d & Timeline
+
+- Fixed #858, removed usage of deprictated unsubscribe from dataset.
+
 
 ## not yet released, version 4.0.1-SNAPSHOT
 

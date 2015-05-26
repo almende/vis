@@ -622,6 +622,15 @@ var locales = {
                 <td class="midMethods">Returns: Boolean</td>
                 <td>Returns true if the node whose ID has been supplied is a cluster.</td>
             </tr>
+            <tr class="collapsible toggle" onclick="toggleTable('methodTable','getNodesInCluster', this);">
+                <td colspan="2"><span parent="getNodesInCluster" class="right-caret"></span> getNodesInCluster(
+                    <code>String clusterNodeId</code>)
+            </tr>
+            <tr class="hidden" parent="getNodesInCluster">
+                <td class="midMethods">Returns: Array</td>
+                <td>Returns an array of all nodeIds of the nodes that would be released if you open the cluster.
+                </td>
+            </tr>
             <tr class="collapsible toggle" onclick="toggleTable('methodTable','openCluster', this);">
                 <td colspan="2"><span parent="openCluster" class="right-caret"></span> openCluster(
                     <code>String nodeId</code>)
@@ -681,12 +690,12 @@ var locales = {
                     <code>enabled</code> to false.
                 </td>
             </tr>
-            <tr class="collapsible toggle" onclick="toggleTable('methodTable','editNodeMode', this);">
-                <td colspan="2"><span parent="editNodeMode" class="right-caret"></span> editNodeMode()</td>
+            <tr class="collapsible toggle" onclick="toggleTable('methodTable','editNode', this);">
+                <td colspan="2"><span parent="editNode" class="right-caret"></span> editNode()</td>
             </tr>
-            <tr class="hidden" parent="editNodeMode">
+            <tr class="hidden" parent="editNode">
                 <td class="midMethods">Returns: none</td>
-                <td>Go into editNode mode. The explaination from <code>addNodeMode</code> applies here as well.</td>
+                <td>Edit the selected node. The explaination from <code>addNodeMode</code> applies here as well.</td>
             </tr>
             <tr class="collapsible toggle" onclick="toggleTable('methodTable','addEdgeMode', this);">
                 <td colspan="2"><span parent="addEdgeMode" class="right-caret"></span> addEdgeMode()</td>

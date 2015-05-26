@@ -5,7 +5,7 @@
  * A dynamic, browser-based visualization library.
  *
  * @version 4.0.1-SNAPSHOT
- * @date    2015-05-22
+ * @date    2015-05-25
  *
  * @license
  * Copyright (C) 2011-2014 Almende B.V, http://almende.com
@@ -176,7 +176,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
 
-  var _componentsNodesCluster = __webpack_require__(85);
+  var _componentsNodesCluster = __webpack_require__(83);
 
   var _componentsNodesCluster2 = _interopRequireDefault(_componentsNodesCluster);
 
@@ -730,7 +730,6 @@ return /******/ (function(modules) { // webpackBootstrap
               edge.disconnect();
               delete this.body.edges[edgeId];
             } else {
-
               // one of the nodes connected to this edge is in a cluster. We give the edge to that cluster so it will be released when that cluster is opened.
               if (this.clusteredNodes[edge.fromId] !== undefined || this.clusteredNodes[edge.toId] !== undefined) {
                 var fromId = undefined,
@@ -740,16 +739,16 @@ return /******/ (function(modules) { // webpackBootstrap
                 var _clusterNode = this.body.nodes[clusterId];
                 _clusterNode.containedEdges[edgeId] = edge;
 
-                // if both from and to nodes are visible, we create a new temporary edge
-                if (edge.from.options.hidden !== true && edge.to.options.hidden !== true) {
-                  if (this.clusteredNodes[edge.fromId] !== undefined) {
-                    fromId = clusterId;
-                    toId = edge.toId;
-                  } else {
-                    fromId = edge.fromId;
-                    toId = clusterId;
-                  }
+                if (this.clusteredNodes[edge.fromId] !== undefined) {
+                  fromId = clusterId;
+                  toId = edge.toId;
+                } else {
+                  fromId = edge.fromId;
+                  toId = clusterId;
+                }
 
+                // if both from and to nodes are visible, we create a new temporary edge
+                if (this.body.nodes[fromId].options.hidden !== true && this.body.nodes[toId].options.hidden !== true) {
                   var clonedOptions = this._cloneOptions(edge, 'edge');
                   var id = 'clusterEdge:' + util.randomUUID();
                   util.deepExtend(clonedOptions, _clusterNode.clusterEdgeProperties);
@@ -784,30 +783,19 @@ return /******/ (function(modules) { // webpackBootstrap
         }
       }
     }, {
-      key: '_connectEdge',
-
-      /**
-      * Connect an edge that was previously contained from cluster A to cluster B if the node that it was originally connected to
-      * is currently residing in cluster B
-      * @param edge
-      * @param nodeId
-      * @param from
-      * @private
-      */
-      value: function _connectEdge(edge, nodeId, from) {
-        var clusterStack = this.findNode(nodeId);
-        if (from === true) {
-          edge.from = clusterStack[clusterStack.length - 1];
-          edge.fromId = clusterStack[clusterStack.length - 1].id;
-          clusterStack.pop();
-          edge.fromArray = clusterStack;
-        } else {
-          edge.to = clusterStack[clusterStack.length - 1];
-          edge.toId = clusterStack[clusterStack.length - 1].id;
-          clusterStack.pop();
-          edge.toArray = clusterStack;
+      key: 'getNodesInCluster',
+      value: function getNodesInCluster(clusterId) {
+        var nodesArray = [];
+        if (this.isCluster(clusterId) === true) {
+          var containedNodes = this.body.nodes[clusterId].containedNodes;
+          for (var nodeId in containedNodes) {
+            if (containedNodes.hasOwnProperty(nodeId)) {
+              nodesArray.push(nodeId);
+            }
+          }
         }
-        edge.connect();
+
+        return nodesArray;
       }
     }, {
       key: 'findNode',
@@ -12484,7 +12472,7 @@ return /******/ (function(modules) { // webpackBootstrap
     // unsubscribe from current dataset
     if (this.groupsData) {
       util.forEach(this.groupListeners, function (callback, event) {
-        me.groupsData.unsubscribe(event, callback);
+        me.groupsData.off(event, callback);
       });
 
       // remove all drawn groups
@@ -13927,7 +13915,7 @@ return /******/ (function(modules) { // webpackBootstrap
     // unsubscribe from current dataset
     if (this.groupsData) {
       util.forEach(this.groupListeners, function (callback, event) {
-        me.groupsData.unsubscribe(event, callback);
+        me.groupsData.off(event, callback);
       });
 
       // remove all drawn groups
@@ -15207,6 +15195,8 @@ return /******/ (function(modules) { // webpackBootstrap
    * @param {Object} options
    */
   Network.prototype.setOptions = function (options) {
+    var _this2 = this;
+
     if (options !== undefined) {
 
       var errorFound = _sharedValidator2['default'].validate(options, _optionsJs.allOptions);
@@ -15269,8 +15259,10 @@ return /******/ (function(modules) { // webpackBootstrap
       if (options.clickToUse !== undefined) {
         if (options.clickToUse === true) {
           if (this.activator === undefined) {
-            this.activator = new Activator(this.frame);
-            this.activator.on('change', this._createKeyBinds.bind(this));
+            this.activator = new Activator(this.canvas.frame);
+            this.activator.on('change', function () {
+              _this2.body.emitter.emit('activate');
+            });
           }
         } else {
           if (this.activator !== undefined) {
@@ -15321,25 +15313,25 @@ return /******/ (function(modules) { // webpackBootstrap
    * Bind all events
    */
   Network.prototype.bindEventListeners = function () {
-    var _this2 = this;
+    var _this3 = this;
 
     // this event will trigger a rebuilding of the cache everything. Used when nodes or edges have been added or removed.
     this.body.emitter.on('_dataChanged', function () {
       // update shortcut lists
-      _this2._updateVisibleIndices();
-      _this2.physics.updatePhysicsData();
+      _this3._updateVisibleIndices();
+      _this3.physics.updatePhysicsData();
 
       // call the dataUpdated event because the only difference between the two is the updating of the indices
-      _this2.body.emitter.emit('_dataUpdated');
+      _this3.body.emitter.emit('_dataUpdated');
     });
 
     // this is called when options of EXISTING nodes or edges have changed.
     this.body.emitter.on('_dataUpdated', function () {
       // update values
-      _this2._updateValueRange(_this2.body.nodes);
-      _this2._updateValueRange(_this2.body.edges);
+      _this3._updateValueRange(_this3.body.nodes);
+      _this3._updateValueRange(_this3.body.edges);
       // start simulation (can be called safely, even if already running)
-      _this2.body.emitter.emit('startSimulation');
+      _this3.body.emitter.emit('startSimulation');
     });
   };
 
@@ -15503,6 +15495,9 @@ return /******/ (function(modules) { // webpackBootstrap
   Network.prototype.cluster = function () {
     return this.clustering.cluster.apply(this.clustering, arguments);
   };
+  Network.prototype.getNodesInCluster = function () {
+    return this.clustering.getNodesInCluster.apply(this.clustering, arguments);
+  };
   Network.prototype.clusterByConnection = function () {
     return this.clustering.clusterByConnection.apply(this.clustering, arguments);
   };
@@ -15524,8 +15519,11 @@ return /******/ (function(modules) { // webpackBootstrap
   Network.prototype.addNodeMode = function () {
     return this.manipulation.addNodeMode.apply(this.manipulation, arguments);
   };
+  Network.prototype.editNode = function () {
+    return this.manipulation.editNode.apply(this.manipulation, arguments);
+  };
   Network.prototype.editNodeMode = function () {
-    return this.manipulation.editNodeMode.apply(this.manipulation, arguments);
+    console.log('Depricated: Please use editNode instead of editNodeMode.');return this.manipulation.editNode.apply(this.manipulation, arguments);
   };
   Network.prototype.addEdgeMode = function () {
     return this.manipulation.addEdgeMode.apply(this.manipulation, arguments);
@@ -15552,8 +15550,8 @@ return /******/ (function(modules) { // webpackBootstrap
       return this.edgesHandler.getConnectedNodes.apply(this.edgesHandler, arguments);
     }
   };
-  Network.prototype.getEdges = function () {
-    return this.nodesHandler.getEdges.apply(this.nodesHandler, arguments);
+  Network.prototype.getConnectedEdges = function () {
+    return this.nodesHandler.getConnectedEdges.apply(this.nodesHandler, arguments);
   };
   Network.prototype.startSimulation = function () {
     return this.physics.startSimulation.apply(this.physics, arguments);
@@ -18232,7 +18230,9 @@ return /******/ (function(modules) { // webpackBootstrap
         range.step = step;
 
         if (value !== undefined) {
-          if (value * 0.1 < min) {
+          if (value < 0 && value * 2 < min) {
+            range.min = value * 2;
+          } else if (value * 0.1 < min) {
             range.min = value / 10;
           }
           if (value * 2 > max && max !== 1) {
@@ -18812,9 +18812,9 @@ return /******/ (function(modules) { // webpackBootstrap
       // http://en.wikibooks.org/wiki/Algorithm_Implementation/Strings/Levenshtein_distance#JavaScript
       /*
        Copyright (c) 2011 Andrei Mackenzie
-        Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
-        The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
-        THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+         Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+         The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+         THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
        */
       value: function levenshteinDistance(a, b) {
         if (a.length === 0) return b.length;
@@ -20195,7 +20195,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   var _componentsNode2 = _interopRequireDefault(_componentsNode);
 
-  var _componentsSharedLabel = __webpack_require__(75);
+  var _componentsSharedLabel = __webpack_require__(84);
 
   var _componentsSharedLabel2 = _interopRequireDefault(_componentsSharedLabel);
 
@@ -20625,22 +20625,25 @@ return /******/ (function(modules) { // webpackBootstrap
         return nodeList;
       }
     }, {
-      key: 'getEdges',
+      key: 'getConnectedEdges',
 
       /**
        * Get the ids of the edges connected to this node.
        * @param nodeId
        * @returns {*}
        */
-      value: function getEdges(nodeId) {
+      value: function getConnectedEdges(nodeId) {
         var edgeList = [];
         if (this.body.nodes[nodeId] !== undefined) {
           var node = this.body.nodes[nodeId];
           for (var i = 0; i < node.edges.length; i++) {
             edgeList.push(node.edges[i].id);
           }
+        } else {
+          console.log('NodeId provided for getConnectedEdges does not exist. Provided: ', nodeId);
         }
-        return nodeList;
+        console.log(edgeList);
+        return edgeList;
       }
     }]);
 
@@ -20666,11 +20669,11 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
 
-  var _componentsEdge = __webpack_require__(76);
+  var _componentsEdge = __webpack_require__(87);
 
   var _componentsEdge2 = _interopRequireDefault(_componentsEdge);
 
-  var _componentsSharedLabel = __webpack_require__(75);
+  var _componentsSharedLabel = __webpack_require__(84);
 
   var _componentsSharedLabel2 = _interopRequireDefault(_componentsSharedLabel);
 
@@ -20781,6 +20784,9 @@ return /******/ (function(modules) { // webpackBootstrap
 
         // this allows external modules to force all dynamic curves to turn static.
         this.body.emitter.on('_forceDisableDynamicCurves', function (type) {
+          if (type === 'dynamic') {
+            type = 'continuous';
+          }
           var emitChange = false;
           for (var edgeId in _this2.body.edges) {
             if (_this2.body.edges.hasOwnProperty(edgeId)) {
@@ -20792,11 +20798,11 @@ return /******/ (function(modules) { // webpackBootstrap
               if (edgeData !== undefined) {
                 var edgeOptions = edgeData.smooth;
                 if (edgeOptions !== undefined) {
-                  if (edgeOptions.enabled === true && edgeOptions.dynamic === true) {
+                  if (edgeOptions.enabled === true && edgeOptions.type === 'dynamic') {
                     if (type === undefined) {
                       edge.setOptions({ smooth: false });
                     } else {
-                      edge.setOptions({ smooth: { dynamic: false, type: type } });
+                      edge.setOptions({ smooth: { type: type } });
                     }
                     emitChange = true;
                   }
@@ -21100,35 +21106,35 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
 
-  var _componentsPhysicsBarnesHutSolver = __webpack_require__(77);
+  var _componentsPhysicsBarnesHutSolver = __webpack_require__(75);
 
   var _componentsPhysicsBarnesHutSolver2 = _interopRequireDefault(_componentsPhysicsBarnesHutSolver);
 
-  var _componentsPhysicsRepulsionSolver = __webpack_require__(78);
+  var _componentsPhysicsRepulsionSolver = __webpack_require__(76);
 
   var _componentsPhysicsRepulsionSolver2 = _interopRequireDefault(_componentsPhysicsRepulsionSolver);
 
-  var _componentsPhysicsHierarchicalRepulsionSolver = __webpack_require__(79);
+  var _componentsPhysicsHierarchicalRepulsionSolver = __webpack_require__(77);
 
   var _componentsPhysicsHierarchicalRepulsionSolver2 = _interopRequireDefault(_componentsPhysicsHierarchicalRepulsionSolver);
 
-  var _componentsPhysicsSpringSolver = __webpack_require__(80);
+  var _componentsPhysicsSpringSolver = __webpack_require__(78);
 
   var _componentsPhysicsSpringSolver2 = _interopRequireDefault(_componentsPhysicsSpringSolver);
 
-  var _componentsPhysicsHierarchicalSpringSolver = __webpack_require__(81);
+  var _componentsPhysicsHierarchicalSpringSolver = __webpack_require__(79);
 
   var _componentsPhysicsHierarchicalSpringSolver2 = _interopRequireDefault(_componentsPhysicsHierarchicalSpringSolver);
 
-  var _componentsPhysicsCentralGravitySolver = __webpack_require__(82);
+  var _componentsPhysicsCentralGravitySolver = __webpack_require__(80);
 
   var _componentsPhysicsCentralGravitySolver2 = _interopRequireDefault(_componentsPhysicsCentralGravitySolver);
 
-  var _componentsPhysicsFA2BasedRepulsionSolver = __webpack_require__(83);
+  var _componentsPhysicsFA2BasedRepulsionSolver = __webpack_require__(81);
 
   var _componentsPhysicsFA2BasedRepulsionSolver2 = _interopRequireDefault(_componentsPhysicsFA2BasedRepulsionSolver);
 
-  var _componentsPhysicsFA2BasedCentralGravitySolver = __webpack_require__(84);
+  var _componentsPhysicsFA2BasedCentralGravitySolver = __webpack_require__(82);
 
   var _componentsPhysicsFA2BasedCentralGravitySolver2 = _interopRequireDefault(_componentsPhysicsFA2BasedCentralGravitySolver);
 
@@ -21730,10 +21736,16 @@ return /******/ (function(modules) { // webpackBootstrap
     return object instanceof Number || typeof object == 'number';
   };
 
+  /**
+   * Remove everything in the DOM object
+   * @param DOMobject
+   */
   exports.recursiveDOMDelete = function (DOMobject) {
-    while (DOMobject.hasChildNodes() == true) {
-      exports.recursiveDOMDelete(DOMobject.firstChild);
-      DOMobject.removeChild(DOMobject.firstChild);
+    if (DOMobject) {
+      while (DOMobject.hasChildNodes() === true) {
+        exports.recursiveDOMDelete(DOMobject.firstChild);
+        DOMobject.removeChild(DOMobject.firstChild);
+      }
     }
   };
 
@@ -24213,11 +24225,11 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
 
-  var _componentsNavigationHandler = __webpack_require__(86);
+  var _componentsNavigationHandler = __webpack_require__(85);
 
   var _componentsNavigationHandler2 = _interopRequireDefault(_componentsNavigationHandler);
 
-  var _componentsPopup = __webpack_require__(87);
+  var _componentsPopup = __webpack_require__(86);
 
   var _componentsPopup2 = _interopRequireDefault(_componentsPopup);
 
@@ -24397,7 +24409,7 @@ return /******/ (function(modules) { // webpackBootstrap
     }, {
       key: 'onContext',
       value: function onContext(event) {
-        var pointer = this.getPointer({ x: event.pageX, y: event.pageY });
+        var pointer = this.getPointer({ x: event.clientX, y: event.clientY });
         this.selectionHandler._generateClickEvent('oncontext', event, pointer);
       }
     }, {
@@ -24695,7 +24707,7 @@ return /******/ (function(modules) { // webpackBootstrap
           scale *= 1 + zoom;
 
           // calculate the pointer location
-          var pointer = this.getPointer({ x: event.pageX, y: event.pageY });
+          var pointer = this.getPointer({ x: event.clientX, y: event.clientY });
 
           // apply the new scale
           this.zoom(scale, pointer);
@@ -24715,7 +24727,7 @@ return /******/ (function(modules) { // webpackBootstrap
       value: function onMouseMove(event) {
         var _this3 = this;
 
-        var pointer = this.getPointer({ x: event.pageX, y: event.pageY });
+        var pointer = this.getPointer({ x: event.clientX, y: event.clientY });
         var popupVisible = false;
 
         // check if the previously selected node is still selected
@@ -24918,7 +24930,7 @@ return /******/ (function(modules) { // webpackBootstrap
   function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
   var Node = __webpack_require__(74);
-  var Edge = __webpack_require__(76);
+  var Edge = __webpack_require__(87);
   var util = __webpack_require__(57);
 
   var SelectionHandler = (function () {
@@ -25722,13 +25734,13 @@ return /******/ (function(modules) { // webpackBootstrap
           if (allOptions.physics === undefined || allOptions.physics === true) {
             allOptions.physics = { solver: 'hierarchicalRepulsion' };
             this.optionsBackup.physics = { solver: 'barnesHut' };
-          } else if (typeof options.physics === 'object') {
+          } else if (typeof allOptions.physics === 'object') {
             this.optionsBackup.physics = { solver: 'barnesHut' };
-            if (options.physics.solver !== undefined) {
-              this.optionsBackup.physics = { solver: options.physics.solver };
+            if (allOptions.physics.solver !== undefined) {
+              this.optionsBackup.physics = { solver: allOptions.physics.solver };
             }
             allOptions.physics['solver'] = 'hierarchicalRepulsion';
-          } else if (options.physics !== false) {
+          } else if (allOptions.physics !== false) {
             this.optionsBackup.physics = { solver: 'barnesHut' };
             allOptions.physics['solver'] = 'hierarchicalRepulsion';
           }
@@ -25741,18 +25753,31 @@ return /******/ (function(modules) { // webpackBootstrap
 
           // disable smooth curves if nothing is defined. If smooth curves have been turned on, turn them into static smooth curves.
           if (allOptions.edges === undefined) {
-            this.optionsBackup.edges = { smooth: true, dynamic: true };
+            this.optionsBackup.edges = { smooth: { enabled: true, type: 'dynamic' } };
             allOptions.edges = { smooth: false };
           } else if (allOptions.edges.smooth === undefined) {
-            this.optionsBackup.edges = { smooth: true, dynamic: true };
+            this.optionsBackup.edges = { smooth: { enabled: true, type: 'dynamic' } };
             allOptions.edges.smooth = false;
           } else {
             if (typeof allOptions.edges.smooth === 'boolean') {
-              this.optionsBackup.edges = { smooth: allOptions.edges.smooth, dynamic: true };
-              allOptions.edges.smooth = { enabled: allOptions.edges.smooth, dynamic: false, type: type };
+              this.optionsBackup.edges = { smooth: allOptions.edges.smooth };
+              allOptions.edges.smooth = { enabled: allOptions.edges.smooth, type: type };
             } else {
-              this.optionsBackup.edges = { smooth: allOptions.edges.smooth.enabled === undefined ? true : allOptions.edges.smooth.enabled, dynamic: true };
-              allOptions.edges.smooth = { enabled: allOptions.edges.smooth.enabled === undefined ? true : allOptions.edges.smooth.enabled, dynamic: false, type: type };
+              // allow custom types except for dynamic
+              if (allOptions.edges.smooth.type !== undefined && allOptions.edges.smooth.type !== 'dynamic') {
+                type = allOptions.edges.smooth.type;
+              }
+
+              this.optionsBackup.edges = {
+                smooth: allOptions.edges.smooth.enabled === undefined ? true : allOptions.edges.smooth.enabled,
+                type: allOptions.edges.smooth.type === undefined ? 'dynamic' : allOptions.edges.smooth.type,
+                roundness: allOptions.edges.smooth.roundness === undefined ? 0.5 : allOptions.edges.smooth.roundness
+              };
+              allOptions.edges.smooth = {
+                enabled: allOptions.edges.smooth.enabled === undefined ? true : allOptions.edges.smooth.enabled,
+                type: type,
+                roundness: allOptions.edges.smooth.roundness === undefined ? 0.5 : allOptions.edges.smooth.roundness
+              };
             }
           }
 
@@ -26401,14 +26426,14 @@ return /******/ (function(modules) { // webpackBootstrap
         this._temporaryBindEvent('click', this._performAddNode.bind(this));
       }
     }, {
-      key: 'editNodeMode',
+      key: 'editNode',
 
       /**
        * call the bound function to handle the editing of the node. The node has to be selected.
        *
        * @private
        */
-      value: function editNodeMode() {
+      value: function editNode() {
         var _this2 = this;
 
         // when using the gui, enable edit mode if it wasnt already.
@@ -26429,7 +26454,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
             if (this.options.editNode.length === 2) {
               this.options.editNode(data, function (finalizedData) {
-                if (finalizedData !== null && finalizedData !== undefined && _this2.inMode === 'delete') {
+                if (finalizedData !== null && finalizedData !== undefined && _this2.inMode === 'editNode') {
                   // if for whatever reason the mode has changes (due to dataset change) disregard the callback) {
                   _this2.body.data.nodes.update(finalizedData);
                   _this2.showManipulatorToolbar();
@@ -26791,9 +26816,15 @@ return /******/ (function(modules) { // webpackBootstrap
         util.recursiveDOMDelete(this.closeDiv);
 
         // remove the manipulation divs
-        this.canvas.frame.removeChild(this.manipulationDiv);
-        this.canvas.frame.removeChild(this.editModeDiv);
-        this.canvas.frame.removeChild(this.closeDiv);
+        if (this.manipulationDiv) {
+          this.canvas.frame.removeChild(this.manipulationDiv);
+        }
+        if (this.editModeDiv) {
+          this.canvas.frame.removeChild(this.editModeDiv);
+        }
+        if (this.closeDiv) {
+          this.canvas.frame.removeChild(this.manipulationDiv);
+        }
 
         // set the references to undefined
         this.manipulationDiv = undefined;
@@ -26835,9 +26866,9 @@ return /******/ (function(modules) { // webpackBootstrap
     }, {
       key: '_createEditNodeButton',
       value: function _createEditNodeButton(locale) {
-        var button = this._createButton('editNodeMode', 'vis-button vis-edit', locale['editNode'] || this.options.locales['en']['editNode']);
+        var button = this._createButton('editNode', 'vis-button vis-edit', locale['editNode'] || this.options.locales['en']['editNode']);
         this.manipulationDiv.appendChild(button);
-        this._bindHammerToDiv(button, this.editNodeMode.bind(this));
+        this._bindHammerToDiv(button, this.editNode.bind(this));
       }
     }, {
       key: '_createEditEdgeButton',
@@ -27130,7 +27161,6 @@ return /******/ (function(modules) { // webpackBootstrap
                 physics: false,
                 smooth: {
                   enabled: true,
-                  dynamic: false,
                   type: 'continuous',
                   roundness: 0.5
                 }
@@ -34856,7 +34886,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
 
-  var _sharedLabel = __webpack_require__(75);
+  var _sharedLabel = __webpack_require__(84);
 
   var _sharedLabel2 = _interopRequireDefault(_sharedLabel);
 
@@ -34868,11 +34898,11 @@ return /******/ (function(modules) { // webpackBootstrap
 
   var _nodesShapesCircle2 = _interopRequireDefault(_nodesShapesCircle);
 
-  var _nodesShapesCircularImage = __webpack_require__(92);
+  var _nodesShapesCircularImage = __webpack_require__(93);
 
   var _nodesShapesCircularImage2 = _interopRequireDefault(_nodesShapesCircularImage);
 
-  var _nodesShapesDatabase = __webpack_require__(93);
+  var _nodesShapesDatabase = __webpack_require__(92);
 
   var _nodesShapesDatabase2 = _interopRequireDefault(_nodesShapesDatabase);
 
@@ -35357,876 +35387,6 @@ return /******/ (function(modules) { // webpackBootstrap
 
 /***/ },
 /* 75 */
-/***/ function(module, exports, __webpack_require__) {
-
-  'use strict';
-
-  Object.defineProperty(exports, '__esModule', {
-    value: true
-  });
-
-  var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
-
-  function _slicedToArray(arr, i) { if (Array.isArray(arr)) { return arr; } else if (Symbol.iterator in Object(arr)) { var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i['return']) _i['return'](); } finally { if (_d) throw _e; } } return _arr; } else { throw new TypeError('Invalid attempt to destructure non-iterable instance'); } }
-
-  function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
-
-  var util = __webpack_require__(57);
-
-  var Label = (function () {
-    function Label(body, options) {
-      _classCallCheck(this, Label);
-
-      this.body = body;
-
-      this.baseSize = undefined;
-      this.setOptions(options);
-      this.size = { top: 0, left: 0, width: 0, height: 0, yLine: 0 }; // could be cached
-    }
-
-    _createClass(Label, [{
-      key: 'setOptions',
-      value: function setOptions(options) {
-        var allowDeletion = arguments[1] === undefined ? false : arguments[1];
-
-        this.options = options;
-
-        if (options.label !== undefined) {
-          this.labelDirty = true;
-        }
-
-        if (options.font !== undefined) {
-          Label.parseOptions(this.options.font, options, allowDeletion);
-          if (typeof options.font === 'string') {
-            this.baseSize = this.options.font.size;
-          } else if (typeof options.font === 'object') {
-            if (options.font.size !== undefined) {
-              this.baseSize = options.font.size;
-            }
-          }
-        }
-      }
-    }, {
-      key: 'draw',
-
-      /**
-       * Main function. This is called from anything that wants to draw a label.
-       * @param ctx
-       * @param x
-       * @param y
-       * @param selected
-       * @param baseline
-       */
-      value: function draw(ctx, x, y, selected) {
-        var baseline = arguments[4] === undefined ? 'middle' : arguments[4];
-
-        // if no label, return
-        if (this.options.label === undefined) return;
-
-        // check if we have to render the label
-        var viewFontSize = this.options.font.size * this.body.view.scale;
-        if (this.options.label && viewFontSize < this.options.scaling.label.drawThreshold - 1) return;
-
-        // update the size cache if required
-        this.calculateLabelSize(ctx, selected, x, y, baseline);
-
-        // create the fontfill background
-        this._drawBackground(ctx);
-        // draw text
-        this._drawText(ctx, selected, x, y, baseline);
-      }
-    }, {
-      key: '_drawBackground',
-
-      /**
-       * Draws the label background
-       * @param {CanvasRenderingContext2D} ctx
-       * @private
-       */
-      value: function _drawBackground(ctx) {
-        if (this.options.font.background !== undefined && this.options.font.background !== 'none') {
-          ctx.fillStyle = this.options.font.background;
-
-          var lineMargin = 2;
-
-          switch (this.options.font.align) {
-            case 'middle':
-              ctx.fillRect(-this.size.width * 0.5, -this.size.height * 0.5, this.size.width, this.size.height);
-              break;
-            case 'top':
-              ctx.fillRect(-this.size.width * 0.5, -(this.size.height + lineMargin), this.size.width, this.size.height);
-              break;
-            case 'bottom':
-              ctx.fillRect(-this.size.width * 0.5, lineMargin, this.size.width, this.size.height);
-              break;
-            default:
-              ctx.fillRect(this.size.left, this.size.top - 0.5 * lineMargin, this.size.width, this.size.height);
-              break;
-          }
-        }
-      }
-    }, {
-      key: '_drawText',
-
-      /**
-       *
-       * @param ctx
-       * @param x
-       * @param baseline
-       * @private
-       */
-      value: function _drawText(ctx, selected, x, y) {
-        var baseline = arguments[4] === undefined ? 'middle' : arguments[4];
-
-        var fontSize = this.options.font.size;
-        var viewFontSize = fontSize * this.body.view.scale;
-        // this ensures that there will not be HUGE letters on screen by setting an upper limit on the visible text size (regardless of zoomLevel)
-        if (viewFontSize >= this.options.scaling.label.maxVisible) {
-          fontSize = Number(this.options.scaling.label.maxVisible) / this.body.view.scale;
-        }
-
-        var yLine = this.size.yLine;
-
-        var _getColor = this._getColor(viewFontSize);
-
-        var _getColor2 = _slicedToArray(_getColor, 2);
-
-        var fontColor = _getColor2[0];
-        var strokeColor = _getColor2[1];
-
-        var _setAlignment = this._setAlignment(ctx, x, yLine, baseline);
-
-        var _setAlignment2 = _slicedToArray(_setAlignment, 2);
-
-        x = _setAlignment2[0];
-        yLine = _setAlignment2[1];
-
-        // configure context for drawing the text
-        ctx.font = (selected ? 'bold ' : '') + fontSize + 'px ' + this.options.font.face;
-        ctx.fillStyle = fontColor;
-        ctx.textAlign = 'center';
-
-        // set the strokeWidth
-        if (this.options.font.strokeWidth > 0) {
-          ctx.lineWidth = this.options.font.strokeWidth;
-          ctx.strokeStyle = strokeColor;
-          ctx.lineJoin = 'round';
-        }
-
-        // draw the text
-        for (var i = 0; i < this.lineCount; i++) {
-          if (this.options.font.strokeWidth > 0) {
-            ctx.strokeText(this.lines[i], x, yLine);
-          }
-          ctx.fillText(this.lines[i], x, yLine);
-          yLine += fontSize;
-        }
-      }
-    }, {
-      key: '_setAlignment',
-      value: function _setAlignment(ctx, x, yLine, baseline) {
-        // check for label alignment (for edges)
-        // TODO: make alignment for nodes
-        if (this.options.font.align !== 'horizontal') {
-          x = 0;
-          yLine = 0;
-
-          var lineMargin = 2;
-          if (this.options.font.align === 'top') {
-            ctx.textBaseline = 'alphabetic';
-            yLine -= 2 * lineMargin; // distance from edge, required because we use alphabetic. Alphabetic has less difference between browsers
-          } else if (this.options.font.align === 'bottom') {
-            ctx.textBaseline = 'hanging';
-            yLine += 2 * lineMargin; // distance from edge, required because we use hanging. Hanging has less difference between browsers
-          } else {
-            ctx.textBaseline = 'middle';
-          }
-        } else {
-          ctx.textBaseline = baseline;
-        }
-
-        return [x, yLine];
-      }
-    }, {
-      key: '_getColor',
-
-      /**
-       * fade in when relative scale is between threshold and threshold - 1.
-       * If the relative scale would be smaller than threshold -1 the draw function would have returned before coming here.
-       *
-       * @param viewFontSize
-       * @returns {*[]}
-       * @private
-       */
-      value: function _getColor(viewFontSize) {
-        var fontColor = this.options.font.color || '#000000';
-        var strokeColor = this.options.font.strokeColor || '#ffffff';
-        if (viewFontSize <= this.options.scaling.label.drawThreshold) {
-          var opacity = Math.max(0, Math.min(1, 1 - (this.options.scaling.label.drawThreshold - viewFontSize)));
-          fontColor = util.overrideOpacity(fontColor, opacity);
-          strokeColor = util.overrideOpacity(strokeColor, opacity);
-        }
-        return [fontColor, strokeColor];
-      }
-    }, {
-      key: 'getTextSize',
-
-      /**
-       *
-       * @param ctx
-       * @param selected
-       * @returns {{width: number, height: number}}
-       */
-      value: function getTextSize(ctx) {
-        var selected = arguments[1] === undefined ? false : arguments[1];
-
-        var size = {
-          width: this._processLabel(ctx, selected),
-          height: this.options.font.size * this.lineCount,
-          lineCount: this.lineCount
-        };
-        return size;
-      }
-    }, {
-      key: 'calculateLabelSize',
-
-      /**
-       *
-       * @param ctx
-       * @param selected
-       * @param x
-       * @param y
-       * @param baseline
-       */
-      value: function calculateLabelSize(ctx, selected) {
-        var x = arguments[2] === undefined ? 0 : arguments[2];
-        var y = arguments[3] === undefined ? 0 : arguments[3];
-        var baseline = arguments[4] === undefined ? 'middle' : arguments[4];
-
-        if (this.labelDirty === true) {
-          this.size.width = this._processLabel(ctx, selected);
-        }
-        this.size.height = this.options.font.size * this.lineCount;
-        this.size.left = x - this.size.width * 0.5;
-        this.size.top = y - this.size.height * 0.5;
-        this.size.yLine = y + (1 - this.lineCount) * 0.5 * this.options.font.size;
-        if (baseline === 'hanging') {
-          this.size.top += 0.5 * this.options.font.size;
-          this.size.top += 4; // distance from node, required because we use hanging. Hanging has less difference between browsers
-          this.size.yLine += 4; // distance from node
-        }
-
-        this.labelDirty = false;
-      }
-    }, {
-      key: '_processLabel',
-
-      /**
-       * This calculates the width as well as explodes the label string and calculates the amount of lines.
-       * @param ctx
-       * @param selected
-       * @returns {number}
-       * @private
-       */
-      value: function _processLabel(ctx, selected) {
-        var width = 0;
-        var lines = [''];
-        var lineCount = 0;
-        if (this.options.label !== undefined) {
-          lines = String(this.options.label).split('\n');
-          lineCount = lines.length;
-          ctx.font = (selected ? 'bold ' : '') + this.options.font.size + 'px ' + this.options.font.face;
-          width = ctx.measureText(lines[0]).width;
-          for (var i = 1; i < lineCount; i++) {
-            var lineWidth = ctx.measureText(lines[i]).width;
-            width = lineWidth > width ? lineWidth : width;
-          }
-        }
-        this.lines = lines;
-        this.lineCount = lineCount;
-
-        return width;
-      }
-    }], [{
-      key: 'parseOptions',
-      value: function parseOptions(parentOptions, newOptions) {
-        var allowDeletion = arguments[2] === undefined ? false : arguments[2];
-
-        if (typeof newOptions.font === 'string') {
-          var newOptionsArray = newOptions.font.split(' ');
-          parentOptions.size = newOptionsArray[0].replace('px', '');
-          parentOptions.face = newOptionsArray[1];
-          parentOptions.color = newOptionsArray[2];
-        } else if (typeof newOptions.font === 'object') {
-          util.fillIfDefined(parentOptions, newOptions.font, allowDeletion);
-        }
-        parentOptions.size = Number(parentOptions.size);
-      }
-    }]);
-
-    return Label;
-  })();
-
-  exports['default'] = Label;
-  module.exports = exports['default'];
-
-/***/ },
-/* 76 */
-/***/ function(module, exports, __webpack_require__) {
-
-  'use strict';
-
-  Object.defineProperty(exports, '__esModule', {
-    value: true
-  });
-
-  var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
-
-  function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
-
-  function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
-
-  var _sharedLabel = __webpack_require__(75);
-
-  var _sharedLabel2 = _interopRequireDefault(_sharedLabel);
-
-  var _edgesBezierEdgeDynamic = __webpack_require__(104);
-
-  var _edgesBezierEdgeDynamic2 = _interopRequireDefault(_edgesBezierEdgeDynamic);
-
-  var _edgesBezierEdgeStatic = __webpack_require__(105);
-
-  var _edgesBezierEdgeStatic2 = _interopRequireDefault(_edgesBezierEdgeStatic);
-
-  var _edgesStraightEdge = __webpack_require__(106);
-
-  var _edgesStraightEdge2 = _interopRequireDefault(_edgesStraightEdge);
-
-  var util = __webpack_require__(57);
-
-  /**
-   * @class Edge
-   *
-   * A edge connects two nodes
-   * @param {Object} properties     Object with options. Must contain
-   *                                At least options from and to.
-   *                                Available options: from (number),
-   *                                to (number), label (string, color (string),
-   *                                width (number), style (string),
-   *                                length (number), title (string)
-   * @param {Network} network       A Network object, used to find and edge to
-   *                                nodes.
-   * @param {Object} constants      An object with default values for
-   *                                example for the color
-   */
-
-  var Edge = (function () {
-    function Edge(options, body, globalOptions) {
-      _classCallCheck(this, Edge);
-
-      if (body === undefined) {
-        throw 'No body provided';
-      }
-      this.options = util.bridgeObject(globalOptions);
-      this.body = body;
-
-      // initialize variables
-      this.id = undefined;
-      this.fromId = undefined;
-      this.toId = undefined;
-      this.selected = false;
-      this.hover = false;
-      this.labelDirty = true;
-      this.colorDirty = true;
-
-      this.baseWidth = this.options.width;
-      this.baseFontSize = this.options.font.size;
-
-      this.from = undefined; // a node
-      this.to = undefined; // a node
-
-      this.edgeType = undefined;
-
-      this.connected = false;
-
-      this.labelModule = new _sharedLabel2['default'](this.body, this.options);
-
-      this.setOptions(options);
-    }
-
-    _createClass(Edge, [{
-      key: 'setOptions',
-
-      /**
-       * Set or overwrite options for the edge
-       * @param {Object} options  an object with options
-       * @param doNotEmit
-       */
-      value: function setOptions(options) {
-        if (!options) {
-          return;
-        }
-        this.colorDirty = true;
-
-        Edge.parseOptions(this.options, options, true);
-
-        if (options.id !== undefined) {
-          this.id = options.id;
-        }
-        if (options.from !== undefined) {
-          this.fromId = options.from;
-        }
-        if (options.to !== undefined) {
-          this.toId = options.to;
-        }
-        if (options.title !== undefined) {
-          this.title = options.title;
-        }
-        if (options.value !== undefined) {
-          options.value = parseInt(options.value);
-        }
-
-        // A node is connected when it has a from and to node that both exist in the network.body.nodes.
-        this.connect();
-
-        // update label Module
-        this.updateLabelModule();
-
-        var dataChanged = this.updateEdgeType();
-
-        // if anything has been updates, reset the selection width and the hover width
-        this._setInteractionWidths();
-
-        return dataChanged;
-      }
-    }, {
-      key: 'updateLabelModule',
-
-      /**
-       * update the options in the label module
-       */
-      value: function updateLabelModule() {
-        this.labelModule.setOptions(this.options, true);
-        if (this.labelModule.baseSize !== undefined) {
-          this.baseFontSize = this.labelModule.baseSize;
-        }
-      }
-    }, {
-      key: 'updateEdgeType',
-
-      /**
-       * update the edge type, set the options
-       * @returns {boolean}
-       */
-      value: function updateEdgeType() {
-        var dataChanged = false;
-        var changeInType = true;
-        if (this.edgeType !== undefined) {
-          if (this.edgeType instanceof _edgesBezierEdgeDynamic2['default'] && this.options.smooth.enabled === true && this.options.smooth.type === 'dynamic') {
-            changeInType = false;
-          }
-          if (this.edgeType instanceof _edgesBezierEdgeStatic2['default'] && this.options.smooth.enabled === true && this.options.smooth.type !== 'dynamic') {
-            changeInType = false;
-          }
-          if (this.edgeType instanceof _edgesStraightEdge2['default'] && this.options.smooth.enabled === false) {
-            changeInType = false;
-          }
-
-          if (changeInType === true) {
-            dataChanged = this.edgeType.cleanup();
-          }
-        }
-
-        if (changeInType === true) {
-          if (this.options.smooth.enabled === true) {
-            if (this.options.smooth.type === 'dynamic') {
-              dataChanged = true;
-              this.edgeType = new _edgesBezierEdgeDynamic2['default'](this.options, this.body, this.labelModule);
-            } else {
-              this.edgeType = new _edgesBezierEdgeStatic2['default'](this.options, this.body, this.labelModule);
-            }
-          } else {
-            this.edgeType = new _edgesStraightEdge2['default'](this.options, this.body, this.labelModule);
-          }
-        } else {
-          // if nothing changes, we just set the options.
-          this.edgeType.setOptions(this.options);
-        }
-
-        return dataChanged;
-      }
-    }, {
-      key: 'togglePhysics',
-
-      /**
-       * Enable or disable the physics.
-       * @param status
-       */
-      value: function togglePhysics(status) {
-        this.options.physics = status;
-        this.edgeType.togglePhysics(status);
-      }
-    }, {
-      key: 'connect',
-
-      /**
-       * Connect an edge to its nodes
-       */
-      value: function connect() {
-        this.disconnect();
-
-        this.from = this.body.nodes[this.fromId] || undefined;
-        this.to = this.body.nodes[this.toId] || undefined;
-        this.connected = this.from !== undefined && this.to !== undefined;
-
-        if (this.connected === true) {
-          this.from.attachEdge(this);
-          this.to.attachEdge(this);
-        } else {
-          if (this.from) {
-            this.from.detachEdge(this);
-          }
-          if (this.to) {
-            this.to.detachEdge(this);
-          }
-        }
-      }
-    }, {
-      key: 'disconnect',
-
-      /**
-       * Disconnect an edge from its nodes
-       */
-      value: function disconnect() {
-        if (this.from) {
-          this.from.detachEdge(this);
-          this.from = undefined;
-        }
-        if (this.to) {
-          this.to.detachEdge(this);
-          this.to = undefined;
-        }
-
-        this.connected = false;
-      }
-    }, {
-      key: 'getTitle',
-
-      /**
-       * get the title of this edge.
-       * @return {string} title    The title of the edge, or undefined when no title
-       *                           has been set.
-       */
-      value: function getTitle() {
-        return this.title;
-      }
-    }, {
-      key: 'isSelected',
-
-      /**
-       * check if this node is selecte
-       * @return {boolean} selected   True if node is selected, else false
-       */
-      value: function isSelected() {
-        return this.selected;
-      }
-    }, {
-      key: 'getValue',
-
-      /**
-       * Retrieve the value of the edge. Can be undefined
-       * @return {Number} value
-       */
-      value: function getValue() {
-        return this.options.value;
-      }
-    }, {
-      key: 'setValueRange',
-
-      /**
-       * Adjust the value range of the edge. The edge will adjust it's width
-       * based on its value.
-       * @param {Number} min
-       * @param {Number} max
-       * @param total
-       */
-      value: function setValueRange(min, max, total) {
-        if (this.options.value !== undefined) {
-          var scale = this.options.scaling.customScalingFunction(min, max, total, this.options.value);
-          var widthDiff = this.options.scaling.max - this.options.scaling.min;
-          if (this.options.scaling.label.enabled === true) {
-            var fontDiff = this.options.scaling.label.max - this.options.scaling.label.min;
-            this.options.font.size = this.options.scaling.label.min + scale * fontDiff;
-          }
-          this.options.width = this.options.scaling.min + scale * widthDiff;
-        } else {
-          this.options.width = this.baseWidth;
-          this.options.font.size = this.baseFontSize;
-        }
-
-        this._setInteractionWidths();
-      }
-    }, {
-      key: '_setInteractionWidths',
-      value: function _setInteractionWidths() {
-        if (typeof this.options.hoverWidth === 'function') {
-          this.edgeType.hoverWidth = this.options.hoverWidth(this.options.width);
-        } else {
-          this.edgeType.hoverWidth = this.options.hoverWidth + this.options.width;
-        }
-
-        if (typeof this.options.selectionWidth === 'function') {
-          this.edgeType.selectionWidth = this.options.selectionWidth(this.options.width);
-        } else {
-          this.edgeType.selectionWidth = this.options.selectionWidth + this.options.width;
-        }
-      }
-    }, {
-      key: 'draw',
-
-      /**
-       * Redraw a edge
-       * Draw this edge in the given canvas
-       * The 2d context of a HTML canvas can be retrieved by canvas.getContext("2d");
-       * @param {CanvasRenderingContext2D}   ctx
-       */
-      value: function draw(ctx) {
-        var via = this.edgeType.drawLine(ctx, this.selected, this.hover);
-        this.drawArrows(ctx, via);
-        this.drawLabel(ctx, via);
-      }
-    }, {
-      key: 'drawArrows',
-      value: function drawArrows(ctx, viaNode) {
-        if (this.options.arrows.from.enabled === true) {
-          this.edgeType.drawArrowHead(ctx, 'from', viaNode, this.selected, this.hover);
-        }
-        if (this.options.arrows.middle.enabled === true) {
-          this.edgeType.drawArrowHead(ctx, 'middle', viaNode, this.selected, this.hover);
-        }
-        if (this.options.arrows.to.enabled === true) {
-          this.edgeType.drawArrowHead(ctx, 'to', viaNode, this.selected, this.hover);
-        }
-      }
-    }, {
-      key: 'drawLabel',
-      value: function drawLabel(ctx, viaNode) {
-        if (this.options.label !== undefined) {
-          // set style
-          var node1 = this.from;
-          var node2 = this.to;
-          var selected = this.from.selected || this.to.selected || this.selected;
-          if (node1.id != node2.id) {
-            var point = this.edgeType.getPoint(0.5, viaNode);
-            ctx.save();
-
-            // if the label has to be rotated:
-            if (this.options.font.align !== 'horizontal') {
-              this.labelModule.calculateLabelSize(ctx, selected, point.x, point.y);
-              ctx.translate(point.x, this.labelModule.size.yLine);
-              this._rotateForLabelAlignment(ctx);
-            }
-
-            // draw the label
-            this.labelModule.draw(ctx, point.x, point.y, selected);
-            ctx.restore();
-          } else {
-            var x, y;
-            var radius = this.options.selfReferenceSize;
-            if (node1.shape.width > node1.shape.height) {
-              x = node1.x + node1.shape.width * 0.5;
-              y = node1.y - radius;
-            } else {
-              x = node1.x + radius;
-              y = node1.y - node1.shape.height * 0.5;
-            }
-            point = this._pointOnCircle(x, y, radius, 0.125);
-            this.labelModule.draw(ctx, point.x, point.y, selected);
-          }
-        }
-      }
-    }, {
-      key: 'isOverlappingWith',
-
-      /**
-       * Check if this object is overlapping with the provided object
-       * @param {Object} obj   an object with parameters left, top
-       * @return {boolean}     True if location is located on the edge
-       */
-      value: function isOverlappingWith(obj) {
-        if (this.connected) {
-          var distMax = 10;
-          var xFrom = this.from.x;
-          var yFrom = this.from.y;
-          var xTo = this.to.x;
-          var yTo = this.to.y;
-          var xObj = obj.left;
-          var yObj = obj.top;
-
-          var dist = this.edgeType.getDistanceToEdge(xFrom, yFrom, xTo, yTo, xObj, yObj);
-
-          return dist < distMax;
-        } else {
-          return false;
-        }
-      }
-    }, {
-      key: '_rotateForLabelAlignment',
-
-      /**
-       * Rotates the canvas so the text is most readable
-       * @param {CanvasRenderingContext2D} ctx
-       * @private
-       */
-      value: function _rotateForLabelAlignment(ctx) {
-        var dy = this.from.y - this.to.y;
-        var dx = this.from.x - this.to.x;
-        var angleInDegrees = Math.atan2(dy, dx);
-
-        // rotate so label it is readable
-        if (angleInDegrees < -1 && dx < 0 || angleInDegrees > 0 && dx < 0) {
-          angleInDegrees = angleInDegrees + Math.PI;
-        }
-
-        ctx.rotate(angleInDegrees);
-      }
-    }, {
-      key: '_pointOnCircle',
-
-      /**
-       * Get a point on a circle
-       * @param {Number} x
-       * @param {Number} y
-       * @param {Number} radius
-       * @param {Number} percentage. Value between 0 (line start) and 1 (line end)
-       * @return {Object} point
-       * @private
-       */
-      value: function _pointOnCircle(x, y, radius, percentage) {
-        var angle = percentage * 2 * Math.PI;
-        return {
-          x: x + radius * Math.cos(angle),
-          y: y - radius * Math.sin(angle)
-        };
-      }
-    }, {
-      key: 'select',
-      value: function select() {
-        this.selected = true;
-      }
-    }, {
-      key: 'unselect',
-      value: function unselect() {
-        this.selected = false;
-      }
-    }], [{
-      key: 'parseOptions',
-      value: function parseOptions(parentOptions, newOptions) {
-        var allowDeletion = arguments[2] === undefined ? false : arguments[2];
-
-        var fields = ['id', 'from', 'hidden', 'hoverWidth', 'label', 'length', 'line', 'opacity', 'physics', 'selectionWidth', 'selfReferenceSize', 'to', 'title', 'value', 'width'];
-
-        // only deep extend the items in the field array. These do not have shorthand.
-        util.selectiveDeepExtend(fields, parentOptions, newOptions, allowDeletion);
-
-        util.mergeOptions(parentOptions, newOptions, 'smooth');
-        util.mergeOptions(parentOptions, newOptions, 'shadow');
-
-        if (newOptions.dashes !== undefined && newOptions.dashes !== null) {
-          parentOptions.dashes = newOptions.dashes;
-        } else if (allowDeletion === true && newOptions.dashes === null) {
-          parentOptions.dashes = undefined;
-          delete parentOptions.dashes;
-        }
-
-        // set the scaling newOptions
-        if (newOptions.scaling !== undefined && newOptions.scaling !== null) {
-          if (newOptions.scaling.min !== undefined) {
-            parentOptions.scaling.min = newOptions.scaling.min;
-          }
-          if (newOptions.scaling.max !== undefined) {
-            parentOptions.scaling.max = newOptions.scaling.max;
-          }
-          util.mergeOptions(parentOptions.scaling, newOptions.scaling, 'label');
-        } else if (allowDeletion === true && newOptions.scaling === null) {
-          parentOptions.scaling = undefined;
-          delete parentOptions.scaling;
-        }
-
-        // hanlde multiple input cases for arrows
-        if (newOptions.arrows !== undefined && newOptions.arrows !== null) {
-          if (typeof newOptions.arrows === 'string') {
-            var arrows = newOptions.arrows.toLowerCase();
-            if (arrows.indexOf('to') != -1) {
-              parentOptions.arrows.to.enabled = true;
-            }
-            if (arrows.indexOf('middle') != -1) {
-              parentOptions.arrows.middle.enabled = true;
-            }
-            if (arrows.indexOf('from') != -1) {
-              parentOptions.arrows.from.enabled = true;
-            }
-          } else if (typeof newOptions.arrows === 'object') {
-            util.mergeOptions(parentOptions.arrows, newOptions.arrows, 'to');
-            util.mergeOptions(parentOptions.arrows, newOptions.arrows, 'middle');
-            util.mergeOptions(parentOptions.arrows, newOptions.arrows, 'from');
-          } else {
-            throw new Error('The arrow newOptions can only be an object or a string. Refer to the documentation. You used:' + JSON.stringify(newOptions.arrows));
-          }
-        } else if (allowDeletion === true && newOptions.arrows === null) {
-          parentOptions.arrows = undefined;
-          delete parentOptions.arrows;
-        }
-
-        // hanlde multiple input cases for color
-        if (newOptions.color !== undefined && newOptions.color !== null) {
-          if (util.isString(newOptions.color)) {
-            parentOptions.color.color = newOptions.color;
-            parentOptions.color.highlight = newOptions.color;
-            parentOptions.color.hover = newOptions.color;
-            parentOptions.color.inherit = false;
-          } else {
-            var colorsDefined = false;
-            if (newOptions.color.color !== undefined) {
-              parentOptions.color.color = newOptions.color.color;colorsDefined = true;
-            }
-            if (newOptions.color.highlight !== undefined) {
-              parentOptions.color.highlight = newOptions.color.highlight;colorsDefined = true;
-            }
-            if (newOptions.color.hover !== undefined) {
-              parentOptions.color.hover = newOptions.color.hover;colorsDefined = true;
-            }
-            if (newOptions.color.inherit !== undefined) {
-              parentOptions.color.inherit = newOptions.color.inherit;
-            }
-            if (newOptions.color.opacity !== undefined) {
-              parentOptions.color.opacity = Math.min(1, Math.max(0, newOptions.color.opacity));
-            }
-
-            if (newOptions.color.inherit === undefined && colorsDefined === true) {
-              parentOptions.color.inherit = false;
-            }
-          }
-        } else if (allowDeletion === true && newOptions.color === null) {
-          parentOptions.color = undefined;
-          delete parentOptions.color;
-        }
-
-        // handle the font settings
-        if (newOptions.font !== undefined) {
-          _sharedLabel2['default'].parseOptions(parentOptions.font, newOptions);
-        }
-      }
-    }]);
-
-    return Edge;
-  })();
-
-  exports['default'] = Edge;
-  module.exports = exports['default'];
-
-/***/ },
-/* 77 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
@@ -36718,7 +35878,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports["default"];
 
 /***/ },
-/* 78 */
+/* 76 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
@@ -36813,7 +35973,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports["default"];
 
 /***/ },
-/* 79 */
+/* 77 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
@@ -36904,7 +36064,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports["default"];
 
 /***/ },
-/* 80 */
+/* 78 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
@@ -37014,7 +36174,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports["default"];
 
 /***/ },
-/* 81 */
+/* 79 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
@@ -37135,7 +36295,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports["default"];
 
 /***/ },
-/* 82 */
+/* 80 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
@@ -37204,7 +36364,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports["default"];
 
 /***/ },
-/* 83 */
+/* 81 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
@@ -37223,7 +36383,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; }
 
-  var _BarnesHutSolver2 = __webpack_require__(77);
+  var _BarnesHutSolver2 = __webpack_require__(75);
 
   var _BarnesHutSolver3 = _interopRequireDefault(_BarnesHutSolver2);
 
@@ -37278,7 +36438,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports["default"];
 
 /***/ },
-/* 84 */
+/* 82 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
@@ -37297,7 +36457,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; }
 
-  var _CentralGravitySolver2 = __webpack_require__(82);
+  var _CentralGravitySolver2 = __webpack_require__(80);
 
   var _CentralGravitySolver3 = _interopRequireDefault(_CentralGravitySolver2);
 
@@ -37334,7 +36494,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports["default"];
 
 /***/ },
-/* 85 */
+/* 83 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -37379,7 +36539,322 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 86 */
+/* 84 */
+/***/ function(module, exports, __webpack_require__) {
+
+  'use strict';
+
+  Object.defineProperty(exports, '__esModule', {
+    value: true
+  });
+
+  var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
+
+  function _slicedToArray(arr, i) { if (Array.isArray(arr)) { return arr; } else if (Symbol.iterator in Object(arr)) { var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i['return']) _i['return'](); } finally { if (_d) throw _e; } } return _arr; } else { throw new TypeError('Invalid attempt to destructure non-iterable instance'); } }
+
+  function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
+
+  var util = __webpack_require__(57);
+
+  var Label = (function () {
+    function Label(body, options) {
+      _classCallCheck(this, Label);
+
+      this.body = body;
+
+      this.baseSize = undefined;
+      this.setOptions(options);
+      this.size = { top: 0, left: 0, width: 0, height: 0, yLine: 0 }; // could be cached
+    }
+
+    _createClass(Label, [{
+      key: 'setOptions',
+      value: function setOptions(options) {
+        var allowDeletion = arguments[1] === undefined ? false : arguments[1];
+
+        this.options = options;
+
+        if (options.label !== undefined) {
+          this.labelDirty = true;
+        }
+
+        if (options.font !== undefined) {
+          Label.parseOptions(this.options.font, options, allowDeletion);
+          if (typeof options.font === 'string') {
+            this.baseSize = this.options.font.size;
+          } else if (typeof options.font === 'object') {
+            if (options.font.size !== undefined) {
+              this.baseSize = options.font.size;
+            }
+          }
+        }
+      }
+    }, {
+      key: 'draw',
+
+      /**
+       * Main function. This is called from anything that wants to draw a label.
+       * @param ctx
+       * @param x
+       * @param y
+       * @param selected
+       * @param baseline
+       */
+      value: function draw(ctx, x, y, selected) {
+        var baseline = arguments[4] === undefined ? 'middle' : arguments[4];
+
+        // if no label, return
+        if (this.options.label === undefined) return;
+
+        // check if we have to render the label
+        var viewFontSize = this.options.font.size * this.body.view.scale;
+        if (this.options.label && viewFontSize < this.options.scaling.label.drawThreshold - 1) return;
+
+        // update the size cache if required
+        this.calculateLabelSize(ctx, selected, x, y, baseline);
+
+        // create the fontfill background
+        this._drawBackground(ctx);
+        // draw text
+        this._drawText(ctx, selected, x, y, baseline);
+      }
+    }, {
+      key: '_drawBackground',
+
+      /**
+       * Draws the label background
+       * @param {CanvasRenderingContext2D} ctx
+       * @private
+       */
+      value: function _drawBackground(ctx) {
+        if (this.options.font.background !== undefined && this.options.font.background !== 'none') {
+          ctx.fillStyle = this.options.font.background;
+
+          var lineMargin = 2;
+
+          switch (this.options.font.align) {
+            case 'middle':
+              ctx.fillRect(-this.size.width * 0.5, -this.size.height * 0.5, this.size.width, this.size.height);
+              break;
+            case 'top':
+              ctx.fillRect(-this.size.width * 0.5, -(this.size.height + lineMargin), this.size.width, this.size.height);
+              break;
+            case 'bottom':
+              ctx.fillRect(-this.size.width * 0.5, lineMargin, this.size.width, this.size.height);
+              break;
+            default:
+              ctx.fillRect(this.size.left, this.size.top - 0.5 * lineMargin, this.size.width, this.size.height);
+              break;
+          }
+        }
+      }
+    }, {
+      key: '_drawText',
+
+      /**
+       *
+       * @param ctx
+       * @param x
+       * @param baseline
+       * @private
+       */
+      value: function _drawText(ctx, selected, x, y) {
+        var baseline = arguments[4] === undefined ? 'middle' : arguments[4];
+
+        var fontSize = this.options.font.size;
+        var viewFontSize = fontSize * this.body.view.scale;
+        // this ensures that there will not be HUGE letters on screen by setting an upper limit on the visible text size (regardless of zoomLevel)
+        if (viewFontSize >= this.options.scaling.label.maxVisible) {
+          fontSize = Number(this.options.scaling.label.maxVisible) / this.body.view.scale;
+        }
+
+        var yLine = this.size.yLine;
+
+        var _getColor = this._getColor(viewFontSize);
+
+        var _getColor2 = _slicedToArray(_getColor, 2);
+
+        var fontColor = _getColor2[0];
+        var strokeColor = _getColor2[1];
+
+        var _setAlignment = this._setAlignment(ctx, x, yLine, baseline);
+
+        var _setAlignment2 = _slicedToArray(_setAlignment, 2);
+
+        x = _setAlignment2[0];
+        yLine = _setAlignment2[1];
+
+        // configure context for drawing the text
+        ctx.font = (selected ? 'bold ' : '') + fontSize + 'px ' + this.options.font.face;
+        ctx.fillStyle = fontColor;
+        ctx.textAlign = 'center';
+
+        // set the strokeWidth
+        if (this.options.font.strokeWidth > 0) {
+          ctx.lineWidth = this.options.font.strokeWidth;
+          ctx.strokeStyle = strokeColor;
+          ctx.lineJoin = 'round';
+        }
+
+        // draw the text
+        for (var i = 0; i < this.lineCount; i++) {
+          if (this.options.font.strokeWidth > 0) {
+            ctx.strokeText(this.lines[i], x, yLine);
+          }
+          ctx.fillText(this.lines[i], x, yLine);
+          yLine += fontSize;
+        }
+      }
+    }, {
+      key: '_setAlignment',
+      value: function _setAlignment(ctx, x, yLine, baseline) {
+        // check for label alignment (for edges)
+        // TODO: make alignment for nodes
+        if (this.options.font.align !== 'horizontal') {
+          x = 0;
+          yLine = 0;
+
+          var lineMargin = 2;
+          if (this.options.font.align === 'top') {
+            ctx.textBaseline = 'alphabetic';
+            yLine -= 2 * lineMargin; // distance from edge, required because we use alphabetic. Alphabetic has less difference between browsers
+          } else if (this.options.font.align === 'bottom') {
+            ctx.textBaseline = 'hanging';
+            yLine += 2 * lineMargin; // distance from edge, required because we use hanging. Hanging has less difference between browsers
+          } else {
+            ctx.textBaseline = 'middle';
+          }
+        } else {
+          ctx.textBaseline = baseline;
+        }
+
+        return [x, yLine];
+      }
+    }, {
+      key: '_getColor',
+
+      /**
+       * fade in when relative scale is between threshold and threshold - 1.
+       * If the relative scale would be smaller than threshold -1 the draw function would have returned before coming here.
+       *
+       * @param viewFontSize
+       * @returns {*[]}
+       * @private
+       */
+      value: function _getColor(viewFontSize) {
+        var fontColor = this.options.font.color || '#000000';
+        var strokeColor = this.options.font.strokeColor || '#ffffff';
+        if (viewFontSize <= this.options.scaling.label.drawThreshold) {
+          var opacity = Math.max(0, Math.min(1, 1 - (this.options.scaling.label.drawThreshold - viewFontSize)));
+          fontColor = util.overrideOpacity(fontColor, opacity);
+          strokeColor = util.overrideOpacity(strokeColor, opacity);
+        }
+        return [fontColor, strokeColor];
+      }
+    }, {
+      key: 'getTextSize',
+
+      /**
+       *
+       * @param ctx
+       * @param selected
+       * @returns {{width: number, height: number}}
+       */
+      value: function getTextSize(ctx) {
+        var selected = arguments[1] === undefined ? false : arguments[1];
+
+        var size = {
+          width: this._processLabel(ctx, selected),
+          height: this.options.font.size * this.lineCount,
+          lineCount: this.lineCount
+        };
+        return size;
+      }
+    }, {
+      key: 'calculateLabelSize',
+
+      /**
+       *
+       * @param ctx
+       * @param selected
+       * @param x
+       * @param y
+       * @param baseline
+       */
+      value: function calculateLabelSize(ctx, selected) {
+        var x = arguments[2] === undefined ? 0 : arguments[2];
+        var y = arguments[3] === undefined ? 0 : arguments[3];
+        var baseline = arguments[4] === undefined ? 'middle' : arguments[4];
+
+        if (this.labelDirty === true) {
+          this.size.width = this._processLabel(ctx, selected);
+        }
+        this.size.height = this.options.font.size * this.lineCount;
+        this.size.left = x - this.size.width * 0.5;
+        this.size.top = y - this.size.height * 0.5;
+        this.size.yLine = y + (1 - this.lineCount) * 0.5 * this.options.font.size;
+        if (baseline === 'hanging') {
+          this.size.top += 0.5 * this.options.font.size;
+          this.size.top += 4; // distance from node, required because we use hanging. Hanging has less difference between browsers
+          this.size.yLine += 4; // distance from node
+        }
+
+        this.labelDirty = false;
+      }
+    }, {
+      key: '_processLabel',
+
+      /**
+       * This calculates the width as well as explodes the label string and calculates the amount of lines.
+       * @param ctx
+       * @param selected
+       * @returns {number}
+       * @private
+       */
+      value: function _processLabel(ctx, selected) {
+        var width = 0;
+        var lines = [''];
+        var lineCount = 0;
+        if (this.options.label !== undefined) {
+          lines = String(this.options.label).split('\n');
+          lineCount = lines.length;
+          ctx.font = (selected ? 'bold ' : '') + this.options.font.size + 'px ' + this.options.font.face;
+          width = ctx.measureText(lines[0]).width;
+          for (var i = 1; i < lineCount; i++) {
+            var lineWidth = ctx.measureText(lines[i]).width;
+            width = lineWidth > width ? lineWidth : width;
+          }
+        }
+        this.lines = lines;
+        this.lineCount = lineCount;
+
+        return width;
+      }
+    }], [{
+      key: 'parseOptions',
+      value: function parseOptions(parentOptions, newOptions) {
+        var allowDeletion = arguments[2] === undefined ? false : arguments[2];
+
+        if (typeof newOptions.font === 'string') {
+          var newOptionsArray = newOptions.font.split(' ');
+          parentOptions.size = newOptionsArray[0].replace('px', '');
+          parentOptions.face = newOptionsArray[1];
+          parentOptions.color = newOptionsArray[2];
+        } else if (typeof newOptions.font === 'object') {
+          util.fillIfDefined(parentOptions, newOptions.font, allowDeletion);
+        }
+        parentOptions.size = Number(parentOptions.size);
+      }
+    }]);
+
+    return Label;
+  })();
+
+  exports['default'] = Label;
+  module.exports = exports['default'];
+
+/***/ },
+/* 85 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -37461,8 +36936,6 @@ return /******/ (function(modules) { // webpackBootstrap
           }
           this.navigationHammers = [];
         }
-
-        this._navigationReleaseOverload = function () {};
 
         // clean up previous navigation items
         if (this.navigationDOM && this.navigationDOM['wrapper'] && this.navigationDOM['wrapper'].parentNode) {
@@ -37602,7 +37075,6 @@ return /******/ (function(modules) { // webpackBootstrap
         }
 
         if (this.options.keyboard.enabled === true) {
-
           if (this.options.keyboard.bindToWindow === true) {
             this.keycharm = keycharm({ container: window, preventDefault: true });
           } else {
@@ -37649,7 +37121,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 87 */
+/* 86 */
 /***/ function(module, exports, __webpack_require__) {
 
   /**
@@ -37775,6 +37247,563 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
+/* 87 */
+/***/ function(module, exports, __webpack_require__) {
+
+  'use strict';
+
+  Object.defineProperty(exports, '__esModule', {
+    value: true
+  });
+
+  var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
+
+  function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
+
+  function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
+
+  var _sharedLabel = __webpack_require__(84);
+
+  var _sharedLabel2 = _interopRequireDefault(_sharedLabel);
+
+  var _edgesBezierEdgeDynamic = __webpack_require__(104);
+
+  var _edgesBezierEdgeDynamic2 = _interopRequireDefault(_edgesBezierEdgeDynamic);
+
+  var _edgesBezierEdgeStatic = __webpack_require__(105);
+
+  var _edgesBezierEdgeStatic2 = _interopRequireDefault(_edgesBezierEdgeStatic);
+
+  var _edgesStraightEdge = __webpack_require__(106);
+
+  var _edgesStraightEdge2 = _interopRequireDefault(_edgesStraightEdge);
+
+  var util = __webpack_require__(57);
+
+  /**
+   * @class Edge
+   *
+   * A edge connects two nodes
+   * @param {Object} properties     Object with options. Must contain
+   *                                At least options from and to.
+   *                                Available options: from (number),
+   *                                to (number), label (string, color (string),
+   *                                width (number), style (string),
+   *                                length (number), title (string)
+   * @param {Network} network       A Network object, used to find and edge to
+   *                                nodes.
+   * @param {Object} constants      An object with default values for
+   *                                example for the color
+   */
+
+  var Edge = (function () {
+    function Edge(options, body, globalOptions) {
+      _classCallCheck(this, Edge);
+
+      if (body === undefined) {
+        throw 'No body provided';
+      }
+      this.options = util.bridgeObject(globalOptions);
+      this.body = body;
+
+      // initialize variables
+      this.id = undefined;
+      this.fromId = undefined;
+      this.toId = undefined;
+      this.selected = false;
+      this.hover = false;
+      this.labelDirty = true;
+      this.colorDirty = true;
+
+      this.baseWidth = this.options.width;
+      this.baseFontSize = this.options.font.size;
+
+      this.from = undefined; // a node
+      this.to = undefined; // a node
+
+      this.edgeType = undefined;
+
+      this.connected = false;
+
+      this.labelModule = new _sharedLabel2['default'](this.body, this.options);
+
+      this.setOptions(options);
+    }
+
+    _createClass(Edge, [{
+      key: 'setOptions',
+
+      /**
+       * Set or overwrite options for the edge
+       * @param {Object} options  an object with options
+       * @param doNotEmit
+       */
+      value: function setOptions(options) {
+        if (!options) {
+          return;
+        }
+        this.colorDirty = true;
+
+        Edge.parseOptions(this.options, options, true);
+
+        if (options.id !== undefined) {
+          this.id = options.id;
+        }
+        if (options.from !== undefined) {
+          this.fromId = options.from;
+        }
+        if (options.to !== undefined) {
+          this.toId = options.to;
+        }
+        if (options.title !== undefined) {
+          this.title = options.title;
+        }
+        if (options.value !== undefined) {
+          options.value = parseInt(options.value);
+        }
+
+        // update label Module
+        this.updateLabelModule();
+
+        var dataChanged = this.updateEdgeType();
+
+        // if anything has been updates, reset the selection width and the hover width
+        this._setInteractionWidths();
+
+        // A node is connected when it has a from and to node that both exist in the network.body.nodes.
+        this.connect();
+
+        return dataChanged;
+      }
+    }, {
+      key: 'updateLabelModule',
+
+      /**
+       * update the options in the label module
+       */
+      value: function updateLabelModule() {
+        this.labelModule.setOptions(this.options, true);
+        if (this.labelModule.baseSize !== undefined) {
+          this.baseFontSize = this.labelModule.baseSize;
+        }
+      }
+    }, {
+      key: 'updateEdgeType',
+
+      /**
+       * update the edge type, set the options
+       * @returns {boolean}
+       */
+      value: function updateEdgeType() {
+        var dataChanged = false;
+        var changeInType = true;
+        if (this.edgeType !== undefined) {
+          if (this.edgeType instanceof _edgesBezierEdgeDynamic2['default'] && this.options.smooth.enabled === true && this.options.smooth.type === 'dynamic') {
+            changeInType = false;
+          }
+          if (this.edgeType instanceof _edgesBezierEdgeStatic2['default'] && this.options.smooth.enabled === true && this.options.smooth.type !== 'dynamic') {
+            changeInType = false;
+          }
+          if (this.edgeType instanceof _edgesStraightEdge2['default'] && this.options.smooth.enabled === false) {
+            changeInType = false;
+          }
+
+          if (changeInType === true) {
+            dataChanged = this.edgeType.cleanup();
+          }
+        }
+
+        if (changeInType === true) {
+          if (this.options.smooth.enabled === true) {
+            if (this.options.smooth.type === 'dynamic') {
+              dataChanged = true;
+              this.edgeType = new _edgesBezierEdgeDynamic2['default'](this.options, this.body, this.labelModule);
+            } else {
+              this.edgeType = new _edgesBezierEdgeStatic2['default'](this.options, this.body, this.labelModule);
+            }
+          } else {
+            this.edgeType = new _edgesStraightEdge2['default'](this.options, this.body, this.labelModule);
+          }
+        } else {
+          // if nothing changes, we just set the options.
+          this.edgeType.setOptions(this.options);
+        }
+
+        return dataChanged;
+      }
+    }, {
+      key: 'togglePhysics',
+
+      /**
+       * Enable or disable the physics.
+       * @param status
+       */
+      value: function togglePhysics(status) {
+        this.options.physics = status;
+        this.edgeType.togglePhysics(status);
+      }
+    }, {
+      key: 'connect',
+
+      /**
+       * Connect an edge to its nodes
+       */
+      value: function connect() {
+        this.disconnect();
+
+        this.from = this.body.nodes[this.fromId] || undefined;
+        this.to = this.body.nodes[this.toId] || undefined;
+        this.connected = this.from !== undefined && this.to !== undefined;
+
+        if (this.connected === true) {
+          this.from.attachEdge(this);
+          this.to.attachEdge(this);
+        } else {
+          if (this.from) {
+            this.from.detachEdge(this);
+          }
+          if (this.to) {
+            this.to.detachEdge(this);
+          }
+        }
+
+        this.edgeType.connect();
+      }
+    }, {
+      key: 'disconnect',
+
+      /**
+       * Disconnect an edge from its nodes
+       */
+      value: function disconnect() {
+        if (this.from) {
+          this.from.detachEdge(this);
+          this.from = undefined;
+        }
+        if (this.to) {
+          this.to.detachEdge(this);
+          this.to = undefined;
+        }
+
+        this.connected = false;
+      }
+    }, {
+      key: 'getTitle',
+
+      /**
+       * get the title of this edge.
+       * @return {string} title    The title of the edge, or undefined when no title
+       *                           has been set.
+       */
+      value: function getTitle() {
+        return this.title;
+      }
+    }, {
+      key: 'isSelected',
+
+      /**
+       * check if this node is selecte
+       * @return {boolean} selected   True if node is selected, else false
+       */
+      value: function isSelected() {
+        return this.selected;
+      }
+    }, {
+      key: 'getValue',
+
+      /**
+       * Retrieve the value of the edge. Can be undefined
+       * @return {Number} value
+       */
+      value: function getValue() {
+        return this.options.value;
+      }
+    }, {
+      key: 'setValueRange',
+
+      /**
+       * Adjust the value range of the edge. The edge will adjust it's width
+       * based on its value.
+       * @param {Number} min
+       * @param {Number} max
+       * @param total
+       */
+      value: function setValueRange(min, max, total) {
+        if (this.options.value !== undefined) {
+          var scale = this.options.scaling.customScalingFunction(min, max, total, this.options.value);
+          var widthDiff = this.options.scaling.max - this.options.scaling.min;
+          if (this.options.scaling.label.enabled === true) {
+            var fontDiff = this.options.scaling.label.max - this.options.scaling.label.min;
+            this.options.font.size = this.options.scaling.label.min + scale * fontDiff;
+          }
+          this.options.width = this.options.scaling.min + scale * widthDiff;
+        } else {
+          this.options.width = this.baseWidth;
+          this.options.font.size = this.baseFontSize;
+        }
+
+        this._setInteractionWidths();
+      }
+    }, {
+      key: '_setInteractionWidths',
+      value: function _setInteractionWidths() {
+        if (typeof this.options.hoverWidth === 'function') {
+          this.edgeType.hoverWidth = this.options.hoverWidth(this.options.width);
+        } else {
+          this.edgeType.hoverWidth = this.options.hoverWidth + this.options.width;
+        }
+
+        if (typeof this.options.selectionWidth === 'function') {
+          this.edgeType.selectionWidth = this.options.selectionWidth(this.options.width);
+        } else {
+          this.edgeType.selectionWidth = this.options.selectionWidth + this.options.width;
+        }
+      }
+    }, {
+      key: 'draw',
+
+      /**
+       * Redraw a edge
+       * Draw this edge in the given canvas
+       * The 2d context of a HTML canvas can be retrieved by canvas.getContext("2d");
+       * @param {CanvasRenderingContext2D}   ctx
+       */
+      value: function draw(ctx) {
+        var via = this.edgeType.drawLine(ctx, this.selected, this.hover);
+        this.drawArrows(ctx, via);
+        this.drawLabel(ctx, via);
+      }
+    }, {
+      key: 'drawArrows',
+      value: function drawArrows(ctx, viaNode) {
+        if (this.options.arrows.from.enabled === true) {
+          this.edgeType.drawArrowHead(ctx, 'from', viaNode, this.selected, this.hover);
+        }
+        if (this.options.arrows.middle.enabled === true) {
+          this.edgeType.drawArrowHead(ctx, 'middle', viaNode, this.selected, this.hover);
+        }
+        if (this.options.arrows.to.enabled === true) {
+          this.edgeType.drawArrowHead(ctx, 'to', viaNode, this.selected, this.hover);
+        }
+      }
+    }, {
+      key: 'drawLabel',
+      value: function drawLabel(ctx, viaNode) {
+        if (this.options.label !== undefined) {
+          // set style
+          var node1 = this.from;
+          var node2 = this.to;
+          var selected = this.from.selected || this.to.selected || this.selected;
+          if (node1.id != node2.id) {
+            var point = this.edgeType.getPoint(0.5, viaNode);
+            ctx.save();
+
+            // if the label has to be rotated:
+            if (this.options.font.align !== 'horizontal') {
+              this.labelModule.calculateLabelSize(ctx, selected, point.x, point.y);
+              ctx.translate(point.x, this.labelModule.size.yLine);
+              this._rotateForLabelAlignment(ctx);
+            }
+
+            // draw the label
+            this.labelModule.draw(ctx, point.x, point.y, selected);
+            ctx.restore();
+          } else {
+            var x, y;
+            var radius = this.options.selfReferenceSize;
+            if (node1.shape.width > node1.shape.height) {
+              x = node1.x + node1.shape.width * 0.5;
+              y = node1.y - radius;
+            } else {
+              x = node1.x + radius;
+              y = node1.y - node1.shape.height * 0.5;
+            }
+            point = this._pointOnCircle(x, y, radius, 0.125);
+            this.labelModule.draw(ctx, point.x, point.y, selected);
+          }
+        }
+      }
+    }, {
+      key: 'isOverlappingWith',
+
+      /**
+       * Check if this object is overlapping with the provided object
+       * @param {Object} obj   an object with parameters left, top
+       * @return {boolean}     True if location is located on the edge
+       */
+      value: function isOverlappingWith(obj) {
+        if (this.connected) {
+          var distMax = 10;
+          var xFrom = this.from.x;
+          var yFrom = this.from.y;
+          var xTo = this.to.x;
+          var yTo = this.to.y;
+          var xObj = obj.left;
+          var yObj = obj.top;
+
+          var dist = this.edgeType.getDistanceToEdge(xFrom, yFrom, xTo, yTo, xObj, yObj);
+
+          return dist < distMax;
+        } else {
+          return false;
+        }
+      }
+    }, {
+      key: '_rotateForLabelAlignment',
+
+      /**
+       * Rotates the canvas so the text is most readable
+       * @param {CanvasRenderingContext2D} ctx
+       * @private
+       */
+      value: function _rotateForLabelAlignment(ctx) {
+        var dy = this.from.y - this.to.y;
+        var dx = this.from.x - this.to.x;
+        var angleInDegrees = Math.atan2(dy, dx);
+
+        // rotate so label it is readable
+        if (angleInDegrees < -1 && dx < 0 || angleInDegrees > 0 && dx < 0) {
+          angleInDegrees = angleInDegrees + Math.PI;
+        }
+
+        ctx.rotate(angleInDegrees);
+      }
+    }, {
+      key: '_pointOnCircle',
+
+      /**
+       * Get a point on a circle
+       * @param {Number} x
+       * @param {Number} y
+       * @param {Number} radius
+       * @param {Number} percentage. Value between 0 (line start) and 1 (line end)
+       * @return {Object} point
+       * @private
+       */
+      value: function _pointOnCircle(x, y, radius, percentage) {
+        var angle = percentage * 2 * Math.PI;
+        return {
+          x: x + radius * Math.cos(angle),
+          y: y - radius * Math.sin(angle)
+        };
+      }
+    }, {
+      key: 'select',
+      value: function select() {
+        this.selected = true;
+      }
+    }, {
+      key: 'unselect',
+      value: function unselect() {
+        this.selected = false;
+      }
+    }], [{
+      key: 'parseOptions',
+      value: function parseOptions(parentOptions, newOptions) {
+        var allowDeletion = arguments[2] === undefined ? false : arguments[2];
+
+        var fields = ['id', 'from', 'hidden', 'hoverWidth', 'label', 'length', 'line', 'opacity', 'physics', 'selectionWidth', 'selfReferenceSize', 'to', 'title', 'value', 'width'];
+
+        // only deep extend the items in the field array. These do not have shorthand.
+        util.selectiveDeepExtend(fields, parentOptions, newOptions, allowDeletion);
+
+        util.mergeOptions(parentOptions, newOptions, 'smooth');
+        util.mergeOptions(parentOptions, newOptions, 'shadow');
+
+        if (newOptions.dashes !== undefined && newOptions.dashes !== null) {
+          parentOptions.dashes = newOptions.dashes;
+        } else if (allowDeletion === true && newOptions.dashes === null) {
+          parentOptions.dashes = undefined;
+          delete parentOptions.dashes;
+        }
+
+        // set the scaling newOptions
+        if (newOptions.scaling !== undefined && newOptions.scaling !== null) {
+          if (newOptions.scaling.min !== undefined) {
+            parentOptions.scaling.min = newOptions.scaling.min;
+          }
+          if (newOptions.scaling.max !== undefined) {
+            parentOptions.scaling.max = newOptions.scaling.max;
+          }
+          util.mergeOptions(parentOptions.scaling, newOptions.scaling, 'label');
+        } else if (allowDeletion === true && newOptions.scaling === null) {
+          parentOptions.scaling = undefined;
+          delete parentOptions.scaling;
+        }
+
+        // hanlde multiple input cases for arrows
+        if (newOptions.arrows !== undefined && newOptions.arrows !== null) {
+          if (typeof newOptions.arrows === 'string') {
+            var arrows = newOptions.arrows.toLowerCase();
+            if (arrows.indexOf('to') != -1) {
+              parentOptions.arrows.to.enabled = true;
+            }
+            if (arrows.indexOf('middle') != -1) {
+              parentOptions.arrows.middle.enabled = true;
+            }
+            if (arrows.indexOf('from') != -1) {
+              parentOptions.arrows.from.enabled = true;
+            }
+          } else if (typeof newOptions.arrows === 'object') {
+            util.mergeOptions(parentOptions.arrows, newOptions.arrows, 'to');
+            util.mergeOptions(parentOptions.arrows, newOptions.arrows, 'middle');
+            util.mergeOptions(parentOptions.arrows, newOptions.arrows, 'from');
+          } else {
+            throw new Error('The arrow newOptions can only be an object or a string. Refer to the documentation. You used:' + JSON.stringify(newOptions.arrows));
+          }
+        } else if (allowDeletion === true && newOptions.arrows === null) {
+          parentOptions.arrows = undefined;
+          delete parentOptions.arrows;
+        }
+
+        // hanlde multiple input cases for color
+        if (newOptions.color !== undefined && newOptions.color !== null) {
+          if (util.isString(newOptions.color)) {
+            parentOptions.color.color = newOptions.color;
+            parentOptions.color.highlight = newOptions.color;
+            parentOptions.color.hover = newOptions.color;
+            parentOptions.color.inherit = false;
+          } else {
+            var colorsDefined = false;
+            if (newOptions.color.color !== undefined) {
+              parentOptions.color.color = newOptions.color.color;colorsDefined = true;
+            }
+            if (newOptions.color.highlight !== undefined) {
+              parentOptions.color.highlight = newOptions.color.highlight;colorsDefined = true;
+            }
+            if (newOptions.color.hover !== undefined) {
+              parentOptions.color.hover = newOptions.color.hover;colorsDefined = true;
+            }
+            if (newOptions.color.inherit !== undefined) {
+              parentOptions.color.inherit = newOptions.color.inherit;
+            }
+            if (newOptions.color.opacity !== undefined) {
+              parentOptions.color.opacity = Math.min(1, Math.max(0, newOptions.color.opacity));
+            }
+
+            if (newOptions.color.inherit === undefined && colorsDefined === true) {
+              parentOptions.color.inherit = false;
+            }
+          }
+        } else if (allowDeletion === true && newOptions.color === null) {
+          parentOptions.color = undefined;
+          delete parentOptions.color;
+        }
+
+        // handle the font settings
+        if (newOptions.font !== undefined) {
+          _sharedLabel2['default'].parseOptions(parentOptions.font, newOptions);
+        }
+      }
+    }]);
+
+    return Edge;
+  })();
+
+  exports['default'] = Edge;
+  module.exports = exports['default'];
+
+/***/ },
 /* 88 */
 /***/ function(module, exports, __webpack_require__) {
 
@@ -37804,7 +37833,6 @@ return /******/ (function(modules) { // webpackBootstrap
       var preventDefault = options && options.preventDefault || false;
 
       var container = options && options.container || window;
-
       var _exportFunctions = {};
       var _bound = {keydown:{}, keyup:{}};
       var _keys = {};
@@ -38006,7 +38034,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; }
 
-  var _utilNodeBase = __webpack_require__(110);
+  var _utilNodeBase = __webpack_require__(109);
 
   var _utilNodeBase2 = _interopRequireDefault(_utilNodeBase);
 
@@ -38111,7 +38139,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; }
 
-  var _utilCircleImageBase = __webpack_require__(109);
+  var _utilCircleImageBase = __webpack_require__(110);
 
   var _utilCircleImageBase2 = _interopRequireDefault(_utilCircleImageBase);
 
@@ -38201,112 +38229,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; }
 
-  var _utilCircleImageBase = __webpack_require__(109);
-
-  var _utilCircleImageBase2 = _interopRequireDefault(_utilCircleImageBase);
-
-  var CircularImage = (function (_CircleImageBase) {
-    function CircularImage(options, body, labelModule, imageObj) {
-      _classCallCheck(this, CircularImage);
-
-      _get(Object.getPrototypeOf(CircularImage.prototype), 'constructor', this).call(this, options, body, labelModule);
-      this.imageObj = imageObj;
-      this._swapToImageResizeWhenImageLoaded = true;
-    }
-
-    _inherits(CircularImage, _CircleImageBase);
-
-    _createClass(CircularImage, [{
-      key: 'resize',
-      value: function resize() {
-        if (this.imageObj.src === undefined || this.imageObj.width === undefined || this.imageObj.height === undefined) {
-          if (!this.width) {
-            var diameter = this.options.size * 2;
-            this.width = diameter;
-            this.height = diameter;
-            this._swapToImageResizeWhenImageLoaded = true;
-            this.radius = 0.5 * this.width;
-          }
-        } else {
-          if (this._swapToImageResizeWhenImageLoaded) {
-            this.width = undefined;
-            this.height = undefined;
-            this._swapToImageResizeWhenImageLoaded = false;
-          }
-          this._resizeImage();
-        }
-      }
-    }, {
-      key: 'draw',
-      value: function draw(ctx, x, y, selected, hover) {
-        this.resize();
-
-        this.left = x - this.width / 2;
-        this.top = y - this.height / 2;
-
-        var size = Math.min(0.5 * this.height, 0.5 * this.width);
-
-        this._drawRawCircle(ctx, x, y, selected, hover, size);
-
-        ctx.save();
-        ctx.circle(x, y, size);
-        ctx.stroke();
-        ctx.clip();
-
-        this._drawImageAtPosition(ctx);
-
-        ctx.restore();
-
-        this._drawImageLabel(ctx, x, y, selected);
-
-        this.updateBoundingBox(x, y);
-      }
-    }, {
-      key: 'updateBoundingBox',
-      value: function updateBoundingBox(x, y) {
-        this.boundingBox.top = y - this.options.size;
-        this.boundingBox.left = x - this.options.size;
-        this.boundingBox.right = x + this.options.size;
-        this.boundingBox.bottom = y + this.options.size;
-        this.boundingBox.left = Math.min(this.boundingBox.left, this.labelModule.size.left);
-        this.boundingBox.right = Math.max(this.boundingBox.right, this.labelModule.size.left + this.labelModule.size.width);
-        this.boundingBox.bottom = Math.max(this.boundingBox.bottom, this.boundingBox.bottom + this.labelOffset);
-      }
-    }, {
-      key: 'distanceToBorder',
-      value: function distanceToBorder(ctx, angle) {
-        this.resize(ctx);
-        return this._distanceToBorder(angle);
-      }
-    }]);
-
-    return CircularImage;
-  })(_utilCircleImageBase2['default']);
-
-  exports['default'] = CircularImage;
-  module.exports = exports['default'];
-
-/***/ },
-/* 93 */
-/***/ function(module, exports, __webpack_require__) {
-
-  'use strict';
-
-  Object.defineProperty(exports, '__esModule', {
-    value: true
-  });
-
-  var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
-
-  var _get = function get(_x, _x2, _x3) { var _again = true; _function: while (_again) { var object = _x, property = _x2, receiver = _x3; desc = parent = getter = undefined; _again = false; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { _x = parent; _x2 = property; _x3 = receiver; _again = true; continue _function; } } else if ('value' in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } } };
-
-  function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
-
-  function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
-
-  function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; }
-
-  var _utilNodeBase = __webpack_require__(110);
+  var _utilNodeBase = __webpack_require__(109);
 
   var _utilNodeBase2 = _interopRequireDefault(_utilNodeBase);
 
@@ -38389,6 +38312,111 @@ return /******/ (function(modules) { // webpackBootstrap
   })(_utilNodeBase2['default']);
 
   exports['default'] = Database;
+  module.exports = exports['default'];
+
+/***/ },
+/* 93 */
+/***/ function(module, exports, __webpack_require__) {
+
+  'use strict';
+
+  Object.defineProperty(exports, '__esModule', {
+    value: true
+  });
+
+  var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
+
+  var _get = function get(_x, _x2, _x3) { var _again = true; _function: while (_again) { var object = _x, property = _x2, receiver = _x3; desc = parent = getter = undefined; _again = false; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { _x = parent; _x2 = property; _x3 = receiver; _again = true; continue _function; } } else if ('value' in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } } };
+
+  function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
+
+  function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
+
+  function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; }
+
+  var _utilCircleImageBase = __webpack_require__(110);
+
+  var _utilCircleImageBase2 = _interopRequireDefault(_utilCircleImageBase);
+
+  var CircularImage = (function (_CircleImageBase) {
+    function CircularImage(options, body, labelModule, imageObj) {
+      _classCallCheck(this, CircularImage);
+
+      _get(Object.getPrototypeOf(CircularImage.prototype), 'constructor', this).call(this, options, body, labelModule);
+      this.imageObj = imageObj;
+      this._swapToImageResizeWhenImageLoaded = true;
+    }
+
+    _inherits(CircularImage, _CircleImageBase);
+
+    _createClass(CircularImage, [{
+      key: 'resize',
+      value: function resize() {
+        if (this.imageObj.src === undefined || this.imageObj.width === undefined || this.imageObj.height === undefined) {
+          if (!this.width) {
+            var diameter = this.options.size * 2;
+            this.width = diameter;
+            this.height = diameter;
+            this._swapToImageResizeWhenImageLoaded = true;
+            this.radius = 0.5 * this.width;
+          }
+        } else {
+          if (this._swapToImageResizeWhenImageLoaded) {
+            this.width = undefined;
+            this.height = undefined;
+            this._swapToImageResizeWhenImageLoaded = false;
+          }
+          this._resizeImage();
+        }
+      }
+    }, {
+      key: 'draw',
+      value: function draw(ctx, x, y, selected, hover) {
+        this.resize();
+
+        this.left = x - this.width / 2;
+        this.top = y - this.height / 2;
+
+        var size = Math.min(0.5 * this.height, 0.5 * this.width);
+
+        this._drawRawCircle(ctx, x, y, selected, hover, size);
+
+        ctx.save();
+        ctx.circle(x, y, size);
+        ctx.stroke();
+        ctx.clip();
+
+        this._drawImageAtPosition(ctx);
+
+        ctx.restore();
+
+        this._drawImageLabel(ctx, x, y, selected);
+
+        this.updateBoundingBox(x, y);
+      }
+    }, {
+      key: 'updateBoundingBox',
+      value: function updateBoundingBox(x, y) {
+        this.boundingBox.top = y - this.options.size;
+        this.boundingBox.left = x - this.options.size;
+        this.boundingBox.right = x + this.options.size;
+        this.boundingBox.bottom = y + this.options.size;
+        this.boundingBox.left = Math.min(this.boundingBox.left, this.labelModule.size.left);
+        this.boundingBox.right = Math.max(this.boundingBox.right, this.labelModule.size.left + this.labelModule.size.width);
+        this.boundingBox.bottom = Math.max(this.boundingBox.bottom, this.boundingBox.bottom + this.labelOffset);
+      }
+    }, {
+      key: 'distanceToBorder',
+      value: function distanceToBorder(ctx, angle) {
+        this.resize(ctx);
+        return this._distanceToBorder(angle);
+      }
+    }]);
+
+    return CircularImage;
+  })(_utilCircleImageBase2['default']);
+
+  exports['default'] = CircularImage;
   module.exports = exports['default'];
 
 /***/ },
@@ -38523,7 +38551,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; }
 
-  var _utilNodeBase = __webpack_require__(110);
+  var _utilNodeBase = __webpack_require__(109);
 
   var _utilNodeBase2 = _interopRequireDefault(_utilNodeBase);
 
@@ -38630,7 +38658,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; }
 
-  var _utilNodeBase = __webpack_require__(110);
+  var _utilNodeBase = __webpack_require__(109);
 
   var _utilNodeBase2 = _interopRequireDefault(_utilNodeBase);
 
@@ -38746,7 +38774,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; }
 
-  var _utilCircleImageBase = __webpack_require__(109);
+  var _utilCircleImageBase = __webpack_require__(110);
 
   var _utilCircleImageBase2 = _interopRequireDefault(_utilCircleImageBase);
 
@@ -38946,7 +38974,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; }
 
-  var _utilNodeBase = __webpack_require__(110);
+  var _utilNodeBase = __webpack_require__(109);
 
   var _utilNodeBase2 = _interopRequireDefault(_utilNodeBase);
 
@@ -39161,16 +39189,24 @@ return /******/ (function(modules) { // webpackBootstrap
       key: 'setOptions',
       value: function setOptions(options) {
         this.options = options;
-        this.from = this.body.nodes[this.options.from];
-        this.to = this.body.nodes[this.options.to];
         this.id = this.options.id;
         this.setupSupportNode();
-
-        // fix weird behaviour
-        if (this.from.id === this.to.id) {
+        this.connect();
+      }
+    }, {
+      key: 'connect',
+      value: function connect() {
+        this.from = this.body.nodes[this.options.from];
+        this.to = this.body.nodes[this.options.to];
+        if (this.from === undefined || this.to === undefined) {
           this.via.setOptions({ physics: false });
         } else {
-          this.via.setOptions({ physics: true });
+          // fix weird behaviour where a selfreferencing node has physics enabled
+          if (this.from.id === this.to.id) {
+            this.via.setOptions({ physics: false });
+          } else {
+            this.via.setOptions({ physics: true });
+          }
         }
       }
     }, {
@@ -39313,11 +39349,6 @@ return /******/ (function(modules) { // webpackBootstrap
     _inherits(BezierEdgeStatic, _BezierEdgeBase);
 
     _createClass(BezierEdgeStatic, [{
-      key: 'cleanup',
-      value: function cleanup() {
-        return false;
-      }
-    }, {
       key: '_line',
 
       /**
@@ -39577,11 +39608,6 @@ return /******/ (function(modules) { // webpackBootstrap
     _inherits(StraightEdge, _EdgeBase);
 
     _createClass(StraightEdge, [{
-      key: 'cleanup',
-      value: function cleanup() {
-        return false;
-      }
-    }, {
       key: '_line',
 
       /**
@@ -39689,139 +39715,6 @@ return /******/ (function(modules) { // webpackBootstrap
 
   var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
 
-  var _get = function get(_x, _x2, _x3) { var _again = true; _function: while (_again) { var object = _x, property = _x2, receiver = _x3; desc = parent = getter = undefined; _again = false; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { _x = parent; _x2 = property; _x3 = receiver; _again = true; continue _function; } } else if ('value' in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } } };
-
-  function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
-
-  function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
-
-  function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; }
-
-  var _utilNodeBase = __webpack_require__(110);
-
-  var _utilNodeBase2 = _interopRequireDefault(_utilNodeBase);
-
-  var CircleImageBase = (function (_NodeBase) {
-    function CircleImageBase(options, body, labelModule) {
-      _classCallCheck(this, CircleImageBase);
-
-      _get(Object.getPrototypeOf(CircleImageBase.prototype), 'constructor', this).call(this, options, body, labelModule);
-      this.labelOffset = 0;
-    }
-
-    _inherits(CircleImageBase, _NodeBase);
-
-    _createClass(CircleImageBase, [{
-      key: '_resizeImage',
-      value: function _resizeImage() {
-        if (!this.width || !this.height) {
-          // undefined or 0
-          var width, height, ratio;
-
-          if (this.imageObj.width && this.imageObj.height) {
-            // not undefined or 0
-            width = 0;
-            height = 0;
-          }
-          if (this.imageObj.width > this.imageObj.height) {
-            ratio = this.imageObj.width / this.imageObj.height;
-            width = this.options.size * 2 * ratio || this.imageObj.width;
-            height = this.options.size * 2 || this.imageObj.height;
-          } else {
-            if (this.imageObj.width && this.imageObj.height) {
-              // not undefined or 0
-              ratio = this.imageObj.height / this.imageObj.width;
-            } else {
-              ratio = 1;
-            }
-            width = this.options.size * 2 || this.imageObj.width;
-            height = this.options.size * 2 * ratio || this.imageObj.height;
-          }
-          this.width = width;
-          this.height = height;
-          this.radius = 0.5 * this.width;
-        }
-      }
-    }, {
-      key: '_drawRawCircle',
-      value: function _drawRawCircle(ctx, x, y, selected, hover, size) {
-        var borderWidth = this.options.borderWidth;
-        var selectionLineWidth = this.options.borderWidthSelected || 2 * this.options.borderWidth;
-
-        ctx.strokeStyle = selected ? this.options.color.highlight.border : hover ? this.options.color.hover.border : this.options.color.border;
-
-        ctx.lineWidth = selected ? selectionLineWidth : borderWidth;
-        ctx.lineWidth *= this.networkScaleInv;
-        ctx.lineWidth = Math.min(this.width, ctx.lineWidth);
-
-        ctx.fillStyle = selected ? this.options.color.highlight.background : hover ? this.options.color.hover.background : this.options.color.background;
-        ctx.circle(x, y, size);
-
-        // draw shadow if enabled
-        this.enableShadow(ctx);
-        ctx.fill();
-
-        // disable shadows for other elements.
-        this.disableShadow(ctx);
-
-        ctx.stroke();
-      }
-    }, {
-      key: '_drawImageAtPosition',
-      value: function _drawImageAtPosition(ctx) {
-        if (this.imageObj.width != 0) {
-          // draw the image
-          ctx.globalAlpha = 1;
-
-          // draw shadow if enabled
-          this.enableShadow(ctx);
-          ctx.drawImage(this.imageObj, this.left, this.top, this.width, this.height);
-
-          // disable shadows for other elements.
-          this.disableShadow(ctx);
-        }
-      }
-    }, {
-      key: '_drawImageLabel',
-      value: function _drawImageLabel(ctx, x, y, selected) {
-        var yLabel;
-        var offset = 0;
-
-        if (this.height !== undefined) {
-          offset = this.height * 0.5;
-          var labelDimensions = this.labelModule.getTextSize(ctx);
-          if (labelDimensions.lineCount >= 1) {
-            offset += labelDimensions.height / 2;
-          }
-        }
-
-        yLabel = y + offset;
-
-        if (this.options.label) {
-          this.labelOffset = offset;
-        }
-        this.labelModule.draw(ctx, x, yLabel, selected, 'hanging');
-      }
-    }]);
-
-    return CircleImageBase;
-  })(_utilNodeBase2['default']);
-
-  exports['default'] = CircleImageBase;
-  module.exports = exports['default'];
-
-/***/ },
-/* 110 */
-/***/ function(module, exports, __webpack_require__) {
-
-  'use strict';
-
-  Object.defineProperty(exports, '__esModule', {
-    value: true
-  });
-
-  var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
-
   function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
 
   var NodeBase = (function () {
@@ -39879,6 +39772,156 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
+/* 110 */
+/***/ function(module, exports, __webpack_require__) {
+
+  'use strict';
+
+  Object.defineProperty(exports, '__esModule', {
+    value: true
+  });
+
+  var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
+
+  var _get = function get(_x, _x2, _x3) { var _again = true; _function: while (_again) { var object = _x, property = _x2, receiver = _x3; desc = parent = getter = undefined; _again = false; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { _x = parent; _x2 = property; _x3 = receiver; _again = true; continue _function; } } else if ('value' in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } } };
+
+  function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
+
+  function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
+
+  function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; }
+
+  var _utilNodeBase = __webpack_require__(109);
+
+  var _utilNodeBase2 = _interopRequireDefault(_utilNodeBase);
+
+  var CircleImageBase = (function (_NodeBase) {
+    function CircleImageBase(options, body, labelModule) {
+      _classCallCheck(this, CircleImageBase);
+
+      _get(Object.getPrototypeOf(CircleImageBase.prototype), 'constructor', this).call(this, options, body, labelModule);
+      this.labelOffset = 0;
+      this.imageLoaded = false;
+    }
+
+    _inherits(CircleImageBase, _NodeBase);
+
+    _createClass(CircleImageBase, [{
+      key: '_resizeImage',
+
+      /**
+       * This function resizes the image by the options size when the image has not yet loaded. If the image has loaded, we
+       * force the update of the size again.
+       *
+       * @private
+       */
+      value: function _resizeImage() {
+        var force = false;
+        if (!this.imageObj.width || !this.imageObj.height) {
+          // undefined or 0
+          this.imageLoaded = false;
+        } else if (this.imageLoaded === false) {
+          this.imageLoaded = true;
+          force = true;
+        }
+
+        if (!this.width || !this.height || force === true) {
+          // undefined or 0
+          var width, height, ratio;
+          if (this.imageObj.width && this.imageObj.height) {
+            // not undefined or 0
+            width = 0;
+            height = 0;
+          }
+          if (this.imageObj.width > this.imageObj.height) {
+            ratio = this.imageObj.width / this.imageObj.height;
+            width = this.options.size * 2 * ratio || this.imageObj.width;
+            height = this.options.size * 2 || this.imageObj.height;
+          } else {
+            if (this.imageObj.width && this.imageObj.height) {
+              // not undefined or 0
+              ratio = this.imageObj.height / this.imageObj.width;
+            } else {
+              ratio = 1;
+            }
+            width = this.options.size * 2 || this.imageObj.width;
+            height = this.options.size * 2 * ratio || this.imageObj.height;
+          }
+          this.width = width;
+          this.height = height;
+          this.radius = 0.5 * this.width;
+        }
+      }
+    }, {
+      key: '_drawRawCircle',
+      value: function _drawRawCircle(ctx, x, y, selected, hover, size) {
+        var borderWidth = this.options.borderWidth;
+        var selectionLineWidth = this.options.borderWidthSelected || 2 * this.options.borderWidth;
+
+        ctx.strokeStyle = selected ? this.options.color.highlight.border : hover ? this.options.color.hover.border : this.options.color.border;
+
+        ctx.lineWidth = selected ? selectionLineWidth : borderWidth;
+        ctx.lineWidth *= this.networkScaleInv;
+        ctx.lineWidth = Math.min(this.width, ctx.lineWidth);
+
+        ctx.fillStyle = selected ? this.options.color.highlight.background : hover ? this.options.color.hover.background : this.options.color.background;
+        ctx.circle(x, y, size);
+
+        // draw shadow if enabled
+        this.enableShadow(ctx);
+        ctx.fill();
+
+        // disable shadows for other elements.
+        this.disableShadow(ctx);
+
+        ctx.stroke();
+      }
+    }, {
+      key: '_drawImageAtPosition',
+      value: function _drawImageAtPosition(ctx) {
+        console.log(this.options.label, this.imageObj.width);
+        if (this.imageObj.width != 0) {
+          // draw the image
+          ctx.globalAlpha = 1;
+
+          // draw shadow if enabled
+          this.enableShadow(ctx);
+          ctx.drawImage(this.imageObj, this.left, this.top, this.width, this.height);
+
+          // disable shadows for other elements.
+          this.disableShadow(ctx);
+        }
+      }
+    }, {
+      key: '_drawImageLabel',
+      value: function _drawImageLabel(ctx, x, y, selected) {
+        var yLabel;
+        var offset = 0;
+
+        if (this.height !== undefined) {
+          offset = this.height * 0.5;
+          var labelDimensions = this.labelModule.getTextSize(ctx);
+          if (labelDimensions.lineCount >= 1) {
+            offset += labelDimensions.height / 2;
+          }
+        }
+
+        yLabel = y + offset;
+
+        if (this.options.label) {
+          this.labelOffset = offset;
+        }
+        this.labelModule.draw(ctx, x, yLabel, selected, 'hanging');
+      }
+    }]);
+
+    return CircleImageBase;
+  })(_utilNodeBase2['default']);
+
+  exports['default'] = CircleImageBase;
+  module.exports = exports['default'];
+
+/***/ },
 /* 111 */
 /***/ function(module, exports, __webpack_require__) {
 
@@ -39898,7 +39941,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; }
 
-  var _utilNodeBase = __webpack_require__(110);
+  var _utilNodeBase = __webpack_require__(109);
 
   var _utilNodeBase2 = _interopRequireDefault(_utilNodeBase);
 
@@ -40156,6 +40199,14 @@ return /******/ (function(modules) { // webpackBootstrap
     }
 
     _createClass(EdgeBase, [{
+      key: 'connect',
+      value: function connect() {}
+    }, {
+      key: 'cleanup',
+      value: function cleanup() {
+        return false;
+      }
+    }, {
       key: 'setOptions',
       value: function setOptions(options) {
         this.options = options;
@@ -40183,7 +40234,7 @@ return /******/ (function(modules) { // webpackBootstrap
        */
       value: function drawLine(ctx, selected, hover) {
         // set style
-        ctx.strokeStyle = this.getColor(ctx);
+        ctx.strokeStyle = this.getColor(ctx, selected, hover);
         ctx.lineWidth = this.getLineWidth(selected, hover);
         var via = undefined;
         if (this.options.dashes !== false) {
@@ -40433,7 +40484,7 @@ return /******/ (function(modules) { // webpackBootstrap
       }
     }, {
       key: 'getColor',
-      value: function getColor(ctx) {
+      value: function getColor(ctx, selected, hover) {
         var colorOptions = this.options.color;
         if (colorOptions.inherit !== false) {
           // when this is a loop edge, just use the 'from' method
@@ -40480,9 +40531,9 @@ return /******/ (function(modules) { // webpackBootstrap
         // if color inherit is on and gradients are used, the function has already returned by now.
         this.colorDirty = false;
 
-        if (this.selected === true) {
+        if (selected === true) {
           return this.color.highlight;
-        } else if (this.hover === true) {
+        } else if (hover === true) {
           return this.color.hover;
         } else {
           return this.color.color;
@@ -40589,7 +40640,7 @@ return /******/ (function(modules) { // webpackBootstrap
        */
       value: function drawArrowHead(ctx, position, viaNode, selected, hover) {
         // set style
-        ctx.strokeStyle = this.getColor(ctx);
+        ctx.strokeStyle = this.getColor(ctx, selected, hover);
         ctx.fillStyle = ctx.strokeStyle;
         ctx.lineWidth = this.getLineWidth(selected, hover);
 
