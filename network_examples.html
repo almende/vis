@@ -38,15 +38,21 @@
             margin-top:-3083px;
             width: 100%;
             z-index:2;
+
         }
     </style>
 
     <script>
         var network;
-        function loadVis() {
-            var exampleContainer = document.getElementById('contentContainer');
+        var connectedNodes = [];
+        var largeNode = undefined;
+        var NORMAL_SIZE = 60;
+        var LARGE_SIZE = 80;
 
-            var links = exampleContainer.getElementsByTagName('a');
+        function loadVis() {
+            var linksContainer = document.getElementById('contentContainer');
+
+            var links = linksContainer.getElementsByTagName('a');
             var nodesArray = [];
             var edgesArray = [];
             var idCounter = 0;
@@ -68,7 +74,7 @@
                             border:'rgba(70,158,255,0)'
                         },
                         shape:'dot',
-                        size:10,
+                        size:2,
                         fixed:true
                     });
                     nodesArray.push({id:idCounter + "image",
@@ -85,9 +91,9 @@
                         },
                         shape:'image',
                         image:'./images/exampleScreenshots/network/'+(idCounter+1)+'.png',
-                        size:60
+                        size:NORMAL_SIZE
                     });
-                    edgesArray.push({from: idCounter, to: idCounter+"image"});
+                    edgesArray.push({from: idCounter, to: idCounter+"image", arrows:'from'});
                     idCounter += 1;
                 }
             }
@@ -121,16 +127,43 @@
             var rect = networkContainer.getBoundingClientRect();
             var width = rect.right - rect.left;
             var height = rect.bottom - rect.top;
-            var ydiff = exampleContainer.offsetTop - networkContainer.offsetTop;
+            var ydiff = linksContainer.offsetTop - networkContainer.offsetTop;
             network.moveTo({
                 scale: 1,
                 position: network.getPositions([0])[0],
                 offset: {
-                    x: -0.5 * width + firstLinkPos.x + firstLinkWidth,
+                    x: -0.5 * width  + firstLinkPos.x + firstLinkWidth,
                     y: -0.5 * height + firstLinkPos.y + ydiff + 0.5 * firstLinkHeight
                 },
                 animation: false
             });
+
+            linksContainer.onclick = function (event) {
+                var nodeUnderCursor = network.getNodeAt({x:event.layerX, y:event.layerY+ydiff});
+                if (connectedNodes.length > 0) {
+                    nodes.update([{id: connectedNodes[0], color: {border: 'rgba(70,158,255,0)'}}])
+                    connectedNodes = []
+                }
+
+                if (largeNode !== undefined) {
+                    nodes.update([{id: largeNode, size:NORMAL_SIZE}]);
+                    largeNode = undefined;
+                }
+
+
+                if (nodeUnderCursor !== undefined) {
+                    connectedNodes = network.getConnectedNodes(nodeUnderCursor);
+                    largeNode = nodeUnderCursor;
+                    nodes.update([{id:connectedNodes[0], color:{border:'rgba(70,158,255,1)'}}]);
+                    nodes.update([{id:largeNode, size:LARGE_SIZE}]);
+                    largeNode = nodeUnderCursor;
+                    network.selectNodes([nodeUnderCursor]);
+                }
+                else {
+                    network.unselectAll();
+
+                }
+            }
         }
     </script>
 
