@@ -11,6 +11,7 @@ http://visjs.org
 - Fixed dynamic edges not correctly handling non-existent nodes.
 - Accepted pull from @killerDJO for fixing selected and hover colors for edges.
 - Fixed bug with rightmouse button, scroll center and popup positions using the wrong coordinates.
+- Fixed bug with the moveTo and getViewPosition methods.
 
 ### Graph2d & Timeline
 
