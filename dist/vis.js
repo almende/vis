@@ -117,7 +117,7 @@ return /******/ (function(modules) { // webpackBootstrap
       items: {
         Item: __webpack_require__(7),
         BackgroundItem: __webpack_require__(44),
-        BoxItem: __webpack_require__(3),
+        BoxItem: __webpack_require__(4),
         PointItem: __webpack_require__(43),
         RangeItem: __webpack_require__(40)
       },
@@ -137,9 +137,9 @@ return /******/ (function(modules) { // webpackBootstrap
   };
 
   // Network
-  exports.Network = __webpack_require__(2);
+  exports.Network = __webpack_require__(6);
   exports.network = {
-    Images: __webpack_require__(5),
+    Images: __webpack_require__(3),
     dotparser: __webpack_require__(111),
     gephiParser: __webpack_require__(112)
   };
@@ -175,6 +175,968 @@ return /******/ (function(modules) { // webpackBootstrap
 
 /***/ },
 /* 2 */
+/***/ function(module, exports, __webpack_require__) {
+
+  'use strict';
+
+  Object.defineProperty(exports, '__esModule', {
+    value: true
+  });
+
+  var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
+
+  function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
+
+  function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
+
+  var _sharedLabel = __webpack_require__(65);
+
+  var _sharedLabel2 = _interopRequireDefault(_sharedLabel);
+
+  var _nodesShapesBox = __webpack_require__(66);
+
+  var _nodesShapesBox2 = _interopRequireDefault(_nodesShapesBox);
+
+  var _nodesShapesCircle = __webpack_require__(68);
+
+  var _nodesShapesCircle2 = _interopRequireDefault(_nodesShapesCircle);
+
+  var _nodesShapesCircularImage = __webpack_require__(69);
+
+  var _nodesShapesCircularImage2 = _interopRequireDefault(_nodesShapesCircularImage);
+
+  var _nodesShapesDatabase = __webpack_require__(70);
+
+  var _nodesShapesDatabase2 = _interopRequireDefault(_nodesShapesDatabase);
+
+  var _nodesShapesDiamond = __webpack_require__(71);
+
+  var _nodesShapesDiamond2 = _interopRequireDefault(_nodesShapesDiamond);
+
+  var _nodesShapesDot = __webpack_require__(73);
+
+  var _nodesShapesDot2 = _interopRequireDefault(_nodesShapesDot);
+
+  var _nodesShapesEllipse = __webpack_require__(74);
+
+  var _nodesShapesEllipse2 = _interopRequireDefault(_nodesShapesEllipse);
+
+  var _nodesShapesIcon = __webpack_require__(75);
+
+  var _nodesShapesIcon2 = _interopRequireDefault(_nodesShapesIcon);
+
+  var _nodesShapesImage = __webpack_require__(76);
+
+  var _nodesShapesImage2 = _interopRequireDefault(_nodesShapesImage);
+
+  var _nodesShapesSquare = __webpack_require__(77);
+
+  var _nodesShapesSquare2 = _interopRequireDefault(_nodesShapesSquare);
+
+  var _nodesShapesStar = __webpack_require__(78);
+
+  var _nodesShapesStar2 = _interopRequireDefault(_nodesShapesStar);
+
+  var _nodesShapesText = __webpack_require__(79);
+
+  var _nodesShapesText2 = _interopRequireDefault(_nodesShapesText);
+
+  var _nodesShapesTriangle = __webpack_require__(80);
+
+  var _nodesShapesTriangle2 = _interopRequireDefault(_nodesShapesTriangle);
+
+  var _nodesShapesTriangleDown = __webpack_require__(81);
+
+  var _nodesShapesTriangleDown2 = _interopRequireDefault(_nodesShapesTriangleDown);
+
+  var _sharedValidator = __webpack_require__(51);
+
+  var _sharedValidator2 = _interopRequireDefault(_sharedValidator);
+
+  var util = __webpack_require__(12);
+
+  /**
+   * @class Node
+   * A node. A node can be connected to other nodes via one or multiple edges.
+   * @param {object} options An object containing options for the node. All
+   *                            options are optional, except for the id.
+   *                              {number} id     Id of the node. Required
+   *                              {string} label  Text label for the node
+   *                              {number} x      Horizontal position of the node
+   *                              {number} y      Vertical position of the node
+   *                              {string} shape  Node shape, available:
+   *                                              "database", "circle", "ellipse",
+   *                                              "box", "image", "text", "dot",
+   *                                              "star", "triangle", "triangleDown",
+   *                                              "square", "icon"
+   *                              {string} image  An image url
+   *                              {string} title  An title text, can be HTML
+   *                              {anytype} group A group name or number
+   * @param {Network.Images} imagelist    A list with images. Only needed
+   *                                            when the node has an image
+   * @param {Network.Groups} grouplist    A list with groups. Needed for
+   *                                            retrieving group options
+   * @param {Object}               constants    An object with default values for
+   *                                            example for the color
+   *
+   */
+
+  var Node = (function () {
+    function Node(options, body, imagelist, grouplist, globalOptions) {
+      _classCallCheck(this, Node);
+
+      this.options = util.bridgeObject(globalOptions);
+      this.body = body;
+
+      this.edges = []; // all edges connected to this node
+
+      // set defaults for the options
+      this.id = undefined;
+      this.imagelist = imagelist;
+      this.grouplist = grouplist;
+
+      // state options
+      this.x = undefined;
+      this.y = undefined;
+      this.baseSize = this.options.size;
+      this.baseFontSize = this.options.font.size;
+      this.predefinedPosition = false; // used to check if initial fit should just take the range or approximate
+      this.selected = false;
+      this.hover = false;
+
+      this.labelModule = new _sharedLabel2['default'](this.body, this.options);
+      this.setOptions(options);
+    }
+
+    _createClass(Node, [{
+      key: 'attachEdge',
+
+      /**
+       * Attach a edge to the node
+       * @param {Edge} edge
+       */
+      value: function attachEdge(edge) {
+        if (this.edges.indexOf(edge) === -1) {
+          this.edges.push(edge);
+        }
+      }
+    }, {
+      key: 'detachEdge',
+
+      /**
+       * Detach a edge from the node
+       * @param {Edge} edge
+       */
+      value: function detachEdge(edge) {
+        var index = this.edges.indexOf(edge);
+        if (index != -1) {
+          this.edges.splice(index, 1);
+        }
+      }
+    }, {
+      key: 'togglePhysics',
+
+      /**
+       * Enable or disable the physics.
+       * @param status
+       */
+      value: function togglePhysics(status) {
+        this.options.physics = status;
+      }
+    }, {
+      key: 'setOptions',
+
+      /**
+       * Set or overwrite options for the node
+       * @param {Object} options an object with options
+       * @param {Object} constants  and object with default, global options
+       */
+      value: function setOptions(options) {
+        if (!options) {
+          return;
+        }
+        // basic options
+        if (options.id !== undefined) {
+          this.id = options.id;
+        }
+
+        if (this.id === undefined) {
+          throw 'Node must have an id';
+        }
+
+        // set these options locally
+        if (options.x !== undefined) {
+          this.x = parseInt(options.x);this.predefinedPosition = true;
+        }
+        if (options.y !== undefined) {
+          this.y = parseInt(options.y);this.predefinedPosition = true;
+        }
+        if (options.size !== undefined) {
+          this.baseSize = options.size;
+        }
+        if (options.value !== undefined) {
+          options.value = parseInt(options.value);
+        }
+
+        // copy group options
+        if (typeof options.group === 'number' || typeof options.group === 'string' && options.group != '') {
+          var groupObj = this.grouplist.get(options.group);
+          util.deepExtend(this.options, groupObj);
+          // the color object needs to be completely defined. Since groups can partially overwrite the colors, we parse it again, just in case.
+          this.options.color = util.parseColor(this.options.color);
+        }
+
+        // this transforms all shorthands into fully defined options
+        Node.parseOptions(this.options, options, true);
+
+        // load the images
+        if (this.options.image !== undefined && this.options.image != '') {
+          if (this.imagelist) {
+            this.imageObj = this.imagelist.load(this.options.image, this.options.brokenImage, this.id);
+          } else {
+            throw 'No imagelist provided';
+          }
+        }
+
+        this.updateShape();
+        this.updateLabelModule();
+
+        // reset the size of the node, this can be changed
+        this._reset();
+      }
+    }, {
+      key: 'updateLabelModule',
+      value: function updateLabelModule() {
+        if (this.options.label === undefined || this.options.label === null) {
+          this.options.label = '';
+        }
+        this.labelModule.setOptions(this.options, true);
+        if (this.labelModule.baseSize !== undefined) {
+          this.baseFontSize = this.labelModule.baseSize;
+        }
+      }
+    }, {
+      key: 'updateShape',
+      value: function updateShape() {
+        // choose draw method depending on the shape
+        switch (this.options.shape) {
+          case 'box':
+            this.shape = new _nodesShapesBox2['default'](this.options, this.body, this.labelModule);
+            break;
+          case 'circle':
+            this.shape = new _nodesShapesCircle2['default'](this.options, this.body, this.labelModule);
+            break;
+          case 'circularImage':
+            this.shape = new _nodesShapesCircularImage2['default'](this.options, this.body, this.labelModule, this.imageObj);
+            break;
+          case 'database':
+            this.shape = new _nodesShapesDatabase2['default'](this.options, this.body, this.labelModule);
+            break;
+          case 'diamond':
+            this.shape = new _nodesShapesDiamond2['default'](this.options, this.body, this.labelModule);
+            break;
+          case 'dot':
+            this.shape = new _nodesShapesDot2['default'](this.options, this.body, this.labelModule);
+            break;
+          case 'ellipse':
+            this.shape = new _nodesShapesEllipse2['default'](this.options, this.body, this.labelModule);
+            break;
+          case 'icon':
+            this.shape = new _nodesShapesIcon2['default'](this.options, this.body, this.labelModule);
+            break;
+          case 'image':
+            this.shape = new _nodesShapesImage2['default'](this.options, this.body, this.labelModule, this.imageObj);
+            break;
+          case 'square':
+            this.shape = new _nodesShapesSquare2['default'](this.options, this.body, this.labelModule);
+            break;
+          case 'star':
+            this.shape = new _nodesShapesStar2['default'](this.options, this.body, this.labelModule);
+            break;
+          case 'text':
+            this.shape = new _nodesShapesText2['default'](this.options, this.body, this.labelModule);
+            break;
+          case 'triangle':
+            this.shape = new _nodesShapesTriangle2['default'](this.options, this.body, this.labelModule);
+            break;
+          case 'triangleDown':
+            this.shape = new _nodesShapesTriangleDown2['default'](this.options, this.body, this.labelModule);
+            break;
+          default:
+            this.shape = new _nodesShapesEllipse2['default'](this.options, this.body, this.labelModule);
+            break;
+        }
+        this._reset();
+      }
+    }, {
+      key: 'select',
+
+      /**
+       * select this node
+       */
+      value: function select() {
+        this.selected = true;
+        this._reset();
+      }
+    }, {
+      key: 'unselect',
+
+      /**
+       * unselect this node
+       */
+      value: function unselect() {
+        this.selected = false;
+        this._reset();
+      }
+    }, {
+      key: '_reset',
+
+      /**
+       * Reset the calculated size of the node, forces it to recalculate its size
+       * @private
+       */
+      value: function _reset() {
+        this.shape.width = undefined;
+        this.shape.height = undefined;
+      }
+    }, {
+      key: 'getTitle',
+
+      /**
+       * get the title of this node.
+       * @return {string} title    The title of the node, or undefined when no title
+       *                           has been set.
+       */
+      value: function getTitle() {
+        return this.options.title;
+      }
+    }, {
+      key: 'distanceToBorder',
+
+      /**
+       * Calculate the distance to the border of the Node
+       * @param {CanvasRenderingContext2D}   ctx
+       * @param {Number} angle        Angle in radians
+       * @returns {number} distance   Distance to the border in pixels
+       */
+      value: function distanceToBorder(ctx, angle) {
+        return this.shape.distanceToBorder(ctx, angle);
+      }
+    }, {
+      key: 'isFixed',
+
+      /**
+       * Check if this node has a fixed x and y position
+       * @return {boolean}      true if fixed, false if not
+       */
+      value: function isFixed() {
+        return this.options.fixed.x && this.options.fixed.y;
+      }
+    }, {
+      key: 'isSelected',
+
+      /**
+       * check if this node is selecte
+       * @return {boolean} selected   True if node is selected, else false
+       */
+      value: function isSelected() {
+        return this.selected;
+      }
+    }, {
+      key: 'getValue',
+
+      /**
+       * Retrieve the value of the node. Can be undefined
+       * @return {Number} value
+       */
+      value: function getValue() {
+        return this.options.value;
+      }
+    }, {
+      key: 'setValueRange',
+
+      /**
+       * Adjust the value range of the node. The node will adjust it's size
+       * based on its value.
+       * @param {Number} min
+       * @param {Number} max
+       */
+      value: function setValueRange(min, max, total) {
+        if (this.options.value !== undefined) {
+          var scale = this.options.scaling.customScalingFunction(min, max, total, this.options.value);
+          var sizeDiff = this.options.scaling.max - this.options.scaling.min;
+          if (this.options.scaling.label.enabled === true) {
+            var fontDiff = this.options.scaling.label.max - this.options.scaling.label.min;
+            this.options.font.size = this.options.scaling.label.min + scale * fontDiff;
+          }
+          this.options.size = this.options.scaling.min + scale * sizeDiff;
+        } else {
+          this.options.size = this.baseSize;
+          this.options.font.size = this.baseFontSize;
+        }
+      }
+    }, {
+      key: 'draw',
+
+      /**
+       * Draw this node in the given canvas
+       * The 2d context of a HTML canvas can be retrieved by canvas.getContext("2d");
+       * @param {CanvasRenderingContext2D}   ctx
+       */
+      value: function draw(ctx) {
+        this.shape.draw(ctx, this.x, this.y, this.selected, this.hover);
+      }
+    }, {
+      key: 'updateBoundingBox',
+
+      /**
+       * Update the bounding box of the shape
+       */
+      value: function updateBoundingBox() {
+        this.shape.updateBoundingBox(this.x, this.y);
+      }
+    }, {
+      key: 'resize',
+
+      /**
+       * Recalculate the size of this node in the given canvas
+       * The 2d context of a HTML canvas can be retrieved by canvas.getContext("2d");
+       * @param {CanvasRenderingContext2D}   ctx
+       */
+      value: function resize(ctx) {
+        this.shape.resize(ctx);
+      }
+    }, {
+      key: 'isOverlappingWith',
+
+      /**
+       * Check if this object is overlapping with the provided object
+       * @param {Object} obj   an object with parameters left, top, right, bottom
+       * @return {boolean}     True if location is located on node
+       */
+      value: function isOverlappingWith(obj) {
+        return this.shape.left < obj.right && this.shape.left + this.shape.width > obj.left && this.shape.top < obj.bottom && this.shape.top + this.shape.height > obj.top;
+      }
+    }, {
+      key: 'isBoundingBoxOverlappingWith',
+
+      /**
+       * Check if this object is overlapping with the provided object
+       * @param {Object} obj   an object with parameters left, top, right, bottom
+       * @return {boolean}     True if location is located on node
+       */
+      value: function isBoundingBoxOverlappingWith(obj) {
+        return this.shape.boundingBox.left < obj.right && this.shape.boundingBox.right > obj.left && this.shape.boundingBox.top < obj.bottom && this.shape.boundingBox.bottom > obj.top;
+      }
+    }], [{
+      key: 'parseOptions',
+
+      /**
+       * This process all possible shorthands in the new options and makes sure that the parentOptions are fully defined.
+       * Static so it can also be used by the handler.
+       * @param parentOptions
+       * @param newOptions
+       */
+      value: function parseOptions(parentOptions, newOptions) {
+        var allowDeletion = arguments[2] === undefined ? false : arguments[2];
+
+        var fields = ['color', 'font', 'fixed', 'shadow'];
+        util.selectiveNotDeepExtend(fields, parentOptions, newOptions, allowDeletion);
+
+        // merge the shadow options into the parent.
+        util.mergeOptions(parentOptions, newOptions, 'shadow');
+
+        // individual shape newOptions
+        if (newOptions.color !== undefined && newOptions.color !== null) {
+          var parsedColor = util.parseColor(newOptions.color);
+          util.fillIfDefined(parentOptions.color, parsedColor);
+        } else if (allowDeletion === true && newOptions.color === null) {
+          parentOptions.color = undefined;
+          delete parentOptions.color;
+        }
+
+        // handle the fixed options
+        if (newOptions.fixed !== undefined && newOptions.fixed !== null) {
+          if (typeof newOptions.fixed === 'boolean') {
+            parentOptions.fixed.x = newOptions.fixed;
+            parentOptions.fixed.y = newOptions.fixed;
+          } else {
+            if (newOptions.fixed.x !== undefined && typeof newOptions.fixed.x === 'boolean') {
+              parentOptions.fixed.x = newOptions.fixed.x;
+            }
+            if (newOptions.fixed.y !== undefined && typeof newOptions.fixed.y === 'boolean') {
+              parentOptions.fixed.y = newOptions.fixed.y;
+            }
+          }
+        }
+
+        // handle the font options
+        if (newOptions.font !== undefined) {
+          _sharedLabel2['default'].parseOptions(parentOptions.font, newOptions);
+        }
+
+        // handle the scaling options, specifically the label part
+        if (newOptions.scaling !== undefined) {
+          util.mergeOptions(parentOptions.scaling, newOptions.scaling, 'label');
+        }
+      }
+    }]);
+
+    return Node;
+  })();
+
+  exports['default'] = Node;
+  module.exports = exports['default'];
+
+/***/ },
+/* 3 */
+/***/ function(module, exports, __webpack_require__) {
+
+  /**
+   * @class Images
+   * This class loads images and keeps them stored.
+   */
+  "use strict";
+
+  function Images(callback) {
+    this.images = {};
+    this.imageBroken = {};
+    this.callback = callback;
+  }
+
+  /**
+   *
+   * @param {string} url          Url of the image
+   * @param {string} url          Url of an image to use if the url image is not found
+   * @return {Image} img          The image object
+   */
+  Images.prototype.load = function (url, brokenUrl, id) {
+    var img = this.images[url]; // make a pointer
+    if (img === undefined) {
+      // create the image
+      var me = this;
+      img = new Image();
+      img.onload = function () {
+        // IE11 fix -- thanks dponch!
+        if (this.width === 0) {
+          document.body.appendChild(this);
+          this.width = this.offsetWidth;
+          this.height = this.offsetHeight;
+          document.body.removeChild(this);
+        }
+
+        if (me.callback) {
+          me.images[url] = img;
+          me.callback(this);
+        }
+      };
+
+      img.onerror = function () {
+        if (brokenUrl === undefined) {
+          console.error("Could not load image:", url);
+          delete this.src;
+          if (me.callback) {
+            me.callback(this);
+          }
+        } else {
+          if (me.imageBroken[id] && me.imageBroken[id][url] === true) {
+            console.error("Could not load brokenImage:", brokenUrl);
+            delete this.src;
+            if (me.callback) {
+              me.callback(this);
+            }
+          } else {
+            console.error("Could not load image:", url);
+            this.src = brokenUrl;
+            if (me.imageBroken[id] === undefined) {
+              me.imageBroken[id] = {};
+            }
+            me.imageBroken[id][url] = true;
+          }
+        }
+      };
+
+      img.src = url;
+    }
+
+    return img;
+  };
+
+  module.exports = Images;
+
+/***/ },
+/* 4 */
+/***/ function(module, exports, __webpack_require__) {
+
+  'use strict';
+
+  var Item = __webpack_require__(7);
+  var util = __webpack_require__(12);
+
+  /**
+   * @constructor BoxItem
+   * @extends Item
+   * @param {Object} data             Object containing parameters start
+   *                                  content, className.
+   * @param {{toScreen: function, toTime: function}} conversion
+   *                                  Conversion functions from time to screen and vice versa
+   * @param {Object} [options]        Configuration options
+   *                                  // TODO: describe available options
+   */
+  function BoxItem(data, conversion, options) {
+    this.props = {
+      dot: {
+        width: 0,
+        height: 0
+      },
+      line: {
+        width: 0,
+        height: 0
+      }
+    };
+
+    // validate data
+    if (data) {
+      if (data.start == undefined) {
+        throw new Error('Property "start" missing in item ' + data);
+      }
+    }
+
+    Item.call(this, data, conversion, options);
+  }
+
+  BoxItem.prototype = new Item(null, null, null);
+
+  /**
+   * Check whether this item is visible inside given range
+   * @returns {{start: Number, end: Number}} range with a timestamp for start and end
+   * @returns {boolean} True if visible
+   */
+  BoxItem.prototype.isVisible = function (range) {
+    // determine visibility
+    // TODO: account for the real width of the item. Right now we just add 1/4 to the window
+    var interval = (range.end - range.start) / 4;
+    return this.data.start > range.start - interval && this.data.start < range.end + interval;
+  };
+
+  /**
+   * Repaint the item
+   */
+  BoxItem.prototype.redraw = function () {
+    var dom = this.dom;
+    if (!dom) {
+      // create DOM
+      this.dom = {};
+      dom = this.dom;
+
+      // create main box
+      dom.box = document.createElement('DIV');
+
+      // contents box (inside the background box). used for making margins
+      dom.content = document.createElement('DIV');
+      dom.content.className = 'vis-item-content';
+      dom.box.appendChild(dom.content);
+
+      // line to axis
+      dom.line = document.createElement('DIV');
+      dom.line.className = 'vis-line';
+
+      // dot on axis
+      dom.dot = document.createElement('DIV');
+      dom.dot.className = 'vis-dot';
+
+      // attach this item as attribute
+      dom.box['timeline-item'] = this;
+
+      this.dirty = true;
+    }
+
+    // append DOM to parent DOM
+    if (!this.parent) {
+      throw new Error('Cannot redraw item: no parent attached');
+    }
+    if (!dom.box.parentNode) {
+      var foreground = this.parent.dom.foreground;
+      if (!foreground) throw new Error('Cannot redraw item: parent has no foreground container element');
+      foreground.appendChild(dom.box);
+    }
+    if (!dom.line.parentNode) {
+      var background = this.parent.dom.background;
+      if (!background) throw new Error('Cannot redraw item: parent has no background container element');
+      background.appendChild(dom.line);
+    }
+    if (!dom.dot.parentNode) {
+      var axis = this.parent.dom.axis;
+      if (!background) throw new Error('Cannot redraw item: parent has no axis container element');
+      axis.appendChild(dom.dot);
+    }
+    this.displayed = true;
+
+    // Update DOM when item is marked dirty. An item is marked dirty when:
+    // - the item is not yet rendered
+    // - the item's data is changed
+    // - the item is selected/deselected
+    if (this.dirty) {
+      this._updateContents(this.dom.content);
+      this._updateTitle(this.dom.box);
+      this._updateDataAttributes(this.dom.box);
+      this._updateStyle(this.dom.box);
+
+      // update class
+      var className = (this.data.className ? ' ' + this.data.className : '') + (this.selected ? ' vis-selected' : '');
+      dom.box.className = 'vis-item vis-box' + className;
+      dom.line.className = 'vis-item vis-line' + className;
+      dom.dot.className = 'vis-item vis-dot' + className;
+
+      // recalculate size
+      this.props.dot.height = dom.dot.offsetHeight;
+      this.props.dot.width = dom.dot.offsetWidth;
+      this.props.line.width = dom.line.offsetWidth;
+      this.width = dom.box.offsetWidth;
+      this.height = dom.box.offsetHeight;
+
+      this.dirty = false;
+    }
+
+    this._repaintDeleteButton(dom.box);
+  };
+
+  /**
+   * Show the item in the DOM (when not already displayed). The items DOM will
+   * be created when needed.
+   */
+  BoxItem.prototype.show = function () {
+    if (!this.displayed) {
+      this.redraw();
+    }
+  };
+
+  /**
+   * Hide the item from the DOM (when visible)
+   */
+  BoxItem.prototype.hide = function () {
+    if (this.displayed) {
+      var dom = this.dom;
+
+      if (dom.box.parentNode) dom.box.parentNode.removeChild(dom.box);
+      if (dom.line.parentNode) dom.line.parentNode.removeChild(dom.line);
+      if (dom.dot.parentNode) dom.dot.parentNode.removeChild(dom.dot);
+
+      this.displayed = false;
+    }
+  };
+
+  /**
+   * Reposition the item horizontally
+   * @Override
+   */
+  BoxItem.prototype.repositionX = function () {
+    var start = this.conversion.toScreen(this.data.start);
+    var align = this.options.align;
+    var left;
+
+    // calculate left position of the box
+    if (align == 'right') {
+      this.left = start - this.width;
+    } else if (align == 'left') {
+      this.left = start;
+    } else {
+      // default or 'center'
+      this.left = start - this.width / 2;
+    }
+
+    // reposition box
+    this.dom.box.style.left = this.left + 'px';
+
+    // reposition line
+    this.dom.line.style.left = start - this.props.line.width / 2 + 'px';
+
+    // reposition dot
+    this.dom.dot.style.left = start - this.props.dot.width / 2 + 'px';
+  };
+
+  /**
+   * Reposition the item vertically
+   * @Override
+   */
+  BoxItem.prototype.repositionY = function () {
+    var orientation = this.options.orientation.item;
+    var box = this.dom.box;
+    var line = this.dom.line;
+    var dot = this.dom.dot;
+
+    if (orientation == 'top') {
+      box.style.top = (this.top || 0) + 'px';
+
+      line.style.top = '0';
+      line.style.height = this.parent.top + this.top + 1 + 'px';
+      line.style.bottom = '';
+    } else {
+      // orientation 'bottom'
+      var itemSetHeight = this.parent.itemSet.props.height; // TODO: this is nasty
+      var lineHeight = itemSetHeight - this.parent.top - this.parent.height + this.top;
+
+      box.style.top = (this.parent.height - this.top - this.height || 0) + 'px';
+      line.style.top = itemSetHeight - lineHeight + 'px';
+      line.style.bottom = '0';
+    }
+
+    dot.style.top = -this.props.dot.height / 2 + 'px';
+  };
+
+  module.exports = BoxItem;
+
+/***/ },
+/* 5 */
+/***/ function(module, exports, __webpack_require__) {
+
+  'use strict';
+
+  Object.defineProperty(exports, '__esModule', {
+    value: true
+  });
+
+  var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
+
+  var _get = function get(_x, _x2, _x3) { var _again = true; _function: while (_again) { var object = _x, property = _x2, receiver = _x3; desc = parent = getter = undefined; _again = false; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { _x = parent; _x2 = property; _x3 = receiver; _again = true; continue _function; } } else if ('value' in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } } };
+
+  function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
+
+  function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
+
+  function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; }
+
+  var _utilNodeBase = __webpack_require__(67);
+
+  var _utilNodeBase2 = _interopRequireDefault(_utilNodeBase);
+
+  var CircleImageBase = (function (_NodeBase) {
+    function CircleImageBase(options, body, labelModule) {
+      _classCallCheck(this, CircleImageBase);
+
+      _get(Object.getPrototypeOf(CircleImageBase.prototype), 'constructor', this).call(this, options, body, labelModule);
+      this.labelOffset = 0;
+      this.imageLoaded = false;
+    }
+
+    _inherits(CircleImageBase, _NodeBase);
+
+    _createClass(CircleImageBase, [{
+      key: '_resizeImage',
+
+      /**
+       * This function resizes the image by the options size when the image has not yet loaded. If the image has loaded, we
+       * force the update of the size again.
+       *
+       * @private
+       */
+      value: function _resizeImage() {
+        var force = false;
+        if (!this.imageObj.width || !this.imageObj.height) {
+          // undefined or 0
+          this.imageLoaded = false;
+        } else if (this.imageLoaded === false) {
+          this.imageLoaded = true;
+          force = true;
+        }
+
+        if (!this.width || !this.height || force === true) {
+          // undefined or 0
+          var width, height, ratio;
+          if (this.imageObj.width && this.imageObj.height) {
+            // not undefined or 0
+            width = 0;
+            height = 0;
+          }
+          if (this.imageObj.width > this.imageObj.height) {
+            ratio = this.imageObj.width / this.imageObj.height;
+            width = this.options.size * 2 * ratio || this.imageObj.width;
+            height = this.options.size * 2 || this.imageObj.height;
+          } else {
+            if (this.imageObj.width && this.imageObj.height) {
+              // not undefined or 0
+              ratio = this.imageObj.height / this.imageObj.width;
+            } else {
+              ratio = 1;
+            }
+            width = this.options.size * 2 || this.imageObj.width;
+            height = this.options.size * 2 * ratio || this.imageObj.height;
+          }
+          this.width = width;
+          this.height = height;
+          this.radius = 0.5 * this.width;
+        }
+      }
+    }, {
+      key: '_drawRawCircle',
+      value: function _drawRawCircle(ctx, x, y, selected, hover, size) {
+        var borderWidth = this.options.borderWidth;
+        var selectionLineWidth = this.options.borderWidthSelected || 2 * this.options.borderWidth;
+
+        ctx.strokeStyle = selected ? this.options.color.highlight.border : hover ? this.options.color.hover.border : this.options.color.border;
+
+        ctx.lineWidth = selected ? selectionLineWidth : borderWidth;
+        ctx.lineWidth *= this.networkScaleInv;
+        ctx.lineWidth = Math.min(this.width, ctx.lineWidth);
+
+        ctx.fillStyle = selected ? this.options.color.highlight.background : hover ? this.options.color.hover.background : this.options.color.background;
+        ctx.circle(x, y, size);
+
+        // draw shadow if enabled
+        this.enableShadow(ctx);
+        ctx.fill();
+
+        // disable shadows for other elements.
+        this.disableShadow(ctx);
+
+        ctx.stroke();
+      }
+    }, {
+      key: '_drawImageAtPosition',
+      value: function _drawImageAtPosition(ctx) {
+        if (this.imageObj.width != 0) {
+          // draw the image
+          ctx.globalAlpha = 1;
+
+          // draw shadow if enabled
+          this.enableShadow(ctx);
+          ctx.drawImage(this.imageObj, this.left, this.top, this.width, this.height);
+
+          // disable shadows for other elements.
+          this.disableShadow(ctx);
+        }
+      }
+    }, {
+      key: '_drawImageLabel',
+      value: function _drawImageLabel(ctx, x, y, selected) {
+        var yLabel;
+        var offset = 0;
+
+        if (this.height !== undefined) {
+          offset = this.height * 0.5;
+          var labelDimensions = this.labelModule.getTextSize(ctx);
+          if (labelDimensions.lineCount >= 1) {
+            offset += labelDimensions.height / 2;
+          }
+        }
+
+        yLabel = y + offset;
+
+        if (this.options.label) {
+          this.labelOffset = offset;
+        }
+        this.labelModule.draw(ctx, x, yLabel, selected, 'hanging');
+      }
+    }]);
+
+    return CircleImageBase;
+  })(_utilNodeBase2['default']);
+
+  exports['default'] = CircleImageBase;
+  module.exports = exports['default'];
+
+/***/ },
+/* 6 */
 /***/ function(module, exports, __webpack_require__) {
 
   // Load custom shapes into CanvasRenderingContext2D
@@ -249,7 +1211,7 @@ return /******/ (function(modules) { // webpackBootstrap
   var DataView = __webpack_require__(20);
   var dotparser = __webpack_require__(111);
   var gephiParser = __webpack_require__(112);
-  var Images = __webpack_require__(5);
+  var Images = __webpack_require__(3);
   var Activator = __webpack_require__(46);
   var locales = __webpack_require__(113);
 
@@ -778,969 +1740,6 @@ return /******/ (function(modules) { // webpackBootstrap
   };
 
   module.exports = Network;
-
-/***/ },
-/* 3 */
-/***/ function(module, exports, __webpack_require__) {
-
-  'use strict';
-
-  var Item = __webpack_require__(7);
-  var util = __webpack_require__(12);
-
-  /**
-   * @constructor BoxItem
-   * @extends Item
-   * @param {Object} data             Object containing parameters start
-   *                                  content, className.
-   * @param {{toScreen: function, toTime: function}} conversion
-   *                                  Conversion functions from time to screen and vice versa
-   * @param {Object} [options]        Configuration options
-   *                                  // TODO: describe available options
-   */
-  function BoxItem(data, conversion, options) {
-    this.props = {
-      dot: {
-        width: 0,
-        height: 0
-      },
-      line: {
-        width: 0,
-        height: 0
-      }
-    };
-
-    // validate data
-    if (data) {
-      if (data.start == undefined) {
-        throw new Error('Property "start" missing in item ' + data);
-      }
-    }
-
-    Item.call(this, data, conversion, options);
-  }
-
-  BoxItem.prototype = new Item(null, null, null);
-
-  /**
-   * Check whether this item is visible inside given range
-   * @returns {{start: Number, end: Number}} range with a timestamp for start and end
-   * @returns {boolean} True if visible
-   */
-  BoxItem.prototype.isVisible = function (range) {
-    // determine visibility
-    // TODO: account for the real width of the item. Right now we just add 1/4 to the window
-    var interval = (range.end - range.start) / 4;
-    return this.data.start > range.start - interval && this.data.start < range.end + interval;
-  };
-
-  /**
-   * Repaint the item
-   */
-  BoxItem.prototype.redraw = function () {
-    var dom = this.dom;
-    if (!dom) {
-      // create DOM
-      this.dom = {};
-      dom = this.dom;
-
-      // create main box
-      dom.box = document.createElement('DIV');
-
-      // contents box (inside the background box). used for making margins
-      dom.content = document.createElement('DIV');
-      dom.content.className = 'vis-item-content';
-      dom.box.appendChild(dom.content);
-
-      // line to axis
-      dom.line = document.createElement('DIV');
-      dom.line.className = 'vis-line';
-
-      // dot on axis
-      dom.dot = document.createElement('DIV');
-      dom.dot.className = 'vis-dot';
-
-      // attach this item as attribute
-      dom.box['timeline-item'] = this;
-
-      this.dirty = true;
-    }
-
-    // append DOM to parent DOM
-    if (!this.parent) {
-      throw new Error('Cannot redraw item: no parent attached');
-    }
-    if (!dom.box.parentNode) {
-      var foreground = this.parent.dom.foreground;
-      if (!foreground) throw new Error('Cannot redraw item: parent has no foreground container element');
-      foreground.appendChild(dom.box);
-    }
-    if (!dom.line.parentNode) {
-      var background = this.parent.dom.background;
-      if (!background) throw new Error('Cannot redraw item: parent has no background container element');
-      background.appendChild(dom.line);
-    }
-    if (!dom.dot.parentNode) {
-      var axis = this.parent.dom.axis;
-      if (!background) throw new Error('Cannot redraw item: parent has no axis container element');
-      axis.appendChild(dom.dot);
-    }
-    this.displayed = true;
-
-    // Update DOM when item is marked dirty. An item is marked dirty when:
-    // - the item is not yet rendered
-    // - the item's data is changed
-    // - the item is selected/deselected
-    if (this.dirty) {
-      this._updateContents(this.dom.content);
-      this._updateTitle(this.dom.box);
-      this._updateDataAttributes(this.dom.box);
-      this._updateStyle(this.dom.box);
-
-      // update class
-      var className = (this.data.className ? ' ' + this.data.className : '') + (this.selected ? ' vis-selected' : '');
-      dom.box.className = 'vis-item vis-box' + className;
-      dom.line.className = 'vis-item vis-line' + className;
-      dom.dot.className = 'vis-item vis-dot' + className;
-
-      // recalculate size
-      this.props.dot.height = dom.dot.offsetHeight;
-      this.props.dot.width = dom.dot.offsetWidth;
-      this.props.line.width = dom.line.offsetWidth;
-      this.width = dom.box.offsetWidth;
-      this.height = dom.box.offsetHeight;
-
-      this.dirty = false;
-    }
-
-    this._repaintDeleteButton(dom.box);
-  };
-
-  /**
-   * Show the item in the DOM (when not already displayed). The items DOM will
-   * be created when needed.
-   */
-  BoxItem.prototype.show = function () {
-    if (!this.displayed) {
-      this.redraw();
-    }
-  };
-
-  /**
-   * Hide the item from the DOM (when visible)
-   */
-  BoxItem.prototype.hide = function () {
-    if (this.displayed) {
-      var dom = this.dom;
-
-      if (dom.box.parentNode) dom.box.parentNode.removeChild(dom.box);
-      if (dom.line.parentNode) dom.line.parentNode.removeChild(dom.line);
-      if (dom.dot.parentNode) dom.dot.parentNode.removeChild(dom.dot);
-
-      this.displayed = false;
-    }
-  };
-
-  /**
-   * Reposition the item horizontally
-   * @Override
-   */
-  BoxItem.prototype.repositionX = function () {
-    var start = this.conversion.toScreen(this.data.start);
-    var align = this.options.align;
-    var left;
-
-    // calculate left position of the box
-    if (align == 'right') {
-      this.left = start - this.width;
-    } else if (align == 'left') {
-      this.left = start;
-    } else {
-      // default or 'center'
-      this.left = start - this.width / 2;
-    }
-
-    // reposition box
-    this.dom.box.style.left = this.left + 'px';
-
-    // reposition line
-    this.dom.line.style.left = start - this.props.line.width / 2 + 'px';
-
-    // reposition dot
-    this.dom.dot.style.left = start - this.props.dot.width / 2 + 'px';
-  };
-
-  /**
-   * Reposition the item vertically
-   * @Override
-   */
-  BoxItem.prototype.repositionY = function () {
-    var orientation = this.options.orientation.item;
-    var box = this.dom.box;
-    var line = this.dom.line;
-    var dot = this.dom.dot;
-
-    if (orientation == 'top') {
-      box.style.top = (this.top || 0) + 'px';
-
-      line.style.top = '0';
-      line.style.height = this.parent.top + this.top + 1 + 'px';
-      line.style.bottom = '';
-    } else {
-      // orientation 'bottom'
-      var itemSetHeight = this.parent.itemSet.props.height; // TODO: this is nasty
-      var lineHeight = itemSetHeight - this.parent.top - this.parent.height + this.top;
-
-      box.style.top = (this.parent.height - this.top - this.height || 0) + 'px';
-      line.style.top = itemSetHeight - lineHeight + 'px';
-      line.style.bottom = '0';
-    }
-
-    dot.style.top = -this.props.dot.height / 2 + 'px';
-  };
-
-  module.exports = BoxItem;
-
-/***/ },
-/* 4 */
-/***/ function(module, exports, __webpack_require__) {
-
-  'use strict';
-
-  Object.defineProperty(exports, '__esModule', {
-    value: true
-  });
-
-  var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
-
-  var _get = function get(_x, _x2, _x3) { var _again = true; _function: while (_again) { var object = _x, property = _x2, receiver = _x3; desc = parent = getter = undefined; _again = false; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { _x = parent; _x2 = property; _x3 = receiver; _again = true; continue _function; } } else if ('value' in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } } };
-
-  function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
-
-  function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
-
-  function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; }
-
-  var _utilNodeBase = __webpack_require__(67);
-
-  var _utilNodeBase2 = _interopRequireDefault(_utilNodeBase);
-
-  var CircleImageBase = (function (_NodeBase) {
-    function CircleImageBase(options, body, labelModule) {
-      _classCallCheck(this, CircleImageBase);
-
-      _get(Object.getPrototypeOf(CircleImageBase.prototype), 'constructor', this).call(this, options, body, labelModule);
-      this.labelOffset = 0;
-      this.imageLoaded = false;
-    }
-
-    _inherits(CircleImageBase, _NodeBase);
-
-    _createClass(CircleImageBase, [{
-      key: '_resizeImage',
-
-      /**
-       * This function resizes the image by the options size when the image has not yet loaded. If the image has loaded, we
-       * force the update of the size again.
-       *
-       * @private
-       */
-      value: function _resizeImage() {
-        var force = false;
-        if (!this.imageObj.width || !this.imageObj.height) {
-          // undefined or 0
-          this.imageLoaded = false;
-        } else if (this.imageLoaded === false) {
-          this.imageLoaded = true;
-          force = true;
-        }
-
-        if (!this.width || !this.height || force === true) {
-          // undefined or 0
-          var width, height, ratio;
-          if (this.imageObj.width && this.imageObj.height) {
-            // not undefined or 0
-            width = 0;
-            height = 0;
-          }
-          if (this.imageObj.width > this.imageObj.height) {
-            ratio = this.imageObj.width / this.imageObj.height;
-            width = this.options.size * 2 * ratio || this.imageObj.width;
-            height = this.options.size * 2 || this.imageObj.height;
-          } else {
-            if (this.imageObj.width && this.imageObj.height) {
-              // not undefined or 0
-              ratio = this.imageObj.height / this.imageObj.width;
-            } else {
-              ratio = 1;
-            }
-            width = this.options.size * 2 || this.imageObj.width;
-            height = this.options.size * 2 * ratio || this.imageObj.height;
-          }
-          this.width = width;
-          this.height = height;
-          this.radius = 0.5 * this.width;
-        }
-      }
-    }, {
-      key: '_drawRawCircle',
-      value: function _drawRawCircle(ctx, x, y, selected, hover, size) {
-        var borderWidth = this.options.borderWidth;
-        var selectionLineWidth = this.options.borderWidthSelected || 2 * this.options.borderWidth;
-
-        ctx.strokeStyle = selected ? this.options.color.highlight.border : hover ? this.options.color.hover.border : this.options.color.border;
-
-        ctx.lineWidth = selected ? selectionLineWidth : borderWidth;
-        ctx.lineWidth *= this.networkScaleInv;
-        ctx.lineWidth = Math.min(this.width, ctx.lineWidth);
-
-        ctx.fillStyle = selected ? this.options.color.highlight.background : hover ? this.options.color.hover.background : this.options.color.background;
-        ctx.circle(x, y, size);
-
-        // draw shadow if enabled
-        this.enableShadow(ctx);
-        ctx.fill();
-
-        // disable shadows for other elements.
-        this.disableShadow(ctx);
-
-        ctx.stroke();
-      }
-    }, {
-      key: '_drawImageAtPosition',
-      value: function _drawImageAtPosition(ctx) {
-        if (this.imageObj.width != 0) {
-          // draw the image
-          ctx.globalAlpha = 1;
-
-          // draw shadow if enabled
-          this.enableShadow(ctx);
-          ctx.drawImage(this.imageObj, this.left, this.top, this.width, this.height);
-
-          // disable shadows for other elements.
-          this.disableShadow(ctx);
-        }
-      }
-    }, {
-      key: '_drawImageLabel',
-      value: function _drawImageLabel(ctx, x, y, selected) {
-        var yLabel;
-        var offset = 0;
-
-        if (this.height !== undefined) {
-          offset = this.height * 0.5;
-          var labelDimensions = this.labelModule.getTextSize(ctx);
-          if (labelDimensions.lineCount >= 1) {
-            offset += labelDimensions.height / 2;
-          }
-        }
-
-        yLabel = y + offset;
-
-        if (this.options.label) {
-          this.labelOffset = offset;
-        }
-        this.labelModule.draw(ctx, x, yLabel, selected, 'hanging');
-      }
-    }]);
-
-    return CircleImageBase;
-  })(_utilNodeBase2['default']);
-
-  exports['default'] = CircleImageBase;
-  module.exports = exports['default'];
-
-/***/ },
-/* 5 */
-/***/ function(module, exports, __webpack_require__) {
-
-  /**
-   * @class Images
-   * This class loads images and keeps them stored.
-   */
-  "use strict";
-
-  function Images(callback) {
-    this.images = {};
-    this.imageBroken = {};
-    this.callback = callback;
-  }
-
-  /**
-   *
-   * @param {string} url          Url of the image
-   * @param {string} url          Url of an image to use if the url image is not found
-   * @return {Image} img          The image object
-   */
-  Images.prototype.load = function (url, brokenUrl, id) {
-    var img = this.images[url]; // make a pointer
-    if (img === undefined) {
-      // create the image
-      var me = this;
-      img = new Image();
-      img.onload = function () {
-        // IE11 fix -- thanks dponch!
-        if (this.width === 0) {
-          document.body.appendChild(this);
-          this.width = this.offsetWidth;
-          this.height = this.offsetHeight;
-          document.body.removeChild(this);
-        }
-
-        if (me.callback) {
-          me.images[url] = img;
-          me.callback(this);
-        }
-      };
-
-      img.onerror = function () {
-        if (brokenUrl === undefined) {
-          console.error("Could not load image:", url);
-          delete this.src;
-          if (me.callback) {
-            me.callback(this);
-          }
-        } else {
-          if (me.imageBroken[id] && me.imageBroken[id][url] === true) {
-            console.error("Could not load brokenImage:", brokenUrl);
-            delete this.src;
-            if (me.callback) {
-              me.callback(this);
-            }
-          } else {
-            console.error("Could not load image:", url);
-            this.src = brokenUrl;
-            if (me.imageBroken[id] === undefined) {
-              me.imageBroken[id] = {};
-            }
-            me.imageBroken[id][url] = true;
-          }
-        }
-      };
-
-      img.src = url;
-    }
-
-    return img;
-  };
-
-  module.exports = Images;
-
-/***/ },
-/* 6 */
-/***/ function(module, exports, __webpack_require__) {
-
-  'use strict';
-
-  Object.defineProperty(exports, '__esModule', {
-    value: true
-  });
-
-  var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
-
-  function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
-
-  function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
-
-  var _sharedLabel = __webpack_require__(65);
-
-  var _sharedLabel2 = _interopRequireDefault(_sharedLabel);
-
-  var _nodesShapesBox = __webpack_require__(66);
-
-  var _nodesShapesBox2 = _interopRequireDefault(_nodesShapesBox);
-
-  var _nodesShapesCircle = __webpack_require__(68);
-
-  var _nodesShapesCircle2 = _interopRequireDefault(_nodesShapesCircle);
-
-  var _nodesShapesCircularImage = __webpack_require__(69);
-
-  var _nodesShapesCircularImage2 = _interopRequireDefault(_nodesShapesCircularImage);
-
-  var _nodesShapesDatabase = __webpack_require__(70);
-
-  var _nodesShapesDatabase2 = _interopRequireDefault(_nodesShapesDatabase);
-
-  var _nodesShapesDiamond = __webpack_require__(71);
-
-  var _nodesShapesDiamond2 = _interopRequireDefault(_nodesShapesDiamond);
-
-  var _nodesShapesDot = __webpack_require__(73);
-
-  var _nodesShapesDot2 = _interopRequireDefault(_nodesShapesDot);
-
-  var _nodesShapesEllipse = __webpack_require__(74);
-
-  var _nodesShapesEllipse2 = _interopRequireDefault(_nodesShapesEllipse);
-
-  var _nodesShapesIcon = __webpack_require__(75);
-
-  var _nodesShapesIcon2 = _interopRequireDefault(_nodesShapesIcon);
-
-  var _nodesShapesImage = __webpack_require__(76);
-
-  var _nodesShapesImage2 = _interopRequireDefault(_nodesShapesImage);
-
-  var _nodesShapesSquare = __webpack_require__(77);
-
-  var _nodesShapesSquare2 = _interopRequireDefault(_nodesShapesSquare);
-
-  var _nodesShapesStar = __webpack_require__(78);
-
-  var _nodesShapesStar2 = _interopRequireDefault(_nodesShapesStar);
-
-  var _nodesShapesText = __webpack_require__(79);
-
-  var _nodesShapesText2 = _interopRequireDefault(_nodesShapesText);
-
-  var _nodesShapesTriangle = __webpack_require__(80);
-
-  var _nodesShapesTriangle2 = _interopRequireDefault(_nodesShapesTriangle);
-
-  var _nodesShapesTriangleDown = __webpack_require__(81);
-
-  var _nodesShapesTriangleDown2 = _interopRequireDefault(_nodesShapesTriangleDown);
-
-  var _sharedValidator = __webpack_require__(51);
-
-  var _sharedValidator2 = _interopRequireDefault(_sharedValidator);
-
-  var util = __webpack_require__(12);
-
-  /**
-   * @class Node
-   * A node. A node can be connected to other nodes via one or multiple edges.
-   * @param {object} options An object containing options for the node. All
-   *                            options are optional, except for the id.
-   *                              {number} id     Id of the node. Required
-   *                              {string} label  Text label for the node
-   *                              {number} x      Horizontal position of the node
-   *                              {number} y      Vertical position of the node
-   *                              {string} shape  Node shape, available:
-   *                                              "database", "circle", "ellipse",
-   *                                              "box", "image", "text", "dot",
-   *                                              "star", "triangle", "triangleDown",
-   *                                              "square", "icon"
-   *                              {string} image  An image url
-   *                              {string} title  An title text, can be HTML
-   *                              {anytype} group A group name or number
-   * @param {Network.Images} imagelist    A list with images. Only needed
-   *                                            when the node has an image
-   * @param {Network.Groups} grouplist    A list with groups. Needed for
-   *                                            retrieving group options
-   * @param {Object}               constants    An object with default values for
-   *                                            example for the color
-   *
-   */
-
-  var Node = (function () {
-    function Node(options, body, imagelist, grouplist, globalOptions) {
-      _classCallCheck(this, Node);
-
-      this.options = util.bridgeObject(globalOptions);
-      this.body = body;
-
-      this.edges = []; // all edges connected to this node
-
-      // set defaults for the options
-      this.id = undefined;
-      this.imagelist = imagelist;
-      this.grouplist = grouplist;
-
-      // state options
-      this.x = undefined;
-      this.y = undefined;
-      this.baseSize = this.options.size;
-      this.baseFontSize = this.options.font.size;
-      this.predefinedPosition = false; // used to check if initial fit should just take the range or approximate
-      this.selected = false;
-      this.hover = false;
-
-      this.labelModule = new _sharedLabel2['default'](this.body, this.options);
-      this.setOptions(options);
-    }
-
-    _createClass(Node, [{
-      key: 'attachEdge',
-
-      /**
-       * Attach a edge to the node
-       * @param {Edge} edge
-       */
-      value: function attachEdge(edge) {
-        if (this.edges.indexOf(edge) === -1) {
-          this.edges.push(edge);
-        }
-      }
-    }, {
-      key: 'detachEdge',
-
-      /**
-       * Detach a edge from the node
-       * @param {Edge} edge
-       */
-      value: function detachEdge(edge) {
-        var index = this.edges.indexOf(edge);
-        if (index != -1) {
-          this.edges.splice(index, 1);
-        }
-      }
-    }, {
-      key: 'togglePhysics',
-
-      /**
-       * Enable or disable the physics.
-       * @param status
-       */
-      value: function togglePhysics(status) {
-        this.options.physics = status;
-      }
-    }, {
-      key: 'setOptions',
-
-      /**
-       * Set or overwrite options for the node
-       * @param {Object} options an object with options
-       * @param {Object} constants  and object with default, global options
-       */
-      value: function setOptions(options) {
-        if (!options) {
-          return;
-        }
-        // basic options
-        if (options.id !== undefined) {
-          this.id = options.id;
-        }
-
-        if (this.id === undefined) {
-          throw 'Node must have an id';
-        }
-
-        // set these options locally
-        if (options.x !== undefined) {
-          this.x = parseInt(options.x);this.predefinedPosition = true;
-        }
-        if (options.y !== undefined) {
-          this.y = parseInt(options.y);this.predefinedPosition = true;
-        }
-        if (options.size !== undefined) {
-          this.baseSize = options.size;
-        }
-        if (options.value !== undefined) {
-          options.value = parseInt(options.value);
-        }
-
-        // copy group options
-        if (typeof options.group === 'number' || typeof options.group === 'string' && options.group != '') {
-          var groupObj = this.grouplist.get(options.group);
-          util.deepExtend(this.options, groupObj);
-          // the color object needs to be completely defined. Since groups can partially overwrite the colors, we parse it again, just in case.
-          this.options.color = util.parseColor(this.options.color);
-        }
-
-        // this transforms all shorthands into fully defined options
-        Node.parseOptions(this.options, options, true);
-
-        // load the images
-        if (this.options.image !== undefined && this.options.image != '') {
-          if (this.imagelist) {
-            this.imageObj = this.imagelist.load(this.options.image, this.options.brokenImage, this.id);
-            console.log(this.imagelist);
-          } else {
-            throw 'No imagelist provided';
-          }
-        }
-
-        this.updateShape();
-        this.updateLabelModule();
-
-        // reset the size of the node, this can be changed
-        this._reset();
-      }
-    }, {
-      key: 'updateLabelModule',
-      value: function updateLabelModule() {
-        if (this.options.label === undefined || this.options.label === null) {
-          this.options.label = '';
-        }
-        this.labelModule.setOptions(this.options, true);
-        if (this.labelModule.baseSize !== undefined) {
-          this.baseFontSize = this.labelModule.baseSize;
-        }
-      }
-    }, {
-      key: 'updateShape',
-      value: function updateShape() {
-        // choose draw method depending on the shape
-        switch (this.options.shape) {
-          case 'box':
-            this.shape = new _nodesShapesBox2['default'](this.options, this.body, this.labelModule);
-            break;
-          case 'circle':
-            this.shape = new _nodesShapesCircle2['default'](this.options, this.body, this.labelModule);
-            break;
-          case 'circularImage':
-            this.shape = new _nodesShapesCircularImage2['default'](this.options, this.body, this.labelModule, this.imageObj);
-            break;
-          case 'database':
-            this.shape = new _nodesShapesDatabase2['default'](this.options, this.body, this.labelModule);
-            break;
-          case 'diamond':
-            this.shape = new _nodesShapesDiamond2['default'](this.options, this.body, this.labelModule);
-            break;
-          case 'dot':
-            this.shape = new _nodesShapesDot2['default'](this.options, this.body, this.labelModule);
-            break;
-          case 'ellipse':
-            this.shape = new _nodesShapesEllipse2['default'](this.options, this.body, this.labelModule);
-            break;
-          case 'icon':
-            this.shape = new _nodesShapesIcon2['default'](this.options, this.body, this.labelModule);
-            break;
-          case 'image':
-            this.shape = new _nodesShapesImage2['default'](this.options, this.body, this.labelModule, this.imageObj);
-            break;
-          case 'square':
-            this.shape = new _nodesShapesSquare2['default'](this.options, this.body, this.labelModule);
-            break;
-          case 'star':
-            this.shape = new _nodesShapesStar2['default'](this.options, this.body, this.labelModule);
-            break;
-          case 'text':
-            this.shape = new _nodesShapesText2['default'](this.options, this.body, this.labelModule);
-            break;
-          case 'triangle':
-            this.shape = new _nodesShapesTriangle2['default'](this.options, this.body, this.labelModule);
-            break;
-          case 'triangleDown':
-            this.shape = new _nodesShapesTriangleDown2['default'](this.options, this.body, this.labelModule);
-            break;
-          default:
-            this.shape = new _nodesShapesEllipse2['default'](this.options, this.body, this.labelModule);
-            break;
-        }
-        this._reset();
-      }
-    }, {
-      key: 'select',
-
-      /**
-       * select this node
-       */
-      value: function select() {
-        this.selected = true;
-        this._reset();
-      }
-    }, {
-      key: 'unselect',
-
-      /**
-       * unselect this node
-       */
-      value: function unselect() {
-        this.selected = false;
-        this._reset();
-      }
-    }, {
-      key: '_reset',
-
-      /**
-       * Reset the calculated size of the node, forces it to recalculate its size
-       * @private
-       */
-      value: function _reset() {
-        this.shape.width = undefined;
-        this.shape.height = undefined;
-      }
-    }, {
-      key: 'getTitle',
-
-      /**
-       * get the title of this node.
-       * @return {string} title    The title of the node, or undefined when no title
-       *                           has been set.
-       */
-      value: function getTitle() {
-        return this.options.title;
-      }
-    }, {
-      key: 'distanceToBorder',
-
-      /**
-       * Calculate the distance to the border of the Node
-       * @param {CanvasRenderingContext2D}   ctx
-       * @param {Number} angle        Angle in radians
-       * @returns {number} distance   Distance to the border in pixels
-       */
-      value: function distanceToBorder(ctx, angle) {
-        return this.shape.distanceToBorder(ctx, angle);
-      }
-    }, {
-      key: 'isFixed',
-
-      /**
-       * Check if this node has a fixed x and y position
-       * @return {boolean}      true if fixed, false if not
-       */
-      value: function isFixed() {
-        return this.options.fixed.x && this.options.fixed.y;
-      }
-    }, {
-      key: 'isSelected',
-
-      /**
-       * check if this node is selecte
-       * @return {boolean} selected   True if node is selected, else false
-       */
-      value: function isSelected() {
-        return this.selected;
-      }
-    }, {
-      key: 'getValue',
-
-      /**
-       * Retrieve the value of the node. Can be undefined
-       * @return {Number} value
-       */
-      value: function getValue() {
-        return this.options.value;
-      }
-    }, {
-      key: 'setValueRange',
-
-      /**
-       * Adjust the value range of the node. The node will adjust it's size
-       * based on its value.
-       * @param {Number} min
-       * @param {Number} max
-       */
-      value: function setValueRange(min, max, total) {
-        if (this.options.value !== undefined) {
-          var scale = this.options.scaling.customScalingFunction(min, max, total, this.options.value);
-          var sizeDiff = this.options.scaling.max - this.options.scaling.min;
-          if (this.options.scaling.label.enabled === true) {
-            var fontDiff = this.options.scaling.label.max - this.options.scaling.label.min;
-            this.options.font.size = this.options.scaling.label.min + scale * fontDiff;
-          }
-          this.options.size = this.options.scaling.min + scale * sizeDiff;
-        } else {
-          this.options.size = this.baseSize;
-          this.options.font.size = this.baseFontSize;
-        }
-      }
-    }, {
-      key: 'draw',
-
-      /**
-       * Draw this node in the given canvas
-       * The 2d context of a HTML canvas can be retrieved by canvas.getContext("2d");
-       * @param {CanvasRenderingContext2D}   ctx
-       */
-      value: function draw(ctx) {
-        this.shape.draw(ctx, this.x, this.y, this.selected, this.hover);
-      }
-    }, {
-      key: 'updateBoundingBox',
-
-      /**
-       * Update the bounding box of the shape
-       */
-      value: function updateBoundingBox() {
-        this.shape.updateBoundingBox(this.x, this.y);
-      }
-    }, {
-      key: 'resize',
-
-      /**
-       * Recalculate the size of this node in the given canvas
-       * The 2d context of a HTML canvas can be retrieved by canvas.getContext("2d");
-       * @param {CanvasRenderingContext2D}   ctx
-       */
-      value: function resize(ctx) {
-        this.shape.resize(ctx);
-      }
-    }, {
-      key: 'isOverlappingWith',
-
-      /**
-       * Check if this object is overlapping with the provided object
-       * @param {Object} obj   an object with parameters left, top, right, bottom
-       * @return {boolean}     True if location is located on node
-       */
-      value: function isOverlappingWith(obj) {
-        return this.shape.left < obj.right && this.shape.left + this.shape.width > obj.left && this.shape.top < obj.bottom && this.shape.top + this.shape.height > obj.top;
-      }
-    }, {
-      key: 'isBoundingBoxOverlappingWith',
-
-      /**
-       * Check if this object is overlapping with the provided object
-       * @param {Object} obj   an object with parameters left, top, right, bottom
-       * @return {boolean}     True if location is located on node
-       */
-      value: function isBoundingBoxOverlappingWith(obj) {
-        return this.shape.boundingBox.left < obj.right && this.shape.boundingBox.right > obj.left && this.shape.boundingBox.top < obj.bottom && this.shape.boundingBox.bottom > obj.top;
-      }
-    }], [{
-      key: 'parseOptions',
-
-      /**
-       * This process all possible shorthands in the new options and makes sure that the parentOptions are fully defined.
-       * Static so it can also be used by the handler.
-       * @param parentOptions
-       * @param newOptions
-       */
-      value: function parseOptions(parentOptions, newOptions) {
-        var allowDeletion = arguments[2] === undefined ? false : arguments[2];
-
-        var fields = ['color', 'font', 'fixed', 'shadow'];
-        util.selectiveNotDeepExtend(fields, parentOptions, newOptions, allowDeletion);
-
-        // merge the shadow options into the parent.
-        util.mergeOptions(parentOptions, newOptions, 'shadow');
-
-        // individual shape newOptions
-        if (newOptions.color !== undefined && newOptions.color !== null) {
-          var parsedColor = util.parseColor(newOptions.color);
-          util.fillIfDefined(parentOptions.color, parsedColor);
-        } else if (allowDeletion === true && newOptions.color === null) {
-          parentOptions.color = undefined;
-          delete parentOptions.color;
-        }
-
-        // handle the fixed options
-        if (newOptions.fixed !== undefined && newOptions.fixed !== null) {
-          if (typeof newOptions.fixed === 'boolean') {
-            parentOptions.fixed.x = newOptions.fixed;
-            parentOptions.fixed.y = newOptions.fixed;
-          } else {
-            if (newOptions.fixed.x !== undefined && typeof newOptions.fixed.x === 'boolean') {
-              parentOptions.fixed.x = newOptions.fixed.x;
-            }
-            if (newOptions.fixed.y !== undefined && typeof newOptions.fixed.y === 'boolean') {
-              parentOptions.fixed.y = newOptions.fixed.y;
-            }
-          }
-        }
-
-        // handle the font options
-        if (newOptions.font !== undefined) {
-          _sharedLabel2['default'].parseOptions(parentOptions.font, newOptions);
-        }
-
-        // handle the scaling options, specifically the label part
-        if (newOptions.scaling !== undefined) {
-          util.mergeOptions(parentOptions.scaling, newOptions.scaling, 'label');
-        }
-      }
-    }]);
-
-    return Node;
-  })();
-
-  exports['default'] = Node;
-  module.exports = exports['default'];
 
 /***/ },
 /* 7 */
@@ -17316,7 +17315,7 @@ return /******/ (function(modules) { // webpackBootstrap
   var Component = __webpack_require__(31);
   var Group = __webpack_require__(38);
   var BackgroundGroup = __webpack_require__(42);
-  var BoxItem = __webpack_require__(3);
+  var BoxItem = __webpack_require__(4);
   var PointItem = __webpack_require__(43);
   var RangeItem = __webpack_require__(40);
   var BackgroundItem = __webpack_require__(44);
@@ -27463,7 +27462,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
 
-  var _componentsNode = __webpack_require__(6);
+  var _componentsNode = __webpack_require__(2);
 
   var _componentsNode2 = _interopRequireDefault(_componentsNode);
 
@@ -28433,7 +28432,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; }
 
-  var _utilCircleImageBase = __webpack_require__(4);
+  var _utilCircleImageBase = __webpack_require__(5);
 
   var _utilCircleImageBase2 = _interopRequireDefault(_utilCircleImageBase);
 
@@ -28523,7 +28522,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; }
 
-  var _utilCircleImageBase = __webpack_require__(4);
+  var _utilCircleImageBase = __webpack_require__(5);
 
   var _utilCircleImageBase2 = _interopRequireDefault(_utilCircleImageBase);
 
@@ -29167,7 +29166,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; }
 
-  var _utilCircleImageBase = __webpack_require__(4);
+  var _utilCircleImageBase = __webpack_require__(5);
 
   var _utilCircleImageBase2 = _interopRequireDefault(_utilCircleImageBase);
 
@@ -34281,7 +34280,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; }
 
-  var _Node2 = __webpack_require__(6);
+  var _Node2 = __webpack_require__(2);
 
   var _Node3 = _interopRequireDefault(_Node2);
 
@@ -36572,7 +36571,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
-  var Node = __webpack_require__(6);
+  var Node = __webpack_require__(2);
   var Edge = __webpack_require__(83);
   var util = __webpack_require__(12);
 
