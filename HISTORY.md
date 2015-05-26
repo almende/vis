@@ -2,6 +2,13 @@
 http://visjs.org
 
 
+## not yet released, version 4.0.1-SNAPSHOT
+
+### Timeline, Graph2d
+
+- Fixed #872: error about deprecated function `unsubscribe`.
+
+
 ## 2015-05-22, version 4.0.0
 
 ### General
