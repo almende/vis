@@ -20,6 +20,7 @@ http://visjs.org
 - Removed depricated dynamic entree, allow any smooth curve style for hierarchical layout.
 - Fixed bug with the moveTo and getViewPosition methods.
 - Fixed #861, brokenImage only working for one node if nodes have the same image.
+- Fixed hoverNode and blurNode events and added them to the docs.
 
 ### Graph2d & Timeline
 
