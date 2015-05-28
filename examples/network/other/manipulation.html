@@ -98,7 +98,7 @@
             document.getElementById('node-id').value = data.id;
             document.getElementById('node-label').value = data.label;
             document.getElementById('saveButton').onclick = saveData.bind(this, data, callback);
-            document.getElementById('cancelButton').onclick = clearPopUp.bind();
+            document.getElementById('cancelButton').onclick = cancelEdit.bind(this,callback);
             document.getElementById('network-popUp').style.display = 'block';
           },
           addEdge: function (data, callback) {
@@ -121,6 +121,11 @@
       document.getElementById('saveButton').onclick = null;
       document.getElementById('cancelButton').onclick = null;
       document.getElementById('network-popUp').style.display = 'none';
+    }
+
+    function cancelEdit(callback) {
+      clearPopUp();
+      callback(null);
     }
 
     function saveData(data,callback) {
