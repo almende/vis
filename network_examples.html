@@ -71,7 +71,7 @@
                 var link = links[i];
                 if (link.className === 'exampleLink') {
                     var hrefArray = link.getAttribute('href').split('/');
-                    var exampleName = hrefArray[hrefArray.length-1].replace('.html','');
+                    var exampleName = hrefArray[hrefArray.length-2] + '/' + hrefArray[hrefArray.length-1].replace('.html','');
                     
                     var linkRect = link.getBoundingClientRect();
                     var linkWidth = linkRect.right - linkRect.left;
@@ -103,7 +103,7 @@
                             y:0
                         },
                         shape:'circle',
-                        image:'./images/exampleScreenshots/network/'+(exampleName)+'.png',
+                        image:'./images/exampleScreenshots/'+(exampleName)+'.png',
                         size:NORMAL_SIZE
                     });
                     edgesArray.push({from: idCounter, to: idCounter+'image', arrows:'from'});
