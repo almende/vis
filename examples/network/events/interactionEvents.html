@@ -17,11 +17,12 @@
 <body>
 
 <p>
-    Create a simple network with some nodes and edges.
+    Create a simple network with some nodes and edges. Some of the events are logged in the console in improve readability.
 </p>
 
 <div id="mynetwork"></div>
 <pre id="eventSpan"></pre>
+
 <script type="text/javascript">
     // create an array with nodes
     var nodes = new vis.DataSet([
@@ -79,6 +80,25 @@
     network.on("showPopup", function (params) {
         document.getElementById('eventSpan').innerHTML = '<h2>showPopup event: </h2>' + JSON.stringify(params, null, 4);
     });
+    network.on("hidePopup", function (params) {
+        console.log('hidePopup Event:', params);
+    });
+    network.on("select", function (params) {
+        console.log('select Event:', params);
+    });
+    network.on("selectNode", function (params) {
+        console.log('selectNode Event:', params);
+    });
+    network.on("selectEdge", function (params) {
+        console.log('selectEdge Event:', params);
+    });
+    network.on("deselectNode", function (params) {
+        console.log('deselectNode Event:', params);
+    });
+    network.on("deselectEdge", function (params) {
+        console.log('deselectEdge Event:', params);
+    });
+
 
 </script>
 
