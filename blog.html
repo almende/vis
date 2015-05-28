@@ -234,10 +234,10 @@
             </p>
 
             <p>
-                We know it is annoying to go back to your code and making the required changes but I guarantee that it
+                We know it is annoying to go back to your code and making the required changes, but I guarantee that it
                 is for the best. To help with this migration, we have included an option validator to our new release.
-                This validator is currently applied on the network, timeline and graph2d. It checks the options you
-                supply if they are of the right type. If your options do not exist or if the type is wrong, it will give
+                This validator is currently applied on the network, timeline and graph2d. It checks if the options you
+                supply are of the right type. If your options do not exist or if the type is wrong, it will give
                 you an understandable message with suggestions of options you may have meant. We think this will make
                 developing for vis a lot easier, as well as the migration from v3 to v4.
             </p>
@@ -245,8 +245,8 @@
             <p>
                 The biggest change in this release is in the network module. We have rewritten the network module in
                 full and the results are cleanly separated ES6 modules. The option structure has been changed to suit
-                this structure. The options have also been grouped, making it easier to document and understand. An
-                example of this is the options for fonts. It used to be fontColor, fontFace fontSize, which is now
+                this structure. The options have also been grouped, making it easier to document and understand. For example,
+                lets look at the options for fonts. It used to be fontColor, fontFace fontSize, which is now
                 grouped in a font object with {color:’’,face:’’,size:’’}. Also completely new is the clustering
                 mechanism. It used to be mostly automatic and twitchy but this new version gives all the control to the
                 user. This should make the clustering very useful and I’ll be happy to hear of missing features for
@@ -254,29 +254,29 @@
             </p>
 
             <p>
-                We have moved to hammer.js 2 for all of our touch and click events and a lot of work has gone into
+                We have moved to hammer.js 2 for all of our touch and click events, and a lot of work has gone into
                 updating all the css elements (especially for timeline) to eliminate conflicts with large frameworks
                 that overload <i>everything</i>.
             </p>
 
             <p>
                 Over the last year, we have received a lot of issues on our Github page for which we are very thankful.
-                Whether it is a bug report, question or feature request, we handle all of them as quickly as we can and
+                Whether it is a bug report, question or feature request, we handle all of them as quickly as we can, and
                 with these big new rewrites it gives us a new perspective on what is important. We hope the validator
                 will prevent a lot of issues. The new examples have also been designed to more clearly show simple
-                options. We plan to provide links to JSBin for all options but this is a lot of work (for which we
+                options. We plan to provide links to JSBin for all options, but this is a lot of work (for which we
                 wouldn’t mind some help ;) ).
             </p>
 
             <p>
                 So what’s next? Well the next module that really needs a good overhaul is the graph2d. This module is
-                used by us internally quite a lot and we need to improve the architecture and make it easy to extend it
+                used by us internally quite a lot, and we need to improve the architecture and make it easy to extend it
                 with new graph types.
             </p>
 
             <p>
                 We want to unify the code between the timeline and the graph2d even more. The ideal result would be
-                using a graph2d as a group in the timeline or use the timeline items in a graph2d without nasty hacks.
+                using a graph2d as a group in the timeline, or use the timeline items in a graph2d without nasty hacks.
                 The graph2d should get numeric x axis (so not necessarily only time), logarithmic axis and hopefully the
                 architecture will be flexible enough to allow the x and y axis to be interchanged. The API across the
                 modules will also be further unified, and I think we’ve made a great start with v4!
