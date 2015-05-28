@@ -22,6 +22,8 @@ http://visjs.org
 - Fixed #861, brokenImage only working for one node if nodes have the same image.
 - Fixed hoverNode and blurNode events and added them to the docs.
 - Fixed #884, selectNode event.
+- Fixed dynamic setting hidden and physics.
+- Fixed edit node mode's fallback.
 
 ### Graph2d & Timeline
 

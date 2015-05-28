@@ -84,60 +84,60 @@ return /******/ (function(modules) { // webpackBootstrap
   // utils
   'use strict';
 
-  exports.util = __webpack_require__(14);
-  exports.DOMutil = __webpack_require__(19);
+  exports.util = __webpack_require__(2);
+  exports.DOMutil = __webpack_require__(21);
 
   // data
-  exports.DataSet = __webpack_require__(20);
-  exports.DataView = __webpack_require__(22);
-  exports.Queue = __webpack_require__(21);
+  exports.DataSet = __webpack_require__(22);
+  exports.DataView = __webpack_require__(24);
+  exports.Queue = __webpack_require__(23);
 
   // Graph3d
-  exports.Graph3d = __webpack_require__(23);
+  exports.Graph3d = __webpack_require__(25);
   exports.graph3d = {
-    Camera: __webpack_require__(27),
-    Filter: __webpack_require__(28),
-    Point2d: __webpack_require__(24),
-    Point3d: __webpack_require__(26),
-    Slider: __webpack_require__(29),
-    StepNumber: __webpack_require__(30)
+    Camera: __webpack_require__(29),
+    Filter: __webpack_require__(30),
+    Point2d: __webpack_require__(26),
+    Point3d: __webpack_require__(28),
+    Slider: __webpack_require__(31),
+    StepNumber: __webpack_require__(32)
   };
 
   // Timeline
-  exports.Timeline = __webpack_require__(31);
-  exports.Graph2d = __webpack_require__(55);
+  exports.Timeline = __webpack_require__(33);
+  exports.Graph2d = __webpack_require__(56);
   exports.timeline = {
-    DateUtil: __webpack_require__(37),
-    DataStep: __webpack_require__(58),
-    Range: __webpack_require__(35),
-    stack: __webpack_require__(41),
-    TimeStep: __webpack_require__(43),
+    DateUtil: __webpack_require__(39),
+    DataStep: __webpack_require__(59),
+    Range: __webpack_require__(37),
+    stack: __webpack_require__(42),
+    TimeStep: __webpack_require__(44),
 
     components: {
       items: {
-        Item: __webpack_require__(9),
-        BackgroundItem: __webpack_require__(46),
-        BoxItem: __webpack_require__(6),
-        PointItem: __webpack_require__(45),
-        RangeItem: __webpack_require__(42)
+        Item: __webpack_require__(11),
+        BackgroundItem: __webpack_require__(47),
+        BoxItem: __webpack_require__(5),
+        PointItem: __webpack_require__(46),
+        RangeItem: __webpack_require__(43)
       },
 
-      Component: __webpack_require__(33),
-      CurrentTime: __webpack_require__(32),
-      CustomTime: __webpack_require__(50),
-      DataAxis: __webpack_require__(57),
-      GraphGroup: __webpack_require__(59),
-      Group: __webpack_require__(40),
-      BackgroundGroup: __webpack_require__(44),
-      ItemSet: __webpack_require__(39),
-      Legend: __webpack_require__(63),
-      LineGraph: __webpack_require__(56),
-      TimeAxis: __webpack_require__(47)
+      Component: __webpack_require__(35),
+      CurrentTime: __webpack_require__(34),
+      CustomTime: __webpack_require__(51),
+      DataAxis: __webpack_require__(58),
+      GraphGroup: __webpack_require__(60),
+      Group: __webpack_require__(41),
+      BackgroundGroup: __webpack_require__(45),
+      ItemSet: __webpack_require__(10),
+      Legend: __webpack_require__(64),
+      LineGraph: __webpack_require__(57),
+      TimeAxis: __webpack_require__(48)
     }
   };
 
   // Network
-  exports.Network = __webpack_require__(65);
+  exports.Network = __webpack_require__(66);
   exports.network = {
     Images: __webpack_require__(112),
     dotparser: __webpack_require__(110),
@@ -156,9 +156,9 @@ return /******/ (function(modules) { // webpackBootstrap
   };
 
   // bundled external libraries
-  exports.moment = __webpack_require__(15);
-  exports.hammer = __webpack_require__(10); // TODO: deprecate exports.hammer some day
-  exports.Hammer = __webpack_require__(10);
+  exports.moment = __webpack_require__(17);
+  exports.hammer = __webpack_require__(13); // TODO: deprecate exports.hammer some day
+  exports.Hammer = __webpack_require__(13);
 
 /***/ },
 /* 1 */
@@ -177,6 +177,1846 @@ return /******/ (function(modules) { // webpackBootstrap
 /* 2 */
 /***/ function(module, exports, __webpack_require__) {
 
+  // utility functions
+
+  // first check if moment.js is already loaded in the browser window, if so,
+  // use this instance. Else, load via commonjs.
+
+  'use strict';
+
+  var moment = __webpack_require__(17);
+  var uuid = __webpack_require__(20);
+
+  /**
+   * Test whether given object is a number
+   * @param {*} object
+   * @return {Boolean} isNumber
+   */
+  exports.isNumber = function (object) {
+    return object instanceof Number || typeof object == 'number';
+  };
+
+  /**
+   * Remove everything in the DOM object
+   * @param DOMobject
+   */
+  exports.recursiveDOMDelete = function (DOMobject) {
+    if (DOMobject) {
+      while (DOMobject.hasChildNodes() === true) {
+        exports.recursiveDOMDelete(DOMobject.firstChild);
+        DOMobject.removeChild(DOMobject.firstChild);
+      }
+    }
+  };
+
+  /**
+   * this function gives you a range between 0 and 1 based on the min and max values in the set, the total sum of all values and the current value.
+   *
+   * @param min
+   * @param max
+   * @param total
+   * @param value
+   * @returns {number}
+   */
+  exports.giveRange = function (min, max, total, value) {
+    if (max == min) {
+      return 0.5;
+    } else {
+      var scale = 1 / (max - min);
+      return Math.max(0, (value - min) * scale);
+    }
+  };
+
+  /**
+   * Test whether given object is a string
+   * @param {*} object
+   * @return {Boolean} isString
+   */
+  exports.isString = function (object) {
+    return object instanceof String || typeof object == 'string';
+  };
+
+  /**
+   * Test whether given object is a Date, or a String containing a Date
+   * @param {Date | String} object
+   * @return {Boolean} isDate
+   */
+  exports.isDate = function (object) {
+    if (object instanceof Date) {
+      return true;
+    } else if (exports.isString(object)) {
+      // test whether this string contains a date
+      var match = ASPDateRegex.exec(object);
+      if (match) {
+        return true;
+      } else if (!isNaN(Date.parse(object))) {
+        return true;
+      }
+    }
+
+    return false;
+  };
+
+  /**
+   * Create a semi UUID
+   * source: http://stackoverflow.com/a/105074/1262753
+   * @return {String} uuid
+   */
+  exports.randomUUID = function () {
+    return uuid.v4();
+  };
+
+  /**
+   * assign all keys of an object that are not nested objects to a certain value (used for color objects).
+   * @param obj
+   * @param value
+   */
+  exports.assignAllKeys = function (obj, value) {
+    for (var prop in obj) {
+      if (obj.hasOwnProperty(prop)) {
+        if (typeof obj[prop] !== 'object') {
+          obj[prop] = value;
+        }
+      }
+    }
+  };
+
+  /**
+   * Fill an object with a possibly partially defined other object. Only copies values if the a object has an object requiring values.
+   * That means an object is not created on a property if only the b object has it.
+   * @param obj
+   * @param value
+   */
+  exports.fillIfDefined = function (a, b) {
+    var allowDeletion = arguments[2] === undefined ? false : arguments[2];
+
+    for (var prop in a) {
+      if (b[prop] !== undefined) {
+        if (typeof b[prop] !== 'object') {
+          if ((b[prop] === undefined || b[prop] === null) && a[prop] !== undefined && allowDeletion === true) {
+            delete a[prop];
+          } else {
+            a[prop] = b[prop];
+          }
+        } else {
+          if (typeof a[prop] === 'object') {
+            exports.fillIfDefined(a[prop], b[prop], allowDeletion);
+          }
+        }
+      }
+    }
+  };
+
+  /**
+   * Extend object a with the properties of object b or a series of objects
+   * Only properties with defined values are copied
+   * @param {Object} a
+   * @param {... Object} b
+   * @return {Object} a
+   */
+  exports.protoExtend = function (a, b) {
+    for (var i = 1; i < arguments.length; i++) {
+      var other = arguments[i];
+      for (var prop in other) {
+        a[prop] = other[prop];
+      }
+    }
+    return a;
+  };
+
+  /**
+   * Extend object a with the properties of object b or a series of objects
+   * Only properties with defined values are copied
+   * @param {Object} a
+   * @param {... Object} b
+   * @return {Object} a
+   */
+  exports.extend = function (a, b) {
+    for (var i = 1; i < arguments.length; i++) {
+      var other = arguments[i];
+      for (var prop in other) {
+        if (other.hasOwnProperty(prop)) {
+          a[prop] = other[prop];
+        }
+      }
+    }
+    return a;
+  };
+
+  /**
+   * Extend object a with selected properties of object b or a series of objects
+   * Only properties with defined values are copied
+   * @param {Array.<String>} props
+   * @param {Object} a
+   * @param {Object} b
+   * @return {Object} a
+   */
+  exports.selectiveExtend = function (props, a, b) {
+    if (!Array.isArray(props)) {
+      throw new Error('Array with property names expected as first argument');
+    }
+
+    for (var i = 2; i < arguments.length; i++) {
+      var other = arguments[i];
+
+      for (var p = 0; p < props.length; p++) {
+        var prop = props[p];
+        if (other.hasOwnProperty(prop)) {
+          a[prop] = other[prop];
+        }
+      }
+    }
+    return a;
+  };
+
+  /**
+   * Extend object a with selected properties of object b or a series of objects
+   * Only properties with defined values are copied
+   * @param {Array.<String>} props
+   * @param {Object} a
+   * @param {Object} b
+   * @return {Object} a
+   */
+  exports.selectiveDeepExtend = function (props, a, b) {
+    var allowDeletion = arguments[3] === undefined ? false : arguments[3];
+
+    // TODO: add support for Arrays to deepExtend
+    if (Array.isArray(b)) {
+      throw new TypeError('Arrays are not supported by deepExtend');
+    }
+    for (var i = 2; i < arguments.length; i++) {
+      var other = arguments[i];
+      for (var p = 0; p < props.length; p++) {
+        var prop = props[p];
+        if (other.hasOwnProperty(prop)) {
+          if (b[prop] && b[prop].constructor === Object) {
+            if (a[prop] === undefined) {
+              a[prop] = {};
+            }
+            if (a[prop].constructor === Object) {
+              exports.deepExtend(a[prop], b[prop], false, allowDeletion);
+            } else {
+              if (b[prop] === null && a[prop] !== undefined && allowDeletion === true) {
+                delete a[prop];
+              } else {
+                a[prop] = b[prop];
+              }
+            }
+          } else if (Array.isArray(b[prop])) {
+            throw new TypeError('Arrays are not supported by deepExtend');
+          } else {
+            a[prop] = b[prop];
+          }
+        }
+      }
+    }
+    return a;
+  };
+
+  /**
+   * Extend object a with selected properties of object b or a series of objects
+   * Only properties with defined values are copied
+   * @param {Array.<String>} props
+   * @param {Object} a
+   * @param {Object} b
+   * @return {Object} a
+   */
+  exports.selectiveNotDeepExtend = function (props, a, b) {
+    var allowDeletion = arguments[3] === undefined ? false : arguments[3];
+
+    // TODO: add support for Arrays to deepExtend
+    if (Array.isArray(b)) {
+      throw new TypeError('Arrays are not supported by deepExtend');
+    }
+    for (var prop in b) {
+      if (b.hasOwnProperty(prop)) {
+        if (props.indexOf(prop) == -1) {
+          if (b[prop] && b[prop].constructor === Object) {
+            if (a[prop] === undefined) {
+              a[prop] = {};
+            }
+            if (a[prop].constructor === Object) {
+              exports.deepExtend(a[prop], b[prop]);
+            } else {
+              if (b[prop] === null && a[prop] !== undefined && allowDeletion === true) {
+                delete a[prop];
+              } else {
+                a[prop] = b[prop];
+              }
+            }
+          } else if (Array.isArray(b[prop])) {
+            throw new TypeError('Arrays are not supported by deepExtend');
+          } else {
+            a[prop] = b[prop];
+          }
+        }
+      }
+    }
+    return a;
+  };
+
+  /**
+   * Deep extend an object a with the properties of object b
+   * @param {Object} a
+   * @param {Object} b
+   * @param [Boolean] protoExtend --> optional parameter. If true, the prototype values will also be extended.
+   *                                  (ie. the options objects that inherit from others will also get the inherited options)
+   * @param [Boolean] global      --> optional parameter. If true, the values of fields that are null will not deleted
+   * @returns {Object}
+   */
+  exports.deepExtend = function (a, b, protoExtend, allowDeletion) {
+    for (var prop in b) {
+      if (b.hasOwnProperty(prop) || protoExtend === true) {
+        if (b[prop] && b[prop].constructor === Object) {
+          if (a[prop] === undefined) {
+            a[prop] = {};
+          }
+          if (a[prop].constructor === Object) {
+            exports.deepExtend(a[prop], b[prop], protoExtend);
+          } else {
+            if (b[prop] === null && a[prop] !== undefined && allowDeletion === true) {
+              delete a[prop];
+            } else {
+              a[prop] = b[prop];
+            }
+          }
+        } else if (Array.isArray(b[prop])) {
+          a[prop] = [];
+          for (var i = 0; i < b[prop].length; i++) {
+            a[prop].push(b[prop][i]);
+          }
+        } else {
+          a[prop] = b[prop];
+        }
+      }
+    }
+    return a;
+  };
+
+  /**
+   * Test whether all elements in two arrays are equal.
+   * @param {Array} a
+   * @param {Array} b
+   * @return {boolean} Returns true if both arrays have the same length and same
+   *                   elements.
+   */
+  exports.equalArray = function (a, b) {
+    if (a.length != b.length) return false;
+
+    for (var i = 0, len = a.length; i < len; i++) {
+      if (a[i] != b[i]) return false;
+    }
+
+    return true;
+  };
+
+  /**
+   * Convert an object to another type
+   * @param {Boolean | Number | String | Date | Moment | Null | undefined} object
+   * @param {String | undefined} type   Name of the type. Available types:
+   *                                    'Boolean', 'Number', 'String',
+   *                                    'Date', 'Moment', ISODate', 'ASPDate'.
+   * @return {*} object
+   * @throws Error
+   */
+  exports.convert = function (object, type) {
+    var match;
+
+    if (object === undefined) {
+      return undefined;
+    }
+    if (object === null) {
+      return null;
+    }
+
+    if (!type) {
+      return object;
+    }
+    if (!(typeof type === 'string') && !(type instanceof String)) {
+      throw new Error('Type must be a string');
+    }
+
+    //noinspection FallthroughInSwitchStatementJS
+    switch (type) {
+      case 'boolean':
+      case 'Boolean':
+        return Boolean(object);
+
+      case 'number':
+      case 'Number':
+        return Number(object.valueOf());
+
+      case 'string':
+      case 'String':
+        return String(object);
+
+      case 'Date':
+        if (exports.isNumber(object)) {
+          return new Date(object);
+        }
+        if (object instanceof Date) {
+          return new Date(object.valueOf());
+        } else if (moment.isMoment(object)) {
+          return new Date(object.valueOf());
+        }
+        if (exports.isString(object)) {
+          match = ASPDateRegex.exec(object);
+          if (match) {
+            // object is an ASP date
+            return new Date(Number(match[1])); // parse number
+          } else {
+            return moment(object).toDate(); // parse string
+          }
+        } else {
+          throw new Error('Cannot convert object of type ' + exports.getType(object) + ' to type Date');
+        }
+
+      case 'Moment':
+        if (exports.isNumber(object)) {
+          return moment(object);
+        }
+        if (object instanceof Date) {
+          return moment(object.valueOf());
+        } else if (moment.isMoment(object)) {
+          return moment(object);
+        }
+        if (exports.isString(object)) {
+          match = ASPDateRegex.exec(object);
+          if (match) {
+            // object is an ASP date
+            return moment(Number(match[1])); // parse number
+          } else {
+            return moment(object); // parse string
+          }
+        } else {
+          throw new Error('Cannot convert object of type ' + exports.getType(object) + ' to type Date');
+        }
+
+      case 'ISODate':
+        if (exports.isNumber(object)) {
+          return new Date(object);
+        } else if (object instanceof Date) {
+          return object.toISOString();
+        } else if (moment.isMoment(object)) {
+          return object.toDate().toISOString();
+        } else if (exports.isString(object)) {
+          match = ASPDateRegex.exec(object);
+          if (match) {
+            // object is an ASP date
+            return new Date(Number(match[1])).toISOString(); // parse number
+          } else {
+            return new Date(object).toISOString(); // parse string
+          }
+        } else {
+          throw new Error('Cannot convert object of type ' + exports.getType(object) + ' to type ISODate');
+        }
+
+      case 'ASPDate':
+        if (exports.isNumber(object)) {
+          return '/Date(' + object + ')/';
+        } else if (object instanceof Date) {
+          return '/Date(' + object.valueOf() + ')/';
+        } else if (exports.isString(object)) {
+          match = ASPDateRegex.exec(object);
+          var value;
+          if (match) {
+            // object is an ASP date
+            value = new Date(Number(match[1])).valueOf(); // parse number
+          } else {
+            value = new Date(object).valueOf(); // parse string
+          }
+          return '/Date(' + value + ')/';
+        } else {
+          throw new Error('Cannot convert object of type ' + exports.getType(object) + ' to type ASPDate');
+        }
+
+      default:
+        throw new Error('Unknown type "' + type + '"');
+    }
+  };
+
+  // parse ASP.Net Date pattern,
+  // for example '/Date(1198908717056)/' or '/Date(1198908717056-0700)/'
+  // code from http://momentjs.com/
+  var ASPDateRegex = /^\/?Date\((\-?\d+)/i;
+
+  /**
+   * Get the type of an object, for example exports.getType([]) returns 'Array'
+   * @param {*} object
+   * @return {String} type
+   */
+  exports.getType = function (object) {
+    var type = typeof object;
+
+    if (type == 'object') {
+      if (object === null) {
+        return 'null';
+      }
+      if (object instanceof Boolean) {
+        return 'Boolean';
+      }
+      if (object instanceof Number) {
+        return 'Number';
+      }
+      if (object instanceof String) {
+        return 'String';
+      }
+      if (Array.isArray(object)) {
+        return 'Array';
+      }
+      if (object instanceof Date) {
+        return 'Date';
+      }
+      return 'Object';
+    } else if (type == 'number') {
+      return 'Number';
+    } else if (type == 'boolean') {
+      return 'Boolean';
+    } else if (type == 'string') {
+      return 'String';
+    } else if (type === undefined) {
+      return 'undefined';
+    }
+
+    return type;
+  };
+
+  /**
+   * Used to extend an array and copy it. This is used to propagate paths recursively.
+   *
+   * @param arr
+   * @param newValue
+   * @returns {Array}
+   */
+  exports.copyAndExtendArray = function (arr, newValue) {
+    var newArr = [];
+    for (var i = 0; i < arr.length; i++) {
+      newArr.push(arr[i]);
+    }
+    newArr.push(newValue);
+    return newArr;
+  };
+
+  /**
+   * Used to extend an array and copy it. This is used to propagate paths recursively.
+   *
+   * @param arr
+   * @param newValue
+   * @returns {Array}
+   */
+  exports.copyArray = function (arr) {
+    var newArr = [];
+    for (var i = 0; i < arr.length; i++) {
+      newArr.push(arr[i]);
+    }
+    return newArr;
+  };
+
+  /**
+   * Retrieve the absolute left value of a DOM element
+   * @param {Element} elem        A dom element, for example a div
+   * @return {number} left        The absolute left position of this element
+   *                              in the browser page.
+   */
+  exports.getAbsoluteLeft = function (elem) {
+    return elem.getBoundingClientRect().left;
+  };
+
+  /**
+   * Retrieve the absolute top value of a DOM element
+   * @param {Element} elem        A dom element, for example a div
+   * @return {number} top        The absolute top position of this element
+   *                              in the browser page.
+   */
+  exports.getAbsoluteTop = function (elem) {
+    return elem.getBoundingClientRect().top;
+  };
+
+  /**
+   * add a className to the given elements style
+   * @param {Element} elem
+   * @param {String} className
+   */
+  exports.addClassName = function (elem, className) {
+    var classes = elem.className.split(' ');
+    if (classes.indexOf(className) == -1) {
+      classes.push(className); // add the class to the array
+      elem.className = classes.join(' ');
+    }
+  };
+
+  /**
+   * add a className to the given elements style
+   * @param {Element} elem
+   * @param {String} className
+   */
+  exports.removeClassName = function (elem, className) {
+    var classes = elem.className.split(' ');
+    var index = classes.indexOf(className);
+    if (index != -1) {
+      classes.splice(index, 1); // remove the class from the array
+      elem.className = classes.join(' ');
+    }
+  };
+
+  /**
+   * For each method for both arrays and objects.
+   * In case of an array, the built-in Array.forEach() is applied.
+   * In case of an Object, the method loops over all properties of the object.
+   * @param {Object | Array} object   An Object or Array
+   * @param {function} callback       Callback method, called for each item in
+   *                                  the object or array with three parameters:
+   *                                  callback(value, index, object)
+   */
+  exports.forEach = function (object, callback) {
+    var i, len;
+    if (Array.isArray(object)) {
+      // array
+      for (i = 0, len = object.length; i < len; i++) {
+        callback(object[i], i, object);
+      }
+    } else {
+      // object
+      for (i in object) {
+        if (object.hasOwnProperty(i)) {
+          callback(object[i], i, object);
+        }
+      }
+    }
+  };
+
+  /**
+   * Convert an object into an array: all objects properties are put into the
+   * array. The resulting array is unordered.
+   * @param {Object} object
+   * @param {Array} array
+   */
+  exports.toArray = function (object) {
+    var array = [];
+
+    for (var prop in object) {
+      if (object.hasOwnProperty(prop)) array.push(object[prop]);
+    }
+
+    return array;
+  };
+
+  /**
+   * Update a property in an object
+   * @param {Object} object
+   * @param {String} key
+   * @param {*} value
+   * @return {Boolean} changed
+   */
+  exports.updateProperty = function (object, key, value) {
+    if (object[key] !== value) {
+      object[key] = value;
+      return true;
+    } else {
+      return false;
+    }
+  };
+
+  /**
+   * Add and event listener. Works for all browsers
+   * @param {Element}     element    An html element
+   * @param {string}      action     The action, for example "click",
+   *                                 without the prefix "on"
+   * @param {function}    listener   The callback function to be executed
+   * @param {boolean}     [useCapture]
+   */
+  exports.addEventListener = function (element, action, listener, useCapture) {
+    if (element.addEventListener) {
+      if (useCapture === undefined) useCapture = false;
+
+      if (action === 'mousewheel' && navigator.userAgent.indexOf('Firefox') >= 0) {
+        action = 'DOMMouseScroll'; // For Firefox
+      }
+
+      element.addEventListener(action, listener, useCapture);
+    } else {
+      element.attachEvent('on' + action, listener); // IE browsers
+    }
+  };
+
+  /**
+   * Remove an event listener from an element
+   * @param {Element}     element         An html dom element
+   * @param {string}      action          The name of the event, for example "mousedown"
+   * @param {function}    listener        The listener function
+   * @param {boolean}     [useCapture]
+   */
+  exports.removeEventListener = function (element, action, listener, useCapture) {
+    if (element.removeEventListener) {
+      // non-IE browsers
+      if (useCapture === undefined) useCapture = false;
+
+      if (action === 'mousewheel' && navigator.userAgent.indexOf('Firefox') >= 0) {
+        action = 'DOMMouseScroll'; // For Firefox
+      }
+
+      element.removeEventListener(action, listener, useCapture);
+    } else {
+      // IE browsers
+      element.detachEvent('on' + action, listener);
+    }
+  };
+
+  /**
+   * Cancels the event if it is cancelable, without stopping further propagation of the event.
+   */
+  exports.preventDefault = function (event) {
+    if (!event) event = window.event;
+
+    if (event.preventDefault) {
+      event.preventDefault(); // non-IE browsers
+    } else {
+      event.returnValue = false; // IE browsers
+    }
+  };
+
+  /**
+   * Get HTML element which is the target of the event
+   * @param {Event} event
+   * @return {Element} target element
+   */
+  exports.getTarget = function (event) {
+    // code from http://www.quirksmode.org/js/events_properties.html
+    if (!event) {
+      event = window.event;
+    }
+
+    var target;
+
+    if (event.target) {
+      target = event.target;
+    } else if (event.srcElement) {
+      target = event.srcElement;
+    }
+
+    if (target.nodeType != undefined && target.nodeType == 3) {
+      // defeat Safari bug
+      target = target.parentNode;
+    }
+
+    return target;
+  };
+
+  /**
+   * Check if given element contains given parent somewhere in the DOM tree
+   * @param {Element} element
+   * @param {Element} parent
+   */
+  exports.hasParent = function (element, parent) {
+    var e = element;
+
+    while (e) {
+      if (e === parent) {
+        return true;
+      }
+      e = e.parentNode;
+    }
+
+    return false;
+  };
+
+  exports.option = {};
+
+  /**
+   * Convert a value into a boolean
+   * @param {Boolean | function | undefined} value
+   * @param {Boolean} [defaultValue]
+   * @returns {Boolean} bool
+   */
+  exports.option.asBoolean = function (value, defaultValue) {
+    if (typeof value == 'function') {
+      value = value();
+    }
+
+    if (value != null) {
+      return value != false;
+    }
+
+    return defaultValue || null;
+  };
+
+  /**
+   * Convert a value into a number
+   * @param {Boolean | function | undefined} value
+   * @param {Number} [defaultValue]
+   * @returns {Number} number
+   */
+  exports.option.asNumber = function (value, defaultValue) {
+    if (typeof value == 'function') {
+      value = value();
+    }
+
+    if (value != null) {
+      return Number(value) || defaultValue || null;
+    }
+
+    return defaultValue || null;
+  };
+
+  /**
+   * Convert a value into a string
+   * @param {String | function | undefined} value
+   * @param {String} [defaultValue]
+   * @returns {String} str
+   */
+  exports.option.asString = function (value, defaultValue) {
+    if (typeof value == 'function') {
+      value = value();
+    }
+
+    if (value != null) {
+      return String(value);
+    }
+
+    return defaultValue || null;
+  };
+
+  /**
+   * Convert a size or location into a string with pixels or a percentage
+   * @param {String | Number | function | undefined} value
+   * @param {String} [defaultValue]
+   * @returns {String} size
+   */
+  exports.option.asSize = function (value, defaultValue) {
+    if (typeof value == 'function') {
+      value = value();
+    }
+
+    if (exports.isString(value)) {
+      return value;
+    } else if (exports.isNumber(value)) {
+      return value + 'px';
+    } else {
+      return defaultValue || null;
+    }
+  };
+
+  /**
+   * Convert a value into a DOM element
+   * @param {HTMLElement | function | undefined} value
+   * @param {HTMLElement} [defaultValue]
+   * @returns {HTMLElement | null} dom
+   */
+  exports.option.asElement = function (value, defaultValue) {
+    if (typeof value == 'function') {
+      value = value();
+    }
+
+    return value || defaultValue || null;
+  };
+
+  /**
+   * http://stackoverflow.com/questions/5623838/rgb-to-hex-and-hex-to-rgb
+   *
+   * @param {String} hex
+   * @returns {{r: *, g: *, b: *}} | 255 range
+   */
+  exports.hexToRGB = function (hex) {
+    // Expand shorthand form (e.g. "03F") to full form (e.g. "0033FF")
+    var shorthandRegex = /^#?([a-f\d])([a-f\d])([a-f\d])$/i;
+    hex = hex.replace(shorthandRegex, function (m, r, g, b) {
+      return r + r + g + g + b + b;
+    });
+    var result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+    return result ? {
+      r: parseInt(result[1], 16),
+      g: parseInt(result[2], 16),
+      b: parseInt(result[3], 16)
+    } : null;
+  };
+
+  /**
+   * This function takes color in hex format or rgb() or rgba() format and overrides the opacity. Returns rgba() string.
+   * @param color
+   * @param opacity
+   * @returns {*}
+   */
+  exports.overrideOpacity = function (color, opacity) {
+    if (color.indexOf('rgba') != -1) {
+      return color;
+    } else if (color.indexOf('rgb') != -1) {
+      var rgb = color.substr(color.indexOf('(') + 1).replace(')', '').split(',');
+      return 'rgba(' + rgb[0] + ',' + rgb[1] + ',' + rgb[2] + ',' + opacity + ')';
+    } else {
+      var rgb = exports.hexToRGB(color);
+      if (rgb == null) {
+        return color;
+      } else {
+        return 'rgba(' + rgb.r + ',' + rgb.g + ',' + rgb.b + ',' + opacity + ')';
+      }
+    }
+  };
+
+  /**
+   *
+   * @param red     0 -- 255
+   * @param green   0 -- 255
+   * @param blue    0 -- 255
+   * @returns {string}
+   * @constructor
+   */
+  exports.RGBToHex = function (red, green, blue) {
+    return '#' + ((1 << 24) + (red << 16) + (green << 8) + blue).toString(16).slice(1);
+  };
+
+  /**
+   * Parse a color property into an object with border, background, and
+   * highlight colors
+   * @param {Object | String} color
+   * @return {Object} colorObject
+   */
+  exports.parseColor = function (color) {
+    var c;
+    if (exports.isString(color) === true) {
+      if (exports.isValidRGB(color) === true) {
+        var rgb = color.substr(4).substr(0, color.length - 5).split(',').map(function (value) {
+          return parseInt(value);
+        });
+        color = exports.RGBToHex(rgb[0], rgb[1], rgb[2]);
+      }
+      if (exports.isValidHex(color) === true) {
+        var hsv = exports.hexToHSV(color);
+        var lighterColorHSV = { h: hsv.h, s: hsv.s * 0.8, v: Math.min(1, hsv.v * 1.02) };
+        var darkerColorHSV = { h: hsv.h, s: Math.min(1, hsv.s * 1.25), v: hsv.v * 0.8 };
+        var darkerColorHex = exports.HSVToHex(darkerColorHSV.h, darkerColorHSV.s, darkerColorHSV.v);
+        var lighterColorHex = exports.HSVToHex(lighterColorHSV.h, lighterColorHSV.s, lighterColorHSV.v);
+        c = {
+          background: color,
+          border: darkerColorHex,
+          highlight: {
+            background: lighterColorHex,
+            border: darkerColorHex
+          },
+          hover: {
+            background: lighterColorHex,
+            border: darkerColorHex
+          }
+        };
+      } else {
+        c = {
+          background: color,
+          border: color,
+          highlight: {
+            background: color,
+            border: color
+          },
+          hover: {
+            background: color,
+            border: color
+          }
+        };
+      }
+    } else {
+      c = {};
+      c.background = color.background || undefined;
+      c.border = color.border || undefined;
+
+      if (exports.isString(color.highlight)) {
+        c.highlight = {
+          border: color.highlight,
+          background: color.highlight
+        };
+      } else {
+        c.highlight = {};
+        c.highlight.background = color.highlight && color.highlight.background || undefined;
+        c.highlight.border = color.highlight && color.highlight.border || undefined;
+      }
+
+      if (exports.isString(color.hover)) {
+        c.hover = {
+          border: color.hover,
+          background: color.hover
+        };
+      } else {
+        c.hover = {};
+        c.hover.background = color.hover && color.hover.background || undefined;
+        c.hover.border = color.hover && color.hover.border || undefined;
+      }
+    }
+
+    return c;
+  };
+
+  /**
+   * http://www.javascripter.net/faq/rgb2hsv.htm
+   *
+   * @param red
+   * @param green
+   * @param blue
+   * @returns {*}
+   * @constructor
+   */
+  exports.RGBToHSV = function (red, green, blue) {
+    red = red / 255;green = green / 255;blue = blue / 255;
+    var minRGB = Math.min(red, Math.min(green, blue));
+    var maxRGB = Math.max(red, Math.max(green, blue));
+
+    // Black-gray-white
+    if (minRGB == maxRGB) {
+      return { h: 0, s: 0, v: minRGB };
+    }
+
+    // Colors other than black-gray-white:
+    var d = red == minRGB ? green - blue : blue == minRGB ? red - green : blue - red;
+    var h = red == minRGB ? 3 : blue == minRGB ? 1 : 5;
+    var hue = 60 * (h - d / (maxRGB - minRGB)) / 360;
+    var saturation = (maxRGB - minRGB) / maxRGB;
+    var value = maxRGB;
+    return { h: hue, s: saturation, v: value };
+  };
+
+  var cssUtil = {
+    // split a string with css styles into an object with key/values
+    split: function split(cssText) {
+      var styles = {};
+
+      cssText.split(';').forEach(function (style) {
+        if (style.trim() != '') {
+          var parts = style.split(':');
+          var key = parts[0].trim();
+          var value = parts[1].trim();
+          styles[key] = value;
+        }
+      });
+
+      return styles;
+    },
+
+    // build a css text string from an object with key/values
+    join: function join(styles) {
+      return Object.keys(styles).map(function (key) {
+        return key + ': ' + styles[key];
+      }).join('; ');
+    }
+  };
+
+  /**
+   * Append a string with css styles to an element
+   * @param {Element} element
+   * @param {String} cssText
+   */
+  exports.addCssText = function (element, cssText) {
+    var currentStyles = cssUtil.split(element.style.cssText);
+    var newStyles = cssUtil.split(cssText);
+    var styles = exports.extend(currentStyles, newStyles);
+
+    element.style.cssText = cssUtil.join(styles);
+  };
+
+  /**
+   * Remove a string with css styles from an element
+   * @param {Element} element
+   * @param {String} cssText
+   */
+  exports.removeCssText = function (element, cssText) {
+    var styles = cssUtil.split(element.style.cssText);
+    var removeStyles = cssUtil.split(cssText);
+
+    for (var key in removeStyles) {
+      if (removeStyles.hasOwnProperty(key)) {
+        delete styles[key];
+      }
+    }
+
+    element.style.cssText = cssUtil.join(styles);
+  };
+
+  /**
+   * https://gist.github.com/mjijackson/5311256
+   * @param h
+   * @param s
+   * @param v
+   * @returns {{r: number, g: number, b: number}}
+   * @constructor
+   */
+  exports.HSVToRGB = function (h, s, v) {
+    var r, g, b;
+
+    var i = Math.floor(h * 6);
+    var f = h * 6 - i;
+    var p = v * (1 - s);
+    var q = v * (1 - f * s);
+    var t = v * (1 - (1 - f) * s);
+
+    switch (i % 6) {
+      case 0:
+        r = v, g = t, b = p;break;
+      case 1:
+        r = q, g = v, b = p;break;
+      case 2:
+        r = p, g = v, b = t;break;
+      case 3:
+        r = p, g = q, b = v;break;
+      case 4:
+        r = t, g = p, b = v;break;
+      case 5:
+        r = v, g = p, b = q;break;
+    }
+
+    return { r: Math.floor(r * 255), g: Math.floor(g * 255), b: Math.floor(b * 255) };
+  };
+
+  exports.HSVToHex = function (h, s, v) {
+    var rgb = exports.HSVToRGB(h, s, v);
+    return exports.RGBToHex(rgb.r, rgb.g, rgb.b);
+  };
+
+  exports.hexToHSV = function (hex) {
+    var rgb = exports.hexToRGB(hex);
+    return exports.RGBToHSV(rgb.r, rgb.g, rgb.b);
+  };
+
+  exports.isValidHex = function (hex) {
+    var isOk = /(^#[0-9A-F]{6}$)|(^#[0-9A-F]{3}$)/i.test(hex);
+    return isOk;
+  };
+
+  exports.isValidRGB = function (rgb) {
+    rgb = rgb.replace(' ', '');
+    var isOk = /rgb\((\d{1,3}),(\d{1,3}),(\d{1,3})\)/i.test(rgb);
+    return isOk;
+  };
+  exports.isValidRGBA = function (rgba) {
+    rgba = rgba.replace(' ', '');
+    var isOk = /rgba\((\d{1,3}),(\d{1,3}),(\d{1,3}),(.{1,3})\)/i.test(rgba);
+    return isOk;
+  };
+
+  /**
+   * This recursively redirects the prototype of JSON objects to the referenceObject
+   * This is used for default options.
+   *
+   * @param referenceObject
+   * @returns {*}
+   */
+  exports.selectiveBridgeObject = function (fields, referenceObject) {
+    if (typeof referenceObject == 'object') {
+      var objectTo = Object.create(referenceObject);
+      for (var i = 0; i < fields.length; i++) {
+        if (referenceObject.hasOwnProperty(fields[i])) {
+          if (typeof referenceObject[fields[i]] == 'object') {
+            objectTo[fields[i]] = exports.bridgeObject(referenceObject[fields[i]]);
+          }
+        }
+      }
+      return objectTo;
+    } else {
+      return null;
+    }
+  };
+
+  /**
+   * This recursively redirects the prototype of JSON objects to the referenceObject
+   * This is used for default options.
+   *
+   * @param referenceObject
+   * @returns {*}
+   */
+  exports.bridgeObject = function (referenceObject) {
+    if (typeof referenceObject == 'object') {
+      var objectTo = Object.create(referenceObject);
+      for (var i in referenceObject) {
+        if (referenceObject.hasOwnProperty(i)) {
+          if (typeof referenceObject[i] == 'object') {
+            objectTo[i] = exports.bridgeObject(referenceObject[i]);
+          }
+        }
+      }
+      return objectTo;
+    } else {
+      return null;
+    }
+  };
+
+  /**
+   * this is used to set the options of subobjects in the options object. A requirement of these subobjects
+   * is that they have an 'enabled' element which is optional for the user but mandatory for the program.
+   *
+   * @param [object] mergeTarget | this is either this.options or the options used for the groups.
+   * @param [object] options     | options
+   * @param [String] option      | this is the option key in the options argument
+   * @private
+   */
+  exports.mergeOptions = function (mergeTarget, options, option) {
+    var allowDeletion = arguments[3] === undefined ? false : arguments[3];
+
+    if (options[option] === null) {
+      mergeTarget[option] = undefined;
+      delete mergeTarget[option];
+    } else {
+      if (options[option] !== undefined) {
+        if (typeof options[option] === 'boolean') {
+          mergeTarget[option].enabled = options[option];
+        } else {
+          if (options[option].enabled === undefined) {
+            mergeTarget[option].enabled = true;
+          }
+          for (var prop in options[option]) {
+            if (options[option].hasOwnProperty(prop)) {
+              mergeTarget[option][prop] = options[option][prop];
+            }
+          }
+        }
+      }
+    }
+  };
+
+  /**
+   * This function does a binary search for a visible item in a sorted list. If we find a visible item, the code that uses
+   * this function will then iterate in both directions over this sorted list to find all visible items.
+   *
+   * @param {Item[]} orderedItems       | Items ordered by start
+   * @param {function} searchFunction   | -1 is lower, 0 is found, 1 is higher
+   * @param {String} field
+   * @param {String} field2
+   * @returns {number}
+   * @private
+   */
+  exports.binarySearchCustom = function (orderedItems, searchFunction, field, field2) {
+    var maxIterations = 10000;
+    var iteration = 0;
+    var low = 0;
+    var high = orderedItems.length - 1;
+
+    while (low <= high && iteration < maxIterations) {
+      var middle = Math.floor((low + high) / 2);
+
+      var item = orderedItems[middle];
+      var value = field2 === undefined ? item[field] : item[field][field2];
+
+      var searchResult = searchFunction(value);
+      if (searchResult == 0) {
+        // jihaa, found a visible item!
+        return middle;
+      } else if (searchResult == -1) {
+        // it is too small --> increase low
+        low = middle + 1;
+      } else {
+        // it is too big --> decrease high
+        high = middle - 1;
+      }
+
+      iteration++;
+    }
+
+    return -1;
+  };
+
+  /**
+   * This function does a binary search for a specific value in a sorted array. If it does not exist but is in between of
+   * two values, we return either the one before or the one after, depending on user input
+   * If it is found, we return the index, else -1.
+   *
+   * @param {Array} orderedItems
+   * @param {{start: number, end: number}} target
+   * @param {String} field
+   * @param {String} sidePreference   'before' or 'after'
+   * @returns {number}
+   * @private
+   */
+  exports.binarySearchValue = function (orderedItems, target, field, sidePreference) {
+    var maxIterations = 10000;
+    var iteration = 0;
+    var low = 0;
+    var high = orderedItems.length - 1;
+    var prevValue, value, nextValue, middle;
+
+    while (low <= high && iteration < maxIterations) {
+      // get a new guess
+      middle = Math.floor(0.5 * (high + low));
+      prevValue = orderedItems[Math.max(0, middle - 1)][field];
+      value = orderedItems[middle][field];
+      nextValue = orderedItems[Math.min(orderedItems.length - 1, middle + 1)][field];
+
+      if (value == target) {
+        // we found the target
+        return middle;
+      } else if (prevValue < target && value > target) {
+        // target is in between of the previous and the current
+        return sidePreference == 'before' ? Math.max(0, middle - 1) : middle;
+      } else if (value < target && nextValue > target) {
+        // target is in between of the current and the next
+        return sidePreference == 'before' ? middle : Math.min(orderedItems.length - 1, middle + 1);
+      } else {
+        // didnt find the target, we need to change our boundaries.
+        if (value < target) {
+          // it is too small --> increase low
+          low = middle + 1;
+        } else {
+          // it is too big --> decrease high
+          high = middle - 1;
+        }
+      }
+      iteration++;
+    }
+
+    // didnt find anything. Return -1.
+    return -1;
+  };
+
+  /*
+   * Easing Functions - inspired from http://gizma.com/easing/
+   * only considering the t value for the range [0, 1] => [0, 1]
+   * https://gist.github.com/gre/1650294
+   */
+  exports.easingFunctions = {
+    // no easing, no acceleration
+    linear: function linear(t) {
+      return t;
+    },
+    // accelerating from zero velocity
+    easeInQuad: function easeInQuad(t) {
+      return t * t;
+    },
+    // decelerating to zero velocity
+    easeOutQuad: function easeOutQuad(t) {
+      return t * (2 - t);
+    },
+    // acceleration until halfway, then deceleration
+    easeInOutQuad: function easeInOutQuad(t) {
+      return t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t;
+    },
+    // accelerating from zero velocity
+    easeInCubic: function easeInCubic(t) {
+      return t * t * t;
+    },
+    // decelerating to zero velocity
+    easeOutCubic: function easeOutCubic(t) {
+      return --t * t * t + 1;
+    },
+    // acceleration until halfway, then deceleration
+    easeInOutCubic: function easeInOutCubic(t) {
+      return t < 0.5 ? 4 * t * t * t : (t - 1) * (2 * t - 2) * (2 * t - 2) + 1;
+    },
+    // accelerating from zero velocity
+    easeInQuart: function easeInQuart(t) {
+      return t * t * t * t;
+    },
+    // decelerating to zero velocity
+    easeOutQuart: function easeOutQuart(t) {
+      return 1 - --t * t * t * t;
+    },
+    // acceleration until halfway, then deceleration
+    easeInOutQuart: function easeInOutQuart(t) {
+      return t < 0.5 ? 8 * t * t * t * t : 1 - 8 * --t * t * t * t;
+    },
+    // accelerating from zero velocity
+    easeInQuint: function easeInQuint(t) {
+      return t * t * t * t * t;
+    },
+    // decelerating to zero velocity
+    easeOutQuint: function easeOutQuint(t) {
+      return 1 + --t * t * t * t * t;
+    },
+    // acceleration until halfway, then deceleration
+    easeInOutQuint: function easeInOutQuint(t) {
+      return t < 0.5 ? 16 * t * t * t * t * t : 1 + 16 * --t * t * t * t * t;
+    }
+  };
+
+/***/ },
+/* 3 */
+/***/ function(module, exports, __webpack_require__) {
+
+  "use strict";
+
+  Object.defineProperty(exports, "__esModule", {
+    value: true
+  });
+
+  var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
+
+  function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+  var BarnesHutSolver = (function () {
+    function BarnesHutSolver(body, physicsBody, options) {
+      _classCallCheck(this, BarnesHutSolver);
+
+      this.body = body;
+      this.physicsBody = physicsBody;
+      this.barnesHutTree;
+      this.setOptions(options);
+    }
+
+    _createClass(BarnesHutSolver, [{
+      key: "setOptions",
+      value: function setOptions(options) {
+        this.options = options;
+        this.thetaInversed = 1 / this.options.theta;
+        this.overlapAvoidanceFactor = 1 - Math.max(0, Math.min(1, this.options.avoidOverlap)); // if 1 then min distance = 0.5, if 0.5 then min distance = 0.5 + 0.5*node.shape.radius
+      }
+    }, {
+      key: "solve",
+
+      /**
+       * This function calculates the forces the nodes apply on eachother based on a gravitational model.
+       * The Barnes Hut method is used to speed up this N-body simulation.
+       *
+       * @private
+       */
+      value: function solve() {
+        if (this.options.gravitationalConstant !== 0 && this.physicsBody.physicsNodeIndices.length > 0) {
+          var node = undefined;
+          var nodes = this.body.nodes;
+          var nodeIndices = this.physicsBody.physicsNodeIndices;
+          var nodeCount = nodeIndices.length;
+
+          // create the tree
+          var barnesHutTree = this._formBarnesHutTree(nodes, nodeIndices);
+
+          // for debugging
+          this.barnesHutTree = barnesHutTree;
+
+          // place the nodes one by one recursively
+          for (var i = 0; i < nodeCount; i++) {
+            node = nodes[nodeIndices[i]];
+            if (node.options.mass > 0) {
+              // starting with root is irrelevant, it never passes the BarnesHutSolver condition
+              this._getForceContribution(barnesHutTree.root.children.NW, node);
+              this._getForceContribution(barnesHutTree.root.children.NE, node);
+              this._getForceContribution(barnesHutTree.root.children.SW, node);
+              this._getForceContribution(barnesHutTree.root.children.SE, node);
+            }
+          }
+        }
+      }
+    }, {
+      key: "_getForceContribution",
+
+      /**
+       * This function traverses the barnesHutTree. It checks when it can approximate distant nodes with their center of mass.
+       * If a region contains a single node, we check if it is not itself, then we apply the force.
+       *
+       * @param parentBranch
+       * @param node
+       * @private
+       */
+      value: function _getForceContribution(parentBranch, node) {
+        // we get no force contribution from an empty region
+        if (parentBranch.childrenCount > 0) {
+          var dx = undefined,
+              dy = undefined,
+              distance = undefined;
+
+          // get the distance from the center of mass to the node.
+          dx = parentBranch.centerOfMass.x - node.x;
+          dy = parentBranch.centerOfMass.y - node.y;
+          distance = Math.sqrt(dx * dx + dy * dy);
+
+          // BarnesHutSolver condition
+          // original condition : s/d < theta = passed  ===  d/s > 1/theta = passed
+          // calcSize = 1/s --> d * 1/s > 1/theta = passed
+          if (distance * parentBranch.calcSize > this.thetaInversed) {
+            this._calculateForces(distance, dx, dy, node, parentBranch);
+          } else {
+            // Did not pass the condition, go into children if available
+            if (parentBranch.childrenCount === 4) {
+              this._getForceContribution(parentBranch.children.NW, node);
+              this._getForceContribution(parentBranch.children.NE, node);
+              this._getForceContribution(parentBranch.children.SW, node);
+              this._getForceContribution(parentBranch.children.SE, node);
+            } else {
+              // parentBranch must have only one node, if it was empty we wouldnt be here
+              if (parentBranch.children.data.id != node.id) {
+                // if it is not self
+                this._calculateForces(distance, dx, dy, node, parentBranch);
+              }
+            }
+          }
+        }
+      }
+    }, {
+      key: "_calculateForces",
+
+      /**
+       * Calculate the forces based on the distance.
+       *
+       * @param distance
+       * @param dx
+       * @param dy
+       * @param node
+       * @param parentBranch
+       * @private
+       */
+      value: function _calculateForces(distance, dx, dy, node, parentBranch) {
+        if (distance === 0) {
+          distance = 0.1;
+          dx = distance;
+        }
+
+        if (this.overlapAvoidanceFactor < 1) {
+          distance = Math.max(0.1 + this.overlapAvoidanceFactor * node.shape.radius, distance - node.shape.radius);
+        }
+
+        // the dividing by the distance cubed instead of squared allows us to get the fx and fy components without sines and cosines
+        // it is shorthand for gravityforce with distance squared and fx = dx/distance * gravityForce
+        var gravityForce = this.options.gravitationalConstant * parentBranch.mass * node.options.mass / Math.pow(distance, 3);
+        var fx = dx * gravityForce;
+        var fy = dy * gravityForce;
+
+        this.physicsBody.forces[node.id].x += fx;
+        this.physicsBody.forces[node.id].y += fy;
+      }
+    }, {
+      key: "_formBarnesHutTree",
+
+      /**
+       * This function constructs the barnesHut tree recursively. It creates the root, splits it and starts placing the nodes.
+       *
+       * @param nodes
+       * @param nodeIndices
+       * @private
+       */
+      value: function _formBarnesHutTree(nodes, nodeIndices) {
+        var node = undefined;
+        var nodeCount = nodeIndices.length;
+
+        var minX = nodes[nodeIndices[0]].x;
+        var minY = nodes[nodeIndices[0]].y;
+        var maxX = nodes[nodeIndices[0]].x;
+        var maxY = nodes[nodeIndices[0]].y;
+
+        // get the range of the nodes
+        for (var i = 1; i < nodeCount; i++) {
+          var x = nodes[nodeIndices[i]].x;
+          var y = nodes[nodeIndices[i]].y;
+          if (nodes[nodeIndices[i]].options.mass > 0) {
+            if (x < minX) {
+              minX = x;
+            }
+            if (x > maxX) {
+              maxX = x;
+            }
+            if (y < minY) {
+              minY = y;
+            }
+            if (y > maxY) {
+              maxY = y;
+            }
+          }
+        }
+        // make the range a square
+        var sizeDiff = Math.abs(maxX - minX) - Math.abs(maxY - minY); // difference between X and Y
+        if (sizeDiff > 0) {
+          minY -= 0.5 * sizeDiff;
+          maxY += 0.5 * sizeDiff;
+        } // xSize > ySize
+        else {
+          minX += 0.5 * sizeDiff;
+          maxX -= 0.5 * sizeDiff;
+        } // xSize < ySize
+
+        var minimumTreeSize = 0.00001;
+        var rootSize = Math.max(minimumTreeSize, Math.abs(maxX - minX));
+        var halfRootSize = 0.5 * rootSize;
+        var centerX = 0.5 * (minX + maxX),
+            centerY = 0.5 * (minY + maxY);
+
+        // construct the barnesHutTree
+        var barnesHutTree = {
+          root: {
+            centerOfMass: { x: 0, y: 0 },
+            mass: 0,
+            range: {
+              minX: centerX - halfRootSize, maxX: centerX + halfRootSize,
+              minY: centerY - halfRootSize, maxY: centerY + halfRootSize
+            },
+            size: rootSize,
+            calcSize: 1 / rootSize,
+            children: { data: null },
+            maxWidth: 0,
+            level: 0,
+            childrenCount: 4
+          }
+        };
+        this._splitBranch(barnesHutTree.root);
+
+        // place the nodes one by one recursively
+        for (var i = 0; i < nodeCount; i++) {
+          node = nodes[nodeIndices[i]];
+          if (node.options.mass > 0) {
+            this._placeInTree(barnesHutTree.root, node);
+          }
+        }
+
+        // make global
+        return barnesHutTree;
+      }
+    }, {
+      key: "_updateBranchMass",
+
+      /**
+       * this updates the mass of a branch. this is increased by adding a node.
+       *
+       * @param parentBranch
+       * @param node
+       * @private
+       */
+      value: function _updateBranchMass(parentBranch, node) {
+        var totalMass = parentBranch.mass + node.options.mass;
+        var totalMassInv = 1 / totalMass;
+
+        parentBranch.centerOfMass.x = parentBranch.centerOfMass.x * parentBranch.mass + node.x * node.options.mass;
+        parentBranch.centerOfMass.x *= totalMassInv;
+
+        parentBranch.centerOfMass.y = parentBranch.centerOfMass.y * parentBranch.mass + node.y * node.options.mass;
+        parentBranch.centerOfMass.y *= totalMassInv;
+
+        parentBranch.mass = totalMass;
+        var biggestSize = Math.max(Math.max(node.height, node.radius), node.width);
+        parentBranch.maxWidth = parentBranch.maxWidth < biggestSize ? biggestSize : parentBranch.maxWidth;
+      }
+    }, {
+      key: "_placeInTree",
+
+      /**
+       * determine in which branch the node will be placed.
+       *
+       * @param parentBranch
+       * @param node
+       * @param skipMassUpdate
+       * @private
+       */
+      value: function _placeInTree(parentBranch, node, skipMassUpdate) {
+        if (skipMassUpdate != true || skipMassUpdate === undefined) {
+          // update the mass of the branch.
+          this._updateBranchMass(parentBranch, node);
+        }
+
+        if (parentBranch.children.NW.range.maxX > node.x) {
+          // in NW or SW
+          if (parentBranch.children.NW.range.maxY > node.y) {
+            // in NW
+            this._placeInRegion(parentBranch, node, "NW");
+          } else {
+            // in SW
+            this._placeInRegion(parentBranch, node, "SW");
+          }
+        } else {
+          // in NE or SE
+          if (parentBranch.children.NW.range.maxY > node.y) {
+            // in NE
+            this._placeInRegion(parentBranch, node, "NE");
+          } else {
+            // in SE
+            this._placeInRegion(parentBranch, node, "SE");
+          }
+        }
+      }
+    }, {
+      key: "_placeInRegion",
+
+      /**
+       * actually place the node in a region (or branch)
+       *
+       * @param parentBranch
+       * @param node
+       * @param region
+       * @private
+       */
+      value: function _placeInRegion(parentBranch, node, region) {
+        switch (parentBranch.children[region].childrenCount) {
+          case 0:
+            // place node here
+            parentBranch.children[region].children.data = node;
+            parentBranch.children[region].childrenCount = 1;
+            this._updateBranchMass(parentBranch.children[region], node);
+            break;
+          case 1:
+            // convert into children
+            // if there are two nodes exactly overlapping (on init, on opening of cluster etc.)
+            // we move one node a pixel and we do not put it in the tree.
+            if (parentBranch.children[region].children.data.x === node.x && parentBranch.children[region].children.data.y === node.y) {
+              //node.x += Math.random();
+              //node.y += Math.random();
+              node.x += 0.1;
+              node.y += 0.1;
+            } else {
+              this._splitBranch(parentBranch.children[region]);
+              this._placeInTree(parentBranch.children[region], node);
+            }
+            break;
+          case 4:
+            // place in branch
+            this._placeInTree(parentBranch.children[region], node);
+            break;
+        }
+      }
+    }, {
+      key: "_splitBranch",
+
+      /**
+       * this function splits a branch into 4 sub branches. If the branch contained a node, we place it in the subbranch
+       * after the split is complete.
+       *
+       * @param parentBranch
+       * @private
+       */
+      value: function _splitBranch(parentBranch) {
+        // if the branch is shaded with a node, replace the node in the new subset.
+        var containedNode = null;
+        if (parentBranch.childrenCount === 1) {
+          containedNode = parentBranch.children.data;
+          parentBranch.mass = 0;
+          parentBranch.centerOfMass.x = 0;
+          parentBranch.centerOfMass.y = 0;
+        }
+        parentBranch.childrenCount = 4;
+        parentBranch.children.data = null;
+        this._insertRegion(parentBranch, "NW");
+        this._insertRegion(parentBranch, "NE");
+        this._insertRegion(parentBranch, "SW");
+        this._insertRegion(parentBranch, "SE");
+
+        if (containedNode != null) {
+          this._placeInTree(parentBranch, containedNode);
+        }
+      }
+    }, {
+      key: "_insertRegion",
+
+      /**
+       * This function subdivides the region into four new segments.
+       * Specifically, this inserts a single new segment.
+       * It fills the children section of the parentBranch
+       *
+       * @param parentBranch
+       * @param region
+       * @param parentRange
+       * @private
+       */
+      value: function _insertRegion(parentBranch, region) {
+        var minX = undefined,
+            maxX = undefined,
+            minY = undefined,
+            maxY = undefined;
+        var childSize = 0.5 * parentBranch.size;
+        switch (region) {
+          case "NW":
+            minX = parentBranch.range.minX;
+            maxX = parentBranch.range.minX + childSize;
+            minY = parentBranch.range.minY;
+            maxY = parentBranch.range.minY + childSize;
+            break;
+          case "NE":
+            minX = parentBranch.range.minX + childSize;
+            maxX = parentBranch.range.maxX;
+            minY = parentBranch.range.minY;
+            maxY = parentBranch.range.minY + childSize;
+            break;
+          case "SW":
+            minX = parentBranch.range.minX;
+            maxX = parentBranch.range.minX + childSize;
+            minY = parentBranch.range.minY + childSize;
+            maxY = parentBranch.range.maxY;
+            break;
+          case "SE":
+            minX = parentBranch.range.minX + childSize;
+            maxX = parentBranch.range.maxX;
+            minY = parentBranch.range.minY + childSize;
+            maxY = parentBranch.range.maxY;
+            break;
+        }
+
+        parentBranch.children[region] = {
+          centerOfMass: { x: 0, y: 0 },
+          mass: 0,
+          range: { minX: minX, maxX: maxX, minY: minY, maxY: maxY },
+          size: 0.5 * parentBranch.size,
+          calcSize: 2 * parentBranch.calcSize,
+          children: { data: null },
+          maxWidth: 0,
+          level: parentBranch.level + 1,
+          childrenCount: 0
+        };
+      }
+    }, {
+      key: "_debug",
+
+      //---------------------------  DEBUGGING BELOW  ---------------------------//
+
+      /**
+       * This function is for debugging purposed, it draws the tree.
+       *
+       * @param ctx
+       * @param color
+       * @private
+       */
+      value: function _debug(ctx, color) {
+        if (this.barnesHutTree !== undefined) {
+
+          ctx.lineWidth = 1;
+
+          this._drawBranch(this.barnesHutTree.root, ctx, color);
+        }
+      }
+    }, {
+      key: "_drawBranch",
+
+      /**
+       * This function is for debugging purposes. It draws the branches recursively.
+       *
+       * @param branch
+       * @param ctx
+       * @param color
+       * @private
+       */
+      value: function _drawBranch(branch, ctx, color) {
+        if (color === undefined) {
+          color = "#FF0000";
+        }
+
+        if (branch.childrenCount === 4) {
+          this._drawBranch(branch.children.NW, ctx);
+          this._drawBranch(branch.children.NE, ctx);
+          this._drawBranch(branch.children.SE, ctx);
+          this._drawBranch(branch.children.SW, ctx);
+        }
+        ctx.strokeStyle = color;
+        ctx.beginPath();
+        ctx.moveTo(branch.range.minX, branch.range.minY);
+        ctx.lineTo(branch.range.maxX, branch.range.minY);
+        ctx.stroke();
+
+        ctx.beginPath();
+        ctx.moveTo(branch.range.maxX, branch.range.minY);
+        ctx.lineTo(branch.range.maxX, branch.range.maxY);
+        ctx.stroke();
+
+        ctx.beginPath();
+        ctx.moveTo(branch.range.maxX, branch.range.maxY);
+        ctx.lineTo(branch.range.minX, branch.range.maxY);
+        ctx.stroke();
+
+        ctx.beginPath();
+        ctx.moveTo(branch.range.minX, branch.range.maxY);
+        ctx.lineTo(branch.range.minX, branch.range.minY);
+        ctx.stroke();
+
+        /*
+         if (branch.mass > 0) {
+         ctx.circle(branch.centerOfMass.x, branch.centerOfMass.y, 3*branch.mass);
+         ctx.stroke();
+         }
+         */
+      }
+    }]);
+
+    return BarnesHutSolver;
+  })();
+
+  exports["default"] = BarnesHutSolver;
+  module.exports = exports["default"];
+
+/***/ },
+/* 4 */
+/***/ function(module, exports, __webpack_require__) {
+
   'use strict';
 
   Object.defineProperty(exports, '__esModule', {
@@ -189,512 +2029,691 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
 
-  var _sharedLabel = __webpack_require__(67);
+  var _componentsNode = __webpack_require__(8);
 
-  var _sharedLabel2 = _interopRequireDefault(_sharedLabel);
+  var _componentsNode2 = _interopRequireDefault(_componentsNode);
 
-  var _nodesShapesBox = __webpack_require__(68);
+  var _componentsSharedLabel = __webpack_require__(68);
 
-  var _nodesShapesBox2 = _interopRequireDefault(_nodesShapesBox);
+  var _componentsSharedLabel2 = _interopRequireDefault(_componentsSharedLabel);
 
-  var _nodesShapesCircle = __webpack_require__(70);
+  var util = __webpack_require__(2);
+  var DataSet = __webpack_require__(22);
+  var DataView = __webpack_require__(24);
 
-  var _nodesShapesCircle2 = _interopRequireDefault(_nodesShapesCircle);
+  var NodesHandler = (function () {
+    function NodesHandler(body, images, groups, layoutEngine) {
+      var _this = this;
 
-  var _nodesShapesCircularImage = __webpack_require__(72);
+      _classCallCheck(this, NodesHandler);
 
-  var _nodesShapesCircularImage2 = _interopRequireDefault(_nodesShapesCircularImage);
-
-  var _nodesShapesDatabase = __webpack_require__(73);
-
-  var _nodesShapesDatabase2 = _interopRequireDefault(_nodesShapesDatabase);
-
-  var _nodesShapesDiamond = __webpack_require__(74);
-
-  var _nodesShapesDiamond2 = _interopRequireDefault(_nodesShapesDiamond);
-
-  var _nodesShapesDot = __webpack_require__(76);
-
-  var _nodesShapesDot2 = _interopRequireDefault(_nodesShapesDot);
-
-  var _nodesShapesEllipse = __webpack_require__(77);
-
-  var _nodesShapesEllipse2 = _interopRequireDefault(_nodesShapesEllipse);
-
-  var _nodesShapesIcon = __webpack_require__(78);
-
-  var _nodesShapesIcon2 = _interopRequireDefault(_nodesShapesIcon);
-
-  var _nodesShapesImage = __webpack_require__(79);
-
-  var _nodesShapesImage2 = _interopRequireDefault(_nodesShapesImage);
-
-  var _nodesShapesSquare = __webpack_require__(80);
-
-  var _nodesShapesSquare2 = _interopRequireDefault(_nodesShapesSquare);
-
-  var _nodesShapesStar = __webpack_require__(81);
-
-  var _nodesShapesStar2 = _interopRequireDefault(_nodesShapesStar);
-
-  var _nodesShapesText = __webpack_require__(82);
-
-  var _nodesShapesText2 = _interopRequireDefault(_nodesShapesText);
-
-  var _nodesShapesTriangle = __webpack_require__(83);
-
-  var _nodesShapesTriangle2 = _interopRequireDefault(_nodesShapesTriangle);
-
-  var _nodesShapesTriangleDown = __webpack_require__(84);
-
-  var _nodesShapesTriangleDown2 = _interopRequireDefault(_nodesShapesTriangleDown);
-
-  var _sharedValidator = __webpack_require__(53);
-
-  var _sharedValidator2 = _interopRequireDefault(_sharedValidator);
-
-  var util = __webpack_require__(14);
-
-  /**
-   * @class Node
-   * A node. A node can be connected to other nodes via one or multiple edges.
-   * @param {object} options An object containing options for the node. All
-   *                            options are optional, except for the id.
-   *                              {number} id     Id of the node. Required
-   *                              {string} label  Text label for the node
-   *                              {number} x      Horizontal position of the node
-   *                              {number} y      Vertical position of the node
-   *                              {string} shape  Node shape, available:
-   *                                              "database", "circle", "ellipse",
-   *                                              "box", "image", "text", "dot",
-   *                                              "star", "triangle", "triangleDown",
-   *                                              "square", "icon"
-   *                              {string} image  An image url
-   *                              {string} title  An title text, can be HTML
-   *                              {anytype} group A group name or number
-   * @param {Network.Images} imagelist    A list with images. Only needed
-   *                                            when the node has an image
-   * @param {Network.Groups} grouplist    A list with groups. Needed for
-   *                                            retrieving group options
-   * @param {Object}               constants    An object with default values for
-   *                                            example for the color
-   *
-   */
-
-  var Node = (function () {
-    function Node(options, body, imagelist, grouplist, globalOptions) {
-      _classCallCheck(this, Node);
-
-      this.options = util.bridgeObject(globalOptions);
       this.body = body;
+      this.images = images;
+      this.groups = groups;
+      this.layoutEngine = layoutEngine;
 
-      this.edges = []; // all edges connected to this node
+      // create the node API in the body container
+      this.body.functions.createNode = this.create.bind(this);
 
-      // set defaults for the options
-      this.id = undefined;
-      this.imagelist = imagelist;
-      this.grouplist = grouplist;
+      this.nodesListeners = {
+        add: function add(event, params) {
+          _this.add(params.items);
+        },
+        update: function update(event, params) {
+          _this.update(params.items, params.data);
+        },
+        remove: function remove(event, params) {
+          _this.remove(params.items);
+        }
+      };
 
-      // state options
-      this.x = undefined;
-      this.y = undefined;
-      this.baseSize = this.options.size;
-      this.baseFontSize = this.options.font.size;
-      this.predefinedPosition = false; // used to check if initial fit should just take the range or approximate
-      this.selected = false;
-      this.hover = false;
+      this.options = {};
+      this.defaultOptions = {
+        borderWidth: 1,
+        borderWidthSelected: 2,
+        brokenImage: undefined,
+        color: {
+          border: '#2B7CE9',
+          background: '#97C2FC',
+          highlight: {
+            border: '#2B7CE9',
+            background: '#D2E5FF'
+          },
+          hover: {
+            border: '#2B7CE9',
+            background: '#D2E5FF'
+          }
+        },
+        fixed: {
+          x: false,
+          y: false
+        },
+        font: {
+          color: '#343434',
+          size: 14, // px
+          face: 'arial',
+          background: 'none',
+          strokeWidth: 0, // px
+          strokeColor: '#ffffff',
+          align: 'horizontal'
+        },
+        group: undefined,
+        hidden: false,
+        icon: {
+          face: 'FontAwesome', //'FontAwesome',
+          code: undefined, //'\uf007',
+          size: 50, //50,
+          color: '#2B7CE9' //'#aa00ff'
+        },
+        image: undefined, // --> URL
+        label: undefined,
+        level: undefined,
+        mass: 1,
+        physics: true,
+        scaling: {
+          min: 10,
+          max: 30,
+          label: {
+            enabled: false,
+            min: 14,
+            max: 30,
+            maxVisible: 30,
+            drawThreshold: 5
+          },
+          customScalingFunction: function customScalingFunction(min, max, total, value) {
+            if (max === min) {
+              return 0.5;
+            } else {
+              var scale = 1 / (max - min);
+              return Math.max(0, (value - min) * scale);
+            }
+          }
+        },
+        shadow: {
+          enabled: false,
+          size: 10,
+          x: 5,
+          y: 5
+        },
+        shape: 'ellipse',
+        size: 25,
+        title: undefined,
+        value: undefined,
+        x: undefined,
+        y: undefined
+      };
+      util.extend(this.options, this.defaultOptions);
 
-      this.labelModule = new _sharedLabel2['default'](this.body, this.options);
-      this.setOptions(options);
+      this.bindEventListeners();
     }
 
-    _createClass(Node, [{
-      key: 'attachEdge',
+    _createClass(NodesHandler, [{
+      key: 'bindEventListeners',
+      value: function bindEventListeners() {
+        var _this2 = this;
 
-      /**
-       * Attach a edge to the node
-       * @param {Edge} edge
-       */
-      value: function attachEdge(edge) {
-        if (this.edges.indexOf(edge) === -1) {
-          this.edges.push(edge);
-        }
-      }
-    }, {
-      key: 'detachEdge',
-
-      /**
-       * Detach a edge from the node
-       * @param {Edge} edge
-       */
-      value: function detachEdge(edge) {
-        var index = this.edges.indexOf(edge);
-        if (index != -1) {
-          this.edges.splice(index, 1);
-        }
-      }
-    }, {
-      key: 'togglePhysics',
-
-      /**
-       * Enable or disable the physics.
-       * @param status
-       */
-      value: function togglePhysics(status) {
-        this.options.physics = status;
+        // refresh the nodes. Used when reverting from hierarchical layout
+        this.body.emitter.on('refreshNodes', this.refresh.bind(this));
+        this.body.emitter.on('refresh', this.refresh.bind(this));
+        this.body.emitter.on('destroy', function () {
+          delete _this2.body.functions.createNode;
+          delete _this2.nodesListeners.add;
+          delete _this2.nodesListeners.update;
+          delete _this2.nodesListeners.remove;
+          delete _this2.nodesListeners;
+        });
       }
     }, {
       key: 'setOptions',
-
-      /**
-       * Set or overwrite options for the node
-       * @param {Object} options an object with options
-       * @param {Object} constants  and object with default, global options
-       */
       value: function setOptions(options) {
-        if (!options) {
-          return;
-        }
-        // basic options
-        if (options.id !== undefined) {
-          this.id = options.id;
-        }
+        if (options !== undefined) {
+          _componentsNode2['default'].parseOptions(this.options, options);
 
-        if (this.id === undefined) {
-          throw 'Node must have an id';
-        }
+          // update the shape in all nodes
+          if (options.shape !== undefined) {
+            for (var nodeId in this.body.nodes) {
+              if (this.body.nodes.hasOwnProperty(nodeId)) {
+                this.body.nodes[nodeId].updateShape();
+              }
+            }
+          }
 
-        // set these options locally
-        if (options.x !== undefined) {
-          this.x = parseInt(options.x);this.predefinedPosition = true;
-        }
-        if (options.y !== undefined) {
-          this.y = parseInt(options.y);this.predefinedPosition = true;
-        }
-        if (options.size !== undefined) {
-          this.baseSize = options.size;
-        }
-        if (options.value !== undefined) {
-          options.value = parseInt(options.value);
-        }
+          // update the shape size in all nodes
+          if (options.font !== undefined) {
+            _componentsSharedLabel2['default'].parseOptions(this.options.font, options);
+            for (var nodeId in this.body.nodes) {
+              if (this.body.nodes.hasOwnProperty(nodeId)) {
+                this.body.nodes[nodeId].updateLabelModule();
+                this.body.nodes[nodeId]._reset();
+              }
+            }
+          }
 
-        // copy group options
-        if (typeof options.group === 'number' || typeof options.group === 'string' && options.group != '') {
-          var groupObj = this.grouplist.get(options.group);
-          util.deepExtend(this.options, groupObj);
-          // the color object needs to be completely defined. Since groups can partially overwrite the colors, we parse it again, just in case.
-          this.options.color = util.parseColor(this.options.color);
-        }
+          // update the shape size in all nodes
+          if (options.size !== undefined) {
+            for (var nodeId in this.body.nodes) {
+              if (this.body.nodes.hasOwnProperty(nodeId)) {
+                this.body.nodes[nodeId]._reset();
+              }
+            }
+          }
 
-        // this transforms all shorthands into fully defined options
-        Node.parseOptions(this.options, options, true);
-
-        // load the images
-        if (this.options.image !== undefined && this.options.image != '') {
-          if (this.imagelist) {
-            this.imageObj = this.imagelist.load(this.options.image, this.options.brokenImage, this.id);
-          } else {
-            throw 'No imagelist provided';
+          // update the state of the letiables if needed
+          if (options.hidden !== undefined || options.physics !== undefined) {
+            this.body.emitter.emit('_dataChanged');
           }
         }
-
-        this.updateShape();
-        this.updateLabelModule();
-
-        // reset the size of the node, this can be changed
-        this._reset();
-
-        if (options.hidden !== undefined || options.physics !== undefined) {
-          return true;
-        }
-        return false;
       }
     }, {
-      key: 'updateLabelModule',
-      value: function updateLabelModule() {
-        if (this.options.label === undefined || this.options.label === null) {
-          this.options.label = '';
-        }
-        this.labelModule.setOptions(this.options, true);
-        if (this.labelModule.baseSize !== undefined) {
-          this.baseFontSize = this.labelModule.baseSize;
-        }
-      }
-    }, {
-      key: 'updateShape',
-      value: function updateShape() {
-        // choose draw method depending on the shape
-        switch (this.options.shape) {
-          case 'box':
-            this.shape = new _nodesShapesBox2['default'](this.options, this.body, this.labelModule);
-            break;
-          case 'circle':
-            this.shape = new _nodesShapesCircle2['default'](this.options, this.body, this.labelModule);
-            break;
-          case 'circularImage':
-            this.shape = new _nodesShapesCircularImage2['default'](this.options, this.body, this.labelModule, this.imageObj);
-            break;
-          case 'database':
-            this.shape = new _nodesShapesDatabase2['default'](this.options, this.body, this.labelModule);
-            break;
-          case 'diamond':
-            this.shape = new _nodesShapesDiamond2['default'](this.options, this.body, this.labelModule);
-            break;
-          case 'dot':
-            this.shape = new _nodesShapesDot2['default'](this.options, this.body, this.labelModule);
-            break;
-          case 'ellipse':
-            this.shape = new _nodesShapesEllipse2['default'](this.options, this.body, this.labelModule);
-            break;
-          case 'icon':
-            this.shape = new _nodesShapesIcon2['default'](this.options, this.body, this.labelModule);
-            break;
-          case 'image':
-            this.shape = new _nodesShapesImage2['default'](this.options, this.body, this.labelModule, this.imageObj);
-            break;
-          case 'square':
-            this.shape = new _nodesShapesSquare2['default'](this.options, this.body, this.labelModule);
-            break;
-          case 'star':
-            this.shape = new _nodesShapesStar2['default'](this.options, this.body, this.labelModule);
-            break;
-          case 'text':
-            this.shape = new _nodesShapesText2['default'](this.options, this.body, this.labelModule);
-            break;
-          case 'triangle':
-            this.shape = new _nodesShapesTriangle2['default'](this.options, this.body, this.labelModule);
-            break;
-          case 'triangleDown':
-            this.shape = new _nodesShapesTriangleDown2['default'](this.options, this.body, this.labelModule);
-            break;
-          default:
-            this.shape = new _nodesShapesEllipse2['default'](this.options, this.body, this.labelModule);
-            break;
-        }
-        this._reset();
-      }
-    }, {
-      key: 'select',
+      key: 'setData',
 
       /**
-       * select this node
-       */
-      value: function select() {
-        this.selected = true;
-        this._reset();
-      }
-    }, {
-      key: 'unselect',
-
-      /**
-       * unselect this node
-       */
-      value: function unselect() {
-        this.selected = false;
-        this._reset();
-      }
-    }, {
-      key: '_reset',
-
-      /**
-       * Reset the calculated size of the node, forces it to recalculate its size
+       * Set a data set with nodes for the network
+       * @param {Array | DataSet | DataView} nodes         The data containing the nodes.
        * @private
        */
-      value: function _reset() {
-        this.shape.width = undefined;
-        this.shape.height = undefined;
-      }
-    }, {
-      key: 'getTitle',
+      value: function setData(nodes) {
+        var _this3 = this;
 
-      /**
-       * get the title of this node.
-       * @return {string} title    The title of the node, or undefined when no title
-       *                           has been set.
-       */
-      value: function getTitle() {
-        return this.options.title;
-      }
-    }, {
-      key: 'distanceToBorder',
+        var doNotEmit = arguments[1] === undefined ? false : arguments[1];
 
-      /**
-       * Calculate the distance to the border of the Node
-       * @param {CanvasRenderingContext2D}   ctx
-       * @param {Number} angle        Angle in radians
-       * @returns {number} distance   Distance to the border in pixels
-       */
-      value: function distanceToBorder(ctx, angle) {
-        return this.shape.distanceToBorder(ctx, angle);
-      }
-    }, {
-      key: 'isFixed',
+        var oldNodesData = this.body.data.nodes;
 
-      /**
-       * Check if this node has a fixed x and y position
-       * @return {boolean}      true if fixed, false if not
-       */
-      value: function isFixed() {
-        return this.options.fixed.x && this.options.fixed.y;
-      }
-    }, {
-      key: 'isSelected',
-
-      /**
-       * check if this node is selecte
-       * @return {boolean} selected   True if node is selected, else false
-       */
-      value: function isSelected() {
-        return this.selected;
-      }
-    }, {
-      key: 'getValue',
-
-      /**
-       * Retrieve the value of the node. Can be undefined
-       * @return {Number} value
-       */
-      value: function getValue() {
-        return this.options.value;
-      }
-    }, {
-      key: 'setValueRange',
-
-      /**
-       * Adjust the value range of the node. The node will adjust it's size
-       * based on its value.
-       * @param {Number} min
-       * @param {Number} max
-       */
-      value: function setValueRange(min, max, total) {
-        if (this.options.value !== undefined) {
-          var scale = this.options.scaling.customScalingFunction(min, max, total, this.options.value);
-          var sizeDiff = this.options.scaling.max - this.options.scaling.min;
-          if (this.options.scaling.label.enabled === true) {
-            var fontDiff = this.options.scaling.label.max - this.options.scaling.label.min;
-            this.options.font.size = this.options.scaling.label.min + scale * fontDiff;
-          }
-          this.options.size = this.options.scaling.min + scale * sizeDiff;
+        if (nodes instanceof DataSet || nodes instanceof DataView) {
+          this.body.data.nodes = nodes;
+        } else if (Array.isArray(nodes)) {
+          this.body.data.nodes = new DataSet();
+          this.body.data.nodes.add(nodes);
+        } else if (!nodes) {
+          this.body.data.nodes = new DataSet();
         } else {
-          this.options.size = this.baseSize;
-          this.options.font.size = this.baseFontSize;
+          throw new TypeError('Array or DataSet expected');
+        }
+
+        if (oldNodesData) {
+          // unsubscribe from old dataset
+          util.forEach(this.nodesListeners, function (callback, event) {
+            oldNodesData.off(event, callback);
+          });
+        }
+
+        // remove drawn nodes
+        this.body.nodes = {};
+
+        if (this.body.data.nodes) {
+          (function () {
+            // subscribe to new dataset
+            var me = _this3;
+            util.forEach(_this3.nodesListeners, function (callback, event) {
+              me.body.data.nodes.on(event, callback);
+            });
+
+            // draw all new nodes
+            var ids = _this3.body.data.nodes.getIds();
+            _this3.add(ids, true);
+          })();
+        }
+
+        if (doNotEmit === false) {
+          this.body.emitter.emit('_dataChanged');
         }
       }
     }, {
-      key: 'draw',
+      key: 'add',
 
       /**
-       * Draw this node in the given canvas
-       * The 2d context of a HTML canvas can be retrieved by canvas.getContext("2d");
-       * @param {CanvasRenderingContext2D}   ctx
+       * Add nodes
+       * @param {Number[] | String[]} ids
+       * @private
        */
-      value: function draw(ctx) {
-        this.shape.draw(ctx, this.x, this.y, this.selected, this.hover);
-      }
-    }, {
-      key: 'updateBoundingBox',
+      value: function add(ids) {
+        var doNotEmit = arguments[1] === undefined ? false : arguments[1];
 
-      /**
-       * Update the bounding box of the shape
-       */
-      value: function updateBoundingBox() {
-        this.shape.updateBoundingBox(this.x, this.y);
-      }
-    }, {
-      key: 'resize',
-
-      /**
-       * Recalculate the size of this node in the given canvas
-       * The 2d context of a HTML canvas can be retrieved by canvas.getContext("2d");
-       * @param {CanvasRenderingContext2D}   ctx
-       */
-      value: function resize(ctx) {
-        this.shape.resize(ctx);
-      }
-    }, {
-      key: 'isOverlappingWith',
-
-      /**
-       * Check if this object is overlapping with the provided object
-       * @param {Object} obj   an object with parameters left, top, right, bottom
-       * @return {boolean}     True if location is located on node
-       */
-      value: function isOverlappingWith(obj) {
-        return this.shape.left < obj.right && this.shape.left + this.shape.width > obj.left && this.shape.top < obj.bottom && this.shape.top + this.shape.height > obj.top;
-      }
-    }, {
-      key: 'isBoundingBoxOverlappingWith',
-
-      /**
-       * Check if this object is overlapping with the provided object
-       * @param {Object} obj   an object with parameters left, top, right, bottom
-       * @return {boolean}     True if location is located on node
-       */
-      value: function isBoundingBoxOverlappingWith(obj) {
-        return this.shape.boundingBox.left < obj.right && this.shape.boundingBox.right > obj.left && this.shape.boundingBox.top < obj.bottom && this.shape.boundingBox.bottom > obj.top;
-      }
-    }], [{
-      key: 'parseOptions',
-
-      /**
-       * This process all possible shorthands in the new options and makes sure that the parentOptions are fully defined.
-       * Static so it can also be used by the handler.
-       * @param parentOptions
-       * @param newOptions
-       */
-      value: function parseOptions(parentOptions, newOptions) {
-        var allowDeletion = arguments[2] === undefined ? false : arguments[2];
-
-        var fields = ['color', 'font', 'fixed', 'shadow'];
-        util.selectiveNotDeepExtend(fields, parentOptions, newOptions, allowDeletion);
-
-        // merge the shadow options into the parent.
-        util.mergeOptions(parentOptions, newOptions, 'shadow');
-
-        // individual shape newOptions
-        if (newOptions.color !== undefined && newOptions.color !== null) {
-          var parsedColor = util.parseColor(newOptions.color);
-          util.fillIfDefined(parentOptions.color, parsedColor);
-        } else if (allowDeletion === true && newOptions.color === null) {
-          parentOptions.color = undefined;
-          delete parentOptions.color;
+        var id = undefined;
+        var newNodes = [];
+        for (var i = 0; i < ids.length; i++) {
+          id = ids[i];
+          var _properties = this.body.data.nodes.get(id);
+          var node = this.create(_properties);
+          newNodes.push(node);
+          this.body.nodes[id] = node; // note: this may replace an existing node
         }
 
-        // handle the fixed options
-        if (newOptions.fixed !== undefined && newOptions.fixed !== null) {
-          if (typeof newOptions.fixed === 'boolean') {
-            parentOptions.fixed.x = newOptions.fixed;
-            parentOptions.fixed.y = newOptions.fixed;
+        this.layoutEngine.positionInitially(newNodes);
+
+        if (doNotEmit === false) {
+          this.body.emitter.emit('_dataChanged');
+        }
+      }
+    }, {
+      key: 'update',
+
+      /**
+       * Update existing nodes, or create them when not yet existing
+       * @param {Number[] | String[]} ids
+       * @private
+       */
+      value: function update(ids, changedData) {
+        var nodes = this.body.nodes;
+        var dataChanged = false;
+        for (var i = 0; i < ids.length; i++) {
+          var id = ids[i];
+          var node = nodes[id];
+          var data = changedData[i];
+          if (node !== undefined) {
+            // update node
+            dataChanged = node.setOptions(data);
           } else {
-            if (newOptions.fixed.x !== undefined && typeof newOptions.fixed.x === 'boolean') {
-              parentOptions.fixed.x = newOptions.fixed.x;
-            }
-            if (newOptions.fixed.y !== undefined && typeof newOptions.fixed.y === 'boolean') {
-              parentOptions.fixed.y = newOptions.fixed.y;
-            }
+            dataChanged = true;
+            // create node
+            node = this.create(properties);
+            nodes[id] = node;
           }
         }
 
-        // handle the font options
-        if (newOptions.font !== undefined) {
-          _sharedLabel2['default'].parseOptions(parentOptions.font, newOptions);
+        if (dataChanged === true) {
+          this.body.emitter.emit('_dataChanged');
+        } else {
+          this.body.emitter.emit('_dataUpdated');
+        }
+      }
+    }, {
+      key: 'remove',
+
+      /**
+       * Remove existing nodes. If nodes do not exist, the method will just ignore it.
+       * @param {Number[] | String[]} ids
+       * @private
+       */
+      value: function remove(ids) {
+        var nodes = this.body.nodes;
+
+        for (var i = 0; i < ids.length; i++) {
+          var id = ids[i];
+          delete nodes[id];
         }
 
-        // handle the scaling options, specifically the label part
-        if (newOptions.scaling !== undefined) {
-          util.mergeOptions(parentOptions.scaling, newOptions.scaling, 'label');
+        this.body.emitter.emit('_dataChanged');
+      }
+    }, {
+      key: 'create',
+
+      /**
+       * create a node
+       * @param properties
+       * @param constructorClass
+       */
+      value: function create(properties) {
+        var constructorClass = arguments[1] === undefined ? _componentsNode2['default'] : arguments[1];
+
+        return new constructorClass(properties, this.body, this.images, this.groups, this.options);
+      }
+    }, {
+      key: 'refresh',
+      value: function refresh() {
+        var nodes = this.body.nodes;
+        for (var nodeId in nodes) {
+          var node = undefined;
+          if (nodes.hasOwnProperty(nodeId)) {
+            node = nodes[nodeId];
+          }
+          var data = this.body.data.nodes._data[nodeId];
+          if (node !== undefined && data !== undefined) {
+            node.setOptions({ fixed: false });
+            node.setOptions(data);
+          }
         }
+      }
+    }, {
+      key: 'getPositions',
+
+      /**
+       * Returns the positions of the nodes.
+       * @param ids  --> optional, can be array of nodeIds, can be string
+       * @returns {{}}
+       */
+      value: function getPositions(ids) {
+        var dataArray = {};
+        if (ids !== undefined) {
+          if (Array.isArray(ids) === true) {
+            for (var i = 0; i < ids.length; i++) {
+              if (this.body.nodes[ids[i]] !== undefined) {
+                var node = this.body.nodes[ids[i]];
+                dataArray[ids[i]] = { x: Math.round(node.x), y: Math.round(node.y) };
+              }
+            }
+          } else {
+            if (this.body.nodes[ids] !== undefined) {
+              var node = this.body.nodes[ids];
+              dataArray[ids] = { x: Math.round(node.x), y: Math.round(node.y) };
+            }
+          }
+        } else {
+          for (var nodeId in this.body.nodes) {
+            if (this.body.nodes.hasOwnProperty(nodeId)) {
+              var node = this.body.nodes[nodeId];
+              dataArray[nodeId] = { x: Math.round(node.x), y: Math.round(node.y) };
+            }
+          }
+        }
+        return dataArray;
+      }
+    }, {
+      key: 'storePositions',
+
+      /**
+       * Load the XY positions of the nodes into the dataset.
+       */
+      value: function storePositions() {
+        // todo: add support for clusters and hierarchical.
+        var dataArray = [];
+        for (var nodeId in this.body.nodes) {
+          if (this.body.nodes.hasOwnProperty(nodeId)) {
+            var node = this.body.nodes[nodeId];
+            if (this.body.data.nodes._data[nodeId].x != Math.round(node.x) || this.body.data.nodes._data[nodeId].y != Math.round(node.y)) {
+              dataArray.push({ id: nodeId, x: Math.round(node.x), y: Math.round(node.y) });
+            }
+          }
+        }
+        this.body.data.nodes.update(dataArray);
+      }
+    }, {
+      key: 'getBoundingBox',
+
+      /**
+       * get the bounding box of a node.
+       * @param nodeId
+       * @returns {j|*}
+       */
+      value: function getBoundingBox(nodeId) {
+        if (this.body.nodes[nodeId] !== undefined) {
+          return this.body.nodes[nodeId].shape.boundingBox;
+        }
+      }
+    }, {
+      key: 'getConnectedNodes',
+
+      /**
+       * Get the Ids of nodes connected to this node.
+       * @param nodeId
+       * @returns {Array}
+       */
+      value: function getConnectedNodes(nodeId) {
+        var nodeList = [];
+        if (this.body.nodes[nodeId] !== undefined) {
+          var node = this.body.nodes[nodeId];
+          var nodeObj = {}; // used to quickly check if node already exists
+          for (var i = 0; i < node.edges.length; i++) {
+            var edge = node.edges[i];
+            if (edge.toId == nodeId) {
+              // these are double equals since ids can be numeric or string
+              if (nodeObj[edge.fromId] === undefined) {
+                nodeList.push(edge.fromId);
+                nodeObj[edge.fromId] = true;
+              }
+            } else if (edge.fromId == nodeId) {
+              // these are double equals since ids can be numeric or string
+              if (nodeObj[edge.toId] === undefined) {
+                nodeList.push(edge.toId);
+                nodeObj[edge.toId] = true;
+              }
+            }
+          }
+        }
+        return nodeList;
+      }
+    }, {
+      key: 'getConnectedEdges',
+
+      /**
+       * Get the ids of the edges connected to this node.
+       * @param nodeId
+       * @returns {*}
+       */
+      value: function getConnectedEdges(nodeId) {
+        var edgeList = [];
+        if (this.body.nodes[nodeId] !== undefined) {
+          var node = this.body.nodes[nodeId];
+          for (var i = 0; i < node.edges.length; i++) {
+            edgeList.push(node.edges[i].id);
+          }
+        } else {
+          console.log('NodeId provided for getConnectedEdges does not exist. Provided: ', nodeId);
+        }
+        return edgeList;
       }
     }]);
 
-    return Node;
+    return NodesHandler;
   })();
 
-  exports['default'] = Node;
+  exports['default'] = NodesHandler;
   module.exports = exports['default'];
 
 /***/ },
-/* 3 */
+/* 5 */
+/***/ function(module, exports, __webpack_require__) {
+
+  'use strict';
+
+  var Item = __webpack_require__(11);
+  var util = __webpack_require__(2);
+
+  /**
+   * @constructor BoxItem
+   * @extends Item
+   * @param {Object} data             Object containing parameters start
+   *                                  content, className.
+   * @param {{toScreen: function, toTime: function}} conversion
+   *                                  Conversion functions from time to screen and vice versa
+   * @param {Object} [options]        Configuration options
+   *                                  // TODO: describe available options
+   */
+  function BoxItem(data, conversion, options) {
+    this.props = {
+      dot: {
+        width: 0,
+        height: 0
+      },
+      line: {
+        width: 0,
+        height: 0
+      }
+    };
+
+    // validate data
+    if (data) {
+      if (data.start == undefined) {
+        throw new Error('Property "start" missing in item ' + data);
+      }
+    }
+
+    Item.call(this, data, conversion, options);
+  }
+
+  BoxItem.prototype = new Item(null, null, null);
+
+  /**
+   * Check whether this item is visible inside given range
+   * @returns {{start: Number, end: Number}} range with a timestamp for start and end
+   * @returns {boolean} True if visible
+   */
+  BoxItem.prototype.isVisible = function (range) {
+    // determine visibility
+    // TODO: account for the real width of the item. Right now we just add 1/4 to the window
+    var interval = (range.end - range.start) / 4;
+    return this.data.start > range.start - interval && this.data.start < range.end + interval;
+  };
+
+  /**
+   * Repaint the item
+   */
+  BoxItem.prototype.redraw = function () {
+    var dom = this.dom;
+    if (!dom) {
+      // create DOM
+      this.dom = {};
+      dom = this.dom;
+
+      // create main box
+      dom.box = document.createElement('DIV');
+
+      // contents box (inside the background box). used for making margins
+      dom.content = document.createElement('DIV');
+      dom.content.className = 'vis-item-content';
+      dom.box.appendChild(dom.content);
+
+      // line to axis
+      dom.line = document.createElement('DIV');
+      dom.line.className = 'vis-line';
+
+      // dot on axis
+      dom.dot = document.createElement('DIV');
+      dom.dot.className = 'vis-dot';
+
+      // attach this item as attribute
+      dom.box['timeline-item'] = this;
+
+      this.dirty = true;
+    }
+
+    // append DOM to parent DOM
+    if (!this.parent) {
+      throw new Error('Cannot redraw item: no parent attached');
+    }
+    if (!dom.box.parentNode) {
+      var foreground = this.parent.dom.foreground;
+      if (!foreground) throw new Error('Cannot redraw item: parent has no foreground container element');
+      foreground.appendChild(dom.box);
+    }
+    if (!dom.line.parentNode) {
+      var background = this.parent.dom.background;
+      if (!background) throw new Error('Cannot redraw item: parent has no background container element');
+      background.appendChild(dom.line);
+    }
+    if (!dom.dot.parentNode) {
+      var axis = this.parent.dom.axis;
+      if (!background) throw new Error('Cannot redraw item: parent has no axis container element');
+      axis.appendChild(dom.dot);
+    }
+    this.displayed = true;
+
+    // Update DOM when item is marked dirty. An item is marked dirty when:
+    // - the item is not yet rendered
+    // - the item's data is changed
+    // - the item is selected/deselected
+    if (this.dirty) {
+      this._updateContents(this.dom.content);
+      this._updateTitle(this.dom.box);
+      this._updateDataAttributes(this.dom.box);
+      this._updateStyle(this.dom.box);
+
+      // update class
+      var className = (this.data.className ? ' ' + this.data.className : '') + (this.selected ? ' vis-selected' : '');
+      dom.box.className = 'vis-item vis-box' + className;
+      dom.line.className = 'vis-item vis-line' + className;
+      dom.dot.className = 'vis-item vis-dot' + className;
+
+      // recalculate size
+      this.props.dot.height = dom.dot.offsetHeight;
+      this.props.dot.width = dom.dot.offsetWidth;
+      this.props.line.width = dom.line.offsetWidth;
+      this.width = dom.box.offsetWidth;
+      this.height = dom.box.offsetHeight;
+
+      this.dirty = false;
+    }
+
+    this._repaintDeleteButton(dom.box);
+  };
+
+  /**
+   * Show the item in the DOM (when not already displayed). The items DOM will
+   * be created when needed.
+   */
+  BoxItem.prototype.show = function () {
+    if (!this.displayed) {
+      this.redraw();
+    }
+  };
+
+  /**
+   * Hide the item from the DOM (when visible)
+   */
+  BoxItem.prototype.hide = function () {
+    if (this.displayed) {
+      var dom = this.dom;
+
+      if (dom.box.parentNode) dom.box.parentNode.removeChild(dom.box);
+      if (dom.line.parentNode) dom.line.parentNode.removeChild(dom.line);
+      if (dom.dot.parentNode) dom.dot.parentNode.removeChild(dom.dot);
+
+      this.displayed = false;
+    }
+  };
+
+  /**
+   * Reposition the item horizontally
+   * @Override
+   */
+  BoxItem.prototype.repositionX = function () {
+    var start = this.conversion.toScreen(this.data.start);
+    var align = this.options.align;
+    var left;
+
+    // calculate left position of the box
+    if (align == 'right') {
+      this.left = start - this.width;
+    } else if (align == 'left') {
+      this.left = start;
+    } else {
+      // default or 'center'
+      this.left = start - this.width / 2;
+    }
+
+    // reposition box
+    this.dom.box.style.left = this.left + 'px';
+
+    // reposition line
+    this.dom.line.style.left = start - this.props.line.width / 2 + 'px';
+
+    // reposition dot
+    this.dom.dot.style.left = start - this.props.dot.width / 2 + 'px';
+  };
+
+  /**
+   * Reposition the item vertically
+   * @Override
+   */
+  BoxItem.prototype.repositionY = function () {
+    var orientation = this.options.orientation.item;
+    var box = this.dom.box;
+    var line = this.dom.line;
+    var dot = this.dom.dot;
+
+    if (orientation == 'top') {
+      box.style.top = (this.top || 0) + 'px';
+
+      line.style.top = '0';
+      line.style.height = this.parent.top + this.top + 1 + 'px';
+      line.style.bottom = '';
+    } else {
+      // orientation 'bottom'
+      var itemSetHeight = this.parent.itemSet.props.height; // TODO: this is nasty
+      var lineHeight = itemSetHeight - this.parent.top - this.parent.height + this.top;
+
+      box.style.top = (this.parent.height - this.top - this.height || 0) + 'px';
+      line.style.top = itemSetHeight - lineHeight + 'px';
+      line.style.bottom = '0';
+    }
+
+    dot.style.top = -this.props.dot.height / 2 + 'px';
+  };
+
+  module.exports = BoxItem;
+
+/***/ },
+/* 6 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -707,9 +2726,519 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
 
-  var util = __webpack_require__(14);
-  var Hammer = __webpack_require__(10);
-  var hammerUtil = __webpack_require__(36);
+  var util = __webpack_require__(2);
+
+  var LayoutEngine = (function () {
+    function LayoutEngine(body) {
+      _classCallCheck(this, LayoutEngine);
+
+      this.body = body;
+
+      this.initialRandomSeed = Math.round(Math.random() * 1000000);
+      this.randomSeed = this.initialRandomSeed;
+      this.options = {};
+      this.optionsBackup = {};
+
+      this.defaultOptions = {
+        randomSeed: undefined,
+        hierarchical: {
+          enabled: false,
+          levelSeparation: 150,
+          direction: 'UD', // UD, DU, LR, RL
+          sortMethod: 'hubsize' // hubsize, directed
+        }
+      };
+      util.extend(this.options, this.defaultOptions);
+
+      this.hierarchicalLevels = {};
+
+      this.bindEventListeners();
+    }
+
+    _createClass(LayoutEngine, [{
+      key: 'bindEventListeners',
+      value: function bindEventListeners() {
+        var _this = this;
+
+        this.body.emitter.on('_dataChanged', function () {
+          _this.setupHierarchicalLayout();
+        });
+        this.body.emitter.on('_resetHierarchicalLayout', function () {
+          _this.setupHierarchicalLayout();
+        });
+      }
+    }, {
+      key: 'setOptions',
+      value: function setOptions(options, allOptions) {
+        if (options !== undefined) {
+          var prevHierarchicalState = this.options.hierarchical.enabled;
+
+          util.mergeOptions(this.options, options, 'hierarchical');
+          if (options.randomSeed !== undefined) {
+            this.initialRandomSeed = options.randomSeed;
+          }
+
+          if (this.options.hierarchical.enabled === true) {
+            // make sure the level seperation is the right way up
+            if (this.options.hierarchical.direction === 'RL' || this.options.hierarchical.direction === 'DU') {
+              if (this.options.hierarchical.levelSeparation > 0) {
+                this.options.hierarchical.levelSeparation *= -1;
+              }
+            } else {
+              if (this.options.hierarchical.levelSeparation < 0) {
+                this.options.hierarchical.levelSeparation *= -1;
+              }
+            }
+
+            this.body.emitter.emit('_resetHierarchicalLayout');
+            // because the hierarchical system needs it's own physics and smooth curve settings, we adapt the other options if needed.
+            return this.adaptAllOptions(allOptions);
+          } else {
+            if (prevHierarchicalState === true) {
+              // refresh the overridden options for nodes and edges.
+              this.body.emitter.emit('refresh');
+              return util.deepExtend(allOptions, this.optionsBackup);
+            }
+          }
+        }
+        return allOptions;
+      }
+    }, {
+      key: 'adaptAllOptions',
+      value: function adaptAllOptions(allOptions) {
+        if (this.options.hierarchical.enabled === true) {
+          // set the physics
+          if (allOptions.physics === undefined || allOptions.physics === true) {
+            allOptions.physics = { solver: 'hierarchicalRepulsion' };
+            this.optionsBackup.physics = { solver: 'barnesHut' };
+          } else if (typeof allOptions.physics === 'object') {
+            this.optionsBackup.physics = { solver: 'barnesHut' };
+            if (allOptions.physics.solver !== undefined) {
+              this.optionsBackup.physics = { solver: allOptions.physics.solver };
+            }
+            allOptions.physics['solver'] = 'hierarchicalRepulsion';
+          } else if (allOptions.physics !== false) {
+            this.optionsBackup.physics = { solver: 'barnesHut' };
+            allOptions.physics['solver'] = 'hierarchicalRepulsion';
+          }
+
+          // get the type of static smooth curve in case it is required
+          var type = 'horizontal';
+          if (this.options.hierarchical.direction === 'RL' || this.options.hierarchical.direction === 'LR') {
+            type = 'vertical';
+          }
+
+          // disable smooth curves if nothing is defined. If smooth curves have been turned on, turn them into static smooth curves.
+          if (allOptions.edges === undefined) {
+            this.optionsBackup.edges = { smooth: { enabled: true, type: 'dynamic' } };
+            allOptions.edges = { smooth: false };
+          } else if (allOptions.edges.smooth === undefined) {
+            this.optionsBackup.edges = { smooth: { enabled: true, type: 'dynamic' } };
+            allOptions.edges.smooth = false;
+          } else {
+            if (typeof allOptions.edges.smooth === 'boolean') {
+              this.optionsBackup.edges = { smooth: allOptions.edges.smooth };
+              allOptions.edges.smooth = { enabled: allOptions.edges.smooth, type: type };
+            } else {
+              // allow custom types except for dynamic
+              if (allOptions.edges.smooth.type !== undefined && allOptions.edges.smooth.type !== 'dynamic') {
+                type = allOptions.edges.smooth.type;
+              }
+
+              this.optionsBackup.edges = {
+                smooth: allOptions.edges.smooth.enabled === undefined ? true : allOptions.edges.smooth.enabled,
+                type: allOptions.edges.smooth.type === undefined ? 'dynamic' : allOptions.edges.smooth.type,
+                roundness: allOptions.edges.smooth.roundness === undefined ? 0.5 : allOptions.edges.smooth.roundness
+              };
+              allOptions.edges.smooth = {
+                enabled: allOptions.edges.smooth.enabled === undefined ? true : allOptions.edges.smooth.enabled,
+                type: type,
+                roundness: allOptions.edges.smooth.roundness === undefined ? 0.5 : allOptions.edges.smooth.roundness
+              };
+            }
+          }
+
+          // force all edges into static smooth curves. Only applies to edges that do not use the global options for smooth.
+          this.body.emitter.emit('_forceDisableDynamicCurves', type);
+        }
+        return allOptions;
+      }
+    }, {
+      key: 'seededRandom',
+      value: function seededRandom() {
+        var x = Math.sin(this.randomSeed++) * 10000;
+        return x - Math.floor(x);
+      }
+    }, {
+      key: 'positionInitially',
+      value: function positionInitially(nodesArray) {
+        if (this.options.hierarchical.enabled !== true) {
+          this.randomSeed = this.initialRandomSeed;
+          for (var i = 0; i < nodesArray.length; i++) {
+            var node = nodesArray[i];
+            if (!node.isFixed() && (node.x === undefined || node.y === undefined)) {
+              var radius = 10 * 0.1 * nodesArray.length + 10;
+              var angle = 2 * Math.PI * this.seededRandom();
+              if (node.options.fixed.x === false) {
+                node.x = radius * Math.cos(angle);
+              }
+              if (node.options.fixed.x === false) {
+                node.y = radius * Math.sin(angle);
+              }
+            }
+          }
+        }
+      }
+    }, {
+      key: 'getSeed',
+      value: function getSeed() {
+        return this.initialRandomSeed;
+      }
+    }, {
+      key: 'setupHierarchicalLayout',
+
+      /**
+       * This is the main function to layout the nodes in a hierarchical way.
+       * It checks if the node details are supplied correctly
+       *
+       * @private
+       */
+      value: function setupHierarchicalLayout() {
+        if (this.options.hierarchical.enabled === true && this.body.nodeIndices.length > 0) {
+          // get the size of the largest hubs and check if the user has defined a level for a node.
+          var node = undefined,
+              nodeId = undefined;
+          var definedLevel = false;
+          var undefinedLevel = false;
+          this.hierarchicalLevels = {};
+          this.nodeSpacing = 100;
+
+          for (nodeId in this.body.nodes) {
+            if (this.body.nodes.hasOwnProperty(nodeId)) {
+              node = this.body.nodes[nodeId];
+              if (node.options.level !== undefined) {
+                definedLevel = true;
+                this.hierarchicalLevels[nodeId] = node.options.level;
+              } else {
+                undefinedLevel = true;
+              }
+            }
+          }
+
+          // if the user defined some levels but not all, alert and run without hierarchical layout
+          if (undefinedLevel === true && definedLevel === true) {
+            throw new Error('To use the hierarchical layout, nodes require either no predefined levels or levels have to be defined for all nodes.');
+            return;
+          } else {
+            // setup the system to use hierarchical method.
+            //this._changeConstants();
+
+            // define levels if undefined by the users. Based on hubsize
+            if (undefinedLevel === true) {
+              if (this.options.hierarchical.sortMethod === 'hubsize') {
+                this._determineLevelsByHubsize();
+              } else if (this.options.hierarchical.sortMethod === 'directed' || 'direction') {
+                this._determineLevelsDirected();
+              }
+            }
+
+            // check the distribution of the nodes per level.
+            var distribution = this._getDistribution();
+
+            // place the nodes on the canvas.
+            this._placeNodesByHierarchy(distribution);
+          }
+        }
+      }
+    }, {
+      key: '_placeNodesByHierarchy',
+
+      /**
+       * This function places the nodes on the canvas based on the hierarchial distribution.
+       *
+       * @param {Object} distribution | obtained by the function this._getDistribution()
+       * @private
+       */
+      value: function _placeNodesByHierarchy(distribution) {
+        var nodeId = undefined,
+            node = undefined;
+        this.positionedNodes = {};
+        // start placing all the level 0 nodes first. Then recursively position their branches.
+        for (var level in distribution) {
+          if (distribution.hasOwnProperty(level)) {
+            for (nodeId in distribution[level].nodes) {
+              if (distribution[level].nodes.hasOwnProperty(nodeId)) {
+
+                node = distribution[level].nodes[nodeId];
+
+                if (this.options.hierarchical.direction === 'UD' || this.options.hierarchical.direction === 'DU') {
+                  if (node.x === undefined) {
+                    node.x = distribution[level].distance;
+                  }
+                  distribution[level].distance = node.x + this.nodeSpacing;
+                } else {
+                  if (node.y === undefined) {
+                    node.y = distribution[level].distance;
+                  }
+                  distribution[level].distance = node.y + this.nodeSpacing;
+                }
+
+                this.positionedNodes[nodeId] = true;
+                this._placeBranchNodes(node.edges, node.id, distribution, level);
+              }
+            }
+          }
+        }
+      }
+    }, {
+      key: '_getDistribution',
+
+      /**
+       * This function get the distribution of levels based on hubsize
+       *
+       * @returns {Object}
+       * @private
+       */
+      value: function _getDistribution() {
+        var distribution = {};
+        var nodeId = undefined,
+            node = undefined;
+
+        // we fix Y because the hierarchy is vertical, we fix X so we do not give a node an x position for a second time.
+        // the fix of X is removed after the x value has been set.
+        for (nodeId in this.body.nodes) {
+          if (this.body.nodes.hasOwnProperty(nodeId)) {
+            node = this.body.nodes[nodeId];
+            var level = this.hierarchicalLevels[nodeId] === undefined ? 0 : this.hierarchicalLevels[nodeId];
+            if (this.options.hierarchical.direction === 'UD' || this.options.hierarchical.direction === 'DU') {
+              node.y = this.options.hierarchical.levelSeparation * level;
+              node.options.fixed.y = true;
+            } else {
+              node.x = this.options.hierarchical.levelSeparation * level;
+              node.options.fixed.x = true;
+            }
+            if (distribution[level] === undefined) {
+              distribution[level] = { amount: 0, nodes: {}, distance: 0 };
+            }
+            distribution[level].amount += 1;
+            distribution[level].nodes[nodeId] = node;
+          }
+        }
+        return distribution;
+      }
+    }, {
+      key: '_getHubSize',
+
+      /**
+       * Get the hubsize from all remaining unlevelled nodes.
+       *
+       * @returns {number}
+       * @private
+       */
+      value: function _getHubSize() {
+        var hubSize = 0;
+        for (var nodeId in this.body.nodes) {
+          if (this.body.nodes.hasOwnProperty(nodeId)) {
+            var node = this.body.nodes[nodeId];
+            if (this.hierarchicalLevels[nodeId] === undefined) {
+              hubSize = node.edges.length < hubSize ? hubSize : node.edges.length;
+            }
+          }
+        }
+        return hubSize;
+      }
+    }, {
+      key: '_determineLevelsByHubsize',
+
+      /**
+       * this function allocates nodes in levels based on the recursive branching from the largest hubs.
+       *
+       * @param hubsize
+       * @private
+       */
+      value: function _determineLevelsByHubsize() {
+        var nodeId = undefined,
+            node = undefined;
+        var hubSize = 1;
+
+        while (hubSize > 0) {
+          // determine hubs
+          hubSize = this._getHubSize();
+          if (hubSize === 0) break;
+
+          for (nodeId in this.body.nodes) {
+            if (this.body.nodes.hasOwnProperty(nodeId)) {
+              node = this.body.nodes[nodeId];
+              if (node.edges.length === hubSize) {
+                this._setLevelByHubsize(0, node);
+              }
+            }
+          }
+        }
+      }
+    }, {
+      key: '_setLevelByHubsize',
+
+      /**
+       * this function is called recursively to enumerate the barnches of the largest hubs and give each node a level.
+       *
+       * @param level
+       * @param edges
+       * @param parentId
+       * @private
+       */
+      value: function _setLevelByHubsize(level, node) {
+        if (this.hierarchicalLevels[node.id] !== undefined) return;
+
+        var childNode = undefined;
+        this.hierarchicalLevels[node.id] = level;
+        for (var i = 0; i < node.edges.length; i++) {
+          if (node.edges[i].toId === node.id) {
+            childNode = node.edges[i].from;
+          } else {
+            childNode = node.edges[i].to;
+          }
+          this._setLevelByHubsize(level + 1, childNode);
+        }
+      }
+    }, {
+      key: '_determineLevelsDirected',
+
+      /**
+       * this function allocates nodes in levels based on the direction of the edges
+       *
+       * @param hubsize
+       * @private
+       */
+      value: function _determineLevelsDirected() {
+        var nodeId = undefined,
+            node = undefined;
+        var minLevel = 10000;
+
+        // set first node to source
+        for (nodeId in this.body.nodes) {
+          if (this.body.nodes.hasOwnProperty(nodeId)) {
+            node = this.body.nodes[nodeId];
+            this._setLevelDirected(minLevel, node);
+          }
+        }
+
+        // get the minimum level
+        for (nodeId in this.body.nodes) {
+          if (this.body.nodes.hasOwnProperty(nodeId)) {
+            minLevel = this.hierarchicalLevels[nodeId] < minLevel ? this.hierarchicalLevels[nodeId] : minLevel;
+          }
+        }
+
+        // subtract the minimum from the set so we have a range starting from 0
+        for (nodeId in this.body.nodes) {
+          if (this.body.nodes.hasOwnProperty(nodeId)) {
+            this.hierarchicalLevels[nodeId] -= minLevel;
+          }
+        }
+      }
+    }, {
+      key: '_setLevelDirected',
+
+      /**
+       * this function is called recursively to enumerate the branched of the first node and give each node a level based on edge direction
+       *
+       * @param level
+       * @param edges
+       * @param parentId
+       * @private
+       */
+      value: function _setLevelDirected(level, node) {
+        if (this.hierarchicalLevels[node.id] !== undefined) return;
+
+        var childNode = undefined;
+        this.hierarchicalLevels[node.id] = level;
+
+        for (var i = 0; i < node.edges.length; i++) {
+          if (node.edges[i].toId === node.id) {
+            childNode = node.edges[i].from;
+            this._setLevelDirected(level - 1, childNode);
+          } else {
+            childNode = node.edges[i].to;
+            this._setLevelDirected(level + 1, childNode);
+          }
+        }
+      }
+    }, {
+      key: '_placeBranchNodes',
+
+      /**
+       * This is a recursively called function to enumerate the branches from the largest hubs and place the nodes
+       * on a X position that ensures there will be no overlap.
+       *
+       * @param edges
+       * @param parentId
+       * @param distribution
+       * @param parentLevel
+       * @private
+       */
+      value: function _placeBranchNodes(edges, parentId, distribution, parentLevel) {
+        for (var i = 0; i < edges.length; i++) {
+          var childNode = undefined;
+          var parentNode = undefined;
+          if (edges[i].toId === parentId) {
+            childNode = edges[i].from;
+            parentNode = edges[i].to;
+          } else {
+            childNode = edges[i].to;
+            parentNode = edges[i].from;
+          }
+          var childNodeLevel = this.hierarchicalLevels[childNode.id];
+
+          if (this.positionedNodes[childNode.id] === undefined) {
+            // if a node is conneceted to another node on the same level (or higher (means lower level))!, this is not handled here.
+            if (childNodeLevel > parentLevel) {
+              if (this.options.hierarchical.direction === 'UD' || this.options.hierarchical.direction === 'DU') {
+                if (childNode.x === undefined) {
+                  childNode.x = Math.max(distribution[childNodeLevel].distance, parentNode.x);
+                }
+                distribution[childNodeLevel].distance = childNode.x + this.nodeSpacing;
+                this.positionedNodes[childNode.id] = true;
+              } else {
+                if (childNode.y === undefined) {
+                  childNode.y = Math.max(distribution[childNodeLevel].distance, parentNode.y);
+                }
+                distribution[childNodeLevel].distance = childNode.y + this.nodeSpacing;
+              }
+              this.positionedNodes[childNode.id] = true;
+
+              if (childNode.edges.length > 1) {
+                this._placeBranchNodes(childNode.edges, childNode.id, distribution, childNodeLevel);
+              }
+            }
+          }
+        }
+      }
+    }]);
+
+    return LayoutEngine;
+  })();
+
+  exports['default'] = LayoutEngine;
+  module.exports = exports['default'];
+
+/***/ },
+/* 7 */
+/***/ function(module, exports, __webpack_require__) {
+
+  'use strict';
+
+  Object.defineProperty(exports, '__esModule', {
+    value: true
+  });
+
+  var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
+
+  function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
+
+  var util = __webpack_require__(2);
+  var Hammer = __webpack_require__(13);
+  var hammerUtil = __webpack_require__(38);
 
   /**
    * clears the toolbar div element of children
@@ -1894,7 +4423,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 4 */
+/* 8 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -1909,23 +4438,543 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
 
-  var _sharedLabel = __webpack_require__(67);
+  var _sharedLabel = __webpack_require__(68);
 
   var _sharedLabel2 = _interopRequireDefault(_sharedLabel);
 
-  var _edgesBezierEdgeDynamic = __webpack_require__(86);
+  var _nodesShapesBox = __webpack_require__(69);
+
+  var _nodesShapesBox2 = _interopRequireDefault(_nodesShapesBox);
+
+  var _nodesShapesCircle = __webpack_require__(71);
+
+  var _nodesShapesCircle2 = _interopRequireDefault(_nodesShapesCircle);
+
+  var _nodesShapesCircularImage = __webpack_require__(73);
+
+  var _nodesShapesCircularImage2 = _interopRequireDefault(_nodesShapesCircularImage);
+
+  var _nodesShapesDatabase = __webpack_require__(74);
+
+  var _nodesShapesDatabase2 = _interopRequireDefault(_nodesShapesDatabase);
+
+  var _nodesShapesDiamond = __webpack_require__(75);
+
+  var _nodesShapesDiamond2 = _interopRequireDefault(_nodesShapesDiamond);
+
+  var _nodesShapesDot = __webpack_require__(77);
+
+  var _nodesShapesDot2 = _interopRequireDefault(_nodesShapesDot);
+
+  var _nodesShapesEllipse = __webpack_require__(78);
+
+  var _nodesShapesEllipse2 = _interopRequireDefault(_nodesShapesEllipse);
+
+  var _nodesShapesIcon = __webpack_require__(79);
+
+  var _nodesShapesIcon2 = _interopRequireDefault(_nodesShapesIcon);
+
+  var _nodesShapesImage = __webpack_require__(80);
+
+  var _nodesShapesImage2 = _interopRequireDefault(_nodesShapesImage);
+
+  var _nodesShapesSquare = __webpack_require__(81);
+
+  var _nodesShapesSquare2 = _interopRequireDefault(_nodesShapesSquare);
+
+  var _nodesShapesStar = __webpack_require__(82);
+
+  var _nodesShapesStar2 = _interopRequireDefault(_nodesShapesStar);
+
+  var _nodesShapesText = __webpack_require__(83);
+
+  var _nodesShapesText2 = _interopRequireDefault(_nodesShapesText);
+
+  var _nodesShapesTriangle = __webpack_require__(84);
+
+  var _nodesShapesTriangle2 = _interopRequireDefault(_nodesShapesTriangle);
+
+  var _nodesShapesTriangleDown = __webpack_require__(85);
+
+  var _nodesShapesTriangleDown2 = _interopRequireDefault(_nodesShapesTriangleDown);
+
+  var _sharedValidator = __webpack_require__(54);
+
+  var _sharedValidator2 = _interopRequireDefault(_sharedValidator);
+
+  var util = __webpack_require__(2);
+
+  /**
+   * @class Node
+   * A node. A node can be connected to other nodes via one or multiple edges.
+   * @param {object} options An object containing options for the node. All
+   *                            options are optional, except for the id.
+   *                              {number} id     Id of the node. Required
+   *                              {string} label  Text label for the node
+   *                              {number} x      Horizontal position of the node
+   *                              {number} y      Vertical position of the node
+   *                              {string} shape  Node shape, available:
+   *                                              "database", "circle", "ellipse",
+   *                                              "box", "image", "text", "dot",
+   *                                              "star", "triangle", "triangleDown",
+   *                                              "square", "icon"
+   *                              {string} image  An image url
+   *                              {string} title  An title text, can be HTML
+   *                              {anytype} group A group name or number
+   * @param {Network.Images} imagelist    A list with images. Only needed
+   *                                            when the node has an image
+   * @param {Network.Groups} grouplist    A list with groups. Needed for
+   *                                            retrieving group options
+   * @param {Object}               constants    An object with default values for
+   *                                            example for the color
+   *
+   */
+
+  var Node = (function () {
+    function Node(options, body, imagelist, grouplist, globalOptions) {
+      _classCallCheck(this, Node);
+
+      this.options = util.bridgeObject(globalOptions);
+      this.body = body;
+
+      this.edges = []; // all edges connected to this node
+
+      // set defaults for the options
+      this.id = undefined;
+      this.imagelist = imagelist;
+      this.grouplist = grouplist;
+
+      // state options
+      this.x = undefined;
+      this.y = undefined;
+      this.baseSize = this.options.size;
+      this.baseFontSize = this.options.font.size;
+      this.predefinedPosition = false; // used to check if initial fit should just take the range or approximate
+      this.selected = false;
+      this.hover = false;
+
+      this.labelModule = new _sharedLabel2['default'](this.body, this.options);
+      this.setOptions(options);
+    }
+
+    _createClass(Node, [{
+      key: 'attachEdge',
+
+      /**
+       * Attach a edge to the node
+       * @param {Edge} edge
+       */
+      value: function attachEdge(edge) {
+        if (this.edges.indexOf(edge) === -1) {
+          this.edges.push(edge);
+        }
+      }
+    }, {
+      key: 'detachEdge',
+
+      /**
+       * Detach a edge from the node
+       * @param {Edge} edge
+       */
+      value: function detachEdge(edge) {
+        var index = this.edges.indexOf(edge);
+        if (index != -1) {
+          this.edges.splice(index, 1);
+        }
+      }
+    }, {
+      key: 'togglePhysics',
+
+      /**
+       * Enable or disable the physics.
+       * @param status
+       */
+      value: function togglePhysics(status) {
+        this.options.physics = status;
+      }
+    }, {
+      key: 'setOptions',
+
+      /**
+       * Set or overwrite options for the node
+       * @param {Object} options an object with options
+       * @param {Object} constants  and object with default, global options
+       */
+      value: function setOptions(options) {
+        if (!options) {
+          return;
+        }
+        // basic options
+        if (options.id !== undefined) {
+          this.id = options.id;
+        }
+
+        if (this.id === undefined) {
+          throw 'Node must have an id';
+        }
+
+        // set these options locally
+        if (options.x !== undefined) {
+          this.x = parseInt(options.x);this.predefinedPosition = true;
+        }
+        if (options.y !== undefined) {
+          this.y = parseInt(options.y);this.predefinedPosition = true;
+        }
+        if (options.size !== undefined) {
+          this.baseSize = options.size;
+        }
+        if (options.value !== undefined) {
+          options.value = parseInt(options.value);
+        }
+
+        // copy group options
+        if (typeof options.group === 'number' || typeof options.group === 'string' && options.group != '') {
+          var groupObj = this.grouplist.get(options.group);
+          util.deepExtend(this.options, groupObj);
+          // the color object needs to be completely defined. Since groups can partially overwrite the colors, we parse it again, just in case.
+          this.options.color = util.parseColor(this.options.color);
+        }
+
+        // this transforms all shorthands into fully defined options
+        Node.parseOptions(this.options, options, true);
+
+        // load the images
+        if (this.options.image !== undefined && this.options.image != '') {
+          if (this.imagelist) {
+            this.imageObj = this.imagelist.load(this.options.image, this.options.brokenImage, this.id);
+          } else {
+            throw 'No imagelist provided';
+          }
+        }
+
+        this.updateShape();
+        this.updateLabelModule();
+
+        // reset the size of the node, this can be changed
+        this._reset();
+
+        if (options.hidden !== undefined || options.physics !== undefined) {
+          return true;
+        }
+        return false;
+      }
+    }, {
+      key: 'updateLabelModule',
+      value: function updateLabelModule() {
+        if (this.options.label === undefined || this.options.label === null) {
+          this.options.label = '';
+        }
+        this.labelModule.setOptions(this.options, true);
+        if (this.labelModule.baseSize !== undefined) {
+          this.baseFontSize = this.labelModule.baseSize;
+        }
+      }
+    }, {
+      key: 'updateShape',
+      value: function updateShape() {
+        // choose draw method depending on the shape
+        switch (this.options.shape) {
+          case 'box':
+            this.shape = new _nodesShapesBox2['default'](this.options, this.body, this.labelModule);
+            break;
+          case 'circle':
+            this.shape = new _nodesShapesCircle2['default'](this.options, this.body, this.labelModule);
+            break;
+          case 'circularImage':
+            this.shape = new _nodesShapesCircularImage2['default'](this.options, this.body, this.labelModule, this.imageObj);
+            break;
+          case 'database':
+            this.shape = new _nodesShapesDatabase2['default'](this.options, this.body, this.labelModule);
+            break;
+          case 'diamond':
+            this.shape = new _nodesShapesDiamond2['default'](this.options, this.body, this.labelModule);
+            break;
+          case 'dot':
+            this.shape = new _nodesShapesDot2['default'](this.options, this.body, this.labelModule);
+            break;
+          case 'ellipse':
+            this.shape = new _nodesShapesEllipse2['default'](this.options, this.body, this.labelModule);
+            break;
+          case 'icon':
+            this.shape = new _nodesShapesIcon2['default'](this.options, this.body, this.labelModule);
+            break;
+          case 'image':
+            this.shape = new _nodesShapesImage2['default'](this.options, this.body, this.labelModule, this.imageObj);
+            break;
+          case 'square':
+            this.shape = new _nodesShapesSquare2['default'](this.options, this.body, this.labelModule);
+            break;
+          case 'star':
+            this.shape = new _nodesShapesStar2['default'](this.options, this.body, this.labelModule);
+            break;
+          case 'text':
+            this.shape = new _nodesShapesText2['default'](this.options, this.body, this.labelModule);
+            break;
+          case 'triangle':
+            this.shape = new _nodesShapesTriangle2['default'](this.options, this.body, this.labelModule);
+            break;
+          case 'triangleDown':
+            this.shape = new _nodesShapesTriangleDown2['default'](this.options, this.body, this.labelModule);
+            break;
+          default:
+            this.shape = new _nodesShapesEllipse2['default'](this.options, this.body, this.labelModule);
+            break;
+        }
+        this._reset();
+      }
+    }, {
+      key: 'select',
+
+      /**
+       * select this node
+       */
+      value: function select() {
+        this.selected = true;
+        this._reset();
+      }
+    }, {
+      key: 'unselect',
+
+      /**
+       * unselect this node
+       */
+      value: function unselect() {
+        this.selected = false;
+        this._reset();
+      }
+    }, {
+      key: '_reset',
+
+      /**
+       * Reset the calculated size of the node, forces it to recalculate its size
+       * @private
+       */
+      value: function _reset() {
+        this.shape.width = undefined;
+        this.shape.height = undefined;
+      }
+    }, {
+      key: 'getTitle',
+
+      /**
+       * get the title of this node.
+       * @return {string} title    The title of the node, or undefined when no title
+       *                           has been set.
+       */
+      value: function getTitle() {
+        return this.options.title;
+      }
+    }, {
+      key: 'distanceToBorder',
+
+      /**
+       * Calculate the distance to the border of the Node
+       * @param {CanvasRenderingContext2D}   ctx
+       * @param {Number} angle        Angle in radians
+       * @returns {number} distance   Distance to the border in pixels
+       */
+      value: function distanceToBorder(ctx, angle) {
+        return this.shape.distanceToBorder(ctx, angle);
+      }
+    }, {
+      key: 'isFixed',
+
+      /**
+       * Check if this node has a fixed x and y position
+       * @return {boolean}      true if fixed, false if not
+       */
+      value: function isFixed() {
+        return this.options.fixed.x && this.options.fixed.y;
+      }
+    }, {
+      key: 'isSelected',
+
+      /**
+       * check if this node is selecte
+       * @return {boolean} selected   True if node is selected, else false
+       */
+      value: function isSelected() {
+        return this.selected;
+      }
+    }, {
+      key: 'getValue',
+
+      /**
+       * Retrieve the value of the node. Can be undefined
+       * @return {Number} value
+       */
+      value: function getValue() {
+        return this.options.value;
+      }
+    }, {
+      key: 'setValueRange',
+
+      /**
+       * Adjust the value range of the node. The node will adjust it's size
+       * based on its value.
+       * @param {Number} min
+       * @param {Number} max
+       */
+      value: function setValueRange(min, max, total) {
+        if (this.options.value !== undefined) {
+          var scale = this.options.scaling.customScalingFunction(min, max, total, this.options.value);
+          var sizeDiff = this.options.scaling.max - this.options.scaling.min;
+          if (this.options.scaling.label.enabled === true) {
+            var fontDiff = this.options.scaling.label.max - this.options.scaling.label.min;
+            this.options.font.size = this.options.scaling.label.min + scale * fontDiff;
+          }
+          this.options.size = this.options.scaling.min + scale * sizeDiff;
+        } else {
+          this.options.size = this.baseSize;
+          this.options.font.size = this.baseFontSize;
+        }
+      }
+    }, {
+      key: 'draw',
+
+      /**
+       * Draw this node in the given canvas
+       * The 2d context of a HTML canvas can be retrieved by canvas.getContext("2d");
+       * @param {CanvasRenderingContext2D}   ctx
+       */
+      value: function draw(ctx) {
+        this.shape.draw(ctx, this.x, this.y, this.selected, this.hover);
+      }
+    }, {
+      key: 'updateBoundingBox',
+
+      /**
+       * Update the bounding box of the shape
+       */
+      value: function updateBoundingBox() {
+        this.shape.updateBoundingBox(this.x, this.y);
+      }
+    }, {
+      key: 'resize',
+
+      /**
+       * Recalculate the size of this node in the given canvas
+       * The 2d context of a HTML canvas can be retrieved by canvas.getContext("2d");
+       * @param {CanvasRenderingContext2D}   ctx
+       */
+      value: function resize(ctx) {
+        this.shape.resize(ctx);
+      }
+    }, {
+      key: 'isOverlappingWith',
+
+      /**
+       * Check if this object is overlapping with the provided object
+       * @param {Object} obj   an object with parameters left, top, right, bottom
+       * @return {boolean}     True if location is located on node
+       */
+      value: function isOverlappingWith(obj) {
+        return this.shape.left < obj.right && this.shape.left + this.shape.width > obj.left && this.shape.top < obj.bottom && this.shape.top + this.shape.height > obj.top;
+      }
+    }, {
+      key: 'isBoundingBoxOverlappingWith',
+
+      /**
+       * Check if this object is overlapping with the provided object
+       * @param {Object} obj   an object with parameters left, top, right, bottom
+       * @return {boolean}     True if location is located on node
+       */
+      value: function isBoundingBoxOverlappingWith(obj) {
+        return this.shape.boundingBox.left < obj.right && this.shape.boundingBox.right > obj.left && this.shape.boundingBox.top < obj.bottom && this.shape.boundingBox.bottom > obj.top;
+      }
+    }], [{
+      key: 'parseOptions',
+
+      /**
+       * This process all possible shorthands in the new options and makes sure that the parentOptions are fully defined.
+       * Static so it can also be used by the handler.
+       * @param parentOptions
+       * @param newOptions
+       */
+      value: function parseOptions(parentOptions, newOptions) {
+        var allowDeletion = arguments[2] === undefined ? false : arguments[2];
+
+        var fields = ['color', 'font', 'fixed', 'shadow'];
+        util.selectiveNotDeepExtend(fields, parentOptions, newOptions, allowDeletion);
+
+        // merge the shadow options into the parent.
+        util.mergeOptions(parentOptions, newOptions, 'shadow');
+
+        // individual shape newOptions
+        if (newOptions.color !== undefined && newOptions.color !== null) {
+          var parsedColor = util.parseColor(newOptions.color);
+          util.fillIfDefined(parentOptions.color, parsedColor);
+        } else if (allowDeletion === true && newOptions.color === null) {
+          parentOptions.color = undefined;
+          delete parentOptions.color;
+        }
+
+        // handle the fixed options
+        if (newOptions.fixed !== undefined && newOptions.fixed !== null) {
+          if (typeof newOptions.fixed === 'boolean') {
+            parentOptions.fixed.x = newOptions.fixed;
+            parentOptions.fixed.y = newOptions.fixed;
+          } else {
+            if (newOptions.fixed.x !== undefined && typeof newOptions.fixed.x === 'boolean') {
+              parentOptions.fixed.x = newOptions.fixed.x;
+            }
+            if (newOptions.fixed.y !== undefined && typeof newOptions.fixed.y === 'boolean') {
+              parentOptions.fixed.y = newOptions.fixed.y;
+            }
+          }
+        }
+
+        // handle the font options
+        if (newOptions.font !== undefined) {
+          _sharedLabel2['default'].parseOptions(parentOptions.font, newOptions);
+        }
+
+        // handle the scaling options, specifically the label part
+        if (newOptions.scaling !== undefined) {
+          util.mergeOptions(parentOptions.scaling, newOptions.scaling, 'label');
+        }
+      }
+    }]);
+
+    return Node;
+  })();
+
+  exports['default'] = Node;
+  module.exports = exports['default'];
+
+/***/ },
+/* 9 */
+/***/ function(module, exports, __webpack_require__) {
+
+  'use strict';
+
+  Object.defineProperty(exports, '__esModule', {
+    value: true
+  });
+
+  var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
+
+  function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
+
+  function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
+
+  var _sharedLabel = __webpack_require__(68);
+
+  var _sharedLabel2 = _interopRequireDefault(_sharedLabel);
+
+  var _edgesBezierEdgeDynamic = __webpack_require__(87);
 
   var _edgesBezierEdgeDynamic2 = _interopRequireDefault(_edgesBezierEdgeDynamic);
 
-  var _edgesBezierEdgeStatic = __webpack_require__(89);
+  var _edgesBezierEdgeStatic = __webpack_require__(90);
 
   var _edgesBezierEdgeStatic2 = _interopRequireDefault(_edgesBezierEdgeStatic);
 
-  var _edgesStraightEdge = __webpack_require__(90);
+  var _edgesStraightEdge = __webpack_require__(91);
 
   var _edgesStraightEdge2 = _interopRequireDefault(_edgesStraightEdge);
 
-  var util = __webpack_require__(14);
+  var util = __webpack_require__(2);
 
   /**
    * @class Edge
@@ -2455,1716 +5504,1624 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 5 */
-/***/ function(module, exports, __webpack_require__) {
-
-  "use strict";
-
-  Object.defineProperty(exports, "__esModule", {
-    value: true
-  });
-
-  var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
-
-  function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-
-  var BarnesHutSolver = (function () {
-    function BarnesHutSolver(body, physicsBody, options) {
-      _classCallCheck(this, BarnesHutSolver);
-
-      this.body = body;
-      this.physicsBody = physicsBody;
-      this.barnesHutTree;
-      this.setOptions(options);
-    }
-
-    _createClass(BarnesHutSolver, [{
-      key: "setOptions",
-      value: function setOptions(options) {
-        this.options = options;
-        this.thetaInversed = 1 / this.options.theta;
-        this.overlapAvoidanceFactor = 1 - Math.max(0, Math.min(1, this.options.avoidOverlap)); // if 1 then min distance = 0.5, if 0.5 then min distance = 0.5 + 0.5*node.shape.radius
-      }
-    }, {
-      key: "solve",
-
-      /**
-       * This function calculates the forces the nodes apply on eachother based on a gravitational model.
-       * The Barnes Hut method is used to speed up this N-body simulation.
-       *
-       * @private
-       */
-      value: function solve() {
-        if (this.options.gravitationalConstant !== 0 && this.physicsBody.physicsNodeIndices.length > 0) {
-          var node = undefined;
-          var nodes = this.body.nodes;
-          var nodeIndices = this.physicsBody.physicsNodeIndices;
-          var nodeCount = nodeIndices.length;
-
-          // create the tree
-          var barnesHutTree = this._formBarnesHutTree(nodes, nodeIndices);
-
-          // for debugging
-          this.barnesHutTree = barnesHutTree;
-
-          // place the nodes one by one recursively
-          for (var i = 0; i < nodeCount; i++) {
-            node = nodes[nodeIndices[i]];
-            if (node.options.mass > 0) {
-              // starting with root is irrelevant, it never passes the BarnesHutSolver condition
-              this._getForceContribution(barnesHutTree.root.children.NW, node);
-              this._getForceContribution(barnesHutTree.root.children.NE, node);
-              this._getForceContribution(barnesHutTree.root.children.SW, node);
-              this._getForceContribution(barnesHutTree.root.children.SE, node);
-            }
-          }
-        }
-      }
-    }, {
-      key: "_getForceContribution",
-
-      /**
-       * This function traverses the barnesHutTree. It checks when it can approximate distant nodes with their center of mass.
-       * If a region contains a single node, we check if it is not itself, then we apply the force.
-       *
-       * @param parentBranch
-       * @param node
-       * @private
-       */
-      value: function _getForceContribution(parentBranch, node) {
-        // we get no force contribution from an empty region
-        if (parentBranch.childrenCount > 0) {
-          var dx = undefined,
-              dy = undefined,
-              distance = undefined;
-
-          // get the distance from the center of mass to the node.
-          dx = parentBranch.centerOfMass.x - node.x;
-          dy = parentBranch.centerOfMass.y - node.y;
-          distance = Math.sqrt(dx * dx + dy * dy);
-
-          // BarnesHutSolver condition
-          // original condition : s/d < theta = passed  ===  d/s > 1/theta = passed
-          // calcSize = 1/s --> d * 1/s > 1/theta = passed
-          if (distance * parentBranch.calcSize > this.thetaInversed) {
-            this._calculateForces(distance, dx, dy, node, parentBranch);
-          } else {
-            // Did not pass the condition, go into children if available
-            if (parentBranch.childrenCount === 4) {
-              this._getForceContribution(parentBranch.children.NW, node);
-              this._getForceContribution(parentBranch.children.NE, node);
-              this._getForceContribution(parentBranch.children.SW, node);
-              this._getForceContribution(parentBranch.children.SE, node);
-            } else {
-              // parentBranch must have only one node, if it was empty we wouldnt be here
-              if (parentBranch.children.data.id != node.id) {
-                // if it is not self
-                this._calculateForces(distance, dx, dy, node, parentBranch);
-              }
-            }
-          }
-        }
-      }
-    }, {
-      key: "_calculateForces",
-
-      /**
-       * Calculate the forces based on the distance.
-       *
-       * @param distance
-       * @param dx
-       * @param dy
-       * @param node
-       * @param parentBranch
-       * @private
-       */
-      value: function _calculateForces(distance, dx, dy, node, parentBranch) {
-        if (distance === 0) {
-          distance = 0.1;
-          dx = distance;
-        }
-
-        if (this.overlapAvoidanceFactor < 1) {
-          distance = Math.max(0.1 + this.overlapAvoidanceFactor * node.shape.radius, distance - node.shape.radius);
-        }
-
-        // the dividing by the distance cubed instead of squared allows us to get the fx and fy components without sines and cosines
-        // it is shorthand for gravityforce with distance squared and fx = dx/distance * gravityForce
-        var gravityForce = this.options.gravitationalConstant * parentBranch.mass * node.options.mass / Math.pow(distance, 3);
-        var fx = dx * gravityForce;
-        var fy = dy * gravityForce;
-
-        this.physicsBody.forces[node.id].x += fx;
-        this.physicsBody.forces[node.id].y += fy;
-      }
-    }, {
-      key: "_formBarnesHutTree",
-
-      /**
-       * This function constructs the barnesHut tree recursively. It creates the root, splits it and starts placing the nodes.
-       *
-       * @param nodes
-       * @param nodeIndices
-       * @private
-       */
-      value: function _formBarnesHutTree(nodes, nodeIndices) {
-        var node = undefined;
-        var nodeCount = nodeIndices.length;
-
-        var minX = nodes[nodeIndices[0]].x;
-        var minY = nodes[nodeIndices[0]].y;
-        var maxX = nodes[nodeIndices[0]].x;
-        var maxY = nodes[nodeIndices[0]].y;
-
-        // get the range of the nodes
-        for (var i = 1; i < nodeCount; i++) {
-          var x = nodes[nodeIndices[i]].x;
-          var y = nodes[nodeIndices[i]].y;
-          if (nodes[nodeIndices[i]].options.mass > 0) {
-            if (x < minX) {
-              minX = x;
-            }
-            if (x > maxX) {
-              maxX = x;
-            }
-            if (y < minY) {
-              minY = y;
-            }
-            if (y > maxY) {
-              maxY = y;
-            }
-          }
-        }
-        // make the range a square
-        var sizeDiff = Math.abs(maxX - minX) - Math.abs(maxY - minY); // difference between X and Y
-        if (sizeDiff > 0) {
-          minY -= 0.5 * sizeDiff;
-          maxY += 0.5 * sizeDiff;
-        } // xSize > ySize
-        else {
-          minX += 0.5 * sizeDiff;
-          maxX -= 0.5 * sizeDiff;
-        } // xSize < ySize
-
-        var minimumTreeSize = 0.00001;
-        var rootSize = Math.max(minimumTreeSize, Math.abs(maxX - minX));
-        var halfRootSize = 0.5 * rootSize;
-        var centerX = 0.5 * (minX + maxX),
-            centerY = 0.5 * (minY + maxY);
-
-        // construct the barnesHutTree
-        var barnesHutTree = {
-          root: {
-            centerOfMass: { x: 0, y: 0 },
-            mass: 0,
-            range: {
-              minX: centerX - halfRootSize, maxX: centerX + halfRootSize,
-              minY: centerY - halfRootSize, maxY: centerY + halfRootSize
-            },
-            size: rootSize,
-            calcSize: 1 / rootSize,
-            children: { data: null },
-            maxWidth: 0,
-            level: 0,
-            childrenCount: 4
-          }
-        };
-        this._splitBranch(barnesHutTree.root);
-
-        // place the nodes one by one recursively
-        for (var i = 0; i < nodeCount; i++) {
-          node = nodes[nodeIndices[i]];
-          if (node.options.mass > 0) {
-            this._placeInTree(barnesHutTree.root, node);
-          }
-        }
-
-        // make global
-        return barnesHutTree;
-      }
-    }, {
-      key: "_updateBranchMass",
-
-      /**
-       * this updates the mass of a branch. this is increased by adding a node.
-       *
-       * @param parentBranch
-       * @param node
-       * @private
-       */
-      value: function _updateBranchMass(parentBranch, node) {
-        var totalMass = parentBranch.mass + node.options.mass;
-        var totalMassInv = 1 / totalMass;
-
-        parentBranch.centerOfMass.x = parentBranch.centerOfMass.x * parentBranch.mass + node.x * node.options.mass;
-        parentBranch.centerOfMass.x *= totalMassInv;
-
-        parentBranch.centerOfMass.y = parentBranch.centerOfMass.y * parentBranch.mass + node.y * node.options.mass;
-        parentBranch.centerOfMass.y *= totalMassInv;
-
-        parentBranch.mass = totalMass;
-        var biggestSize = Math.max(Math.max(node.height, node.radius), node.width);
-        parentBranch.maxWidth = parentBranch.maxWidth < biggestSize ? biggestSize : parentBranch.maxWidth;
-      }
-    }, {
-      key: "_placeInTree",
-
-      /**
-       * determine in which branch the node will be placed.
-       *
-       * @param parentBranch
-       * @param node
-       * @param skipMassUpdate
-       * @private
-       */
-      value: function _placeInTree(parentBranch, node, skipMassUpdate) {
-        if (skipMassUpdate != true || skipMassUpdate === undefined) {
-          // update the mass of the branch.
-          this._updateBranchMass(parentBranch, node);
-        }
-
-        if (parentBranch.children.NW.range.maxX > node.x) {
-          // in NW or SW
-          if (parentBranch.children.NW.range.maxY > node.y) {
-            // in NW
-            this._placeInRegion(parentBranch, node, "NW");
-          } else {
-            // in SW
-            this._placeInRegion(parentBranch, node, "SW");
-          }
-        } else {
-          // in NE or SE
-          if (parentBranch.children.NW.range.maxY > node.y) {
-            // in NE
-            this._placeInRegion(parentBranch, node, "NE");
-          } else {
-            // in SE
-            this._placeInRegion(parentBranch, node, "SE");
-          }
-        }
-      }
-    }, {
-      key: "_placeInRegion",
-
-      /**
-       * actually place the node in a region (or branch)
-       *
-       * @param parentBranch
-       * @param node
-       * @param region
-       * @private
-       */
-      value: function _placeInRegion(parentBranch, node, region) {
-        switch (parentBranch.children[region].childrenCount) {
-          case 0:
-            // place node here
-            parentBranch.children[region].children.data = node;
-            parentBranch.children[region].childrenCount = 1;
-            this._updateBranchMass(parentBranch.children[region], node);
-            break;
-          case 1:
-            // convert into children
-            // if there are two nodes exactly overlapping (on init, on opening of cluster etc.)
-            // we move one node a pixel and we do not put it in the tree.
-            if (parentBranch.children[region].children.data.x === node.x && parentBranch.children[region].children.data.y === node.y) {
-              //node.x += Math.random();
-              //node.y += Math.random();
-              node.x += 0.1;
-              node.y += 0.1;
-            } else {
-              this._splitBranch(parentBranch.children[region]);
-              this._placeInTree(parentBranch.children[region], node);
-            }
-            break;
-          case 4:
-            // place in branch
-            this._placeInTree(parentBranch.children[region], node);
-            break;
-        }
-      }
-    }, {
-      key: "_splitBranch",
-
-      /**
-       * this function splits a branch into 4 sub branches. If the branch contained a node, we place it in the subbranch
-       * after the split is complete.
-       *
-       * @param parentBranch
-       * @private
-       */
-      value: function _splitBranch(parentBranch) {
-        // if the branch is shaded with a node, replace the node in the new subset.
-        var containedNode = null;
-        if (parentBranch.childrenCount === 1) {
-          containedNode = parentBranch.children.data;
-          parentBranch.mass = 0;
-          parentBranch.centerOfMass.x = 0;
-          parentBranch.centerOfMass.y = 0;
-        }
-        parentBranch.childrenCount = 4;
-        parentBranch.children.data = null;
-        this._insertRegion(parentBranch, "NW");
-        this._insertRegion(parentBranch, "NE");
-        this._insertRegion(parentBranch, "SW");
-        this._insertRegion(parentBranch, "SE");
-
-        if (containedNode != null) {
-          this._placeInTree(parentBranch, containedNode);
-        }
-      }
-    }, {
-      key: "_insertRegion",
-
-      /**
-       * This function subdivides the region into four new segments.
-       * Specifically, this inserts a single new segment.
-       * It fills the children section of the parentBranch
-       *
-       * @param parentBranch
-       * @param region
-       * @param parentRange
-       * @private
-       */
-      value: function _insertRegion(parentBranch, region) {
-        var minX = undefined,
-            maxX = undefined,
-            minY = undefined,
-            maxY = undefined;
-        var childSize = 0.5 * parentBranch.size;
-        switch (region) {
-          case "NW":
-            minX = parentBranch.range.minX;
-            maxX = parentBranch.range.minX + childSize;
-            minY = parentBranch.range.minY;
-            maxY = parentBranch.range.minY + childSize;
-            break;
-          case "NE":
-            minX = parentBranch.range.minX + childSize;
-            maxX = parentBranch.range.maxX;
-            minY = parentBranch.range.minY;
-            maxY = parentBranch.range.minY + childSize;
-            break;
-          case "SW":
-            minX = parentBranch.range.minX;
-            maxX = parentBranch.range.minX + childSize;
-            minY = parentBranch.range.minY + childSize;
-            maxY = parentBranch.range.maxY;
-            break;
-          case "SE":
-            minX = parentBranch.range.minX + childSize;
-            maxX = parentBranch.range.maxX;
-            minY = parentBranch.range.minY + childSize;
-            maxY = parentBranch.range.maxY;
-            break;
-        }
-
-        parentBranch.children[region] = {
-          centerOfMass: { x: 0, y: 0 },
-          mass: 0,
-          range: { minX: minX, maxX: maxX, minY: minY, maxY: maxY },
-          size: 0.5 * parentBranch.size,
-          calcSize: 2 * parentBranch.calcSize,
-          children: { data: null },
-          maxWidth: 0,
-          level: parentBranch.level + 1,
-          childrenCount: 0
-        };
-      }
-    }, {
-      key: "_debug",
-
-      //---------------------------  DEBUGGING BELOW  ---------------------------//
-
-      /**
-       * This function is for debugging purposed, it draws the tree.
-       *
-       * @param ctx
-       * @param color
-       * @private
-       */
-      value: function _debug(ctx, color) {
-        if (this.barnesHutTree !== undefined) {
-
-          ctx.lineWidth = 1;
-
-          this._drawBranch(this.barnesHutTree.root, ctx, color);
-        }
-      }
-    }, {
-      key: "_drawBranch",
-
-      /**
-       * This function is for debugging purposes. It draws the branches recursively.
-       *
-       * @param branch
-       * @param ctx
-       * @param color
-       * @private
-       */
-      value: function _drawBranch(branch, ctx, color) {
-        if (color === undefined) {
-          color = "#FF0000";
-        }
-
-        if (branch.childrenCount === 4) {
-          this._drawBranch(branch.children.NW, ctx);
-          this._drawBranch(branch.children.NE, ctx);
-          this._drawBranch(branch.children.SE, ctx);
-          this._drawBranch(branch.children.SW, ctx);
-        }
-        ctx.strokeStyle = color;
-        ctx.beginPath();
-        ctx.moveTo(branch.range.minX, branch.range.minY);
-        ctx.lineTo(branch.range.maxX, branch.range.minY);
-        ctx.stroke();
-
-        ctx.beginPath();
-        ctx.moveTo(branch.range.maxX, branch.range.minY);
-        ctx.lineTo(branch.range.maxX, branch.range.maxY);
-        ctx.stroke();
-
-        ctx.beginPath();
-        ctx.moveTo(branch.range.maxX, branch.range.maxY);
-        ctx.lineTo(branch.range.minX, branch.range.maxY);
-        ctx.stroke();
-
-        ctx.beginPath();
-        ctx.moveTo(branch.range.minX, branch.range.maxY);
-        ctx.lineTo(branch.range.minX, branch.range.minY);
-        ctx.stroke();
-
-        /*
-         if (branch.mass > 0) {
-         ctx.circle(branch.centerOfMass.x, branch.centerOfMass.y, 3*branch.mass);
-         ctx.stroke();
-         }
-         */
-      }
-    }]);
-
-    return BarnesHutSolver;
-  })();
-
-  exports["default"] = BarnesHutSolver;
-  module.exports = exports["default"];
-
-/***/ },
-/* 6 */
+/* 10 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
 
-  var Item = __webpack_require__(9);
-  var util = __webpack_require__(14);
+  var Hammer = __webpack_require__(13);
+  var util = __webpack_require__(2);
+  var DataSet = __webpack_require__(22);
+  var DataView = __webpack_require__(24);
+  var TimeStep = __webpack_require__(44);
+  var Component = __webpack_require__(35);
+  var Group = __webpack_require__(41);
+  var BackgroundGroup = __webpack_require__(45);
+  var BoxItem = __webpack_require__(5);
+  var PointItem = __webpack_require__(46);
+  var RangeItem = __webpack_require__(43);
+  var BackgroundItem = __webpack_require__(47);
+
+  var UNGROUPED = '__ungrouped__'; // reserved group id for ungrouped items
+  var BACKGROUND = '__background__'; // reserved group id for background items without group
 
   /**
-   * @constructor BoxItem
-   * @extends Item
-   * @param {Object} data             Object containing parameters start
-   *                                  content, className.
-   * @param {{toScreen: function, toTime: function}} conversion
-   *                                  Conversion functions from time to screen and vice versa
-   * @param {Object} [options]        Configuration options
-   *                                  // TODO: describe available options
+   * An ItemSet holds a set of items and ranges which can be displayed in a
+   * range. The width is determined by the parent of the ItemSet, and the height
+   * is determined by the size of the items.
+   * @param {{dom: Object, domProps: Object, emitter: Emitter, range: Range}} body
+   * @param {Object} [options]      See ItemSet.setOptions for the available options.
+   * @constructor ItemSet
+   * @extends Component
    */
-  function BoxItem(data, conversion, options) {
-    this.props = {
-      dot: {
-        width: 0,
-        height: 0
+  function ItemSet(body, options) {
+    this.body = body;
+
+    this.defaultOptions = {
+      type: null, // 'box', 'point', 'range', 'background'
+      orientation: {
+        item: 'bottom' // item orientation: 'top' or 'bottom'
       },
-      line: {
-        width: 0,
-        height: 0
+      align: 'auto', // alignment of box items
+      stack: true,
+      groupOrder: null,
+
+      selectable: true,
+      multiselect: false,
+
+      editable: {
+        updateTime: false,
+        updateGroup: false,
+        add: false,
+        remove: false
+      },
+
+      snap: TimeStep.snap,
+
+      onAdd: function onAdd(item, callback) {
+        callback(item);
+      },
+      onUpdate: function onUpdate(item, callback) {
+        callback(item);
+      },
+      onMove: function onMove(item, callback) {
+        callback(item);
+      },
+      onRemove: function onRemove(item, callback) {
+        callback(item);
+      },
+      onMoving: function onMoving(item, callback) {
+        callback(item);
+      },
+
+      margin: {
+        item: {
+          horizontal: 10,
+          vertical: 10
+        },
+        axis: 20
       }
     };
 
-    // validate data
-    if (data) {
-      if (data.start == undefined) {
-        throw new Error('Property "start" missing in item ' + data);
-      }
-    }
+    // options is shared by this ItemSet and all its items
+    this.options = util.extend({}, this.defaultOptions);
 
-    Item.call(this, data, conversion, options);
+    // options for getting items from the DataSet with the correct type
+    this.itemOptions = {
+      type: { start: 'Date', end: 'Date' }
+    };
+
+    this.conversion = {
+      toScreen: body.util.toScreen,
+      toTime: body.util.toTime
+    };
+    this.dom = {};
+    this.props = {};
+    this.hammer = null;
+
+    var me = this;
+    this.itemsData = null; // DataSet
+    this.groupsData = null; // DataSet
+
+    // listeners for the DataSet of the items
+    this.itemListeners = {
+      'add': function add(event, params, senderId) {
+        me._onAdd(params.items);
+      },
+      'update': function update(event, params, senderId) {
+        me._onUpdate(params.items);
+      },
+      'remove': function remove(event, params, senderId) {
+        me._onRemove(params.items);
+      }
+    };
+
+    // listeners for the DataSet of the groups
+    this.groupListeners = {
+      'add': function add(event, params, senderId) {
+        me._onAddGroups(params.items);
+      },
+      'update': function update(event, params, senderId) {
+        me._onUpdateGroups(params.items);
+      },
+      'remove': function remove(event, params, senderId) {
+        me._onRemoveGroups(params.items);
+      }
+    };
+
+    this.items = {}; // object with an Item for every data item
+    this.groups = {}; // Group object for every group
+    this.groupIds = [];
+
+    this.selection = []; // list with the ids of all selected nodes
+    this.stackDirty = true; // if true, all items will be restacked on next redraw
+
+    this.touchParams = {}; // stores properties while dragging
+    // create the HTML DOM
+
+    this._create();
+
+    this.setOptions(options);
   }
 
-  BoxItem.prototype = new Item(null, null, null);
+  ItemSet.prototype = new Component();
 
-  /**
-   * Check whether this item is visible inside given range
-   * @returns {{start: Number, end: Number}} range with a timestamp for start and end
-   * @returns {boolean} True if visible
-   */
-  BoxItem.prototype.isVisible = function (range) {
-    // determine visibility
-    // TODO: account for the real width of the item. Right now we just add 1/4 to the window
-    var interval = (range.end - range.start) / 4;
-    return this.data.start > range.start - interval && this.data.start < range.end + interval;
+  // available item types will be registered here
+  ItemSet.types = {
+    background: BackgroundItem,
+    box: BoxItem,
+    range: RangeItem,
+    point: PointItem
   };
 
   /**
-   * Repaint the item
+   * Create the HTML DOM for the ItemSet
    */
-  BoxItem.prototype.redraw = function () {
-    var dom = this.dom;
-    if (!dom) {
-      // create DOM
-      this.dom = {};
-      dom = this.dom;
+  ItemSet.prototype._create = function () {
+    var frame = document.createElement('div');
+    frame.className = 'vis-itemset';
+    frame['timeline-itemset'] = this;
+    this.dom.frame = frame;
 
-      // create main box
-      dom.box = document.createElement('DIV');
+    // create background panel
+    var background = document.createElement('div');
+    background.className = 'vis-background';
+    frame.appendChild(background);
+    this.dom.background = background;
 
-      // contents box (inside the background box). used for making margins
-      dom.content = document.createElement('DIV');
-      dom.content.className = 'vis-item-content';
-      dom.box.appendChild(dom.content);
+    // create foreground panel
+    var foreground = document.createElement('div');
+    foreground.className = 'vis-foreground';
+    frame.appendChild(foreground);
+    this.dom.foreground = foreground;
 
-      // line to axis
-      dom.line = document.createElement('DIV');
-      dom.line.className = 'vis-line';
+    // create axis panel
+    var axis = document.createElement('div');
+    axis.className = 'vis-axis';
+    this.dom.axis = axis;
 
-      // dot on axis
-      dom.dot = document.createElement('DIV');
-      dom.dot.className = 'vis-dot';
+    // create labelset
+    var labelSet = document.createElement('div');
+    labelSet.className = 'vis-labelset';
+    this.dom.labelSet = labelSet;
 
-      // attach this item as attribute
-      dom.box['timeline-item'] = this;
+    // create ungrouped Group
+    this._updateUngrouped();
 
-      this.dirty = true;
-    }
+    // create background Group
+    var backgroundGroup = new BackgroundGroup(BACKGROUND, null, this);
+    backgroundGroup.show();
+    this.groups[BACKGROUND] = backgroundGroup;
 
-    // append DOM to parent DOM
-    if (!this.parent) {
-      throw new Error('Cannot redraw item: no parent attached');
-    }
-    if (!dom.box.parentNode) {
-      var foreground = this.parent.dom.foreground;
-      if (!foreground) throw new Error('Cannot redraw item: parent has no foreground container element');
-      foreground.appendChild(dom.box);
-    }
-    if (!dom.line.parentNode) {
-      var background = this.parent.dom.background;
-      if (!background) throw new Error('Cannot redraw item: parent has no background container element');
-      background.appendChild(dom.line);
-    }
-    if (!dom.dot.parentNode) {
-      var axis = this.parent.dom.axis;
-      if (!background) throw new Error('Cannot redraw item: parent has no axis container element');
-      axis.appendChild(dom.dot);
-    }
-    this.displayed = true;
+    // attach event listeners
+    // Note: we bind to the centerContainer for the case where the height
+    //       of the center container is larger than of the ItemSet, so we
+    //       can click in the empty area to create a new item or deselect an item.
+    this.hammer = new Hammer(this.body.dom.centerContainer);
 
-    // Update DOM when item is marked dirty. An item is marked dirty when:
-    // - the item is not yet rendered
-    // - the item's data is changed
-    // - the item is selected/deselected
-    if (this.dirty) {
-      this._updateContents(this.dom.content);
-      this._updateTitle(this.dom.box);
-      this._updateDataAttributes(this.dom.box);
-      this._updateStyle(this.dom.box);
+    // drag items when selected
+    this.hammer.on('hammer.input', (function (event) {
+      if (event.isFirst) {
+        this._onTouch(event);
+      }
+    }).bind(this));
+    this.hammer.on('panstart', this._onDragStart.bind(this));
+    this.hammer.on('panmove', this._onDrag.bind(this));
+    this.hammer.on('panend', this._onDragEnd.bind(this));
 
-      // update class
-      var className = (this.data.className ? ' ' + this.data.className : '') + (this.selected ? ' vis-selected' : '');
-      dom.box.className = 'vis-item vis-box' + className;
-      dom.line.className = 'vis-item vis-line' + className;
-      dom.dot.className = 'vis-item vis-dot' + className;
+    // single select (or unselect) when tapping an item
+    this.hammer.on('tap', this._onSelectItem.bind(this));
 
-      // recalculate size
-      this.props.dot.height = dom.dot.offsetHeight;
-      this.props.dot.width = dom.dot.offsetWidth;
-      this.props.line.width = dom.line.offsetWidth;
-      this.width = dom.box.offsetWidth;
-      this.height = dom.box.offsetHeight;
+    // multi select when holding mouse/touch, or on ctrl+click
+    this.hammer.on('press', this._onMultiSelectItem.bind(this));
 
-      this.dirty = false;
-    }
+    // add item on doubletap
+    this.hammer.on('doubletap', this._onAddItem.bind(this));
 
-    this._repaintDeleteButton(dom.box);
+    // attach to the DOM
+    this.show();
   };
 
   /**
-   * Show the item in the DOM (when not already displayed). The items DOM will
-   * be created when needed.
+   * Set options for the ItemSet. Existing options will be extended/overwritten.
+   * @param {Object} [options] The following options are available:
+   *                           {String} type
+   *                              Default type for the items. Choose from 'box'
+   *                              (default), 'point', 'range', or 'background'.
+   *                              The default style can be overwritten by
+   *                              individual items.
+   *                           {String} align
+   *                              Alignment for the items, only applicable for
+   *                              BoxItem. Choose 'center' (default), 'left', or
+   *                              'right'.
+   *                           {String} orientation.item
+   *                              Orientation of the item set. Choose 'top' or
+   *                              'bottom' (default).
+   *                           {Function} groupOrder
+   *                              A sorting function for ordering groups
+   *                           {Boolean} stack
+   *                              If true (default), items will be stacked on
+   *                              top of each other.
+   *                           {Number} margin.axis
+   *                              Margin between the axis and the items in pixels.
+   *                              Default is 20.
+   *                           {Number} margin.item.horizontal
+   *                              Horizontal margin between items in pixels.
+   *                              Default is 10.
+   *                           {Number} margin.item.vertical
+   *                              Vertical Margin between items in pixels.
+   *                              Default is 10.
+   *                           {Number} margin.item
+   *                              Margin between items in pixels in both horizontal
+   *                              and vertical direction. Default is 10.
+   *                           {Number} margin
+   *                              Set margin for both axis and items in pixels.
+   *                           {Boolean} selectable
+   *                              If true (default), items can be selected.
+   *                           {Boolean} multiselect
+   *                              If true, multiple items can be selected.
+   *                              False by default.
+   *                           {Boolean} editable
+   *                              Set all editable options to true or false
+   *                           {Boolean} editable.updateTime
+   *                              Allow dragging an item to an other moment in time
+   *                           {Boolean} editable.updateGroup
+   *                              Allow dragging an item to an other group
+   *                           {Boolean} editable.add
+   *                              Allow creating new items on double tap
+   *                           {Boolean} editable.remove
+   *                              Allow removing items by clicking the delete button
+   *                              top right of a selected item.
+   *                           {Function(item: Item, callback: Function)} onAdd
+   *                              Callback function triggered when an item is about to be added:
+   *                              when the user double taps an empty space in the Timeline.
+   *                           {Function(item: Item, callback: Function)} onUpdate
+   *                              Callback function fired when an item is about to be updated.
+   *                              This function typically has to show a dialog where the user
+   *                              change the item. If not implemented, nothing happens.
+   *                           {Function(item: Item, callback: Function)} onMove
+   *                              Fired when an item has been moved. If not implemented,
+   *                              the move action will be accepted.
+   *                           {Function(item: Item, callback: Function)} onRemove
+   *                              Fired when an item is about to be deleted.
+   *                              If not implemented, the item will be always removed.
    */
-  BoxItem.prototype.show = function () {
-    if (!this.displayed) {
-      this.redraw();
-    }
-  };
+  ItemSet.prototype.setOptions = function (options) {
+    if (options) {
+      // copy all options that we know
+      var fields = ['type', 'align', 'order', 'stack', 'selectable', 'multiselect', 'groupOrder', 'dataAttributes', 'template', 'hide', 'snap'];
+      util.selectiveExtend(fields, this.options, options);
 
-  /**
-   * Hide the item from the DOM (when visible)
-   */
-  BoxItem.prototype.hide = function () {
-    if (this.displayed) {
-      var dom = this.dom;
-
-      if (dom.box.parentNode) dom.box.parentNode.removeChild(dom.box);
-      if (dom.line.parentNode) dom.line.parentNode.removeChild(dom.line);
-      if (dom.dot.parentNode) dom.dot.parentNode.removeChild(dom.dot);
-
-      this.displayed = false;
-    }
-  };
-
-  /**
-   * Reposition the item horizontally
-   * @Override
-   */
-  BoxItem.prototype.repositionX = function () {
-    var start = this.conversion.toScreen(this.data.start);
-    var align = this.options.align;
-    var left;
-
-    // calculate left position of the box
-    if (align == 'right') {
-      this.left = start - this.width;
-    } else if (align == 'left') {
-      this.left = start;
-    } else {
-      // default or 'center'
-      this.left = start - this.width / 2;
-    }
-
-    // reposition box
-    this.dom.box.style.left = this.left + 'px';
-
-    // reposition line
-    this.dom.line.style.left = start - this.props.line.width / 2 + 'px';
-
-    // reposition dot
-    this.dom.dot.style.left = start - this.props.dot.width / 2 + 'px';
-  };
-
-  /**
-   * Reposition the item vertically
-   * @Override
-   */
-  BoxItem.prototype.repositionY = function () {
-    var orientation = this.options.orientation.item;
-    var box = this.dom.box;
-    var line = this.dom.line;
-    var dot = this.dom.dot;
-
-    if (orientation == 'top') {
-      box.style.top = (this.top || 0) + 'px';
-
-      line.style.top = '0';
-      line.style.height = this.parent.top + this.top + 1 + 'px';
-      line.style.bottom = '';
-    } else {
-      // orientation 'bottom'
-      var itemSetHeight = this.parent.itemSet.props.height; // TODO: this is nasty
-      var lineHeight = itemSetHeight - this.parent.top - this.parent.height + this.top;
-
-      box.style.top = (this.parent.height - this.top - this.height || 0) + 'px';
-      line.style.top = itemSetHeight - lineHeight + 'px';
-      line.style.bottom = '0';
-    }
-
-    dot.style.top = -this.props.dot.height / 2 + 'px';
-  };
-
-  module.exports = BoxItem;
-
-/***/ },
-/* 7 */
-/***/ function(module, exports, __webpack_require__) {
-
-  'use strict';
-
-  Object.defineProperty(exports, '__esModule', {
-    value: true
-  });
-
-  var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
-
-  function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
-
-  function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
-
-  var _componentsNode = __webpack_require__(2);
-
-  var _componentsNode2 = _interopRequireDefault(_componentsNode);
-
-  var _componentsSharedLabel = __webpack_require__(67);
-
-  var _componentsSharedLabel2 = _interopRequireDefault(_componentsSharedLabel);
-
-  var util = __webpack_require__(14);
-  var DataSet = __webpack_require__(20);
-  var DataView = __webpack_require__(22);
-
-  var NodesHandler = (function () {
-    function NodesHandler(body, images, groups, layoutEngine) {
-      var _this = this;
-
-      _classCallCheck(this, NodesHandler);
-
-      this.body = body;
-      this.images = images;
-      this.groups = groups;
-      this.layoutEngine = layoutEngine;
-
-      // create the node API in the body container
-      this.body.functions.createNode = this.create.bind(this);
-
-      this.nodesListeners = {
-        add: function add(event, params) {
-          _this.add(params.items);
-        },
-        update: function update(event, params) {
-          _this.update(params.items, params.data);
-        },
-        remove: function remove(event, params) {
-          _this.remove(params.items);
+      if ('orientation' in options) {
+        if (typeof options.orientation === 'string') {
+          this.options.orientation.item = options.orientation === 'top' ? 'top' : 'bottom';
+        } else if (typeof options.orientation === 'object' && 'item' in options.orientation) {
+          this.options.orientation.item = options.orientation.item;
         }
-      };
+      }
 
-      this.options = {};
-      this.defaultOptions = {
-        borderWidth: 1,
-        borderWidthSelected: 2,
-        brokenImage: undefined,
-        color: {
-          border: '#2B7CE9',
-          background: '#97C2FC',
-          highlight: {
-            border: '#2B7CE9',
-            background: '#D2E5FF'
-          },
-          hover: {
-            border: '#2B7CE9',
-            background: '#D2E5FF'
-          }
-        },
-        fixed: {
-          x: false,
-          y: false
-        },
-        font: {
-          color: '#343434',
-          size: 14, // px
-          face: 'arial',
-          background: 'none',
-          strokeWidth: 0, // px
-          strokeColor: '#ffffff',
-          align: 'horizontal'
-        },
-        group: undefined,
-        hidden: false,
-        icon: {
-          face: 'FontAwesome', //'FontAwesome',
-          code: undefined, //'\uf007',
-          size: 50, //50,
-          color: '#2B7CE9' //'#aa00ff'
-        },
-        image: undefined, // --> URL
-        label: undefined,
-        level: undefined,
-        mass: 1,
-        physics: true,
-        scaling: {
-          min: 10,
-          max: 30,
-          label: {
-            enabled: false,
-            min: 14,
-            max: 30,
-            maxVisible: 30,
-            drawThreshold: 5
-          },
-          customScalingFunction: function customScalingFunction(min, max, total, value) {
-            if (max === min) {
-              return 0.5;
-            } else {
-              var scale = 1 / (max - min);
-              return Math.max(0, (value - min) * scale);
+      if ('margin' in options) {
+        if (typeof options.margin === 'number') {
+          this.options.margin.axis = options.margin;
+          this.options.margin.item.horizontal = options.margin;
+          this.options.margin.item.vertical = options.margin;
+        } else if (typeof options.margin === 'object') {
+          util.selectiveExtend(['axis'], this.options.margin, options.margin);
+          if ('item' in options.margin) {
+            if (typeof options.margin.item === 'number') {
+              this.options.margin.item.horizontal = options.margin.item;
+              this.options.margin.item.vertical = options.margin.item;
+            } else if (typeof options.margin.item === 'object') {
+              util.selectiveExtend(['horizontal', 'vertical'], this.options.margin.item, options.margin.item);
             }
           }
-        },
-        shadow: {
-          enabled: false,
-          size: 10,
-          x: 5,
-          y: 5
-        },
-        shape: 'ellipse',
-        size: 25,
-        title: undefined,
-        value: undefined,
-        x: undefined,
-        y: undefined
-      };
-      util.extend(this.options, this.defaultOptions);
+        }
+      }
 
-      this.bindEventListeners();
+      if ('editable' in options) {
+        if (typeof options.editable === 'boolean') {
+          this.options.editable.updateTime = options.editable;
+          this.options.editable.updateGroup = options.editable;
+          this.options.editable.add = options.editable;
+          this.options.editable.remove = options.editable;
+        } else if (typeof options.editable === 'object') {
+          util.selectiveExtend(['updateTime', 'updateGroup', 'add', 'remove'], this.options.editable, options.editable);
+        }
+      }
+
+      // callback functions
+      var addCallback = (function (name) {
+        var fn = options[name];
+        if (fn) {
+          if (!(fn instanceof Function)) {
+            throw new Error('option ' + name + ' must be a function ' + name + '(item, callback)');
+          }
+          this.options[name] = fn;
+        }
+      }).bind(this);
+      ['onAdd', 'onUpdate', 'onRemove', 'onMove', 'onMoving'].forEach(addCallback);
+
+      // force the itemSet to refresh: options like orientation and margins may be changed
+      this.markDirty();
+    }
+  };
+
+  /**
+   * Mark the ItemSet dirty so it will refresh everything with next redraw.
+   * Optionally, all items can be marked as dirty and be refreshed.
+   * @param {{refreshItems: boolean}} [options]
+   */
+  ItemSet.prototype.markDirty = function (options) {
+    this.groupIds = [];
+    this.stackDirty = true;
+
+    if (options && options.refreshItems) {
+      util.forEach(this.items, function (item) {
+        item.dirty = true;
+        if (item.displayed) item.redraw();
+      });
+    }
+  };
+
+  /**
+   * Destroy the ItemSet
+   */
+  ItemSet.prototype.destroy = function () {
+    this.hide();
+    this.setItems(null);
+    this.setGroups(null);
+
+    this.hammer = null;
+
+    this.body = null;
+    this.conversion = null;
+  };
+
+  /**
+   * Hide the component from the DOM
+   */
+  ItemSet.prototype.hide = function () {
+    // remove the frame containing the items
+    if (this.dom.frame.parentNode) {
+      this.dom.frame.parentNode.removeChild(this.dom.frame);
     }
 
-    _createClass(NodesHandler, [{
-      key: 'bindEventListeners',
-      value: function bindEventListeners() {
-        var _this2 = this;
+    // remove the axis with dots
+    if (this.dom.axis.parentNode) {
+      this.dom.axis.parentNode.removeChild(this.dom.axis);
+    }
 
-        // refresh the nodes. Used when reverting from hierarchical layout
-        this.body.emitter.on('refreshNodes', this.refresh.bind(this));
-        this.body.emitter.on('refresh', this.refresh.bind(this));
-        this.body.emitter.on('destroy', function () {
-          delete _this2.body.functions.createNode;
-          delete _this2.nodesListeners.add;
-          delete _this2.nodesListeners.update;
-          delete _this2.nodesListeners.remove;
-          delete _this2.nodesListeners;
+    // remove the labelset containing all group labels
+    if (this.dom.labelSet.parentNode) {
+      this.dom.labelSet.parentNode.removeChild(this.dom.labelSet);
+    }
+  };
+
+  /**
+   * Show the component in the DOM (when not already visible).
+   * @return {Boolean} changed
+   */
+  ItemSet.prototype.show = function () {
+    // show frame containing the items
+    if (!this.dom.frame.parentNode) {
+      this.body.dom.center.appendChild(this.dom.frame);
+    }
+
+    // show axis with dots
+    if (!this.dom.axis.parentNode) {
+      this.body.dom.backgroundVertical.appendChild(this.dom.axis);
+    }
+
+    // show labelset containing labels
+    if (!this.dom.labelSet.parentNode) {
+      this.body.dom.left.appendChild(this.dom.labelSet);
+    }
+  };
+
+  /**
+   * Set selected items by their id. Replaces the current selection
+   * Unknown id's are silently ignored.
+   * @param {string[] | string} [ids] An array with zero or more id's of the items to be
+   *                                  selected, or a single item id. If ids is undefined
+   *                                  or an empty array, all items will be unselected.
+   */
+  ItemSet.prototype.setSelection = function (ids) {
+    var i, ii, id, item;
+
+    if (ids == undefined) ids = [];
+    if (!Array.isArray(ids)) ids = [ids];
+
+    // unselect currently selected items
+    for (i = 0, ii = this.selection.length; i < ii; i++) {
+      id = this.selection[i];
+      item = this.items[id];
+      if (item) item.unselect();
+    }
+
+    // select items
+    this.selection = [];
+    for (i = 0, ii = ids.length; i < ii; i++) {
+      id = ids[i];
+      item = this.items[id];
+      if (item) {
+        this.selection.push(id);
+        item.select();
+      }
+    }
+  };
+
+  /**
+   * Get the selected items by their id
+   * @return {Array} ids  The ids of the selected items
+   */
+  ItemSet.prototype.getSelection = function () {
+    return this.selection.concat([]);
+  };
+
+  /**
+   * Get the id's of the currently visible items.
+   * @returns {Array} The ids of the visible items
+   */
+  ItemSet.prototype.getVisibleItems = function () {
+    var range = this.body.range.getRange();
+    var left = this.body.util.toScreen(range.start);
+    var right = this.body.util.toScreen(range.end);
+
+    var ids = [];
+    for (var groupId in this.groups) {
+      if (this.groups.hasOwnProperty(groupId)) {
+        var group = this.groups[groupId];
+        var rawVisibleItems = group.visibleItems;
+
+        // filter the "raw" set with visibleItems into a set which is really
+        // visible by pixels
+        for (var i = 0; i < rawVisibleItems.length; i++) {
+          var item = rawVisibleItems[i];
+          // TODO: also check whether visible vertically
+          if (item.left < right && item.left + item.width > left) {
+            ids.push(item.id);
+          }
+        }
+      }
+    }
+
+    return ids;
+  };
+
+  /**
+   * Deselect a selected item
+   * @param {String | Number} id
+   * @private
+   */
+  ItemSet.prototype._deselect = function (id) {
+    var selection = this.selection;
+    for (var i = 0, ii = selection.length; i < ii; i++) {
+      if (selection[i] == id) {
+        // non-strict comparison!
+        selection.splice(i, 1);
+        break;
+      }
+    }
+  };
+
+  /**
+   * Repaint the component
+   * @return {boolean} Returns true if the component is resized
+   */
+  ItemSet.prototype.redraw = function () {
+    var margin = this.options.margin,
+        range = this.body.range,
+        asSize = util.option.asSize,
+        options = this.options,
+        orientation = options.orientation.item,
+        resized = false,
+        frame = this.dom.frame,
+        editable = options.editable.updateTime || options.editable.updateGroup;
+
+    // recalculate absolute position (before redrawing groups)
+    this.props.top = this.body.domProps.top.height + this.body.domProps.border.top;
+    this.props.left = this.body.domProps.left.width + this.body.domProps.border.left;
+
+    // update class name
+    frame.className = 'vis-itemset' + (editable ? ' vis-editable' : '');
+
+    // reorder the groups (if needed)
+    resized = this._orderGroups() || resized;
+
+    // check whether zoomed (in that case we need to re-stack everything)
+    // TODO: would be nicer to get this as a trigger from Range
+    var visibleInterval = range.end - range.start;
+    var zoomed = visibleInterval != this.lastVisibleInterval || this.props.width != this.props.lastWidth;
+    if (zoomed) this.stackDirty = true;
+    this.lastVisibleInterval = visibleInterval;
+    this.props.lastWidth = this.props.width;
+
+    var restack = this.stackDirty;
+    var firstGroup = this._firstGroup();
+    var firstMargin = {
+      item: margin.item,
+      axis: margin.axis
+    };
+    var nonFirstMargin = {
+      item: margin.item,
+      axis: margin.item.vertical / 2
+    };
+    var height = 0;
+    var minHeight = margin.axis + margin.item.vertical;
+
+    // redraw the background group
+    this.groups[BACKGROUND].redraw(range, nonFirstMargin, restack);
+
+    // redraw all regular groups
+    util.forEach(this.groups, function (group) {
+      var groupMargin = group == firstGroup ? firstMargin : nonFirstMargin;
+      var groupResized = group.redraw(range, groupMargin, restack);
+      resized = groupResized || resized;
+      height += group.height;
+    });
+    height = Math.max(height, minHeight);
+    this.stackDirty = false;
+
+    // update frame height
+    frame.style.height = asSize(height);
+
+    // calculate actual size
+    this.props.width = frame.offsetWidth;
+    this.props.height = height;
+
+    // reposition axis
+    this.dom.axis.style.top = asSize(orientation == 'top' ? this.body.domProps.top.height + this.body.domProps.border.top : this.body.domProps.top.height + this.body.domProps.centerContainer.height);
+    this.dom.axis.style.left = '0';
+
+    // check if this component is resized
+    resized = this._isResized() || resized;
+
+    return resized;
+  };
+
+  /**
+   * Get the first group, aligned with the axis
+   * @return {Group | null} firstGroup
+   * @private
+   */
+  ItemSet.prototype._firstGroup = function () {
+    var firstGroupIndex = this.options.orientation.item == 'top' ? 0 : this.groupIds.length - 1;
+    var firstGroupId = this.groupIds[firstGroupIndex];
+    var firstGroup = this.groups[firstGroupId] || this.groups[UNGROUPED];
+
+    return firstGroup || null;
+  };
+
+  /**
+   * Create or delete the group holding all ungrouped items. This group is used when
+   * there are no groups specified.
+   * @protected
+   */
+  ItemSet.prototype._updateUngrouped = function () {
+    var ungrouped = this.groups[UNGROUPED];
+    var background = this.groups[BACKGROUND];
+    var item, itemId;
+
+    if (this.groupsData) {
+      // remove the group holding all ungrouped items
+      if (ungrouped) {
+        ungrouped.hide();
+        delete this.groups[UNGROUPED];
+
+        for (itemId in this.items) {
+          if (this.items.hasOwnProperty(itemId)) {
+            item = this.items[itemId];
+            item.parent && item.parent.remove(item);
+            var groupId = this._getGroupId(item.data);
+            var group = this.groups[groupId];
+            group && group.add(item) || item.hide();
+          }
+        }
+      }
+    } else {
+      // create a group holding all (unfiltered) items
+      if (!ungrouped) {
+        var id = null;
+        var data = null;
+        ungrouped = new Group(id, data, this);
+        this.groups[UNGROUPED] = ungrouped;
+
+        for (itemId in this.items) {
+          if (this.items.hasOwnProperty(itemId)) {
+            item = this.items[itemId];
+            ungrouped.add(item);
+          }
+        }
+
+        ungrouped.show();
+      }
+    }
+  };
+
+  /**
+   * Get the element for the labelset
+   * @return {HTMLElement} labelSet
+   */
+  ItemSet.prototype.getLabelSet = function () {
+    return this.dom.labelSet;
+  };
+
+  /**
+   * Set items
+   * @param {vis.DataSet | null} items
+   */
+  ItemSet.prototype.setItems = function (items) {
+    var me = this,
+        ids,
+        oldItemsData = this.itemsData;
+
+    // replace the dataset
+    if (!items) {
+      this.itemsData = null;
+    } else if (items instanceof DataSet || items instanceof DataView) {
+      this.itemsData = items;
+    } else {
+      throw new TypeError('Data must be an instance of DataSet or DataView');
+    }
+
+    if (oldItemsData) {
+      // unsubscribe from old dataset
+      util.forEach(this.itemListeners, function (callback, event) {
+        oldItemsData.off(event, callback);
+      });
+
+      // remove all drawn items
+      ids = oldItemsData.getIds();
+      this._onRemove(ids);
+    }
+
+    if (this.itemsData) {
+      // subscribe to new dataset
+      var id = this.id;
+      util.forEach(this.itemListeners, function (callback, event) {
+        me.itemsData.on(event, callback, id);
+      });
+
+      // add all new items
+      ids = this.itemsData.getIds();
+      this._onAdd(ids);
+
+      // update the group holding all ungrouped items
+      this._updateUngrouped();
+    }
+  };
+
+  /**
+   * Get the current items
+   * @returns {vis.DataSet | null}
+   */
+  ItemSet.prototype.getItems = function () {
+    return this.itemsData;
+  };
+
+  /**
+   * Set groups
+   * @param {vis.DataSet} groups
+   */
+  ItemSet.prototype.setGroups = function (groups) {
+    var me = this,
+        ids;
+
+    // unsubscribe from current dataset
+    if (this.groupsData) {
+      util.forEach(this.groupListeners, function (callback, event) {
+        me.groupsData.off(event, callback);
+      });
+
+      // remove all drawn groups
+      ids = this.groupsData.getIds();
+      this.groupsData = null;
+      this._onRemoveGroups(ids); // note: this will cause a redraw
+    }
+
+    // replace the dataset
+    if (!groups) {
+      this.groupsData = null;
+    } else if (groups instanceof DataSet || groups instanceof DataView) {
+      this.groupsData = groups;
+    } else {
+      throw new TypeError('Data must be an instance of DataSet or DataView');
+    }
+
+    if (this.groupsData) {
+      // subscribe to new dataset
+      var id = this.id;
+      util.forEach(this.groupListeners, function (callback, event) {
+        me.groupsData.on(event, callback, id);
+      });
+
+      // draw all ms
+      ids = this.groupsData.getIds();
+      this._onAddGroups(ids);
+    }
+
+    // update the group holding all ungrouped items
+    this._updateUngrouped();
+
+    // update the order of all items in each group
+    this._order();
+
+    this.body.emitter.emit('change', { queue: true });
+  };
+
+  /**
+   * Get the current groups
+   * @returns {vis.DataSet | null} groups
+   */
+  ItemSet.prototype.getGroups = function () {
+    return this.groupsData;
+  };
+
+  /**
+   * Remove an item by its id
+   * @param {String | Number} id
+   */
+  ItemSet.prototype.removeItem = function (id) {
+    var item = this.itemsData.get(id),
+        dataset = this.itemsData.getDataSet();
+
+    if (item) {
+      // confirm deletion
+      this.options.onRemove(item, function (item) {
+        if (item) {
+          // remove by id here, it is possible that an item has no id defined
+          // itself, so better not delete by the item itself
+          dataset.remove(id);
+        }
+      });
+    }
+  };
+
+  /**
+   * Get the time of an item based on it's data and options.type
+   * @param {Object} itemData
+   * @returns {string} Returns the type
+   * @private
+   */
+  ItemSet.prototype._getType = function (itemData) {
+    return itemData.type || this.options.type || (itemData.end ? 'range' : 'box');
+  };
+
+  /**
+   * Get the group id for an item
+   * @param {Object} itemData
+   * @returns {string} Returns the groupId
+   * @private
+   */
+  ItemSet.prototype._getGroupId = function (itemData) {
+    var type = this._getType(itemData);
+    if (type == 'background' && itemData.group == undefined) {
+      return BACKGROUND;
+    } else {
+      return this.groupsData ? itemData.group : UNGROUPED;
+    }
+  };
+
+  /**
+   * Handle updated items
+   * @param {Number[]} ids
+   * @protected
+   */
+  ItemSet.prototype._onUpdate = function (ids) {
+    var me = this;
+
+    ids.forEach((function (id) {
+      var itemData = me.itemsData.get(id, me.itemOptions);
+      var item = me.items[id];
+      var type = me._getType(itemData);
+
+      var constructor = ItemSet.types[type];
+      var selected;
+
+      if (item) {
+        // update item
+        if (!constructor || !(item instanceof constructor)) {
+          // item type has changed, delete the item and recreate it
+          selected = item.selected; // preserve selection of this item
+          me._removeItem(item);
+          item = null;
+        } else {
+          me._updateItem(item, itemData);
+        }
+      }
+
+      if (!item) {
+        // create item
+        if (constructor) {
+          item = new constructor(itemData, me.conversion, me.options);
+          item.id = id; // TODO: not so nice setting id afterwards
+          me._addItem(item);
+          if (selected) {
+            this.selection.push(id);
+            item.select();
+          }
+        } else if (type == 'rangeoverflow') {
+          // TODO: deprecated since version 2.1.0 (or 3.0.0?). cleanup some day
+          throw new TypeError('Item type "rangeoverflow" is deprecated. Use css styling instead: ' + '.vis-item.vis-range .vis-item-content {overflow: visible;}');
+        } else {
+          throw new TypeError('Unknown item type "' + type + '"');
+        }
+      }
+    }).bind(this));
+
+    this._order();
+    this.stackDirty = true; // force re-stacking of all items next redraw
+    this.body.emitter.emit('change', { queue: true });
+  };
+
+  /**
+   * Handle added items
+   * @param {Number[]} ids
+   * @protected
+   */
+  ItemSet.prototype._onAdd = ItemSet.prototype._onUpdate;
+
+  /**
+   * Handle removed items
+   * @param {Number[]} ids
+   * @protected
+   */
+  ItemSet.prototype._onRemove = function (ids) {
+    var count = 0;
+    var me = this;
+    ids.forEach(function (id) {
+      var item = me.items[id];
+      if (item) {
+        count++;
+        me._removeItem(item);
+      }
+    });
+
+    if (count) {
+      // update order
+      this._order();
+      this.stackDirty = true; // force re-stacking of all items next redraw
+      this.body.emitter.emit('change', { queue: true });
+    }
+  };
+
+  /**
+   * Update the order of item in all groups
+   * @private
+   */
+  ItemSet.prototype._order = function () {
+    // reorder the items in all groups
+    // TODO: optimization: only reorder groups affected by the changed items
+    util.forEach(this.groups, function (group) {
+      group.order();
+    });
+  };
+
+  /**
+   * Handle updated groups
+   * @param {Number[]} ids
+   * @private
+   */
+  ItemSet.prototype._onUpdateGroups = function (ids) {
+    this._onAddGroups(ids);
+  };
+
+  /**
+   * Handle changed groups (added or updated)
+   * @param {Number[]} ids
+   * @private
+   */
+  ItemSet.prototype._onAddGroups = function (ids) {
+    var me = this;
+
+    ids.forEach(function (id) {
+      var groupData = me.groupsData.get(id);
+      var group = me.groups[id];
+
+      if (!group) {
+        // check for reserved ids
+        if (id == UNGROUPED || id == BACKGROUND) {
+          throw new Error('Illegal group id. ' + id + ' is a reserved id.');
+        }
+
+        var groupOptions = Object.create(me.options);
+        util.extend(groupOptions, {
+          height: null
+        });
+
+        group = new Group(id, groupData, me);
+        me.groups[id] = group;
+
+        // add items with this groupId to the new group
+        for (var itemId in me.items) {
+          if (me.items.hasOwnProperty(itemId)) {
+            var item = me.items[itemId];
+            if (item.data.group == id) {
+              group.add(item);
+            }
+          }
+        }
+
+        group.order();
+        group.show();
+      } else {
+        // update group
+        group.setData(groupData);
+      }
+    });
+
+    this.body.emitter.emit('change', { queue: true });
+  };
+
+  /**
+   * Handle removed groups
+   * @param {Number[]} ids
+   * @private
+   */
+  ItemSet.prototype._onRemoveGroups = function (ids) {
+    var groups = this.groups;
+    ids.forEach(function (id) {
+      var group = groups[id];
+
+      if (group) {
+        group.hide();
+        delete groups[id];
+      }
+    });
+
+    this.markDirty();
+
+    this.body.emitter.emit('change', { queue: true });
+  };
+
+  /**
+   * Reorder the groups if needed
+   * @return {boolean} changed
+   * @private
+   */
+  ItemSet.prototype._orderGroups = function () {
+    if (this.groupsData) {
+      // reorder the groups
+      var groupIds = this.groupsData.getIds({
+        order: this.options.groupOrder
+      });
+
+      var changed = !util.equalArray(groupIds, this.groupIds);
+      if (changed) {
+        // hide all groups, removes them from the DOM
+        var groups = this.groups;
+        groupIds.forEach(function (groupId) {
+          groups[groupId].hide();
+        });
+
+        // show the groups again, attach them to the DOM in correct order
+        groupIds.forEach(function (groupId) {
+          groups[groupId].show();
+        });
+
+        this.groupIds = groupIds;
+      }
+
+      return changed;
+    } else {
+      return false;
+    }
+  };
+
+  /**
+   * Add a new item
+   * @param {Item} item
+   * @private
+   */
+  ItemSet.prototype._addItem = function (item) {
+    this.items[item.id] = item;
+
+    // add to group
+    var groupId = this._getGroupId(item.data);
+    var group = this.groups[groupId];
+    if (group) group.add(item);
+  };
+
+  /**
+   * Update an existing item
+   * @param {Item} item
+   * @param {Object} itemData
+   * @private
+   */
+  ItemSet.prototype._updateItem = function (item, itemData) {
+    var oldGroupId = item.data.group;
+    var oldSubGroupId = item.data.subgroup;
+
+    // update the items data (will redraw the item when displayed)
+    item.setData(itemData);
+
+    // update group
+    if (oldGroupId != item.data.group || oldSubGroupId != item.data.subgroup) {
+      var oldGroup = this.groups[oldGroupId];
+      if (oldGroup) oldGroup.remove(item);
+
+      var groupId = this._getGroupId(item.data);
+      var group = this.groups[groupId];
+      if (group) group.add(item);
+    }
+  };
+
+  /**
+   * Delete an item from the ItemSet: remove it from the DOM, from the map
+   * with items, and from the map with visible items, and from the selection
+   * @param {Item} item
+   * @private
+   */
+  ItemSet.prototype._removeItem = function (item) {
+    // remove from DOM
+    item.hide();
+
+    // remove from items
+    delete this.items[item.id];
+
+    // remove from selection
+    var index = this.selection.indexOf(item.id);
+    if (index != -1) this.selection.splice(index, 1);
+
+    // remove from group
+    item.parent && item.parent.remove(item);
+  };
+
+  /**
+   * Create an array containing all items being a range (having an end date)
+   * @param array
+   * @returns {Array}
+   * @private
+   */
+  ItemSet.prototype._constructByEndArray = function (array) {
+    var endArray = [];
+
+    for (var i = 0; i < array.length; i++) {
+      if (array[i] instanceof RangeItem) {
+        endArray.push(array[i]);
+      }
+    }
+    return endArray;
+  };
+
+  /**
+   * Register the clicked item on touch, before dragStart is initiated.
+   *
+   * dragStart is initiated from a mousemove event, AFTER the mouse/touch is
+   * already moving. Therefore, the mouse/touch can sometimes be above an other
+   * DOM element than the item itself.
+   *
+   * @param {Event} event
+   * @private
+   */
+  ItemSet.prototype._onTouch = function (event) {
+    // store the touched item, used in _onDragStart
+    this.touchParams.item = this.itemFromTarget(event);
+    this.touchParams.dragLeftItem = event.target.dragLeftItem || false;
+    this.touchParams.dragRightItem = event.target.dragRightItem || false;
+    this.touchParams.itemProps = null;
+  };
+
+  /**
+   * Start dragging the selected events
+   * @param {Event} event
+   * @private
+   */
+  ItemSet.prototype._onDragStart = function (event) {
+    if (!this.options.editable.updateTime && !this.options.editable.updateGroup) {
+      return;
+    }
+
+    var item = this.touchParams.item || null;
+    var me = this;
+    var props;
+
+    if (item && item.selected) {
+      var dragLeftItem = this.touchParams.dragLeftItem;
+      var dragRightItem = this.touchParams.dragRightItem;
+
+      if (dragLeftItem) {
+        props = {
+          item: dragLeftItem,
+          initialX: event.center.x,
+          dragLeft: true,
+          data: util.extend({}, item.data) // clone the items data
+        };
+
+        this.touchParams.itemProps = [props];
+      } else if (dragRightItem) {
+        props = {
+          item: dragRightItem,
+          initialX: event.center.x,
+          dragRight: true,
+          data: util.extend({}, item.data) // clone the items data
+        };
+
+        this.touchParams.itemProps = [props];
+      } else {
+        this.touchParams.itemProps = this.getSelection().map(function (id) {
+          var item = me.items[id];
+          var props = {
+            item: item,
+            initialX: event.center.x,
+            data: util.extend({}, item.data) // clone the items data
+          };
+
+          return props;
         });
       }
-    }, {
-      key: 'setOptions',
-      value: function setOptions(options) {
-        if (options !== undefined) {
-          _componentsNode2['default'].parseOptions(this.options, options);
 
-          // update the shape in all nodes
-          if (options.shape !== undefined) {
-            for (var nodeId in this.body.nodes) {
-              if (this.body.nodes.hasOwnProperty(nodeId)) {
-                this.body.nodes[nodeId].updateShape();
+      event.stopPropagation();
+    } else if (this.options.editable.add && (event.srcEvent.ctrlKey || event.srcEvent.metaKey)) {
+      // create a new range item when dragging with ctrl key down
+      this._onDragStartAddItem(event);
+    }
+  };
+
+  /**
+   * Start creating a new range item by dragging.
+   * @param {Event} event
+   * @private
+   */
+  ItemSet.prototype._onDragStartAddItem = function (event) {
+    var snap = this.options.snap || null;
+    var xAbs = util.getAbsoluteLeft(this.dom.frame);
+    var x = event.center.x - xAbs - 10; // minus 10 to compensate for the drag starting as soon as you've moved 10px
+    var time = this.body.util.toTime(x);
+    var scale = this.body.util.getScale();
+    var step = this.body.util.getStep();
+    var start = snap ? snap(time, scale, step) : start;
+    var end = start;
+
+    var itemData = {
+      type: 'range',
+      start: start,
+      end: end,
+      content: 'new item'
+    };
+
+    var id = util.randomUUID();
+    itemData[this.itemsData._fieldId] = id;
+
+    var group = this.groupFromTarget(event);
+    if (group) {
+      itemData.group = group.groupId;
+    }
+
+    var newItem = new RangeItem(itemData, this.conversion, this.options);
+    newItem.id = id; // TODO: not so nice setting id afterwards
+    newItem.data = itemData;
+    this._addItem(newItem);
+
+    var props = {
+      item: newItem,
+      dragRight: true,
+      initialX: event.center.x,
+      data: util.extend({}, itemData)
+    };
+    this.touchParams.itemProps = [props];
+
+    event.stopPropagation();
+  };
+
+  /**
+   * Drag selected items
+   * @param {Event} event
+   * @private
+   */
+  ItemSet.prototype._onDrag = function (event) {
+    if (this.touchParams.itemProps) {
+      event.stopPropagation();
+
+      var me = this;
+      var snap = this.options.snap || null;
+      var xOffset = this.body.dom.root.offsetLeft + this.body.domProps.left.width;
+      var scale = this.body.util.getScale();
+      var step = this.body.util.getStep();
+
+      // move
+      this.touchParams.itemProps.forEach(function (props) {
+        var newProps = {};
+        var current = me.body.util.toTime(event.center.x - xOffset);
+        var initial = me.body.util.toTime(props.initialX - xOffset);
+        var offset = current - initial;
+
+        var itemData = util.extend({}, props.item.data); // clone the data
+
+        if (me.options.editable.updateTime) {
+          if (props.dragLeft) {
+            // drag left side of a range item
+            if (itemData.start != undefined) {
+              var initialStart = util.convert(props.data.start, 'Date');
+              var start = new Date(initialStart.valueOf() + offset);
+              itemData.start = snap ? snap(start, scale, step) : start;
+            }
+          } else if (props.dragRight) {
+            // drag right side of a range item
+            if (itemData.end != undefined) {
+              var initialEnd = util.convert(props.data.end, 'Date');
+              var end = new Date(initialEnd.valueOf() + offset);
+              itemData.end = snap ? snap(end, scale, step) : end;
+            }
+          } else {
+            // drag both start and end
+            if (itemData.start != undefined) {
+              var initialStart = util.convert(props.data.start, 'Date').valueOf();
+              var start = new Date(initialStart + offset);
+
+              if (itemData.end != undefined) {
+                var initialEnd = util.convert(props.data.end, 'Date');
+                var duration = initialEnd.valueOf() - initialStart.valueOf();
+
+                itemData.start = snap ? snap(start, scale, step) : start;
+                itemData.end = new Date(itemData.start.valueOf() + duration);
+              } else {
+                itemData.start = snap ? snap(start, scale, step) : start;
               }
             }
-          }
-
-          // update the shape size in all nodes
-          if (options.font !== undefined) {
-            _componentsSharedLabel2['default'].parseOptions(this.options.font, options);
-            for (var nodeId in this.body.nodes) {
-              if (this.body.nodes.hasOwnProperty(nodeId)) {
-                this.body.nodes[nodeId].updateLabelModule();
-                this.body.nodes[nodeId]._reset();
-              }
-            }
-          }
-
-          // update the shape size in all nodes
-          if (options.size !== undefined) {
-            for (var nodeId in this.body.nodes) {
-              if (this.body.nodes.hasOwnProperty(nodeId)) {
-                this.body.nodes[nodeId]._reset();
-              }
-            }
-          }
-
-          // update the state of the letiables if needed
-          if (options.hidden !== undefined || options.physics !== undefined) {
-            this.body.emitter.emit('_dataChanged');
           }
         }
-      }
-    }, {
-      key: 'setData',
 
-      /**
-       * Set a data set with nodes for the network
-       * @param {Array | DataSet | DataView} nodes         The data containing the nodes.
-       * @private
-       */
-      value: function setData(nodes) {
-        var _this3 = this;
+        if (me.options.editable.updateGroup && (!props.dragLeft && !props.dragRight)) {
+          if (itemData.group != undefined) {
+            // drag from one group to another
+            var group = me.groupFromTarget(event);
+            if (group) {
+              itemData.group = group.groupId;
+            }
+          }
+        }
 
-        var doNotEmit = arguments[1] === undefined ? false : arguments[1];
+        // confirm moving the item
+        me.options.onMoving(itemData, function (itemData) {
+          if (itemData) {
+            props.item.setData(itemData);
+          }
+        });
+      });
 
-        var oldNodesData = this.body.data.nodes;
+      this.stackDirty = true; // force re-stacking of all items next redraw
+      this.body.emitter.emit('change');
+    }
+  };
 
-        if (nodes instanceof DataSet || nodes instanceof DataView) {
-          this.body.data.nodes = nodes;
-        } else if (Array.isArray(nodes)) {
-          this.body.data.nodes = new DataSet();
-          this.body.data.nodes.add(nodes);
-        } else if (!nodes) {
-          this.body.data.nodes = new DataSet();
+  /**
+   * Move an item to another group
+   * @param {Item} item
+   * @param {String | Number} groupId
+   * @private
+   */
+  ItemSet.prototype._moveToGroup = function (item, groupId) {
+    var group = this.groups[groupId];
+    if (group && group.groupId != item.data.group) {
+      var oldGroup = item.parent;
+      oldGroup.remove(item);
+      oldGroup.order();
+      group.add(item);
+      group.order();
+
+      item.data.group = group.groupId;
+    }
+  };
+
+  /**
+   * End of dragging selected items
+   * @param {Event} event
+   * @private
+   */
+  ItemSet.prototype._onDragEnd = function (event) {
+    if (this.touchParams.itemProps) {
+      event.stopPropagation();
+
+      // prepare a change set for the changed items
+      var changes = [];
+      var me = this;
+      var dataset = this.itemsData.getDataSet();
+
+      var itemProps = this.touchParams.itemProps;
+      this.touchParams.itemProps = null;
+      itemProps.forEach(function (props) {
+        var id = props.item.id;
+        var exists = me.itemsData.get(id, me.itemOptions) != null;
+
+        if (!exists) {
+          // add a new item
+          me.options.onAdd(props.item.data, function (itemData) {
+            me._removeItem(props.item); // remove temporary item
+            if (itemData) {
+              me.itemsData.getDataSet().add(itemData);
+            }
+
+            // force re-stacking of all items next redraw
+            me.stackDirty = true;
+            me.body.emitter.emit('change');
+          });
         } else {
-          throw new TypeError('Array or DataSet expected');
-        }
+          // update existing item
+          var itemData = util.extend({}, props.item.data); // clone the data
+          me.options.onMove(itemData, function (itemData) {
+            if (itemData) {
+              // apply changes
+              itemData[dataset._fieldId] = id; // ensure the item contains its id (can be undefined)
+              changes.push(itemData);
+            } else {
+              // restore original values
+              props.item.setData(props.data);
 
-        if (oldNodesData) {
-          // unsubscribe from old dataset
-          util.forEach(this.nodesListeners, function (callback, event) {
-            oldNodesData.off(event, callback);
+              me.stackDirty = true; // force re-stacking of all items next redraw
+              me.body.emitter.emit('change');
+            }
           });
         }
+      });
 
-        // remove drawn nodes
-        this.body.nodes = {};
-
-        if (this.body.data.nodes) {
-          (function () {
-            // subscribe to new dataset
-            var me = _this3;
-            util.forEach(_this3.nodesListeners, function (callback, event) {
-              me.body.data.nodes.on(event, callback);
-            });
-
-            // draw all new nodes
-            var ids = _this3.body.data.nodes.getIds();
-            _this3.add(ids, true);
-          })();
-        }
-
-        if (doNotEmit === false) {
-          this.body.emitter.emit('_dataChanged');
-        }
+      // apply the changes to the data (if there are changes)
+      if (changes.length) {
+        dataset.update(changes);
       }
-    }, {
-      key: 'add',
+    }
+  };
 
-      /**
-       * Add nodes
-       * @param {Number[] | String[]} ids
-       * @private
-       */
-      value: function add(ids) {
-        var doNotEmit = arguments[1] === undefined ? false : arguments[1];
+  /**
+   * Handle selecting/deselecting an item when tapping it
+   * @param {Event} event
+   * @private
+   */
+  ItemSet.prototype._onSelectItem = function (event) {
+    if (!this.options.selectable) return;
 
-        var id = undefined;
-        var newNodes = [];
-        for (var i = 0; i < ids.length; i++) {
-          id = ids[i];
-          var _properties = this.body.data.nodes.get(id);
-          var node = this.create(_properties);
-          newNodes.push(node);
-          this.body.nodes[id] = node; // note: this may replace an existing node
-        }
-
-        this.layoutEngine.positionInitially(newNodes);
-
-        if (doNotEmit === false) {
-          this.body.emitter.emit('_dataChanged');
-        }
-      }
-    }, {
-      key: 'update',
-
-      /**
-       * Update existing nodes, or create them when not yet existing
-       * @param {Number[] | String[]} ids
-       * @private
-       */
-      value: function update(ids, changedData) {
-        var nodes = this.body.nodes;
-        var dataChanged = false;
-        for (var i = 0; i < ids.length; i++) {
-          var id = ids[i];
-          var node = nodes[id];
-          var data = changedData[i];
-          if (node !== undefined) {
-            // update node
-            dataChanged = node.setOptions(data);
-          } else {
-            dataChanged = true;
-            // create node
-            node = this.create(properties);
-            nodes[id] = node;
-          }
-        }
-
-        if (dataChanged === true) {
-          this.body.emitter.emit('_dataChanged');
-        } else {
-          this.body.emitter.emit('_dataUpdated');
-        }
-      }
-    }, {
-      key: 'remove',
-
-      /**
-       * Remove existing nodes. If nodes do not exist, the method will just ignore it.
-       * @param {Number[] | String[]} ids
-       * @private
-       */
-      value: function remove(ids) {
-        var nodes = this.body.nodes;
-
-        for (var i = 0; i < ids.length; i++) {
-          var id = ids[i];
-          delete nodes[id];
-        }
-
-        this.body.emitter.emit('_dataChanged');
-      }
-    }, {
-      key: 'create',
-
-      /**
-       * create a node
-       * @param properties
-       * @param constructorClass
-       */
-      value: function create(properties) {
-        var constructorClass = arguments[1] === undefined ? _componentsNode2['default'] : arguments[1];
-
-        return new constructorClass(properties, this.body, this.images, this.groups, this.options);
-      }
-    }, {
-      key: 'refresh',
-      value: function refresh() {
-        var nodes = this.body.nodes;
-        for (var nodeId in nodes) {
-          var node = undefined;
-          if (nodes.hasOwnProperty(nodeId)) {
-            node = nodes[nodeId];
-          }
-          var data = this.body.data.nodes._data[nodeId];
-          if (node !== undefined && data !== undefined) {
-            node.setOptions({ fixed: false });
-            node.setOptions(data);
-          }
-        }
-      }
-    }, {
-      key: 'getPositions',
-
-      /**
-       * Returns the positions of the nodes.
-       * @param ids  --> optional, can be array of nodeIds, can be string
-       * @returns {{}}
-       */
-      value: function getPositions(ids) {
-        var dataArray = {};
-        if (ids !== undefined) {
-          if (Array.isArray(ids) === true) {
-            for (var i = 0; i < ids.length; i++) {
-              if (this.body.nodes[ids[i]] !== undefined) {
-                var node = this.body.nodes[ids[i]];
-                dataArray[ids[i]] = { x: Math.round(node.x), y: Math.round(node.y) };
-              }
-            }
-          } else {
-            if (this.body.nodes[ids] !== undefined) {
-              var node = this.body.nodes[ids];
-              dataArray[ids] = { x: Math.round(node.x), y: Math.round(node.y) };
-            }
-          }
-        } else {
-          for (var nodeId in this.body.nodes) {
-            if (this.body.nodes.hasOwnProperty(nodeId)) {
-              var node = this.body.nodes[nodeId];
-              dataArray[nodeId] = { x: Math.round(node.x), y: Math.round(node.y) };
-            }
-          }
-        }
-        return dataArray;
-      }
-    }, {
-      key: 'storePositions',
-
-      /**
-       * Load the XY positions of the nodes into the dataset.
-       */
-      value: function storePositions() {
-        // todo: add support for clusters and hierarchical.
-        var dataArray = [];
-        for (var nodeId in this.body.nodes) {
-          if (this.body.nodes.hasOwnProperty(nodeId)) {
-            var node = this.body.nodes[nodeId];
-            if (this.body.data.nodes._data[nodeId].x != Math.round(node.x) || this.body.data.nodes._data[nodeId].y != Math.round(node.y)) {
-              dataArray.push({ id: nodeId, x: Math.round(node.x), y: Math.round(node.y) });
-            }
-          }
-        }
-        this.body.data.nodes.update(dataArray);
-      }
-    }, {
-      key: 'getBoundingBox',
-
-      /**
-       * get the bounding box of a node.
-       * @param nodeId
-       * @returns {j|*}
-       */
-      value: function getBoundingBox(nodeId) {
-        if (this.body.nodes[nodeId] !== undefined) {
-          return this.body.nodes[nodeId].shape.boundingBox;
-        }
-      }
-    }, {
-      key: 'getConnectedNodes',
-
-      /**
-       * Get the Ids of nodes connected to this node.
-       * @param nodeId
-       * @returns {Array}
-       */
-      value: function getConnectedNodes(nodeId) {
-        var nodeList = [];
-        if (this.body.nodes[nodeId] !== undefined) {
-          var node = this.body.nodes[nodeId];
-          var nodeObj = {}; // used to quickly check if node already exists
-          for (var i = 0; i < node.edges.length; i++) {
-            var edge = node.edges[i];
-            if (edge.toId == nodeId) {
-              // these are double equals since ids can be numeric or string
-              if (nodeObj[edge.fromId] === undefined) {
-                nodeList.push(edge.fromId);
-                nodeObj[edge.fromId] = true;
-              }
-            } else if (edge.fromId == nodeId) {
-              // these are double equals since ids can be numeric or string
-              if (nodeObj[edge.toId] === undefined) {
-                nodeList.push(edge.toId);
-                nodeObj[edge.toId] = true;
-              }
-            }
-          }
-        }
-        return nodeList;
-      }
-    }, {
-      key: 'getConnectedEdges',
-
-      /**
-       * Get the ids of the edges connected to this node.
-       * @param nodeId
-       * @returns {*}
-       */
-      value: function getConnectedEdges(nodeId) {
-        var edgeList = [];
-        if (this.body.nodes[nodeId] !== undefined) {
-          var node = this.body.nodes[nodeId];
-          for (var i = 0; i < node.edges.length; i++) {
-            edgeList.push(node.edges[i].id);
-          }
-        } else {
-          console.log('NodeId provided for getConnectedEdges does not exist. Provided: ', nodeId);
-        }
-        return edgeList;
-      }
-    }]);
-
-    return NodesHandler;
-  })();
-
-  exports['default'] = NodesHandler;
-  module.exports = exports['default'];
-
-/***/ },
-/* 8 */
-/***/ function(module, exports, __webpack_require__) {
-
-  'use strict';
-
-  Object.defineProperty(exports, '__esModule', {
-    value: true
-  });
-
-  var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
-
-  function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
-
-  var util = __webpack_require__(14);
-
-  var LayoutEngine = (function () {
-    function LayoutEngine(body) {
-      _classCallCheck(this, LayoutEngine);
-
-      this.body = body;
-
-      this.initialRandomSeed = Math.round(Math.random() * 1000000);
-      this.randomSeed = this.initialRandomSeed;
-      this.options = {};
-      this.optionsBackup = {};
-
-      this.defaultOptions = {
-        randomSeed: undefined,
-        hierarchical: {
-          enabled: false,
-          levelSeparation: 150,
-          direction: 'UD', // UD, DU, LR, RL
-          sortMethod: 'hubsize' // hubsize, directed
-        }
-      };
-      util.extend(this.options, this.defaultOptions);
-
-      this.hierarchicalLevels = {};
-
-      this.bindEventListeners();
+    var ctrlKey = event.srcEvent && (event.srcEvent.ctrlKey || event.srcEvent.metaKey);
+    var shiftKey = event.srcEvent && event.srcEvent.shiftKey;
+    if (ctrlKey || shiftKey) {
+      this._onMultiSelectItem(event);
+      return;
     }
 
-    _createClass(LayoutEngine, [{
-      key: 'bindEventListeners',
-      value: function bindEventListeners() {
-        var _this = this;
+    var oldSelection = this.getSelection();
 
-        this.body.emitter.on('_dataChanged', function () {
-          _this.setupHierarchicalLayout();
-        });
-        this.body.emitter.on('_resetHierarchicalLayout', function () {
-          _this.setupHierarchicalLayout();
-        });
-      }
-    }, {
-      key: 'setOptions',
-      value: function setOptions(options, allOptions) {
-        if (options !== undefined) {
-          var prevHierarchicalState = this.options.hierarchical.enabled;
+    var item = this.itemFromTarget(event);
+    var selection = item ? [item.id] : [];
+    this.setSelection(selection);
 
-          util.mergeOptions(this.options, options, 'hierarchical');
-          if (options.randomSeed !== undefined) {
-            this.initialRandomSeed = options.randomSeed;
-          }
+    var newSelection = this.getSelection();
 
-          if (this.options.hierarchical.enabled === true) {
-            // make sure the level seperation is the right way up
-            if (this.options.hierarchical.direction === 'RL' || this.options.hierarchical.direction === 'DU') {
-              if (this.options.hierarchical.levelSeparation > 0) {
-                this.options.hierarchical.levelSeparation *= -1;
-              }
-            } else {
-              if (this.options.hierarchical.levelSeparation < 0) {
-                this.options.hierarchical.levelSeparation *= -1;
-              }
-            }
+    // emit a select event,
+    // except when old selection is empty and new selection is still empty
+    if (newSelection.length > 0 || oldSelection.length > 0) {
+      this.body.emitter.emit('select', {
+        items: newSelection
+      });
+    }
+  };
 
-            this.body.emitter.emit('_resetHierarchicalLayout');
-            // because the hierarchical system needs it's own physics and smooth curve settings, we adapt the other options if needed.
-            return this.adaptAllOptions(allOptions);
-          } else {
-            if (prevHierarchicalState === true) {
-              // refresh the overridden options for nodes and edges.
-              this.body.emitter.emit('refresh');
-              return util.deepExtend(allOptions, this.optionsBackup);
-            }
-          }
+  /**
+   * Handle creation and updates of an item on double tap
+   * @param event
+   * @private
+   */
+  ItemSet.prototype._onAddItem = function (event) {
+    if (!this.options.selectable) return;
+    if (!this.options.editable.add) return;
+
+    var me = this;
+    var snap = this.options.snap || null;
+    var item = this.itemFromTarget(event);
+
+    event.stopPropagation();
+
+    if (item) {
+      // update item
+
+      // execute async handler to update the item (or cancel it)
+      var itemData = me.itemsData.get(item.id); // get a clone of the data from the dataset
+      this.options.onUpdate(itemData, function (itemData) {
+        if (itemData) {
+          me.itemsData.getDataSet().update(itemData);
         }
-        return allOptions;
+      });
+    } else {
+      // add item
+      var xAbs = util.getAbsoluteLeft(this.dom.frame);
+      var x = event.center.x - xAbs;
+      var start = this.body.util.toTime(x);
+      var scale = this.body.util.getScale();
+      var step = this.body.util.getStep();
+
+      var newItem = {
+        start: snap ? snap(start, scale, step) : start,
+        content: 'new item'
+      };
+
+      // when default type is a range, add a default end date to the new item
+      if (this.options.type === 'range') {
+        var end = this.body.util.toTime(x + this.props.width / 5);
+        newItem.end = snap ? snap(end, scale, step) : end;
       }
-    }, {
-      key: 'adaptAllOptions',
-      value: function adaptAllOptions(allOptions) {
-        if (this.options.hierarchical.enabled === true) {
-          // set the physics
-          if (allOptions.physics === undefined || allOptions.physics === true) {
-            allOptions.physics = { solver: 'hierarchicalRepulsion' };
-            this.optionsBackup.physics = { solver: 'barnesHut' };
-          } else if (typeof allOptions.physics === 'object') {
-            this.optionsBackup.physics = { solver: 'barnesHut' };
-            if (allOptions.physics.solver !== undefined) {
-              this.optionsBackup.physics = { solver: allOptions.physics.solver };
-            }
-            allOptions.physics['solver'] = 'hierarchicalRepulsion';
-          } else if (allOptions.physics !== false) {
-            this.optionsBackup.physics = { solver: 'barnesHut' };
-            allOptions.physics['solver'] = 'hierarchicalRepulsion';
-          }
 
-          // get the type of static smooth curve in case it is required
-          var type = 'horizontal';
-          if (this.options.hierarchical.direction === 'RL' || this.options.hierarchical.direction === 'LR') {
-            type = 'vertical';
-          }
+      newItem[this.itemsData._fieldId] = util.randomUUID();
 
-          // disable smooth curves if nothing is defined. If smooth curves have been turned on, turn them into static smooth curves.
-          if (allOptions.edges === undefined) {
-            this.optionsBackup.edges = { smooth: { enabled: true, type: 'dynamic' } };
-            allOptions.edges = { smooth: false };
-          } else if (allOptions.edges.smooth === undefined) {
-            this.optionsBackup.edges = { smooth: { enabled: true, type: 'dynamic' } };
-            allOptions.edges.smooth = false;
-          } else {
-            if (typeof allOptions.edges.smooth === 'boolean') {
-              this.optionsBackup.edges = { smooth: allOptions.edges.smooth };
-              allOptions.edges.smooth = { enabled: allOptions.edges.smooth, type: type };
-            } else {
-              // allow custom types except for dynamic
-              if (allOptions.edges.smooth.type !== undefined && allOptions.edges.smooth.type !== 'dynamic') {
-                type = allOptions.edges.smooth.type;
-              }
+      var group = this.groupFromTarget(event);
+      if (group) {
+        newItem.group = group.groupId;
+      }
 
-              this.optionsBackup.edges = {
-                smooth: allOptions.edges.smooth.enabled === undefined ? true : allOptions.edges.smooth.enabled,
-                type: allOptions.edges.smooth.type === undefined ? 'dynamic' : allOptions.edges.smooth.type,
-                roundness: allOptions.edges.smooth.roundness === undefined ? 0.5 : allOptions.edges.smooth.roundness
-              };
-              allOptions.edges.smooth = {
-                enabled: allOptions.edges.smooth.enabled === undefined ? true : allOptions.edges.smooth.enabled,
-                type: type,
-                roundness: allOptions.edges.smooth.roundness === undefined ? 0.5 : allOptions.edges.smooth.roundness
-              };
-            }
-          }
-
-          // force all edges into static smooth curves. Only applies to edges that do not use the global options for smooth.
-          this.body.emitter.emit('_forceDisableDynamicCurves', type);
+      // execute async handler to customize (or cancel) adding an item
+      this.options.onAdd(newItem, function (item) {
+        if (item) {
+          me.itemsData.getDataSet().add(item);
+          // TODO: need to trigger a redraw?
         }
-        return allOptions;
-      }
-    }, {
-      key: 'seededRandom',
-      value: function seededRandom() {
-        var x = Math.sin(this.randomSeed++) * 10000;
-        return x - Math.floor(x);
-      }
-    }, {
-      key: 'positionInitially',
-      value: function positionInitially(nodesArray) {
-        if (this.options.hierarchical.enabled !== true) {
-          this.randomSeed = this.initialRandomSeed;
-          for (var i = 0; i < nodesArray.length; i++) {
-            var node = nodesArray[i];
-            if (!node.isFixed() && (node.x === undefined || node.y === undefined)) {
-              var radius = 10 * 0.1 * nodesArray.length + 10;
-              var angle = 2 * Math.PI * this.seededRandom();
-              if (node.options.fixed.x === false) {
-                node.x = radius * Math.cos(angle);
-              }
-              if (node.options.fixed.x === false) {
-                node.y = radius * Math.sin(angle);
-              }
+      });
+    }
+  };
+
+  /**
+   * Handle selecting/deselecting multiple items when holding an item
+   * @param {Event} event
+   * @private
+   */
+  ItemSet.prototype._onMultiSelectItem = function (event) {
+    if (!this.options.selectable) return;
+
+    var item = this.itemFromTarget(event);
+
+    if (item) {
+      // multi select items (if allowed)
+
+      var selection = this.options.multiselect ? this.getSelection() // take current selection
+      : []; // deselect current selection
+
+      var shiftKey = event.srcEvent && event.srcEvent.shiftKey || false;
+
+      if (shiftKey && this.options.multiselect) {
+        // select all items between the old selection and the tapped item
+
+        // determine the selection range
+        selection.push(item.id);
+        var range = ItemSet._getItemRange(this.itemsData.get(selection, this.itemOptions));
+
+        // select all items within the selection range
+        selection = [];
+        for (var id in this.items) {
+          if (this.items.hasOwnProperty(id)) {
+            var _item = this.items[id];
+            var start = _item.data.start;
+            var end = _item.data.end !== undefined ? _item.data.end : start;
+
+            if (start >= range.min && end <= range.max && !(_item instanceof BackgroundItem)) {
+              selection.push(_item.id); // do not use id but item.id, id itself is stringified
             }
           }
         }
-      }
-    }, {
-      key: 'getSeed',
-      value: function getSeed() {
-        return this.initialRandomSeed;
-      }
-    }, {
-      key: 'setupHierarchicalLayout',
-
-      /**
-       * This is the main function to layout the nodes in a hierarchical way.
-       * It checks if the node details are supplied correctly
-       *
-       * @private
-       */
-      value: function setupHierarchicalLayout() {
-        if (this.options.hierarchical.enabled === true && this.body.nodeIndices.length > 0) {
-          // get the size of the largest hubs and check if the user has defined a level for a node.
-          var node = undefined,
-              nodeId = undefined;
-          var definedLevel = false;
-          var undefinedLevel = false;
-          this.hierarchicalLevels = {};
-          this.nodeSpacing = 100;
-
-          for (nodeId in this.body.nodes) {
-            if (this.body.nodes.hasOwnProperty(nodeId)) {
-              node = this.body.nodes[nodeId];
-              if (node.options.level !== undefined) {
-                definedLevel = true;
-                this.hierarchicalLevels[nodeId] = node.options.level;
-              } else {
-                undefinedLevel = true;
-              }
-            }
-          }
-
-          // if the user defined some levels but not all, alert and run without hierarchical layout
-          if (undefinedLevel === true && definedLevel === true) {
-            throw new Error('To use the hierarchical layout, nodes require either no predefined levels or levels have to be defined for all nodes.');
-            return;
-          } else {
-            // setup the system to use hierarchical method.
-            //this._changeConstants();
-
-            // define levels if undefined by the users. Based on hubsize
-            if (undefinedLevel === true) {
-              if (this.options.hierarchical.sortMethod === 'hubsize') {
-                this._determineLevelsByHubsize();
-              } else if (this.options.hierarchical.sortMethod === 'directed' || 'direction') {
-                this._determineLevelsDirected();
-              }
-            }
-
-            // check the distribution of the nodes per level.
-            var distribution = this._getDistribution();
-
-            // place the nodes on the canvas.
-            this._placeNodesByHierarchy(distribution);
-          }
+      } else {
+        // add/remove this item from the current selection
+        var index = selection.indexOf(item.id);
+        if (index == -1) {
+          // item is not yet selected -> select it
+          selection.push(item.id);
+        } else {
+          // item is already selected -> deselect it
+          selection.splice(index, 1);
         }
       }
-    }, {
-      key: '_placeNodesByHierarchy',
 
-      /**
-       * This function places the nodes on the canvas based on the hierarchial distribution.
-       *
-       * @param {Object} distribution | obtained by the function this._getDistribution()
-       * @private
-       */
-      value: function _placeNodesByHierarchy(distribution) {
-        var nodeId = undefined,
-            node = undefined;
-        this.positionedNodes = {};
-        // start placing all the level 0 nodes first. Then recursively position their branches.
-        for (var level in distribution) {
-          if (distribution.hasOwnProperty(level)) {
-            for (nodeId in distribution[level].nodes) {
-              if (distribution[level].nodes.hasOwnProperty(nodeId)) {
+      this.setSelection(selection);
 
-                node = distribution[level].nodes[nodeId];
+      this.body.emitter.emit('select', {
+        items: this.getSelection()
+      });
+    }
+  };
 
-                if (this.options.hierarchical.direction === 'UD' || this.options.hierarchical.direction === 'DU') {
-                  if (node.x === undefined) {
-                    node.x = distribution[level].distance;
-                  }
-                  distribution[level].distance = node.x + this.nodeSpacing;
-                } else {
-                  if (node.y === undefined) {
-                    node.y = distribution[level].distance;
-                  }
-                  distribution[level].distance = node.y + this.nodeSpacing;
-                }
+  /**
+   * Calculate the time range of a list of items
+   * @param {Array.<Object>} itemsData
+   * @return {{min: Date, max: Date}} Returns the range of the provided items
+   * @private
+   */
+  ItemSet._getItemRange = function (itemsData) {
+    var max = null;
+    var min = null;
 
-                this.positionedNodes[nodeId] = true;
-                this._placeBranchNodes(node.edges, node.id, distribution, level);
-              }
-            }
-          }
+    itemsData.forEach(function (data) {
+      if (min == null || data.start < min) {
+        min = data.start;
+      }
+
+      if (data.end != undefined) {
+        if (max == null || data.end > max) {
+          max = data.end;
+        }
+      } else {
+        if (max == null || data.start > max) {
+          max = data.start;
         }
       }
-    }, {
-      key: '_getDistribution',
+    });
 
-      /**
-       * This function get the distribution of levels based on hubsize
-       *
-       * @returns {Object}
-       * @private
-       */
-      value: function _getDistribution() {
-        var distribution = {};
-        var nodeId = undefined,
-            node = undefined;
+    return {
+      min: min,
+      max: max
+    };
+  };
 
-        // we fix Y because the hierarchy is vertical, we fix X so we do not give a node an x position for a second time.
-        // the fix of X is removed after the x value has been set.
-        for (nodeId in this.body.nodes) {
-          if (this.body.nodes.hasOwnProperty(nodeId)) {
-            node = this.body.nodes[nodeId];
-            var level = this.hierarchicalLevels[nodeId] === undefined ? 0 : this.hierarchicalLevels[nodeId];
-            if (this.options.hierarchical.direction === 'UD' || this.options.hierarchical.direction === 'DU') {
-              node.y = this.options.hierarchical.levelSeparation * level;
-              node.options.fixed.y = true;
-            } else {
-              node.x = this.options.hierarchical.levelSeparation * level;
-              node.options.fixed.x = true;
-            }
-            if (distribution[level] === undefined) {
-              distribution[level] = { amount: 0, nodes: {}, distance: 0 };
-            }
-            distribution[level].amount += 1;
-            distribution[level].nodes[nodeId] = node;
-          }
-        }
-        return distribution;
+  /**
+   * Find an item from an event target:
+   * searches for the attribute 'timeline-item' in the event target's element tree
+   * @param {Event} event
+   * @return {Item | null} item
+   */
+  ItemSet.prototype.itemFromTarget = function (event) {
+    var target = event.target;
+    while (target) {
+      if (target.hasOwnProperty('timeline-item')) {
+        return target['timeline-item'];
       }
-    }, {
-      key: '_getHubSize',
+      target = target.parentNode;
+    }
 
-      /**
-       * Get the hubsize from all remaining unlevelled nodes.
-       *
-       * @returns {number}
-       * @private
-       */
-      value: function _getHubSize() {
-        var hubSize = 0;
-        for (var nodeId in this.body.nodes) {
-          if (this.body.nodes.hasOwnProperty(nodeId)) {
-            var node = this.body.nodes[nodeId];
-            if (this.hierarchicalLevels[nodeId] === undefined) {
-              hubSize = node.edges.length < hubSize ? hubSize : node.edges.length;
-            }
-          }
-        }
-        return hubSize;
+    return null;
+  };
+
+  /**
+   * Find the Group from an event target:
+   * searches for the attribute 'timeline-group' in the event target's element tree
+   * @param {Event} event
+   * @return {Group | null} group
+   */
+  ItemSet.prototype.groupFromTarget = function (event) {
+    var clientY = event.center ? event.center.y : event.clientY;
+    for (var i = 0; i < this.groupIds.length; i++) {
+      var groupId = this.groupIds[i];
+      var group = this.groups[groupId];
+      var foreground = group.dom.foreground;
+      var top = util.getAbsoluteTop(foreground);
+      if (clientY > top && clientY < top + foreground.offsetHeight) {
+        return group;
       }
-    }, {
-      key: '_determineLevelsByHubsize',
 
-      /**
-       * this function allocates nodes in levels based on the recursive branching from the largest hubs.
-       *
-       * @param hubsize
-       * @private
-       */
-      value: function _determineLevelsByHubsize() {
-        var nodeId = undefined,
-            node = undefined;
-        var hubSize = 1;
-
-        while (hubSize > 0) {
-          // determine hubs
-          hubSize = this._getHubSize();
-          if (hubSize === 0) break;
-
-          for (nodeId in this.body.nodes) {
-            if (this.body.nodes.hasOwnProperty(nodeId)) {
-              node = this.body.nodes[nodeId];
-              if (node.edges.length === hubSize) {
-                this._setLevelByHubsize(0, node);
-              }
-            }
-          }
+      if (this.options.orientation.item === 'top') {
+        if (i === this.groupIds.length - 1 && clientY > top) {
+          return group;
+        }
+      } else {
+        if (i === 0 && clientY < top + foreground.offset) {
+          return group;
         }
       }
-    }, {
-      key: '_setLevelByHubsize',
+    }
 
-      /**
-       * this function is called recursively to enumerate the barnches of the largest hubs and give each node a level.
-       *
-       * @param level
-       * @param edges
-       * @param parentId
-       * @private
-       */
-      value: function _setLevelByHubsize(level, node) {
-        if (this.hierarchicalLevels[node.id] !== undefined) return;
+    return null;
+  };
 
-        var childNode = undefined;
-        this.hierarchicalLevels[node.id] = level;
-        for (var i = 0; i < node.edges.length; i++) {
-          if (node.edges[i].toId === node.id) {
-            childNode = node.edges[i].from;
-          } else {
-            childNode = node.edges[i].to;
-          }
-          this._setLevelByHubsize(level + 1, childNode);
-        }
+  /**
+   * Find the ItemSet from an event target:
+   * searches for the attribute 'timeline-itemset' in the event target's element tree
+   * @param {Event} event
+   * @return {ItemSet | null} item
+   */
+  ItemSet.itemSetFromTarget = function (event) {
+    var target = event.target;
+    while (target) {
+      if (target.hasOwnProperty('timeline-itemset')) {
+        return target['timeline-itemset'];
       }
-    }, {
-      key: '_determineLevelsDirected',
+      target = target.parentNode;
+    }
 
-      /**
-       * this function allocates nodes in levels based on the direction of the edges
-       *
-       * @param hubsize
-       * @private
-       */
-      value: function _determineLevelsDirected() {
-        var nodeId = undefined,
-            node = undefined;
-        var minLevel = 10000;
+    return null;
+  };
 
-        // set first node to source
-        for (nodeId in this.body.nodes) {
-          if (this.body.nodes.hasOwnProperty(nodeId)) {
-            node = this.body.nodes[nodeId];
-            this._setLevelDirected(minLevel, node);
-          }
-        }
-
-        // get the minimum level
-        for (nodeId in this.body.nodes) {
-          if (this.body.nodes.hasOwnProperty(nodeId)) {
-            minLevel = this.hierarchicalLevels[nodeId] < minLevel ? this.hierarchicalLevels[nodeId] : minLevel;
-          }
-        }
-
-        // subtract the minimum from the set so we have a range starting from 0
-        for (nodeId in this.body.nodes) {
-          if (this.body.nodes.hasOwnProperty(nodeId)) {
-            this.hierarchicalLevels[nodeId] -= minLevel;
-          }
-        }
-      }
-    }, {
-      key: '_setLevelDirected',
-
-      /**
-       * this function is called recursively to enumerate the branched of the first node and give each node a level based on edge direction
-       *
-       * @param level
-       * @param edges
-       * @param parentId
-       * @private
-       */
-      value: function _setLevelDirected(level, node) {
-        if (this.hierarchicalLevels[node.id] !== undefined) return;
-
-        var childNode = undefined;
-        this.hierarchicalLevels[node.id] = level;
-
-        for (var i = 0; i < node.edges.length; i++) {
-          if (node.edges[i].toId === node.id) {
-            childNode = node.edges[i].from;
-            this._setLevelDirected(level - 1, childNode);
-          } else {
-            childNode = node.edges[i].to;
-            this._setLevelDirected(level + 1, childNode);
-          }
-        }
-      }
-    }, {
-      key: '_placeBranchNodes',
-
-      /**
-       * This is a recursively called function to enumerate the branches from the largest hubs and place the nodes
-       * on a X position that ensures there will be no overlap.
-       *
-       * @param edges
-       * @param parentId
-       * @param distribution
-       * @param parentLevel
-       * @private
-       */
-      value: function _placeBranchNodes(edges, parentId, distribution, parentLevel) {
-        for (var i = 0; i < edges.length; i++) {
-          var childNode = undefined;
-          var parentNode = undefined;
-          if (edges[i].toId === parentId) {
-            childNode = edges[i].from;
-            parentNode = edges[i].to;
-          } else {
-            childNode = edges[i].to;
-            parentNode = edges[i].from;
-          }
-          var childNodeLevel = this.hierarchicalLevels[childNode.id];
-
-          if (this.positionedNodes[childNode.id] === undefined) {
-            // if a node is conneceted to another node on the same level (or higher (means lower level))!, this is not handled here.
-            if (childNodeLevel > parentLevel) {
-              if (this.options.hierarchical.direction === 'UD' || this.options.hierarchical.direction === 'DU') {
-                if (childNode.x === undefined) {
-                  childNode.x = Math.max(distribution[childNodeLevel].distance, parentNode.x);
-                }
-                distribution[childNodeLevel].distance = childNode.x + this.nodeSpacing;
-                this.positionedNodes[childNode.id] = true;
-              } else {
-                if (childNode.y === undefined) {
-                  childNode.y = Math.max(distribution[childNodeLevel].distance, parentNode.y);
-                }
-                distribution[childNodeLevel].distance = childNode.y + this.nodeSpacing;
-              }
-              this.positionedNodes[childNode.id] = true;
-
-              if (childNode.edges.length > 1) {
-                this._placeBranchNodes(childNode.edges, childNode.id, distribution, childNodeLevel);
-              }
-            }
-          }
-        }
-      }
-    }]);
-
-    return LayoutEngine;
-  })();
-
-  exports['default'] = LayoutEngine;
-  module.exports = exports['default'];
+  module.exports = ItemSet;
 
 /***/ },
-/* 9 */
+/* 11 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
 
-  var Hammer = __webpack_require__(10);
-  var util = __webpack_require__(14);
+  var Hammer = __webpack_require__(13);
+  var util = __webpack_require__(2);
 
   /**
    * @constructor Item
@@ -4432,7 +7389,764 @@ return /******/ (function(modules) { // webpackBootstrap
   // should be implemented by the item
 
 /***/ },
-/* 10 */
+/* 12 */
+/***/ function(module, exports, __webpack_require__) {
+
+  'use strict';
+
+  Object.defineProperty(exports, '__esModule', {
+    value: true
+  });
+
+  var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
+
+  function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
+
+  function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
+
+  var _componentsNavigationHandler = __webpack_require__(105);
+
+  var _componentsNavigationHandler2 = _interopRequireDefault(_componentsNavigationHandler);
+
+  var _componentsPopup = __webpack_require__(106);
+
+  var _componentsPopup2 = _interopRequireDefault(_componentsPopup);
+
+  var util = __webpack_require__(2);
+
+  var InteractionHandler = (function () {
+    function InteractionHandler(body, canvas, selectionHandler) {
+      _classCallCheck(this, InteractionHandler);
+
+      this.body = body;
+      this.canvas = canvas;
+      this.selectionHandler = selectionHandler;
+      this.navigationHandler = new _componentsNavigationHandler2['default'](body, canvas);
+
+      // bind the events from hammer to functions in this object
+      this.body.eventListeners.onTap = this.onTap.bind(this);
+      this.body.eventListeners.onTouch = this.onTouch.bind(this);
+      this.body.eventListeners.onDoubleTap = this.onDoubleTap.bind(this);
+      this.body.eventListeners.onHold = this.onHold.bind(this);
+      this.body.eventListeners.onDragStart = this.onDragStart.bind(this);
+      this.body.eventListeners.onDrag = this.onDrag.bind(this);
+      this.body.eventListeners.onDragEnd = this.onDragEnd.bind(this);
+      this.body.eventListeners.onMouseWheel = this.onMouseWheel.bind(this);
+      this.body.eventListeners.onPinch = this.onPinch.bind(this);
+      this.body.eventListeners.onMouseMove = this.onMouseMove.bind(this);
+      this.body.eventListeners.onRelease = this.onRelease.bind(this);
+      this.body.eventListeners.onContext = this.onContext.bind(this);
+
+      this.touchTime = 0;
+      this.drag = {};
+      this.pinch = {};
+      this.popup = undefined;
+      this.popupObj = undefined;
+      this.popupTimer = undefined;
+
+      this.body.functions.getPointer = this.getPointer.bind(this);
+
+      this.options = {};
+      this.defaultOptions = {
+        dragNodes: true,
+        dragView: true,
+        hover: false,
+        keyboard: {
+          enabled: false,
+          speed: { x: 10, y: 10, zoom: 0.02 },
+          bindToWindow: true
+        },
+        navigationButtons: false,
+        tooltipDelay: 300,
+        zoomView: true
+      };
+      util.extend(this.options, this.defaultOptions);
+
+      this.bindEventListeners();
+    }
+
+    _createClass(InteractionHandler, [{
+      key: 'bindEventListeners',
+      value: function bindEventListeners() {
+        var _this = this;
+
+        this.body.emitter.on('destroy', function () {
+          clearTimeout(_this.popupTimer);
+          delete _this.body.functions.getPointer;
+        });
+      }
+    }, {
+      key: 'setOptions',
+      value: function setOptions(options) {
+        if (options !== undefined) {
+          // extend all but the values in fields
+          var fields = ['hideEdgesOnDrag', 'hideNodesOnDrag', 'keyboard', 'multiselect', 'selectable', 'selectConnectedEdges'];
+          util.selectiveNotDeepExtend(fields, this.options, options);
+
+          // merge the keyboard options in.
+          util.mergeOptions(this.options, options, 'keyboard');
+
+          if (options.tooltip) {
+            util.extend(this.options.tooltip, options.tooltip);
+            if (options.tooltip.color) {
+              this.options.tooltip.color = util.parseColor(options.tooltip.color);
+            }
+          }
+        }
+
+        this.navigationHandler.setOptions(this.options);
+      }
+    }, {
+      key: 'getPointer',
+
+      /**
+       * Get the pointer location from a touch location
+       * @param {{x: Number, y: Number}} touch
+       * @return {{x: Number, y: Number}} pointer
+       * @private
+       */
+      value: function getPointer(touch) {
+        return {
+          x: touch.x - util.getAbsoluteLeft(this.canvas.frame.canvas),
+          y: touch.y - util.getAbsoluteTop(this.canvas.frame.canvas)
+        };
+      }
+    }, {
+      key: 'onTouch',
+
+      /**
+       * On start of a touch gesture, store the pointer
+       * @param event
+       * @private
+       */
+      value: function onTouch(event) {
+        if (new Date().valueOf() - this.touchTime > 50) {
+          this.drag.pointer = this.getPointer(event.center);
+          this.drag.pinched = false;
+          this.pinch.scale = this.body.view.scale;
+          // to avoid double fireing of this event because we have two hammer instances. (on canvas and on frame)
+          this.touchTime = new Date().valueOf();
+        }
+      }
+    }, {
+      key: 'onTap',
+
+      /**
+       * handle tap/click event: select/unselect a node
+       * @private
+       */
+      value: function onTap(event) {
+        var pointer = this.getPointer(event.center);
+        var multiselect = this.selectionHandler.options.multiselect && (event.changedPointers[0].ctrlKey || event.changedPointers[0].metaKey);
+
+        this.checkSelectionChanges(pointer, event, multiselect);
+        this.selectionHandler._generateClickEvent('click', event, pointer);
+      }
+    }, {
+      key: 'onDoubleTap',
+
+      /**
+       * handle doubletap event
+       * @private
+       */
+      value: function onDoubleTap(event) {
+        var pointer = this.getPointer(event.center);
+        this.selectionHandler._generateClickEvent('doubleClick', event, pointer);
+      }
+    }, {
+      key: 'onHold',
+
+      /**
+       * handle long tap event: multi select nodes
+       * @private
+       */
+      value: function onHold(event) {
+        var pointer = this.getPointer(event.center);
+        var multiselect = this.selectionHandler.options.multiselect;
+
+        this.checkSelectionChanges(pointer, event, multiselect);
+
+        this.selectionHandler._generateClickEvent('click', event, pointer);
+        this.selectionHandler._generateClickEvent('hold', event, pointer);
+      }
+    }, {
+      key: 'onRelease',
+
+      /**
+       * handle the release of the screen
+       *
+       * @private
+       */
+      value: function onRelease(event) {
+        if (new Date().valueOf() - this.touchTime > 10) {
+          var pointer = this.getPointer(event.center);
+          this.selectionHandler._generateClickEvent('release', event, pointer);
+          // to avoid double fireing of this event because we have two hammer instances. (on canvas and on frame)
+          this.touchTime = new Date().valueOf();
+        }
+      }
+    }, {
+      key: 'onContext',
+      value: function onContext(event) {
+        var pointer = this.getPointer({ x: event.clientX, y: event.clientY });
+        this.selectionHandler._generateClickEvent('oncontext', event, pointer);
+      }
+    }, {
+      key: 'checkSelectionChanges',
+
+      /**
+       *
+       * @param pointer
+       * @param add
+       */
+      value: function checkSelectionChanges(pointer, event) {
+        var add = arguments[2] === undefined ? false : arguments[2];
+
+        var previouslySelectedEdgeCount = this.selectionHandler._getSelectedEdgeCount();
+        var previouslySelectedNodeCount = this.selectionHandler._getSelectedNodeCount();
+        var previousSelection = this.selectionHandler.getSelection();
+        var selected = undefined;
+        if (add === true) {
+          selected = this.selectionHandler.selectAdditionalOnPoint(pointer);
+        } else {
+          selected = this.selectionHandler.selectOnPoint(pointer);
+        }
+        var selectedEdgesCount = this.selectionHandler._getSelectedEdgeCount();
+        var selectedNodesCount = this.selectionHandler._getSelectedNodeCount();
+        var currentSelection = this.selectionHandler.getSelection();
+
+        var _determineIfDifferent = this._determineIfDifferent(previousSelection, currentSelection);
+
+        var nodesChanges = _determineIfDifferent.nodesChanges;
+        var edgesChanges = _determineIfDifferent.edgesChanges;
+
+        if (selectedNodesCount - previouslySelectedNodeCount > 0) {
+          // node was selected
+          this.selectionHandler._generateClickEvent('selectNode', event, pointer);
+          selected = true;
+        } else if (selectedNodesCount - previouslySelectedNodeCount < 0) {
+          // node was deselected
+          this.selectionHandler._generateClickEvent('deselectNode', event, pointer, previousSelection);
+          selected = true;
+        } else if (selectedNodesCount === previouslySelectedNodeCount && nodesChanges === true) {
+          this.selectionHandler._generateClickEvent('deselectNode', event, pointer, previousSelection);
+          this.selectionHandler._generateClickEvent('selectNode', event, pointer);
+          selected = true;
+        }
+
+        if (selectedEdgesCount - previouslySelectedEdgeCount > 0) {
+          // edge was selected
+          this.selectionHandler._generateClickEvent('selectEdge', event, pointer);
+          selected = true;
+        } else if (selectedEdgesCount - previouslySelectedEdgeCount < 0) {
+          // edge was deselected
+          this.selectionHandler._generateClickEvent('deselectEdge', event, pointer, previousSelection);
+          selected = true;
+        } else if (selectedEdgesCount === previouslySelectedEdgeCount && edgesChanges === true) {
+          this.selectionHandler._generateClickEvent('deselectEdge', event, pointer, previousSelection);
+          this.selectionHandler._generateClickEvent('selectEdge', event, pointer);
+          selected = true;
+        }
+
+        if (selected === true) {
+          // select or unselect
+          this.selectionHandler._generateClickEvent('select', event, pointer);
+        }
+      }
+    }, {
+      key: '_determineIfDifferent',
+
+      /**
+       * This function checks if the nodes and edges previously selected have changed.
+       * @param previousSelection
+       * @param currentSelection
+       * @returns {{nodesChanges: boolean, edgesChanges: boolean}}
+       * @private
+       */
+      value: function _determineIfDifferent(previousSelection, currentSelection) {
+        var nodesChanges = false;
+        var edgesChanges = false;
+
+        for (var i = 0; i < previousSelection.nodes.length; i++) {
+          if (currentSelection.nodes.indexOf(previousSelection.nodes[i]) === -1) {
+            nodesChanges = true;
+          }
+        }
+        for (var i = 0; i < currentSelection.nodes.length; i++) {
+          if (previousSelection.nodes.indexOf(previousSelection.nodes[i]) === -1) {
+            nodesChanges = true;
+          }
+        }
+        for (var i = 0; i < previousSelection.edges.length; i++) {
+          if (currentSelection.edges.indexOf(previousSelection.edges[i]) === -1) {
+            edgesChanges = true;
+          }
+        }
+        for (var i = 0; i < currentSelection.edges.length; i++) {
+          if (previousSelection.edges.indexOf(previousSelection.edges[i]) === -1) {
+            edgesChanges = true;
+          }
+        }
+
+        return { nodesChanges: nodesChanges, edgesChanges: edgesChanges };
+      }
+    }, {
+      key: 'onDragStart',
+
+      /**
+       * This function is called by onDragStart.
+       * It is separated out because we can then overload it for the datamanipulation system.
+       *
+       * @private
+       */
+      value: function onDragStart(event) {
+        //in case the touch event was triggered on an external div, do the initial touch now.
+        if (this.drag.pointer === undefined) {
+          this.onTouch(event);
+        }
+
+        // note: drag.pointer is set in onTouch to get the initial touch location
+        var node = this.selectionHandler.getNodeAt(this.drag.pointer);
+
+        this.drag.dragging = true;
+        this.drag.selection = [];
+        this.drag.translation = util.extend({}, this.body.view.translation); // copy the object
+        this.drag.nodeId = undefined;
+
+        this.selectionHandler._generateClickEvent('dragStart', event, this.drag.pointer);
+
+        if (node !== undefined && this.options.dragNodes === true) {
+          this.drag.nodeId = node.id;
+          // select the clicked node if not yet selected
+          if (node.isSelected() === false) {
+            this.selectionHandler.unselectAll();
+            this.selectionHandler.selectObject(node);
+          }
+
+          var selection = this.selectionHandler.selectionObj.nodes;
+          // create an array with the selected nodes and their original location and status
+          for (var nodeId in selection) {
+            if (selection.hasOwnProperty(nodeId)) {
+              var object = selection[nodeId];
+              var s = {
+                id: object.id,
+                node: object,
+
+                // store original x, y, xFixed and yFixed, make the node temporarily Fixed
+                x: object.x,
+                y: object.y,
+                xFixed: object.options.fixed.x,
+                yFixed: object.options.fixed.y
+              };
+
+              object.options.fixed.x = true;
+              object.options.fixed.y = true;
+
+              this.drag.selection.push(s);
+            }
+          }
+        }
+      }
+    }, {
+      key: 'onDrag',
+
+      /**
+       * handle drag event
+       * @private
+       */
+      value: function onDrag(event) {
+        var _this2 = this;
+
+        if (this.drag.pinched === true) {
+          return;
+        }
+
+        // remove the focus on node if it is focussed on by the focusOnNode
+        this.body.emitter.emit('unlockNode');
+
+        var pointer = this.getPointer(event.center);
+
+        this.selectionHandler._generateClickEvent('dragging', event, pointer);
+
+        var selection = this.drag.selection;
+        if (selection && selection.length && this.options.dragNodes === true) {
+          (function () {
+            // calculate delta's and new location
+            var deltaX = pointer.x - _this2.drag.pointer.x;
+            var deltaY = pointer.y - _this2.drag.pointer.y;
+
+            // update position of all selected nodes
+            selection.forEach(function (selection) {
+              var node = selection.node;
+              // only move the node if it was not fixed initially
+              if (selection.xFixed === false) {
+                node.x = _this2.canvas._XconvertDOMtoCanvas(_this2.canvas._XconvertCanvasToDOM(selection.x) + deltaX);
+              }
+              // only move the node if it was not fixed initially
+              if (selection.yFixed === false) {
+                node.y = _this2.canvas._YconvertDOMtoCanvas(_this2.canvas._YconvertCanvasToDOM(selection.y) + deltaY);
+              }
+            });
+
+            // start the simulation of the physics
+            _this2.body.emitter.emit('startSimulation');
+          })();
+        } else {
+          // move the network
+          if (this.options.dragView === true) {
+            // if the drag was not started properly because the click started outside the network div, start it now.
+            if (this.drag.pointer === undefined) {
+              this._handleDragStart(event);
+              return;
+            }
+            var diffX = pointer.x - this.drag.pointer.x;
+            var diffY = pointer.y - this.drag.pointer.y;
+
+            this.body.view.translation = { x: this.drag.translation.x + diffX, y: this.drag.translation.y + diffY };
+            this.body.emitter.emit('_redraw');
+          }
+        }
+      }
+    }, {
+      key: 'onDragEnd',
+
+      /**
+       * handle drag start event
+       * @private
+       */
+      value: function onDragEnd(event) {
+        this.drag.dragging = false;
+        var selection = this.drag.selection;
+        if (selection && selection.length) {
+          selection.forEach(function (s) {
+            // restore original xFixed and yFixed
+            s.node.options.fixed.x = s.xFixed;
+            s.node.options.fixed.y = s.yFixed;
+          });
+          this.body.emitter.emit('startSimulation');
+        } else {
+          this.body.emitter.emit('_requestRedraw');
+        }
+        this.selectionHandler._generateClickEvent('dragEnd', event, this.getPointer(event.center));
+      }
+    }, {
+      key: 'onPinch',
+
+      /**
+       * Handle pinch event
+       * @param event
+       * @private
+       */
+      value: function onPinch(event) {
+        var pointer = this.getPointer(event.center);
+
+        this.drag.pinched = true;
+        if (this.pinch['scale'] === undefined) {
+          this.pinch.scale = 1;
+        }
+
+        // TODO: enabled moving while pinching?
+        var scale = this.pinch.scale * event.scale;
+        this.zoom(scale, pointer);
+      }
+    }, {
+      key: 'zoom',
+
+      /**
+       * Zoom the network in or out
+       * @param {Number} scale a number around 1, and between 0.01 and 10
+       * @param {{x: Number, y: Number}} pointer    Position on screen
+       * @return {Number} appliedScale    scale is limited within the boundaries
+       * @private
+       */
+      value: function zoom(scale, pointer) {
+        if (this.options.zoomView === true) {
+          var scaleOld = this.body.view.scale;
+          if (scale < 0.00001) {
+            scale = 0.00001;
+          }
+          if (scale > 10) {
+            scale = 10;
+          }
+
+          var preScaleDragPointer = undefined;
+          if (this.drag !== undefined) {
+            if (this.drag.dragging === true) {
+              preScaleDragPointer = this.canvas.DOMtoCanvas(this.drag.pointer);
+            }
+          }
+          // + this.canvas.frame.canvas.clientHeight / 2
+          var translation = this.body.view.translation;
+
+          var scaleFrac = scale / scaleOld;
+          var tx = (1 - scaleFrac) * pointer.x + translation.x * scaleFrac;
+          var ty = (1 - scaleFrac) * pointer.y + translation.y * scaleFrac;
+
+          this.body.view.scale = scale;
+          this.body.view.translation = { x: tx, y: ty };
+
+          if (preScaleDragPointer != undefined) {
+            var postScaleDragPointer = this.canvas.canvasToDOM(preScaleDragPointer);
+            this.drag.pointer.x = postScaleDragPointer.x;
+            this.drag.pointer.y = postScaleDragPointer.y;
+          }
+
+          this.body.emitter.emit('_requestRedraw');
+
+          if (scaleOld < scale) {
+            this.body.emitter.emit('zoom', { direction: '+', scale: this.body.view.scale });
+          } else {
+            this.body.emitter.emit('zoom', { direction: '-', scale: this.body.view.scale });
+          }
+        }
+      }
+    }, {
+      key: 'onMouseWheel',
+
+      /**
+       * Event handler for mouse wheel event, used to zoom the timeline
+       * See http://adomas.org/javascript-mouse-wheel/
+       *     https://github.com/EightMedia/hammer.js/issues/256
+       * @param {MouseEvent}  event
+       * @private
+       */
+      value: function onMouseWheel(event) {
+        // retrieve delta
+        var delta = 0;
+        if (event.wheelDelta) {
+          /* IE/Opera. */
+          delta = event.wheelDelta / 120;
+        } else if (event.detail) {
+          /* Mozilla case. */
+          // In Mozilla, sign of delta is different than in IE.
+          // Also, delta is multiple of 3.
+          delta = -event.detail / 3;
+        }
+
+        // If delta is nonzero, handle it.
+        // Basically, delta is now positive if wheel was scrolled up,
+        // and negative, if wheel was scrolled down.
+        if (delta !== 0) {
+
+          // calculate the new scale
+          var scale = this.body.view.scale;
+          var zoom = delta / 10;
+          if (delta < 0) {
+            zoom = zoom / (1 - zoom);
+          }
+          scale *= 1 + zoom;
+
+          // calculate the pointer location
+          var pointer = this.getPointer({ x: event.clientX, y: event.clientY });
+
+          // apply the new scale
+          this.zoom(scale, pointer);
+        }
+
+        // Prevent default actions caused by mouse wheel.
+        event.preventDefault();
+      }
+    }, {
+      key: 'onMouseMove',
+
+      /**
+       * Mouse move handler for checking whether the title moves over a node with a title.
+       * @param  {Event} event
+       * @private
+       */
+      value: function onMouseMove(event) {
+        var _this3 = this;
+
+        var pointer = this.getPointer({ x: event.clientX, y: event.clientY });
+        var popupVisible = false;
+
+        // check if the previously selected node is still selected
+        if (this.popup !== undefined) {
+          if (this.popup.hidden === false) {
+            this._checkHidePopup(pointer);
+          }
+
+          // if the popup was not hidden above
+          if (this.popup.hidden === false) {
+            popupVisible = true;
+            this.popup.setPosition(pointer.x + 3, pointer.y - 5);
+            this.popup.show();
+          }
+        }
+
+        // if we bind the keyboard to the div, we have to highlight it to use it. This highlights it on mouse over.
+        if (this.options.keyboard.bindToWindow === false && this.options.keyboard.enabled === true) {
+          this.canvas.frame.focus();
+        }
+
+        // start a timeout that will check if the mouse is positioned above an element
+        if (popupVisible === false) {
+          if (this.popupTimer !== undefined) {
+            clearInterval(this.popupTimer); // stop any running calculationTimer
+            this.popupTimer = undefined;
+          }
+          if (!this.drag.dragging) {
+            this.popupTimer = setTimeout(function () {
+              return _this3._checkShowPopup(pointer);
+            }, this.options.tooltipDelay);
+          }
+        }
+
+        /**
+        * Adding hover highlights
+        */
+        if (this.options.hover === true) {
+          // adding hover highlights
+          var obj = this.selectionHandler.getNodeAt(pointer);
+          if (obj === undefined) {
+            obj = this.selectionHandler.getEdgeAt(pointer);
+          }
+          this.selectionHandler.hoverObject(obj);
+        }
+      }
+    }, {
+      key: '_checkShowPopup',
+
+      /**
+       * Check if there is an element on the given position in the network
+       * (a node or edge). If so, and if this element has a title,
+       * show a popup window with its title.
+       *
+       * @param {{x:Number, y:Number}} pointer
+       * @private
+       */
+      value: function _checkShowPopup(pointer) {
+        var x = this.canvas._XconvertDOMtoCanvas(pointer.x);
+        var y = this.canvas._YconvertDOMtoCanvas(pointer.y);
+        var pointerObj = {
+          left: x,
+          top: y,
+          right: x,
+          bottom: y
+        };
+
+        var previousPopupObjId = this.popupObj === undefined ? undefined : this.popupObj.id;
+        var nodeUnderCursor = false;
+        var popupType = 'node';
+
+        // check if a node is under the cursor.
+        if (this.popupObj === undefined) {
+          // search the nodes for overlap, select the top one in case of multiple nodes
+          var nodeIndices = this.body.nodeIndices;
+          var nodes = this.body.nodes;
+          var node = undefined;
+          var overlappingNodes = [];
+          for (var i = 0; i < nodeIndices.length; i++) {
+            node = nodes[nodeIndices[i]];
+            if (node.isOverlappingWith(pointerObj) === true) {
+              if (node.getTitle() !== undefined) {
+                overlappingNodes.push(nodeIndices[i]);
+              }
+            }
+          }
+
+          if (overlappingNodes.length > 0) {
+            // if there are overlapping nodes, select the last one, this is the one which is drawn on top of the others
+            this.popupObj = nodes[overlappingNodes[overlappingNodes.length - 1]];
+            // if you hover over a node, the title of the edge is not supposed to be shown.
+            nodeUnderCursor = true;
+          }
+        }
+
+        if (this.popupObj === undefined && nodeUnderCursor === false) {
+          // search the edges for overlap
+          var edgeIndices = this.body.edgeIndices;
+          var edges = this.body.edges;
+          var edge = undefined;
+          var overlappingEdges = [];
+          for (var i = 0; i < edgeIndices.length; i++) {
+            edge = edges[edgeIndices[i]];
+            if (edge.isOverlappingWith(pointerObj) === true) {
+              if (edge.connected === true && edge.getTitle() !== undefined) {
+                overlappingEdges.push(edgeIndices[i]);
+              }
+            }
+          }
+
+          if (overlappingEdges.length > 0) {
+            this.popupObj = edges[overlappingEdges[overlappingEdges.length - 1]];
+            popupType = 'edge';
+          }
+        }
+
+        if (this.popupObj !== undefined) {
+          // show popup message window
+          if (this.popupObj.id !== previousPopupObjId) {
+            if (this.popup === undefined) {
+              this.popup = new _componentsPopup2['default'](this.canvas.frame);
+            }
+
+            this.popup.popupTargetType = popupType;
+            this.popup.popupTargetId = this.popupObj.id;
+
+            // adjust a small offset such that the mouse cursor is located in the
+            // bottom left location of the popup, and you can easily move over the
+            // popup area
+            this.popup.setPosition(pointer.x + 3, pointer.y - 5);
+            this.popup.setText(this.popupObj.getTitle());
+            this.popup.show();
+            this.body.emitter.emit('showPopup', this.popupObj.id);
+          }
+        } else {
+          if (this.popup !== undefined) {
+            this.popup.hide();
+            this.body.emitter.emit('hidePopup');
+          }
+        }
+      }
+    }, {
+      key: '_checkHidePopup',
+
+      /**
+       * Check if the popup must be hidden, which is the case when the mouse is no
+       * longer hovering on the object
+       * @param {{x:Number, y:Number}} pointer
+       * @private
+       */
+      value: function _checkHidePopup(pointer) {
+        var pointerObj = this.selectionHandler._pointerToPositionObject(pointer);
+
+        var stillOnObj = false;
+        if (this.popup.popupTargetType === 'node') {
+          if (this.body.nodes[this.popup.popupTargetId] !== undefined) {
+            stillOnObj = this.body.nodes[this.popup.popupTargetId].isOverlappingWith(pointerObj);
+
+            // if the mouse is still one the node, we have to check if it is not also on one that is drawn on top of it.
+            // we initially only check stillOnObj because this is much faster.
+            if (stillOnObj === true) {
+              var overNode = this.selectionHandler.getNodeAt(pointer);
+              stillOnObj = overNode.id === this.popup.popupTargetId;
+            }
+          }
+        } else {
+          if (this.selectionHandler.getNodeAt(pointer) === undefined) {
+            if (this.body.edges[this.popup.popupTargetId] !== undefined) {
+              stillOnObj = this.body.edges[this.popup.popupTargetId].isOverlappingWith(pointerObj);
+            }
+          }
+        }
+
+        if (stillOnObj === false) {
+          this.popupObj = undefined;
+          this.popup.hide();
+          this.body.emitter.emit('hidePopup');
+        }
+      }
+    }]);
+
+    return InteractionHandler;
+  })();
+
+  exports['default'] = InteractionHandler;
+  module.exports = exports['default'];
+
+/***/ },
+/* 13 */
 /***/ function(module, exports, __webpack_require__) {
 
   // Only load hammer.js when in a browser environment
@@ -4440,8 +8154,8 @@ return /******/ (function(modules) { // webpackBootstrap
   'use strict';
 
   if (typeof window !== 'undefined') {
-    var propagating = __webpack_require__(11);
-    var Hammer = window['Hammer'] || __webpack_require__(12);
+    var propagating = __webpack_require__(14);
+    var Hammer = window['Hammer'] || __webpack_require__(15);
     module.exports = propagating(Hammer, {
       preventDefault: 'mouse'
     });
@@ -4452,7 +8166,7 @@ return /******/ (function(modules) { // webpackBootstrap
   }
 
 /***/ },
-/* 11 */
+/* 14 */
 /***/ function(module, exports, __webpack_require__) {
 
   var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;'use strict';
@@ -4680,7 +8394,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 12 */
+/* 15 */
 /***/ function(module, exports, __webpack_require__) {
 
   var __WEBPACK_AMD_DEFINE_RESULT__;/*! Hammer.JS - v2.0.4 - 2014-09-28
@@ -7135,7 +10849,7 @@ return /******/ (function(modules) { // webpackBootstrap
       prefixed: prefixed
   });
 
-  if ("function" == TYPE_FUNCTION && __webpack_require__(13)) {
+  if ("function" == TYPE_FUNCTION && __webpack_require__(16)) {
       !(__WEBPACK_AMD_DEFINE_RESULT__ = function() {
           return Hammer;
       }.call(exports, __webpack_require__, exports, module), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__));
@@ -7149,7 +10863,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 13 */
+/* 16 */
 /***/ function(module, exports, __webpack_require__) {
 
   /* WEBPACK VAR INJECTION */(function(__webpack_amd_options__) {module.exports = __webpack_amd_options__;
@@ -7157,1363 +10871,17 @@ return /******/ (function(modules) { // webpackBootstrap
   /* WEBPACK VAR INJECTION */}.call(exports, {}))
 
 /***/ },
-/* 14 */
-/***/ function(module, exports, __webpack_require__) {
-
-  // utility functions
-
-  // first check if moment.js is already loaded in the browser window, if so,
-  // use this instance. Else, load via commonjs.
-
-  'use strict';
-
-  var moment = __webpack_require__(15);
-  var uuid = __webpack_require__(18);
-
-  /**
-   * Test whether given object is a number
-   * @param {*} object
-   * @return {Boolean} isNumber
-   */
-  exports.isNumber = function (object) {
-    return object instanceof Number || typeof object == 'number';
-  };
-
-  /**
-   * Remove everything in the DOM object
-   * @param DOMobject
-   */
-  exports.recursiveDOMDelete = function (DOMobject) {
-    if (DOMobject) {
-      while (DOMobject.hasChildNodes() === true) {
-        exports.recursiveDOMDelete(DOMobject.firstChild);
-        DOMobject.removeChild(DOMobject.firstChild);
-      }
-    }
-  };
-
-  /**
-   * this function gives you a range between 0 and 1 based on the min and max values in the set, the total sum of all values and the current value.
-   *
-   * @param min
-   * @param max
-   * @param total
-   * @param value
-   * @returns {number}
-   */
-  exports.giveRange = function (min, max, total, value) {
-    if (max == min) {
-      return 0.5;
-    } else {
-      var scale = 1 / (max - min);
-      return Math.max(0, (value - min) * scale);
-    }
-  };
-
-  /**
-   * Test whether given object is a string
-   * @param {*} object
-   * @return {Boolean} isString
-   */
-  exports.isString = function (object) {
-    return object instanceof String || typeof object == 'string';
-  };
-
-  /**
-   * Test whether given object is a Date, or a String containing a Date
-   * @param {Date | String} object
-   * @return {Boolean} isDate
-   */
-  exports.isDate = function (object) {
-    if (object instanceof Date) {
-      return true;
-    } else if (exports.isString(object)) {
-      // test whether this string contains a date
-      var match = ASPDateRegex.exec(object);
-      if (match) {
-        return true;
-      } else if (!isNaN(Date.parse(object))) {
-        return true;
-      }
-    }
-
-    return false;
-  };
-
-  /**
-   * Create a semi UUID
-   * source: http://stackoverflow.com/a/105074/1262753
-   * @return {String} uuid
-   */
-  exports.randomUUID = function () {
-    return uuid.v4();
-  };
-
-  /**
-   * assign all keys of an object that are not nested objects to a certain value (used for color objects).
-   * @param obj
-   * @param value
-   */
-  exports.assignAllKeys = function (obj, value) {
-    for (var prop in obj) {
-      if (obj.hasOwnProperty(prop)) {
-        if (typeof obj[prop] !== 'object') {
-          obj[prop] = value;
-        }
-      }
-    }
-  };
-
-  /**
-   * Fill an object with a possibly partially defined other object. Only copies values if the a object has an object requiring values.
-   * That means an object is not created on a property if only the b object has it.
-   * @param obj
-   * @param value
-   */
-  exports.fillIfDefined = function (a, b) {
-    var allowDeletion = arguments[2] === undefined ? false : arguments[2];
-
-    for (var prop in a) {
-      if (b[prop] !== undefined) {
-        if (typeof b[prop] !== 'object') {
-          if ((b[prop] === undefined || b[prop] === null) && a[prop] !== undefined && allowDeletion === true) {
-            delete a[prop];
-          } else {
-            a[prop] = b[prop];
-          }
-        } else {
-          if (typeof a[prop] === 'object') {
-            exports.fillIfDefined(a[prop], b[prop], allowDeletion);
-          }
-        }
-      }
-    }
-  };
-
-  /**
-   * Extend object a with the properties of object b or a series of objects
-   * Only properties with defined values are copied
-   * @param {Object} a
-   * @param {... Object} b
-   * @return {Object} a
-   */
-  exports.protoExtend = function (a, b) {
-    for (var i = 1; i < arguments.length; i++) {
-      var other = arguments[i];
-      for (var prop in other) {
-        a[prop] = other[prop];
-      }
-    }
-    return a;
-  };
-
-  /**
-   * Extend object a with the properties of object b or a series of objects
-   * Only properties with defined values are copied
-   * @param {Object} a
-   * @param {... Object} b
-   * @return {Object} a
-   */
-  exports.extend = function (a, b) {
-    for (var i = 1; i < arguments.length; i++) {
-      var other = arguments[i];
-      for (var prop in other) {
-        if (other.hasOwnProperty(prop)) {
-          a[prop] = other[prop];
-        }
-      }
-    }
-    return a;
-  };
-
-  /**
-   * Extend object a with selected properties of object b or a series of objects
-   * Only properties with defined values are copied
-   * @param {Array.<String>} props
-   * @param {Object} a
-   * @param {Object} b
-   * @return {Object} a
-   */
-  exports.selectiveExtend = function (props, a, b) {
-    if (!Array.isArray(props)) {
-      throw new Error('Array with property names expected as first argument');
-    }
-
-    for (var i = 2; i < arguments.length; i++) {
-      var other = arguments[i];
-
-      for (var p = 0; p < props.length; p++) {
-        var prop = props[p];
-        if (other.hasOwnProperty(prop)) {
-          a[prop] = other[prop];
-        }
-      }
-    }
-    return a;
-  };
-
-  /**
-   * Extend object a with selected properties of object b or a series of objects
-   * Only properties with defined values are copied
-   * @param {Array.<String>} props
-   * @param {Object} a
-   * @param {Object} b
-   * @return {Object} a
-   */
-  exports.selectiveDeepExtend = function (props, a, b) {
-    var allowDeletion = arguments[3] === undefined ? false : arguments[3];
-
-    // TODO: add support for Arrays to deepExtend
-    if (Array.isArray(b)) {
-      throw new TypeError('Arrays are not supported by deepExtend');
-    }
-    for (var i = 2; i < arguments.length; i++) {
-      var other = arguments[i];
-      for (var p = 0; p < props.length; p++) {
-        var prop = props[p];
-        if (other.hasOwnProperty(prop)) {
-          if (b[prop] && b[prop].constructor === Object) {
-            if (a[prop] === undefined) {
-              a[prop] = {};
-            }
-            if (a[prop].constructor === Object) {
-              exports.deepExtend(a[prop], b[prop], false, allowDeletion);
-            } else {
-              if (b[prop] === null && a[prop] !== undefined && allowDeletion === true) {
-                delete a[prop];
-              } else {
-                a[prop] = b[prop];
-              }
-            }
-          } else if (Array.isArray(b[prop])) {
-            throw new TypeError('Arrays are not supported by deepExtend');
-          } else {
-            a[prop] = b[prop];
-          }
-        }
-      }
-    }
-    return a;
-  };
-
-  /**
-   * Extend object a with selected properties of object b or a series of objects
-   * Only properties with defined values are copied
-   * @param {Array.<String>} props
-   * @param {Object} a
-   * @param {Object} b
-   * @return {Object} a
-   */
-  exports.selectiveNotDeepExtend = function (props, a, b) {
-    var allowDeletion = arguments[3] === undefined ? false : arguments[3];
-
-    // TODO: add support for Arrays to deepExtend
-    if (Array.isArray(b)) {
-      throw new TypeError('Arrays are not supported by deepExtend');
-    }
-    for (var prop in b) {
-      if (b.hasOwnProperty(prop)) {
-        if (props.indexOf(prop) == -1) {
-          if (b[prop] && b[prop].constructor === Object) {
-            if (a[prop] === undefined) {
-              a[prop] = {};
-            }
-            if (a[prop].constructor === Object) {
-              exports.deepExtend(a[prop], b[prop]);
-            } else {
-              if (b[prop] === null && a[prop] !== undefined && allowDeletion === true) {
-                delete a[prop];
-              } else {
-                a[prop] = b[prop];
-              }
-            }
-          } else if (Array.isArray(b[prop])) {
-            throw new TypeError('Arrays are not supported by deepExtend');
-          } else {
-            a[prop] = b[prop];
-          }
-        }
-      }
-    }
-    return a;
-  };
-
-  /**
-   * Deep extend an object a with the properties of object b
-   * @param {Object} a
-   * @param {Object} b
-   * @param [Boolean] protoExtend --> optional parameter. If true, the prototype values will also be extended.
-   *                                  (ie. the options objects that inherit from others will also get the inherited options)
-   * @param [Boolean] global      --> optional parameter. If true, the values of fields that are null will not deleted
-   * @returns {Object}
-   */
-  exports.deepExtend = function (a, b, protoExtend, allowDeletion) {
-    for (var prop in b) {
-      if (b.hasOwnProperty(prop) || protoExtend === true) {
-        if (b[prop] && b[prop].constructor === Object) {
-          if (a[prop] === undefined) {
-            a[prop] = {};
-          }
-          if (a[prop].constructor === Object) {
-            exports.deepExtend(a[prop], b[prop], protoExtend);
-          } else {
-            if (b[prop] === null && a[prop] !== undefined && allowDeletion === true) {
-              delete a[prop];
-            } else {
-              a[prop] = b[prop];
-            }
-          }
-        } else if (Array.isArray(b[prop])) {
-          a[prop] = [];
-          for (var i = 0; i < b[prop].length; i++) {
-            a[prop].push(b[prop][i]);
-          }
-        } else {
-          a[prop] = b[prop];
-        }
-      }
-    }
-    return a;
-  };
-
-  /**
-   * Test whether all elements in two arrays are equal.
-   * @param {Array} a
-   * @param {Array} b
-   * @return {boolean} Returns true if both arrays have the same length and same
-   *                   elements.
-   */
-  exports.equalArray = function (a, b) {
-    if (a.length != b.length) return false;
-
-    for (var i = 0, len = a.length; i < len; i++) {
-      if (a[i] != b[i]) return false;
-    }
-
-    return true;
-  };
-
-  /**
-   * Convert an object to another type
-   * @param {Boolean | Number | String | Date | Moment | Null | undefined} object
-   * @param {String | undefined} type   Name of the type. Available types:
-   *                                    'Boolean', 'Number', 'String',
-   *                                    'Date', 'Moment', ISODate', 'ASPDate'.
-   * @return {*} object
-   * @throws Error
-   */
-  exports.convert = function (object, type) {
-    var match;
-
-    if (object === undefined) {
-      return undefined;
-    }
-    if (object === null) {
-      return null;
-    }
-
-    if (!type) {
-      return object;
-    }
-    if (!(typeof type === 'string') && !(type instanceof String)) {
-      throw new Error('Type must be a string');
-    }
-
-    //noinspection FallthroughInSwitchStatementJS
-    switch (type) {
-      case 'boolean':
-      case 'Boolean':
-        return Boolean(object);
-
-      case 'number':
-      case 'Number':
-        return Number(object.valueOf());
-
-      case 'string':
-      case 'String':
-        return String(object);
-
-      case 'Date':
-        if (exports.isNumber(object)) {
-          return new Date(object);
-        }
-        if (object instanceof Date) {
-          return new Date(object.valueOf());
-        } else if (moment.isMoment(object)) {
-          return new Date(object.valueOf());
-        }
-        if (exports.isString(object)) {
-          match = ASPDateRegex.exec(object);
-          if (match) {
-            // object is an ASP date
-            return new Date(Number(match[1])); // parse number
-          } else {
-            return moment(object).toDate(); // parse string
-          }
-        } else {
-          throw new Error('Cannot convert object of type ' + exports.getType(object) + ' to type Date');
-        }
-
-      case 'Moment':
-        if (exports.isNumber(object)) {
-          return moment(object);
-        }
-        if (object instanceof Date) {
-          return moment(object.valueOf());
-        } else if (moment.isMoment(object)) {
-          return moment(object);
-        }
-        if (exports.isString(object)) {
-          match = ASPDateRegex.exec(object);
-          if (match) {
-            // object is an ASP date
-            return moment(Number(match[1])); // parse number
-          } else {
-            return moment(object); // parse string
-          }
-        } else {
-          throw new Error('Cannot convert object of type ' + exports.getType(object) + ' to type Date');
-        }
-
-      case 'ISODate':
-        if (exports.isNumber(object)) {
-          return new Date(object);
-        } else if (object instanceof Date) {
-          return object.toISOString();
-        } else if (moment.isMoment(object)) {
-          return object.toDate().toISOString();
-        } else if (exports.isString(object)) {
-          match = ASPDateRegex.exec(object);
-          if (match) {
-            // object is an ASP date
-            return new Date(Number(match[1])).toISOString(); // parse number
-          } else {
-            return new Date(object).toISOString(); // parse string
-          }
-        } else {
-          throw new Error('Cannot convert object of type ' + exports.getType(object) + ' to type ISODate');
-        }
-
-      case 'ASPDate':
-        if (exports.isNumber(object)) {
-          return '/Date(' + object + ')/';
-        } else if (object instanceof Date) {
-          return '/Date(' + object.valueOf() + ')/';
-        } else if (exports.isString(object)) {
-          match = ASPDateRegex.exec(object);
-          var value;
-          if (match) {
-            // object is an ASP date
-            value = new Date(Number(match[1])).valueOf(); // parse number
-          } else {
-            value = new Date(object).valueOf(); // parse string
-          }
-          return '/Date(' + value + ')/';
-        } else {
-          throw new Error('Cannot convert object of type ' + exports.getType(object) + ' to type ASPDate');
-        }
-
-      default:
-        throw new Error('Unknown type "' + type + '"');
-    }
-  };
-
-  // parse ASP.Net Date pattern,
-  // for example '/Date(1198908717056)/' or '/Date(1198908717056-0700)/'
-  // code from http://momentjs.com/
-  var ASPDateRegex = /^\/?Date\((\-?\d+)/i;
-
-  /**
-   * Get the type of an object, for example exports.getType([]) returns 'Array'
-   * @param {*} object
-   * @return {String} type
-   */
-  exports.getType = function (object) {
-    var type = typeof object;
-
-    if (type == 'object') {
-      if (object === null) {
-        return 'null';
-      }
-      if (object instanceof Boolean) {
-        return 'Boolean';
-      }
-      if (object instanceof Number) {
-        return 'Number';
-      }
-      if (object instanceof String) {
-        return 'String';
-      }
-      if (Array.isArray(object)) {
-        return 'Array';
-      }
-      if (object instanceof Date) {
-        return 'Date';
-      }
-      return 'Object';
-    } else if (type == 'number') {
-      return 'Number';
-    } else if (type == 'boolean') {
-      return 'Boolean';
-    } else if (type == 'string') {
-      return 'String';
-    } else if (type === undefined) {
-      return 'undefined';
-    }
-
-    return type;
-  };
-
-  /**
-   * Used to extend an array and copy it. This is used to propagate paths recursively.
-   *
-   * @param arr
-   * @param newValue
-   * @returns {Array}
-   */
-  exports.copyAndExtendArray = function (arr, newValue) {
-    var newArr = [];
-    for (var i = 0; i < arr.length; i++) {
-      newArr.push(arr[i]);
-    }
-    newArr.push(newValue);
-    return newArr;
-  };
-
-  /**
-   * Used to extend an array and copy it. This is used to propagate paths recursively.
-   *
-   * @param arr
-   * @param newValue
-   * @returns {Array}
-   */
-  exports.copyArray = function (arr) {
-    var newArr = [];
-    for (var i = 0; i < arr.length; i++) {
-      newArr.push(arr[i]);
-    }
-    return newArr;
-  };
-
-  /**
-   * Retrieve the absolute left value of a DOM element
-   * @param {Element} elem        A dom element, for example a div
-   * @return {number} left        The absolute left position of this element
-   *                              in the browser page.
-   */
-  exports.getAbsoluteLeft = function (elem) {
-    return elem.getBoundingClientRect().left;
-  };
-
-  /**
-   * Retrieve the absolute top value of a DOM element
-   * @param {Element} elem        A dom element, for example a div
-   * @return {number} top        The absolute top position of this element
-   *                              in the browser page.
-   */
-  exports.getAbsoluteTop = function (elem) {
-    return elem.getBoundingClientRect().top;
-  };
-
-  /**
-   * add a className to the given elements style
-   * @param {Element} elem
-   * @param {String} className
-   */
-  exports.addClassName = function (elem, className) {
-    var classes = elem.className.split(' ');
-    if (classes.indexOf(className) == -1) {
-      classes.push(className); // add the class to the array
-      elem.className = classes.join(' ');
-    }
-  };
-
-  /**
-   * add a className to the given elements style
-   * @param {Element} elem
-   * @param {String} className
-   */
-  exports.removeClassName = function (elem, className) {
-    var classes = elem.className.split(' ');
-    var index = classes.indexOf(className);
-    if (index != -1) {
-      classes.splice(index, 1); // remove the class from the array
-      elem.className = classes.join(' ');
-    }
-  };
-
-  /**
-   * For each method for both arrays and objects.
-   * In case of an array, the built-in Array.forEach() is applied.
-   * In case of an Object, the method loops over all properties of the object.
-   * @param {Object | Array} object   An Object or Array
-   * @param {function} callback       Callback method, called for each item in
-   *                                  the object or array with three parameters:
-   *                                  callback(value, index, object)
-   */
-  exports.forEach = function (object, callback) {
-    var i, len;
-    if (Array.isArray(object)) {
-      // array
-      for (i = 0, len = object.length; i < len; i++) {
-        callback(object[i], i, object);
-      }
-    } else {
-      // object
-      for (i in object) {
-        if (object.hasOwnProperty(i)) {
-          callback(object[i], i, object);
-        }
-      }
-    }
-  };
-
-  /**
-   * Convert an object into an array: all objects properties are put into the
-   * array. The resulting array is unordered.
-   * @param {Object} object
-   * @param {Array} array
-   */
-  exports.toArray = function (object) {
-    var array = [];
-
-    for (var prop in object) {
-      if (object.hasOwnProperty(prop)) array.push(object[prop]);
-    }
-
-    return array;
-  };
-
-  /**
-   * Update a property in an object
-   * @param {Object} object
-   * @param {String} key
-   * @param {*} value
-   * @return {Boolean} changed
-   */
-  exports.updateProperty = function (object, key, value) {
-    if (object[key] !== value) {
-      object[key] = value;
-      return true;
-    } else {
-      return false;
-    }
-  };
-
-  /**
-   * Add and event listener. Works for all browsers
-   * @param {Element}     element    An html element
-   * @param {string}      action     The action, for example "click",
-   *                                 without the prefix "on"
-   * @param {function}    listener   The callback function to be executed
-   * @param {boolean}     [useCapture]
-   */
-  exports.addEventListener = function (element, action, listener, useCapture) {
-    if (element.addEventListener) {
-      if (useCapture === undefined) useCapture = false;
-
-      if (action === 'mousewheel' && navigator.userAgent.indexOf('Firefox') >= 0) {
-        action = 'DOMMouseScroll'; // For Firefox
-      }
-
-      element.addEventListener(action, listener, useCapture);
-    } else {
-      element.attachEvent('on' + action, listener); // IE browsers
-    }
-  };
-
-  /**
-   * Remove an event listener from an element
-   * @param {Element}     element         An html dom element
-   * @param {string}      action          The name of the event, for example "mousedown"
-   * @param {function}    listener        The listener function
-   * @param {boolean}     [useCapture]
-   */
-  exports.removeEventListener = function (element, action, listener, useCapture) {
-    if (element.removeEventListener) {
-      // non-IE browsers
-      if (useCapture === undefined) useCapture = false;
-
-      if (action === 'mousewheel' && navigator.userAgent.indexOf('Firefox') >= 0) {
-        action = 'DOMMouseScroll'; // For Firefox
-      }
-
-      element.removeEventListener(action, listener, useCapture);
-    } else {
-      // IE browsers
-      element.detachEvent('on' + action, listener);
-    }
-  };
-
-  /**
-   * Cancels the event if it is cancelable, without stopping further propagation of the event.
-   */
-  exports.preventDefault = function (event) {
-    if (!event) event = window.event;
-
-    if (event.preventDefault) {
-      event.preventDefault(); // non-IE browsers
-    } else {
-      event.returnValue = false; // IE browsers
-    }
-  };
-
-  /**
-   * Get HTML element which is the target of the event
-   * @param {Event} event
-   * @return {Element} target element
-   */
-  exports.getTarget = function (event) {
-    // code from http://www.quirksmode.org/js/events_properties.html
-    if (!event) {
-      event = window.event;
-    }
-
-    var target;
-
-    if (event.target) {
-      target = event.target;
-    } else if (event.srcElement) {
-      target = event.srcElement;
-    }
-
-    if (target.nodeType != undefined && target.nodeType == 3) {
-      // defeat Safari bug
-      target = target.parentNode;
-    }
-
-    return target;
-  };
-
-  /**
-   * Check if given element contains given parent somewhere in the DOM tree
-   * @param {Element} element
-   * @param {Element} parent
-   */
-  exports.hasParent = function (element, parent) {
-    var e = element;
-
-    while (e) {
-      if (e === parent) {
-        return true;
-      }
-      e = e.parentNode;
-    }
-
-    return false;
-  };
-
-  exports.option = {};
-
-  /**
-   * Convert a value into a boolean
-   * @param {Boolean | function | undefined} value
-   * @param {Boolean} [defaultValue]
-   * @returns {Boolean} bool
-   */
-  exports.option.asBoolean = function (value, defaultValue) {
-    if (typeof value == 'function') {
-      value = value();
-    }
-
-    if (value != null) {
-      return value != false;
-    }
-
-    return defaultValue || null;
-  };
-
-  /**
-   * Convert a value into a number
-   * @param {Boolean | function | undefined} value
-   * @param {Number} [defaultValue]
-   * @returns {Number} number
-   */
-  exports.option.asNumber = function (value, defaultValue) {
-    if (typeof value == 'function') {
-      value = value();
-    }
-
-    if (value != null) {
-      return Number(value) || defaultValue || null;
-    }
-
-    return defaultValue || null;
-  };
-
-  /**
-   * Convert a value into a string
-   * @param {String | function | undefined} value
-   * @param {String} [defaultValue]
-   * @returns {String} str
-   */
-  exports.option.asString = function (value, defaultValue) {
-    if (typeof value == 'function') {
-      value = value();
-    }
-
-    if (value != null) {
-      return String(value);
-    }
-
-    return defaultValue || null;
-  };
-
-  /**
-   * Convert a size or location into a string with pixels or a percentage
-   * @param {String | Number | function | undefined} value
-   * @param {String} [defaultValue]
-   * @returns {String} size
-   */
-  exports.option.asSize = function (value, defaultValue) {
-    if (typeof value == 'function') {
-      value = value();
-    }
-
-    if (exports.isString(value)) {
-      return value;
-    } else if (exports.isNumber(value)) {
-      return value + 'px';
-    } else {
-      return defaultValue || null;
-    }
-  };
-
-  /**
-   * Convert a value into a DOM element
-   * @param {HTMLElement | function | undefined} value
-   * @param {HTMLElement} [defaultValue]
-   * @returns {HTMLElement | null} dom
-   */
-  exports.option.asElement = function (value, defaultValue) {
-    if (typeof value == 'function') {
-      value = value();
-    }
-
-    return value || defaultValue || null;
-  };
-
-  /**
-   * http://stackoverflow.com/questions/5623838/rgb-to-hex-and-hex-to-rgb
-   *
-   * @param {String} hex
-   * @returns {{r: *, g: *, b: *}} | 255 range
-   */
-  exports.hexToRGB = function (hex) {
-    // Expand shorthand form (e.g. "03F") to full form (e.g. "0033FF")
-    var shorthandRegex = /^#?([a-f\d])([a-f\d])([a-f\d])$/i;
-    hex = hex.replace(shorthandRegex, function (m, r, g, b) {
-      return r + r + g + g + b + b;
-    });
-    var result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
-    return result ? {
-      r: parseInt(result[1], 16),
-      g: parseInt(result[2], 16),
-      b: parseInt(result[3], 16)
-    } : null;
-  };
-
-  /**
-   * This function takes color in hex format or rgb() or rgba() format and overrides the opacity. Returns rgba() string.
-   * @param color
-   * @param opacity
-   * @returns {*}
-   */
-  exports.overrideOpacity = function (color, opacity) {
-    if (color.indexOf('rgba') != -1) {
-      return color;
-    } else if (color.indexOf('rgb') != -1) {
-      var rgb = color.substr(color.indexOf('(') + 1).replace(')', '').split(',');
-      return 'rgba(' + rgb[0] + ',' + rgb[1] + ',' + rgb[2] + ',' + opacity + ')';
-    } else {
-      var rgb = exports.hexToRGB(color);
-      if (rgb == null) {
-        return color;
-      } else {
-        return 'rgba(' + rgb.r + ',' + rgb.g + ',' + rgb.b + ',' + opacity + ')';
-      }
-    }
-  };
-
-  /**
-   *
-   * @param red     0 -- 255
-   * @param green   0 -- 255
-   * @param blue    0 -- 255
-   * @returns {string}
-   * @constructor
-   */
-  exports.RGBToHex = function (red, green, blue) {
-    return '#' + ((1 << 24) + (red << 16) + (green << 8) + blue).toString(16).slice(1);
-  };
-
-  /**
-   * Parse a color property into an object with border, background, and
-   * highlight colors
-   * @param {Object | String} color
-   * @return {Object} colorObject
-   */
-  exports.parseColor = function (color) {
-    var c;
-    if (exports.isString(color) === true) {
-      if (exports.isValidRGB(color) === true) {
-        var rgb = color.substr(4).substr(0, color.length - 5).split(',').map(function (value) {
-          return parseInt(value);
-        });
-        color = exports.RGBToHex(rgb[0], rgb[1], rgb[2]);
-      }
-      if (exports.isValidHex(color) === true) {
-        var hsv = exports.hexToHSV(color);
-        var lighterColorHSV = { h: hsv.h, s: hsv.s * 0.8, v: Math.min(1, hsv.v * 1.02) };
-        var darkerColorHSV = { h: hsv.h, s: Math.min(1, hsv.s * 1.25), v: hsv.v * 0.8 };
-        var darkerColorHex = exports.HSVToHex(darkerColorHSV.h, darkerColorHSV.s, darkerColorHSV.v);
-        var lighterColorHex = exports.HSVToHex(lighterColorHSV.h, lighterColorHSV.s, lighterColorHSV.v);
-        c = {
-          background: color,
-          border: darkerColorHex,
-          highlight: {
-            background: lighterColorHex,
-            border: darkerColorHex
-          },
-          hover: {
-            background: lighterColorHex,
-            border: darkerColorHex
-          }
-        };
-      } else {
-        c = {
-          background: color,
-          border: color,
-          highlight: {
-            background: color,
-            border: color
-          },
-          hover: {
-            background: color,
-            border: color
-          }
-        };
-      }
-    } else {
-      c = {};
-      c.background = color.background || undefined;
-      c.border = color.border || undefined;
-
-      if (exports.isString(color.highlight)) {
-        c.highlight = {
-          border: color.highlight,
-          background: color.highlight
-        };
-      } else {
-        c.highlight = {};
-        c.highlight.background = color.highlight && color.highlight.background || undefined;
-        c.highlight.border = color.highlight && color.highlight.border || undefined;
-      }
-
-      if (exports.isString(color.hover)) {
-        c.hover = {
-          border: color.hover,
-          background: color.hover
-        };
-      } else {
-        c.hover = {};
-        c.hover.background = color.hover && color.hover.background || undefined;
-        c.hover.border = color.hover && color.hover.border || undefined;
-      }
-    }
-
-    return c;
-  };
-
-  /**
-   * http://www.javascripter.net/faq/rgb2hsv.htm
-   *
-   * @param red
-   * @param green
-   * @param blue
-   * @returns {*}
-   * @constructor
-   */
-  exports.RGBToHSV = function (red, green, blue) {
-    red = red / 255;green = green / 255;blue = blue / 255;
-    var minRGB = Math.min(red, Math.min(green, blue));
-    var maxRGB = Math.max(red, Math.max(green, blue));
-
-    // Black-gray-white
-    if (minRGB == maxRGB) {
-      return { h: 0, s: 0, v: minRGB };
-    }
-
-    // Colors other than black-gray-white:
-    var d = red == minRGB ? green - blue : blue == minRGB ? red - green : blue - red;
-    var h = red == minRGB ? 3 : blue == minRGB ? 1 : 5;
-    var hue = 60 * (h - d / (maxRGB - minRGB)) / 360;
-    var saturation = (maxRGB - minRGB) / maxRGB;
-    var value = maxRGB;
-    return { h: hue, s: saturation, v: value };
-  };
-
-  var cssUtil = {
-    // split a string with css styles into an object with key/values
-    split: function split(cssText) {
-      var styles = {};
-
-      cssText.split(';').forEach(function (style) {
-        if (style.trim() != '') {
-          var parts = style.split(':');
-          var key = parts[0].trim();
-          var value = parts[1].trim();
-          styles[key] = value;
-        }
-      });
-
-      return styles;
-    },
-
-    // build a css text string from an object with key/values
-    join: function join(styles) {
-      return Object.keys(styles).map(function (key) {
-        return key + ': ' + styles[key];
-      }).join('; ');
-    }
-  };
-
-  /**
-   * Append a string with css styles to an element
-   * @param {Element} element
-   * @param {String} cssText
-   */
-  exports.addCssText = function (element, cssText) {
-    var currentStyles = cssUtil.split(element.style.cssText);
-    var newStyles = cssUtil.split(cssText);
-    var styles = exports.extend(currentStyles, newStyles);
-
-    element.style.cssText = cssUtil.join(styles);
-  };
-
-  /**
-   * Remove a string with css styles from an element
-   * @param {Element} element
-   * @param {String} cssText
-   */
-  exports.removeCssText = function (element, cssText) {
-    var styles = cssUtil.split(element.style.cssText);
-    var removeStyles = cssUtil.split(cssText);
-
-    for (var key in removeStyles) {
-      if (removeStyles.hasOwnProperty(key)) {
-        delete styles[key];
-      }
-    }
-
-    element.style.cssText = cssUtil.join(styles);
-  };
-
-  /**
-   * https://gist.github.com/mjijackson/5311256
-   * @param h
-   * @param s
-   * @param v
-   * @returns {{r: number, g: number, b: number}}
-   * @constructor
-   */
-  exports.HSVToRGB = function (h, s, v) {
-    var r, g, b;
-
-    var i = Math.floor(h * 6);
-    var f = h * 6 - i;
-    var p = v * (1 - s);
-    var q = v * (1 - f * s);
-    var t = v * (1 - (1 - f) * s);
-
-    switch (i % 6) {
-      case 0:
-        r = v, g = t, b = p;break;
-      case 1:
-        r = q, g = v, b = p;break;
-      case 2:
-        r = p, g = v, b = t;break;
-      case 3:
-        r = p, g = q, b = v;break;
-      case 4:
-        r = t, g = p, b = v;break;
-      case 5:
-        r = v, g = p, b = q;break;
-    }
-
-    return { r: Math.floor(r * 255), g: Math.floor(g * 255), b: Math.floor(b * 255) };
-  };
-
-  exports.HSVToHex = function (h, s, v) {
-    var rgb = exports.HSVToRGB(h, s, v);
-    return exports.RGBToHex(rgb.r, rgb.g, rgb.b);
-  };
-
-  exports.hexToHSV = function (hex) {
-    var rgb = exports.hexToRGB(hex);
-    return exports.RGBToHSV(rgb.r, rgb.g, rgb.b);
-  };
-
-  exports.isValidHex = function (hex) {
-    var isOk = /(^#[0-9A-F]{6}$)|(^#[0-9A-F]{3}$)/i.test(hex);
-    return isOk;
-  };
-
-  exports.isValidRGB = function (rgb) {
-    rgb = rgb.replace(' ', '');
-    var isOk = /rgb\((\d{1,3}),(\d{1,3}),(\d{1,3})\)/i.test(rgb);
-    return isOk;
-  };
-  exports.isValidRGBA = function (rgba) {
-    rgba = rgba.replace(' ', '');
-    var isOk = /rgba\((\d{1,3}),(\d{1,3}),(\d{1,3}),(.{1,3})\)/i.test(rgba);
-    return isOk;
-  };
-
-  /**
-   * This recursively redirects the prototype of JSON objects to the referenceObject
-   * This is used for default options.
-   *
-   * @param referenceObject
-   * @returns {*}
-   */
-  exports.selectiveBridgeObject = function (fields, referenceObject) {
-    if (typeof referenceObject == 'object') {
-      var objectTo = Object.create(referenceObject);
-      for (var i = 0; i < fields.length; i++) {
-        if (referenceObject.hasOwnProperty(fields[i])) {
-          if (typeof referenceObject[fields[i]] == 'object') {
-            objectTo[fields[i]] = exports.bridgeObject(referenceObject[fields[i]]);
-          }
-        }
-      }
-      return objectTo;
-    } else {
-      return null;
-    }
-  };
-
-  /**
-   * This recursively redirects the prototype of JSON objects to the referenceObject
-   * This is used for default options.
-   *
-   * @param referenceObject
-   * @returns {*}
-   */
-  exports.bridgeObject = function (referenceObject) {
-    if (typeof referenceObject == 'object') {
-      var objectTo = Object.create(referenceObject);
-      for (var i in referenceObject) {
-        if (referenceObject.hasOwnProperty(i)) {
-          if (typeof referenceObject[i] == 'object') {
-            objectTo[i] = exports.bridgeObject(referenceObject[i]);
-          }
-        }
-      }
-      return objectTo;
-    } else {
-      return null;
-    }
-  };
-
-  /**
-   * this is used to set the options of subobjects in the options object. A requirement of these subobjects
-   * is that they have an 'enabled' element which is optional for the user but mandatory for the program.
-   *
-   * @param [object] mergeTarget | this is either this.options or the options used for the groups.
-   * @param [object] options     | options
-   * @param [String] option      | this is the option key in the options argument
-   * @private
-   */
-  exports.mergeOptions = function (mergeTarget, options, option) {
-    var allowDeletion = arguments[3] === undefined ? false : arguments[3];
-
-    if (options[option] === null) {
-      mergeTarget[option] = undefined;
-      delete mergeTarget[option];
-    } else {
-      if (options[option] !== undefined) {
-        if (typeof options[option] === 'boolean') {
-          mergeTarget[option].enabled = options[option];
-        } else {
-          if (options[option].enabled === undefined) {
-            mergeTarget[option].enabled = true;
-          }
-          for (var prop in options[option]) {
-            if (options[option].hasOwnProperty(prop)) {
-              mergeTarget[option][prop] = options[option][prop];
-            }
-          }
-        }
-      }
-    }
-  };
-
-  /**
-   * This function does a binary search for a visible item in a sorted list. If we find a visible item, the code that uses
-   * this function will then iterate in both directions over this sorted list to find all visible items.
-   *
-   * @param {Item[]} orderedItems       | Items ordered by start
-   * @param {function} searchFunction   | -1 is lower, 0 is found, 1 is higher
-   * @param {String} field
-   * @param {String} field2
-   * @returns {number}
-   * @private
-   */
-  exports.binarySearchCustom = function (orderedItems, searchFunction, field, field2) {
-    var maxIterations = 10000;
-    var iteration = 0;
-    var low = 0;
-    var high = orderedItems.length - 1;
-
-    while (low <= high && iteration < maxIterations) {
-      var middle = Math.floor((low + high) / 2);
-
-      var item = orderedItems[middle];
-      var value = field2 === undefined ? item[field] : item[field][field2];
-
-      var searchResult = searchFunction(value);
-      if (searchResult == 0) {
-        // jihaa, found a visible item!
-        return middle;
-      } else if (searchResult == -1) {
-        // it is too small --> increase low
-        low = middle + 1;
-      } else {
-        // it is too big --> decrease high
-        high = middle - 1;
-      }
-
-      iteration++;
-    }
-
-    return -1;
-  };
-
-  /**
-   * This function does a binary search for a specific value in a sorted array. If it does not exist but is in between of
-   * two values, we return either the one before or the one after, depending on user input
-   * If it is found, we return the index, else -1.
-   *
-   * @param {Array} orderedItems
-   * @param {{start: number, end: number}} target
-   * @param {String} field
-   * @param {String} sidePreference   'before' or 'after'
-   * @returns {number}
-   * @private
-   */
-  exports.binarySearchValue = function (orderedItems, target, field, sidePreference) {
-    var maxIterations = 10000;
-    var iteration = 0;
-    var low = 0;
-    var high = orderedItems.length - 1;
-    var prevValue, value, nextValue, middle;
-
-    while (low <= high && iteration < maxIterations) {
-      // get a new guess
-      middle = Math.floor(0.5 * (high + low));
-      prevValue = orderedItems[Math.max(0, middle - 1)][field];
-      value = orderedItems[middle][field];
-      nextValue = orderedItems[Math.min(orderedItems.length - 1, middle + 1)][field];
-
-      if (value == target) {
-        // we found the target
-        return middle;
-      } else if (prevValue < target && value > target) {
-        // target is in between of the previous and the current
-        return sidePreference == 'before' ? Math.max(0, middle - 1) : middle;
-      } else if (value < target && nextValue > target) {
-        // target is in between of the current and the next
-        return sidePreference == 'before' ? middle : Math.min(orderedItems.length - 1, middle + 1);
-      } else {
-        // didnt find the target, we need to change our boundaries.
-        if (value < target) {
-          // it is too small --> increase low
-          low = middle + 1;
-        } else {
-          // it is too big --> decrease high
-          high = middle - 1;
-        }
-      }
-      iteration++;
-    }
-
-    // didnt find anything. Return -1.
-    return -1;
-  };
-
-  /*
-   * Easing Functions - inspired from http://gizma.com/easing/
-   * only considering the t value for the range [0, 1] => [0, 1]
-   * https://gist.github.com/gre/1650294
-   */
-  exports.easingFunctions = {
-    // no easing, no acceleration
-    linear: function linear(t) {
-      return t;
-    },
-    // accelerating from zero velocity
-    easeInQuad: function easeInQuad(t) {
-      return t * t;
-    },
-    // decelerating to zero velocity
-    easeOutQuad: function easeOutQuad(t) {
-      return t * (2 - t);
-    },
-    // acceleration until halfway, then deceleration
-    easeInOutQuad: function easeInOutQuad(t) {
-      return t < 0.5 ? 2 * t * t : -1 + (4 - 2 * t) * t;
-    },
-    // accelerating from zero velocity
-    easeInCubic: function easeInCubic(t) {
-      return t * t * t;
-    },
-    // decelerating to zero velocity
-    easeOutCubic: function easeOutCubic(t) {
-      return --t * t * t + 1;
-    },
-    // acceleration until halfway, then deceleration
-    easeInOutCubic: function easeInOutCubic(t) {
-      return t < 0.5 ? 4 * t * t * t : (t - 1) * (2 * t - 2) * (2 * t - 2) + 1;
-    },
-    // accelerating from zero velocity
-    easeInQuart: function easeInQuart(t) {
-      return t * t * t * t;
-    },
-    // decelerating to zero velocity
-    easeOutQuart: function easeOutQuart(t) {
-      return 1 - --t * t * t * t;
-    },
-    // acceleration until halfway, then deceleration
-    easeInOutQuart: function easeInOutQuart(t) {
-      return t < 0.5 ? 8 * t * t * t * t : 1 - 8 * --t * t * t * t;
-    },
-    // accelerating from zero velocity
-    easeInQuint: function easeInQuint(t) {
-      return t * t * t * t * t;
-    },
-    // decelerating to zero velocity
-    easeOutQuint: function easeOutQuint(t) {
-      return 1 + --t * t * t * t * t;
-    },
-    // acceleration until halfway, then deceleration
-    easeInOutQuint: function easeInOutQuint(t) {
-      return t < 0.5 ? 16 * t * t * t * t * t : 1 + 16 * --t * t * t * t * t;
-    }
-  };
-
-/***/ },
-/* 15 */
+/* 17 */
 /***/ function(module, exports, __webpack_require__) {
 
   // first check if moment.js is already loaded in the browser window, if so,
   // use this instance. Else, load via commonjs.
   'use strict';
 
-  module.exports = typeof window !== 'undefined' && window['moment'] || __webpack_require__(16);
+  module.exports = typeof window !== 'undefined' && window['moment'] || __webpack_require__(18);
 
 /***/ },
-/* 16 */
+/* 18 */
 /***/ function(module, exports, __webpack_require__) {
 
   /* WEBPACK VAR INJECTION */(function(module) {//! moment.js
@@ -11627,10 +13995,10 @@ return /******/ (function(modules) { // webpackBootstrap
       return _moment;
 
   }));
-  /* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(17)(module)))
+  /* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(19)(module)))
 
 /***/ },
-/* 17 */
+/* 19 */
 /***/ function(module, exports, __webpack_require__) {
 
   module.exports = function(module) {
@@ -11646,7 +14014,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 18 */
+/* 20 */
 /***/ function(module, exports, __webpack_require__) {
 
   /* WEBPACK VAR INJECTION */(function(global) {'use strict';
@@ -11862,7 +14230,7 @@ return /******/ (function(modules) { // webpackBootstrap
   /* WEBPACK VAR INJECTION */}.call(exports, (function() { return this; }())))
 
 /***/ },
-/* 19 */
+/* 21 */
 /***/ function(module, exports, __webpack_require__) {
 
   // DOM utility methods
@@ -12064,13 +14432,13 @@ return /******/ (function(modules) { // webpackBootstrap
   };
 
 /***/ },
-/* 20 */
+/* 22 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
 
-  var util = __webpack_require__(14);
-  var Queue = __webpack_require__(21);
+  var util = __webpack_require__(2);
+  var Queue = __webpack_require__(23);
 
   /**
    * DataSet
@@ -12959,7 +15327,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = DataSet;
 
 /***/ },
-/* 21 */
+/* 23 */
 /***/ function(module, exports, __webpack_require__) {
 
   /**
@@ -13164,13 +15532,13 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = Queue;
 
 /***/ },
-/* 22 */
+/* 24 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
 
-  var util = __webpack_require__(14);
-  var DataSet = __webpack_require__(20);
+  var util = __webpack_require__(2);
+  var DataSet = __webpack_require__(22);
 
   /**
    * DataView
@@ -13512,21 +15880,21 @@ return /******/ (function(modules) { // webpackBootstrap
   // nothing interesting for me :-(
 
 /***/ },
-/* 23 */
+/* 25 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
 
-  var Emitter = __webpack_require__(25);
-  var DataSet = __webpack_require__(20);
-  var DataView = __webpack_require__(22);
-  var util = __webpack_require__(14);
-  var Point3d = __webpack_require__(26);
-  var Point2d = __webpack_require__(24);
-  var Camera = __webpack_require__(27);
-  var Filter = __webpack_require__(28);
-  var Slider = __webpack_require__(29);
-  var StepNumber = __webpack_require__(30);
+  var Emitter = __webpack_require__(27);
+  var DataSet = __webpack_require__(22);
+  var DataView = __webpack_require__(24);
+  var util = __webpack_require__(2);
+  var Point3d = __webpack_require__(28);
+  var Point2d = __webpack_require__(26);
+  var Camera = __webpack_require__(29);
+  var Filter = __webpack_require__(30);
+  var Slider = __webpack_require__(31);
+  var StepNumber = __webpack_require__(32);
 
   /**
    * @constructor Graph3d
@@ -15730,7 +18098,7 @@ return /******/ (function(modules) { // webpackBootstrap
   // use use defaults
 
 /***/ },
-/* 24 */
+/* 26 */
 /***/ function(module, exports, __webpack_require__) {
 
   /**
@@ -15748,7 +18116,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = Point2d;
 
 /***/ },
-/* 25 */
+/* 27 */
 /***/ function(module, exports, __webpack_require__) {
 
   
@@ -15918,7 +18286,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 26 */
+/* 28 */
 /***/ function(module, exports, __webpack_require__) {
 
   /**
@@ -16001,12 +18369,12 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = Point3d;
 
 /***/ },
-/* 27 */
+/* 29 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
 
-  var Point3d = __webpack_require__(26);
+  var Point3d = __webpack_require__(28);
 
   /**
    * @class Camera
@@ -16142,12 +18510,12 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = Camera;
 
 /***/ },
-/* 28 */
+/* 30 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
 
-  var DataView = __webpack_require__(22);
+  var DataView = __webpack_require__(24);
 
   /**
    * @class Filter
@@ -16353,12 +18721,12 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = Filter;
 
 /***/ },
-/* 29 */
+/* 31 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
 
-  var util = __webpack_require__(14);
+  var util = __webpack_require__(2);
 
   /**
    * @constructor Slider
@@ -16701,7 +19069,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = Slider;
 
 /***/ },
-/* 30 */
+/* 32 */
 /***/ function(module, exports, __webpack_require__) {
 
   /**
@@ -16845,28 +19213,28 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = StepNumber;
 
 /***/ },
-/* 31 */
+/* 33 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
 
-  var Emitter = __webpack_require__(25);
-  var Hammer = __webpack_require__(10);
-  var util = __webpack_require__(14);
-  var DataSet = __webpack_require__(20);
-  var DataView = __webpack_require__(22);
-  var Range = __webpack_require__(35);
-  var Core = __webpack_require__(38);
-  var TimeAxis = __webpack_require__(47);
-  var CurrentTime = __webpack_require__(32);
-  var CustomTime = __webpack_require__(50);
-  var ItemSet = __webpack_require__(39);
+  var Emitter = __webpack_require__(27);
+  var Hammer = __webpack_require__(13);
+  var util = __webpack_require__(2);
+  var DataSet = __webpack_require__(22);
+  var DataView = __webpack_require__(24);
+  var Range = __webpack_require__(37);
+  var Core = __webpack_require__(40);
+  var TimeAxis = __webpack_require__(48);
+  var CurrentTime = __webpack_require__(34);
+  var CustomTime = __webpack_require__(51);
+  var ItemSet = __webpack_require__(10);
 
-  var Configurator = __webpack_require__(51);
-  var Validator = __webpack_require__(53)['default'];
-  var printStyle = __webpack_require__(53).printStyle;
-  var allOptions = __webpack_require__(54).allOptions;
-  var configureOptions = __webpack_require__(54).configureOptions;
+  var Configurator = __webpack_require__(52);
+  var Validator = __webpack_require__(54)['default'];
+  var printStyle = __webpack_require__(54).printStyle;
+  var allOptions = __webpack_require__(55).allOptions;
+  var configureOptions = __webpack_require__(55).configureOptions;
 
   /**
    * Create a timeline visualization
@@ -17286,15 +19654,15 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = Timeline;
 
 /***/ },
-/* 32 */
+/* 34 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
 
-  var util = __webpack_require__(14);
-  var Component = __webpack_require__(33);
-  var moment = __webpack_require__(15);
-  var locales = __webpack_require__(34);
+  var util = __webpack_require__(2);
+  var Component = __webpack_require__(35);
+  var moment = __webpack_require__(17);
+  var locales = __webpack_require__(36);
 
   /**
    * A current time bar
@@ -17462,7 +19830,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = CurrentTime;
 
 /***/ },
-/* 33 */
+/* 35 */
 /***/ function(module, exports, __webpack_require__) {
 
   /**
@@ -17522,7 +19890,7 @@ return /******/ (function(modules) { // webpackBootstrap
   // should be implemented by the component
 
 /***/ },
-/* 34 */
+/* 36 */
 /***/ function(module, exports, __webpack_require__) {
 
   // English
@@ -17544,16 +19912,16 @@ return /******/ (function(modules) { // webpackBootstrap
   exports['nl_BE'] = exports['nl'];
 
 /***/ },
-/* 35 */
+/* 37 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
 
-  var util = __webpack_require__(14);
-  var hammerUtil = __webpack_require__(36);
-  var moment = __webpack_require__(15);
-  var Component = __webpack_require__(33);
-  var DateUtil = __webpack_require__(37);
+  var util = __webpack_require__(2);
+  var hammerUtil = __webpack_require__(38);
+  var moment = __webpack_require__(17);
+  var Component = __webpack_require__(35);
+  var DateUtil = __webpack_require__(39);
 
   /**
    * @constructor Range
@@ -18220,12 +20588,12 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = Range;
 
 /***/ },
-/* 36 */
+/* 38 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
 
-  var Hammer = __webpack_require__(10);
+  var Hammer = __webpack_require__(13);
 
   /**
    * Register a touch event, taking place before a gesture
@@ -18292,12 +20660,12 @@ return /******/ (function(modules) { // webpackBootstrap
   exports.offRelease = exports.offTouch;
 
 /***/ },
-/* 37 */
+/* 39 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
 
-  var moment = __webpack_require__(15);
+  var moment = __webpack_require__(17);
 
   /**
    * used in Core to convert the options into a volatile variable
@@ -18752,23 +21120,23 @@ return /******/ (function(modules) { // webpackBootstrap
   };
 
 /***/ },
-/* 38 */
+/* 40 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
 
-  var Emitter = __webpack_require__(25);
-  var Hammer = __webpack_require__(10);
-  var hammerUtil = __webpack_require__(36);
-  var util = __webpack_require__(14);
-  var DataSet = __webpack_require__(20);
-  var DataView = __webpack_require__(22);
-  var Range = __webpack_require__(35);
-  var ItemSet = __webpack_require__(39);
-  var TimeAxis = __webpack_require__(47);
-  var Activator = __webpack_require__(48);
-  var DateUtil = __webpack_require__(37);
-  var CustomTime = __webpack_require__(50);
+  var Emitter = __webpack_require__(27);
+  var Hammer = __webpack_require__(13);
+  var hammerUtil = __webpack_require__(38);
+  var util = __webpack_require__(2);
+  var DataSet = __webpack_require__(22);
+  var DataView = __webpack_require__(24);
+  var Range = __webpack_require__(37);
+  var ItemSet = __webpack_require__(10);
+  var TimeAxis = __webpack_require__(48);
+  var Activator = __webpack_require__(49);
+  var DateUtil = __webpack_require__(39);
+  var CustomTime = __webpack_require__(51);
 
   /**
    * Create a timeline visualization
@@ -19718,1625 +22086,14 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = Core;
 
 /***/ },
-/* 39 */
+/* 41 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
 
-  var Hammer = __webpack_require__(10);
-  var util = __webpack_require__(14);
-  var DataSet = __webpack_require__(20);
-  var DataView = __webpack_require__(22);
-  var TimeStep = __webpack_require__(43);
-  var Component = __webpack_require__(33);
-  var Group = __webpack_require__(40);
-  var BackgroundGroup = __webpack_require__(44);
-  var BoxItem = __webpack_require__(6);
-  var PointItem = __webpack_require__(45);
-  var RangeItem = __webpack_require__(42);
-  var BackgroundItem = __webpack_require__(46);
-
-  var UNGROUPED = '__ungrouped__'; // reserved group id for ungrouped items
-  var BACKGROUND = '__background__'; // reserved group id for background items without group
-
-  /**
-   * An ItemSet holds a set of items and ranges which can be displayed in a
-   * range. The width is determined by the parent of the ItemSet, and the height
-   * is determined by the size of the items.
-   * @param {{dom: Object, domProps: Object, emitter: Emitter, range: Range}} body
-   * @param {Object} [options]      See ItemSet.setOptions for the available options.
-   * @constructor ItemSet
-   * @extends Component
-   */
-  function ItemSet(body, options) {
-    this.body = body;
-
-    this.defaultOptions = {
-      type: null, // 'box', 'point', 'range', 'background'
-      orientation: {
-        item: 'bottom' // item orientation: 'top' or 'bottom'
-      },
-      align: 'auto', // alignment of box items
-      stack: true,
-      groupOrder: null,
-
-      selectable: true,
-      multiselect: false,
-
-      editable: {
-        updateTime: false,
-        updateGroup: false,
-        add: false,
-        remove: false
-      },
-
-      snap: TimeStep.snap,
-
-      onAdd: function onAdd(item, callback) {
-        callback(item);
-      },
-      onUpdate: function onUpdate(item, callback) {
-        callback(item);
-      },
-      onMove: function onMove(item, callback) {
-        callback(item);
-      },
-      onRemove: function onRemove(item, callback) {
-        callback(item);
-      },
-      onMoving: function onMoving(item, callback) {
-        callback(item);
-      },
-
-      margin: {
-        item: {
-          horizontal: 10,
-          vertical: 10
-        },
-        axis: 20
-      }
-    };
-
-    // options is shared by this ItemSet and all its items
-    this.options = util.extend({}, this.defaultOptions);
-
-    // options for getting items from the DataSet with the correct type
-    this.itemOptions = {
-      type: { start: 'Date', end: 'Date' }
-    };
-
-    this.conversion = {
-      toScreen: body.util.toScreen,
-      toTime: body.util.toTime
-    };
-    this.dom = {};
-    this.props = {};
-    this.hammer = null;
-
-    var me = this;
-    this.itemsData = null; // DataSet
-    this.groupsData = null; // DataSet
-
-    // listeners for the DataSet of the items
-    this.itemListeners = {
-      'add': function add(event, params, senderId) {
-        me._onAdd(params.items);
-      },
-      'update': function update(event, params, senderId) {
-        me._onUpdate(params.items);
-      },
-      'remove': function remove(event, params, senderId) {
-        me._onRemove(params.items);
-      }
-    };
-
-    // listeners for the DataSet of the groups
-    this.groupListeners = {
-      'add': function add(event, params, senderId) {
-        me._onAddGroups(params.items);
-      },
-      'update': function update(event, params, senderId) {
-        me._onUpdateGroups(params.items);
-      },
-      'remove': function remove(event, params, senderId) {
-        me._onRemoveGroups(params.items);
-      }
-    };
-
-    this.items = {}; // object with an Item for every data item
-    this.groups = {}; // Group object for every group
-    this.groupIds = [];
-
-    this.selection = []; // list with the ids of all selected nodes
-    this.stackDirty = true; // if true, all items will be restacked on next redraw
-
-    this.touchParams = {}; // stores properties while dragging
-    // create the HTML DOM
-
-    this._create();
-
-    this.setOptions(options);
-  }
-
-  ItemSet.prototype = new Component();
-
-  // available item types will be registered here
-  ItemSet.types = {
-    background: BackgroundItem,
-    box: BoxItem,
-    range: RangeItem,
-    point: PointItem
-  };
-
-  /**
-   * Create the HTML DOM for the ItemSet
-   */
-  ItemSet.prototype._create = function () {
-    var frame = document.createElement('div');
-    frame.className = 'vis-itemset';
-    frame['timeline-itemset'] = this;
-    this.dom.frame = frame;
-
-    // create background panel
-    var background = document.createElement('div');
-    background.className = 'vis-background';
-    frame.appendChild(background);
-    this.dom.background = background;
-
-    // create foreground panel
-    var foreground = document.createElement('div');
-    foreground.className = 'vis-foreground';
-    frame.appendChild(foreground);
-    this.dom.foreground = foreground;
-
-    // create axis panel
-    var axis = document.createElement('div');
-    axis.className = 'vis-axis';
-    this.dom.axis = axis;
-
-    // create labelset
-    var labelSet = document.createElement('div');
-    labelSet.className = 'vis-labelset';
-    this.dom.labelSet = labelSet;
-
-    // create ungrouped Group
-    this._updateUngrouped();
-
-    // create background Group
-    var backgroundGroup = new BackgroundGroup(BACKGROUND, null, this);
-    backgroundGroup.show();
-    this.groups[BACKGROUND] = backgroundGroup;
-
-    // attach event listeners
-    // Note: we bind to the centerContainer for the case where the height
-    //       of the center container is larger than of the ItemSet, so we
-    //       can click in the empty area to create a new item or deselect an item.
-    this.hammer = new Hammer(this.body.dom.centerContainer);
-
-    // drag items when selected
-    this.hammer.on('hammer.input', (function (event) {
-      if (event.isFirst) {
-        this._onTouch(event);
-      }
-    }).bind(this));
-    this.hammer.on('panstart', this._onDragStart.bind(this));
-    this.hammer.on('panmove', this._onDrag.bind(this));
-    this.hammer.on('panend', this._onDragEnd.bind(this));
-
-    // single select (or unselect) when tapping an item
-    this.hammer.on('tap', this._onSelectItem.bind(this));
-
-    // multi select when holding mouse/touch, or on ctrl+click
-    this.hammer.on('press', this._onMultiSelectItem.bind(this));
-
-    // add item on doubletap
-    this.hammer.on('doubletap', this._onAddItem.bind(this));
-
-    // attach to the DOM
-    this.show();
-  };
-
-  /**
-   * Set options for the ItemSet. Existing options will be extended/overwritten.
-   * @param {Object} [options] The following options are available:
-   *                           {String} type
-   *                              Default type for the items. Choose from 'box'
-   *                              (default), 'point', 'range', or 'background'.
-   *                              The default style can be overwritten by
-   *                              individual items.
-   *                           {String} align
-   *                              Alignment for the items, only applicable for
-   *                              BoxItem. Choose 'center' (default), 'left', or
-   *                              'right'.
-   *                           {String} orientation.item
-   *                              Orientation of the item set. Choose 'top' or
-   *                              'bottom' (default).
-   *                           {Function} groupOrder
-   *                              A sorting function for ordering groups
-   *                           {Boolean} stack
-   *                              If true (default), items will be stacked on
-   *                              top of each other.
-   *                           {Number} margin.axis
-   *                              Margin between the axis and the items in pixels.
-   *                              Default is 20.
-   *                           {Number} margin.item.horizontal
-   *                              Horizontal margin between items in pixels.
-   *                              Default is 10.
-   *                           {Number} margin.item.vertical
-   *                              Vertical Margin between items in pixels.
-   *                              Default is 10.
-   *                           {Number} margin.item
-   *                              Margin between items in pixels in both horizontal
-   *                              and vertical direction. Default is 10.
-   *                           {Number} margin
-   *                              Set margin for both axis and items in pixels.
-   *                           {Boolean} selectable
-   *                              If true (default), items can be selected.
-   *                           {Boolean} multiselect
-   *                              If true, multiple items can be selected.
-   *                              False by default.
-   *                           {Boolean} editable
-   *                              Set all editable options to true or false
-   *                           {Boolean} editable.updateTime
-   *                              Allow dragging an item to an other moment in time
-   *                           {Boolean} editable.updateGroup
-   *                              Allow dragging an item to an other group
-   *                           {Boolean} editable.add
-   *                              Allow creating new items on double tap
-   *                           {Boolean} editable.remove
-   *                              Allow removing items by clicking the delete button
-   *                              top right of a selected item.
-   *                           {Function(item: Item, callback: Function)} onAdd
-   *                              Callback function triggered when an item is about to be added:
-   *                              when the user double taps an empty space in the Timeline.
-   *                           {Function(item: Item, callback: Function)} onUpdate
-   *                              Callback function fired when an item is about to be updated.
-   *                              This function typically has to show a dialog where the user
-   *                              change the item. If not implemented, nothing happens.
-   *                           {Function(item: Item, callback: Function)} onMove
-   *                              Fired when an item has been moved. If not implemented,
-   *                              the move action will be accepted.
-   *                           {Function(item: Item, callback: Function)} onRemove
-   *                              Fired when an item is about to be deleted.
-   *                              If not implemented, the item will be always removed.
-   */
-  ItemSet.prototype.setOptions = function (options) {
-    if (options) {
-      // copy all options that we know
-      var fields = ['type', 'align', 'order', 'stack', 'selectable', 'multiselect', 'groupOrder', 'dataAttributes', 'template', 'hide', 'snap'];
-      util.selectiveExtend(fields, this.options, options);
-
-      if ('orientation' in options) {
-        if (typeof options.orientation === 'string') {
-          this.options.orientation.item = options.orientation === 'top' ? 'top' : 'bottom';
-        } else if (typeof options.orientation === 'object' && 'item' in options.orientation) {
-          this.options.orientation.item = options.orientation.item;
-        }
-      }
-
-      if ('margin' in options) {
-        if (typeof options.margin === 'number') {
-          this.options.margin.axis = options.margin;
-          this.options.margin.item.horizontal = options.margin;
-          this.options.margin.item.vertical = options.margin;
-        } else if (typeof options.margin === 'object') {
-          util.selectiveExtend(['axis'], this.options.margin, options.margin);
-          if ('item' in options.margin) {
-            if (typeof options.margin.item === 'number') {
-              this.options.margin.item.horizontal = options.margin.item;
-              this.options.margin.item.vertical = options.margin.item;
-            } else if (typeof options.margin.item === 'object') {
-              util.selectiveExtend(['horizontal', 'vertical'], this.options.margin.item, options.margin.item);
-            }
-          }
-        }
-      }
-
-      if ('editable' in options) {
-        if (typeof options.editable === 'boolean') {
-          this.options.editable.updateTime = options.editable;
-          this.options.editable.updateGroup = options.editable;
-          this.options.editable.add = options.editable;
-          this.options.editable.remove = options.editable;
-        } else if (typeof options.editable === 'object') {
-          util.selectiveExtend(['updateTime', 'updateGroup', 'add', 'remove'], this.options.editable, options.editable);
-        }
-      }
-
-      // callback functions
-      var addCallback = (function (name) {
-        var fn = options[name];
-        if (fn) {
-          if (!(fn instanceof Function)) {
-            throw new Error('option ' + name + ' must be a function ' + name + '(item, callback)');
-          }
-          this.options[name] = fn;
-        }
-      }).bind(this);
-      ['onAdd', 'onUpdate', 'onRemove', 'onMove', 'onMoving'].forEach(addCallback);
-
-      // force the itemSet to refresh: options like orientation and margins may be changed
-      this.markDirty();
-    }
-  };
-
-  /**
-   * Mark the ItemSet dirty so it will refresh everything with next redraw.
-   * Optionally, all items can be marked as dirty and be refreshed.
-   * @param {{refreshItems: boolean}} [options]
-   */
-  ItemSet.prototype.markDirty = function (options) {
-    this.groupIds = [];
-    this.stackDirty = true;
-
-    if (options && options.refreshItems) {
-      util.forEach(this.items, function (item) {
-        item.dirty = true;
-        if (item.displayed) item.redraw();
-      });
-    }
-  };
-
-  /**
-   * Destroy the ItemSet
-   */
-  ItemSet.prototype.destroy = function () {
-    this.hide();
-    this.setItems(null);
-    this.setGroups(null);
-
-    this.hammer = null;
-
-    this.body = null;
-    this.conversion = null;
-  };
-
-  /**
-   * Hide the component from the DOM
-   */
-  ItemSet.prototype.hide = function () {
-    // remove the frame containing the items
-    if (this.dom.frame.parentNode) {
-      this.dom.frame.parentNode.removeChild(this.dom.frame);
-    }
-
-    // remove the axis with dots
-    if (this.dom.axis.parentNode) {
-      this.dom.axis.parentNode.removeChild(this.dom.axis);
-    }
-
-    // remove the labelset containing all group labels
-    if (this.dom.labelSet.parentNode) {
-      this.dom.labelSet.parentNode.removeChild(this.dom.labelSet);
-    }
-  };
-
-  /**
-   * Show the component in the DOM (when not already visible).
-   * @return {Boolean} changed
-   */
-  ItemSet.prototype.show = function () {
-    // show frame containing the items
-    if (!this.dom.frame.parentNode) {
-      this.body.dom.center.appendChild(this.dom.frame);
-    }
-
-    // show axis with dots
-    if (!this.dom.axis.parentNode) {
-      this.body.dom.backgroundVertical.appendChild(this.dom.axis);
-    }
-
-    // show labelset containing labels
-    if (!this.dom.labelSet.parentNode) {
-      this.body.dom.left.appendChild(this.dom.labelSet);
-    }
-  };
-
-  /**
-   * Set selected items by their id. Replaces the current selection
-   * Unknown id's are silently ignored.
-   * @param {string[] | string} [ids] An array with zero or more id's of the items to be
-   *                                  selected, or a single item id. If ids is undefined
-   *                                  or an empty array, all items will be unselected.
-   */
-  ItemSet.prototype.setSelection = function (ids) {
-    var i, ii, id, item;
-
-    if (ids == undefined) ids = [];
-    if (!Array.isArray(ids)) ids = [ids];
-
-    // unselect currently selected items
-    for (i = 0, ii = this.selection.length; i < ii; i++) {
-      id = this.selection[i];
-      item = this.items[id];
-      if (item) item.unselect();
-    }
-
-    // select items
-    this.selection = [];
-    for (i = 0, ii = ids.length; i < ii; i++) {
-      id = ids[i];
-      item = this.items[id];
-      if (item) {
-        this.selection.push(id);
-        item.select();
-      }
-    }
-  };
-
-  /**
-   * Get the selected items by their id
-   * @return {Array} ids  The ids of the selected items
-   */
-  ItemSet.prototype.getSelection = function () {
-    return this.selection.concat([]);
-  };
-
-  /**
-   * Get the id's of the currently visible items.
-   * @returns {Array} The ids of the visible items
-   */
-  ItemSet.prototype.getVisibleItems = function () {
-    var range = this.body.range.getRange();
-    var left = this.body.util.toScreen(range.start);
-    var right = this.body.util.toScreen(range.end);
-
-    var ids = [];
-    for (var groupId in this.groups) {
-      if (this.groups.hasOwnProperty(groupId)) {
-        var group = this.groups[groupId];
-        var rawVisibleItems = group.visibleItems;
-
-        // filter the "raw" set with visibleItems into a set which is really
-        // visible by pixels
-        for (var i = 0; i < rawVisibleItems.length; i++) {
-          var item = rawVisibleItems[i];
-          // TODO: also check whether visible vertically
-          if (item.left < right && item.left + item.width > left) {
-            ids.push(item.id);
-          }
-        }
-      }
-    }
-
-    return ids;
-  };
-
-  /**
-   * Deselect a selected item
-   * @param {String | Number} id
-   * @private
-   */
-  ItemSet.prototype._deselect = function (id) {
-    var selection = this.selection;
-    for (var i = 0, ii = selection.length; i < ii; i++) {
-      if (selection[i] == id) {
-        // non-strict comparison!
-        selection.splice(i, 1);
-        break;
-      }
-    }
-  };
-
-  /**
-   * Repaint the component
-   * @return {boolean} Returns true if the component is resized
-   */
-  ItemSet.prototype.redraw = function () {
-    var margin = this.options.margin,
-        range = this.body.range,
-        asSize = util.option.asSize,
-        options = this.options,
-        orientation = options.orientation.item,
-        resized = false,
-        frame = this.dom.frame,
-        editable = options.editable.updateTime || options.editable.updateGroup;
-
-    // recalculate absolute position (before redrawing groups)
-    this.props.top = this.body.domProps.top.height + this.body.domProps.border.top;
-    this.props.left = this.body.domProps.left.width + this.body.domProps.border.left;
-
-    // update class name
-    frame.className = 'vis-itemset' + (editable ? ' vis-editable' : '');
-
-    // reorder the groups (if needed)
-    resized = this._orderGroups() || resized;
-
-    // check whether zoomed (in that case we need to re-stack everything)
-    // TODO: would be nicer to get this as a trigger from Range
-    var visibleInterval = range.end - range.start;
-    var zoomed = visibleInterval != this.lastVisibleInterval || this.props.width != this.props.lastWidth;
-    if (zoomed) this.stackDirty = true;
-    this.lastVisibleInterval = visibleInterval;
-    this.props.lastWidth = this.props.width;
-
-    var restack = this.stackDirty;
-    var firstGroup = this._firstGroup();
-    var firstMargin = {
-      item: margin.item,
-      axis: margin.axis
-    };
-    var nonFirstMargin = {
-      item: margin.item,
-      axis: margin.item.vertical / 2
-    };
-    var height = 0;
-    var minHeight = margin.axis + margin.item.vertical;
-
-    // redraw the background group
-    this.groups[BACKGROUND].redraw(range, nonFirstMargin, restack);
-
-    // redraw all regular groups
-    util.forEach(this.groups, function (group) {
-      var groupMargin = group == firstGroup ? firstMargin : nonFirstMargin;
-      var groupResized = group.redraw(range, groupMargin, restack);
-      resized = groupResized || resized;
-      height += group.height;
-    });
-    height = Math.max(height, minHeight);
-    this.stackDirty = false;
-
-    // update frame height
-    frame.style.height = asSize(height);
-
-    // calculate actual size
-    this.props.width = frame.offsetWidth;
-    this.props.height = height;
-
-    // reposition axis
-    this.dom.axis.style.top = asSize(orientation == 'top' ? this.body.domProps.top.height + this.body.domProps.border.top : this.body.domProps.top.height + this.body.domProps.centerContainer.height);
-    this.dom.axis.style.left = '0';
-
-    // check if this component is resized
-    resized = this._isResized() || resized;
-
-    return resized;
-  };
-
-  /**
-   * Get the first group, aligned with the axis
-   * @return {Group | null} firstGroup
-   * @private
-   */
-  ItemSet.prototype._firstGroup = function () {
-    var firstGroupIndex = this.options.orientation.item == 'top' ? 0 : this.groupIds.length - 1;
-    var firstGroupId = this.groupIds[firstGroupIndex];
-    var firstGroup = this.groups[firstGroupId] || this.groups[UNGROUPED];
-
-    return firstGroup || null;
-  };
-
-  /**
-   * Create or delete the group holding all ungrouped items. This group is used when
-   * there are no groups specified.
-   * @protected
-   */
-  ItemSet.prototype._updateUngrouped = function () {
-    var ungrouped = this.groups[UNGROUPED];
-    var background = this.groups[BACKGROUND];
-    var item, itemId;
-
-    if (this.groupsData) {
-      // remove the group holding all ungrouped items
-      if (ungrouped) {
-        ungrouped.hide();
-        delete this.groups[UNGROUPED];
-
-        for (itemId in this.items) {
-          if (this.items.hasOwnProperty(itemId)) {
-            item = this.items[itemId];
-            item.parent && item.parent.remove(item);
-            var groupId = this._getGroupId(item.data);
-            var group = this.groups[groupId];
-            group && group.add(item) || item.hide();
-          }
-        }
-      }
-    } else {
-      // create a group holding all (unfiltered) items
-      if (!ungrouped) {
-        var id = null;
-        var data = null;
-        ungrouped = new Group(id, data, this);
-        this.groups[UNGROUPED] = ungrouped;
-
-        for (itemId in this.items) {
-          if (this.items.hasOwnProperty(itemId)) {
-            item = this.items[itemId];
-            ungrouped.add(item);
-          }
-        }
-
-        ungrouped.show();
-      }
-    }
-  };
-
-  /**
-   * Get the element for the labelset
-   * @return {HTMLElement} labelSet
-   */
-  ItemSet.prototype.getLabelSet = function () {
-    return this.dom.labelSet;
-  };
-
-  /**
-   * Set items
-   * @param {vis.DataSet | null} items
-   */
-  ItemSet.prototype.setItems = function (items) {
-    var me = this,
-        ids,
-        oldItemsData = this.itemsData;
-
-    // replace the dataset
-    if (!items) {
-      this.itemsData = null;
-    } else if (items instanceof DataSet || items instanceof DataView) {
-      this.itemsData = items;
-    } else {
-      throw new TypeError('Data must be an instance of DataSet or DataView');
-    }
-
-    if (oldItemsData) {
-      // unsubscribe from old dataset
-      util.forEach(this.itemListeners, function (callback, event) {
-        oldItemsData.off(event, callback);
-      });
-
-      // remove all drawn items
-      ids = oldItemsData.getIds();
-      this._onRemove(ids);
-    }
-
-    if (this.itemsData) {
-      // subscribe to new dataset
-      var id = this.id;
-      util.forEach(this.itemListeners, function (callback, event) {
-        me.itemsData.on(event, callback, id);
-      });
-
-      // add all new items
-      ids = this.itemsData.getIds();
-      this._onAdd(ids);
-
-      // update the group holding all ungrouped items
-      this._updateUngrouped();
-    }
-  };
-
-  /**
-   * Get the current items
-   * @returns {vis.DataSet | null}
-   */
-  ItemSet.prototype.getItems = function () {
-    return this.itemsData;
-  };
-
-  /**
-   * Set groups
-   * @param {vis.DataSet} groups
-   */
-  ItemSet.prototype.setGroups = function (groups) {
-    var me = this,
-        ids;
-
-    // unsubscribe from current dataset
-    if (this.groupsData) {
-      util.forEach(this.groupListeners, function (callback, event) {
-        me.groupsData.off(event, callback);
-      });
-
-      // remove all drawn groups
-      ids = this.groupsData.getIds();
-      this.groupsData = null;
-      this._onRemoveGroups(ids); // note: this will cause a redraw
-    }
-
-    // replace the dataset
-    if (!groups) {
-      this.groupsData = null;
-    } else if (groups instanceof DataSet || groups instanceof DataView) {
-      this.groupsData = groups;
-    } else {
-      throw new TypeError('Data must be an instance of DataSet or DataView');
-    }
-
-    if (this.groupsData) {
-      // subscribe to new dataset
-      var id = this.id;
-      util.forEach(this.groupListeners, function (callback, event) {
-        me.groupsData.on(event, callback, id);
-      });
-
-      // draw all ms
-      ids = this.groupsData.getIds();
-      this._onAddGroups(ids);
-    }
-
-    // update the group holding all ungrouped items
-    this._updateUngrouped();
-
-    // update the order of all items in each group
-    this._order();
-
-    this.body.emitter.emit('change', { queue: true });
-  };
-
-  /**
-   * Get the current groups
-   * @returns {vis.DataSet | null} groups
-   */
-  ItemSet.prototype.getGroups = function () {
-    return this.groupsData;
-  };
-
-  /**
-   * Remove an item by its id
-   * @param {String | Number} id
-   */
-  ItemSet.prototype.removeItem = function (id) {
-    var item = this.itemsData.get(id),
-        dataset = this.itemsData.getDataSet();
-
-    if (item) {
-      // confirm deletion
-      this.options.onRemove(item, function (item) {
-        if (item) {
-          // remove by id here, it is possible that an item has no id defined
-          // itself, so better not delete by the item itself
-          dataset.remove(id);
-        }
-      });
-    }
-  };
-
-  /**
-   * Get the time of an item based on it's data and options.type
-   * @param {Object} itemData
-   * @returns {string} Returns the type
-   * @private
-   */
-  ItemSet.prototype._getType = function (itemData) {
-    return itemData.type || this.options.type || (itemData.end ? 'range' : 'box');
-  };
-
-  /**
-   * Get the group id for an item
-   * @param {Object} itemData
-   * @returns {string} Returns the groupId
-   * @private
-   */
-  ItemSet.prototype._getGroupId = function (itemData) {
-    var type = this._getType(itemData);
-    if (type == 'background' && itemData.group == undefined) {
-      return BACKGROUND;
-    } else {
-      return this.groupsData ? itemData.group : UNGROUPED;
-    }
-  };
-
-  /**
-   * Handle updated items
-   * @param {Number[]} ids
-   * @protected
-   */
-  ItemSet.prototype._onUpdate = function (ids) {
-    var me = this;
-
-    ids.forEach((function (id) {
-      var itemData = me.itemsData.get(id, me.itemOptions);
-      var item = me.items[id];
-      var type = me._getType(itemData);
-
-      var constructor = ItemSet.types[type];
-      var selected;
-
-      if (item) {
-        // update item
-        if (!constructor || !(item instanceof constructor)) {
-          // item type has changed, delete the item and recreate it
-          selected = item.selected; // preserve selection of this item
-          me._removeItem(item);
-          item = null;
-        } else {
-          me._updateItem(item, itemData);
-        }
-      }
-
-      if (!item) {
-        // create item
-        if (constructor) {
-          item = new constructor(itemData, me.conversion, me.options);
-          item.id = id; // TODO: not so nice setting id afterwards
-          me._addItem(item);
-          if (selected) {
-            this.selection.push(id);
-            item.select();
-          }
-        } else if (type == 'rangeoverflow') {
-          // TODO: deprecated since version 2.1.0 (or 3.0.0?). cleanup some day
-          throw new TypeError('Item type "rangeoverflow" is deprecated. Use css styling instead: ' + '.vis-item.vis-range .vis-item-content {overflow: visible;}');
-        } else {
-          throw new TypeError('Unknown item type "' + type + '"');
-        }
-      }
-    }).bind(this));
-
-    this._order();
-    this.stackDirty = true; // force re-stacking of all items next redraw
-    this.body.emitter.emit('change', { queue: true });
-  };
-
-  /**
-   * Handle added items
-   * @param {Number[]} ids
-   * @protected
-   */
-  ItemSet.prototype._onAdd = ItemSet.prototype._onUpdate;
-
-  /**
-   * Handle removed items
-   * @param {Number[]} ids
-   * @protected
-   */
-  ItemSet.prototype._onRemove = function (ids) {
-    var count = 0;
-    var me = this;
-    ids.forEach(function (id) {
-      var item = me.items[id];
-      if (item) {
-        count++;
-        me._removeItem(item);
-      }
-    });
-
-    if (count) {
-      // update order
-      this._order();
-      this.stackDirty = true; // force re-stacking of all items next redraw
-      this.body.emitter.emit('change', { queue: true });
-    }
-  };
-
-  /**
-   * Update the order of item in all groups
-   * @private
-   */
-  ItemSet.prototype._order = function () {
-    // reorder the items in all groups
-    // TODO: optimization: only reorder groups affected by the changed items
-    util.forEach(this.groups, function (group) {
-      group.order();
-    });
-  };
-
-  /**
-   * Handle updated groups
-   * @param {Number[]} ids
-   * @private
-   */
-  ItemSet.prototype._onUpdateGroups = function (ids) {
-    this._onAddGroups(ids);
-  };
-
-  /**
-   * Handle changed groups (added or updated)
-   * @param {Number[]} ids
-   * @private
-   */
-  ItemSet.prototype._onAddGroups = function (ids) {
-    var me = this;
-
-    ids.forEach(function (id) {
-      var groupData = me.groupsData.get(id);
-      var group = me.groups[id];
-
-      if (!group) {
-        // check for reserved ids
-        if (id == UNGROUPED || id == BACKGROUND) {
-          throw new Error('Illegal group id. ' + id + ' is a reserved id.');
-        }
-
-        var groupOptions = Object.create(me.options);
-        util.extend(groupOptions, {
-          height: null
-        });
-
-        group = new Group(id, groupData, me);
-        me.groups[id] = group;
-
-        // add items with this groupId to the new group
-        for (var itemId in me.items) {
-          if (me.items.hasOwnProperty(itemId)) {
-            var item = me.items[itemId];
-            if (item.data.group == id) {
-              group.add(item);
-            }
-          }
-        }
-
-        group.order();
-        group.show();
-      } else {
-        // update group
-        group.setData(groupData);
-      }
-    });
-
-    this.body.emitter.emit('change', { queue: true });
-  };
-
-  /**
-   * Handle removed groups
-   * @param {Number[]} ids
-   * @private
-   */
-  ItemSet.prototype._onRemoveGroups = function (ids) {
-    var groups = this.groups;
-    ids.forEach(function (id) {
-      var group = groups[id];
-
-      if (group) {
-        group.hide();
-        delete groups[id];
-      }
-    });
-
-    this.markDirty();
-
-    this.body.emitter.emit('change', { queue: true });
-  };
-
-  /**
-   * Reorder the groups if needed
-   * @return {boolean} changed
-   * @private
-   */
-  ItemSet.prototype._orderGroups = function () {
-    if (this.groupsData) {
-      // reorder the groups
-      var groupIds = this.groupsData.getIds({
-        order: this.options.groupOrder
-      });
-
-      var changed = !util.equalArray(groupIds, this.groupIds);
-      if (changed) {
-        // hide all groups, removes them from the DOM
-        var groups = this.groups;
-        groupIds.forEach(function (groupId) {
-          groups[groupId].hide();
-        });
-
-        // show the groups again, attach them to the DOM in correct order
-        groupIds.forEach(function (groupId) {
-          groups[groupId].show();
-        });
-
-        this.groupIds = groupIds;
-      }
-
-      return changed;
-    } else {
-      return false;
-    }
-  };
-
-  /**
-   * Add a new item
-   * @param {Item} item
-   * @private
-   */
-  ItemSet.prototype._addItem = function (item) {
-    this.items[item.id] = item;
-
-    // add to group
-    var groupId = this._getGroupId(item.data);
-    var group = this.groups[groupId];
-    if (group) group.add(item);
-  };
-
-  /**
-   * Update an existing item
-   * @param {Item} item
-   * @param {Object} itemData
-   * @private
-   */
-  ItemSet.prototype._updateItem = function (item, itemData) {
-    var oldGroupId = item.data.group;
-    var oldSubGroupId = item.data.subgroup;
-
-    // update the items data (will redraw the item when displayed)
-    item.setData(itemData);
-
-    // update group
-    if (oldGroupId != item.data.group || oldSubGroupId != item.data.subgroup) {
-      var oldGroup = this.groups[oldGroupId];
-      if (oldGroup) oldGroup.remove(item);
-
-      var groupId = this._getGroupId(item.data);
-      var group = this.groups[groupId];
-      if (group) group.add(item);
-    }
-  };
-
-  /**
-   * Delete an item from the ItemSet: remove it from the DOM, from the map
-   * with items, and from the map with visible items, and from the selection
-   * @param {Item} item
-   * @private
-   */
-  ItemSet.prototype._removeItem = function (item) {
-    // remove from DOM
-    item.hide();
-
-    // remove from items
-    delete this.items[item.id];
-
-    // remove from selection
-    var index = this.selection.indexOf(item.id);
-    if (index != -1) this.selection.splice(index, 1);
-
-    // remove from group
-    item.parent && item.parent.remove(item);
-  };
-
-  /**
-   * Create an array containing all items being a range (having an end date)
-   * @param array
-   * @returns {Array}
-   * @private
-   */
-  ItemSet.prototype._constructByEndArray = function (array) {
-    var endArray = [];
-
-    for (var i = 0; i < array.length; i++) {
-      if (array[i] instanceof RangeItem) {
-        endArray.push(array[i]);
-      }
-    }
-    return endArray;
-  };
-
-  /**
-   * Register the clicked item on touch, before dragStart is initiated.
-   *
-   * dragStart is initiated from a mousemove event, AFTER the mouse/touch is
-   * already moving. Therefore, the mouse/touch can sometimes be above an other
-   * DOM element than the item itself.
-   *
-   * @param {Event} event
-   * @private
-   */
-  ItemSet.prototype._onTouch = function (event) {
-    // store the touched item, used in _onDragStart
-    this.touchParams.item = this.itemFromTarget(event);
-    this.touchParams.dragLeftItem = event.target.dragLeftItem || false;
-    this.touchParams.dragRightItem = event.target.dragRightItem || false;
-    this.touchParams.itemProps = null;
-  };
-
-  /**
-   * Start dragging the selected events
-   * @param {Event} event
-   * @private
-   */
-  ItemSet.prototype._onDragStart = function (event) {
-    if (!this.options.editable.updateTime && !this.options.editable.updateGroup) {
-      return;
-    }
-
-    var item = this.touchParams.item || null;
-    var me = this;
-    var props;
-
-    if (item && item.selected) {
-      var dragLeftItem = this.touchParams.dragLeftItem;
-      var dragRightItem = this.touchParams.dragRightItem;
-
-      if (dragLeftItem) {
-        props = {
-          item: dragLeftItem,
-          initialX: event.center.x,
-          dragLeft: true,
-          data: util.extend({}, item.data) // clone the items data
-        };
-
-        this.touchParams.itemProps = [props];
-      } else if (dragRightItem) {
-        props = {
-          item: dragRightItem,
-          initialX: event.center.x,
-          dragRight: true,
-          data: util.extend({}, item.data) // clone the items data
-        };
-
-        this.touchParams.itemProps = [props];
-      } else {
-        this.touchParams.itemProps = this.getSelection().map(function (id) {
-          var item = me.items[id];
-          var props = {
-            item: item,
-            initialX: event.center.x,
-            data: util.extend({}, item.data) // clone the items data
-          };
-
-          return props;
-        });
-      }
-
-      event.stopPropagation();
-    } else if (this.options.editable.add && event.srcEvent.ctrlKey) {
-      // create a new range item when dragging with ctrl key down
-      this._onDragStartAddItem(event);
-    }
-  };
-
-  /**
-   * Start creating a new range item by dragging.
-   * @param {Event} event
-   * @private
-   */
-  ItemSet.prototype._onDragStartAddItem = function (event) {
-    var snap = this.options.snap || null;
-    var xAbs = util.getAbsoluteLeft(this.dom.frame);
-    var x = event.center.x - xAbs - 10; // minus 10 to compensate for the drag starting as soon as you've moved 10px
-    var time = this.body.util.toTime(x);
-    var scale = this.body.util.getScale();
-    var step = this.body.util.getStep();
-    var start = snap ? snap(time, scale, step) : start;
-    var end = start;
-
-    var itemData = {
-      type: 'range',
-      start: start,
-      end: end,
-      content: 'new item'
-    };
-
-    var id = util.randomUUID();
-    itemData[this.itemsData._fieldId] = id;
-
-    var group = this.groupFromTarget(event);
-    if (group) {
-      itemData.group = group.groupId;
-    }
-
-    var newItem = new RangeItem(itemData, this.conversion, this.options);
-    newItem.id = id; // TODO: not so nice setting id afterwards
-    newItem.data = itemData;
-    this._addItem(newItem);
-
-    var props = {
-      item: newItem,
-      dragRight: true,
-      initialX: event.center.x,
-      data: util.extend({}, itemData)
-    };
-    this.touchParams.itemProps = [props];
-
-    event.stopPropagation();
-  };
-
-  /**
-   * Drag selected items
-   * @param {Event} event
-   * @private
-   */
-  ItemSet.prototype._onDrag = function (event) {
-    if (this.touchParams.itemProps) {
-      event.stopPropagation();
-
-      var me = this;
-      var snap = this.options.snap || null;
-      var xOffset = this.body.dom.root.offsetLeft + this.body.domProps.left.width;
-      var scale = this.body.util.getScale();
-      var step = this.body.util.getStep();
-
-      // move
-      this.touchParams.itemProps.forEach(function (props) {
-        var newProps = {};
-        var current = me.body.util.toTime(event.center.x - xOffset);
-        var initial = me.body.util.toTime(props.initialX - xOffset);
-        var offset = current - initial;
-
-        var itemData = util.extend({}, props.item.data); // clone the data
-
-        if (me.options.editable.updateTime) {
-          if (props.dragLeft) {
-            // drag left side of a range item
-            if (itemData.start != undefined) {
-              var initialStart = util.convert(props.data.start, 'Date');
-              var start = new Date(initialStart.valueOf() + offset);
-              itemData.start = snap ? snap(start, scale, step) : start;
-            }
-          } else if (props.dragRight) {
-            // drag right side of a range item
-            if (itemData.end != undefined) {
-              var initialEnd = util.convert(props.data.end, 'Date');
-              var end = new Date(initialEnd.valueOf() + offset);
-              itemData.end = snap ? snap(end, scale, step) : end;
-            }
-          } else {
-            // drag both start and end
-            if (itemData.start != undefined) {
-              var initialStart = util.convert(props.data.start, 'Date').valueOf();
-              var start = new Date(initialStart + offset);
-
-              if (itemData.end != undefined) {
-                var initialEnd = util.convert(props.data.end, 'Date');
-                var duration = initialEnd.valueOf() - initialStart.valueOf();
-
-                itemData.start = snap ? snap(start, scale, step) : start;
-                itemData.end = new Date(itemData.start.valueOf() + duration);
-              } else {
-                itemData.start = snap ? snap(start, scale, step) : start;
-              }
-            }
-          }
-        }
-
-        if (me.options.editable.updateGroup && (!props.dragLeft && !props.dragRight)) {
-          if (itemData.group != undefined) {
-            // drag from one group to another
-            var group = me.groupFromTarget(event);
-            if (group) {
-              itemData.group = group.groupId;
-            }
-          }
-        }
-
-        // confirm moving the item
-        me.options.onMoving(itemData, function (itemData) {
-          if (itemData) {
-            props.item.setData(itemData);
-          }
-        });
-      });
-
-      this.stackDirty = true; // force re-stacking of all items next redraw
-      this.body.emitter.emit('change');
-    }
-  };
-
-  /**
-   * Move an item to another group
-   * @param {Item} item
-   * @param {String | Number} groupId
-   * @private
-   */
-  ItemSet.prototype._moveToGroup = function (item, groupId) {
-    var group = this.groups[groupId];
-    if (group && group.groupId != item.data.group) {
-      var oldGroup = item.parent;
-      oldGroup.remove(item);
-      oldGroup.order();
-      group.add(item);
-      group.order();
-
-      item.data.group = group.groupId;
-    }
-  };
-
-  /**
-   * End of dragging selected items
-   * @param {Event} event
-   * @private
-   */
-  ItemSet.prototype._onDragEnd = function (event) {
-    if (this.touchParams.itemProps) {
-      event.stopPropagation();
-
-      // prepare a change set for the changed items
-      var changes = [];
-      var me = this;
-      var dataset = this.itemsData.getDataSet();
-
-      var itemProps = this.touchParams.itemProps;
-      this.touchParams.itemProps = null;
-      itemProps.forEach(function (props) {
-        var id = props.item.id;
-        var exists = me.itemsData.get(id, me.itemOptions) != null;
-
-        if (!exists) {
-          // add a new item
-          me.options.onAdd(props.item.data, function (itemData) {
-            me._removeItem(props.item); // remove temporary item
-            if (itemData) {
-              me.itemsData.getDataSet().add(itemData);
-            }
-
-            // force re-stacking of all items next redraw
-            me.stackDirty = true;
-            me.body.emitter.emit('change');
-          });
-        } else {
-          // update existing item
-          var itemData = util.extend({}, props.item.data); // clone the data
-          me.options.onMove(itemData, function (itemData) {
-            if (itemData) {
-              // apply changes
-              itemData[dataset._fieldId] = id; // ensure the item contains its id (can be undefined)
-              changes.push(itemData);
-            } else {
-              // restore original values
-              props.item.setData(props.data);
-
-              me.stackDirty = true; // force re-stacking of all items next redraw
-              me.body.emitter.emit('change');
-            }
-          });
-        }
-      });
-
-      // apply the changes to the data (if there are changes)
-      if (changes.length) {
-        dataset.update(changes);
-      }
-    }
-  };
-
-  /**
-   * Handle selecting/deselecting an item when tapping it
-   * @param {Event} event
-   * @private
-   */
-  ItemSet.prototype._onSelectItem = function (event) {
-    if (!this.options.selectable) return;
-
-    var ctrlKey = event.srcEvent && event.srcEvent.ctrlKey;
-    var shiftKey = event.srcEvent && event.srcEvent.shiftKey;
-    if (ctrlKey || shiftKey) {
-      this._onMultiSelectItem(event);
-      return;
-    }
-
-    var oldSelection = this.getSelection();
-
-    var item = this.itemFromTarget(event);
-    var selection = item ? [item.id] : [];
-    this.setSelection(selection);
-
-    var newSelection = this.getSelection();
-
-    // emit a select event,
-    // except when old selection is empty and new selection is still empty
-    if (newSelection.length > 0 || oldSelection.length > 0) {
-      this.body.emitter.emit('select', {
-        items: newSelection
-      });
-    }
-  };
-
-  /**
-   * Handle creation and updates of an item on double tap
-   * @param event
-   * @private
-   */
-  ItemSet.prototype._onAddItem = function (event) {
-    if (!this.options.selectable) return;
-    if (!this.options.editable.add) return;
-
-    var me = this;
-    var snap = this.options.snap || null;
-    var item = this.itemFromTarget(event);
-
-    event.stopPropagation();
-
-    if (item) {
-      // update item
-
-      // execute async handler to update the item (or cancel it)
-      var itemData = me.itemsData.get(item.id); // get a clone of the data from the dataset
-      this.options.onUpdate(itemData, function (itemData) {
-        if (itemData) {
-          me.itemsData.getDataSet().update(itemData);
-        }
-      });
-    } else {
-      // add item
-      var xAbs = util.getAbsoluteLeft(this.dom.frame);
-      var x = event.center.x - xAbs;
-      var start = this.body.util.toTime(x);
-      var scale = this.body.util.getScale();
-      var step = this.body.util.getStep();
-
-      var newItem = {
-        start: snap ? snap(start, scale, step) : start,
-        content: 'new item'
-      };
-
-      // when default type is a range, add a default end date to the new item
-      if (this.options.type === 'range') {
-        var end = this.body.util.toTime(x + this.props.width / 5);
-        newItem.end = snap ? snap(end, scale, step) : end;
-      }
-
-      newItem[this.itemsData._fieldId] = util.randomUUID();
-
-      var group = this.groupFromTarget(event);
-      if (group) {
-        newItem.group = group.groupId;
-      }
-
-      // execute async handler to customize (or cancel) adding an item
-      this.options.onAdd(newItem, function (item) {
-        if (item) {
-          me.itemsData.getDataSet().add(item);
-          // TODO: need to trigger a redraw?
-        }
-      });
-    }
-  };
-
-  /**
-   * Handle selecting/deselecting multiple items when holding an item
-   * @param {Event} event
-   * @private
-   */
-  ItemSet.prototype._onMultiSelectItem = function (event) {
-    if (!this.options.selectable) return;
-
-    var item = this.itemFromTarget(event);
-
-    if (item) {
-      // multi select items (if allowed)
-
-      var selection = this.options.multiselect ? this.getSelection() // take current selection
-      : []; // deselect current selection
-
-      var shiftKey = event.srcEvent && event.srcEvent.shiftKey || false;
-
-      if (shiftKey && this.options.multiselect) {
-        // select all items between the old selection and the tapped item
-
-        // determine the selection range
-        selection.push(item.id);
-        var range = ItemSet._getItemRange(this.itemsData.get(selection, this.itemOptions));
-
-        // select all items within the selection range
-        selection = [];
-        for (var id in this.items) {
-          if (this.items.hasOwnProperty(id)) {
-            var _item = this.items[id];
-            var start = _item.data.start;
-            var end = _item.data.end !== undefined ? _item.data.end : start;
-
-            if (start >= range.min && end <= range.max && !(_item instanceof BackgroundItem)) {
-              selection.push(_item.id); // do not use id but item.id, id itself is stringified
-            }
-          }
-        }
-      } else {
-        // add/remove this item from the current selection
-        var index = selection.indexOf(item.id);
-        if (index == -1) {
-          // item is not yet selected -> select it
-          selection.push(item.id);
-        } else {
-          // item is already selected -> deselect it
-          selection.splice(index, 1);
-        }
-      }
-
-      this.setSelection(selection);
-
-      this.body.emitter.emit('select', {
-        items: this.getSelection()
-      });
-    }
-  };
-
-  /**
-   * Calculate the time range of a list of items
-   * @param {Array.<Object>} itemsData
-   * @return {{min: Date, max: Date}} Returns the range of the provided items
-   * @private
-   */
-  ItemSet._getItemRange = function (itemsData) {
-    var max = null;
-    var min = null;
-
-    itemsData.forEach(function (data) {
-      if (min == null || data.start < min) {
-        min = data.start;
-      }
-
-      if (data.end != undefined) {
-        if (max == null || data.end > max) {
-          max = data.end;
-        }
-      } else {
-        if (max == null || data.start > max) {
-          max = data.start;
-        }
-      }
-    });
-
-    return {
-      min: min,
-      max: max
-    };
-  };
-
-  /**
-   * Find an item from an event target:
-   * searches for the attribute 'timeline-item' in the event target's element tree
-   * @param {Event} event
-   * @return {Item | null} item
-   */
-  ItemSet.prototype.itemFromTarget = function (event) {
-    var target = event.target;
-    while (target) {
-      if (target.hasOwnProperty('timeline-item')) {
-        return target['timeline-item'];
-      }
-      target = target.parentNode;
-    }
-
-    return null;
-  };
-
-  /**
-   * Find the Group from an event target:
-   * searches for the attribute 'timeline-group' in the event target's element tree
-   * @param {Event} event
-   * @return {Group | null} group
-   */
-  ItemSet.prototype.groupFromTarget = function (event) {
-    var clientY = event.center ? event.center.y : event.clientY;
-    for (var i = 0; i < this.groupIds.length; i++) {
-      var groupId = this.groupIds[i];
-      var group = this.groups[groupId];
-      var foreground = group.dom.foreground;
-      var top = util.getAbsoluteTop(foreground);
-      if (clientY > top && clientY < top + foreground.offsetHeight) {
-        return group;
-      }
-
-      if (this.options.orientation.item === 'top') {
-        if (i === this.groupIds.length - 1 && clientY > top) {
-          return group;
-        }
-      } else {
-        if (i === 0 && clientY < top + foreground.offset) {
-          return group;
-        }
-      }
-    }
-
-    return null;
-  };
-
-  /**
-   * Find the ItemSet from an event target:
-   * searches for the attribute 'timeline-itemset' in the event target's element tree
-   * @param {Event} event
-   * @return {ItemSet | null} item
-   */
-  ItemSet.itemSetFromTarget = function (event) {
-    var target = event.target;
-    while (target) {
-      if (target.hasOwnProperty('timeline-itemset')) {
-        return target['timeline-itemset'];
-      }
-      target = target.parentNode;
-    }
-
-    return null;
-  };
-
-  module.exports = ItemSet;
-
-/***/ },
-/* 40 */
-/***/ function(module, exports, __webpack_require__) {
-
-  'use strict';
-
-  var util = __webpack_require__(14);
-  var stack = __webpack_require__(41);
-  var RangeItem = __webpack_require__(42);
+  var util = __webpack_require__(2);
+  var stack = __webpack_require__(42);
+  var RangeItem = __webpack_require__(43);
 
   /**
    * @constructor Group
@@ -21915,7 +22672,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = Group;
 
 /***/ },
-/* 41 */
+/* 42 */
 /***/ function(module, exports, __webpack_require__) {
 
   // Utility functions for ordering and stacking of items
@@ -22039,13 +22796,13 @@ return /******/ (function(modules) { // webpackBootstrap
   };
 
 /***/ },
-/* 42 */
+/* 43 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
 
-  var Hammer = __webpack_require__(10);
-  var Item = __webpack_require__(9);
+  var Hammer = __webpack_require__(13);
+  var Item = __webpack_require__(11);
 
   /**
    * @constructor RangeItem
@@ -22333,14 +23090,14 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = RangeItem;
 
 /***/ },
-/* 43 */
+/* 44 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
 
-  var moment = __webpack_require__(15);
-  var DateUtil = __webpack_require__(37);
-  var util = __webpack_require__(14);
+  var moment = __webpack_require__(17);
+  var DateUtil = __webpack_require__(39);
+  var util = __webpack_require__(2);
 
   /**
    * @constructor  TimeStep
@@ -23023,13 +23780,13 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = TimeStep;
 
 /***/ },
-/* 44 */
+/* 45 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
 
-  var util = __webpack_require__(14);
-  var Group = __webpack_require__(40);
+  var util = __webpack_require__(2);
+  var Group = __webpack_require__(41);
 
   /**
    * @constructor BackgroundGroup
@@ -23087,12 +23844,12 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = BackgroundGroup;
 
 /***/ },
-/* 45 */
+/* 46 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
 
-  var Item = __webpack_require__(9);
+  var Item = __webpack_require__(11);
 
   /**
    * @constructor PointItem
@@ -23272,15 +24029,15 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = PointItem;
 
 /***/ },
-/* 46 */
+/* 47 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
 
-  var Hammer = __webpack_require__(10);
-  var Item = __webpack_require__(9);
-  var BackgroundGroup = __webpack_require__(44);
-  var RangeItem = __webpack_require__(42);
+  var Hammer = __webpack_require__(13);
+  var Item = __webpack_require__(11);
+  var BackgroundGroup = __webpack_require__(45);
+  var RangeItem = __webpack_require__(43);
 
   /**
    * @constructor BackgroundItem
@@ -23493,16 +24250,16 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = BackgroundItem;
 
 /***/ },
-/* 47 */
+/* 48 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
 
-  var util = __webpack_require__(14);
-  var Component = __webpack_require__(33);
-  var TimeStep = __webpack_require__(43);
-  var DateUtil = __webpack_require__(37);
-  var moment = __webpack_require__(15);
+  var util = __webpack_require__(2);
+  var Component = __webpack_require__(35);
+  var TimeStep = __webpack_require__(44);
+  var DateUtil = __webpack_require__(39);
+  var moment = __webpack_require__(17);
 
   /**
    * A horizontal time axis
@@ -23933,15 +24690,15 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = TimeAxis;
 
 /***/ },
-/* 48 */
+/* 49 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
 
-  var keycharm = __webpack_require__(49);
-  var Emitter = __webpack_require__(25);
-  var Hammer = __webpack_require__(10);
-  var util = __webpack_require__(14);
+  var keycharm = __webpack_require__(50);
+  var Emitter = __webpack_require__(27);
+  var Hammer = __webpack_require__(13);
+  var util = __webpack_require__(2);
 
   /**
    * Turn an element into an clickToUse element.
@@ -24086,7 +24843,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = Activator;
 
 /***/ },
-/* 49 */
+/* 50 */
 /***/ function(module, exports, __webpack_require__) {
 
   var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;"use strict";
@@ -24285,16 +25042,16 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 50 */
+/* 51 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
 
-  var Hammer = __webpack_require__(10);
-  var util = __webpack_require__(14);
-  var Component = __webpack_require__(33);
-  var moment = __webpack_require__(15);
-  var locales = __webpack_require__(34);
+  var Hammer = __webpack_require__(13);
+  var util = __webpack_require__(2);
+  var Component = __webpack_require__(35);
+  var moment = __webpack_require__(17);
+  var locales = __webpack_require__(36);
 
   /**
    * A custom time bar
@@ -24524,7 +25281,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = CustomTime;
 
 /***/ },
-/* 51 */
+/* 52 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -24539,11 +25296,11 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
 
-  var _ColorPicker = __webpack_require__(52);
+  var _ColorPicker = __webpack_require__(53);
 
   var _ColorPicker2 = _interopRequireDefault(_ColorPicker);
 
-  var util = __webpack_require__(14);
+  var util = __webpack_require__(2);
 
   /**
    * The way this works is for all properties of this.possible options, you can supply the property name in any form to list the options.
@@ -25201,7 +25958,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 52 */
+/* 53 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -25214,9 +25971,9 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
 
-  var Hammer = __webpack_require__(10);
-  var hammerUtil = __webpack_require__(36);
-  var util = __webpack_require__(14);
+  var Hammer = __webpack_require__(13);
+  var hammerUtil = __webpack_require__(38);
+  var util = __webpack_require__(2);
 
   var ColorPicker = (function () {
     function ColorPicker() {
@@ -25781,7 +26538,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 53 */
+/* 54 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -25794,7 +26551,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
 
-  var util = __webpack_require__(14);
+  var util = __webpack_require__(2);
 
   var errorFound = false;
   var allOptions = undefined;
@@ -26100,7 +26857,7 @@ return /******/ (function(modules) { // webpackBootstrap
   // item is a function, which is allowed
 
 /***/ },
-/* 54 */
+/* 55 */
 /***/ function(module, exports, __webpack_require__) {
 
   /**
@@ -26317,28 +27074,28 @@ return /******/ (function(modules) { // webpackBootstrap
   exports.configureOptions = configureOptions;
 
 /***/ },
-/* 55 */
+/* 56 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
 
-  var Emitter = __webpack_require__(25);
-  var Hammer = __webpack_require__(10);
-  var util = __webpack_require__(14);
-  var DataSet = __webpack_require__(20);
-  var DataView = __webpack_require__(22);
-  var Range = __webpack_require__(35);
-  var Core = __webpack_require__(38);
-  var TimeAxis = __webpack_require__(47);
-  var CurrentTime = __webpack_require__(32);
-  var CustomTime = __webpack_require__(50);
-  var LineGraph = __webpack_require__(56);
+  var Emitter = __webpack_require__(27);
+  var Hammer = __webpack_require__(13);
+  var util = __webpack_require__(2);
+  var DataSet = __webpack_require__(22);
+  var DataView = __webpack_require__(24);
+  var Range = __webpack_require__(37);
+  var Core = __webpack_require__(40);
+  var TimeAxis = __webpack_require__(48);
+  var CurrentTime = __webpack_require__(34);
+  var CustomTime = __webpack_require__(51);
+  var LineGraph = __webpack_require__(57);
 
-  var Configurator = __webpack_require__(51);
-  var Validator = __webpack_require__(53)['default'];
-  var printStyle = __webpack_require__(53).printStyle;
-  var allOptions = __webpack_require__(64).allOptions;
-  var configureOptions = __webpack_require__(64).configureOptions;
+  var Configurator = __webpack_require__(52);
+  var Validator = __webpack_require__(54)['default'];
+  var printStyle = __webpack_require__(54).printStyle;
+  var allOptions = __webpack_require__(65).allOptions;
+  var configureOptions = __webpack_require__(65).configureOptions;
 
   /**
    * Create a timeline visualization
@@ -26647,21 +27404,21 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = Graph2d;
 
 /***/ },
-/* 56 */
+/* 57 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
 
-  var util = __webpack_require__(14);
-  var DOMutil = __webpack_require__(19);
-  var DataSet = __webpack_require__(20);
-  var DataView = __webpack_require__(22);
-  var Component = __webpack_require__(33);
-  var DataAxis = __webpack_require__(57);
-  var GraphGroup = __webpack_require__(59);
-  var Legend = __webpack_require__(63);
-  var BarFunctions = __webpack_require__(62);
-  var LineFunctions = __webpack_require__(60);
+  var util = __webpack_require__(2);
+  var DOMutil = __webpack_require__(21);
+  var DataSet = __webpack_require__(22);
+  var DataView = __webpack_require__(24);
+  var Component = __webpack_require__(35);
+  var DataAxis = __webpack_require__(58);
+  var GraphGroup = __webpack_require__(60);
+  var Legend = __webpack_require__(64);
+  var BarFunctions = __webpack_require__(63);
+  var LineFunctions = __webpack_require__(61);
 
   var UNGROUPED = '__ungrouped__'; // reserved group id for ungrouped items
 
@@ -27623,15 +28380,15 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = LineGraph;
 
 /***/ },
-/* 57 */
+/* 58 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
 
-  var util = __webpack_require__(14);
-  var DOMutil = __webpack_require__(19);
-  var Component = __webpack_require__(33);
-  var DataStep = __webpack_require__(58);
+  var util = __webpack_require__(2);
+  var DOMutil = __webpack_require__(21);
+  var Component = __webpack_require__(35);
+  var DataStep = __webpack_require__(59);
 
   /**
    * A horizontal time axis
@@ -28227,7 +28984,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = DataAxis;
 
 /***/ },
-/* 58 */
+/* 59 */
 /***/ function(module, exports, __webpack_require__) {
 
   /**
@@ -28454,16 +29211,16 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = DataStep;
 
 /***/ },
-/* 59 */
+/* 60 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
 
-  var util = __webpack_require__(14);
-  var DOMutil = __webpack_require__(19);
-  var Line = __webpack_require__(60);
-  var Bar = __webpack_require__(62);
-  var Points = __webpack_require__(61);
+  var util = __webpack_require__(2);
+  var DOMutil = __webpack_require__(21);
+  var Line = __webpack_require__(61);
+  var Bar = __webpack_require__(63);
+  var Points = __webpack_require__(62);
 
   /**
    * /**
@@ -28648,13 +29405,13 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = GraphGroup;
 
 /***/ },
-/* 60 */
+/* 61 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
 
-  var DOMutil = __webpack_require__(19);
-  var Points = __webpack_require__(61);
+  var DOMutil = __webpack_require__(21);
+  var Points = __webpack_require__(62);
 
   function Line(groupId, options) {
     this.groupId = groupId;
@@ -28943,12 +29700,12 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = Line;
 
 /***/ },
-/* 61 */
+/* 62 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
 
-  var DOMutil = __webpack_require__(19);
+  var DOMutil = __webpack_require__(21);
 
   function Points(groupId, options) {
     this.groupId = groupId;
@@ -28990,13 +29747,13 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = Points;
 
 /***/ },
-/* 62 */
+/* 63 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
 
-  var DOMutil = __webpack_require__(19);
-  var Points = __webpack_require__(61);
+  var DOMutil = __webpack_require__(21);
+  var Points = __webpack_require__(62);
 
   function Bargraph(groupId, options) {
     this.groupId = groupId;
@@ -29238,14 +29995,14 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = Bargraph;
 
 /***/ },
-/* 63 */
+/* 64 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
 
-  var util = __webpack_require__(14);
-  var DOMutil = __webpack_require__(19);
-  var Component = __webpack_require__(33);
+  var util = __webpack_require__(2);
+  var DOMutil = __webpack_require__(21);
+  var Component = __webpack_require__(35);
 
   /**
    * Legend for Graph2d
@@ -29452,7 +30209,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = Legend;
 
 /***/ },
-/* 64 */
+/* 65 */
 /***/ function(module, exports, __webpack_require__) {
 
   /**
@@ -29723,7 +30480,7 @@ return /******/ (function(modules) { // webpackBootstrap
   exports.configureOptions = configureOptions;
 
 /***/ },
-/* 65 */
+/* 66 */
 /***/ function(module, exports, __webpack_require__) {
 
   // Load custom shapes into CanvasRenderingContext2D
@@ -29731,39 +30488,39 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
 
-  var _modulesGroups = __webpack_require__(66);
+  var _modulesGroups = __webpack_require__(67);
 
   var _modulesGroups2 = _interopRequireDefault(_modulesGroups);
 
-  var _modulesNodesHandler = __webpack_require__(7);
+  var _modulesNodesHandler = __webpack_require__(4);
 
   var _modulesNodesHandler2 = _interopRequireDefault(_modulesNodesHandler);
 
-  var _modulesEdgesHandler = __webpack_require__(85);
+  var _modulesEdgesHandler = __webpack_require__(86);
 
   var _modulesEdgesHandler2 = _interopRequireDefault(_modulesEdgesHandler);
 
-  var _modulesPhysicsEngine = __webpack_require__(91);
+  var _modulesPhysicsEngine = __webpack_require__(92);
 
   var _modulesPhysicsEngine2 = _interopRequireDefault(_modulesPhysicsEngine);
 
-  var _modulesClustering = __webpack_require__(99);
+  var _modulesClustering = __webpack_require__(100);
 
   var _modulesClustering2 = _interopRequireDefault(_modulesClustering);
 
-  var _modulesCanvasRenderer = __webpack_require__(101);
+  var _modulesCanvasRenderer = __webpack_require__(102);
 
   var _modulesCanvasRenderer2 = _interopRequireDefault(_modulesCanvasRenderer);
 
-  var _modulesCanvas = __webpack_require__(102);
+  var _modulesCanvas = __webpack_require__(103);
 
   var _modulesCanvas2 = _interopRequireDefault(_modulesCanvas);
 
-  var _modulesView = __webpack_require__(103);
+  var _modulesView = __webpack_require__(104);
 
   var _modulesView2 = _interopRequireDefault(_modulesView);
 
-  var _modulesInteractionHandler = __webpack_require__(104);
+  var _modulesInteractionHandler = __webpack_require__(12);
 
   var _modulesInteractionHandler2 = _interopRequireDefault(_modulesInteractionHandler);
 
@@ -29771,19 +30528,19 @@ return /******/ (function(modules) { // webpackBootstrap
 
   var _modulesSelectionHandler2 = _interopRequireDefault(_modulesSelectionHandler);
 
-  var _modulesLayoutEngine = __webpack_require__(8);
+  var _modulesLayoutEngine = __webpack_require__(6);
 
   var _modulesLayoutEngine2 = _interopRequireDefault(_modulesLayoutEngine);
 
-  var _modulesManipulationSystem = __webpack_require__(3);
+  var _modulesManipulationSystem = __webpack_require__(7);
 
   var _modulesManipulationSystem2 = _interopRequireDefault(_modulesManipulationSystem);
 
-  var _sharedConfigurator = __webpack_require__(51);
+  var _sharedConfigurator = __webpack_require__(52);
 
   var _sharedConfigurator2 = _interopRequireDefault(_sharedConfigurator);
 
-  var _sharedValidator = __webpack_require__(53);
+  var _sharedValidator = __webpack_require__(54);
 
   var _sharedValidator2 = _interopRequireDefault(_sharedValidator);
 
@@ -29791,15 +30548,15 @@ return /******/ (function(modules) { // webpackBootstrap
 
   __webpack_require__(109);
 
-  var Emitter = __webpack_require__(25);
-  var Hammer = __webpack_require__(10);
-  var util = __webpack_require__(14);
-  var DataSet = __webpack_require__(20);
-  var DataView = __webpack_require__(22);
+  var Emitter = __webpack_require__(27);
+  var Hammer = __webpack_require__(13);
+  var util = __webpack_require__(2);
+  var DataSet = __webpack_require__(22);
+  var DataView = __webpack_require__(24);
   var dotparser = __webpack_require__(110);
   var gephiParser = __webpack_require__(111);
   var Images = __webpack_require__(112);
-  var Activator = __webpack_require__(48);
+  var Activator = __webpack_require__(49);
   var locales = __webpack_require__(113);
 
   /**
@@ -30337,7 +31094,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = Network;
 
 /***/ },
-/* 66 */
+/* 67 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
@@ -30350,7 +31107,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
-  var util = __webpack_require__(14);
+  var util = __webpack_require__(2);
 
   /**
    * @class Groups
@@ -30479,7 +31236,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports["default"];
 
 /***/ },
-/* 67 */
+/* 68 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -30494,7 +31251,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
 
-  var util = __webpack_require__(14);
+  var util = __webpack_require__(2);
 
   var Label = (function () {
     function Label(body, options) {
@@ -30794,7 +31551,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 68 */
+/* 69 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -30813,7 +31570,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; }
 
-  var _utilNodeBase = __webpack_require__(69);
+  var _utilNodeBase = __webpack_require__(70);
 
   var _utilNodeBase2 = _interopRequireDefault(_utilNodeBase);
 
@@ -30899,7 +31656,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 69 */
+/* 70 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -30967,7 +31724,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 70 */
+/* 71 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -30986,7 +31743,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; }
 
-  var _utilCircleImageBase = __webpack_require__(71);
+  var _utilCircleImageBase = __webpack_require__(72);
 
   var _utilCircleImageBase2 = _interopRequireDefault(_utilCircleImageBase);
 
@@ -31057,7 +31814,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 71 */
+/* 72 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -31076,7 +31833,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; }
 
-  var _utilNodeBase = __webpack_require__(69);
+  var _utilNodeBase = __webpack_require__(70);
 
   var _utilNodeBase2 = _interopRequireDefault(_utilNodeBase);
 
@@ -31206,7 +31963,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 72 */
+/* 73 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -31225,7 +31982,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; }
 
-  var _utilCircleImageBase = __webpack_require__(71);
+  var _utilCircleImageBase = __webpack_require__(72);
 
   var _utilCircleImageBase2 = _interopRequireDefault(_utilCircleImageBase);
 
@@ -31311,7 +32068,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 73 */
+/* 74 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -31330,7 +32087,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; }
 
-  var _utilNodeBase = __webpack_require__(69);
+  var _utilNodeBase = __webpack_require__(70);
 
   var _utilNodeBase2 = _interopRequireDefault(_utilNodeBase);
 
@@ -31416,7 +32173,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 74 */
+/* 75 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -31435,7 +32192,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; }
 
-  var _utilShapeBase = __webpack_require__(75);
+  var _utilShapeBase = __webpack_require__(76);
 
   var _utilShapeBase2 = _interopRequireDefault(_utilShapeBase);
 
@@ -31472,7 +32229,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 75 */
+/* 76 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -31491,7 +32248,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; }
 
-  var _utilNodeBase = __webpack_require__(69);
+  var _utilNodeBase = __webpack_require__(70);
 
   var _utilNodeBase2 = _interopRequireDefault(_utilNodeBase);
 
@@ -31571,7 +32328,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 76 */
+/* 77 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -31590,7 +32347,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; }
 
-  var _utilShapeBase = __webpack_require__(75);
+  var _utilShapeBase = __webpack_require__(76);
 
   var _utilShapeBase2 = _interopRequireDefault(_utilShapeBase);
 
@@ -31627,7 +32384,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 77 */
+/* 78 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -31646,7 +32403,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; }
 
-  var _utilNodeBase = __webpack_require__(69);
+  var _utilNodeBase = __webpack_require__(70);
 
   var _utilNodeBase2 = _interopRequireDefault(_utilNodeBase);
 
@@ -31734,7 +32491,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 78 */
+/* 79 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -31753,7 +32510,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; }
 
-  var _utilNodeBase = __webpack_require__(69);
+  var _utilNodeBase = __webpack_require__(70);
 
   var _utilNodeBase2 = _interopRequireDefault(_utilNodeBase);
 
@@ -31850,7 +32607,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 79 */
+/* 80 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -31869,7 +32626,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; }
 
-  var _utilCircleImageBase = __webpack_require__(71);
+  var _utilCircleImageBase = __webpack_require__(72);
 
   var _utilCircleImageBase2 = _interopRequireDefault(_utilCircleImageBase);
 
@@ -31937,7 +32694,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 80 */
+/* 81 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -31956,7 +32713,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; }
 
-  var _utilShapeBase = __webpack_require__(75);
+  var _utilShapeBase = __webpack_require__(76);
 
   var _utilShapeBase2 = _interopRequireDefault(_utilShapeBase);
 
@@ -31994,7 +32751,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 81 */
+/* 82 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -32013,7 +32770,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; }
 
-  var _utilShapeBase = __webpack_require__(75);
+  var _utilShapeBase = __webpack_require__(76);
 
   var _utilShapeBase2 = _interopRequireDefault(_utilShapeBase);
 
@@ -32050,7 +32807,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 82 */
+/* 83 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -32069,7 +32826,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; }
 
-  var _utilNodeBase = __webpack_require__(69);
+  var _utilNodeBase = __webpack_require__(70);
 
   var _utilNodeBase2 = _interopRequireDefault(_utilNodeBase);
 
@@ -32135,7 +32892,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 83 */
+/* 84 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -32154,7 +32911,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; }
 
-  var _utilShapeBase = __webpack_require__(75);
+  var _utilShapeBase = __webpack_require__(76);
 
   var _utilShapeBase2 = _interopRequireDefault(_utilShapeBase);
 
@@ -32191,7 +32948,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 84 */
+/* 85 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -32210,7 +32967,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; }
 
-  var _utilShapeBase = __webpack_require__(75);
+  var _utilShapeBase = __webpack_require__(76);
 
   var _utilShapeBase2 = _interopRequireDefault(_utilShapeBase);
 
@@ -32247,7 +33004,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 85 */
+/* 86 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -32262,17 +33019,17 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
 
-  var _componentsEdge = __webpack_require__(4);
+  var _componentsEdge = __webpack_require__(9);
 
   var _componentsEdge2 = _interopRequireDefault(_componentsEdge);
 
-  var _componentsSharedLabel = __webpack_require__(67);
+  var _componentsSharedLabel = __webpack_require__(68);
 
   var _componentsSharedLabel2 = _interopRequireDefault(_componentsSharedLabel);
 
-  var util = __webpack_require__(14);
-  var DataSet = __webpack_require__(20);
-  var DataView = __webpack_require__(22);
+  var util = __webpack_require__(2);
+  var DataSet = __webpack_require__(22);
+  var DataView = __webpack_require__(24);
 
   var EdgesHandler = (function () {
     function EdgesHandler(body, images, groups) {
@@ -32684,7 +33441,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 86 */
+/* 87 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -32703,7 +33460,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; }
 
-  var _utilBezierEdgeBase = __webpack_require__(87);
+  var _utilBezierEdgeBase = __webpack_require__(88);
 
   var _utilBezierEdgeBase2 = _interopRequireDefault(_utilBezierEdgeBase);
 
@@ -32848,7 +33605,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 87 */
+/* 88 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -32867,7 +33624,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; }
 
-  var _EdgeBase2 = __webpack_require__(88);
+  var _EdgeBase2 = __webpack_require__(89);
 
   var _EdgeBase3 = _interopRequireDefault(_EdgeBase2);
 
@@ -32995,7 +33752,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 88 */
+/* 89 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -33010,7 +33767,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
 
-  var util = __webpack_require__(14);
+  var util = __webpack_require__(2);
 
   var EdgeBase = (function () {
     function EdgeBase(options, body, labelModule) {
@@ -33589,7 +34346,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 89 */
+/* 90 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -33608,7 +34365,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; }
 
-  var _utilBezierEdgeBase = __webpack_require__(87);
+  var _utilBezierEdgeBase = __webpack_require__(88);
 
   var _utilBezierEdgeBase2 = _interopRequireDefault(_utilBezierEdgeBase);
 
@@ -33848,7 +34605,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 90 */
+/* 91 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -33867,7 +34624,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; }
 
-  var _utilEdgeBase = __webpack_require__(88);
+  var _utilEdgeBase = __webpack_require__(89);
 
   var _utilEdgeBase2 = _interopRequireDefault(_utilEdgeBase);
 
@@ -33953,7 +34710,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 91 */
+/* 92 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -33968,39 +34725,39 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
 
-  var _componentsPhysicsBarnesHutSolver = __webpack_require__(5);
+  var _componentsPhysicsBarnesHutSolver = __webpack_require__(3);
 
   var _componentsPhysicsBarnesHutSolver2 = _interopRequireDefault(_componentsPhysicsBarnesHutSolver);
 
-  var _componentsPhysicsRepulsionSolver = __webpack_require__(92);
+  var _componentsPhysicsRepulsionSolver = __webpack_require__(93);
 
   var _componentsPhysicsRepulsionSolver2 = _interopRequireDefault(_componentsPhysicsRepulsionSolver);
 
-  var _componentsPhysicsHierarchicalRepulsionSolver = __webpack_require__(93);
+  var _componentsPhysicsHierarchicalRepulsionSolver = __webpack_require__(94);
 
   var _componentsPhysicsHierarchicalRepulsionSolver2 = _interopRequireDefault(_componentsPhysicsHierarchicalRepulsionSolver);
 
-  var _componentsPhysicsSpringSolver = __webpack_require__(94);
+  var _componentsPhysicsSpringSolver = __webpack_require__(95);
 
   var _componentsPhysicsSpringSolver2 = _interopRequireDefault(_componentsPhysicsSpringSolver);
 
-  var _componentsPhysicsHierarchicalSpringSolver = __webpack_require__(95);
+  var _componentsPhysicsHierarchicalSpringSolver = __webpack_require__(96);
 
   var _componentsPhysicsHierarchicalSpringSolver2 = _interopRequireDefault(_componentsPhysicsHierarchicalSpringSolver);
 
-  var _componentsPhysicsCentralGravitySolver = __webpack_require__(96);
+  var _componentsPhysicsCentralGravitySolver = __webpack_require__(97);
 
   var _componentsPhysicsCentralGravitySolver2 = _interopRequireDefault(_componentsPhysicsCentralGravitySolver);
 
-  var _componentsPhysicsFA2BasedRepulsionSolver = __webpack_require__(97);
+  var _componentsPhysicsFA2BasedRepulsionSolver = __webpack_require__(98);
 
   var _componentsPhysicsFA2BasedRepulsionSolver2 = _interopRequireDefault(_componentsPhysicsFA2BasedRepulsionSolver);
 
-  var _componentsPhysicsFA2BasedCentralGravitySolver = __webpack_require__(98);
+  var _componentsPhysicsFA2BasedCentralGravitySolver = __webpack_require__(99);
 
   var _componentsPhysicsFA2BasedCentralGravitySolver2 = _interopRequireDefault(_componentsPhysicsFA2BasedCentralGravitySolver);
 
-  var util = __webpack_require__(14);
+  var util = __webpack_require__(2);
 
   var PhysicsEngine = (function () {
     function PhysicsEngine(body) {
@@ -34576,7 +35333,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 92 */
+/* 93 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
@@ -34671,7 +35428,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports["default"];
 
 /***/ },
-/* 93 */
+/* 94 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
@@ -34762,7 +35519,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports["default"];
 
 /***/ },
-/* 94 */
+/* 95 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
@@ -34872,7 +35629,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports["default"];
 
 /***/ },
-/* 95 */
+/* 96 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
@@ -34993,7 +35750,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports["default"];
 
 /***/ },
-/* 96 */
+/* 97 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
@@ -35062,7 +35819,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports["default"];
 
 /***/ },
-/* 97 */
+/* 98 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
@@ -35081,7 +35838,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; }
 
-  var _BarnesHutSolver2 = __webpack_require__(5);
+  var _BarnesHutSolver2 = __webpack_require__(3);
 
   var _BarnesHutSolver3 = _interopRequireDefault(_BarnesHutSolver2);
 
@@ -35136,7 +35893,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports["default"];
 
 /***/ },
-/* 98 */
+/* 99 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
@@ -35155,7 +35912,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; }
 
-  var _CentralGravitySolver2 = __webpack_require__(96);
+  var _CentralGravitySolver2 = __webpack_require__(97);
 
   var _CentralGravitySolver3 = _interopRequireDefault(_CentralGravitySolver2);
 
@@ -35192,7 +35949,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports["default"];
 
 /***/ },
-/* 99 */
+/* 100 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -35207,11 +35964,11 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
 
-  var _componentsNodesCluster = __webpack_require__(100);
+  var _componentsNodesCluster = __webpack_require__(101);
 
   var _componentsNodesCluster2 = _interopRequireDefault(_componentsNodesCluster);
 
-  var util = __webpack_require__(14);
+  var util = __webpack_require__(2);
 
   var ClusterEngine = (function () {
     function ClusterEngine(body) {
@@ -35917,7 +36674,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 100 */
+/* 101 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -35934,7 +36691,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; }
 
-  var _Node2 = __webpack_require__(2);
+  var _Node2 = __webpack_require__(8);
 
   var _Node3 = _interopRequireDefault(_Node2);
 
@@ -35962,7 +36719,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 101 */
+/* 102 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -35979,7 +36736,7 @@ return /******/ (function(modules) { // webpackBootstrap
     window.requestAnimationFrame = window.requestAnimationFrame || window.mozRequestAnimationFrame || window.webkitRequestAnimationFrame || window.msRequestAnimationFrame;
   }
 
-  var util = __webpack_require__(14);
+  var util = __webpack_require__(2);
 
   var CanvasRenderer = (function () {
     function CanvasRenderer(body, canvas) {
@@ -36342,7 +37099,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 102 */
+/* 103 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -36355,10 +37112,10 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
 
-  var Hammer = __webpack_require__(10);
-  var hammerUtil = __webpack_require__(36);
+  var Hammer = __webpack_require__(13);
+  var hammerUtil = __webpack_require__(38);
 
-  var util = __webpack_require__(14);
+  var util = __webpack_require__(2);
 
   /**
    * Create the main frame for the Network.
@@ -36710,7 +37467,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 103 */
+/* 104 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
@@ -36723,7 +37480,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
-  var util = __webpack_require__(14);
+  var util = __webpack_require__(2);
 
   var View = (function () {
     function View(body, canvas) {
@@ -37113,763 +37870,6 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports["default"];
 
 /***/ },
-/* 104 */
-/***/ function(module, exports, __webpack_require__) {
-
-  'use strict';
-
-  Object.defineProperty(exports, '__esModule', {
-    value: true
-  });
-
-  var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
-
-  function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
-
-  function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
-
-  var _componentsNavigationHandler = __webpack_require__(105);
-
-  var _componentsNavigationHandler2 = _interopRequireDefault(_componentsNavigationHandler);
-
-  var _componentsPopup = __webpack_require__(106);
-
-  var _componentsPopup2 = _interopRequireDefault(_componentsPopup);
-
-  var util = __webpack_require__(14);
-
-  var InteractionHandler = (function () {
-    function InteractionHandler(body, canvas, selectionHandler) {
-      _classCallCheck(this, InteractionHandler);
-
-      this.body = body;
-      this.canvas = canvas;
-      this.selectionHandler = selectionHandler;
-      this.navigationHandler = new _componentsNavigationHandler2['default'](body, canvas);
-
-      // bind the events from hammer to functions in this object
-      this.body.eventListeners.onTap = this.onTap.bind(this);
-      this.body.eventListeners.onTouch = this.onTouch.bind(this);
-      this.body.eventListeners.onDoubleTap = this.onDoubleTap.bind(this);
-      this.body.eventListeners.onHold = this.onHold.bind(this);
-      this.body.eventListeners.onDragStart = this.onDragStart.bind(this);
-      this.body.eventListeners.onDrag = this.onDrag.bind(this);
-      this.body.eventListeners.onDragEnd = this.onDragEnd.bind(this);
-      this.body.eventListeners.onMouseWheel = this.onMouseWheel.bind(this);
-      this.body.eventListeners.onPinch = this.onPinch.bind(this);
-      this.body.eventListeners.onMouseMove = this.onMouseMove.bind(this);
-      this.body.eventListeners.onRelease = this.onRelease.bind(this);
-      this.body.eventListeners.onContext = this.onContext.bind(this);
-
-      this.touchTime = 0;
-      this.drag = {};
-      this.pinch = {};
-      this.popup = undefined;
-      this.popupObj = undefined;
-      this.popupTimer = undefined;
-
-      this.body.functions.getPointer = this.getPointer.bind(this);
-
-      this.options = {};
-      this.defaultOptions = {
-        dragNodes: true,
-        dragView: true,
-        hover: false,
-        keyboard: {
-          enabled: false,
-          speed: { x: 10, y: 10, zoom: 0.02 },
-          bindToWindow: true
-        },
-        navigationButtons: false,
-        tooltipDelay: 300,
-        zoomView: true
-      };
-      util.extend(this.options, this.defaultOptions);
-
-      this.bindEventListeners();
-    }
-
-    _createClass(InteractionHandler, [{
-      key: 'bindEventListeners',
-      value: function bindEventListeners() {
-        var _this = this;
-
-        this.body.emitter.on('destroy', function () {
-          clearTimeout(_this.popupTimer);
-          delete _this.body.functions.getPointer;
-        });
-      }
-    }, {
-      key: 'setOptions',
-      value: function setOptions(options) {
-        if (options !== undefined) {
-          // extend all but the values in fields
-          var fields = ['hideEdgesOnDrag', 'hideNodesOnDrag', 'keyboard', 'multiselect', 'selectable', 'selectConnectedEdges'];
-          util.selectiveNotDeepExtend(fields, this.options, options);
-
-          // merge the keyboard options in.
-          util.mergeOptions(this.options, options, 'keyboard');
-
-          if (options.tooltip) {
-            util.extend(this.options.tooltip, options.tooltip);
-            if (options.tooltip.color) {
-              this.options.tooltip.color = util.parseColor(options.tooltip.color);
-            }
-          }
-        }
-
-        this.navigationHandler.setOptions(this.options);
-      }
-    }, {
-      key: 'getPointer',
-
-      /**
-       * Get the pointer location from a touch location
-       * @param {{x: Number, y: Number}} touch
-       * @return {{x: Number, y: Number}} pointer
-       * @private
-       */
-      value: function getPointer(touch) {
-        return {
-          x: touch.x - util.getAbsoluteLeft(this.canvas.frame.canvas),
-          y: touch.y - util.getAbsoluteTop(this.canvas.frame.canvas)
-        };
-      }
-    }, {
-      key: 'onTouch',
-
-      /**
-       * On start of a touch gesture, store the pointer
-       * @param event
-       * @private
-       */
-      value: function onTouch(event) {
-        if (new Date().valueOf() - this.touchTime > 50) {
-          this.drag.pointer = this.getPointer(event.center);
-          this.drag.pinched = false;
-          this.pinch.scale = this.body.view.scale;
-          // to avoid double fireing of this event because we have two hammer instances. (on canvas and on frame)
-          this.touchTime = new Date().valueOf();
-        }
-      }
-    }, {
-      key: 'onTap',
-
-      /**
-       * handle tap/click event: select/unselect a node
-       * @private
-       */
-      value: function onTap(event) {
-        var pointer = this.getPointer(event.center);
-        var multiselect = this.selectionHandler.options.multiselect && event.changedPointers[0].ctrlKey;
-
-        this.checkSelectionChanges(pointer, event, multiselect);
-        this.selectionHandler._generateClickEvent('click', event, pointer);
-      }
-    }, {
-      key: 'onDoubleTap',
-
-      /**
-       * handle doubletap event
-       * @private
-       */
-      value: function onDoubleTap(event) {
-        var pointer = this.getPointer(event.center);
-        this.selectionHandler._generateClickEvent('doubleClick', event, pointer);
-      }
-    }, {
-      key: 'onHold',
-
-      /**
-       * handle long tap event: multi select nodes
-       * @private
-       */
-      value: function onHold(event) {
-        var pointer = this.getPointer(event.center);
-        var multiselect = this.selectionHandler.options.multiselect;
-
-        this.checkSelectionChanges(pointer, event, multiselect);
-
-        this.selectionHandler._generateClickEvent('click', event, pointer);
-        this.selectionHandler._generateClickEvent('hold', event, pointer);
-      }
-    }, {
-      key: 'onRelease',
-
-      /**
-       * handle the release of the screen
-       *
-       * @private
-       */
-      value: function onRelease(event) {
-        if (new Date().valueOf() - this.touchTime > 10) {
-          var pointer = this.getPointer(event.center);
-          this.selectionHandler._generateClickEvent('release', event, pointer);
-          // to avoid double fireing of this event because we have two hammer instances. (on canvas and on frame)
-          this.touchTime = new Date().valueOf();
-        }
-      }
-    }, {
-      key: 'onContext',
-      value: function onContext(event) {
-        var pointer = this.getPointer({ x: event.clientX, y: event.clientY });
-        this.selectionHandler._generateClickEvent('oncontext', event, pointer);
-      }
-    }, {
-      key: 'checkSelectionChanges',
-
-      /**
-       *
-       * @param pointer
-       * @param add
-       */
-      value: function checkSelectionChanges(pointer, event) {
-        var add = arguments[2] === undefined ? false : arguments[2];
-
-        var previouslySelectedEdgeCount = this.selectionHandler._getSelectedEdgeCount();
-        var previouslySelectedNodeCount = this.selectionHandler._getSelectedNodeCount();
-        var previousSelection = this.selectionHandler.getSelection();
-        var selected = undefined;
-        if (add === true) {
-          selected = this.selectionHandler.selectAdditionalOnPoint(pointer);
-        } else {
-          selected = this.selectionHandler.selectOnPoint(pointer);
-        }
-        var selectedEdgesCount = this.selectionHandler._getSelectedEdgeCount();
-        var selectedNodesCount = this.selectionHandler._getSelectedNodeCount();
-        var currentSelection = this.selectionHandler.getSelection();
-
-        var _determineIfDifferent = this._determineIfDifferent(previousSelection, currentSelection);
-
-        var nodesChanges = _determineIfDifferent.nodesChanges;
-        var edgesChanges = _determineIfDifferent.edgesChanges;
-
-        if (selectedNodesCount - previouslySelectedNodeCount > 0) {
-          // node was selected
-          this.selectionHandler._generateClickEvent('selectNode', event, pointer);
-          selected = true;
-        } else if (selectedNodesCount - previouslySelectedNodeCount < 0) {
-          // node was deselected
-          this.selectionHandler._generateClickEvent('deselectNode', event, pointer, previousSelection);
-          selected = true;
-        } else if (selectedNodesCount === previouslySelectedNodeCount && nodesChanges === true) {
-          this.selectionHandler._generateClickEvent('deselectNode', event, pointer, previousSelection);
-          this.selectionHandler._generateClickEvent('selectNode', event, pointer);
-          selected = true;
-        }
-
-        if (selectedEdgesCount - previouslySelectedEdgeCount > 0) {
-          // edge was selected
-          this.selectionHandler._generateClickEvent('selectEdge', event, pointer);
-          selected = true;
-        } else if (selectedEdgesCount - previouslySelectedEdgeCount < 0) {
-          // edge was deselected
-          this.selectionHandler._generateClickEvent('deselectEdge', event, pointer, previousSelection);
-          selected = true;
-        } else if (selectedEdgesCount === previouslySelectedEdgeCount && edgesChanges === true) {
-          this.selectionHandler._generateClickEvent('deselectEdge', event, pointer, previousSelection);
-          this.selectionHandler._generateClickEvent('selectEdge', event, pointer);
-          selected = true;
-        }
-
-        if (selected === true) {
-          // select or unselect
-          this.selectionHandler._generateClickEvent('select', event, pointer);
-        }
-      }
-    }, {
-      key: '_determineIfDifferent',
-
-      /**
-       * This function checks if the nodes and edges previously selected have changed.
-       * @param previousSelection
-       * @param currentSelection
-       * @returns {{nodesChanges: boolean, edgesChanges: boolean}}
-       * @private
-       */
-      value: function _determineIfDifferent(previousSelection, currentSelection) {
-        var nodesChanges = false;
-        var edgesChanges = false;
-
-        for (var i = 0; i < previousSelection.nodes.length; i++) {
-          if (currentSelection.nodes.indexOf(previousSelection.nodes[i]) === -1) {
-            nodesChanges = true;
-          }
-        }
-        for (var i = 0; i < currentSelection.nodes.length; i++) {
-          if (previousSelection.nodes.indexOf(previousSelection.nodes[i]) === -1) {
-            nodesChanges = true;
-          }
-        }
-        for (var i = 0; i < previousSelection.edges.length; i++) {
-          if (currentSelection.edges.indexOf(previousSelection.edges[i]) === -1) {
-            edgesChanges = true;
-          }
-        }
-        for (var i = 0; i < currentSelection.edges.length; i++) {
-          if (previousSelection.edges.indexOf(previousSelection.edges[i]) === -1) {
-            edgesChanges = true;
-          }
-        }
-
-        return { nodesChanges: nodesChanges, edgesChanges: edgesChanges };
-      }
-    }, {
-      key: 'onDragStart',
-
-      /**
-       * This function is called by onDragStart.
-       * It is separated out because we can then overload it for the datamanipulation system.
-       *
-       * @private
-       */
-      value: function onDragStart(event) {
-        //in case the touch event was triggered on an external div, do the initial touch now.
-        if (this.drag.pointer === undefined) {
-          this.onTouch(event);
-        }
-
-        // note: drag.pointer is set in onTouch to get the initial touch location
-        var node = this.selectionHandler.getNodeAt(this.drag.pointer);
-
-        this.drag.dragging = true;
-        this.drag.selection = [];
-        this.drag.translation = util.extend({}, this.body.view.translation); // copy the object
-        this.drag.nodeId = undefined;
-
-        this.selectionHandler._generateClickEvent('dragStart', event, this.drag.pointer);
-
-        if (node !== undefined && this.options.dragNodes === true) {
-          this.drag.nodeId = node.id;
-          // select the clicked node if not yet selected
-          if (node.isSelected() === false) {
-            this.selectionHandler.unselectAll();
-            this.selectionHandler.selectObject(node);
-          }
-
-          var selection = this.selectionHandler.selectionObj.nodes;
-          // create an array with the selected nodes and their original location and status
-          for (var nodeId in selection) {
-            if (selection.hasOwnProperty(nodeId)) {
-              var object = selection[nodeId];
-              var s = {
-                id: object.id,
-                node: object,
-
-                // store original x, y, xFixed and yFixed, make the node temporarily Fixed
-                x: object.x,
-                y: object.y,
-                xFixed: object.options.fixed.x,
-                yFixed: object.options.fixed.y
-              };
-
-              object.options.fixed.x = true;
-              object.options.fixed.y = true;
-
-              this.drag.selection.push(s);
-            }
-          }
-        }
-      }
-    }, {
-      key: 'onDrag',
-
-      /**
-       * handle drag event
-       * @private
-       */
-      value: function onDrag(event) {
-        var _this2 = this;
-
-        if (this.drag.pinched === true) {
-          return;
-        }
-
-        // remove the focus on node if it is focussed on by the focusOnNode
-        this.body.emitter.emit('unlockNode');
-
-        var pointer = this.getPointer(event.center);
-
-        this.selectionHandler._generateClickEvent('dragging', event, pointer);
-
-        var selection = this.drag.selection;
-        if (selection && selection.length && this.options.dragNodes === true) {
-          (function () {
-            // calculate delta's and new location
-            var deltaX = pointer.x - _this2.drag.pointer.x;
-            var deltaY = pointer.y - _this2.drag.pointer.y;
-
-            // update position of all selected nodes
-            selection.forEach(function (selection) {
-              var node = selection.node;
-              // only move the node if it was not fixed initially
-              if (selection.xFixed === false) {
-                node.x = _this2.canvas._XconvertDOMtoCanvas(_this2.canvas._XconvertCanvasToDOM(selection.x) + deltaX);
-              }
-              // only move the node if it was not fixed initially
-              if (selection.yFixed === false) {
-                node.y = _this2.canvas._YconvertDOMtoCanvas(_this2.canvas._YconvertCanvasToDOM(selection.y) + deltaY);
-              }
-            });
-
-            // start the simulation of the physics
-            _this2.body.emitter.emit('startSimulation');
-          })();
-        } else {
-          // move the network
-          if (this.options.dragView === true) {
-            // if the drag was not started properly because the click started outside the network div, start it now.
-            if (this.drag.pointer === undefined) {
-              this._handleDragStart(event);
-              return;
-            }
-            var diffX = pointer.x - this.drag.pointer.x;
-            var diffY = pointer.y - this.drag.pointer.y;
-
-            this.body.view.translation = { x: this.drag.translation.x + diffX, y: this.drag.translation.y + diffY };
-            this.body.emitter.emit('_redraw');
-          }
-        }
-      }
-    }, {
-      key: 'onDragEnd',
-
-      /**
-       * handle drag start event
-       * @private
-       */
-      value: function onDragEnd(event) {
-        this.drag.dragging = false;
-        var selection = this.drag.selection;
-        if (selection && selection.length) {
-          selection.forEach(function (s) {
-            // restore original xFixed and yFixed
-            s.node.options.fixed.x = s.xFixed;
-            s.node.options.fixed.y = s.yFixed;
-          });
-          this.body.emitter.emit('startSimulation');
-        } else {
-          this.body.emitter.emit('_requestRedraw');
-        }
-        this.selectionHandler._generateClickEvent('dragEnd', event, this.getPointer(event.center));
-      }
-    }, {
-      key: 'onPinch',
-
-      /**
-       * Handle pinch event
-       * @param event
-       * @private
-       */
-      value: function onPinch(event) {
-        var pointer = this.getPointer(event.center);
-
-        this.drag.pinched = true;
-        if (this.pinch['scale'] === undefined) {
-          this.pinch.scale = 1;
-        }
-
-        // TODO: enabled moving while pinching?
-        var scale = this.pinch.scale * event.scale;
-        this.zoom(scale, pointer);
-      }
-    }, {
-      key: 'zoom',
-
-      /**
-       * Zoom the network in or out
-       * @param {Number} scale a number around 1, and between 0.01 and 10
-       * @param {{x: Number, y: Number}} pointer    Position on screen
-       * @return {Number} appliedScale    scale is limited within the boundaries
-       * @private
-       */
-      value: function zoom(scale, pointer) {
-        if (this.options.zoomView === true) {
-          var scaleOld = this.body.view.scale;
-          if (scale < 0.00001) {
-            scale = 0.00001;
-          }
-          if (scale > 10) {
-            scale = 10;
-          }
-
-          var preScaleDragPointer = undefined;
-          if (this.drag !== undefined) {
-            if (this.drag.dragging === true) {
-              preScaleDragPointer = this.canvas.DOMtoCanvas(this.drag.pointer);
-            }
-          }
-          // + this.canvas.frame.canvas.clientHeight / 2
-          var translation = this.body.view.translation;
-
-          var scaleFrac = scale / scaleOld;
-          var tx = (1 - scaleFrac) * pointer.x + translation.x * scaleFrac;
-          var ty = (1 - scaleFrac) * pointer.y + translation.y * scaleFrac;
-
-          this.body.view.scale = scale;
-          this.body.view.translation = { x: tx, y: ty };
-
-          if (preScaleDragPointer != undefined) {
-            var postScaleDragPointer = this.canvas.canvasToDOM(preScaleDragPointer);
-            this.drag.pointer.x = postScaleDragPointer.x;
-            this.drag.pointer.y = postScaleDragPointer.y;
-          }
-
-          this.body.emitter.emit('_requestRedraw');
-
-          if (scaleOld < scale) {
-            this.body.emitter.emit('zoom', { direction: '+', scale: this.body.view.scale });
-          } else {
-            this.body.emitter.emit('zoom', { direction: '-', scale: this.body.view.scale });
-          }
-        }
-      }
-    }, {
-      key: 'onMouseWheel',
-
-      /**
-       * Event handler for mouse wheel event, used to zoom the timeline
-       * See http://adomas.org/javascript-mouse-wheel/
-       *     https://github.com/EightMedia/hammer.js/issues/256
-       * @param {MouseEvent}  event
-       * @private
-       */
-      value: function onMouseWheel(event) {
-        // retrieve delta
-        var delta = 0;
-        if (event.wheelDelta) {
-          /* IE/Opera. */
-          delta = event.wheelDelta / 120;
-        } else if (event.detail) {
-          /* Mozilla case. */
-          // In Mozilla, sign of delta is different than in IE.
-          // Also, delta is multiple of 3.
-          delta = -event.detail / 3;
-        }
-
-        // If delta is nonzero, handle it.
-        // Basically, delta is now positive if wheel was scrolled up,
-        // and negative, if wheel was scrolled down.
-        if (delta !== 0) {
-
-          // calculate the new scale
-          var scale = this.body.view.scale;
-          var zoom = delta / 10;
-          if (delta < 0) {
-            zoom = zoom / (1 - zoom);
-          }
-          scale *= 1 + zoom;
-
-          // calculate the pointer location
-          var pointer = this.getPointer({ x: event.clientX, y: event.clientY });
-
-          // apply the new scale
-          this.zoom(scale, pointer);
-        }
-
-        // Prevent default actions caused by mouse wheel.
-        event.preventDefault();
-      }
-    }, {
-      key: 'onMouseMove',
-
-      /**
-       * Mouse move handler for checking whether the title moves over a node with a title.
-       * @param  {Event} event
-       * @private
-       */
-      value: function onMouseMove(event) {
-        var _this3 = this;
-
-        var pointer = this.getPointer({ x: event.clientX, y: event.clientY });
-        var popupVisible = false;
-
-        // check if the previously selected node is still selected
-        if (this.popup !== undefined) {
-          if (this.popup.hidden === false) {
-            this._checkHidePopup(pointer);
-          }
-
-          // if the popup was not hidden above
-          if (this.popup.hidden === false) {
-            popupVisible = true;
-            this.popup.setPosition(pointer.x + 3, pointer.y - 5);
-            this.popup.show();
-          }
-        }
-
-        // if we bind the keyboard to the div, we have to highlight it to use it. This highlights it on mouse over.
-        if (this.options.keyboard.bindToWindow === false && this.options.keyboard.enabled === true) {
-          this.canvas.frame.focus();
-        }
-
-        // start a timeout that will check if the mouse is positioned above an element
-        if (popupVisible === false) {
-          if (this.popupTimer !== undefined) {
-            clearInterval(this.popupTimer); // stop any running calculationTimer
-            this.popupTimer = undefined;
-          }
-          if (!this.drag.dragging) {
-            this.popupTimer = setTimeout(function () {
-              return _this3._checkShowPopup(pointer);
-            }, this.options.tooltipDelay);
-          }
-        }
-
-        /**
-        * Adding hover highlights
-        */
-        if (this.options.hover === true) {
-          // adding hover highlights
-          var obj = this.selectionHandler.getNodeAt(pointer);
-          if (obj === undefined) {
-            obj = this.selectionHandler.getEdgeAt(pointer);
-          }
-          this.selectionHandler.hoverObject(obj);
-        }
-      }
-    }, {
-      key: '_checkShowPopup',
-
-      /**
-       * Check if there is an element on the given position in the network
-       * (a node or edge). If so, and if this element has a title,
-       * show a popup window with its title.
-       *
-       * @param {{x:Number, y:Number}} pointer
-       * @private
-       */
-      value: function _checkShowPopup(pointer) {
-        var x = this.canvas._XconvertDOMtoCanvas(pointer.x);
-        var y = this.canvas._YconvertDOMtoCanvas(pointer.y);
-        var pointerObj = {
-          left: x,
-          top: y,
-          right: x,
-          bottom: y
-        };
-
-        var previousPopupObjId = this.popupObj === undefined ? undefined : this.popupObj.id;
-        var nodeUnderCursor = false;
-        var popupType = 'node';
-
-        // check if a node is under the cursor.
-        if (this.popupObj === undefined) {
-          // search the nodes for overlap, select the top one in case of multiple nodes
-          var nodeIndices = this.body.nodeIndices;
-          var nodes = this.body.nodes;
-          var node = undefined;
-          var overlappingNodes = [];
-          for (var i = 0; i < nodeIndices.length; i++) {
-            node = nodes[nodeIndices[i]];
-            if (node.isOverlappingWith(pointerObj) === true) {
-              if (node.getTitle() !== undefined) {
-                overlappingNodes.push(nodeIndices[i]);
-              }
-            }
-          }
-
-          if (overlappingNodes.length > 0) {
-            // if there are overlapping nodes, select the last one, this is the one which is drawn on top of the others
-            this.popupObj = nodes[overlappingNodes[overlappingNodes.length - 1]];
-            // if you hover over a node, the title of the edge is not supposed to be shown.
-            nodeUnderCursor = true;
-          }
-        }
-
-        if (this.popupObj === undefined && nodeUnderCursor === false) {
-          // search the edges for overlap
-          var edgeIndices = this.body.edgeIndices;
-          var edges = this.body.edges;
-          var edge = undefined;
-          var overlappingEdges = [];
-          for (var i = 0; i < edgeIndices.length; i++) {
-            edge = edges[edgeIndices[i]];
-            if (edge.isOverlappingWith(pointerObj) === true) {
-              if (edge.connected === true && edge.getTitle() !== undefined) {
-                overlappingEdges.push(edgeIndices[i]);
-              }
-            }
-          }
-
-          if (overlappingEdges.length > 0) {
-            this.popupObj = edges[overlappingEdges[overlappingEdges.length - 1]];
-            popupType = 'edge';
-          }
-        }
-
-        if (this.popupObj !== undefined) {
-          // show popup message window
-          if (this.popupObj.id !== previousPopupObjId) {
-            if (this.popup === undefined) {
-              this.popup = new _componentsPopup2['default'](this.canvas.frame);
-            }
-
-            this.popup.popupTargetType = popupType;
-            this.popup.popupTargetId = this.popupObj.id;
-
-            // adjust a small offset such that the mouse cursor is located in the
-            // bottom left location of the popup, and you can easily move over the
-            // popup area
-            this.popup.setPosition(pointer.x + 3, pointer.y - 5);
-            this.popup.setText(this.popupObj.getTitle());
-            this.popup.show();
-            this.body.emitter.emit('showPopup', this.popupObj.id);
-          }
-        } else {
-          if (this.popup !== undefined) {
-            this.popup.hide();
-            this.body.emitter.emit('hidePopup');
-          }
-        }
-      }
-    }, {
-      key: '_checkHidePopup',
-
-      /**
-       * Check if the popup must be hidden, which is the case when the mouse is no
-       * longer hovering on the object
-       * @param {{x:Number, y:Number}} pointer
-       * @private
-       */
-      value: function _checkHidePopup(pointer) {
-        var pointerObj = this.selectionHandler._pointerToPositionObject(pointer);
-
-        var stillOnObj = false;
-        if (this.popup.popupTargetType === 'node') {
-          if (this.body.nodes[this.popup.popupTargetId] !== undefined) {
-            stillOnObj = this.body.nodes[this.popup.popupTargetId].isOverlappingWith(pointerObj);
-
-            // if the mouse is still one the node, we have to check if it is not also on one that is drawn on top of it.
-            // we initially only check stillOnObj because this is much faster.
-            if (stillOnObj === true) {
-              var overNode = this.selectionHandler.getNodeAt(pointer);
-              stillOnObj = overNode.id === this.popup.popupTargetId;
-            }
-          }
-        } else {
-          if (this.selectionHandler.getNodeAt(pointer) === undefined) {
-            if (this.body.edges[this.popup.popupTargetId] !== undefined) {
-              stillOnObj = this.body.edges[this.popup.popupTargetId].isOverlappingWith(pointerObj);
-            }
-          }
-        }
-
-        if (stillOnObj === false) {
-          this.popupObj = undefined;
-          this.popup.hide();
-          this.body.emitter.emit('hidePopup');
-        }
-      }
-    }]);
-
-    return InteractionHandler;
-  })();
-
-  exports['default'] = InteractionHandler;
-  module.exports = exports['default'];
-
-/***/ },
 /* 105 */
 /***/ function(module, exports, __webpack_require__) {
 
@@ -37883,10 +37883,10 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
 
-  var util = __webpack_require__(14);
-  var Hammer = __webpack_require__(10);
-  var hammerUtil = __webpack_require__(36);
-  var keycharm = __webpack_require__(49);
+  var util = __webpack_require__(2);
+  var Hammer = __webpack_require__(13);
+  var hammerUtil = __webpack_require__(38);
+  var keycharm = __webpack_require__(50);
 
   var NavigationHandler = (function () {
     function NavigationHandler(body, canvas) {
@@ -38276,9 +38276,9 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
-  var Node = __webpack_require__(2);
-  var Edge = __webpack_require__(4);
-  var util = __webpack_require__(14);
+  var Node = __webpack_require__(8);
+  var Edge = __webpack_require__(9);
+  var util = __webpack_require__(2);
 
   var SelectionHandler = (function () {
     function SelectionHandler(body, canvas) {
