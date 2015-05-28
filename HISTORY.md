@@ -21,6 +21,7 @@ http://visjs.org
 - Fixed bug with the moveTo and getViewPosition methods.
 - Fixed #861, brokenImage only working for one node if nodes have the same image.
 - Fixed hoverNode and blurNode events and added them to the docs.
+- Fixed #884, selectNode event.
 
 ### Graph2d & Timeline
 
