@@ -247,10 +247,7 @@
             targetNode="eventsDiv"><a>Events</a></li>
         <li role="presentation"
             onclick="toggleTab(this);"
-            targetNode="dotParserDiv"><a>DOT language</a></li>
-        <li role="presentation"
-            onclick="toggleTab(this);"
-            targetNode="gephiDiv"><a>Importing from Gephi</a></li>
+            targetNode="importDiv"><a>Import</a></li>
     </ul>
     <br>
 
@@ -1416,42 +1413,13 @@ var options = {
         </table>
 
     </div>
-    <div id="dotParserDiv" class=" hidden">
-        <p>
-            Network supports data in the
-            <a href="http://en.wikipedia.org/wiki/DOT_language" target="_blank">DOT language</a>.
-            To use data in the DOT language, you can use the vis.network.convertDot converter to transform the DOT
-            language
-            into a vis.Network compatible nodes, edges and options objects. You can extend the options object with other
-            options if you'd like.
-        </p>
 
-        <p>
-            Example usage:
-        </p>
+    <div id="importDiv" class=" hidden">
 
-<pre class="prettyprint lang-js">
-// provide data in the DOT language
-var DOTstring = 'dinetwork {1 -> 1 -> 2; 2 -> 3; 2 -- 4; 2 -> 1 }';
-var parsedData = vis.network.convertDot(DOTstring);
+        <p>Network contains conversion utilities to import data from <a href="#importGephi">Gephi</a> and graphs in the <a href="#importDot">DOT language</a>.</p>
 
-var data = {
-  nodes: parsedData.nodes,
-  edges: parsedData.edges
-}
+        <h3 id="importGephi">Import data from Gephi</h3>
 
-var options = parsedData.options;
-
-// you can extend the options like a normal JSON variable:
-options.nodes = {
-  color: 'red'
-}
-
-// create a network
-var network = new vis.Network(container, data, options);
-</pre>
-    </div>
-    <div id="gephiDiv" class=" hidden">
         <p>
             Network can import data straight from an exported json file from gephi. You can get the JSON exporter here:
             <a href="https://marketplace.gephi.org/plugin/json-exporter/" target="_blank">https://marketplace.gephi.org/plugin/json-exporter/</a>.
@@ -1530,7 +1498,44 @@ var network = new vis.Network(container, data);
             </tr>
 
         </table>
+
+        <h3 id="importDot">Import data in DOT language</h3>
+
+        <p>
+            Network supports data in the
+            <a href="http://en.wikipedia.org/wiki/DOT_language" target="_blank">DOT language</a>.
+            To use data in the DOT language, you can use the vis.network.convertDot converter to transform the DOT
+            language
+            into a vis.Network compatible nodes, edges and options objects. You can extend the options object with other
+            options if you'd like.
+        </p>
+
+        <p>
+            Example usage:
+        </p>
+
+<pre class="prettyprint lang-js">
+// provide data in the DOT language
+var DOTstring = 'dinetwork {1 -> 1 -> 2; 2 -> 3; 2 -- 4; 2 -> 1 }';
+var parsedData = vis.network.convertDot(DOTstring);
+
+var data = {
+  nodes: parsedData.nodes,
+  edges: parsedData.edges
+}
+
+var options = parsedData.options;
+
+// you can extend the options like a normal JSON variable:
+options.nodes = {
+  color: 'red'
+}
+
+// create a network
+var network = new vis.Network(container, data, options);
+</pre>
     </div>
+
 
 </div>
 
