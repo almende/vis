@@ -1153,7 +1153,7 @@ var options = {
 
         </table>
     </div>
-    <div id="eventsDiv" class=" hidden">
+    <div id="eventsDiv" class="hidden">
         <h3>All Events</h3>
 
         <p>This is a list of all the events in the public API. They are collected here from all individual modules.</p>
@@ -1171,8 +1171,11 @@ var options = {
             <tr>
                 <td>click</td>
                 <td>
-<pre class="code">
-{
+                    Object
+                </td>
+                <td>Fired when the user clicks the mouse or taps on a touchscreen device. Passes an object with properties structured as:
+
+                <pre class="prettyprint lang-js">{
   nodes: [Array of selected nodeIds],
   edges: [Array of selected edgeIds],
   event: [Object] original click event,
@@ -1183,7 +1186,6 @@ var options = {
 }
 </pre>
                 </td>
-                <td>Fired when the user clicks the mouse or taps on a touchscreen device.</td>
             </tr>
             <tr>
                 <td>doubleClick</td>
@@ -1239,8 +1241,10 @@ var options = {
             </tr>
             <tr>
                 <td>deselectNode</td>
-                <td><pre class="code">
-{
+                <td>Object
+                </td>
+                <td>Fired when a node (or nodes) has (or have) been deselected by the user. The previous selection is the list of nodes and edges that were selected before the last user event. Passes an object with properties structured as:
+<pre class="prettyprint lang-js">{
   nodes: [Array of selected nodeIds],
   edges: [Array of selected edgeIds],
   event: [Object] original click event,
@@ -1255,10 +1259,6 @@ var options = {
   }
 }
 </pre>
-                </td>
-                <td>Fired when a node (or nodes) has (or have) been deselected by the user. The previous selection is
-                    the
-                    list of nodes and edges that were selected before the last user event.
                 </td>
             </tr>
             <tr>
@@ -1321,46 +1321,38 @@ var options = {
                 </td>
             <tr>
                 <td>stabilizationProgress</td>
-                <td>
-<pre class="code">
-{
+                <td>Object</td>
+                <td>Fired when a multiple of the <code>updateInterval</code> number of iterations is reached. This only occurs in the 'hidden' stabilization. Passes an object with properties structured as:
+
+                    <pre class="prettyprint lang-js">{
   iterations: Number // iterations so far,
   total: Number      // total iterations in options
-}
-</pre>
-                </td>
-                <td>Fired when a multiple of the <code>updateInterval</code> number of iterations is reached. This only
-                    occurs in the 'hidden' stabilization.
+}</pre>
                 </td>
             </tr>
             <tr>
                 <td>stabilizationIterationsDone</td>
                 <td>none</td>
-                <td>Fired when the 'hidden' stabilization finishes. This does not necessarily mean the network is
-                    stabilized; it could also mean that the amount of iterations defined in the options has been
-                    reached.
+                <td>Fired when the 'hidden' stabilization finishes. This does not necessarily mean the network is stabilized; it could also mean that the amount of iterations defined in the options has been reached.
                 </td>
             <tr>
                 <td>stabilized</td>
-                <td>
-<pre class="code">
-{
+                <td>Object</td>
+                <td>Fired when the network has stabilized or when the <code>stopSimulation()</code> has been called. The amount of iterations it took could be used to tweak the maximum amount of iterations needed to stabilize the network. Passes an object with properties structured as:
+<pre class="prettyprint lang-js">{
   iterations: Number // iterations it took
-}
-</pre>
-                </td>
-                <td>Fired when the network has stabilized or when the <code>stopSimulation()</code> has been called. The
-                    amount of iterations it took could be used to tweak the maximum amount of iterations needed to
-                    stabilize
-                    the network.
+}</pre>
+
                 </td>
             <tr class="subHeader">
                 <td colspan="3">Event triggered by the canvas.</td>
             </tr>
             <tr>
                 <td>resize</td>
-                <td>
-<pre class="code">
+                <td>Object</td>
+                <td>Fired when the size of the canvas has been resized, either by a redraw call when the container div has changed in size, a setSize() call with new values or a setOptions() with new width and/or height values. Passes an object with properties structured as:
+
+<pre class="prettyprint lang-js">
 {
   width: Number     // the new width  of the canvas
   height: Number    // the new height of the canvas
@@ -1368,13 +1360,6 @@ var options = {
   oldHeight: Number // the old height of the canvas
 }
 </pre>
-                    <ul>
-                    </ul>
-                </td>
-                <td>Fired when the size of the canvas has been resized, either by a redraw call when the container div
-                    has
-                    changed in size, a setSize() call with new values or a setOptions() with new width and/or height
-                    values.
                 </td>
 
             </tr>
