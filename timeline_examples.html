@@ -22,8 +22,10 @@
     <link href="./dist/vis.css" rel="stylesheet" type="text/css" />
     <link href="./css/examples.css" rel="stylesheet" type="text/css" />
 
+    <script src="./js/imagesNetwork.js"></script>
+    <link href="./css/imagesNetwork.css" rel="stylesheet" type="text/css" />
 </head>
-<body>
+<body onload="loadVis(220);">
 
 
 <div class="navbar-wrapper">
@@ -57,61 +59,63 @@
 </div>
 
 <div class="contentWrapper">
-    <h1>Timeline Examples</h1>
-    This page contains examples which show how to use Timeline. For the documentation, please click the button below: <br><br>
-    <a class="btn btn-primary" href="./docs/timeline" role="button">View docs »</a>
+    <div id="networkContainer"></div>
+    <div id="contentContainer">
+        <h1>Timeline Examples</h1>
+        This page contains examples which show how to use Timeline. For the documentation, please click the button below: <br><br>
+        <a class="btn btn-primary" href="./docs/timeline" role="button">View docs »</a>
 
-    <h3>basic usage</h3>
-    <a class='exampleLink' href="examples/timeline/basicUsage.html">basic usage</a><br />
+        <h3>basic usage</h3>
+        <a class='exampleLink' href="examples/timeline/basicUsage.html">basic usage</a><br />
 
-    <h3>interaction</h3>
-    <a class='exampleLink' href="examples/timeline/interaction/animateWindow.html">animate window</a><br />
-    <a class='exampleLink' href="examples/timeline/interaction/clickToUse.html">click to use</a><br />
-    <a class='exampleLink' href="examples/timeline/interaction/eventListeners.html">event listeners</a><br />
-    <a class='exampleLink' href="examples/timeline/interaction/limitMoveAndZoom.html">limit move and zoom of the window</a><br />
-    <a class='exampleLink' href="examples/timeline/interaction/navigationMenu.html">navigation menu</a><br />
-    <a class='exampleLink' href="examples/timeline/interaction/setSelection.html">set selection</a><br />
+        <h3>interaction</h3>
+        <a class='exampleLink' href="examples/timeline/interaction/animateWindow.html">animate window</a><br />
+        <a class='exampleLink' href="examples/timeline/interaction/clickToUse.html">click to use</a><br />
+        <a class='exampleLink' href="examples/timeline/interaction/eventListeners.html">event listeners</a><br />
+        <a class='exampleLink' href="examples/timeline/interaction/limitMoveAndZoom.html">limit move and zoom of the window</a><br />
+        <a class='exampleLink' href="examples/timeline/interaction/navigationMenu.html">navigation menu</a><br />
+        <a class='exampleLink' href="examples/timeline/interaction/setSelection.html">set selection</a><br />
 
-    <h3>editing</h3>
-    <a class='exampleLink' href="examples/timeline/editing/customSnappingOfItems.html">custom snapping of items</a><br />
-    <a class='exampleLink' href="examples/timeline/editing/editingItems.html">editing items</a><br />
-    <a class='exampleLink' href="examples/timeline/editing/editingItemsCallbacks.html">editing items, manipulate using callbacks</a><br />
-    <a class='exampleLink' href="examples/timeline/editing/updateDataOnEvent.html">update data on event</a><br />
+        <h3>editing</h3>
+        <a class='exampleLink' href="examples/timeline/editing/customSnappingOfItems.html">custom snapping of items</a><br />
+        <a class='exampleLink' href="examples/timeline/editing/editingItems.html">editing items</a><br />
+        <a class='exampleLink' href="examples/timeline/editing/editingItemsCallbacks.html">editing items, manipulate using callbacks</a><br />
+        <a class='exampleLink' href="examples/timeline/editing/updateDataOnEvent.html">update data on event</a><br />
 
-    <h3>items</h3>
-    <a class='exampleLink' href="examples/timeline/items/htmlContents.html">HTML contents</a><br />
-    <a class='exampleLink' href="examples/timeline/items/pointItems.html">point items</a><br />
-    <a class='exampleLink' href="examples/timeline/items/backgroundAreas.html">background areas</a><br />
-    <a class='exampleLink' href="examples/timeline/items/backgroundAreasWithGroups.html">background areas with groups</a><br />
-    <a class='exampleLink' href="examples/timeline/items/itemOrdering.html">item ordering</a><br />
-    <a class='exampleLink' href="examples/timeline/items/rangeOverflowItem.html">range overflow item</a><br />
+        <h3>items</h3>
+        <a class='exampleLink' href="examples/timeline/items/htmlContents.html">HTML contents</a><br />
+        <a class='exampleLink' href="examples/timeline/items/pointItems.html">point items</a><br />
+        <a class='exampleLink' href="examples/timeline/items/backgroundAreas.html">background areas</a><br />
+        <a class='exampleLink' href="examples/timeline/items/backgroundAreasWithGroups.html">background areas with groups</a><br />
+        <a class='exampleLink' href="examples/timeline/items/itemOrdering.html">item ordering</a><br />
+        <a class='exampleLink' href="examples/timeline/items/rangeOverflowItem.html">range overflow item</a><br />
 
-    <h3>groups</h3>
-    <a class='exampleLink' href="examples/timeline/groups/groups.html">groups</a><br />
-    <a class='exampleLink' href="examples/timeline/groups/groupsOrdering.html">ordering of groups</a><br />
-    <a class='exampleLink' href="examples/timeline/groups/subgroups.html">subgroups</a><br />
+        <h3>groups</h3>
+        <a class='exampleLink' href="examples/timeline/groups/groups.html">groups</a><br />
+        <a class='exampleLink' href="examples/timeline/groups/groupsOrdering.html">ordering of groups</a><br />
+        <a class='exampleLink' href="examples/timeline/groups/subgroups.html">subgroups</a><br />
 
-    <h3>styling</h3>
-    <a class='exampleLink' href="examples/timeline/styling/itemClassNames.html">item class names</a><br />
-    <a class='exampleLink' href="examples/timeline/styling/itemTemplates.html">item templates</a><br />
-    <a class='exampleLink' href="examples/timeline/styling/axisOrientation.html">axis orientation</a><br />
-    <a class='exampleLink' href="examples/timeline/styling/customCss.html">custom CSS</a><br />
-    <a class='exampleLink' href="examples/timeline/styling/gridStyling.html">grid styling</a><br />
+        <h3>styling</h3>
+        <a class='exampleLink' href="examples/timeline/styling/itemClassNames.html">item class names</a><br />
+        <a class='exampleLink' href="examples/timeline/styling/itemTemplates.html">item templates</a><br />
+        <a class='exampleLink' href="examples/timeline/styling/axisOrientation.html">axis orientation</a><br />
+        <a class='exampleLink' href="examples/timeline/styling/customCss.html">custom CSS</a><br />
+        <a class='exampleLink' href="examples/timeline/styling/gridStyling.html">grid styling</a><br />
 
-    <h3>data handling</h3>
-    <a class='exampleLink' href="examples/timeline/dataHandling/dataSerialization.html">data serialization</a><br />
-    <a class='exampleLink' href="examples/timeline/dataHandling/loadExternalData.html">load external data</a><br />
+        <h3>data handling</h3>
+        <a class='exampleLink' href="examples/timeline/dataHandling/dataSerialization.html">data serialization</a><br />
+        <a class='exampleLink' href="examples/timeline/dataHandling/loadExternalData.html">load external data</a><br />
 
-    <h3>other</h3>
-    <a class='exampleLink' href="examples/timeline/other/customTimeBars.html">custom time bars</a><br />
-    <a class='exampleLink' href="examples/timeline/other/dataAttributes.html">data attributes</a><br />
-    <a class='exampleLink' href="examples/timeline/other/dataAttributesAll.html">all data attributes</a><br />
-    <a class='exampleLink' href="examples/timeline/other/hidingPeriods.html">hiding periods</a><br />
-    <a class='exampleLink' href="examples/timeline/other/localization.html">localization</a><br />
-    <a class='exampleLink' href="examples/timeline/other/performance.html">performance</a><br />
-    <a class='exampleLink' href="examples/timeline/other/groupsPerformance.html">perforance of groups</a><br />
-    <a class='exampleLink' href="examples/timeline/other/requirejs/requirejs_example.html">require.js example</a><br />
-
+        <h3>other</h3>
+        <a class='exampleLink' href="examples/timeline/other/customTimeBars.html">custom time bars</a><br />
+        <a class='exampleLink' href="examples/timeline/other/dataAttributes.html">data attributes</a><br />
+        <a class='exampleLink' href="examples/timeline/other/dataAttributesAll.html">all data attributes</a><br />
+        <a class='exampleLink' href="examples/timeline/other/hidingPeriods.html">hiding periods</a><br />
+        <a class='exampleLink' href="examples/timeline/other/localization.html">localization</a><br />
+        <a class='exampleLink' href="examples/timeline/other/performance.html">performance</a><br />
+        <a class='exampleLink' href="examples/timeline/other/groupsPerformance.html">perforance of groups</a><br />
+        <a class='exampleLink' href="examples/timeline/other/requirejs/requirejs_example.html">require.js example</a><br />
+    </div>
 </div>
 <br />
 <br />
