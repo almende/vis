@@ -70,8 +70,7 @@
             for (var i = 0; i < links.length; i++) {
                 var link = links[i];
                 if (link.className === 'exampleLink') {
-                    var hrefArray = link.getAttribute('href').split('/');
-                    var exampleName = hrefArray[hrefArray.length-2] + '/' + hrefArray[hrefArray.length-1].replace('.html','');
+                    var exampleName = link.getAttribute('href').replace('.html','').replace('examples/','');
                     
                     var linkRect = link.getBoundingClientRect();
                     var linkWidth = linkRect.right - linkRect.left;
