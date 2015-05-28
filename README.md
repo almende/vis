@@ -258,7 +258,7 @@ Install the application dependencies via npm:
 
 The application can be bundled and minified:
 
-    browserify app.js -o app-bundle.js
+    browserify app.js -o app-bundle.js -t babelify 
     uglifyjs app-bundle.js -o app-bundle.min.js
 
 And loaded into a webpage:
