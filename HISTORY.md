@@ -7,6 +7,10 @@ http://visjs.org
 
 - Improved function `fit()` to take into account the actual width of items.
 
+### Graph2D
+
+- Fixed #892, addressed any case in validator.
+
 
 ## 2015-05-28, version 4.1.0
 
