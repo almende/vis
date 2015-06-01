@@ -16,6 +16,7 @@ http://visjs.org
 - Improved robustness against people molesting the Function.prototype.bind()
 - Fixed few functions including storePositions().
 - Added beginnings of unit testing for network.
+- Fixed #904, correctly parsing global font options now.
 
 
 ## 2015-05-28, version 4.1.0
