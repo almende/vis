@@ -17,14 +17,14 @@ http://visjs.org
 - Fixed #859, images now resize again when they are loaded.
 - Fixed dynamic edges not correctly handling non-existent nodes.
 - Accepted pull from @killerDJO for fixing selected and hover colors for edges.
-- Fixed bug with rightmouse button, scroll center and popup positions using the wrong coordinates.
+- Fixed bug with right mouse button, scroll center and popup positions using the wrong coordinates.
 - Fixed click to use.
 - Fixed getConnectedEdges method.
 - Fixed clustering bug.
 - Added getNodesInCluster method.
-- Renamed editNodeMode to editNode, editNodeMode now give a deprication log message.
+- Renamed editNodeMode to editNode, editNodeMode now give a deprecation log message.
 - Added multiselect to the docs.
-- Removed depricated dynamic entree, allow any smooth curve style for hierarchical layout.
+- Removed deprecated dynamic entree, allow any smooth curve style for hierarchical layout.
 - Fixed bug with the moveTo and getViewPosition methods.
 - Fixed #861, brokenImage only working for one node if nodes have the same image.
 - Fixed hoverNode and blurNode events and added them to the docs.

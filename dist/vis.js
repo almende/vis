@@ -5,7 +5,7 @@
  * A dynamic, browser-based visualization library.
  *
  * @version 4.1.1-SNAPSHOT
- * @date    2015-05-28
+ * @date    2015-06-01
  *
  * @license
  * Copyright (C) 2011-2014 Almende B.V, http://almende.com
@@ -380,6 +380,22 @@ return /******/ (function(modules) { // webpackBootstrap
     dot.style.top = -this.props.dot.height / 2 + 'px';
   };
 
+  /**
+   * Return the width of the item left from its start date
+   * @return {number}
+   */
+  BoxItem.prototype.getWidthLeft = function () {
+    return this.width / 2;
+  };
+
+  /**
+   * Return the width of the item right from its start date
+   * @return {number}
+   */
+  BoxItem.prototype.getWidthRight = function () {
+    return this.width / 2;
+  };
+
   module.exports = BoxItem;
 
 /***/ },
@@ -646,6 +662,22 @@ return /******/ (function(modules) { // webpackBootstrap
     if (typeof content === 'string') return content;
     if (content && 'outerHTML' in content) return content.outerHTML;
     return content;
+  };
+
+  /**
+   * Return the width of the item left from its start date
+   * @return {number}
+   */
+  Item.prototype.getWidthLeft = function () {
+    return 0;
+  };
+
+  /**
+   * Return the width of the item right from the max of its start and end date
+   * @return {number}
+   */
+  Item.prototype.getWidthRight = function () {
+    return 0;
   };
 
   module.exports = Item;
@@ -13296,11 +13328,11 @@ return /******/ (function(modules) { // webpackBootstrap
     if (initialLoad) {
       if (this.options.start != undefined || this.options.end != undefined) {
         if (this.options.start == undefined || this.options.end == undefined) {
-          var dataRange = this._getDataRange();
+          var range = this.getItemRange();
         }
 
-        var start = this.options.start != undefined ? this.options.start : dataRange.start;
-        var end = this.options.end != undefined ? this.options.end : dataRange.end;
+        var start = this.options.start != undefined ? this.options.start : range.min;
+        var end = this.options.end != undefined ? this.options.end : range.max;
 
         this.setWindow(start, end, { animation: false });
       } else {
@@ -13428,37 +13460,120 @@ return /******/ (function(modules) { // webpackBootstrap
   };
 
   /**
-   * Get the data range of the item set.
-   * @returns {{min: Date, max: Date}} range  A range with a start and end Date.
-   *                                          When no minimum is found, min==null
-   *                                          When no maximum is found, max==null
+   * Set Timeline window such that it fits all items
+   * @param {Object} [options]  Available options:
+   *                                `animation: boolean | {duration: number, easingFunction: string}`
+   *                                    If true (default), the range is animated
+   *                                    smoothly to the new window. An object can be
+   *                                    provided to specify duration and easing function.
+   *                                    Default duration is 500 ms, and default easing
+   *                                    function is 'easeInOutQuad'.
+   */
+  Timeline.prototype.fit = function (options) {
+    var animation = options && options.animation !== undefined ? options.animation : true;
+    var range = this.getItemRange();
+    this.range.setRange(range.min, range.max, animation);
+  };
+
+  /**
+   * Determine the range of the items, taking into account their actual width
+   * and a margin of 10 pixels on both sides.
+   * @return {{min: Date | null, max: Date | null}}
    */
   Timeline.prototype.getItemRange = function () {
-    // calculate min from start filed
-    var dataset = this.itemsData && this.itemsData.getDataSet();
+    var _this = this;
+
+    // get a rough approximation for the range based on the items start and end dates
+    var range = this.getDataRange();
+    var min = range.min;
+    var max = range.max;
+    var minItem = null;
+    var maxItem = null;
+
+    if (min != null && max != null) {
+      var interval;
+      var factor;
+      var lhs;
+      var rhs;
+      var delta;
+
+      (function () {
+        var getStart = function (item) {
+          return util.convert(item.data.start, 'Date').valueOf();
+        };
+
+        var getEnd = function (item) {
+          var end = item.data.end != undefined ? item.data.end : item.data.start;
+          return util.convert(end, 'Date').valueOf();
+        };
+
+        interval = max - min;
+        // ms
+        if (interval <= 0) {
+          interval = 10;
+        }
+        factor = interval / _this.props.center.width;
+
+        // calculate the date of the left side and right side of the items given
+        util.forEach(_this.itemSet.items, (function (item) {
+          item.show();
+
+          var start = getStart(item);
+          var end = getEnd(item);
+
+          var left = new Date(start - (item.getWidthLeft() + 10) * factor);
+          var right = new Date(end + (item.getWidthRight() + 10) * factor);
+
+          if (left < min) {
+            min = left;
+            minItem = item;
+          }
+          if (right > max) {
+            max = right;
+            maxItem = item;
+          }
+        }).bind(_this));
+
+        if (minItem && maxItem) {
+          lhs = minItem.getWidthLeft() + 10;
+          rhs = maxItem.getWidthRight() + 10;
+          delta = _this.props.center.width - lhs - rhs;
+          // px
+
+          if (delta > 0) {
+            min = getStart(minItem) - lhs * interval / delta; // ms
+            max = getEnd(maxItem) + rhs * interval / delta; // ms
+          }
+        }
+      })();
+    }
+
+    return {
+      min: min != null ? new Date(min) : null,
+      max: max != null ? new Date(max) : null
+    };
+  };
+
+  /**
+   * Calculate the data range of the items start and end dates
+   * @returns {{min: Date | null, max: Date | null}}
+   */
+  Timeline.prototype.getDataRange = function () {
     var min = null;
     var max = null;
 
+    var dataset = this.itemsData && this.itemsData.getDataSet();
     if (dataset) {
-      // calculate the minimum value of the field 'start'
-      var minItem = dataset.min('start');
-      min = minItem ? util.convert(minItem.start, 'Date').valueOf() : null;
-      // Note: we convert first to Date and then to number because else
-      // a conversion from ISODate to Number will fail
-
-      // calculate maximum value of fields 'start' and 'end'
-      var maxStartItem = dataset.max('start');
-      if (maxStartItem) {
-        max = util.convert(maxStartItem.start, 'Date').valueOf();
-      }
-      var maxEndItem = dataset.max('end');
-      if (maxEndItem) {
-        if (max == null) {
-          max = util.convert(maxEndItem.end, 'Date').valueOf();
-        } else {
-          max = Math.max(max, util.convert(maxEndItem.end, 'Date').valueOf());
+      dataset.forEach(function (item) {
+        var start = util.convert(item.start, 'Date').valueOf();
+        var end = util.convert(item.end != undefined ? item.end : item.start, 'Date').valueOf();
+        if (min === null || start < min) {
+          min = start;
         }
-      }
+        if (max === null || end > max) {
+          max = start;
+        }
+      });
     }
 
     return {
@@ -15447,27 +15562,32 @@ return /******/ (function(modules) { // webpackBootstrap
    *                                    function is 'easeInOutQuad'.
    */
   Core.prototype.fit = function (options) {
-    var range = this._getDataRange();
+    var range = this.getDataRange();
 
     // skip range set if there is no start and end date
     if (range.start === null && range.end === null) {
       return;
     }
 
+    // apply a margin of 1% left and right of the data
+    var interval = range.max - range.min;
+    var min = new Date(range.min.valueOf() - interval * 0.01);
+    var max = new Date(range.max.valueOf() + interval * 0.01);
+
     var animation = options && options.animation !== undefined ? options.animation : true;
-    this.range.setRange(range.start, range.end, animation);
+    this.range.setRange(min, max, animation);
   };
 
   /**
-   * Calculate the data range of the items and applies a 5% window around it.
-   * @returns {{start: Date | null, end: Date | null}}
+   * Calculate the data range of the items start and end dates
+   * @returns {{min: Date | null, max: Date | null}}
    * @protected
    */
-  Core.prototype._getDataRange = function () {
+  Core.prototype.getDataRange = function () {
     // apply the data range as range
     var dataRange = this.getItemRange();
 
-    // add 5% space on both sides
+    // add 1% space on both sides
     var start = dataRange.min;
     var end = dataRange.max;
     if (start != null && end != null) {
@@ -15476,13 +15596,13 @@ return /******/ (function(modules) { // webpackBootstrap
         // prevent an empty interval
         interval = 24 * 60 * 60 * 1000; // 1 day
       }
-      start = new Date(start.valueOf() - interval * 0.05);
-      end = new Date(end.valueOf() + interval * 0.05);
+      start = new Date(start.valueOf() - interval * 0.01);
+      end = new Date(end.valueOf() + interval * 0.01);
     }
 
     return {
-      start: start,
-      end: end
+      start: null,
+      end: null
     };
   };
 
@@ -19436,9 +19556,7 @@ return /******/ (function(modules) { // webpackBootstrap
       dom.point.className = 'vis-item vis-point' + className;
       dom.dot.className = 'vis-item vis-dot' + className;
 
-      // recalculate size
-      this.width = dom.point.offsetWidth;
-      this.height = dom.point.offsetHeight;
+      // recalculate size of dot and contents
       this.props.dot.width = dom.dot.offsetWidth;
       this.props.dot.height = dom.dot.offsetHeight;
       this.props.content.height = dom.content.offsetHeight;
@@ -19449,6 +19567,10 @@ return /******/ (function(modules) { // webpackBootstrap
 
       dom.dot.style.top = (this.height - this.props.dot.height) / 2 + 'px';
       dom.dot.style.left = this.props.dot.width / 2 + 'px';
+
+      // recalculate size
+      this.width = dom.point.offsetWidth;
+      this.height = dom.point.offsetHeight;
 
       this.dirty = false;
     }
@@ -19505,6 +19627,22 @@ return /******/ (function(modules) { // webpackBootstrap
     } else {
       point.style.top = this.parent.height - this.top - this.height + 'px';
     }
+  };
+
+  /**
+   * Return the width of the item left from its start date
+   * @return {number}
+   */
+  PointItem.prototype.getWidthLeft = function () {
+    return this.props.dot.width;
+  };
+
+  /**
+   * Return the width of the item right from  its start date
+   * @return {number}
+   */
+  PointItem.prototype.getWidthRight = function () {
+    return this.width - this.props.dot.width;
   };
 
   module.exports = PointItem;
@@ -22799,7 +22937,7 @@ return /******/ (function(modules) { // webpackBootstrap
    *                                          When no minimum is found, min==null
    *                                          When no maximum is found, max==null
    */
-  Graph2d.prototype.getItemRange = function () {
+  Graph2d.prototype.getDataRange = function () {
     var min = null;
     var max = null;
 
