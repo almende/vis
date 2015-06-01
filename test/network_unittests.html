@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html>
+<head lang="en">
+    <meta charset="UTF-8">
+    <title></title>
+
+    <script type="text/javascript" src="../dist/vis.js"></script>
+    <link href="../dist/vis.css" rel="stylesheet" type="text/css"/>
+
+    <style type="text/css">
+        #mynetwork {
+            width: 600px;
+            height: 400px;
+            border: 1px solid lightgray;
+        }
+    </style>
+
+
+</head>
+
+<body>
+<div id="mynetwork"></div>
+
+<script>
+    var network = null;
+    // create an array with nodes
+    var nodes = new vis.DataSet([
+        {id: 1, label: 'Node 1', cid:1},
+        {id: 2, label: 'Node 2', cid:1},
+        {id: 3, label: 'Node 3'},
+        {id: 4, label: 'Node 4'},
+        {id: 5, label: 'Node 5'}
+    ]);
+
+    // create an array with edges
+    var edges = new vis.DataSet([
+        {id: 'e1', from: 1, to: 3, label: 'hi'},
+        {from: 1, to: 2},
+        {from: 2, to: 4},
+        {from: 2, to: 5}
+    ]);
+
+    var data = {
+        nodes: nodes,
+        edges: edges
+    };
+    var container = document.getElementById('mynetwork');
+
+    function drawQuick() {
+        draw({physics:{stabilization:false}});
+    }
+
+    function draw(options) {
+        // clean
+        if (network !== null) {
+            network.destroy();
+            network = null;
+        }
+        network = new vis.Network(container, data, options);
+    }
+
+    function clusterByCid() {
+        drawQuick();
+        var clusterOptionsByData = {
+            joinCondition:function(childOptions) {
+                return childOptions.cid == 1;
+            },
+            clusterNodeProperties: {id:'cidCluster', borderWidth:3, shape:'database'}
+        }
+        network.cluster(clusterOptionsByData);
+    }
+
+
+    function clusterByConnection() {
+        drawQuick();
+        network.clusterByConnection(1)
+    }
+    function clusterByHubsize() {
+        drawQuick();
+        var clusterOptionsByData = {
+            processProperties: function(clusterOptions, childNodes) {
+                clusterOptions.label = "[" + childNodes.length + "]";
+                return clusterOptions;
+            },
+            clusterNodeProperties: {borderWidth:3, shape:'box', font:{size:30}}
+        }
+        network.clusterByHubsize(undefined, clusterOptionsByData);
+    }
+
+    function checkMethods() {
+        var methods = [
+            {name:"setSize",            arguments: [200,300]},
+            {name:"canvasToDOM",        arguments: [{x:10,y:20}]},
+            {name:"DOMtoCanvas",        arguments: [{x:10,y:20}]},
+            {name:"findNode",           arguments: [1]},
+            {name:"isCluster",          arguments: [1]},
+            {name:"cluster",            arguments: null, func: clusterByCid},
+            {name:"findNode",           arguments: [1]},
+            {name:"isCluster",          arguments: ['cidCluster']},
+            {name:"getNodesInCluster",  arguments: ['cidCluster']},
+            {name:"openCluster",        arguments: ['cidCluster']},
+            {name:"clusterByConnection",arguments: null, func: clusterByConnection},
+            {name:"clusterByHubsize",   arguments: null, func: clusterByHubsize},
+            {name:"clusterOutliers",    arguments: null, funcFirst: drawQuick},
+            {name:"getSeed",            arguments: null, funcFirst: drawQuick},
+            {name:"enableEditMode",     arguments: null},
+            {name:"disableEditMode",    arguments: null},
+            {name:"addNodeMode",        arguments: null},
+            {name:"disableEditMode",    arguments: null},
+            {name:"editNode",           arguments: null, funcFirst: function() {network.setOptions({manipulation:{editNode:function(data,callback) {callback(data);}}})}},
+            {name:"disableEditMode",    arguments: null},
+            {name:"addEdgeMode",        arguments: null},
+            {name:"disableEditMode",    arguments: null},
+            {name:"editEdgeMode",       arguments: null},
+            {name:"disableEditMode",    arguments: null},
+            {name:"selectNodes",        arguments: [[5], true]},
+            {name:"deleteSelected",     arguments: null, funcFirst:drawQuick},
+            {name:"disableEditMode",    arguments: null},
+            {name:"getPositions",       arguments: [[1]]},
+            {name:"storePositions",     arguments: null},
+            {name:"getBoundingBox",     arguments: [1]},
+            {name:"getConnectedNodes",  arguments: [1]},
+            {name:"getConnectedEdges",  arguments: [1]},
+            {name:"startSimulation",    arguments: null},
+            {name:"stopSimulation",     arguments: null},
+            {name:"stabilize",          arguments: null},
+            {name:"getSelection",       arguments: null},
+            {name:"getSelectedNodes",   arguments: null},
+            {name:"getSelectedEdges",   arguments: null},
+            {name:"getNodeAt",          arguments: [{x:10,y:20}]},
+            {name:"getEdgeAt",          arguments: [{x:10,y:20}]},
+            {name:"selectNodes",        arguments: [[1],false]},
+            {name:"selectEdges",        arguments: [['e1']]},
+            {name:"unselectAll",        arguments: null},
+            {name:"redraw",             arguments: null},
+            {name:"getScale",           arguments: null},
+            {name:"getViewPosition",    arguments: null},
+            {name:"fit",                arguments: null},
+            {name:"moveTo",             arguments: [{position:{x:0,y:0}}]},
+            {name:"focus",              arguments: [1]},
+            {name:"releaseNode",        arguments: null},
+        ]
+
+        drawQuick();
+        for (var i = 0; i < methods.length; i++) {
+            setTimeout(testMethod.bind(this,methods,i), i*50);
+        }
+    }
+
+    function testMethod(methods,i) {
+        var methodName = methods[i].name;
+        console.log("Currently testing:", methodName);
+
+        if (methods[i].funcFirst !== undefined) {
+            methods[i].funcFirst();
+        }
+
+        if (methods[i].func !== undefined) {
+            methods[i].func();
+        }
+        else {
+            if (methods[i].arguments === null) {
+                network[methodName].apply(network);
+            }
+            else {
+                network[methodName].apply(network, methods[i].arguments)
+            }
+        }
+    }
+
+    checkMethods();
+</script>
+</body>
+</html>

@@ -56,7 +56,8 @@ exports.Network = require('./lib/network/Network');
 exports.network = {
   Images: require('./lib/network/Images'),
   dotparser: require('./lib/network/dotparser'),
-  gephiParser: require('./lib/network/gephiParser')
+  gephiParser: require('./lib/network/gephiParser'),
+  allOptions: require('./lib/network/options')
 };
 exports.network.convertDot   = function (input) {return exports.network.dotparser.DOTToGraph(input)};
 exports.network.convertGephi = function (input,options) {return exports.network.gephiParser.parseGephi(input,options)};
