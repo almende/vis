@@ -1,6 +1,13 @@
 # vis.js history
 http://visjs.org
 
+## not-yet-released, version 4.1.1-SNAPSHOT
+
+### Timeline
+
+- Improved function `fit()` to take into account the actual width of items.
+
+
 ## 2015-05-28, version 4.1.0
 
 ### Network
