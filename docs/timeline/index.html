@@ -1001,6 +1001,12 @@ function (option, path) {
           <li><code>what</code> (String or null): name of the clicked thing: <code>item</code>, <code>background</code>, <code>axis</code>, <code>group-label</code>, <code>custom-time</code>, or <code>current-time</code>.</li>
           <li><code>event</code> (Object): the original click event.</li>
         </ul>
+        Example usage:
+        <pre class="prettyprint lang-js">
+document.getElementById('myTimeline').onclick = function (event) {
+  var props = timeline.getEventProperties(event)
+  console.log(props);
+}</pre>
       </td>
     </tr>
 
