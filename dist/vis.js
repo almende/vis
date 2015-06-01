@@ -22277,8 +22277,8 @@ return /******/ (function(modules) { // webpackBootstrap
             Validator.parse(options[option], referenceOptions[referenceOption], path);
           }
         } else {
-          if (refOptionObj['undef'] !== undefined && optionType === 'undefined') {} else if (refOptionObj['fn'] !== undefined && optionType === 'function') {} else {
-            // type of the field is incorrect
+          if (refOptionObj['undef'] !== undefined && optionType === 'undefined') {} else if (refOptionObj['fn'] !== undefined && optionType === 'function') {} else if (refOptionObj['any'] === undefined) {
+            // type of the field is incorrect and the field cannot be any
             console.log('%cInvalid type received for "' + option + '". Expected: ' + Validator.print(Object.keys(refOptionObj)) + '. Received [' + optionType + '] "' + options[option] + '"' + Validator.printLocation(path, option), printStyle);
             errorFound = true;
           }
