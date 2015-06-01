@@ -1,10 +1,10 @@
 {
   "name": "vis",
-  "version": "4.0.1-SNAPSHOT",
+  "version": "4.1.1-SNAPSHOT",
   "main": ["dist/vis.min.js", "dist/vis.min.css"],
   "description": "A dynamic, browser-based visualization library.",
   "homepage": "http://visjs.org/",
-  "license": "(Apache-2.0 OR MIT)",
+  "license": ["Apache-2.0", "MIT"],
   "repository": {
     "type": "git",
     "url": "git://github.com/almende/vis.git"

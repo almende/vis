@@ -1,6 +1,6 @@
 {
   "name": "vis",
-  "version": "4.0.1-SNAPSHOT",
+  "version": "4.1.1-SNAPSHOT",
   "description": "A dynamic, browser-based visualization library.",
   "homepage": "http://visjs.org/",
   "license": "(Apache-2.0 OR MIT)",
@@ -52,5 +52,8 @@
     "uglify-js": "^2.4.20",
     "webpack": "^1.8.5",
     "yargs": "^3.7.2"
+  },
+  "browserify": {
+    "transform": ["babelify"]
   }
 }
