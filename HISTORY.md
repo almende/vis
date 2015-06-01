@@ -8,6 +8,11 @@ http://visjs.org
 - Fixed #892, addressed any case in validator.
 
 
+### Network
+
+- Improved robustness against people molesting the Function.prototype.bind()
+
+
 ## 2015-05-28, version 4.1.0
 
 ### Network
