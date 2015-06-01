@@ -84,60 +84,60 @@ return /******/ (function(modules) { // webpackBootstrap
   // utils
   'use strict';
 
-  exports.util = __webpack_require__(3);
-  exports.DOMutil = __webpack_require__(9);
+  exports.util = __webpack_require__(4);
+  exports.DOMutil = __webpack_require__(14);
 
   // data
-  exports.DataSet = __webpack_require__(10);
-  exports.DataView = __webpack_require__(12);
-  exports.Queue = __webpack_require__(11);
+  exports.DataSet = __webpack_require__(15);
+  exports.DataView = __webpack_require__(17);
+  exports.Queue = __webpack_require__(16);
 
   // Graph3d
-  exports.Graph3d = __webpack_require__(13);
+  exports.Graph3d = __webpack_require__(18);
   exports.graph3d = {
-    Camera: __webpack_require__(17),
-    Filter: __webpack_require__(18),
-    Point2d: __webpack_require__(14),
-    Point3d: __webpack_require__(16),
-    Slider: __webpack_require__(19),
-    StepNumber: __webpack_require__(20)
+    Camera: __webpack_require__(22),
+    Filter: __webpack_require__(23),
+    Point2d: __webpack_require__(19),
+    Point3d: __webpack_require__(21),
+    Slider: __webpack_require__(24),
+    StepNumber: __webpack_require__(25)
   };
 
   // Timeline
-  exports.Timeline = __webpack_require__(21);
-  exports.Graph2d = __webpack_require__(51);
+  exports.Timeline = __webpack_require__(26);
+  exports.Graph2d = __webpack_require__(56);
   exports.timeline = {
-    DateUtil: __webpack_require__(31),
-    DataStep: __webpack_require__(54),
-    Range: __webpack_require__(29),
-    stack: __webpack_require__(35),
-    TimeStep: __webpack_require__(38),
+    DateUtil: __webpack_require__(36),
+    DataStep: __webpack_require__(58),
+    Range: __webpack_require__(34),
+    stack: __webpack_require__(40),
+    TimeStep: __webpack_require__(43),
 
     components: {
       items: {
-        Item: __webpack_require__(37),
-        BackgroundItem: __webpack_require__(42),
-        BoxItem: __webpack_require__(40),
-        PointItem: __webpack_require__(41),
-        RangeItem: __webpack_require__(36)
+        Item: __webpack_require__(42),
+        BackgroundItem: __webpack_require__(47),
+        BoxItem: __webpack_require__(45),
+        PointItem: __webpack_require__(46),
+        RangeItem: __webpack_require__(41)
       },
 
-      Component: __webpack_require__(23),
-      CurrentTime: __webpack_require__(22),
-      CustomTime: __webpack_require__(46),
-      DataAxis: __webpack_require__(53),
-      GraphGroup: __webpack_require__(55),
-      Group: __webpack_require__(34),
-      BackgroundGroup: __webpack_require__(39),
-      ItemSet: __webpack_require__(33),
-      Legend: __webpack_require__(59),
-      LineGraph: __webpack_require__(52),
-      TimeAxis: __webpack_require__(43)
+      Component: __webpack_require__(28),
+      CurrentTime: __webpack_require__(27),
+      CustomTime: __webpack_require__(51),
+      DataAxis: __webpack_require__(57),
+      GraphGroup: __webpack_require__(59),
+      Group: __webpack_require__(39),
+      BackgroundGroup: __webpack_require__(44),
+      ItemSet: __webpack_require__(38),
+      Legend: __webpack_require__(63),
+      LineGraph: __webpack_require__(5),
+      TimeAxis: __webpack_require__(48)
     }
   };
 
   // Network
-  exports.Network = __webpack_require__(61);
+  exports.Network = __webpack_require__(65);
   exports.network = {
     Images: __webpack_require__(112),
     dotparser: __webpack_require__(110),
@@ -157,9 +157,9 @@ return /******/ (function(modules) { // webpackBootstrap
   };
 
   // bundled external libraries
-  exports.moment = __webpack_require__(4);
-  exports.hammer = __webpack_require__(25); // TODO: deprecate exports.hammer some day
-  exports.Hammer = __webpack_require__(25);
+  exports.moment = __webpack_require__(10);
+  exports.hammer = __webpack_require__(30); // TODO: deprecate exports.hammer some day
+  exports.Hammer = __webpack_require__(30);
 
 /***/ },
 /* 1 */
@@ -186,21 +186,185 @@ return /******/ (function(modules) { // webpackBootstrap
 
   var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
 
+  var _get = function get(_x, _x2, _x3) { var _again = true; _function: while (_again) { var object = _x, property = _x2, receiver = _x3; desc = parent = getter = undefined; _again = false; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { _x = parent; _x2 = property; _x3 = receiver; _again = true; continue _function; } } else if ('value' in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } } };
+
   function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
 
   function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
 
-  var _componentsNode = __webpack_require__(63);
+  function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; }
+
+  var _utilBezierEdgeBase = __webpack_require__(88);
+
+  var _utilBezierEdgeBase2 = _interopRequireDefault(_utilBezierEdgeBase);
+
+  var BezierEdgeDynamic = (function (_BezierEdgeBase) {
+    function BezierEdgeDynamic(options, body, labelModule) {
+      _classCallCheck(this, BezierEdgeDynamic);
+
+      //this.via = undefined; // Here for completeness but not allowed to defined before super() is invoked.
+      _get(Object.getPrototypeOf(BezierEdgeDynamic.prototype), 'constructor', this).call(this, options, body, labelModule); // --> this calls the setOptions below
+    }
+
+    _inherits(BezierEdgeDynamic, _BezierEdgeBase);
+
+    _createClass(BezierEdgeDynamic, [{
+      key: 'setOptions',
+      value: function setOptions(options) {
+        this.options = options;
+        this.id = this.options.id;
+        this.setupSupportNode();
+        this.connect();
+      }
+    }, {
+      key: 'connect',
+      value: function connect() {
+        this.from = this.body.nodes[this.options.from];
+        this.to = this.body.nodes[this.options.to];
+        if (this.from === undefined || this.to === undefined) {
+          this.via.setOptions({ physics: false });
+        } else {
+          // fix weird behaviour where a selfreferencing node has physics enabled
+          if (this.from.id === this.to.id) {
+            this.via.setOptions({ physics: false });
+          } else {
+            this.via.setOptions({ physics: true });
+          }
+        }
+      }
+    }, {
+      key: 'cleanup',
+      value: function cleanup() {
+        if (this.via !== undefined) {
+          delete this.body.nodes[this.via.id];
+          this.via = undefined;
+          return true;
+        }
+        return false;
+      }
+    }, {
+      key: 'togglePhysics',
+      value: function togglePhysics(status) {
+        this.via.setOptions({ physics: status });
+      }
+    }, {
+      key: 'setupSupportNode',
+
+      /**
+       * Bezier curves require an anchor point to calculate the smooth flow. These points are nodes. These nodes are invisible but
+       * are used for the force calculation.
+       *
+       * The changed data is not called, if needed, it is returned by the main edge constructor.
+       * @private
+       */
+      value: function setupSupportNode() {
+        if (this.via === undefined) {
+          var nodeId = 'edgeId:' + this.id;
+          var node = this.body.functions.createNode({
+            id: nodeId,
+            shape: 'circle',
+            physics: true,
+            hidden: true
+          });
+          this.body.nodes[nodeId] = node;
+          this.via = node;
+          this.via.parentEdgeId = this.id;
+          this.positionBezierNode();
+        }
+      }
+    }, {
+      key: 'positionBezierNode',
+      value: function positionBezierNode() {
+        if (this.via !== undefined && this.from !== undefined && this.to !== undefined) {
+          this.via.x = 0.5 * (this.from.x + this.to.x);
+          this.via.y = 0.5 * (this.from.y + this.to.y);
+        } else if (this.via !== undefined) {
+          this.via.x = 0;
+          this.via.y = 0;
+        }
+      }
+    }, {
+      key: '_line',
+
+      /**
+       * Draw a line between two nodes
+       * @param {CanvasRenderingContext2D} ctx
+       * @private
+       */
+      value: function _line(ctx) {
+        // draw a straight line
+        ctx.beginPath();
+        ctx.moveTo(this.from.x, this.from.y);
+        ctx.quadraticCurveTo(this.via.x, this.via.y, this.to.x, this.to.y);
+        // draw shadow if enabled
+        this.enableShadow(ctx);
+        ctx.stroke();
+        this.disableShadow(ctx);
+        return this.via;
+      }
+    }, {
+      key: 'getPoint',
+
+      /**
+       * Combined function of pointOnLine and pointOnBezier. This gives the coordinates of a point on the line at a certain percentage of the way
+       * @param percentage
+       * @param via
+       * @returns {{x: number, y: number}}
+       * @private
+       */
+      value: function getPoint(percentage) {
+        var t = percentage;
+        var x = Math.pow(1 - t, 2) * this.from.x + 2 * t * (1 - t) * this.via.x + Math.pow(t, 2) * this.to.x;
+        var y = Math.pow(1 - t, 2) * this.from.y + 2 * t * (1 - t) * this.via.y + Math.pow(t, 2) * this.to.y;
+
+        return { x: x, y: y };
+      }
+    }, {
+      key: '_findBorderPosition',
+      value: function _findBorderPosition(nearNode, ctx) {
+        return this._findBorderPositionBezier(nearNode, ctx, this.via);
+      }
+    }, {
+      key: '_getDistanceToEdge',
+      value: function _getDistanceToEdge(x1, y1, x2, y2, x3, y3) {
+        // x3,y3 is the point
+        return this._getDistanceToBezierEdge(x1, y1, x2, y2, x3, y3, this.via);
+      }
+    }]);
+
+    return BezierEdgeDynamic;
+  })(_utilBezierEdgeBase2['default']);
+
+  exports['default'] = BezierEdgeDynamic;
+  module.exports = exports['default'];
+
+/***/ },
+/* 3 */
+/***/ function(module, exports, __webpack_require__) {
+
+  'use strict';
+
+  Object.defineProperty(exports, '__esModule', {
+    value: true
+  });
+
+  var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
+
+  function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
+
+  function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
+
+  var _componentsNode = __webpack_require__(67);
 
   var _componentsNode2 = _interopRequireDefault(_componentsNode);
 
-  var _componentsSharedLabel = __webpack_require__(64);
+  var _componentsSharedLabel = __webpack_require__(68);
 
   var _componentsSharedLabel2 = _interopRequireDefault(_componentsSharedLabel);
 
-  var util = __webpack_require__(3);
-  var DataSet = __webpack_require__(10);
-  var DataView = __webpack_require__(12);
+  var util = __webpack_require__(4);
+  var DataSet = __webpack_require__(15);
+  var DataView = __webpack_require__(17);
 
   var NodesHandler = (function () {
     function NodesHandler(body, images, groups, layoutEngine) {
@@ -653,7 +817,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 3 */
+/* 4 */
 /***/ function(module, exports, __webpack_require__) {
 
   // utility functions
@@ -663,8 +827,8 @@ return /******/ (function(modules) { // webpackBootstrap
 
   'use strict';
 
-  var moment = __webpack_require__(4);
-  var uuid = __webpack_require__(8);
+  var moment = __webpack_require__(10);
+  var uuid = __webpack_require__(13);
 
   /**
    * Test whether given object is a number
@@ -1999,17 +2163,2210 @@ return /******/ (function(modules) { // webpackBootstrap
   };
 
 /***/ },
-/* 4 */
+/* 5 */
 /***/ function(module, exports, __webpack_require__) {
 
-  // first check if moment.js is already loaded in the browser window, if so,
-  // use this instance. Else, load via commonjs.
   'use strict';
 
-  module.exports = typeof window !== 'undefined' && window['moment'] || __webpack_require__(6);
+  var util = __webpack_require__(4);
+  var DOMutil = __webpack_require__(14);
+  var DataSet = __webpack_require__(15);
+  var DataView = __webpack_require__(17);
+  var Component = __webpack_require__(28);
+  var DataAxis = __webpack_require__(57);
+  var GraphGroup = __webpack_require__(59);
+  var Legend = __webpack_require__(63);
+  var BarFunctions = __webpack_require__(62);
+  var LineFunctions = __webpack_require__(60);
+
+  var UNGROUPED = '__ungrouped__'; // reserved group id for ungrouped items
+
+  /**
+   * This is the constructor of the LineGraph. It requires a Timeline body and options.
+   *
+   * @param body
+   * @param options
+   * @constructor
+   */
+  function LineGraph(body, options) {
+    this.id = util.randomUUID();
+    this.body = body;
+
+    this.defaultOptions = {
+      yAxisOrientation: 'left',
+      defaultGroup: 'default',
+      sort: true,
+      sampling: true,
+      stack: false,
+      graphHeight: '400px',
+      shaded: {
+        enabled: false,
+        orientation: 'bottom' // top, bottom
+      },
+      style: 'line', // line, bar
+      barChart: {
+        width: 50,
+        sideBySide: false,
+        align: 'center' // left, center, right
+      },
+      interpolation: {
+        enabled: true,
+        parametrization: 'centripetal', // uniform (alpha = 0.0), chordal (alpha = 1.0), centripetal (alpha = 0.5)
+        alpha: 0.5
+      },
+      drawPoints: {
+        enabled: true,
+        size: 6,
+        style: 'square' // square, circle
+      },
+      dataAxis: {
+        showMinorLabels: true,
+        showMajorLabels: true,
+        icons: false,
+        width: '40px',
+        visible: true,
+        alignZeros: true,
+        left: {
+          range: { min: undefined, max: undefined },
+          format: function format(value) {
+            return value;
+          },
+          title: { text: undefined, style: undefined }
+        },
+        right: {
+          range: { min: undefined, max: undefined },
+          format: function format(value) {
+            return value;
+          },
+          title: { text: undefined, style: undefined }
+        }
+      },
+      legend: {
+        enabled: false,
+        icons: true,
+        left: {
+          visible: true,
+          position: 'top-left' // top/bottom - left,right
+        },
+        right: {
+          visible: true,
+          position: 'top-right' // top/bottom - left,right
+        }
+      },
+      groups: {
+        visibility: {}
+      }
+    };
+
+    // options is shared by this ItemSet and all its items
+    this.options = util.extend({}, this.defaultOptions);
+    this.dom = {};
+    this.props = {};
+    this.hammer = null;
+    this.groups = {};
+    this.abortedGraphUpdate = false;
+    this.updateSVGheight = false;
+    this.updateSVGheightOnResize = false;
+
+    var me = this;
+    this.itemsData = null; // DataSet
+    this.groupsData = null; // DataSet
+
+    // listeners for the DataSet of the items
+    this.itemListeners = {
+      'add': function add(event, params, senderId) {
+        me._onAdd(params.items);
+      },
+      'update': function update(event, params, senderId) {
+        me._onUpdate(params.items);
+      },
+      'remove': function remove(event, params, senderId) {
+        me._onRemove(params.items);
+      }
+    };
+
+    // listeners for the DataSet of the groups
+    this.groupListeners = {
+      'add': function add(event, params, senderId) {
+        me._onAddGroups(params.items);
+      },
+      'update': function update(event, params, senderId) {
+        me._onUpdateGroups(params.items);
+      },
+      'remove': function remove(event, params, senderId) {
+        me._onRemoveGroups(params.items);
+      }
+    };
+
+    this.items = {}; // object with an Item for every data item
+    this.selection = []; // list with the ids of all selected nodes
+    this.lastStart = this.body.range.start;
+    this.touchParams = {}; // stores properties while dragging
+
+    this.svgElements = {};
+    this.setOptions(options);
+    this.groupsUsingDefaultStyles = [0];
+    this.COUNTER = 0;
+    this.body.emitter.on('rangechanged', function () {
+      me.lastStart = me.body.range.start;
+      me.svg.style.left = util.option.asSize(-me.props.width);
+      me.redraw.call(me, true);
+    });
+
+    // create the HTML DOM
+    this._create();
+    this.framework = { svg: this.svg, svgElements: this.svgElements, options: this.options, groups: this.groups };
+    this.body.emitter.emit('change');
+  }
+
+  LineGraph.prototype = new Component();
+
+  /**
+   * Create the HTML DOM for the ItemSet
+   */
+  LineGraph.prototype._create = function () {
+    var frame = document.createElement('div');
+    frame.className = 'vis-line-graph';
+    this.dom.frame = frame;
+
+    // create svg element for graph drawing.
+    this.svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+    this.svg.style.position = 'relative';
+    this.svg.style.height = ('' + this.options.graphHeight).replace('px', '') + 'px';
+    this.svg.style.display = 'block';
+    frame.appendChild(this.svg);
+
+    // data axis
+    this.options.dataAxis.orientation = 'left';
+    this.yAxisLeft = new DataAxis(this.body, this.options.dataAxis, this.svg, this.options.groups);
+
+    this.options.dataAxis.orientation = 'right';
+    this.yAxisRight = new DataAxis(this.body, this.options.dataAxis, this.svg, this.options.groups);
+    delete this.options.dataAxis.orientation;
+
+    // legends
+    this.legendLeft = new Legend(this.body, this.options.legend, 'left', this.options.groups);
+    this.legendRight = new Legend(this.body, this.options.legend, 'right', this.options.groups);
+
+    this.show();
+  };
+
+  /**
+   * set the options of the LineGraph. the mergeOptions is used for subObjects that have an enabled element.
+   * @param {object} options
+   */
+  LineGraph.prototype.setOptions = function (options) {
+    if (options) {
+      var fields = ['sampling', 'defaultGroup', 'stack', 'height', 'graphHeight', 'yAxisOrientation', 'style', 'barChart', 'dataAxis', 'sort', 'groups'];
+      if (options.graphHeight === undefined && options.height !== undefined && this.body.domProps.centerContainer.height !== undefined) {
+        this.updateSVGheight = true;
+        this.updateSVGheightOnResize = true;
+      } else if (this.body.domProps.centerContainer.height !== undefined && options.graphHeight !== undefined) {
+        if (parseInt((options.graphHeight + '').replace('px', '')) < this.body.domProps.centerContainer.height) {
+          this.updateSVGheight = true;
+        }
+      }
+      util.selectiveDeepExtend(fields, this.options, options);
+      util.mergeOptions(this.options, options, 'interpolation');
+      util.mergeOptions(this.options, options, 'drawPoints');
+      util.mergeOptions(this.options, options, 'shaded');
+      util.mergeOptions(this.options, options, 'legend');
+
+      if (options.interpolation) {
+        if (typeof options.interpolation == 'object') {
+          if (options.interpolation.parametrization) {
+            if (options.interpolation.parametrization == 'uniform') {
+              this.options.interpolation.alpha = 0;
+            } else if (options.interpolation.parametrization == 'chordal') {
+              this.options.interpolation.alpha = 1;
+            } else {
+              this.options.interpolation.parametrization = 'centripetal';
+              this.options.interpolation.alpha = 0.5;
+            }
+          }
+        }
+      }
+
+      if (this.yAxisLeft) {
+        if (options.dataAxis !== undefined) {
+          this.yAxisLeft.setOptions(this.options.dataAxis);
+          this.yAxisRight.setOptions(this.options.dataAxis);
+        }
+      }
+
+      if (this.legendLeft) {
+        if (options.legend !== undefined) {
+          this.legendLeft.setOptions(this.options.legend);
+          this.legendRight.setOptions(this.options.legend);
+        }
+      }
+
+      if (this.groups.hasOwnProperty(UNGROUPED)) {
+        this.groups[UNGROUPED].setOptions(options);
+      }
+    }
+
+    // this is used to redraw the graph if the visibility of the groups is changed.
+    if (this.dom.frame) {
+      this.redraw(true);
+    }
+  };
+
+  /**
+   * Hide the component from the DOM
+   */
+  LineGraph.prototype.hide = function () {
+    // remove the frame containing the items
+    if (this.dom.frame.parentNode) {
+      this.dom.frame.parentNode.removeChild(this.dom.frame);
+    }
+  };
+
+  /**
+   * Show the component in the DOM (when not already visible).
+   * @return {Boolean} changed
+   */
+  LineGraph.prototype.show = function () {
+    // show frame containing the items
+    if (!this.dom.frame.parentNode) {
+      this.body.dom.center.appendChild(this.dom.frame);
+    }
+  };
+
+  /**
+   * Set items
+   * @param {vis.DataSet | null} items
+   */
+  LineGraph.prototype.setItems = function (items) {
+    var me = this,
+        ids,
+        oldItemsData = this.itemsData;
+
+    // replace the dataset
+    if (!items) {
+      this.itemsData = null;
+    } else if (items instanceof DataSet || items instanceof DataView) {
+      this.itemsData = items;
+    } else {
+      throw new TypeError('Data must be an instance of DataSet or DataView');
+    }
+
+    if (oldItemsData) {
+      // unsubscribe from old dataset
+      util.forEach(this.itemListeners, function (callback, event) {
+        oldItemsData.off(event, callback);
+      });
+
+      // remove all drawn items
+      ids = oldItemsData.getIds();
+      this._onRemove(ids);
+    }
+
+    if (this.itemsData) {
+      // subscribe to new dataset
+      var id = this.id;
+      util.forEach(this.itemListeners, function (callback, event) {
+        me.itemsData.on(event, callback, id);
+      });
+
+      // add all new items
+      ids = this.itemsData.getIds();
+      this._onAdd(ids);
+    }
+    this._updateUngrouped();
+    //this._updateGraph();
+    this.redraw(true);
+  };
+
+  /**
+   * Set groups
+   * @param {vis.DataSet} groups
+   */
+  LineGraph.prototype.setGroups = function (groups) {
+    var me = this;
+    var ids;
+
+    // unsubscribe from current dataset
+    if (this.groupsData) {
+      util.forEach(this.groupListeners, function (callback, event) {
+        me.groupsData.off(event, callback);
+      });
+
+      // remove all drawn groups
+      ids = this.groupsData.getIds();
+      this.groupsData = null;
+      this._onRemoveGroups(ids); // note: this will cause a redraw
+    }
+
+    // replace the dataset
+    if (!groups) {
+      this.groupsData = null;
+    } else if (groups instanceof DataSet || groups instanceof DataView) {
+      this.groupsData = groups;
+    } else {
+      throw new TypeError('Data must be an instance of DataSet or DataView');
+    }
+
+    if (this.groupsData) {
+      // subscribe to new dataset
+      var id = this.id;
+      util.forEach(this.groupListeners, function (callback, event) {
+        me.groupsData.on(event, callback, id);
+      });
+
+      // draw all ms
+      ids = this.groupsData.getIds();
+      this._onAddGroups(ids);
+    }
+    this._onUpdate();
+  };
+
+  /**
+   * Update the data
+   * @param [ids]
+   * @private
+   */
+  LineGraph.prototype._onUpdate = function (ids) {
+    this._updateUngrouped();
+    this._updateAllGroupData();
+    //this._updateGraph();
+    this.redraw(true);
+  };
+  LineGraph.prototype._onAdd = function (ids) {
+    this._onUpdate(ids);
+  };
+  LineGraph.prototype._onRemove = function (ids) {
+    this._onUpdate(ids);
+  };
+  LineGraph.prototype._onUpdateGroups = function (groupIds) {
+    for (var i = 0; i < groupIds.length; i++) {
+      var group = this.groupsData.get(groupIds[i]);
+      this._updateGroup(group, groupIds[i]);
+    }
+
+    //this._updateGraph();
+    this.redraw(true);
+  };
+  LineGraph.prototype._onAddGroups = function (groupIds) {
+    this._onUpdateGroups(groupIds);
+  };
+
+  /**
+   * this cleans the group out off the legends and the dataaxis, updates the ungrouped and updates the graph
+   * @param {Array} groupIds
+   * @private
+   */
+  LineGraph.prototype._onRemoveGroups = function (groupIds) {
+    for (var i = 0; i < groupIds.length; i++) {
+      if (this.groups.hasOwnProperty(groupIds[i])) {
+        if (this.groups[groupIds[i]].options.yAxisOrientation == 'right') {
+          this.yAxisRight.removeGroup(groupIds[i]);
+          this.legendRight.removeGroup(groupIds[i]);
+          this.legendRight.redraw();
+        } else {
+          this.yAxisLeft.removeGroup(groupIds[i]);
+          this.legendLeft.removeGroup(groupIds[i]);
+          this.legendLeft.redraw();
+        }
+        delete this.groups[groupIds[i]];
+      }
+    }
+    this._updateUngrouped();
+    //this._updateGraph();
+    this.redraw(true);
+  };
+
+  /**
+   * update a group object with the group dataset entree
+   *
+   * @param group
+   * @param groupId
+   * @private
+   */
+  LineGraph.prototype._updateGroup = function (group, groupId) {
+    if (!this.groups.hasOwnProperty(groupId)) {
+      this.groups[groupId] = new GraphGroup(group, groupId, this.options, this.groupsUsingDefaultStyles);
+      if (this.groups[groupId].options.yAxisOrientation == 'right') {
+        this.yAxisRight.addGroup(groupId, this.groups[groupId]);
+        this.legendRight.addGroup(groupId, this.groups[groupId]);
+      } else {
+        this.yAxisLeft.addGroup(groupId, this.groups[groupId]);
+        this.legendLeft.addGroup(groupId, this.groups[groupId]);
+      }
+    } else {
+      this.groups[groupId].update(group);
+      if (this.groups[groupId].options.yAxisOrientation == 'right') {
+        this.yAxisRight.updateGroup(groupId, this.groups[groupId]);
+        this.legendRight.updateGroup(groupId, this.groups[groupId]);
+      } else {
+        this.yAxisLeft.updateGroup(groupId, this.groups[groupId]);
+        this.legendLeft.updateGroup(groupId, this.groups[groupId]);
+      }
+    }
+    this.legendLeft.redraw();
+    this.legendRight.redraw();
+  };
+
+  /**
+   * this updates all groups, it is used when there is an update the the itemset.
+   *
+   * @private
+   */
+  LineGraph.prototype._updateAllGroupData = function () {
+    if (this.itemsData != null) {
+      var groupsContent = {};
+      var groupId;
+      for (groupId in this.groups) {
+        if (this.groups.hasOwnProperty(groupId)) {
+          groupsContent[groupId] = [];
+        }
+      }
+      for (var itemId in this.itemsData._data) {
+        if (this.itemsData._data.hasOwnProperty(itemId)) {
+          var item = this.itemsData._data[itemId];
+          if (groupsContent[item.group] === undefined) {
+            throw new Error('Cannot find referenced group. Possible reason: items added before groups? Groups need to be added before items, as items refer to groups.');
+          }
+          item.x = util.convert(item.x, 'Date');
+          groupsContent[item.group].push(item);
+        }
+      }
+      for (groupId in this.groups) {
+        if (this.groups.hasOwnProperty(groupId)) {
+          this.groups[groupId].setItems(groupsContent[groupId]);
+        }
+      }
+    }
+  };
+
+  /**
+   * Create or delete the group holding all ungrouped items. This group is used when
+   * there are no groups specified. This anonymous group is called 'graph'.
+   * @protected
+   */
+  LineGraph.prototype._updateUngrouped = function () {
+    if (this.itemsData && this.itemsData != null) {
+      var ungroupedCounter = 0;
+      for (var itemId in this.itemsData._data) {
+        if (this.itemsData._data.hasOwnProperty(itemId)) {
+          var item = this.itemsData._data[itemId];
+          if (item != undefined) {
+            if (item.hasOwnProperty('group')) {
+              if (item.group === undefined) {
+                item.group = UNGROUPED;
+              }
+            } else {
+              item.group = UNGROUPED;
+            }
+            ungroupedCounter = item.group == UNGROUPED ? ungroupedCounter + 1 : ungroupedCounter;
+          }
+        }
+      }
+
+      if (ungroupedCounter == 0) {
+        delete this.groups[UNGROUPED];
+        this.legendLeft.removeGroup(UNGROUPED);
+        this.legendRight.removeGroup(UNGROUPED);
+        this.yAxisLeft.removeGroup(UNGROUPED);
+        this.yAxisRight.removeGroup(UNGROUPED);
+      } else {
+        var group = { id: UNGROUPED, content: this.options.defaultGroup };
+        this._updateGroup(group, UNGROUPED);
+      }
+    } else {
+      delete this.groups[UNGROUPED];
+      this.legendLeft.removeGroup(UNGROUPED);
+      this.legendRight.removeGroup(UNGROUPED);
+      this.yAxisLeft.removeGroup(UNGROUPED);
+      this.yAxisRight.removeGroup(UNGROUPED);
+    }
+
+    this.legendLeft.redraw();
+    this.legendRight.redraw();
+  };
+
+  /**
+   * Redraw the component, mandatory function
+   * @return {boolean} Returns true if the component is resized
+   */
+  LineGraph.prototype.redraw = function (forceGraphUpdate) {
+    var resized = false;
+
+    // calculate actual size and position
+    this.props.width = this.dom.frame.offsetWidth;
+    this.props.height = this.body.domProps.centerContainer.height - this.body.domProps.border.top - this.body.domProps.border.bottom;
+
+    // update the graph if there is no lastWidth or with, used for the initial draw
+    if (this.lastWidth === undefined && this.props.width) {
+      forceGraphUpdate = true;
+    }
+
+    // check if this component is resized
+    resized = this._isResized() || resized;
+
+    // check whether zoomed (in that case we need to re-stack everything)
+    var visibleInterval = this.body.range.end - this.body.range.start;
+    var zoomed = visibleInterval != this.lastVisibleInterval;
+    this.lastVisibleInterval = visibleInterval;
+
+    // the svg element is three times as big as the width, this allows for fully dragging left and right
+    // without reloading the graph. the controls for this are bound to events in the constructor
+    if (resized == true) {
+      this.svg.style.width = util.option.asSize(3 * this.props.width);
+      this.svg.style.left = util.option.asSize(-this.props.width);
+
+      // if the height of the graph is set as proportional, change the height of the svg
+      if ((this.options.height + '').indexOf('%') != -1 || this.updateSVGheightOnResize == true) {
+        this.updateSVGheight = true;
+      }
+    }
+
+    // update the height of the graph on each redraw of the graph.
+    if (this.updateSVGheight == true) {
+      if (this.options.graphHeight != this.props.height + 'px') {
+        this.options.graphHeight = this.props.height + 'px';
+        this.svg.style.height = this.props.height + 'px';
+      }
+      this.updateSVGheight = false;
+    } else {
+      this.svg.style.height = ('' + this.options.graphHeight).replace('px', '') + 'px';
+    }
+
+    // zoomed is here to ensure that animations are shown correctly.
+    if (resized == true || zoomed == true || this.abortedGraphUpdate == true || forceGraphUpdate == true) {
+      resized = this._updateGraph() || resized;
+    } else {
+      // move the whole svg while dragging
+      if (this.lastStart != 0) {
+        var offset = this.body.range.start - this.lastStart;
+        var range = this.body.range.end - this.body.range.start;
+        if (this.props.width != 0) {
+          var rangePerPixelInv = this.props.width / range;
+          var xOffset = offset * rangePerPixelInv;
+          this.svg.style.left = -this.props.width - xOffset + 'px';
+        }
+      }
+    }
+
+    this.legendLeft.redraw();
+    this.legendRight.redraw();
+    return resized;
+  };
+
+  /**
+   * Update and redraw the graph.
+   *
+   */
+  LineGraph.prototype._updateGraph = function () {
+    // reset the svg elements
+    DOMutil.prepareElements(this.svgElements);
+    if (this.props.width != 0 && this.itemsData != null) {
+      var group, i;
+      var preprocessedGroupData = {};
+      var processedGroupData = {};
+      var groupRanges = {};
+      var changeCalled = false;
+
+      // getting group Ids
+      var groupIds = [];
+      for (var groupId in this.groups) {
+        if (this.groups.hasOwnProperty(groupId)) {
+          group = this.groups[groupId];
+          if (group.visible == true && (this.options.groups.visibility[groupId] === undefined || this.options.groups.visibility[groupId] == true)) {
+            groupIds.push(groupId);
+          }
+        }
+      }
+      if (groupIds.length > 0) {
+        // this is the range of the SVG canvas
+        var minDate = this.body.util.toGlobalTime(-this.body.domProps.root.width);
+        var maxDate = this.body.util.toGlobalTime(2 * this.body.domProps.root.width);
+        var groupsData = {};
+        // fill groups data, this only loads the data we require based on the timewindow
+        this._getRelevantData(groupIds, groupsData, minDate, maxDate);
+
+        // apply sampling, if disabled, it will pass through this function.
+        this._applySampling(groupIds, groupsData);
+
+        // we transform the X coordinates to detect collisions
+        for (i = 0; i < groupIds.length; i++) {
+          preprocessedGroupData[groupIds[i]] = this._convertXcoordinates(groupsData[groupIds[i]]);
+        }
+
+        // now all needed data has been collected we start the processing.
+        this._getYRanges(groupIds, preprocessedGroupData, groupRanges);
+
+        // update the Y axis first, we use this data to draw at the correct Y points
+        // changeCalled is required to clean the SVG on a change emit.
+        changeCalled = this._updateYAxis(groupIds, groupRanges);
+        var MAX_CYCLES = 5;
+        if (changeCalled == true && this.COUNTER < MAX_CYCLES) {
+          DOMutil.cleanupElements(this.svgElements);
+          this.abortedGraphUpdate = true;
+          this.COUNTER++;
+          this.body.emitter.emit('change');
+          return true;
+        } else {
+          if (this.COUNTER > MAX_CYCLES) {
+            console.log('WARNING: there may be an infinite loop in the _updateGraph emitter cycle.');
+          }
+          this.COUNTER = 0;
+          this.abortedGraphUpdate = false;
+
+          // With the yAxis scaled correctly, use this to get the Y values of the points.
+          for (i = 0; i < groupIds.length; i++) {
+            group = this.groups[groupIds[i]];
+            processedGroupData[groupIds[i]] = this._convertYcoordinates(groupsData[groupIds[i]], group);
+          }
+
+          // draw the groups
+          for (i = 0; i < groupIds.length; i++) {
+            group = this.groups[groupIds[i]];
+            if (group.options.style != 'bar') {
+              // bar needs to be drawn enmasse
+              group.draw(processedGroupData[groupIds[i]], group, this.framework);
+            }
+          }
+          BarFunctions.draw(groupIds, processedGroupData, this.framework);
+        }
+      }
+    }
+
+    // cleanup unused svg elements
+    DOMutil.cleanupElements(this.svgElements);
+    return false;
+  };
+
+  /**
+   * first select and preprocess the data from the datasets.
+   * the groups have their preselection of data, we now loop over this data to see
+   * what data we need to draw. Sorted data is much faster.
+   * more optimization is possible by doing the sampling before and using the binary search
+   * to find the end date to determine the increment.
+   *
+   * @param {array}  groupIds
+   * @param {object} groupsData
+   * @param {date}   minDate
+   * @param {date}   maxDate
+   * @private
+   */
+  LineGraph.prototype._getRelevantData = function (groupIds, groupsData, minDate, maxDate) {
+    var group, i, j, item;
+    if (groupIds.length > 0) {
+      for (i = 0; i < groupIds.length; i++) {
+        group = this.groups[groupIds[i]];
+        groupsData[groupIds[i]] = [];
+        var dataContainer = groupsData[groupIds[i]];
+        // optimization for sorted data
+        if (group.options.sort == true) {
+          var guess = Math.max(0, util.binarySearchValue(group.itemsData, minDate, 'x', 'before'));
+          for (j = guess; j < group.itemsData.length; j++) {
+            item = group.itemsData[j];
+            if (item !== undefined) {
+              if (item.x > maxDate) {
+                dataContainer.push(item);
+                break;
+              } else {
+                dataContainer.push(item);
+              }
+            }
+          }
+        } else {
+          for (j = 0; j < group.itemsData.length; j++) {
+            item = group.itemsData[j];
+            if (item !== undefined) {
+              if (item.x > minDate && item.x < maxDate) {
+                dataContainer.push(item);
+              }
+            }
+          }
+        }
+      }
+    }
+  };
+
+  /**
+   *
+   * @param groupIds
+   * @param groupsData
+   * @private
+   */
+  LineGraph.prototype._applySampling = function (groupIds, groupsData) {
+    var group;
+    if (groupIds.length > 0) {
+      for (var i = 0; i < groupIds.length; i++) {
+        group = this.groups[groupIds[i]];
+        if (group.options.sampling == true) {
+          var dataContainer = groupsData[groupIds[i]];
+          if (dataContainer.length > 0) {
+            var increment = 1;
+            var amountOfPoints = dataContainer.length;
+
+            // the global screen is used because changing the width of the yAxis may affect the increment, resulting in an endless loop
+            // of width changing of the yAxis.
+            var xDistance = this.body.util.toGlobalScreen(dataContainer[dataContainer.length - 1].x) - this.body.util.toGlobalScreen(dataContainer[0].x);
+            var pointsPerPixel = amountOfPoints / xDistance;
+            increment = Math.min(Math.ceil(0.2 * amountOfPoints), Math.max(1, Math.round(pointsPerPixel)));
+
+            var sampledData = [];
+            for (var j = 0; j < amountOfPoints; j += increment) {
+              sampledData.push(dataContainer[j]);
+            }
+            groupsData[groupIds[i]] = sampledData;
+          }
+        }
+      }
+    }
+  };
+
+  /**
+   *
+   *
+   * @param {array}  groupIds
+   * @param {object} groupsData
+   * @param {object} groupRanges  | this is being filled here
+   * @private
+   */
+  LineGraph.prototype._getYRanges = function (groupIds, groupsData, groupRanges) {
+    var groupData, group, i;
+    var combinedDataLeft = [];
+    var combinedDataRight = [];
+    var options;
+    if (groupIds.length > 0) {
+      for (i = 0; i < groupIds.length; i++) {
+        groupData = groupsData[groupIds[i]];
+        options = this.groups[groupIds[i]].options;
+        if (groupData.length > 0) {
+          group = this.groups[groupIds[i]];
+          // if bar graphs are stacked, their range need to be handled differently and accumulated over all groups.
+          if (options.stack === true && options.style === 'bar') {
+            if (options.yAxisOrientation === 'left') {
+              combinedDataLeft = combinedDataLeft.concat(group.getData(groupData));
+            } else {
+              combinedDataRight = combinedDataRight.concat(group.getData(groupData));
+            }
+          } else {
+            groupRanges[groupIds[i]] = group.getYRange(groupData, groupIds[i]);
+          }
+        }
+      }
+
+      // if bar graphs are stacked, their range need to be handled differently and accumulated over all groups.
+      BarFunctions.getStackedYRange(combinedDataLeft, groupRanges, groupIds, '__barStackLeft', 'left');
+      BarFunctions.getStackedYRange(combinedDataRight, groupRanges, groupIds, '__barStackRight', 'right');
+      // if line graphs are stacked, their range need to be handled differently and accumulated over all groups.
+      //LineFunctions.getStackedYRange(combinedDataLeft , groupRanges, groupIds, '__lineStackLeft' , 'left' );
+      //LineFunctions.getStackedYRange(combinedDataRight, groupRanges, groupIds, '__lineStackRight', 'right');
+    }
+  };
+
+  /**
+   * this sets the Y ranges for the Y axis. It also determines which of the axis should be shown or hidden.
+   * @param {Array} groupIds
+   * @param {Object} groupRanges
+   * @private
+   */
+  LineGraph.prototype._updateYAxis = function (groupIds, groupRanges) {
+    var resized = false;
+    var yAxisLeftUsed = false;
+    var yAxisRightUsed = false;
+    var minLeft = 1000000000,
+        minRight = 1000000000,
+        maxLeft = -1000000000,
+        maxRight = -1000000000,
+        minVal,
+        maxVal;
+    // if groups are present
+    if (groupIds.length > 0) {
+      // this is here to make sure that if there are no items in the axis but there are groups, that there is no infinite draw/redraw loop.
+      for (var i = 0; i < groupIds.length; i++) {
+        var group = this.groups[groupIds[i]];
+        if (group && group.options.yAxisOrientation != 'right') {
+          yAxisLeftUsed = true;
+          minLeft = 0;
+          maxLeft = 0;
+        } else if (group && group.options.yAxisOrientation) {
+          yAxisRightUsed = true;
+          minRight = 0;
+          maxRight = 0;
+        }
+      }
+
+      // if there are items:
+      for (var i = 0; i < groupIds.length; i++) {
+        if (groupRanges.hasOwnProperty(groupIds[i])) {
+          if (groupRanges[groupIds[i]].ignore !== true) {
+            minVal = groupRanges[groupIds[i]].min;
+            maxVal = groupRanges[groupIds[i]].max;
+
+            if (groupRanges[groupIds[i]].yAxisOrientation != 'right') {
+              yAxisLeftUsed = true;
+              minLeft = minLeft > minVal ? minVal : minLeft;
+              maxLeft = maxLeft < maxVal ? maxVal : maxLeft;
+            } else {
+              yAxisRightUsed = true;
+              minRight = minRight > minVal ? minVal : minRight;
+              maxRight = maxRight < maxVal ? maxVal : maxRight;
+            }
+          }
+        }
+      }
+
+      if (yAxisLeftUsed == true) {
+        this.yAxisLeft.setRange(minLeft, maxLeft);
+      }
+      if (yAxisRightUsed == true) {
+        this.yAxisRight.setRange(minRight, maxRight);
+      }
+    }
+    resized = this._toggleAxisVisiblity(yAxisLeftUsed, this.yAxisLeft) || resized;
+    resized = this._toggleAxisVisiblity(yAxisRightUsed, this.yAxisRight) || resized;
+
+    if (yAxisRightUsed == true && yAxisLeftUsed == true) {
+      this.yAxisLeft.drawIcons = true;
+      this.yAxisRight.drawIcons = true;
+    } else {
+      this.yAxisLeft.drawIcons = false;
+      this.yAxisRight.drawIcons = false;
+    }
+    this.yAxisRight.master = !yAxisLeftUsed;
+    if (this.yAxisRight.master == false) {
+      if (yAxisRightUsed == true) {
+        this.yAxisLeft.lineOffset = this.yAxisRight.width;
+      } else {
+        this.yAxisLeft.lineOffset = 0;
+      }
+
+      resized = this.yAxisLeft.redraw() || resized;
+      this.yAxisRight.stepPixels = this.yAxisLeft.stepPixels;
+      this.yAxisRight.zeroCrossing = this.yAxisLeft.zeroCrossing;
+      this.yAxisRight.amountOfSteps = this.yAxisLeft.amountOfSteps;
+      resized = this.yAxisRight.redraw() || resized;
+    } else {
+      resized = this.yAxisRight.redraw() || resized;
+    }
+
+    // clean the accumulated lists
+    var tempGroups = ['__barStackLeft', '__barStackRight', '__lineStackLeft', '__lineStackRight'];
+    for (var i = 0; i < tempGroups.length; i++) {
+      if (groupIds.indexOf(tempGroups[i]) != -1) {
+        groupIds.splice(groupIds.indexOf(tempGroups[i]), 1);
+      }
+    }
+
+    return resized;
+  };
+
+  /**
+   * This shows or hides the Y axis if needed. If there is a change, the changed event is emitted by the updateYAxis function
+   *
+   * @param {boolean} axisUsed
+   * @returns {boolean}
+   * @private
+   * @param axis
+   */
+  LineGraph.prototype._toggleAxisVisiblity = function (axisUsed, axis) {
+    var changed = false;
+    if (axisUsed == false) {
+      if (axis.dom.frame.parentNode && axis.hidden == false) {
+        axis.hide();
+        changed = true;
+      }
+    } else {
+      if (!axis.dom.frame.parentNode && axis.hidden == true) {
+        axis.show();
+        changed = true;
+      }
+    }
+    return changed;
+  };
+
+  /**
+   * This uses the DataAxis object to generate the correct X coordinate on the SVG window. It uses the
+   * util function toScreen to get the x coordinate from the timestamp. It also pre-filters the data and get the minMax ranges for
+   * the yAxis.
+   *
+   * @param datapoints
+   * @returns {Array}
+   * @private
+   */
+  LineGraph.prototype._convertXcoordinates = function (datapoints) {
+    var extractedData = [];
+    var xValue, yValue;
+    var toScreen = this.body.util.toScreen;
+
+    for (var i = 0; i < datapoints.length; i++) {
+      xValue = toScreen(datapoints[i].x) + this.props.width;
+      yValue = datapoints[i].y;
+      extractedData.push({ x: xValue, y: yValue });
+    }
+
+    return extractedData;
+  };
+
+  /**
+   * This uses the DataAxis object to generate the correct X coordinate on the SVG window. It uses the
+   * util function toScreen to get the x coordinate from the timestamp. It also pre-filters the data and get the minMax ranges for
+   * the yAxis.
+   *
+   * @param datapoints
+   * @param group
+   * @returns {Array}
+   * @private
+   */
+  LineGraph.prototype._convertYcoordinates = function (datapoints, group) {
+    var extractedData = [];
+    var xValue, yValue;
+    var toScreen = this.body.util.toScreen;
+    var axis = this.yAxisLeft;
+    var svgHeight = Number(this.svg.style.height.replace('px', ''));
+    if (group.options.yAxisOrientation == 'right') {
+      axis = this.yAxisRight;
+    }
+
+    for (var i = 0; i < datapoints.length; i++) {
+      var labelValue = datapoints[i].label ? datapoints[i].label : null;
+      xValue = toScreen(datapoints[i].x) + this.props.width;
+      yValue = Math.round(axis.convertValue(datapoints[i].y));
+      extractedData.push({ x: xValue, y: yValue, label: labelValue });
+    }
+
+    group.setZeroPosition(Math.min(svgHeight, axis.convertValue(0)));
+
+    return extractedData;
+  };
+
+  module.exports = LineGraph;
 
 /***/ },
-/* 5 */
+/* 6 */
+/***/ function(module, exports, __webpack_require__) {
+
+  'use strict';
+
+  Object.defineProperty(exports, '__esModule', {
+    value: true
+  });
+
+  var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
+
+  function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
+
+  function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
+
+  var _componentsPhysicsBarnesHutSolver = __webpack_require__(7);
+
+  var _componentsPhysicsBarnesHutSolver2 = _interopRequireDefault(_componentsPhysicsBarnesHutSolver);
+
+  var _componentsPhysicsRepulsionSolver = __webpack_require__(92);
+
+  var _componentsPhysicsRepulsionSolver2 = _interopRequireDefault(_componentsPhysicsRepulsionSolver);
+
+  var _componentsPhysicsHierarchicalRepulsionSolver = __webpack_require__(93);
+
+  var _componentsPhysicsHierarchicalRepulsionSolver2 = _interopRequireDefault(_componentsPhysicsHierarchicalRepulsionSolver);
+
+  var _componentsPhysicsSpringSolver = __webpack_require__(8);
+
+  var _componentsPhysicsSpringSolver2 = _interopRequireDefault(_componentsPhysicsSpringSolver);
+
+  var _componentsPhysicsHierarchicalSpringSolver = __webpack_require__(94);
+
+  var _componentsPhysicsHierarchicalSpringSolver2 = _interopRequireDefault(_componentsPhysicsHierarchicalSpringSolver);
+
+  var _componentsPhysicsCentralGravitySolver = __webpack_require__(95);
+
+  var _componentsPhysicsCentralGravitySolver2 = _interopRequireDefault(_componentsPhysicsCentralGravitySolver);
+
+  var _componentsPhysicsFA2BasedRepulsionSolver = __webpack_require__(96);
+
+  var _componentsPhysicsFA2BasedRepulsionSolver2 = _interopRequireDefault(_componentsPhysicsFA2BasedRepulsionSolver);
+
+  var _componentsPhysicsFA2BasedCentralGravitySolver = __webpack_require__(97);
+
+  var _componentsPhysicsFA2BasedCentralGravitySolver2 = _interopRequireDefault(_componentsPhysicsFA2BasedCentralGravitySolver);
+
+  var util = __webpack_require__(4);
+
+  var PhysicsEngine = (function () {
+    function PhysicsEngine(body) {
+      _classCallCheck(this, PhysicsEngine);
+
+      this.body = body;
+      this.physicsBody = { physicsNodeIndices: [], physicsEdgeIndices: [], forces: {}, velocities: {} };
+
+      this.physicsEnabled = true;
+      this.simulationInterval = 1000 / 60;
+      this.requiresTimeout = true;
+      this.previousStates = {};
+      this.freezeCache = {};
+      this.renderTimer = undefined;
+
+      this.stabilized = false;
+      this.startedStabilization = false;
+      this.stabilizationIterations = 0;
+      this.ready = false; // will be set to true if the stabilize
+
+      // default options
+      this.options = {};
+      this.defaultOptions = {
+        barnesHut: {
+          theta: 0.5,
+          gravitationalConstant: -2000,
+          centralGravity: 0.3,
+          springLength: 95,
+          springConstant: 0.04,
+          damping: 0.09,
+          avoidOverlap: 0
+        },
+        forceAtlas2Based: {
+          theta: 0.5,
+          gravitationalConstant: -50,
+          centralGravity: 0.01,
+          springConstant: 0.08,
+          springLength: 100,
+          damping: 0.4,
+          avoidOverlap: 0
+        },
+        repulsion: {
+          centralGravity: 0.2,
+          springLength: 200,
+          springConstant: 0.05,
+          nodeDistance: 100,
+          damping: 0.09,
+          avoidOverlap: 0
+        },
+        hierarchicalRepulsion: {
+          centralGravity: 0,
+          springLength: 100,
+          springConstant: 0.01,
+          nodeDistance: 120,
+          damping: 0.09
+        },
+        maxVelocity: 50,
+        minVelocity: 0.1, // px/s
+        solver: 'barnesHut',
+        stabilization: {
+          enabled: true,
+          iterations: 1000, // maximum number of iteration to stabilize
+          updateInterval: 50,
+          onlyDynamicEdges: false,
+          fit: true
+        },
+        timestep: 0.5
+      };
+      util.extend(this.options, this.defaultOptions);
+
+      this.bindEventListeners();
+    }
+
+    _createClass(PhysicsEngine, [{
+      key: 'bindEventListeners',
+      value: function bindEventListeners() {
+        var _this = this;
+
+        this.body.emitter.on('initPhysics', function () {
+          _this.initPhysics();
+        });
+        this.body.emitter.on('resetPhysics', function () {
+          _this.stopSimulation();_this.ready = false;
+        });
+        this.body.emitter.on('disablePhysics', function () {
+          _this.physicsEnabled = false;_this.stopSimulation();
+        });
+        this.body.emitter.on('restorePhysics', function () {
+          _this.setOptions(_this.options);
+          if (_this.ready === true) {
+            _this.startSimulation();
+          }
+        });
+        this.body.emitter.on('startSimulation', function () {
+          if (_this.ready === true) {
+            _this.startSimulation();
+          }
+        });
+        this.body.emitter.on('stopSimulation', function () {
+          _this.stopSimulation();
+        });
+        this.body.emitter.on('destroy', function () {
+          _this.stopSimulation(false);
+          _this.body.emitter.off();
+        });
+      }
+    }, {
+      key: 'setOptions',
+      value: function setOptions(options) {
+        if (options !== undefined) {
+          if (options === false) {
+            this.physicsEnabled = false;
+            this.stopSimulation();
+          } else {
+            this.physicsEnabled = true;
+            util.selectiveNotDeepExtend(['stabilization'], this.options, options);
+            util.mergeOptions(this.options, options, 'stabilization');
+          }
+        }
+        this.init();
+      }
+    }, {
+      key: 'init',
+      value: function init() {
+        var options;
+        if (this.options.solver === 'forceAtlas2Based') {
+          options = this.options.forceAtlas2Based;
+          this.nodesSolver = new _componentsPhysicsFA2BasedRepulsionSolver2['default'](this.body, this.physicsBody, options);
+          this.edgesSolver = new _componentsPhysicsSpringSolver2['default'](this.body, this.physicsBody, options);
+          this.gravitySolver = new _componentsPhysicsFA2BasedCentralGravitySolver2['default'](this.body, this.physicsBody, options);
+        } else if (this.options.solver === 'repulsion') {
+          options = this.options.repulsion;
+          this.nodesSolver = new _componentsPhysicsRepulsionSolver2['default'](this.body, this.physicsBody, options);
+          this.edgesSolver = new _componentsPhysicsSpringSolver2['default'](this.body, this.physicsBody, options);
+          this.gravitySolver = new _componentsPhysicsCentralGravitySolver2['default'](this.body, this.physicsBody, options);
+        } else if (this.options.solver === 'hierarchicalRepulsion') {
+          options = this.options.hierarchicalRepulsion;
+          this.nodesSolver = new _componentsPhysicsHierarchicalRepulsionSolver2['default'](this.body, this.physicsBody, options);
+          this.edgesSolver = new _componentsPhysicsHierarchicalSpringSolver2['default'](this.body, this.physicsBody, options);
+          this.gravitySolver = new _componentsPhysicsCentralGravitySolver2['default'](this.body, this.physicsBody, options);
+        } else {
+          // barnesHut
+          options = this.options.barnesHut;
+          this.nodesSolver = new _componentsPhysicsBarnesHutSolver2['default'](this.body, this.physicsBody, options);
+          this.edgesSolver = new _componentsPhysicsSpringSolver2['default'](this.body, this.physicsBody, options);
+          this.gravitySolver = new _componentsPhysicsCentralGravitySolver2['default'](this.body, this.physicsBody, options);
+        }
+
+        this.modelOptions = options;
+      }
+    }, {
+      key: 'initPhysics',
+      value: function initPhysics() {
+        if (this.physicsEnabled === true) {
+          if (this.options.stabilization.enabled === true) {
+            this.stabilize();
+          } else {
+            this.stabilized = false;
+            this.ready = true;
+            this.body.emitter.emit('fit', {}, true);
+            this.startSimulation();
+          }
+        } else {
+          this.ready = true;
+          this.body.emitter.emit('fit');
+        }
+      }
+    }, {
+      key: 'startSimulation',
+
+      /**
+       * Start the simulation
+       */
+      value: function startSimulation() {
+        if (this.physicsEnabled === true) {
+          this.stabilized = false;
+
+          // this sets the width of all nodes initially which could be required for the avoidOverlap
+          this.body.emitter.emit('_resizeNodes');
+
+          if (this.viewFunction === undefined) {
+            this.viewFunction = this.simulationStep.bind(this);
+            this.body.emitter.on('initRedraw', this.viewFunction);
+            this.body.emitter.emit('_startRendering');
+          }
+        } else {
+          this.body.emitter.emit('_redraw');
+        }
+      }
+    }, {
+      key: 'stopSimulation',
+
+      /**
+       * Stop the simulation, force stabilization.
+       */
+      value: function stopSimulation() {
+        var emit = arguments[0] === undefined ? true : arguments[0];
+
+        this.stabilized = true;
+        if (emit === true) {
+          this._emitStabilized();
+        }
+        if (this.viewFunction !== undefined) {
+          this.body.emitter.off('initRedraw', this.viewFunction);
+          this.viewFunction = undefined;
+          if (emit === true) {
+            this.body.emitter.emit('_stopRendering');
+          }
+        }
+      }
+    }, {
+      key: 'simulationStep',
+
+      /**
+       * The viewFunction inserts this step into each renderloop. It calls the physics tick and handles the cleanup at stabilized.
+       *
+       */
+      value: function simulationStep() {
+        // check if the physics have settled
+        var startTime = Date.now();
+        this.physicsTick();
+        var physicsTime = Date.now() - startTime;
+
+        // run double speed if it is a little graph
+        if ((physicsTime < 0.4 * this.simulationInterval || this.runDoubleSpeed === true) && this.stabilized === false) {
+          this.physicsTick();
+
+          // this makes sure there is no jitter. The decision is taken once to run it at double speed.
+          this.runDoubleSpeed = true;
+        }
+
+        if (this.stabilized === true) {
+          if (this.stabilizationIterations > 1) {
+            // trigger the 'stabilized' event.
+            // The event is triggered on the next tick, to prevent the case that
+            // it is fired while initializing the Network, in which case you would not
+            // be able to catch it
+            this.startedStabilization = false;
+            //this._emitStabilized();
+          }
+          this.stopSimulation();
+        }
+      }
+    }, {
+      key: '_emitStabilized',
+      value: function _emitStabilized() {
+        var _this2 = this;
+
+        if (this.stabilizationIterations > 1) {
+          setTimeout(function () {
+            _this2.body.emitter.emit('stabilized', { iterations: _this2.stabilizationIterations });
+            _this2.stabilizationIterations = 0;
+          }, 0);
+        }
+      }
+    }, {
+      key: 'physicsTick',
+
+      /**
+       * A single simulation step (or 'tick') in the physics simulation
+       *
+       * @private
+       */
+      value: function physicsTick() {
+        if (this.stabilized === false) {
+          this.calculateForces();
+          this.stabilized = this.moveNodes();
+
+          // determine if the network has stabilzied
+          if (this.stabilized === true) {
+            this.revert();
+          } else {
+            // this is here to ensure that there is no start event when the network is already stable.
+            if (this.startedStabilization === false) {
+              this.body.emitter.emit('startStabilizing');
+              this.startedStabilization = true;
+            }
+          }
+
+          this.stabilizationIterations++;
+        }
+      }
+    }, {
+      key: 'updatePhysicsData',
+
+      /**
+       * Nodes and edges can have the physics toggles on or off. A collection of indices is created here so we can skip the check all the time.
+       *
+       * @private
+       */
+      value: function updatePhysicsData() {
+        this.physicsBody.forces = {};
+        this.physicsBody.physicsNodeIndices = [];
+        this.physicsBody.physicsEdgeIndices = [];
+        var nodes = this.body.nodes;
+        var edges = this.body.edges;
+
+        // get node indices for physics
+        for (var nodeId in nodes) {
+          if (nodes.hasOwnProperty(nodeId)) {
+            if (nodes[nodeId].options.physics === true) {
+              this.physicsBody.physicsNodeIndices.push(nodeId);
+            }
+          }
+        }
+
+        // get edge indices for physics
+        for (var edgeId in edges) {
+          if (edges.hasOwnProperty(edgeId)) {
+            if (edges[edgeId].options.physics === true) {
+              this.physicsBody.physicsEdgeIndices.push(edgeId);
+            }
+          }
+        }
+
+        // get the velocity and the forces vector
+        for (var i = 0; i < this.physicsBody.physicsNodeIndices.length; i++) {
+          var nodeId = this.physicsBody.physicsNodeIndices[i];
+          this.physicsBody.forces[nodeId] = { x: 0, y: 0 };
+
+          // forces can be reset because they are recalculated. Velocities have to persist.
+          if (this.physicsBody.velocities[nodeId] === undefined) {
+            this.physicsBody.velocities[nodeId] = { x: 0, y: 0 };
+          }
+        }
+
+        // clean deleted nodes from the velocity vector
+        for (var nodeId in this.physicsBody.velocities) {
+          if (nodes[nodeId] === undefined) {
+            delete this.physicsBody.velocities[nodeId];
+          }
+        }
+      }
+    }, {
+      key: 'revert',
+
+      /**
+       * Revert the simulation one step. This is done so after stabilization, every new start of the simulation will also say stabilized.
+       */
+      value: function revert() {
+        var nodeIds = Object.keys(this.previousStates);
+        var nodes = this.body.nodes;
+        var velocities = this.physicsBody.velocities;
+
+        for (var i = 0; i < nodeIds.length; i++) {
+          var nodeId = nodeIds[i];
+          if (nodes[nodeId] !== undefined) {
+            if (nodes[nodeId].options.physics === true) {
+              velocities[nodeId].x = this.previousStates[nodeId].vx;
+              velocities[nodeId].y = this.previousStates[nodeId].vy;
+              nodes[nodeId].x = this.previousStates[nodeId].x;
+              nodes[nodeId].y = this.previousStates[nodeId].y;
+            }
+          } else {
+            delete this.previousStates[nodeId];
+          }
+        }
+      }
+    }, {
+      key: 'moveNodes',
+
+      /**
+       * move the nodes one timestap and check if they are stabilized
+       * @returns {boolean}
+       */
+      value: function moveNodes() {
+        var nodesPresent = false;
+        var nodeIndices = this.physicsBody.physicsNodeIndices;
+        var maxVelocity = this.options.maxVelocity ? this.options.maxVelocity : 1000000000;
+        var stabilized = true;
+        var vminCorrected = this.options.minVelocity / Math.max(this.body.view.scale, 0.05);
+
+        for (var i = 0; i < nodeIndices.length; i++) {
+          var nodeId = nodeIndices[i];
+          var nodeVelocity = this._performStep(nodeId, maxVelocity);
+          // stabilized is true if stabilized is true and velocity is smaller than vmin --> all nodes must be stabilized
+          stabilized = nodeVelocity < vminCorrected && stabilized === true;
+          nodesPresent = true;
+        }
+
+        if (nodesPresent === true) {
+          if (vminCorrected > 0.5 * this.options.maxVelocity) {
+            return false;
+          } else {
+            return stabilized;
+          }
+        }
+        return true;
+      }
+    }, {
+      key: '_performStep',
+
+      /**
+       * Perform the actual step
+       *
+       * @param nodeId
+       * @param maxVelocity
+       * @returns {number}
+       * @private
+       */
+      value: function _performStep(nodeId, maxVelocity) {
+        var node = this.body.nodes[nodeId];
+        var timestep = this.options.timestep;
+        var forces = this.physicsBody.forces;
+        var velocities = this.physicsBody.velocities;
+
+        // store the state so we can revert
+        this.previousStates[nodeId] = { x: node.x, y: node.y, vx: velocities[nodeId].x, vy: velocities[nodeId].y };
+
+        if (node.options.fixed.x === false) {
+          var dx = this.modelOptions.damping * velocities[nodeId].x; // damping force
+          var ax = (forces[nodeId].x - dx) / node.options.mass; // acceleration
+          velocities[nodeId].x += ax * timestep; // velocity
+          velocities[nodeId].x = Math.abs(velocities[nodeId].x) > maxVelocity ? velocities[nodeId].x > 0 ? maxVelocity : -maxVelocity : velocities[nodeId].x;
+          node.x += velocities[nodeId].x * timestep; // position
+        } else {
+          forces[nodeId].x = 0;
+          velocities[nodeId].x = 0;
+        }
+
+        if (node.options.fixed.y === false) {
+          var dy = this.modelOptions.damping * velocities[nodeId].y; // damping force
+          var ay = (forces[nodeId].y - dy) / node.options.mass; // acceleration
+          velocities[nodeId].y += ay * timestep; // velocity
+          velocities[nodeId].y = Math.abs(velocities[nodeId].y) > maxVelocity ? velocities[nodeId].y > 0 ? maxVelocity : -maxVelocity : velocities[nodeId].y;
+          node.y += velocities[nodeId].y * timestep; // position
+        } else {
+          forces[nodeId].y = 0;
+          velocities[nodeId].y = 0;
+        }
+
+        var totalVelocity = Math.sqrt(Math.pow(velocities[nodeId].x, 2) + Math.pow(velocities[nodeId].y, 2));
+        return totalVelocity;
+      }
+    }, {
+      key: 'calculateForces',
+
+      /**
+       * calculate the forces for one physics iteration.
+       */
+      value: function calculateForces() {
+        this.gravitySolver.solve();
+        this.nodesSolver.solve();
+        this.edgesSolver.solve();
+      }
+    }, {
+      key: '_freezeNodes',
+
+      /**
+       * When initializing and stabilizing, we can freeze nodes with a predefined position. This greatly speeds up stabilization
+       * because only the supportnodes for the smoothCurves have to settle.
+       *
+       * @private
+       */
+      value: function _freezeNodes() {
+        var nodes = this.body.nodes;
+        for (var id in nodes) {
+          if (nodes.hasOwnProperty(id)) {
+            if (nodes[id].x && nodes[id].y) {
+              this.freezeCache[id] = { x: nodes[id].options.fixed.x, y: nodes[id].options.fixed.y };
+              nodes[id].options.fixed.x = true;
+              nodes[id].options.fixed.y = true;
+            }
+          }
+        }
+      }
+    }, {
+      key: '_restoreFrozenNodes',
+
+      /**
+       * Unfreezes the nodes that have been frozen by _freezeDefinedNodes.
+       *
+       * @private
+       */
+      value: function _restoreFrozenNodes() {
+        var nodes = this.body.nodes;
+        for (var id in nodes) {
+          if (nodes.hasOwnProperty(id)) {
+            if (this.freezeCache[id] !== undefined) {
+              nodes[id].options.fixed.x = this.freezeCache[id].x;
+              nodes[id].options.fixed.y = this.freezeCache[id].y;
+            }
+          }
+        }
+        this.freezeCache = {};
+      }
+    }, {
+      key: 'stabilize',
+
+      /**
+       * Find a stable position for all nodes
+       * @private
+       */
+      value: function stabilize() {
+        var _this3 = this;
+
+        var iterations = arguments[0] === undefined ? this.options.stabilization.iterations : arguments[0];
+
+        if (typeof iterations !== 'number') {
+          console.log('The stabilize method needs a numeric amount of iterations. Switching to default: ', this.options.stabilization.iterations);
+          iterations = this.options.stabilization.iterations;
+        }
+
+        // this sets the width of all nodes initially which could be required for the avoidOverlap
+        this.body.emitter.emit('_resizeNodes');
+
+        // stop the render loop
+        this.stopSimulation();
+
+        // set stabilze to false
+        this.stabilized = false;
+
+        // block redraw requests
+        this.body.emitter.emit('_blockRedrawRequests');
+        this.targetIterations = iterations;
+
+        // start the stabilization
+        if (this.options.stabilization.onlyDynamicEdges === true) {
+          this._freezeNodes();
+        }
+        this.stabilizationIterations = 0;
+
+        setTimeout(function () {
+          return _this3._stabilizationBatch();
+        }, 0);
+      }
+    }, {
+      key: '_stabilizationBatch',
+      value: function _stabilizationBatch() {
+        var count = 0;
+        while (this.stabilized === false && count < this.options.stabilization.updateInterval && this.stabilizationIterations < this.targetIterations) {
+          this.physicsTick();
+          this.stabilizationIterations++;
+          count++;
+        }
+
+        if (this.stabilized === false && this.stabilizationIterations < this.targetIterations) {
+          this.body.emitter.emit('stabilizationProgress', { iterations: this.stabilizationIterations, total: this.targetIterations });
+          setTimeout(this._stabilizationBatch.bind(this), 0);
+        } else {
+          this._finalizeStabilization();
+        }
+      }
+    }, {
+      key: '_finalizeStabilization',
+      value: function _finalizeStabilization() {
+        this.body.emitter.emit('_allowRedrawRequests');
+        if (this.options.stabilization.fit === true) {
+          this.body.emitter.emit('fit');
+        }
+
+        if (this.options.stabilization.onlyDynamicEdges === true) {
+          this._restoreFrozenNodes();
+        }
+
+        this.body.emitter.emit('stabilizationIterationsDone');
+        this.body.emitter.emit('_requestRedraw');
+
+        if (this.stabilized === true) {
+          this._emitStabilized();
+        } else {
+          this.startSimulation();
+        }
+
+        this.ready = true;
+      }
+    }]);
+
+    return PhysicsEngine;
+  })();
+
+  exports['default'] = PhysicsEngine;
+  module.exports = exports['default'];
+
+/***/ },
+/* 7 */
+/***/ function(module, exports, __webpack_require__) {
+
+  "use strict";
+
+  Object.defineProperty(exports, "__esModule", {
+    value: true
+  });
+
+  var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
+
+  function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+  var BarnesHutSolver = (function () {
+    function BarnesHutSolver(body, physicsBody, options) {
+      _classCallCheck(this, BarnesHutSolver);
+
+      this.body = body;
+      this.physicsBody = physicsBody;
+      this.barnesHutTree;
+      this.setOptions(options);
+    }
+
+    _createClass(BarnesHutSolver, [{
+      key: "setOptions",
+      value: function setOptions(options) {
+        this.options = options;
+        this.thetaInversed = 1 / this.options.theta;
+        this.overlapAvoidanceFactor = 1 - Math.max(0, Math.min(1, this.options.avoidOverlap)); // if 1 then min distance = 0.5, if 0.5 then min distance = 0.5 + 0.5*node.shape.radius
+      }
+    }, {
+      key: "solve",
+
+      /**
+       * This function calculates the forces the nodes apply on eachother based on a gravitational model.
+       * The Barnes Hut method is used to speed up this N-body simulation.
+       *
+       * @private
+       */
+      value: function solve() {
+        if (this.options.gravitationalConstant !== 0 && this.physicsBody.physicsNodeIndices.length > 0) {
+          var node = undefined;
+          var nodes = this.body.nodes;
+          var nodeIndices = this.physicsBody.physicsNodeIndices;
+          var nodeCount = nodeIndices.length;
+
+          // create the tree
+          var barnesHutTree = this._formBarnesHutTree(nodes, nodeIndices);
+
+          // for debugging
+          this.barnesHutTree = barnesHutTree;
+
+          // place the nodes one by one recursively
+          for (var i = 0; i < nodeCount; i++) {
+            node = nodes[nodeIndices[i]];
+            if (node.options.mass > 0) {
+              // starting with root is irrelevant, it never passes the BarnesHutSolver condition
+              this._getForceContribution(barnesHutTree.root.children.NW, node);
+              this._getForceContribution(barnesHutTree.root.children.NE, node);
+              this._getForceContribution(barnesHutTree.root.children.SW, node);
+              this._getForceContribution(barnesHutTree.root.children.SE, node);
+            }
+          }
+        }
+      }
+    }, {
+      key: "_getForceContribution",
+
+      /**
+       * This function traverses the barnesHutTree. It checks when it can approximate distant nodes with their center of mass.
+       * If a region contains a single node, we check if it is not itself, then we apply the force.
+       *
+       * @param parentBranch
+       * @param node
+       * @private
+       */
+      value: function _getForceContribution(parentBranch, node) {
+        // we get no force contribution from an empty region
+        if (parentBranch.childrenCount > 0) {
+          var dx = undefined,
+              dy = undefined,
+              distance = undefined;
+
+          // get the distance from the center of mass to the node.
+          dx = parentBranch.centerOfMass.x - node.x;
+          dy = parentBranch.centerOfMass.y - node.y;
+          distance = Math.sqrt(dx * dx + dy * dy);
+
+          // BarnesHutSolver condition
+          // original condition : s/d < theta = passed  ===  d/s > 1/theta = passed
+          // calcSize = 1/s --> d * 1/s > 1/theta = passed
+          if (distance * parentBranch.calcSize > this.thetaInversed) {
+            this._calculateForces(distance, dx, dy, node, parentBranch);
+          } else {
+            // Did not pass the condition, go into children if available
+            if (parentBranch.childrenCount === 4) {
+              this._getForceContribution(parentBranch.children.NW, node);
+              this._getForceContribution(parentBranch.children.NE, node);
+              this._getForceContribution(parentBranch.children.SW, node);
+              this._getForceContribution(parentBranch.children.SE, node);
+            } else {
+              // parentBranch must have only one node, if it was empty we wouldnt be here
+              if (parentBranch.children.data.id != node.id) {
+                // if it is not self
+                this._calculateForces(distance, dx, dy, node, parentBranch);
+              }
+            }
+          }
+        }
+      }
+    }, {
+      key: "_calculateForces",
+
+      /**
+       * Calculate the forces based on the distance.
+       *
+       * @param distance
+       * @param dx
+       * @param dy
+       * @param node
+       * @param parentBranch
+       * @private
+       */
+      value: function _calculateForces(distance, dx, dy, node, parentBranch) {
+        if (distance === 0) {
+          distance = 0.1;
+          dx = distance;
+        }
+
+        if (this.overlapAvoidanceFactor < 1) {
+          distance = Math.max(0.1 + this.overlapAvoidanceFactor * node.shape.radius, distance - node.shape.radius);
+        }
+
+        // the dividing by the distance cubed instead of squared allows us to get the fx and fy components without sines and cosines
+        // it is shorthand for gravityforce with distance squared and fx = dx/distance * gravityForce
+        var gravityForce = this.options.gravitationalConstant * parentBranch.mass * node.options.mass / Math.pow(distance, 3);
+        var fx = dx * gravityForce;
+        var fy = dy * gravityForce;
+
+        this.physicsBody.forces[node.id].x += fx;
+        this.physicsBody.forces[node.id].y += fy;
+      }
+    }, {
+      key: "_formBarnesHutTree",
+
+      /**
+       * This function constructs the barnesHut tree recursively. It creates the root, splits it and starts placing the nodes.
+       *
+       * @param nodes
+       * @param nodeIndices
+       * @private
+       */
+      value: function _formBarnesHutTree(nodes, nodeIndices) {
+        var node = undefined;
+        var nodeCount = nodeIndices.length;
+
+        var minX = nodes[nodeIndices[0]].x;
+        var minY = nodes[nodeIndices[0]].y;
+        var maxX = nodes[nodeIndices[0]].x;
+        var maxY = nodes[nodeIndices[0]].y;
+
+        // get the range of the nodes
+        for (var i = 1; i < nodeCount; i++) {
+          var x = nodes[nodeIndices[i]].x;
+          var y = nodes[nodeIndices[i]].y;
+          if (nodes[nodeIndices[i]].options.mass > 0) {
+            if (x < minX) {
+              minX = x;
+            }
+            if (x > maxX) {
+              maxX = x;
+            }
+            if (y < minY) {
+              minY = y;
+            }
+            if (y > maxY) {
+              maxY = y;
+            }
+          }
+        }
+        // make the range a square
+        var sizeDiff = Math.abs(maxX - minX) - Math.abs(maxY - minY); // difference between X and Y
+        if (sizeDiff > 0) {
+          minY -= 0.5 * sizeDiff;
+          maxY += 0.5 * sizeDiff;
+        } // xSize > ySize
+        else {
+          minX += 0.5 * sizeDiff;
+          maxX -= 0.5 * sizeDiff;
+        } // xSize < ySize
+
+        var minimumTreeSize = 0.00001;
+        var rootSize = Math.max(minimumTreeSize, Math.abs(maxX - minX));
+        var halfRootSize = 0.5 * rootSize;
+        var centerX = 0.5 * (minX + maxX),
+            centerY = 0.5 * (minY + maxY);
+
+        // construct the barnesHutTree
+        var barnesHutTree = {
+          root: {
+            centerOfMass: { x: 0, y: 0 },
+            mass: 0,
+            range: {
+              minX: centerX - halfRootSize, maxX: centerX + halfRootSize,
+              minY: centerY - halfRootSize, maxY: centerY + halfRootSize
+            },
+            size: rootSize,
+            calcSize: 1 / rootSize,
+            children: { data: null },
+            maxWidth: 0,
+            level: 0,
+            childrenCount: 4
+          }
+        };
+        this._splitBranch(barnesHutTree.root);
+
+        // place the nodes one by one recursively
+        for (var i = 0; i < nodeCount; i++) {
+          node = nodes[nodeIndices[i]];
+          if (node.options.mass > 0) {
+            this._placeInTree(barnesHutTree.root, node);
+          }
+        }
+
+        // make global
+        return barnesHutTree;
+      }
+    }, {
+      key: "_updateBranchMass",
+
+      /**
+       * this updates the mass of a branch. this is increased by adding a node.
+       *
+       * @param parentBranch
+       * @param node
+       * @private
+       */
+      value: function _updateBranchMass(parentBranch, node) {
+        var totalMass = parentBranch.mass + node.options.mass;
+        var totalMassInv = 1 / totalMass;
+
+        parentBranch.centerOfMass.x = parentBranch.centerOfMass.x * parentBranch.mass + node.x * node.options.mass;
+        parentBranch.centerOfMass.x *= totalMassInv;
+
+        parentBranch.centerOfMass.y = parentBranch.centerOfMass.y * parentBranch.mass + node.y * node.options.mass;
+        parentBranch.centerOfMass.y *= totalMassInv;
+
+        parentBranch.mass = totalMass;
+        var biggestSize = Math.max(Math.max(node.height, node.radius), node.width);
+        parentBranch.maxWidth = parentBranch.maxWidth < biggestSize ? biggestSize : parentBranch.maxWidth;
+      }
+    }, {
+      key: "_placeInTree",
+
+      /**
+       * determine in which branch the node will be placed.
+       *
+       * @param parentBranch
+       * @param node
+       * @param skipMassUpdate
+       * @private
+       */
+      value: function _placeInTree(parentBranch, node, skipMassUpdate) {
+        if (skipMassUpdate != true || skipMassUpdate === undefined) {
+          // update the mass of the branch.
+          this._updateBranchMass(parentBranch, node);
+        }
+
+        if (parentBranch.children.NW.range.maxX > node.x) {
+          // in NW or SW
+          if (parentBranch.children.NW.range.maxY > node.y) {
+            // in NW
+            this._placeInRegion(parentBranch, node, "NW");
+          } else {
+            // in SW
+            this._placeInRegion(parentBranch, node, "SW");
+          }
+        } else {
+          // in NE or SE
+          if (parentBranch.children.NW.range.maxY > node.y) {
+            // in NE
+            this._placeInRegion(parentBranch, node, "NE");
+          } else {
+            // in SE
+            this._placeInRegion(parentBranch, node, "SE");
+          }
+        }
+      }
+    }, {
+      key: "_placeInRegion",
+
+      /**
+       * actually place the node in a region (or branch)
+       *
+       * @param parentBranch
+       * @param node
+       * @param region
+       * @private
+       */
+      value: function _placeInRegion(parentBranch, node, region) {
+        switch (parentBranch.children[region].childrenCount) {
+          case 0:
+            // place node here
+            parentBranch.children[region].children.data = node;
+            parentBranch.children[region].childrenCount = 1;
+            this._updateBranchMass(parentBranch.children[region], node);
+            break;
+          case 1:
+            // convert into children
+            // if there are two nodes exactly overlapping (on init, on opening of cluster etc.)
+            // we move one node a pixel and we do not put it in the tree.
+            if (parentBranch.children[region].children.data.x === node.x && parentBranch.children[region].children.data.y === node.y) {
+              //node.x += Math.random();
+              //node.y += Math.random();
+              node.x += 0.1;
+              node.y += 0.1;
+            } else {
+              this._splitBranch(parentBranch.children[region]);
+              this._placeInTree(parentBranch.children[region], node);
+            }
+            break;
+          case 4:
+            // place in branch
+            this._placeInTree(parentBranch.children[region], node);
+            break;
+        }
+      }
+    }, {
+      key: "_splitBranch",
+
+      /**
+       * this function splits a branch into 4 sub branches. If the branch contained a node, we place it in the subbranch
+       * after the split is complete.
+       *
+       * @param parentBranch
+       * @private
+       */
+      value: function _splitBranch(parentBranch) {
+        // if the branch is shaded with a node, replace the node in the new subset.
+        var containedNode = null;
+        if (parentBranch.childrenCount === 1) {
+          containedNode = parentBranch.children.data;
+          parentBranch.mass = 0;
+          parentBranch.centerOfMass.x = 0;
+          parentBranch.centerOfMass.y = 0;
+        }
+        parentBranch.childrenCount = 4;
+        parentBranch.children.data = null;
+        this._insertRegion(parentBranch, "NW");
+        this._insertRegion(parentBranch, "NE");
+        this._insertRegion(parentBranch, "SW");
+        this._insertRegion(parentBranch, "SE");
+
+        if (containedNode != null) {
+          this._placeInTree(parentBranch, containedNode);
+        }
+      }
+    }, {
+      key: "_insertRegion",
+
+      /**
+       * This function subdivides the region into four new segments.
+       * Specifically, this inserts a single new segment.
+       * It fills the children section of the parentBranch
+       *
+       * @param parentBranch
+       * @param region
+       * @param parentRange
+       * @private
+       */
+      value: function _insertRegion(parentBranch, region) {
+        var minX = undefined,
+            maxX = undefined,
+            minY = undefined,
+            maxY = undefined;
+        var childSize = 0.5 * parentBranch.size;
+        switch (region) {
+          case "NW":
+            minX = parentBranch.range.minX;
+            maxX = parentBranch.range.minX + childSize;
+            minY = parentBranch.range.minY;
+            maxY = parentBranch.range.minY + childSize;
+            break;
+          case "NE":
+            minX = parentBranch.range.minX + childSize;
+            maxX = parentBranch.range.maxX;
+            minY = parentBranch.range.minY;
+            maxY = parentBranch.range.minY + childSize;
+            break;
+          case "SW":
+            minX = parentBranch.range.minX;
+            maxX = parentBranch.range.minX + childSize;
+            minY = parentBranch.range.minY + childSize;
+            maxY = parentBranch.range.maxY;
+            break;
+          case "SE":
+            minX = parentBranch.range.minX + childSize;
+            maxX = parentBranch.range.maxX;
+            minY = parentBranch.range.minY + childSize;
+            maxY = parentBranch.range.maxY;
+            break;
+        }
+
+        parentBranch.children[region] = {
+          centerOfMass: { x: 0, y: 0 },
+          mass: 0,
+          range: { minX: minX, maxX: maxX, minY: minY, maxY: maxY },
+          size: 0.5 * parentBranch.size,
+          calcSize: 2 * parentBranch.calcSize,
+          children: { data: null },
+          maxWidth: 0,
+          level: parentBranch.level + 1,
+          childrenCount: 0
+        };
+      }
+    }, {
+      key: "_debug",
+
+      //---------------------------  DEBUGGING BELOW  ---------------------------//
+
+      /**
+       * This function is for debugging purposed, it draws the tree.
+       *
+       * @param ctx
+       * @param color
+       * @private
+       */
+      value: function _debug(ctx, color) {
+        if (this.barnesHutTree !== undefined) {
+
+          ctx.lineWidth = 1;
+
+          this._drawBranch(this.barnesHutTree.root, ctx, color);
+        }
+      }
+    }, {
+      key: "_drawBranch",
+
+      /**
+       * This function is for debugging purposes. It draws the branches recursively.
+       *
+       * @param branch
+       * @param ctx
+       * @param color
+       * @private
+       */
+      value: function _drawBranch(branch, ctx, color) {
+        if (color === undefined) {
+          color = "#FF0000";
+        }
+
+        if (branch.childrenCount === 4) {
+          this._drawBranch(branch.children.NW, ctx);
+          this._drawBranch(branch.children.NE, ctx);
+          this._drawBranch(branch.children.SE, ctx);
+          this._drawBranch(branch.children.SW, ctx);
+        }
+        ctx.strokeStyle = color;
+        ctx.beginPath();
+        ctx.moveTo(branch.range.minX, branch.range.minY);
+        ctx.lineTo(branch.range.maxX, branch.range.minY);
+        ctx.stroke();
+
+        ctx.beginPath();
+        ctx.moveTo(branch.range.maxX, branch.range.minY);
+        ctx.lineTo(branch.range.maxX, branch.range.maxY);
+        ctx.stroke();
+
+        ctx.beginPath();
+        ctx.moveTo(branch.range.maxX, branch.range.maxY);
+        ctx.lineTo(branch.range.minX, branch.range.maxY);
+        ctx.stroke();
+
+        ctx.beginPath();
+        ctx.moveTo(branch.range.minX, branch.range.maxY);
+        ctx.lineTo(branch.range.minX, branch.range.minY);
+        ctx.stroke();
+
+        /*
+         if (branch.mass > 0) {
+         ctx.circle(branch.centerOfMass.x, branch.centerOfMass.y, 3*branch.mass);
+         ctx.stroke();
+         }
+         */
+      }
+    }]);
+
+    return BarnesHutSolver;
+  })();
+
+  exports["default"] = BarnesHutSolver;
+  module.exports = exports["default"];
+
+/***/ },
+/* 8 */
+/***/ function(module, exports, __webpack_require__) {
+
+  "use strict";
+
+  Object.defineProperty(exports, "__esModule", {
+    value: true
+  });
+
+  var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
+
+  function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+  var SpringSolver = (function () {
+    function SpringSolver(body, physicsBody, options) {
+      _classCallCheck(this, SpringSolver);
+
+      this.body = body;
+      this.physicsBody = physicsBody;
+      this.setOptions(options);
+    }
+
+    _createClass(SpringSolver, [{
+      key: "setOptions",
+      value: function setOptions(options) {
+        this.options = options;
+      }
+    }, {
+      key: "solve",
+
+      /**
+       * This function calculates the springforces on the nodes, accounting for the support nodes.
+       *
+       * @private
+       */
+      value: function solve() {
+        var edgeLength = undefined,
+            edge = undefined;
+        var edgeIndices = this.physicsBody.physicsEdgeIndices;
+        var edges = this.body.edges;
+        var node1 = undefined,
+            node2 = undefined,
+            node3 = undefined;
+
+        // forces caused by the edges, modelled as springs
+        for (var i = 0; i < edgeIndices.length; i++) {
+          edge = edges[edgeIndices[i]];
+          if (edge.connected === true && edge.toId !== edge.fromId) {
+            // only calculate forces if nodes are in the same sector
+            if (this.body.nodes[edge.toId] !== undefined && this.body.nodes[edge.fromId] !== undefined) {
+              if (edge.edgeType.via !== undefined) {
+                edgeLength = edge.options.length === undefined ? this.options.springLength : edge.options.length;
+                node1 = edge.to;
+                node2 = edge.edgeType.via;
+                node3 = edge.from;
+
+                this._calculateSpringForce(node1, node2, 0.5 * edgeLength);
+                this._calculateSpringForce(node2, node3, 0.5 * edgeLength);
+              } else {
+                // the * 1.5 is here so the edge looks as large as a smooth edge. It does not initially because the smooth edges use
+                // the support nodes which exert a repulsive force on the to and from nodes, making the edge appear larger.
+                edgeLength = edge.options.length === undefined ? this.options.springLength * 1.5 : edge.options.length;
+                this._calculateSpringForce(edge.from, edge.to, edgeLength);
+              }
+            }
+          }
+        }
+      }
+    }, {
+      key: "_calculateSpringForce",
+
+      /**
+       * This is the code actually performing the calculation for the function above.
+       *
+       * @param node1
+       * @param node2
+       * @param edgeLength
+       * @private
+       */
+      value: function _calculateSpringForce(node1, node2, edgeLength) {
+        var dx = node1.x - node2.x;
+        var dy = node1.y - node2.y;
+        var distance = Math.max(Math.sqrt(dx * dx + dy * dy), 0.01);
+
+        // the 1/distance is so the fx and fy can be calculated without sine or cosine.
+        var springForce = this.options.springConstant * (edgeLength - distance) / distance;
+
+        var fx = dx * springForce;
+        var fy = dy * springForce;
+
+        // handle the case where one node is not part of the physcis
+        if (this.physicsBody.forces[node1.id] !== undefined) {
+          this.physicsBody.forces[node1.id].x += fx;
+          this.physicsBody.forces[node1.id].y += fy;
+        }
+
+        if (this.physicsBody.forces[node2.id] !== undefined) {
+          this.physicsBody.forces[node2.id].x -= fx;
+          this.physicsBody.forces[node2.id].y -= fy;
+        }
+      }
+    }]);
+
+    return SpringSolver;
+  })();
+
+  exports["default"] = SpringSolver;
+  module.exports = exports["default"];
+
+/***/ },
+/* 9 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -2022,9 +4379,9 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
 
-  var util = __webpack_require__(3);
-  var Hammer = __webpack_require__(25);
-  var hammerUtil = __webpack_require__(30);
+  var util = __webpack_require__(4);
+  var Hammer = __webpack_require__(30);
+  var hammerUtil = __webpack_require__(35);
 
   /**
    * clears the toolbar div element of children
@@ -3220,7 +5577,17 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 6 */
+/* 10 */
+/***/ function(module, exports, __webpack_require__) {
+
+  // first check if moment.js is already loaded in the browser window, if so,
+  // use this instance. Else, load via commonjs.
+  'use strict';
+
+  module.exports = typeof window !== 'undefined' && window['moment'] || __webpack_require__(11);
+
+/***/ },
+/* 11 */
 /***/ function(module, exports, __webpack_require__) {
 
   /* WEBPACK VAR INJECTION */(function(module) {//! moment.js
@@ -6334,10 +8701,10 @@ return /******/ (function(modules) { // webpackBootstrap
       return _moment;
 
   }));
-  /* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(7)(module)))
+  /* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(12)(module)))
 
 /***/ },
-/* 7 */
+/* 12 */
 /***/ function(module, exports, __webpack_require__) {
 
   module.exports = function(module) {
@@ -6353,7 +8720,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 8 */
+/* 13 */
 /***/ function(module, exports, __webpack_require__) {
 
   /* WEBPACK VAR INJECTION */(function(global) {'use strict';
@@ -6569,7 +8936,7 @@ return /******/ (function(modules) { // webpackBootstrap
   /* WEBPACK VAR INJECTION */}.call(exports, (function() { return this; }())))
 
 /***/ },
-/* 9 */
+/* 14 */
 /***/ function(module, exports, __webpack_require__) {
 
   // DOM utility methods
@@ -6771,13 +9138,13 @@ return /******/ (function(modules) { // webpackBootstrap
   };
 
 /***/ },
-/* 10 */
+/* 15 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
 
-  var util = __webpack_require__(3);
-  var Queue = __webpack_require__(11);
+  var util = __webpack_require__(4);
+  var Queue = __webpack_require__(16);
 
   /**
    * DataSet
@@ -7666,7 +10033,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = DataSet;
 
 /***/ },
-/* 11 */
+/* 16 */
 /***/ function(module, exports, __webpack_require__) {
 
   /**
@@ -7871,13 +10238,13 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = Queue;
 
 /***/ },
-/* 12 */
+/* 17 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
 
-  var util = __webpack_require__(3);
-  var DataSet = __webpack_require__(10);
+  var util = __webpack_require__(4);
+  var DataSet = __webpack_require__(15);
 
   /**
    * DataView
@@ -8219,21 +10586,21 @@ return /******/ (function(modules) { // webpackBootstrap
   // nothing interesting for me :-(
 
 /***/ },
-/* 13 */
+/* 18 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
 
-  var Emitter = __webpack_require__(15);
-  var DataSet = __webpack_require__(10);
-  var DataView = __webpack_require__(12);
-  var util = __webpack_require__(3);
-  var Point3d = __webpack_require__(16);
-  var Point2d = __webpack_require__(14);
-  var Camera = __webpack_require__(17);
-  var Filter = __webpack_require__(18);
-  var Slider = __webpack_require__(19);
-  var StepNumber = __webpack_require__(20);
+  var Emitter = __webpack_require__(20);
+  var DataSet = __webpack_require__(15);
+  var DataView = __webpack_require__(17);
+  var util = __webpack_require__(4);
+  var Point3d = __webpack_require__(21);
+  var Point2d = __webpack_require__(19);
+  var Camera = __webpack_require__(22);
+  var Filter = __webpack_require__(23);
+  var Slider = __webpack_require__(24);
+  var StepNumber = __webpack_require__(25);
 
   /**
    * @constructor Graph3d
@@ -10437,7 +12804,7 @@ return /******/ (function(modules) { // webpackBootstrap
   // use use defaults
 
 /***/ },
-/* 14 */
+/* 19 */
 /***/ function(module, exports, __webpack_require__) {
 
   /**
@@ -10455,7 +12822,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = Point2d;
 
 /***/ },
-/* 15 */
+/* 20 */
 /***/ function(module, exports, __webpack_require__) {
 
   
@@ -10625,7 +12992,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 16 */
+/* 21 */
 /***/ function(module, exports, __webpack_require__) {
 
   /**
@@ -10708,12 +13075,12 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = Point3d;
 
 /***/ },
-/* 17 */
+/* 22 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
 
-  var Point3d = __webpack_require__(16);
+  var Point3d = __webpack_require__(21);
 
   /**
    * @class Camera
@@ -10849,12 +13216,12 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = Camera;
 
 /***/ },
-/* 18 */
+/* 23 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
 
-  var DataView = __webpack_require__(12);
+  var DataView = __webpack_require__(17);
 
   /**
    * @class Filter
@@ -11060,12 +13427,12 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = Filter;
 
 /***/ },
-/* 19 */
+/* 24 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
 
-  var util = __webpack_require__(3);
+  var util = __webpack_require__(4);
 
   /**
    * @constructor Slider
@@ -11408,7 +13775,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = Slider;
 
 /***/ },
-/* 20 */
+/* 25 */
 /***/ function(module, exports, __webpack_require__) {
 
   /**
@@ -11552,28 +13919,28 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = StepNumber;
 
 /***/ },
-/* 21 */
+/* 26 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
 
-  var Emitter = __webpack_require__(15);
-  var Hammer = __webpack_require__(25);
-  var util = __webpack_require__(3);
-  var DataSet = __webpack_require__(10);
-  var DataView = __webpack_require__(12);
-  var Range = __webpack_require__(29);
-  var Core = __webpack_require__(32);
-  var TimeAxis = __webpack_require__(43);
-  var CurrentTime = __webpack_require__(22);
-  var CustomTime = __webpack_require__(46);
-  var ItemSet = __webpack_require__(33);
+  var Emitter = __webpack_require__(20);
+  var Hammer = __webpack_require__(30);
+  var util = __webpack_require__(4);
+  var DataSet = __webpack_require__(15);
+  var DataView = __webpack_require__(17);
+  var Range = __webpack_require__(34);
+  var Core = __webpack_require__(37);
+  var TimeAxis = __webpack_require__(48);
+  var CurrentTime = __webpack_require__(27);
+  var CustomTime = __webpack_require__(51);
+  var ItemSet = __webpack_require__(38);
 
-  var Configurator = __webpack_require__(47);
-  var Validator = __webpack_require__(49)['default'];
-  var printStyle = __webpack_require__(49).printStyle;
-  var allOptions = __webpack_require__(50).allOptions;
-  var configureOptions = __webpack_require__(50).configureOptions;
+  var Configurator = __webpack_require__(52);
+  var Validator = __webpack_require__(54)['default'];
+  var printStyle = __webpack_require__(54).printStyle;
+  var allOptions = __webpack_require__(55).allOptions;
+  var configureOptions = __webpack_require__(55).configureOptions;
 
   /**
    * Create a timeline visualization
@@ -12076,15 +14443,15 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = Timeline;
 
 /***/ },
-/* 22 */
+/* 27 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
 
-  var util = __webpack_require__(3);
-  var Component = __webpack_require__(23);
-  var moment = __webpack_require__(4);
-  var locales = __webpack_require__(24);
+  var util = __webpack_require__(4);
+  var Component = __webpack_require__(28);
+  var moment = __webpack_require__(10);
+  var locales = __webpack_require__(29);
 
   /**
    * A current time bar
@@ -12252,7 +14619,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = CurrentTime;
 
 /***/ },
-/* 23 */
+/* 28 */
 /***/ function(module, exports, __webpack_require__) {
 
   /**
@@ -12312,7 +14679,7 @@ return /******/ (function(modules) { // webpackBootstrap
   // should be implemented by the component
 
 /***/ },
-/* 24 */
+/* 29 */
 /***/ function(module, exports, __webpack_require__) {
 
   // English
@@ -12334,7 +14701,7 @@ return /******/ (function(modules) { // webpackBootstrap
   exports['nl_BE'] = exports['nl'];
 
 /***/ },
-/* 25 */
+/* 30 */
 /***/ function(module, exports, __webpack_require__) {
 
   // Only load hammer.js when in a browser environment
@@ -12342,8 +14709,8 @@ return /******/ (function(modules) { // webpackBootstrap
   'use strict';
 
   if (typeof window !== 'undefined') {
-    var propagating = __webpack_require__(26);
-    var Hammer = window['Hammer'] || __webpack_require__(27);
+    var propagating = __webpack_require__(31);
+    var Hammer = window['Hammer'] || __webpack_require__(32);
     module.exports = propagating(Hammer, {
       preventDefault: 'mouse'
     });
@@ -12354,7 +14721,7 @@ return /******/ (function(modules) { // webpackBootstrap
   }
 
 /***/ },
-/* 26 */
+/* 31 */
 /***/ function(module, exports, __webpack_require__) {
 
   var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;'use strict';
@@ -12582,7 +14949,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 27 */
+/* 32 */
 /***/ function(module, exports, __webpack_require__) {
 
   var __WEBPACK_AMD_DEFINE_RESULT__;/*! Hammer.JS - v2.0.4 - 2014-09-28
@@ -15037,7 +17404,7 @@ return /******/ (function(modules) { // webpackBootstrap
       prefixed: prefixed
   });
 
-  if ("function" == TYPE_FUNCTION && __webpack_require__(28)) {
+  if ("function" == TYPE_FUNCTION && __webpack_require__(33)) {
       !(__WEBPACK_AMD_DEFINE_RESULT__ = function() {
           return Hammer;
       }.call(exports, __webpack_require__, exports, module), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__));
@@ -15051,7 +17418,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 28 */
+/* 33 */
 /***/ function(module, exports, __webpack_require__) {
 
   /* WEBPACK VAR INJECTION */(function(__webpack_amd_options__) {module.exports = __webpack_amd_options__;
@@ -15059,16 +17426,16 @@ return /******/ (function(modules) { // webpackBootstrap
   /* WEBPACK VAR INJECTION */}.call(exports, {}))
 
 /***/ },
-/* 29 */
+/* 34 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
 
-  var util = __webpack_require__(3);
-  var hammerUtil = __webpack_require__(30);
-  var moment = __webpack_require__(4);
-  var Component = __webpack_require__(23);
-  var DateUtil = __webpack_require__(31);
+  var util = __webpack_require__(4);
+  var hammerUtil = __webpack_require__(35);
+  var moment = __webpack_require__(10);
+  var Component = __webpack_require__(28);
+  var DateUtil = __webpack_require__(36);
 
   /**
    * @constructor Range
@@ -15735,12 +18102,12 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = Range;
 
 /***/ },
-/* 30 */
+/* 35 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
 
-  var Hammer = __webpack_require__(25);
+  var Hammer = __webpack_require__(30);
 
   /**
    * Register a touch event, taking place before a gesture
@@ -15807,12 +18174,12 @@ return /******/ (function(modules) { // webpackBootstrap
   exports.offRelease = exports.offTouch;
 
 /***/ },
-/* 31 */
+/* 36 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
 
-  var moment = __webpack_require__(4);
+  var moment = __webpack_require__(10);
 
   /**
    * used in Core to convert the options into a volatile variable
@@ -16267,23 +18634,23 @@ return /******/ (function(modules) { // webpackBootstrap
   };
 
 /***/ },
-/* 32 */
+/* 37 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
 
-  var Emitter = __webpack_require__(15);
-  var Hammer = __webpack_require__(25);
-  var hammerUtil = __webpack_require__(30);
-  var util = __webpack_require__(3);
-  var DataSet = __webpack_require__(10);
-  var DataView = __webpack_require__(12);
-  var Range = __webpack_require__(29);
-  var ItemSet = __webpack_require__(33);
-  var TimeAxis = __webpack_require__(43);
-  var Activator = __webpack_require__(44);
-  var DateUtil = __webpack_require__(31);
-  var CustomTime = __webpack_require__(46);
+  var Emitter = __webpack_require__(20);
+  var Hammer = __webpack_require__(30);
+  var hammerUtil = __webpack_require__(35);
+  var util = __webpack_require__(4);
+  var DataSet = __webpack_require__(15);
+  var DataView = __webpack_require__(17);
+  var Range = __webpack_require__(34);
+  var ItemSet = __webpack_require__(38);
+  var TimeAxis = __webpack_require__(48);
+  var Activator = __webpack_require__(49);
+  var DateUtil = __webpack_require__(36);
+  var CustomTime = __webpack_require__(51);
 
   /**
    * Create a timeline visualization
@@ -17238,23 +19605,23 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = Core;
 
 /***/ },
-/* 33 */
+/* 38 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
 
-  var Hammer = __webpack_require__(25);
-  var util = __webpack_require__(3);
-  var DataSet = __webpack_require__(10);
-  var DataView = __webpack_require__(12);
-  var TimeStep = __webpack_require__(38);
-  var Component = __webpack_require__(23);
-  var Group = __webpack_require__(34);
-  var BackgroundGroup = __webpack_require__(39);
-  var BoxItem = __webpack_require__(40);
-  var PointItem = __webpack_require__(41);
-  var RangeItem = __webpack_require__(36);
-  var BackgroundItem = __webpack_require__(42);
+  var Hammer = __webpack_require__(30);
+  var util = __webpack_require__(4);
+  var DataSet = __webpack_require__(15);
+  var DataView = __webpack_require__(17);
+  var TimeStep = __webpack_require__(43);
+  var Component = __webpack_require__(28);
+  var Group = __webpack_require__(39);
+  var BackgroundGroup = __webpack_require__(44);
+  var BoxItem = __webpack_require__(45);
+  var PointItem = __webpack_require__(46);
+  var RangeItem = __webpack_require__(41);
+  var BackgroundItem = __webpack_require__(47);
 
   var UNGROUPED = '__ungrouped__'; // reserved group id for ungrouped items
   var BACKGROUND = '__background__'; // reserved group id for background items without group
@@ -18849,14 +21216,14 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = ItemSet;
 
 /***/ },
-/* 34 */
+/* 39 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
 
-  var util = __webpack_require__(3);
-  var stack = __webpack_require__(35);
-  var RangeItem = __webpack_require__(36);
+  var util = __webpack_require__(4);
+  var stack = __webpack_require__(40);
+  var RangeItem = __webpack_require__(41);
 
   /**
    * @constructor Group
@@ -19435,7 +21802,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = Group;
 
 /***/ },
-/* 35 */
+/* 40 */
 /***/ function(module, exports, __webpack_require__) {
 
   // Utility functions for ordering and stacking of items
@@ -19559,13 +21926,13 @@ return /******/ (function(modules) { // webpackBootstrap
   };
 
 /***/ },
-/* 36 */
+/* 41 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
 
-  var Hammer = __webpack_require__(25);
-  var Item = __webpack_require__(37);
+  var Hammer = __webpack_require__(30);
+  var Item = __webpack_require__(42);
 
   /**
    * @constructor RangeItem
@@ -19853,13 +22220,13 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = RangeItem;
 
 /***/ },
-/* 37 */
+/* 42 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
 
-  var Hammer = __webpack_require__(25);
-  var util = __webpack_require__(3);
+  var Hammer = __webpack_require__(30);
+  var util = __webpack_require__(4);
 
   /**
    * @constructor Item
@@ -20143,14 +22510,14 @@ return /******/ (function(modules) { // webpackBootstrap
   // should be implemented by the item
 
 /***/ },
-/* 38 */
+/* 43 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
 
-  var moment = __webpack_require__(4);
-  var DateUtil = __webpack_require__(31);
-  var util = __webpack_require__(3);
+  var moment = __webpack_require__(10);
+  var DateUtil = __webpack_require__(36);
+  var util = __webpack_require__(4);
 
   /**
    * @constructor  TimeStep
@@ -20833,13 +23200,13 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = TimeStep;
 
 /***/ },
-/* 39 */
+/* 44 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
 
-  var util = __webpack_require__(3);
-  var Group = __webpack_require__(34);
+  var util = __webpack_require__(4);
+  var Group = __webpack_require__(39);
 
   /**
    * @constructor BackgroundGroup
@@ -20897,13 +23264,13 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = BackgroundGroup;
 
 /***/ },
-/* 40 */
+/* 45 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
 
-  var Item = __webpack_require__(37);
-  var util = __webpack_require__(3);
+  var Item = __webpack_require__(42);
+  var util = __webpack_require__(4);
 
   /**
    * @constructor BoxItem
@@ -21135,12 +23502,12 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = BoxItem;
 
 /***/ },
-/* 41 */
+/* 46 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
 
-  var Item = __webpack_require__(37);
+  var Item = __webpack_require__(42);
 
   /**
    * @constructor PointItem
@@ -21338,15 +23705,15 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = PointItem;
 
 /***/ },
-/* 42 */
+/* 47 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
 
-  var Hammer = __webpack_require__(25);
-  var Item = __webpack_require__(37);
-  var BackgroundGroup = __webpack_require__(39);
-  var RangeItem = __webpack_require__(36);
+  var Hammer = __webpack_require__(30);
+  var Item = __webpack_require__(42);
+  var BackgroundGroup = __webpack_require__(44);
+  var RangeItem = __webpack_require__(41);
 
   /**
    * @constructor BackgroundItem
@@ -21559,16 +23926,16 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = BackgroundItem;
 
 /***/ },
-/* 43 */
+/* 48 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
 
-  var util = __webpack_require__(3);
-  var Component = __webpack_require__(23);
-  var TimeStep = __webpack_require__(38);
-  var DateUtil = __webpack_require__(31);
-  var moment = __webpack_require__(4);
+  var util = __webpack_require__(4);
+  var Component = __webpack_require__(28);
+  var TimeStep = __webpack_require__(43);
+  var DateUtil = __webpack_require__(36);
+  var moment = __webpack_require__(10);
 
   /**
    * A horizontal time axis
@@ -21999,15 +24366,15 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = TimeAxis;
 
 /***/ },
-/* 44 */
+/* 49 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
 
-  var keycharm = __webpack_require__(45);
-  var Emitter = __webpack_require__(15);
-  var Hammer = __webpack_require__(25);
-  var util = __webpack_require__(3);
+  var keycharm = __webpack_require__(50);
+  var Emitter = __webpack_require__(20);
+  var Hammer = __webpack_require__(30);
+  var util = __webpack_require__(4);
 
   /**
    * Turn an element into an clickToUse element.
@@ -22152,7 +24519,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = Activator;
 
 /***/ },
-/* 45 */
+/* 50 */
 /***/ function(module, exports, __webpack_require__) {
 
   var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;"use strict";
@@ -22351,16 +24718,16 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 46 */
+/* 51 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
 
-  var Hammer = __webpack_require__(25);
-  var util = __webpack_require__(3);
-  var Component = __webpack_require__(23);
-  var moment = __webpack_require__(4);
-  var locales = __webpack_require__(24);
+  var Hammer = __webpack_require__(30);
+  var util = __webpack_require__(4);
+  var Component = __webpack_require__(28);
+  var moment = __webpack_require__(10);
+  var locales = __webpack_require__(29);
 
   /**
    * A custom time bar
@@ -22590,7 +24957,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = CustomTime;
 
 /***/ },
-/* 47 */
+/* 52 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -22605,11 +24972,11 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
 
-  var _ColorPicker = __webpack_require__(48);
+  var _ColorPicker = __webpack_require__(53);
 
   var _ColorPicker2 = _interopRequireDefault(_ColorPicker);
 
-  var util = __webpack_require__(3);
+  var util = __webpack_require__(4);
 
   /**
    * The way this works is for all properties of this.possible options, you can supply the property name in any form to list the options.
@@ -23267,7 +25634,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 48 */
+/* 53 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -23280,9 +25647,9 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
 
-  var Hammer = __webpack_require__(25);
-  var hammerUtil = __webpack_require__(30);
-  var util = __webpack_require__(3);
+  var Hammer = __webpack_require__(30);
+  var hammerUtil = __webpack_require__(35);
+  var util = __webpack_require__(4);
 
   var ColorPicker = (function () {
     function ColorPicker() {
@@ -23847,7 +26214,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 49 */
+/* 54 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -23860,7 +26227,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
 
-  var util = __webpack_require__(3);
+  var util = __webpack_require__(4);
 
   var errorFound = false;
   var allOptions = undefined;
@@ -24166,7 +26533,7 @@ return /******/ (function(modules) { // webpackBootstrap
   // item is a function, which is allowed
 
 /***/ },
-/* 50 */
+/* 55 */
 /***/ function(module, exports, __webpack_require__) {
 
   /**
@@ -24383,28 +26750,28 @@ return /******/ (function(modules) { // webpackBootstrap
   exports.configureOptions = configureOptions;
 
 /***/ },
-/* 51 */
+/* 56 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
 
-  var Emitter = __webpack_require__(15);
-  var Hammer = __webpack_require__(25);
-  var util = __webpack_require__(3);
-  var DataSet = __webpack_require__(10);
-  var DataView = __webpack_require__(12);
-  var Range = __webpack_require__(29);
-  var Core = __webpack_require__(32);
-  var TimeAxis = __webpack_require__(43);
-  var CurrentTime = __webpack_require__(22);
-  var CustomTime = __webpack_require__(46);
-  var LineGraph = __webpack_require__(52);
+  var Emitter = __webpack_require__(20);
+  var Hammer = __webpack_require__(30);
+  var util = __webpack_require__(4);
+  var DataSet = __webpack_require__(15);
+  var DataView = __webpack_require__(17);
+  var Range = __webpack_require__(34);
+  var Core = __webpack_require__(37);
+  var TimeAxis = __webpack_require__(48);
+  var CurrentTime = __webpack_require__(27);
+  var CustomTime = __webpack_require__(51);
+  var LineGraph = __webpack_require__(5);
 
-  var Configurator = __webpack_require__(47);
-  var Validator = __webpack_require__(49)['default'];
-  var printStyle = __webpack_require__(49).printStyle;
-  var allOptions = __webpack_require__(60).allOptions;
-  var configureOptions = __webpack_require__(60).configureOptions;
+  var Configurator = __webpack_require__(52);
+  var Validator = __webpack_require__(54)['default'];
+  var printStyle = __webpack_require__(54).printStyle;
+  var allOptions = __webpack_require__(64).allOptions;
+  var configureOptions = __webpack_require__(64).configureOptions;
 
   /**
    * Create a timeline visualization
@@ -24713,991 +27080,15 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = Graph2d;
 
 /***/ },
-/* 52 */
+/* 57 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
 
-  var util = __webpack_require__(3);
-  var DOMutil = __webpack_require__(9);
-  var DataSet = __webpack_require__(10);
-  var DataView = __webpack_require__(12);
-  var Component = __webpack_require__(23);
-  var DataAxis = __webpack_require__(53);
-  var GraphGroup = __webpack_require__(55);
-  var Legend = __webpack_require__(59);
-  var BarFunctions = __webpack_require__(58);
-  var LineFunctions = __webpack_require__(56);
-
-  var UNGROUPED = '__ungrouped__'; // reserved group id for ungrouped items
-
-  /**
-   * This is the constructor of the LineGraph. It requires a Timeline body and options.
-   *
-   * @param body
-   * @param options
-   * @constructor
-   */
-  function LineGraph(body, options) {
-    this.id = util.randomUUID();
-    this.body = body;
-
-    this.defaultOptions = {
-      yAxisOrientation: 'left',
-      defaultGroup: 'default',
-      sort: true,
-      sampling: true,
-      stack: false,
-      graphHeight: '400px',
-      shaded: {
-        enabled: false,
-        orientation: 'bottom' // top, bottom
-      },
-      style: 'line', // line, bar
-      barChart: {
-        width: 50,
-        sideBySide: false,
-        align: 'center' // left, center, right
-      },
-      interpolation: {
-        enabled: true,
-        parametrization: 'centripetal', // uniform (alpha = 0.0), chordal (alpha = 1.0), centripetal (alpha = 0.5)
-        alpha: 0.5
-      },
-      drawPoints: {
-        enabled: true,
-        size: 6,
-        style: 'square' // square, circle
-      },
-      dataAxis: {
-        showMinorLabels: true,
-        showMajorLabels: true,
-        icons: false,
-        width: '40px',
-        visible: true,
-        alignZeros: true,
-        left: {
-          range: { min: undefined, max: undefined },
-          format: function format(value) {
-            return value;
-          },
-          title: { text: undefined, style: undefined }
-        },
-        right: {
-          range: { min: undefined, max: undefined },
-          format: function format(value) {
-            return value;
-          },
-          title: { text: undefined, style: undefined }
-        }
-      },
-      legend: {
-        enabled: false,
-        icons: true,
-        left: {
-          visible: true,
-          position: 'top-left' // top/bottom - left,right
-        },
-        right: {
-          visible: true,
-          position: 'top-right' // top/bottom - left,right
-        }
-      },
-      groups: {
-        visibility: {}
-      }
-    };
-
-    // options is shared by this ItemSet and all its items
-    this.options = util.extend({}, this.defaultOptions);
-    this.dom = {};
-    this.props = {};
-    this.hammer = null;
-    this.groups = {};
-    this.abortedGraphUpdate = false;
-    this.updateSVGheight = false;
-    this.updateSVGheightOnResize = false;
-
-    var me = this;
-    this.itemsData = null; // DataSet
-    this.groupsData = null; // DataSet
-
-    // listeners for the DataSet of the items
-    this.itemListeners = {
-      'add': function add(event, params, senderId) {
-        me._onAdd(params.items);
-      },
-      'update': function update(event, params, senderId) {
-        me._onUpdate(params.items);
-      },
-      'remove': function remove(event, params, senderId) {
-        me._onRemove(params.items);
-      }
-    };
-
-    // listeners for the DataSet of the groups
-    this.groupListeners = {
-      'add': function add(event, params, senderId) {
-        me._onAddGroups(params.items);
-      },
-      'update': function update(event, params, senderId) {
-        me._onUpdateGroups(params.items);
-      },
-      'remove': function remove(event, params, senderId) {
-        me._onRemoveGroups(params.items);
-      }
-    };
-
-    this.items = {}; // object with an Item for every data item
-    this.selection = []; // list with the ids of all selected nodes
-    this.lastStart = this.body.range.start;
-    this.touchParams = {}; // stores properties while dragging
-
-    this.svgElements = {};
-    this.setOptions(options);
-    this.groupsUsingDefaultStyles = [0];
-    this.COUNTER = 0;
-    this.body.emitter.on('rangechanged', function () {
-      me.lastStart = me.body.range.start;
-      me.svg.style.left = util.option.asSize(-me.props.width);
-      me.redraw.call(me, true);
-    });
-
-    // create the HTML DOM
-    this._create();
-    this.framework = { svg: this.svg, svgElements: this.svgElements, options: this.options, groups: this.groups };
-    this.body.emitter.emit('change');
-  }
-
-  LineGraph.prototype = new Component();
-
-  /**
-   * Create the HTML DOM for the ItemSet
-   */
-  LineGraph.prototype._create = function () {
-    var frame = document.createElement('div');
-    frame.className = 'vis-line-graph';
-    this.dom.frame = frame;
-
-    // create svg element for graph drawing.
-    this.svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-    this.svg.style.position = 'relative';
-    this.svg.style.height = ('' + this.options.graphHeight).replace('px', '') + 'px';
-    this.svg.style.display = 'block';
-    frame.appendChild(this.svg);
-
-    // data axis
-    this.options.dataAxis.orientation = 'left';
-    this.yAxisLeft = new DataAxis(this.body, this.options.dataAxis, this.svg, this.options.groups);
-
-    this.options.dataAxis.orientation = 'right';
-    this.yAxisRight = new DataAxis(this.body, this.options.dataAxis, this.svg, this.options.groups);
-    delete this.options.dataAxis.orientation;
-
-    // legends
-    this.legendLeft = new Legend(this.body, this.options.legend, 'left', this.options.groups);
-    this.legendRight = new Legend(this.body, this.options.legend, 'right', this.options.groups);
-
-    this.show();
-  };
-
-  /**
-   * set the options of the LineGraph. the mergeOptions is used for subObjects that have an enabled element.
-   * @param {object} options
-   */
-  LineGraph.prototype.setOptions = function (options) {
-    if (options) {
-      var fields = ['sampling', 'defaultGroup', 'stack', 'height', 'graphHeight', 'yAxisOrientation', 'style', 'barChart', 'dataAxis', 'sort', 'groups'];
-      if (options.graphHeight === undefined && options.height !== undefined && this.body.domProps.centerContainer.height !== undefined) {
-        this.updateSVGheight = true;
-        this.updateSVGheightOnResize = true;
-      } else if (this.body.domProps.centerContainer.height !== undefined && options.graphHeight !== undefined) {
-        if (parseInt((options.graphHeight + '').replace('px', '')) < this.body.domProps.centerContainer.height) {
-          this.updateSVGheight = true;
-        }
-      }
-      util.selectiveDeepExtend(fields, this.options, options);
-      util.mergeOptions(this.options, options, 'interpolation');
-      util.mergeOptions(this.options, options, 'drawPoints');
-      util.mergeOptions(this.options, options, 'shaded');
-      util.mergeOptions(this.options, options, 'legend');
-
-      if (options.interpolation) {
-        if (typeof options.interpolation == 'object') {
-          if (options.interpolation.parametrization) {
-            if (options.interpolation.parametrization == 'uniform') {
-              this.options.interpolation.alpha = 0;
-            } else if (options.interpolation.parametrization == 'chordal') {
-              this.options.interpolation.alpha = 1;
-            } else {
-              this.options.interpolation.parametrization = 'centripetal';
-              this.options.interpolation.alpha = 0.5;
-            }
-          }
-        }
-      }
-
-      if (this.yAxisLeft) {
-        if (options.dataAxis !== undefined) {
-          this.yAxisLeft.setOptions(this.options.dataAxis);
-          this.yAxisRight.setOptions(this.options.dataAxis);
-        }
-      }
-
-      if (this.legendLeft) {
-        if (options.legend !== undefined) {
-          this.legendLeft.setOptions(this.options.legend);
-          this.legendRight.setOptions(this.options.legend);
-        }
-      }
-
-      if (this.groups.hasOwnProperty(UNGROUPED)) {
-        this.groups[UNGROUPED].setOptions(options);
-      }
-    }
-
-    // this is used to redraw the graph if the visibility of the groups is changed.
-    if (this.dom.frame) {
-      this.redraw(true);
-    }
-  };
-
-  /**
-   * Hide the component from the DOM
-   */
-  LineGraph.prototype.hide = function () {
-    // remove the frame containing the items
-    if (this.dom.frame.parentNode) {
-      this.dom.frame.parentNode.removeChild(this.dom.frame);
-    }
-  };
-
-  /**
-   * Show the component in the DOM (when not already visible).
-   * @return {Boolean} changed
-   */
-  LineGraph.prototype.show = function () {
-    // show frame containing the items
-    if (!this.dom.frame.parentNode) {
-      this.body.dom.center.appendChild(this.dom.frame);
-    }
-  };
-
-  /**
-   * Set items
-   * @param {vis.DataSet | null} items
-   */
-  LineGraph.prototype.setItems = function (items) {
-    var me = this,
-        ids,
-        oldItemsData = this.itemsData;
-
-    // replace the dataset
-    if (!items) {
-      this.itemsData = null;
-    } else if (items instanceof DataSet || items instanceof DataView) {
-      this.itemsData = items;
-    } else {
-      throw new TypeError('Data must be an instance of DataSet or DataView');
-    }
-
-    if (oldItemsData) {
-      // unsubscribe from old dataset
-      util.forEach(this.itemListeners, function (callback, event) {
-        oldItemsData.off(event, callback);
-      });
-
-      // remove all drawn items
-      ids = oldItemsData.getIds();
-      this._onRemove(ids);
-    }
-
-    if (this.itemsData) {
-      // subscribe to new dataset
-      var id = this.id;
-      util.forEach(this.itemListeners, function (callback, event) {
-        me.itemsData.on(event, callback, id);
-      });
-
-      // add all new items
-      ids = this.itemsData.getIds();
-      this._onAdd(ids);
-    }
-    this._updateUngrouped();
-    //this._updateGraph();
-    this.redraw(true);
-  };
-
-  /**
-   * Set groups
-   * @param {vis.DataSet} groups
-   */
-  LineGraph.prototype.setGroups = function (groups) {
-    var me = this;
-    var ids;
-
-    // unsubscribe from current dataset
-    if (this.groupsData) {
-      util.forEach(this.groupListeners, function (callback, event) {
-        me.groupsData.off(event, callback);
-      });
-
-      // remove all drawn groups
-      ids = this.groupsData.getIds();
-      this.groupsData = null;
-      this._onRemoveGroups(ids); // note: this will cause a redraw
-    }
-
-    // replace the dataset
-    if (!groups) {
-      this.groupsData = null;
-    } else if (groups instanceof DataSet || groups instanceof DataView) {
-      this.groupsData = groups;
-    } else {
-      throw new TypeError('Data must be an instance of DataSet or DataView');
-    }
-
-    if (this.groupsData) {
-      // subscribe to new dataset
-      var id = this.id;
-      util.forEach(this.groupListeners, function (callback, event) {
-        me.groupsData.on(event, callback, id);
-      });
-
-      // draw all ms
-      ids = this.groupsData.getIds();
-      this._onAddGroups(ids);
-    }
-    this._onUpdate();
-  };
-
-  /**
-   * Update the data
-   * @param [ids]
-   * @private
-   */
-  LineGraph.prototype._onUpdate = function (ids) {
-    this._updateUngrouped();
-    this._updateAllGroupData();
-    //this._updateGraph();
-    this.redraw(true);
-  };
-  LineGraph.prototype._onAdd = function (ids) {
-    this._onUpdate(ids);
-  };
-  LineGraph.prototype._onRemove = function (ids) {
-    this._onUpdate(ids);
-  };
-  LineGraph.prototype._onUpdateGroups = function (groupIds) {
-    for (var i = 0; i < groupIds.length; i++) {
-      var group = this.groupsData.get(groupIds[i]);
-      this._updateGroup(group, groupIds[i]);
-    }
-
-    //this._updateGraph();
-    this.redraw(true);
-  };
-  LineGraph.prototype._onAddGroups = function (groupIds) {
-    this._onUpdateGroups(groupIds);
-  };
-
-  /**
-   * this cleans the group out off the legends and the dataaxis, updates the ungrouped and updates the graph
-   * @param {Array} groupIds
-   * @private
-   */
-  LineGraph.prototype._onRemoveGroups = function (groupIds) {
-    for (var i = 0; i < groupIds.length; i++) {
-      if (this.groups.hasOwnProperty(groupIds[i])) {
-        if (this.groups[groupIds[i]].options.yAxisOrientation == 'right') {
-          this.yAxisRight.removeGroup(groupIds[i]);
-          this.legendRight.removeGroup(groupIds[i]);
-          this.legendRight.redraw();
-        } else {
-          this.yAxisLeft.removeGroup(groupIds[i]);
-          this.legendLeft.removeGroup(groupIds[i]);
-          this.legendLeft.redraw();
-        }
-        delete this.groups[groupIds[i]];
-      }
-    }
-    this._updateUngrouped();
-    //this._updateGraph();
-    this.redraw(true);
-  };
-
-  /**
-   * update a group object with the group dataset entree
-   *
-   * @param group
-   * @param groupId
-   * @private
-   */
-  LineGraph.prototype._updateGroup = function (group, groupId) {
-    if (!this.groups.hasOwnProperty(groupId)) {
-      this.groups[groupId] = new GraphGroup(group, groupId, this.options, this.groupsUsingDefaultStyles);
-      if (this.groups[groupId].options.yAxisOrientation == 'right') {
-        this.yAxisRight.addGroup(groupId, this.groups[groupId]);
-        this.legendRight.addGroup(groupId, this.groups[groupId]);
-      } else {
-        this.yAxisLeft.addGroup(groupId, this.groups[groupId]);
-        this.legendLeft.addGroup(groupId, this.groups[groupId]);
-      }
-    } else {
-      this.groups[groupId].update(group);
-      if (this.groups[groupId].options.yAxisOrientation == 'right') {
-        this.yAxisRight.updateGroup(groupId, this.groups[groupId]);
-        this.legendRight.updateGroup(groupId, this.groups[groupId]);
-      } else {
-        this.yAxisLeft.updateGroup(groupId, this.groups[groupId]);
-        this.legendLeft.updateGroup(groupId, this.groups[groupId]);
-      }
-    }
-    this.legendLeft.redraw();
-    this.legendRight.redraw();
-  };
-
-  /**
-   * this updates all groups, it is used when there is an update the the itemset.
-   *
-   * @private
-   */
-  LineGraph.prototype._updateAllGroupData = function () {
-    if (this.itemsData != null) {
-      var groupsContent = {};
-      var groupId;
-      for (groupId in this.groups) {
-        if (this.groups.hasOwnProperty(groupId)) {
-          groupsContent[groupId] = [];
-        }
-      }
-      for (var itemId in this.itemsData._data) {
-        if (this.itemsData._data.hasOwnProperty(itemId)) {
-          var item = this.itemsData._data[itemId];
-          if (groupsContent[item.group] === undefined) {
-            throw new Error('Cannot find referenced group. Possible reason: items added before groups? Groups need to be added before items, as items refer to groups.');
-          }
-          item.x = util.convert(item.x, 'Date');
-          groupsContent[item.group].push(item);
-        }
-      }
-      for (groupId in this.groups) {
-        if (this.groups.hasOwnProperty(groupId)) {
-          this.groups[groupId].setItems(groupsContent[groupId]);
-        }
-      }
-    }
-  };
-
-  /**
-   * Create or delete the group holding all ungrouped items. This group is used when
-   * there are no groups specified. This anonymous group is called 'graph'.
-   * @protected
-   */
-  LineGraph.prototype._updateUngrouped = function () {
-    if (this.itemsData && this.itemsData != null) {
-      var ungroupedCounter = 0;
-      for (var itemId in this.itemsData._data) {
-        if (this.itemsData._data.hasOwnProperty(itemId)) {
-          var item = this.itemsData._data[itemId];
-          if (item != undefined) {
-            if (item.hasOwnProperty('group')) {
-              if (item.group === undefined) {
-                item.group = UNGROUPED;
-              }
-            } else {
-              item.group = UNGROUPED;
-            }
-            ungroupedCounter = item.group == UNGROUPED ? ungroupedCounter + 1 : ungroupedCounter;
-          }
-        }
-      }
-
-      if (ungroupedCounter == 0) {
-        delete this.groups[UNGROUPED];
-        this.legendLeft.removeGroup(UNGROUPED);
-        this.legendRight.removeGroup(UNGROUPED);
-        this.yAxisLeft.removeGroup(UNGROUPED);
-        this.yAxisRight.removeGroup(UNGROUPED);
-      } else {
-        var group = { id: UNGROUPED, content: this.options.defaultGroup };
-        this._updateGroup(group, UNGROUPED);
-      }
-    } else {
-      delete this.groups[UNGROUPED];
-      this.legendLeft.removeGroup(UNGROUPED);
-      this.legendRight.removeGroup(UNGROUPED);
-      this.yAxisLeft.removeGroup(UNGROUPED);
-      this.yAxisRight.removeGroup(UNGROUPED);
-    }
-
-    this.legendLeft.redraw();
-    this.legendRight.redraw();
-  };
-
-  /**
-   * Redraw the component, mandatory function
-   * @return {boolean} Returns true if the component is resized
-   */
-  LineGraph.prototype.redraw = function (forceGraphUpdate) {
-    var resized = false;
-
-    // calculate actual size and position
-    this.props.width = this.dom.frame.offsetWidth;
-    this.props.height = this.body.domProps.centerContainer.height - this.body.domProps.border.top - this.body.domProps.border.bottom;
-
-    // update the graph if there is no lastWidth or with, used for the initial draw
-    if (this.lastWidth === undefined && this.props.width) {
-      forceGraphUpdate = true;
-    }
-
-    // check if this component is resized
-    resized = this._isResized() || resized;
-
-    // check whether zoomed (in that case we need to re-stack everything)
-    var visibleInterval = this.body.range.end - this.body.range.start;
-    var zoomed = visibleInterval != this.lastVisibleInterval;
-    this.lastVisibleInterval = visibleInterval;
-
-    // the svg element is three times as big as the width, this allows for fully dragging left and right
-    // without reloading the graph. the controls for this are bound to events in the constructor
-    if (resized == true) {
-      this.svg.style.width = util.option.asSize(3 * this.props.width);
-      this.svg.style.left = util.option.asSize(-this.props.width);
-
-      // if the height of the graph is set as proportional, change the height of the svg
-      if ((this.options.height + '').indexOf('%') != -1 || this.updateSVGheightOnResize == true) {
-        this.updateSVGheight = true;
-      }
-    }
-
-    // update the height of the graph on each redraw of the graph.
-    if (this.updateSVGheight == true) {
-      if (this.options.graphHeight != this.props.height + 'px') {
-        this.options.graphHeight = this.props.height + 'px';
-        this.svg.style.height = this.props.height + 'px';
-      }
-      this.updateSVGheight = false;
-    } else {
-      this.svg.style.height = ('' + this.options.graphHeight).replace('px', '') + 'px';
-    }
-
-    // zoomed is here to ensure that animations are shown correctly.
-    if (resized == true || zoomed == true || this.abortedGraphUpdate == true || forceGraphUpdate == true) {
-      resized = this._updateGraph() || resized;
-    } else {
-      // move the whole svg while dragging
-      if (this.lastStart != 0) {
-        var offset = this.body.range.start - this.lastStart;
-        var range = this.body.range.end - this.body.range.start;
-        if (this.props.width != 0) {
-          var rangePerPixelInv = this.props.width / range;
-          var xOffset = offset * rangePerPixelInv;
-          this.svg.style.left = -this.props.width - xOffset + 'px';
-        }
-      }
-    }
-
-    this.legendLeft.redraw();
-    this.legendRight.redraw();
-    return resized;
-  };
-
-  /**
-   * Update and redraw the graph.
-   *
-   */
-  LineGraph.prototype._updateGraph = function () {
-    // reset the svg elements
-    DOMutil.prepareElements(this.svgElements);
-    if (this.props.width != 0 && this.itemsData != null) {
-      var group, i;
-      var preprocessedGroupData = {};
-      var processedGroupData = {};
-      var groupRanges = {};
-      var changeCalled = false;
-
-      // getting group Ids
-      var groupIds = [];
-      for (var groupId in this.groups) {
-        if (this.groups.hasOwnProperty(groupId)) {
-          group = this.groups[groupId];
-          if (group.visible == true && (this.options.groups.visibility[groupId] === undefined || this.options.groups.visibility[groupId] == true)) {
-            groupIds.push(groupId);
-          }
-        }
-      }
-      if (groupIds.length > 0) {
-        // this is the range of the SVG canvas
-        var minDate = this.body.util.toGlobalTime(-this.body.domProps.root.width);
-        var maxDate = this.body.util.toGlobalTime(2 * this.body.domProps.root.width);
-        var groupsData = {};
-        // fill groups data, this only loads the data we require based on the timewindow
-        this._getRelevantData(groupIds, groupsData, minDate, maxDate);
-
-        // apply sampling, if disabled, it will pass through this function.
-        this._applySampling(groupIds, groupsData);
-
-        // we transform the X coordinates to detect collisions
-        for (i = 0; i < groupIds.length; i++) {
-          preprocessedGroupData[groupIds[i]] = this._convertXcoordinates(groupsData[groupIds[i]]);
-        }
-
-        // now all needed data has been collected we start the processing.
-        this._getYRanges(groupIds, preprocessedGroupData, groupRanges);
-
-        // update the Y axis first, we use this data to draw at the correct Y points
-        // changeCalled is required to clean the SVG on a change emit.
-        changeCalled = this._updateYAxis(groupIds, groupRanges);
-        var MAX_CYCLES = 5;
-        if (changeCalled == true && this.COUNTER < MAX_CYCLES) {
-          DOMutil.cleanupElements(this.svgElements);
-          this.abortedGraphUpdate = true;
-          this.COUNTER++;
-          this.body.emitter.emit('change');
-          return true;
-        } else {
-          if (this.COUNTER > MAX_CYCLES) {
-            console.log('WARNING: there may be an infinite loop in the _updateGraph emitter cycle.');
-          }
-          this.COUNTER = 0;
-          this.abortedGraphUpdate = false;
-
-          // With the yAxis scaled correctly, use this to get the Y values of the points.
-          for (i = 0; i < groupIds.length; i++) {
-            group = this.groups[groupIds[i]];
-            processedGroupData[groupIds[i]] = this._convertYcoordinates(groupsData[groupIds[i]], group);
-          }
-
-          // draw the groups
-          for (i = 0; i < groupIds.length; i++) {
-            group = this.groups[groupIds[i]];
-            if (group.options.style != 'bar') {
-              // bar needs to be drawn enmasse
-              group.draw(processedGroupData[groupIds[i]], group, this.framework);
-            }
-          }
-          BarFunctions.draw(groupIds, processedGroupData, this.framework);
-        }
-      }
-    }
-
-    // cleanup unused svg elements
-    DOMutil.cleanupElements(this.svgElements);
-    return false;
-  };
-
-  /**
-   * first select and preprocess the data from the datasets.
-   * the groups have their preselection of data, we now loop over this data to see
-   * what data we need to draw. Sorted data is much faster.
-   * more optimization is possible by doing the sampling before and using the binary search
-   * to find the end date to determine the increment.
-   *
-   * @param {array}  groupIds
-   * @param {object} groupsData
-   * @param {date}   minDate
-   * @param {date}   maxDate
-   * @private
-   */
-  LineGraph.prototype._getRelevantData = function (groupIds, groupsData, minDate, maxDate) {
-    var group, i, j, item;
-    if (groupIds.length > 0) {
-      for (i = 0; i < groupIds.length; i++) {
-        group = this.groups[groupIds[i]];
-        groupsData[groupIds[i]] = [];
-        var dataContainer = groupsData[groupIds[i]];
-        // optimization for sorted data
-        if (group.options.sort == true) {
-          var guess = Math.max(0, util.binarySearchValue(group.itemsData, minDate, 'x', 'before'));
-          for (j = guess; j < group.itemsData.length; j++) {
-            item = group.itemsData[j];
-            if (item !== undefined) {
-              if (item.x > maxDate) {
-                dataContainer.push(item);
-                break;
-              } else {
-                dataContainer.push(item);
-              }
-            }
-          }
-        } else {
-          for (j = 0; j < group.itemsData.length; j++) {
-            item = group.itemsData[j];
-            if (item !== undefined) {
-              if (item.x > minDate && item.x < maxDate) {
-                dataContainer.push(item);
-              }
-            }
-          }
-        }
-      }
-    }
-  };
-
-  /**
-   *
-   * @param groupIds
-   * @param groupsData
-   * @private
-   */
-  LineGraph.prototype._applySampling = function (groupIds, groupsData) {
-    var group;
-    if (groupIds.length > 0) {
-      for (var i = 0; i < groupIds.length; i++) {
-        group = this.groups[groupIds[i]];
-        if (group.options.sampling == true) {
-          var dataContainer = groupsData[groupIds[i]];
-          if (dataContainer.length > 0) {
-            var increment = 1;
-            var amountOfPoints = dataContainer.length;
-
-            // the global screen is used because changing the width of the yAxis may affect the increment, resulting in an endless loop
-            // of width changing of the yAxis.
-            var xDistance = this.body.util.toGlobalScreen(dataContainer[dataContainer.length - 1].x) - this.body.util.toGlobalScreen(dataContainer[0].x);
-            var pointsPerPixel = amountOfPoints / xDistance;
-            increment = Math.min(Math.ceil(0.2 * amountOfPoints), Math.max(1, Math.round(pointsPerPixel)));
-
-            var sampledData = [];
-            for (var j = 0; j < amountOfPoints; j += increment) {
-              sampledData.push(dataContainer[j]);
-            }
-            groupsData[groupIds[i]] = sampledData;
-          }
-        }
-      }
-    }
-  };
-
-  /**
-   *
-   *
-   * @param {array}  groupIds
-   * @param {object} groupsData
-   * @param {object} groupRanges  | this is being filled here
-   * @private
-   */
-  LineGraph.prototype._getYRanges = function (groupIds, groupsData, groupRanges) {
-    var groupData, group, i;
-    var combinedDataLeft = [];
-    var combinedDataRight = [];
-    var options;
-    if (groupIds.length > 0) {
-      for (i = 0; i < groupIds.length; i++) {
-        groupData = groupsData[groupIds[i]];
-        options = this.groups[groupIds[i]].options;
-        if (groupData.length > 0) {
-          group = this.groups[groupIds[i]];
-          // if bar graphs are stacked, their range need to be handled differently and accumulated over all groups.
-          if (options.stack === true) {
-            if (options.yAxisOrientation == 'left') {
-              combinedDataLeft = combinedDataLeft.concat(group.getData(groupData));
-            } else {
-              combinedDataRight = combinedDataRight.concat(group.getData(groupData));
-            }
-          } else {
-            groupRanges[groupIds[i]] = group.getYRange(groupData, groupIds[i]);
-          }
-        }
-      }
-
-      // if bar graphs are stacked, their range need to be handled differently and accumulated over all groups.
-      BarFunctions.getStackedYRange(combinedDataLeft, groupRanges, groupIds, '__barStackLeft', 'left');
-      BarFunctions.getStackedYRange(combinedDataRight, groupRanges, groupIds, '__barStackRight', 'right');
-      // if line graphs are stacked, their range need to be handled differently and accumulated over all groups.
-      LineFunctions.getStackedYRange(combinedDataLeft, groupRanges, groupIds, '__lineStackLeft', 'left');
-      LineFunctions.getStackedYRange(combinedDataRight, groupRanges, groupIds, '__lineStackRight', 'right');
-    }
-  };
-
-  /**
-   * this sets the Y ranges for the Y axis. It also determines which of the axis should be shown or hidden.
-   * @param {Array} groupIds
-   * @param {Object} groupRanges
-   * @private
-   */
-  LineGraph.prototype._updateYAxis = function (groupIds, groupRanges) {
-    var resized = false;
-    var yAxisLeftUsed = false;
-    var yAxisRightUsed = false;
-    var minLeft = 1000000000,
-        minRight = 1000000000,
-        maxLeft = -1000000000,
-        maxRight = -1000000000,
-        minVal,
-        maxVal;
-    // if groups are present
-    if (groupIds.length > 0) {
-      // this is here to make sure that if there are no items in the axis but there are groups, that there is no infinite draw/redraw loop.
-      for (var i = 0; i < groupIds.length; i++) {
-        var group = this.groups[groupIds[i]];
-        if (group && group.options.yAxisOrientation != 'right') {
-          yAxisLeftUsed = true;
-          minLeft = 0;
-          maxLeft = 0;
-        } else if (group && group.options.yAxisOrientation) {
-          yAxisRightUsed = true;
-          minRight = 0;
-          maxRight = 0;
-        }
-      }
-
-      // if there are items:
-      for (var i = 0; i < groupIds.length; i++) {
-        if (groupRanges.hasOwnProperty(groupIds[i])) {
-          if (groupRanges[groupIds[i]].ignore !== true) {
-            minVal = groupRanges[groupIds[i]].min;
-            maxVal = groupRanges[groupIds[i]].max;
-
-            if (groupRanges[groupIds[i]].yAxisOrientation != 'right') {
-              yAxisLeftUsed = true;
-              minLeft = minLeft > minVal ? minVal : minLeft;
-              maxLeft = maxLeft < maxVal ? maxVal : maxLeft;
-            } else {
-              yAxisRightUsed = true;
-              minRight = minRight > minVal ? minVal : minRight;
-              maxRight = maxRight < maxVal ? maxVal : maxRight;
-            }
-          }
-        }
-      }
-
-      if (yAxisLeftUsed == true) {
-        this.yAxisLeft.setRange(minLeft, maxLeft);
-      }
-      if (yAxisRightUsed == true) {
-        this.yAxisRight.setRange(minRight, maxRight);
-      }
-    }
-    resized = this._toggleAxisVisiblity(yAxisLeftUsed, this.yAxisLeft) || resized;
-    resized = this._toggleAxisVisiblity(yAxisRightUsed, this.yAxisRight) || resized;
-
-    if (yAxisRightUsed == true && yAxisLeftUsed == true) {
-      this.yAxisLeft.drawIcons = true;
-      this.yAxisRight.drawIcons = true;
-    } else {
-      this.yAxisLeft.drawIcons = false;
-      this.yAxisRight.drawIcons = false;
-    }
-    this.yAxisRight.master = !yAxisLeftUsed;
-    if (this.yAxisRight.master == false) {
-      if (yAxisRightUsed == true) {
-        this.yAxisLeft.lineOffset = this.yAxisRight.width;
-      } else {
-        this.yAxisLeft.lineOffset = 0;
-      }
-
-      resized = this.yAxisLeft.redraw() || resized;
-      this.yAxisRight.stepPixels = this.yAxisLeft.stepPixels;
-      this.yAxisRight.zeroCrossing = this.yAxisLeft.zeroCrossing;
-      this.yAxisRight.amountOfSteps = this.yAxisLeft.amountOfSteps;
-      resized = this.yAxisRight.redraw() || resized;
-    } else {
-      resized = this.yAxisRight.redraw() || resized;
-    }
-
-    // clean the accumulated lists
-    var tempGroups = ['__barStackLeft', '__barStackRight', '__lineStackLeft', '__lineStackRight'];
-    for (var i = 0; i < tempGroups.length; i++) {
-      if (groupIds.indexOf(tempGroups[i]) != -1) {
-        groupIds.splice(groupIds.indexOf(tempGroups[i]), 1);
-      }
-    }
-
-    return resized;
-  };
-
-  /**
-   * This shows or hides the Y axis if needed. If there is a change, the changed event is emitted by the updateYAxis function
-   *
-   * @param {boolean} axisUsed
-   * @returns {boolean}
-   * @private
-   * @param axis
-   */
-  LineGraph.prototype._toggleAxisVisiblity = function (axisUsed, axis) {
-    var changed = false;
-    if (axisUsed == false) {
-      if (axis.dom.frame.parentNode && axis.hidden == false) {
-        axis.hide();
-        changed = true;
-      }
-    } else {
-      if (!axis.dom.frame.parentNode && axis.hidden == true) {
-        axis.show();
-        changed = true;
-      }
-    }
-    return changed;
-  };
-
-  /**
-   * This uses the DataAxis object to generate the correct X coordinate on the SVG window. It uses the
-   * util function toScreen to get the x coordinate from the timestamp. It also pre-filters the data and get the minMax ranges for
-   * the yAxis.
-   *
-   * @param datapoints
-   * @returns {Array}
-   * @private
-   */
-  LineGraph.prototype._convertXcoordinates = function (datapoints) {
-    var extractedData = [];
-    var xValue, yValue;
-    var toScreen = this.body.util.toScreen;
-
-    for (var i = 0; i < datapoints.length; i++) {
-      xValue = toScreen(datapoints[i].x) + this.props.width;
-      yValue = datapoints[i].y;
-      extractedData.push({ x: xValue, y: yValue });
-    }
-
-    return extractedData;
-  };
-
-  /**
-   * This uses the DataAxis object to generate the correct X coordinate on the SVG window. It uses the
-   * util function toScreen to get the x coordinate from the timestamp. It also pre-filters the data and get the minMax ranges for
-   * the yAxis.
-   *
-   * @param datapoints
-   * @param group
-   * @returns {Array}
-   * @private
-   */
-  LineGraph.prototype._convertYcoordinates = function (datapoints, group) {
-    var extractedData = [];
-    var xValue, yValue;
-    var toScreen = this.body.util.toScreen;
-    var axis = this.yAxisLeft;
-    var svgHeight = Number(this.svg.style.height.replace('px', ''));
-    if (group.options.yAxisOrientation == 'right') {
-      axis = this.yAxisRight;
-    }
-
-    for (var i = 0; i < datapoints.length; i++) {
-      var labelValue = datapoints[i].label ? datapoints[i].label : null;
-      xValue = toScreen(datapoints[i].x) + this.props.width;
-      yValue = Math.round(axis.convertValue(datapoints[i].y));
-      extractedData.push({ x: xValue, y: yValue, label: labelValue });
-    }
-
-    group.setZeroPosition(Math.min(svgHeight, axis.convertValue(0)));
-
-    return extractedData;
-  };
-
-  module.exports = LineGraph;
-
-/***/ },
-/* 53 */
-/***/ function(module, exports, __webpack_require__) {
-
-  'use strict';
-
-  var util = __webpack_require__(3);
-  var DOMutil = __webpack_require__(9);
-  var Component = __webpack_require__(23);
-  var DataStep = __webpack_require__(54);
+  var util = __webpack_require__(4);
+  var DOMutil = __webpack_require__(14);
+  var Component = __webpack_require__(28);
+  var DataStep = __webpack_require__(58);
 
   /**
    * A horizontal time axis
@@ -26293,7 +27684,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = DataAxis;
 
 /***/ },
-/* 54 */
+/* 58 */
 /***/ function(module, exports, __webpack_require__) {
 
   /**
@@ -26520,16 +27911,16 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = DataStep;
 
 /***/ },
-/* 55 */
+/* 59 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
 
-  var util = __webpack_require__(3);
-  var DOMutil = __webpack_require__(9);
-  var Line = __webpack_require__(56);
-  var Bar = __webpack_require__(58);
-  var Points = __webpack_require__(57);
+  var util = __webpack_require__(4);
+  var DOMutil = __webpack_require__(14);
+  var Line = __webpack_require__(60);
+  var Bar = __webpack_require__(62);
+  var Points = __webpack_require__(61);
 
   /**
    * /**
@@ -26714,13 +28105,13 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = GraphGroup;
 
 /***/ },
-/* 56 */
+/* 60 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
 
-  var DOMutil = __webpack_require__(9);
-  var Points = __webpack_require__(57);
+  var DOMutil = __webpack_require__(14);
+  var Points = __webpack_require__(61);
 
   function Line(groupId, options) {
     this.groupId = groupId;
@@ -27009,12 +28400,12 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = Line;
 
 /***/ },
-/* 57 */
+/* 61 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
 
-  var DOMutil = __webpack_require__(9);
+  var DOMutil = __webpack_require__(14);
 
   function Points(groupId, options) {
     this.groupId = groupId;
@@ -27056,13 +28447,13 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = Points;
 
 /***/ },
-/* 58 */
+/* 62 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
 
-  var DOMutil = __webpack_require__(9);
-  var Points = __webpack_require__(57);
+  var DOMutil = __webpack_require__(14);
+  var Points = __webpack_require__(61);
 
   function Bargraph(groupId, options) {
     this.groupId = groupId;
@@ -27304,14 +28695,14 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = Bargraph;
 
 /***/ },
-/* 59 */
+/* 63 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
 
-  var util = __webpack_require__(3);
-  var DOMutil = __webpack_require__(9);
-  var Component = __webpack_require__(23);
+  var util = __webpack_require__(4);
+  var DOMutil = __webpack_require__(14);
+  var Component = __webpack_require__(28);
 
   /**
    * Legend for Graph2d
@@ -27518,7 +28909,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = Legend;
 
 /***/ },
-/* 60 */
+/* 64 */
 /***/ function(module, exports, __webpack_require__) {
 
   /**
@@ -27789,7 +29180,7 @@ return /******/ (function(modules) { // webpackBootstrap
   exports.configureOptions = configureOptions;
 
 /***/ },
-/* 61 */
+/* 65 */
 /***/ function(module, exports, __webpack_require__) {
 
   // Load custom shapes into CanvasRenderingContext2D
@@ -27797,19 +29188,19 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
 
-  var _modulesGroups = __webpack_require__(62);
+  var _modulesGroups = __webpack_require__(66);
 
   var _modulesGroups2 = _interopRequireDefault(_modulesGroups);
 
-  var _modulesNodesHandler = __webpack_require__(2);
+  var _modulesNodesHandler = __webpack_require__(3);
 
   var _modulesNodesHandler2 = _interopRequireDefault(_modulesNodesHandler);
 
-  var _modulesEdgesHandler = __webpack_require__(82);
+  var _modulesEdgesHandler = __webpack_require__(86);
 
   var _modulesEdgesHandler2 = _interopRequireDefault(_modulesEdgesHandler);
 
-  var _modulesPhysicsEngine = __webpack_require__(89);
+  var _modulesPhysicsEngine = __webpack_require__(6);
 
   var _modulesPhysicsEngine2 = _interopRequireDefault(_modulesPhysicsEngine);
 
@@ -27841,15 +29232,15 @@ return /******/ (function(modules) { // webpackBootstrap
 
   var _modulesLayoutEngine2 = _interopRequireDefault(_modulesLayoutEngine);
 
-  var _modulesManipulationSystem = __webpack_require__(5);
+  var _modulesManipulationSystem = __webpack_require__(9);
 
   var _modulesManipulationSystem2 = _interopRequireDefault(_modulesManipulationSystem);
 
-  var _sharedConfigurator = __webpack_require__(47);
+  var _sharedConfigurator = __webpack_require__(52);
 
   var _sharedConfigurator2 = _interopRequireDefault(_sharedConfigurator);
 
-  var _sharedValidator = __webpack_require__(49);
+  var _sharedValidator = __webpack_require__(54);
 
   var _sharedValidator2 = _interopRequireDefault(_sharedValidator);
 
@@ -27857,15 +29248,15 @@ return /******/ (function(modules) { // webpackBootstrap
 
   __webpack_require__(109);
 
-  var Emitter = __webpack_require__(15);
-  var Hammer = __webpack_require__(25);
-  var util = __webpack_require__(3);
-  var DataSet = __webpack_require__(10);
-  var DataView = __webpack_require__(12);
+  var Emitter = __webpack_require__(20);
+  var Hammer = __webpack_require__(30);
+  var util = __webpack_require__(4);
+  var DataSet = __webpack_require__(15);
+  var DataView = __webpack_require__(17);
   var dotparser = __webpack_require__(110);
   var gephiParser = __webpack_require__(111);
   var Images = __webpack_require__(112);
-  var Activator = __webpack_require__(44);
+  var Activator = __webpack_require__(49);
   var locales = __webpack_require__(113);
 
   /**
@@ -28396,7 +29787,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = Network;
 
 /***/ },
-/* 62 */
+/* 66 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
@@ -28409,7 +29800,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
-  var util = __webpack_require__(3);
+  var util = __webpack_require__(4);
 
   /**
    * @class Groups
@@ -28538,7 +29929,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports["default"];
 
 /***/ },
-/* 63 */
+/* 67 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -28553,71 +29944,71 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
 
-  var _sharedLabel = __webpack_require__(64);
+  var _sharedLabel = __webpack_require__(68);
 
   var _sharedLabel2 = _interopRequireDefault(_sharedLabel);
 
-  var _nodesShapesBox = __webpack_require__(65);
+  var _nodesShapesBox = __webpack_require__(69);
 
   var _nodesShapesBox2 = _interopRequireDefault(_nodesShapesBox);
 
-  var _nodesShapesCircle = __webpack_require__(67);
+  var _nodesShapesCircle = __webpack_require__(71);
 
   var _nodesShapesCircle2 = _interopRequireDefault(_nodesShapesCircle);
 
-  var _nodesShapesCircularImage = __webpack_require__(69);
+  var _nodesShapesCircularImage = __webpack_require__(73);
 
   var _nodesShapesCircularImage2 = _interopRequireDefault(_nodesShapesCircularImage);
 
-  var _nodesShapesDatabase = __webpack_require__(70);
+  var _nodesShapesDatabase = __webpack_require__(74);
 
   var _nodesShapesDatabase2 = _interopRequireDefault(_nodesShapesDatabase);
 
-  var _nodesShapesDiamond = __webpack_require__(71);
+  var _nodesShapesDiamond = __webpack_require__(75);
 
   var _nodesShapesDiamond2 = _interopRequireDefault(_nodesShapesDiamond);
 
-  var _nodesShapesDot = __webpack_require__(73);
+  var _nodesShapesDot = __webpack_require__(77);
 
   var _nodesShapesDot2 = _interopRequireDefault(_nodesShapesDot);
 
-  var _nodesShapesEllipse = __webpack_require__(74);
+  var _nodesShapesEllipse = __webpack_require__(78);
 
   var _nodesShapesEllipse2 = _interopRequireDefault(_nodesShapesEllipse);
 
-  var _nodesShapesIcon = __webpack_require__(75);
+  var _nodesShapesIcon = __webpack_require__(79);
 
   var _nodesShapesIcon2 = _interopRequireDefault(_nodesShapesIcon);
 
-  var _nodesShapesImage = __webpack_require__(76);
+  var _nodesShapesImage = __webpack_require__(80);
 
   var _nodesShapesImage2 = _interopRequireDefault(_nodesShapesImage);
 
-  var _nodesShapesSquare = __webpack_require__(77);
+  var _nodesShapesSquare = __webpack_require__(81);
 
   var _nodesShapesSquare2 = _interopRequireDefault(_nodesShapesSquare);
 
-  var _nodesShapesStar = __webpack_require__(78);
+  var _nodesShapesStar = __webpack_require__(82);
 
   var _nodesShapesStar2 = _interopRequireDefault(_nodesShapesStar);
 
-  var _nodesShapesText = __webpack_require__(79);
+  var _nodesShapesText = __webpack_require__(83);
 
   var _nodesShapesText2 = _interopRequireDefault(_nodesShapesText);
 
-  var _nodesShapesTriangle = __webpack_require__(80);
+  var _nodesShapesTriangle = __webpack_require__(84);
 
   var _nodesShapesTriangle2 = _interopRequireDefault(_nodesShapesTriangle);
 
-  var _nodesShapesTriangleDown = __webpack_require__(81);
+  var _nodesShapesTriangleDown = __webpack_require__(85);
 
   var _nodesShapesTriangleDown2 = _interopRequireDefault(_nodesShapesTriangleDown);
 
-  var _sharedValidator = __webpack_require__(49);
+  var _sharedValidator = __webpack_require__(54);
 
   var _sharedValidator2 = _interopRequireDefault(_sharedValidator);
 
-  var util = __webpack_require__(3);
+  var util = __webpack_require__(4);
 
   /**
    * @class Node
@@ -29058,7 +30449,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 64 */
+/* 68 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -29073,7 +30464,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
 
-  var util = __webpack_require__(3);
+  var util = __webpack_require__(4);
 
   var Label = (function () {
     function Label(body, options) {
@@ -29374,7 +30765,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 65 */
+/* 69 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -29393,7 +30784,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; }
 
-  var _utilNodeBase = __webpack_require__(66);
+  var _utilNodeBase = __webpack_require__(70);
 
   var _utilNodeBase2 = _interopRequireDefault(_utilNodeBase);
 
@@ -29479,7 +30870,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 66 */
+/* 70 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -29547,7 +30938,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 67 */
+/* 71 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -29566,7 +30957,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; }
 
-  var _utilCircleImageBase = __webpack_require__(68);
+  var _utilCircleImageBase = __webpack_require__(72);
 
   var _utilCircleImageBase2 = _interopRequireDefault(_utilCircleImageBase);
 
@@ -29637,7 +31028,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 68 */
+/* 72 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -29656,7 +31047,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; }
 
-  var _utilNodeBase = __webpack_require__(66);
+  var _utilNodeBase = __webpack_require__(70);
 
   var _utilNodeBase2 = _interopRequireDefault(_utilNodeBase);
 
@@ -29786,7 +31177,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 69 */
+/* 73 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -29805,7 +31196,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; }
 
-  var _utilCircleImageBase = __webpack_require__(68);
+  var _utilCircleImageBase = __webpack_require__(72);
 
   var _utilCircleImageBase2 = _interopRequireDefault(_utilCircleImageBase);
 
@@ -29891,7 +31282,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 70 */
+/* 74 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -29910,7 +31301,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; }
 
-  var _utilNodeBase = __webpack_require__(66);
+  var _utilNodeBase = __webpack_require__(70);
 
   var _utilNodeBase2 = _interopRequireDefault(_utilNodeBase);
 
@@ -29996,7 +31387,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 71 */
+/* 75 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -30015,7 +31406,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; }
 
-  var _utilShapeBase = __webpack_require__(72);
+  var _utilShapeBase = __webpack_require__(76);
 
   var _utilShapeBase2 = _interopRequireDefault(_utilShapeBase);
 
@@ -30052,7 +31443,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 72 */
+/* 76 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -30071,7 +31462,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; }
 
-  var _utilNodeBase = __webpack_require__(66);
+  var _utilNodeBase = __webpack_require__(70);
 
   var _utilNodeBase2 = _interopRequireDefault(_utilNodeBase);
 
@@ -30151,7 +31542,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 73 */
+/* 77 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -30170,7 +31561,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; }
 
-  var _utilShapeBase = __webpack_require__(72);
+  var _utilShapeBase = __webpack_require__(76);
 
   var _utilShapeBase2 = _interopRequireDefault(_utilShapeBase);
 
@@ -30207,7 +31598,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 74 */
+/* 78 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -30226,7 +31617,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; }
 
-  var _utilNodeBase = __webpack_require__(66);
+  var _utilNodeBase = __webpack_require__(70);
 
   var _utilNodeBase2 = _interopRequireDefault(_utilNodeBase);
 
@@ -30314,7 +31705,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 75 */
+/* 79 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -30333,7 +31724,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; }
 
-  var _utilNodeBase = __webpack_require__(66);
+  var _utilNodeBase = __webpack_require__(70);
 
   var _utilNodeBase2 = _interopRequireDefault(_utilNodeBase);
 
@@ -30430,7 +31821,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 76 */
+/* 80 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -30449,7 +31840,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; }
 
-  var _utilCircleImageBase = __webpack_require__(68);
+  var _utilCircleImageBase = __webpack_require__(72);
 
   var _utilCircleImageBase2 = _interopRequireDefault(_utilCircleImageBase);
 
@@ -30517,7 +31908,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 77 */
+/* 81 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -30536,7 +31927,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; }
 
-  var _utilShapeBase = __webpack_require__(72);
+  var _utilShapeBase = __webpack_require__(76);
 
   var _utilShapeBase2 = _interopRequireDefault(_utilShapeBase);
 
@@ -30574,7 +31965,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 78 */
+/* 82 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -30593,7 +31984,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; }
 
-  var _utilShapeBase = __webpack_require__(72);
+  var _utilShapeBase = __webpack_require__(76);
 
   var _utilShapeBase2 = _interopRequireDefault(_utilShapeBase);
 
@@ -30630,7 +32021,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 79 */
+/* 83 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -30649,7 +32040,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; }
 
-  var _utilNodeBase = __webpack_require__(66);
+  var _utilNodeBase = __webpack_require__(70);
 
   var _utilNodeBase2 = _interopRequireDefault(_utilNodeBase);
 
@@ -30715,7 +32106,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 80 */
+/* 84 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -30734,7 +32125,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; }
 
-  var _utilShapeBase = __webpack_require__(72);
+  var _utilShapeBase = __webpack_require__(76);
 
   var _utilShapeBase2 = _interopRequireDefault(_utilShapeBase);
 
@@ -30771,7 +32162,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 81 */
+/* 85 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -30790,7 +32181,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; }
 
-  var _utilShapeBase = __webpack_require__(72);
+  var _utilShapeBase = __webpack_require__(76);
 
   var _utilShapeBase2 = _interopRequireDefault(_utilShapeBase);
 
@@ -30827,7 +32218,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 82 */
+/* 86 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -30842,17 +32233,17 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
 
-  var _componentsEdge = __webpack_require__(83);
+  var _componentsEdge = __webpack_require__(87);
 
   var _componentsEdge2 = _interopRequireDefault(_componentsEdge);
 
-  var _componentsSharedLabel = __webpack_require__(64);
+  var _componentsSharedLabel = __webpack_require__(68);
 
   var _componentsSharedLabel2 = _interopRequireDefault(_componentsSharedLabel);
 
-  var util = __webpack_require__(3);
-  var DataSet = __webpack_require__(10);
-  var DataView = __webpack_require__(12);
+  var util = __webpack_require__(4);
+  var DataSet = __webpack_require__(15);
+  var DataView = __webpack_require__(17);
 
   var EdgesHandler = (function () {
     function EdgesHandler(body, images, groups) {
@@ -31264,7 +32655,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 83 */
+/* 87 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -31279,23 +32670,23 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
 
-  var _sharedLabel = __webpack_require__(64);
+  var _sharedLabel = __webpack_require__(68);
 
   var _sharedLabel2 = _interopRequireDefault(_sharedLabel);
 
-  var _edgesBezierEdgeDynamic = __webpack_require__(84);
+  var _edgesBezierEdgeDynamic = __webpack_require__(2);
 
   var _edgesBezierEdgeDynamic2 = _interopRequireDefault(_edgesBezierEdgeDynamic);
 
-  var _edgesBezierEdgeStatic = __webpack_require__(87);
+  var _edgesBezierEdgeStatic = __webpack_require__(90);
 
   var _edgesBezierEdgeStatic2 = _interopRequireDefault(_edgesBezierEdgeStatic);
 
-  var _edgesStraightEdge = __webpack_require__(88);
+  var _edgesStraightEdge = __webpack_require__(91);
 
   var _edgesStraightEdge2 = _interopRequireDefault(_edgesStraightEdge);
 
-  var util = __webpack_require__(3);
+  var util = __webpack_require__(4);
 
   /**
    * @class Edge
@@ -31828,171 +33219,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 84 */
-/***/ function(module, exports, __webpack_require__) {
-
-  'use strict';
-
-  Object.defineProperty(exports, '__esModule', {
-    value: true
-  });
-
-  var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
-
-  var _get = function get(_x, _x2, _x3) { var _again = true; _function: while (_again) { var object = _x, property = _x2, receiver = _x3; desc = parent = getter = undefined; _again = false; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { _x = parent; _x2 = property; _x3 = receiver; _again = true; continue _function; } } else if ('value' in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } } };
-
-  function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
-
-  function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
-
-  function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; }
-
-  var _utilBezierEdgeBase = __webpack_require__(85);
-
-  var _utilBezierEdgeBase2 = _interopRequireDefault(_utilBezierEdgeBase);
-
-  var BezierEdgeDynamic = (function (_BezierEdgeBase) {
-    function BezierEdgeDynamic(options, body, labelModule) {
-      _classCallCheck(this, BezierEdgeDynamic);
-
-      //this.via = undefined; // Here for completeness but not allowed to defined before super() is invoked.
-      _get(Object.getPrototypeOf(BezierEdgeDynamic.prototype), 'constructor', this).call(this, options, body, labelModule); // --> this calls the setOptions below
-    }
-
-    _inherits(BezierEdgeDynamic, _BezierEdgeBase);
-
-    _createClass(BezierEdgeDynamic, [{
-      key: 'setOptions',
-      value: function setOptions(options) {
-        this.options = options;
-        this.id = this.options.id;
-        this.setupSupportNode();
-        this.connect();
-      }
-    }, {
-      key: 'connect',
-      value: function connect() {
-        this.from = this.body.nodes[this.options.from];
-        this.to = this.body.nodes[this.options.to];
-        if (this.from === undefined || this.to === undefined) {
-          this.via.setOptions({ physics: false });
-        } else {
-          // fix weird behaviour where a selfreferencing node has physics enabled
-          if (this.from.id === this.to.id) {
-            this.via.setOptions({ physics: false });
-          } else {
-            this.via.setOptions({ physics: true });
-          }
-        }
-      }
-    }, {
-      key: 'cleanup',
-      value: function cleanup() {
-        if (this.via !== undefined) {
-          delete this.body.nodes[this.via.id];
-          this.via = undefined;
-          return true;
-        }
-        return false;
-      }
-    }, {
-      key: 'togglePhysics',
-      value: function togglePhysics(status) {
-        this.via.setOptions({ physics: status });
-      }
-    }, {
-      key: 'setupSupportNode',
-
-      /**
-       * Bezier curves require an anchor point to calculate the smooth flow. These points are nodes. These nodes are invisible but
-       * are used for the force calculation.
-       *
-       * The changed data is not called, if needed, it is returned by the main edge constructor.
-       * @private
-       */
-      value: function setupSupportNode() {
-        if (this.via === undefined) {
-          var nodeId = 'edgeId:' + this.id;
-          var node = this.body.functions.createNode({
-            id: nodeId,
-            shape: 'circle',
-            physics: true,
-            hidden: true
-          });
-          this.body.nodes[nodeId] = node;
-          this.via = node;
-          this.via.parentEdgeId = this.id;
-          this.positionBezierNode();
-        }
-      }
-    }, {
-      key: 'positionBezierNode',
-      value: function positionBezierNode() {
-        if (this.via !== undefined && this.from !== undefined && this.to !== undefined) {
-          this.via.x = 0.5 * (this.from.x + this.to.x);
-          this.via.y = 0.5 * (this.from.y + this.to.y);
-        } else if (this.via !== undefined) {
-          this.via.x = 0;
-          this.via.y = 0;
-        }
-      }
-    }, {
-      key: '_line',
-
-      /**
-       * Draw a line between two nodes
-       * @param {CanvasRenderingContext2D} ctx
-       * @private
-       */
-      value: function _line(ctx) {
-        // draw a straight line
-        ctx.beginPath();
-        ctx.moveTo(this.from.x, this.from.y);
-        ctx.quadraticCurveTo(this.via.x, this.via.y, this.to.x, this.to.y);
-        // draw shadow if enabled
-        this.enableShadow(ctx);
-        ctx.stroke();
-        this.disableShadow(ctx);
-        return this.via;
-      }
-    }, {
-      key: 'getPoint',
-
-      /**
-       * Combined function of pointOnLine and pointOnBezier. This gives the coordinates of a point on the line at a certain percentage of the way
-       * @param percentage
-       * @param via
-       * @returns {{x: number, y: number}}
-       * @private
-       */
-      value: function getPoint(percentage) {
-        var t = percentage;
-        var x = Math.pow(1 - t, 2) * this.from.x + 2 * t * (1 - t) * this.via.x + Math.pow(t, 2) * this.to.x;
-        var y = Math.pow(1 - t, 2) * this.from.y + 2 * t * (1 - t) * this.via.y + Math.pow(t, 2) * this.to.y;
-
-        return { x: x, y: y };
-      }
-    }, {
-      key: '_findBorderPosition',
-      value: function _findBorderPosition(nearNode, ctx) {
-        return this._findBorderPositionBezier(nearNode, ctx, this.via);
-      }
-    }, {
-      key: '_getDistanceToEdge',
-      value: function _getDistanceToEdge(x1, y1, x2, y2, x3, y3) {
-        // x3,y3 is the point
-        return this._getDistanceToBezierEdge(x1, y1, x2, y2, x3, y3, this.via);
-      }
-    }]);
-
-    return BezierEdgeDynamic;
-  })(_utilBezierEdgeBase2['default']);
-
-  exports['default'] = BezierEdgeDynamic;
-  module.exports = exports['default'];
-
-/***/ },
-/* 85 */
+/* 88 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -32011,7 +33238,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; }
 
-  var _EdgeBase2 = __webpack_require__(86);
+  var _EdgeBase2 = __webpack_require__(89);
 
   var _EdgeBase3 = _interopRequireDefault(_EdgeBase2);
 
@@ -32139,7 +33366,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 86 */
+/* 89 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -32154,7 +33381,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
 
-  var util = __webpack_require__(3);
+  var util = __webpack_require__(4);
 
   var EdgeBase = (function () {
     function EdgeBase(options, body, labelModule) {
@@ -32733,7 +33960,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 87 */
+/* 90 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -32752,7 +33979,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; }
 
-  var _utilBezierEdgeBase = __webpack_require__(85);
+  var _utilBezierEdgeBase = __webpack_require__(88);
 
   var _utilBezierEdgeBase2 = _interopRequireDefault(_utilBezierEdgeBase);
 
@@ -32992,7 +34219,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 88 */
+/* 91 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -33011,7 +34238,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; }
 
-  var _utilEdgeBase = __webpack_require__(86);
+  var _utilEdgeBase = __webpack_require__(89);
 
   var _utilEdgeBase2 = _interopRequireDefault(_utilEdgeBase);
 
@@ -33097,1124 +34324,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 89 */
-/***/ function(module, exports, __webpack_require__) {
-
-  'use strict';
-
-  Object.defineProperty(exports, '__esModule', {
-    value: true
-  });
-
-  var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
-
-  function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
-
-  function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
-
-  var _componentsPhysicsBarnesHutSolver = __webpack_require__(90);
-
-  var _componentsPhysicsBarnesHutSolver2 = _interopRequireDefault(_componentsPhysicsBarnesHutSolver);
-
-  var _componentsPhysicsRepulsionSolver = __webpack_require__(91);
-
-  var _componentsPhysicsRepulsionSolver2 = _interopRequireDefault(_componentsPhysicsRepulsionSolver);
-
-  var _componentsPhysicsHierarchicalRepulsionSolver = __webpack_require__(92);
-
-  var _componentsPhysicsHierarchicalRepulsionSolver2 = _interopRequireDefault(_componentsPhysicsHierarchicalRepulsionSolver);
-
-  var _componentsPhysicsSpringSolver = __webpack_require__(93);
-
-  var _componentsPhysicsSpringSolver2 = _interopRequireDefault(_componentsPhysicsSpringSolver);
-
-  var _componentsPhysicsHierarchicalSpringSolver = __webpack_require__(94);
-
-  var _componentsPhysicsHierarchicalSpringSolver2 = _interopRequireDefault(_componentsPhysicsHierarchicalSpringSolver);
-
-  var _componentsPhysicsCentralGravitySolver = __webpack_require__(95);
-
-  var _componentsPhysicsCentralGravitySolver2 = _interopRequireDefault(_componentsPhysicsCentralGravitySolver);
-
-  var _componentsPhysicsFA2BasedRepulsionSolver = __webpack_require__(96);
-
-  var _componentsPhysicsFA2BasedRepulsionSolver2 = _interopRequireDefault(_componentsPhysicsFA2BasedRepulsionSolver);
-
-  var _componentsPhysicsFA2BasedCentralGravitySolver = __webpack_require__(97);
-
-  var _componentsPhysicsFA2BasedCentralGravitySolver2 = _interopRequireDefault(_componentsPhysicsFA2BasedCentralGravitySolver);
-
-  var util = __webpack_require__(3);
-
-  var PhysicsEngine = (function () {
-    function PhysicsEngine(body) {
-      _classCallCheck(this, PhysicsEngine);
-
-      this.body = body;
-      this.physicsBody = { physicsNodeIndices: [], physicsEdgeIndices: [], forces: {}, velocities: {} };
-
-      this.physicsEnabled = true;
-      this.simulationInterval = 1000 / 60;
-      this.requiresTimeout = true;
-      this.previousStates = {};
-      this.freezeCache = {};
-      this.renderTimer = undefined;
-
-      this.stabilized = false;
-      this.startedStabilization = false;
-      this.stabilizationIterations = 0;
-      this.ready = false; // will be set to true if the stabilize
-
-      // default options
-      this.options = {};
-      this.defaultOptions = {
-        barnesHut: {
-          theta: 0.5,
-          gravitationalConstant: -2000,
-          centralGravity: 0.3,
-          springLength: 95,
-          springConstant: 0.04,
-          damping: 0.09,
-          avoidOverlap: 0
-        },
-        forceAtlas2Based: {
-          theta: 0.5,
-          gravitationalConstant: -50,
-          centralGravity: 0.01,
-          springConstant: 0.08,
-          springLength: 100,
-          damping: 0.4,
-          avoidOverlap: 0
-        },
-        repulsion: {
-          centralGravity: 0.2,
-          springLength: 200,
-          springConstant: 0.05,
-          nodeDistance: 100,
-          damping: 0.09,
-          avoidOverlap: 0
-        },
-        hierarchicalRepulsion: {
-          centralGravity: 0,
-          springLength: 100,
-          springConstant: 0.01,
-          nodeDistance: 120,
-          damping: 0.09
-        },
-        maxVelocity: 50,
-        minVelocity: 0.1, // px/s
-        solver: 'barnesHut',
-        stabilization: {
-          enabled: true,
-          iterations: 1000, // maximum number of iteration to stabilize
-          updateInterval: 50,
-          onlyDynamicEdges: false,
-          fit: true
-        },
-        timestep: 0.5
-      };
-      util.extend(this.options, this.defaultOptions);
-
-      this.bindEventListeners();
-    }
-
-    _createClass(PhysicsEngine, [{
-      key: 'bindEventListeners',
-      value: function bindEventListeners() {
-        var _this = this;
-
-        this.body.emitter.on('initPhysics', function () {
-          _this.initPhysics();
-        });
-        this.body.emitter.on('resetPhysics', function () {
-          _this.stopSimulation();_this.ready = false;
-        });
-        this.body.emitter.on('disablePhysics', function () {
-          _this.physicsEnabled = false;_this.stopSimulation();
-        });
-        this.body.emitter.on('restorePhysics', function () {
-          _this.setOptions(_this.options);
-          if (_this.ready === true) {
-            _this.startSimulation();
-          }
-        });
-        this.body.emitter.on('startSimulation', function () {
-          if (_this.ready === true) {
-            _this.startSimulation();
-          }
-        });
-        this.body.emitter.on('stopSimulation', function () {
-          _this.stopSimulation();
-        });
-        this.body.emitter.on('destroy', function () {
-          _this.stopSimulation(false);
-          _this.body.emitter.off();
-        });
-      }
-    }, {
-      key: 'setOptions',
-      value: function setOptions(options) {
-        if (options !== undefined) {
-          if (options === false) {
-            this.physicsEnabled = false;
-            this.stopSimulation();
-          } else {
-            this.physicsEnabled = true;
-            util.selectiveNotDeepExtend(['stabilization'], this.options, options);
-            util.mergeOptions(this.options, options, 'stabilization');
-          }
-        }
-        this.init();
-      }
-    }, {
-      key: 'init',
-      value: function init() {
-        var options;
-        if (this.options.solver === 'forceAtlas2Based') {
-          options = this.options.forceAtlas2Based;
-          this.nodesSolver = new _componentsPhysicsFA2BasedRepulsionSolver2['default'](this.body, this.physicsBody, options);
-          this.edgesSolver = new _componentsPhysicsSpringSolver2['default'](this.body, this.physicsBody, options);
-          this.gravitySolver = new _componentsPhysicsFA2BasedCentralGravitySolver2['default'](this.body, this.physicsBody, options);
-        } else if (this.options.solver === 'repulsion') {
-          options = this.options.repulsion;
-          this.nodesSolver = new _componentsPhysicsRepulsionSolver2['default'](this.body, this.physicsBody, options);
-          this.edgesSolver = new _componentsPhysicsSpringSolver2['default'](this.body, this.physicsBody, options);
-          this.gravitySolver = new _componentsPhysicsCentralGravitySolver2['default'](this.body, this.physicsBody, options);
-        } else if (this.options.solver === 'hierarchicalRepulsion') {
-          options = this.options.hierarchicalRepulsion;
-          this.nodesSolver = new _componentsPhysicsHierarchicalRepulsionSolver2['default'](this.body, this.physicsBody, options);
-          this.edgesSolver = new _componentsPhysicsHierarchicalSpringSolver2['default'](this.body, this.physicsBody, options);
-          this.gravitySolver = new _componentsPhysicsCentralGravitySolver2['default'](this.body, this.physicsBody, options);
-        } else {
-          // barnesHut
-          options = this.options.barnesHut;
-          this.nodesSolver = new _componentsPhysicsBarnesHutSolver2['default'](this.body, this.physicsBody, options);
-          this.edgesSolver = new _componentsPhysicsSpringSolver2['default'](this.body, this.physicsBody, options);
-          this.gravitySolver = new _componentsPhysicsCentralGravitySolver2['default'](this.body, this.physicsBody, options);
-        }
-
-        this.modelOptions = options;
-      }
-    }, {
-      key: 'initPhysics',
-      value: function initPhysics() {
-        if (this.physicsEnabled === true) {
-          if (this.options.stabilization.enabled === true) {
-            this.stabilize();
-          } else {
-            this.stabilized = false;
-            this.ready = true;
-            this.body.emitter.emit('fit', {}, true);
-            this.startSimulation();
-          }
-        } else {
-          this.ready = true;
-          this.body.emitter.emit('fit');
-        }
-      }
-    }, {
-      key: 'startSimulation',
-
-      /**
-       * Start the simulation
-       */
-      value: function startSimulation() {
-        if (this.physicsEnabled === true) {
-          this.stabilized = false;
-
-          // this sets the width of all nodes initially which could be required for the avoidOverlap
-          this.body.emitter.emit('_resizeNodes');
-
-          if (this.viewFunction === undefined) {
-            this.viewFunction = this.simulationStep.bind(this);
-            this.body.emitter.on('initRedraw', this.viewFunction);
-            this.body.emitter.emit('_startRendering');
-          }
-        } else {
-          this.body.emitter.emit('_redraw');
-        }
-      }
-    }, {
-      key: 'stopSimulation',
-
-      /**
-       * Stop the simulation, force stabilization.
-       */
-      value: function stopSimulation() {
-        var emit = arguments[0] === undefined ? true : arguments[0];
-
-        this.stabilized = true;
-        if (emit === true) {
-          this._emitStabilized();
-        }
-        if (this.viewFunction !== undefined) {
-          this.body.emitter.off('initRedraw', this.viewFunction);
-          this.viewFunction = undefined;
-          if (emit === true) {
-            this.body.emitter.emit('_stopRendering');
-          }
-        }
-      }
-    }, {
-      key: 'simulationStep',
-
-      /**
-       * The viewFunction inserts this step into each renderloop. It calls the physics tick and handles the cleanup at stabilized.
-       *
-       */
-      value: function simulationStep() {
-        // check if the physics have settled
-        var startTime = Date.now();
-        this.physicsTick();
-        var physicsTime = Date.now() - startTime;
-
-        // run double speed if it is a little graph
-        if ((physicsTime < 0.4 * this.simulationInterval || this.runDoubleSpeed === true) && this.stabilized === false) {
-          this.physicsTick();
-
-          // this makes sure there is no jitter. The decision is taken once to run it at double speed.
-          this.runDoubleSpeed = true;
-        }
-
-        if (this.stabilized === true) {
-          if (this.stabilizationIterations > 1) {
-            // trigger the 'stabilized' event.
-            // The event is triggered on the next tick, to prevent the case that
-            // it is fired while initializing the Network, in which case you would not
-            // be able to catch it
-            this.startedStabilization = false;
-            //this._emitStabilized();
-          }
-          this.stopSimulation();
-        }
-      }
-    }, {
-      key: '_emitStabilized',
-      value: function _emitStabilized() {
-        var _this2 = this;
-
-        if (this.stabilizationIterations > 1) {
-          setTimeout(function () {
-            _this2.body.emitter.emit('stabilized', { iterations: _this2.stabilizationIterations });
-            _this2.stabilizationIterations = 0;
-          }, 0);
-        }
-      }
-    }, {
-      key: 'physicsTick',
-
-      /**
-       * A single simulation step (or 'tick') in the physics simulation
-       *
-       * @private
-       */
-      value: function physicsTick() {
-        if (this.stabilized === false) {
-          this.calculateForces();
-          this.stabilized = this.moveNodes();
-
-          // determine if the network has stabilzied
-          if (this.stabilized === true) {
-            this.revert();
-          } else {
-            // this is here to ensure that there is no start event when the network is already stable.
-            if (this.startedStabilization === false) {
-              this.body.emitter.emit('startStabilizing');
-              this.startedStabilization = true;
-            }
-          }
-
-          this.stabilizationIterations++;
-        }
-      }
-    }, {
-      key: 'updatePhysicsData',
-
-      /**
-       * Nodes and edges can have the physics toggles on or off. A collection of indices is created here so we can skip the check all the time.
-       *
-       * @private
-       */
-      value: function updatePhysicsData() {
-        this.physicsBody.forces = {};
-        this.physicsBody.physicsNodeIndices = [];
-        this.physicsBody.physicsEdgeIndices = [];
-        var nodes = this.body.nodes;
-        var edges = this.body.edges;
-
-        // get node indices for physics
-        for (var nodeId in nodes) {
-          if (nodes.hasOwnProperty(nodeId)) {
-            if (nodes[nodeId].options.physics === true) {
-              this.physicsBody.physicsNodeIndices.push(nodeId);
-            }
-          }
-        }
-
-        // get edge indices for physics
-        for (var edgeId in edges) {
-          if (edges.hasOwnProperty(edgeId)) {
-            if (edges[edgeId].options.physics === true) {
-              this.physicsBody.physicsEdgeIndices.push(edgeId);
-            }
-          }
-        }
-
-        // get the velocity and the forces vector
-        for (var i = 0; i < this.physicsBody.physicsNodeIndices.length; i++) {
-          var nodeId = this.physicsBody.physicsNodeIndices[i];
-          this.physicsBody.forces[nodeId] = { x: 0, y: 0 };
-
-          // forces can be reset because they are recalculated. Velocities have to persist.
-          if (this.physicsBody.velocities[nodeId] === undefined) {
-            this.physicsBody.velocities[nodeId] = { x: 0, y: 0 };
-          }
-        }
-
-        // clean deleted nodes from the velocity vector
-        for (var nodeId in this.physicsBody.velocities) {
-          if (nodes[nodeId] === undefined) {
-            delete this.physicsBody.velocities[nodeId];
-          }
-        }
-      }
-    }, {
-      key: 'revert',
-
-      /**
-       * Revert the simulation one step. This is done so after stabilization, every new start of the simulation will also say stabilized.
-       */
-      value: function revert() {
-        var nodeIds = Object.keys(this.previousStates);
-        var nodes = this.body.nodes;
-        var velocities = this.physicsBody.velocities;
-
-        for (var i = 0; i < nodeIds.length; i++) {
-          var nodeId = nodeIds[i];
-          if (nodes[nodeId] !== undefined) {
-            if (nodes[nodeId].options.physics === true) {
-              velocities[nodeId].x = this.previousStates[nodeId].vx;
-              velocities[nodeId].y = this.previousStates[nodeId].vy;
-              nodes[nodeId].x = this.previousStates[nodeId].x;
-              nodes[nodeId].y = this.previousStates[nodeId].y;
-            }
-          } else {
-            delete this.previousStates[nodeId];
-          }
-        }
-      }
-    }, {
-      key: 'moveNodes',
-
-      /**
-       * move the nodes one timestap and check if they are stabilized
-       * @returns {boolean}
-       */
-      value: function moveNodes() {
-        var nodesPresent = false;
-        var nodeIndices = this.physicsBody.physicsNodeIndices;
-        var maxVelocity = this.options.maxVelocity ? this.options.maxVelocity : 1000000000;
-        var stabilized = true;
-        var vminCorrected = this.options.minVelocity / Math.max(this.body.view.scale, 0.05);
-
-        for (var i = 0; i < nodeIndices.length; i++) {
-          var nodeId = nodeIndices[i];
-          var nodeVelocity = this._performStep(nodeId, maxVelocity);
-          // stabilized is true if stabilized is true and velocity is smaller than vmin --> all nodes must be stabilized
-          stabilized = nodeVelocity < vminCorrected && stabilized === true;
-          nodesPresent = true;
-        }
-
-        if (nodesPresent === true) {
-          if (vminCorrected > 0.5 * this.options.maxVelocity) {
-            return false;
-          } else {
-            return stabilized;
-          }
-        }
-        return true;
-      }
-    }, {
-      key: '_performStep',
-
-      /**
-       * Perform the actual step
-       *
-       * @param nodeId
-       * @param maxVelocity
-       * @returns {number}
-       * @private
-       */
-      value: function _performStep(nodeId, maxVelocity) {
-        var node = this.body.nodes[nodeId];
-        var timestep = this.options.timestep;
-        var forces = this.physicsBody.forces;
-        var velocities = this.physicsBody.velocities;
-
-        // store the state so we can revert
-        this.previousStates[nodeId] = { x: node.x, y: node.y, vx: velocities[nodeId].x, vy: velocities[nodeId].y };
-
-        if (node.options.fixed.x === false) {
-          var dx = this.modelOptions.damping * velocities[nodeId].x; // damping force
-          var ax = (forces[nodeId].x - dx) / node.options.mass; // acceleration
-          velocities[nodeId].x += ax * timestep; // velocity
-          velocities[nodeId].x = Math.abs(velocities[nodeId].x) > maxVelocity ? velocities[nodeId].x > 0 ? maxVelocity : -maxVelocity : velocities[nodeId].x;
-          node.x += velocities[nodeId].x * timestep; // position
-        } else {
-          forces[nodeId].x = 0;
-          velocities[nodeId].x = 0;
-        }
-
-        if (node.options.fixed.y === false) {
-          var dy = this.modelOptions.damping * velocities[nodeId].y; // damping force
-          var ay = (forces[nodeId].y - dy) / node.options.mass; // acceleration
-          velocities[nodeId].y += ay * timestep; // velocity
-          velocities[nodeId].y = Math.abs(velocities[nodeId].y) > maxVelocity ? velocities[nodeId].y > 0 ? maxVelocity : -maxVelocity : velocities[nodeId].y;
-          node.y += velocities[nodeId].y * timestep; // position
-        } else {
-          forces[nodeId].y = 0;
-          velocities[nodeId].y = 0;
-        }
-
-        var totalVelocity = Math.sqrt(Math.pow(velocities[nodeId].x, 2) + Math.pow(velocities[nodeId].y, 2));
-        return totalVelocity;
-      }
-    }, {
-      key: 'calculateForces',
-
-      /**
-       * calculate the forces for one physics iteration.
-       */
-      value: function calculateForces() {
-        this.gravitySolver.solve();
-        this.nodesSolver.solve();
-        this.edgesSolver.solve();
-      }
-    }, {
-      key: '_freezeNodes',
-
-      /**
-       * When initializing and stabilizing, we can freeze nodes with a predefined position. This greatly speeds up stabilization
-       * because only the supportnodes for the smoothCurves have to settle.
-       *
-       * @private
-       */
-      value: function _freezeNodes() {
-        var nodes = this.body.nodes;
-        for (var id in nodes) {
-          if (nodes.hasOwnProperty(id)) {
-            if (nodes[id].x && nodes[id].y) {
-              this.freezeCache[id] = { x: nodes[id].options.fixed.x, y: nodes[id].options.fixed.y };
-              nodes[id].options.fixed.x = true;
-              nodes[id].options.fixed.y = true;
-            }
-          }
-        }
-      }
-    }, {
-      key: '_restoreFrozenNodes',
-
-      /**
-       * Unfreezes the nodes that have been frozen by _freezeDefinedNodes.
-       *
-       * @private
-       */
-      value: function _restoreFrozenNodes() {
-        var nodes = this.body.nodes;
-        for (var id in nodes) {
-          if (nodes.hasOwnProperty(id)) {
-            if (this.freezeCache[id] !== undefined) {
-              nodes[id].options.fixed.x = this.freezeCache[id].x;
-              nodes[id].options.fixed.y = this.freezeCache[id].y;
-            }
-          }
-        }
-        this.freezeCache = {};
-      }
-    }, {
-      key: 'stabilize',
-
-      /**
-       * Find a stable position for all nodes
-       * @private
-       */
-      value: function stabilize() {
-        var _this3 = this;
-
-        var iterations = arguments[0] === undefined ? this.options.stabilization.iterations : arguments[0];
-
-        if (typeof iterations !== 'number') {
-          console.log('The stabilize method needs a numeric amount of iterations. Switching to default: ', this.options.stabilization.iterations);
-          iterations = this.options.stabilization.iterations;
-        }
-
-        // this sets the width of all nodes initially which could be required for the avoidOverlap
-        this.body.emitter.emit('_resizeNodes');
-
-        // stop the render loop
-        this.stopSimulation();
-
-        // set stabilze to false
-        this.stabilized = false;
-
-        // block redraw requests
-        this.body.emitter.emit('_blockRedrawRequests');
-        this.targetIterations = iterations;
-
-        // start the stabilization
-        if (this.options.stabilization.onlyDynamicEdges === true) {
-          this._freezeNodes();
-        }
-        this.stabilizationIterations = 0;
-
-        setTimeout(function () {
-          return _this3._stabilizationBatch();
-        }, 0);
-      }
-    }, {
-      key: '_stabilizationBatch',
-      value: function _stabilizationBatch() {
-        var count = 0;
-        while (this.stabilized === false && count < this.options.stabilization.updateInterval && this.stabilizationIterations < this.targetIterations) {
-          this.physicsTick();
-          this.stabilizationIterations++;
-          count++;
-        }
-
-        if (this.stabilized === false && this.stabilizationIterations < this.targetIterations) {
-          this.body.emitter.emit('stabilizationProgress', { iterations: this.stabilizationIterations, total: this.targetIterations });
-          setTimeout(this._stabilizationBatch.bind(this), 0);
-        } else {
-          this._finalizeStabilization();
-        }
-      }
-    }, {
-      key: '_finalizeStabilization',
-      value: function _finalizeStabilization() {
-        this.body.emitter.emit('_allowRedrawRequests');
-        if (this.options.stabilization.fit === true) {
-          this.body.emitter.emit('fit');
-        }
-
-        if (this.options.stabilization.onlyDynamicEdges === true) {
-          this._restoreFrozenNodes();
-        }
-
-        this.body.emitter.emit('stabilizationIterationsDone');
-        this.body.emitter.emit('_requestRedraw');
-
-        if (this.stabilized === true) {
-          this._emitStabilized();
-        } else {
-          this.startSimulation();
-        }
-
-        this.ready = true;
-      }
-    }]);
-
-    return PhysicsEngine;
-  })();
-
-  exports['default'] = PhysicsEngine;
-  module.exports = exports['default'];
-
-/***/ },
-/* 90 */
-/***/ function(module, exports, __webpack_require__) {
-
-  "use strict";
-
-  Object.defineProperty(exports, "__esModule", {
-    value: true
-  });
-
-  var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
-
-  function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-
-  var BarnesHutSolver = (function () {
-    function BarnesHutSolver(body, physicsBody, options) {
-      _classCallCheck(this, BarnesHutSolver);
-
-      this.body = body;
-      this.physicsBody = physicsBody;
-      this.barnesHutTree;
-      this.setOptions(options);
-    }
-
-    _createClass(BarnesHutSolver, [{
-      key: "setOptions",
-      value: function setOptions(options) {
-        this.options = options;
-        this.thetaInversed = 1 / this.options.theta;
-        this.overlapAvoidanceFactor = 1 - Math.max(0, Math.min(1, this.options.avoidOverlap)); // if 1 then min distance = 0.5, if 0.5 then min distance = 0.5 + 0.5*node.shape.radius
-      }
-    }, {
-      key: "solve",
-
-      /**
-       * This function calculates the forces the nodes apply on eachother based on a gravitational model.
-       * The Barnes Hut method is used to speed up this N-body simulation.
-       *
-       * @private
-       */
-      value: function solve() {
-        if (this.options.gravitationalConstant !== 0 && this.physicsBody.physicsNodeIndices.length > 0) {
-          var node = undefined;
-          var nodes = this.body.nodes;
-          var nodeIndices = this.physicsBody.physicsNodeIndices;
-          var nodeCount = nodeIndices.length;
-
-          // create the tree
-          var barnesHutTree = this._formBarnesHutTree(nodes, nodeIndices);
-
-          // for debugging
-          this.barnesHutTree = barnesHutTree;
-
-          // place the nodes one by one recursively
-          for (var i = 0; i < nodeCount; i++) {
-            node = nodes[nodeIndices[i]];
-            if (node.options.mass > 0) {
-              // starting with root is irrelevant, it never passes the BarnesHutSolver condition
-              this._getForceContribution(barnesHutTree.root.children.NW, node);
-              this._getForceContribution(barnesHutTree.root.children.NE, node);
-              this._getForceContribution(barnesHutTree.root.children.SW, node);
-              this._getForceContribution(barnesHutTree.root.children.SE, node);
-            }
-          }
-        }
-      }
-    }, {
-      key: "_getForceContribution",
-
-      /**
-       * This function traverses the barnesHutTree. It checks when it can approximate distant nodes with their center of mass.
-       * If a region contains a single node, we check if it is not itself, then we apply the force.
-       *
-       * @param parentBranch
-       * @param node
-       * @private
-       */
-      value: function _getForceContribution(parentBranch, node) {
-        // we get no force contribution from an empty region
-        if (parentBranch.childrenCount > 0) {
-          var dx = undefined,
-              dy = undefined,
-              distance = undefined;
-
-          // get the distance from the center of mass to the node.
-          dx = parentBranch.centerOfMass.x - node.x;
-          dy = parentBranch.centerOfMass.y - node.y;
-          distance = Math.sqrt(dx * dx + dy * dy);
-
-          // BarnesHutSolver condition
-          // original condition : s/d < theta = passed  ===  d/s > 1/theta = passed
-          // calcSize = 1/s --> d * 1/s > 1/theta = passed
-          if (distance * parentBranch.calcSize > this.thetaInversed) {
-            this._calculateForces(distance, dx, dy, node, parentBranch);
-          } else {
-            // Did not pass the condition, go into children if available
-            if (parentBranch.childrenCount === 4) {
-              this._getForceContribution(parentBranch.children.NW, node);
-              this._getForceContribution(parentBranch.children.NE, node);
-              this._getForceContribution(parentBranch.children.SW, node);
-              this._getForceContribution(parentBranch.children.SE, node);
-            } else {
-              // parentBranch must have only one node, if it was empty we wouldnt be here
-              if (parentBranch.children.data.id != node.id) {
-                // if it is not self
-                this._calculateForces(distance, dx, dy, node, parentBranch);
-              }
-            }
-          }
-        }
-      }
-    }, {
-      key: "_calculateForces",
-
-      /**
-       * Calculate the forces based on the distance.
-       *
-       * @param distance
-       * @param dx
-       * @param dy
-       * @param node
-       * @param parentBranch
-       * @private
-       */
-      value: function _calculateForces(distance, dx, dy, node, parentBranch) {
-        if (distance === 0) {
-          distance = 0.1;
-          dx = distance;
-        }
-
-        if (this.overlapAvoidanceFactor < 1) {
-          distance = Math.max(0.1 + this.overlapAvoidanceFactor * node.shape.radius, distance - node.shape.radius);
-        }
-
-        // the dividing by the distance cubed instead of squared allows us to get the fx and fy components without sines and cosines
-        // it is shorthand for gravityforce with distance squared and fx = dx/distance * gravityForce
-        var gravityForce = this.options.gravitationalConstant * parentBranch.mass * node.options.mass / Math.pow(distance, 3);
-        var fx = dx * gravityForce;
-        var fy = dy * gravityForce;
-
-        this.physicsBody.forces[node.id].x += fx;
-        this.physicsBody.forces[node.id].y += fy;
-      }
-    }, {
-      key: "_formBarnesHutTree",
-
-      /**
-       * This function constructs the barnesHut tree recursively. It creates the root, splits it and starts placing the nodes.
-       *
-       * @param nodes
-       * @param nodeIndices
-       * @private
-       */
-      value: function _formBarnesHutTree(nodes, nodeIndices) {
-        var node = undefined;
-        var nodeCount = nodeIndices.length;
-
-        var minX = nodes[nodeIndices[0]].x;
-        var minY = nodes[nodeIndices[0]].y;
-        var maxX = nodes[nodeIndices[0]].x;
-        var maxY = nodes[nodeIndices[0]].y;
-
-        // get the range of the nodes
-        for (var i = 1; i < nodeCount; i++) {
-          var x = nodes[nodeIndices[i]].x;
-          var y = nodes[nodeIndices[i]].y;
-          if (nodes[nodeIndices[i]].options.mass > 0) {
-            if (x < minX) {
-              minX = x;
-            }
-            if (x > maxX) {
-              maxX = x;
-            }
-            if (y < minY) {
-              minY = y;
-            }
-            if (y > maxY) {
-              maxY = y;
-            }
-          }
-        }
-        // make the range a square
-        var sizeDiff = Math.abs(maxX - minX) - Math.abs(maxY - minY); // difference between X and Y
-        if (sizeDiff > 0) {
-          minY -= 0.5 * sizeDiff;
-          maxY += 0.5 * sizeDiff;
-        } // xSize > ySize
-        else {
-          minX += 0.5 * sizeDiff;
-          maxX -= 0.5 * sizeDiff;
-        } // xSize < ySize
-
-        var minimumTreeSize = 0.00001;
-        var rootSize = Math.max(minimumTreeSize, Math.abs(maxX - minX));
-        var halfRootSize = 0.5 * rootSize;
-        var centerX = 0.5 * (minX + maxX),
-            centerY = 0.5 * (minY + maxY);
-
-        // construct the barnesHutTree
-        var barnesHutTree = {
-          root: {
-            centerOfMass: { x: 0, y: 0 },
-            mass: 0,
-            range: {
-              minX: centerX - halfRootSize, maxX: centerX + halfRootSize,
-              minY: centerY - halfRootSize, maxY: centerY + halfRootSize
-            },
-            size: rootSize,
-            calcSize: 1 / rootSize,
-            children: { data: null },
-            maxWidth: 0,
-            level: 0,
-            childrenCount: 4
-          }
-        };
-        this._splitBranch(barnesHutTree.root);
-
-        // place the nodes one by one recursively
-        for (var i = 0; i < nodeCount; i++) {
-          node = nodes[nodeIndices[i]];
-          if (node.options.mass > 0) {
-            this._placeInTree(barnesHutTree.root, node);
-          }
-        }
-
-        // make global
-        return barnesHutTree;
-      }
-    }, {
-      key: "_updateBranchMass",
-
-      /**
-       * this updates the mass of a branch. this is increased by adding a node.
-       *
-       * @param parentBranch
-       * @param node
-       * @private
-       */
-      value: function _updateBranchMass(parentBranch, node) {
-        var totalMass = parentBranch.mass + node.options.mass;
-        var totalMassInv = 1 / totalMass;
-
-        parentBranch.centerOfMass.x = parentBranch.centerOfMass.x * parentBranch.mass + node.x * node.options.mass;
-        parentBranch.centerOfMass.x *= totalMassInv;
-
-        parentBranch.centerOfMass.y = parentBranch.centerOfMass.y * parentBranch.mass + node.y * node.options.mass;
-        parentBranch.centerOfMass.y *= totalMassInv;
-
-        parentBranch.mass = totalMass;
-        var biggestSize = Math.max(Math.max(node.height, node.radius), node.width);
-        parentBranch.maxWidth = parentBranch.maxWidth < biggestSize ? biggestSize : parentBranch.maxWidth;
-      }
-    }, {
-      key: "_placeInTree",
-
-      /**
-       * determine in which branch the node will be placed.
-       *
-       * @param parentBranch
-       * @param node
-       * @param skipMassUpdate
-       * @private
-       */
-      value: function _placeInTree(parentBranch, node, skipMassUpdate) {
-        if (skipMassUpdate != true || skipMassUpdate === undefined) {
-          // update the mass of the branch.
-          this._updateBranchMass(parentBranch, node);
-        }
-
-        if (parentBranch.children.NW.range.maxX > node.x) {
-          // in NW or SW
-          if (parentBranch.children.NW.range.maxY > node.y) {
-            // in NW
-            this._placeInRegion(parentBranch, node, "NW");
-          } else {
-            // in SW
-            this._placeInRegion(parentBranch, node, "SW");
-          }
-        } else {
-          // in NE or SE
-          if (parentBranch.children.NW.range.maxY > node.y) {
-            // in NE
-            this._placeInRegion(parentBranch, node, "NE");
-          } else {
-            // in SE
-            this._placeInRegion(parentBranch, node, "SE");
-          }
-        }
-      }
-    }, {
-      key: "_placeInRegion",
-
-      /**
-       * actually place the node in a region (or branch)
-       *
-       * @param parentBranch
-       * @param node
-       * @param region
-       * @private
-       */
-      value: function _placeInRegion(parentBranch, node, region) {
-        switch (parentBranch.children[region].childrenCount) {
-          case 0:
-            // place node here
-            parentBranch.children[region].children.data = node;
-            parentBranch.children[region].childrenCount = 1;
-            this._updateBranchMass(parentBranch.children[region], node);
-            break;
-          case 1:
-            // convert into children
-            // if there are two nodes exactly overlapping (on init, on opening of cluster etc.)
-            // we move one node a pixel and we do not put it in the tree.
-            if (parentBranch.children[region].children.data.x === node.x && parentBranch.children[region].children.data.y === node.y) {
-              //node.x += Math.random();
-              //node.y += Math.random();
-              node.x += 0.1;
-              node.y += 0.1;
-            } else {
-              this._splitBranch(parentBranch.children[region]);
-              this._placeInTree(parentBranch.children[region], node);
-            }
-            break;
-          case 4:
-            // place in branch
-            this._placeInTree(parentBranch.children[region], node);
-            break;
-        }
-      }
-    }, {
-      key: "_splitBranch",
-
-      /**
-       * this function splits a branch into 4 sub branches. If the branch contained a node, we place it in the subbranch
-       * after the split is complete.
-       *
-       * @param parentBranch
-       * @private
-       */
-      value: function _splitBranch(parentBranch) {
-        // if the branch is shaded with a node, replace the node in the new subset.
-        var containedNode = null;
-        if (parentBranch.childrenCount === 1) {
-          containedNode = parentBranch.children.data;
-          parentBranch.mass = 0;
-          parentBranch.centerOfMass.x = 0;
-          parentBranch.centerOfMass.y = 0;
-        }
-        parentBranch.childrenCount = 4;
-        parentBranch.children.data = null;
-        this._insertRegion(parentBranch, "NW");
-        this._insertRegion(parentBranch, "NE");
-        this._insertRegion(parentBranch, "SW");
-        this._insertRegion(parentBranch, "SE");
-
-        if (containedNode != null) {
-          this._placeInTree(parentBranch, containedNode);
-        }
-      }
-    }, {
-      key: "_insertRegion",
-
-      /**
-       * This function subdivides the region into four new segments.
-       * Specifically, this inserts a single new segment.
-       * It fills the children section of the parentBranch
-       *
-       * @param parentBranch
-       * @param region
-       * @param parentRange
-       * @private
-       */
-      value: function _insertRegion(parentBranch, region) {
-        var minX = undefined,
-            maxX = undefined,
-            minY = undefined,
-            maxY = undefined;
-        var childSize = 0.5 * parentBranch.size;
-        switch (region) {
-          case "NW":
-            minX = parentBranch.range.minX;
-            maxX = parentBranch.range.minX + childSize;
-            minY = parentBranch.range.minY;
-            maxY = parentBranch.range.minY + childSize;
-            break;
-          case "NE":
-            minX = parentBranch.range.minX + childSize;
-            maxX = parentBranch.range.maxX;
-            minY = parentBranch.range.minY;
-            maxY = parentBranch.range.minY + childSize;
-            break;
-          case "SW":
-            minX = parentBranch.range.minX;
-            maxX = parentBranch.range.minX + childSize;
-            minY = parentBranch.range.minY + childSize;
-            maxY = parentBranch.range.maxY;
-            break;
-          case "SE":
-            minX = parentBranch.range.minX + childSize;
-            maxX = parentBranch.range.maxX;
-            minY = parentBranch.range.minY + childSize;
-            maxY = parentBranch.range.maxY;
-            break;
-        }
-
-        parentBranch.children[region] = {
-          centerOfMass: { x: 0, y: 0 },
-          mass: 0,
-          range: { minX: minX, maxX: maxX, minY: minY, maxY: maxY },
-          size: 0.5 * parentBranch.size,
-          calcSize: 2 * parentBranch.calcSize,
-          children: { data: null },
-          maxWidth: 0,
-          level: parentBranch.level + 1,
-          childrenCount: 0
-        };
-      }
-    }, {
-      key: "_debug",
-
-      //---------------------------  DEBUGGING BELOW  ---------------------------//
-
-      /**
-       * This function is for debugging purposed, it draws the tree.
-       *
-       * @param ctx
-       * @param color
-       * @private
-       */
-      value: function _debug(ctx, color) {
-        if (this.barnesHutTree !== undefined) {
-
-          ctx.lineWidth = 1;
-
-          this._drawBranch(this.barnesHutTree.root, ctx, color);
-        }
-      }
-    }, {
-      key: "_drawBranch",
-
-      /**
-       * This function is for debugging purposes. It draws the branches recursively.
-       *
-       * @param branch
-       * @param ctx
-       * @param color
-       * @private
-       */
-      value: function _drawBranch(branch, ctx, color) {
-        if (color === undefined) {
-          color = "#FF0000";
-        }
-
-        if (branch.childrenCount === 4) {
-          this._drawBranch(branch.children.NW, ctx);
-          this._drawBranch(branch.children.NE, ctx);
-          this._drawBranch(branch.children.SE, ctx);
-          this._drawBranch(branch.children.SW, ctx);
-        }
-        ctx.strokeStyle = color;
-        ctx.beginPath();
-        ctx.moveTo(branch.range.minX, branch.range.minY);
-        ctx.lineTo(branch.range.maxX, branch.range.minY);
-        ctx.stroke();
-
-        ctx.beginPath();
-        ctx.moveTo(branch.range.maxX, branch.range.minY);
-        ctx.lineTo(branch.range.maxX, branch.range.maxY);
-        ctx.stroke();
-
-        ctx.beginPath();
-        ctx.moveTo(branch.range.maxX, branch.range.maxY);
-        ctx.lineTo(branch.range.minX, branch.range.maxY);
-        ctx.stroke();
-
-        ctx.beginPath();
-        ctx.moveTo(branch.range.minX, branch.range.maxY);
-        ctx.lineTo(branch.range.minX, branch.range.minY);
-        ctx.stroke();
-
-        /*
-         if (branch.mass > 0) {
-         ctx.circle(branch.centerOfMass.x, branch.centerOfMass.y, 3*branch.mass);
-         ctx.stroke();
-         }
-         */
-      }
-    }]);
-
-    return BarnesHutSolver;
-  })();
-
-  exports["default"] = BarnesHutSolver;
-  module.exports = exports["default"];
-
-/***/ },
-/* 91 */
+/* 92 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
@@ -34309,7 +34419,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports["default"];
 
 /***/ },
-/* 92 */
+/* 93 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
@@ -34397,116 +34507,6 @@ return /******/ (function(modules) { // webpackBootstrap
   })();
 
   exports["default"] = HierarchicalRepulsionSolver;
-  module.exports = exports["default"];
-
-/***/ },
-/* 93 */
-/***/ function(module, exports, __webpack_require__) {
-
-  "use strict";
-
-  Object.defineProperty(exports, "__esModule", {
-    value: true
-  });
-
-  var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
-
-  function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-
-  var SpringSolver = (function () {
-    function SpringSolver(body, physicsBody, options) {
-      _classCallCheck(this, SpringSolver);
-
-      this.body = body;
-      this.physicsBody = physicsBody;
-      this.setOptions(options);
-    }
-
-    _createClass(SpringSolver, [{
-      key: "setOptions",
-      value: function setOptions(options) {
-        this.options = options;
-      }
-    }, {
-      key: "solve",
-
-      /**
-       * This function calculates the springforces on the nodes, accounting for the support nodes.
-       *
-       * @private
-       */
-      value: function solve() {
-        var edgeLength = undefined,
-            edge = undefined;
-        var edgeIndices = this.physicsBody.physicsEdgeIndices;
-        var edges = this.body.edges;
-        var node1 = undefined,
-            node2 = undefined,
-            node3 = undefined;
-
-        // forces caused by the edges, modelled as springs
-        for (var i = 0; i < edgeIndices.length; i++) {
-          edge = edges[edgeIndices[i]];
-          if (edge.connected === true && edge.toId !== edge.fromId) {
-            // only calculate forces if nodes are in the same sector
-            if (this.body.nodes[edge.toId] !== undefined && this.body.nodes[edge.fromId] !== undefined) {
-              if (edge.edgeType.via !== undefined) {
-                edgeLength = edge.options.length === undefined ? this.options.springLength : edge.options.length;
-                node1 = edge.to;
-                node2 = edge.edgeType.via;
-                node3 = edge.from;
-
-                this._calculateSpringForce(node1, node2, 0.5 * edgeLength);
-                this._calculateSpringForce(node2, node3, 0.5 * edgeLength);
-              } else {
-                // the * 1.5 is here so the edge looks as large as a smooth edge. It does not initially because the smooth edges use
-                // the support nodes which exert a repulsive force on the to and from nodes, making the edge appear larger.
-                edgeLength = edge.options.length === undefined ? this.options.springLength * 1.5 : edge.options.length;
-                this._calculateSpringForce(edge.from, edge.to, edgeLength);
-              }
-            }
-          }
-        }
-      }
-    }, {
-      key: "_calculateSpringForce",
-
-      /**
-       * This is the code actually performing the calculation for the function above.
-       *
-       * @param node1
-       * @param node2
-       * @param edgeLength
-       * @private
-       */
-      value: function _calculateSpringForce(node1, node2, edgeLength) {
-        var dx = node1.x - node2.x;
-        var dy = node1.y - node2.y;
-        var distance = Math.max(Math.sqrt(dx * dx + dy * dy), 0.01);
-
-        // the 1/distance is so the fx and fy can be calculated without sine or cosine.
-        var springForce = this.options.springConstant * (edgeLength - distance) / distance;
-
-        var fx = dx * springForce;
-        var fy = dy * springForce;
-
-        // handle the case where one node is not part of the physcis
-        if (this.physicsBody.forces[node1.id] !== undefined) {
-          this.physicsBody.forces[node1.id].x += fx;
-          this.physicsBody.forces[node1.id].y += fy;
-        }
-
-        if (this.physicsBody.forces[node2.id] !== undefined) {
-          this.physicsBody.forces[node2.id].x -= fx;
-          this.physicsBody.forces[node2.id].y -= fy;
-        }
-      }
-    }]);
-
-    return SpringSolver;
-  })();
-
-  exports["default"] = SpringSolver;
   module.exports = exports["default"];
 
 /***/ },
@@ -34719,7 +34719,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; }
 
-  var _BarnesHutSolver2 = __webpack_require__(90);
+  var _BarnesHutSolver2 = __webpack_require__(7);
 
   var _BarnesHutSolver3 = _interopRequireDefault(_BarnesHutSolver2);
 
@@ -34849,7 +34849,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   var _componentsNodesCluster2 = _interopRequireDefault(_componentsNodesCluster);
 
-  var util = __webpack_require__(3);
+  var util = __webpack_require__(4);
 
   var ClusterEngine = (function () {
     function ClusterEngine(body) {
@@ -35572,7 +35572,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; }
 
-  var _Node2 = __webpack_require__(63);
+  var _Node2 = __webpack_require__(67);
 
   var _Node3 = _interopRequireDefault(_Node2);
 
@@ -35617,7 +35617,7 @@ return /******/ (function(modules) { // webpackBootstrap
     window.requestAnimationFrame = window.requestAnimationFrame || window.mozRequestAnimationFrame || window.webkitRequestAnimationFrame || window.msRequestAnimationFrame;
   }
 
-  var util = __webpack_require__(3);
+  var util = __webpack_require__(4);
 
   var CanvasRenderer = (function () {
     function CanvasRenderer(body, canvas) {
@@ -35999,10 +35999,10 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
 
-  var Hammer = __webpack_require__(25);
-  var hammerUtil = __webpack_require__(30);
+  var Hammer = __webpack_require__(30);
+  var hammerUtil = __webpack_require__(35);
 
-  var util = __webpack_require__(3);
+  var util = __webpack_require__(4);
 
   /**
    * Create the main frame for the Network.
@@ -36367,7 +36367,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
-  var util = __webpack_require__(3);
+  var util = __webpack_require__(4);
 
   var View = (function () {
     function View(body, canvas) {
@@ -36780,7 +36780,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   var _componentsPopup2 = _interopRequireDefault(_componentsPopup);
 
-  var util = __webpack_require__(3);
+  var util = __webpack_require__(4);
 
   var InteractionHandler = (function () {
     function InteractionHandler(body, canvas, selectionHandler) {
@@ -37527,10 +37527,10 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
 
-  var util = __webpack_require__(3);
-  var Hammer = __webpack_require__(25);
-  var hammerUtil = __webpack_require__(30);
-  var keycharm = __webpack_require__(45);
+  var util = __webpack_require__(4);
+  var Hammer = __webpack_require__(30);
+  var hammerUtil = __webpack_require__(35);
+  var keycharm = __webpack_require__(50);
 
   var NavigationHandler = (function () {
     function NavigationHandler(body, canvas) {
@@ -37970,9 +37970,9 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
-  var Node = __webpack_require__(63);
-  var Edge = __webpack_require__(83);
-  var util = __webpack_require__(3);
+  var Node = __webpack_require__(67);
+  var Edge = __webpack_require__(87);
+  var util = __webpack_require__(4);
 
   var SelectionHandler = (function () {
     function SelectionHandler(body, canvas) {
@@ -38691,7 +38691,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
 
-  var util = __webpack_require__(3);
+  var util = __webpack_require__(4);
 
   var LayoutEngine = (function () {
     function LayoutEngine(body) {
