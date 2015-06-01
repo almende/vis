@@ -51,12 +51,17 @@
     }
 
     function draw(options) {
-        // clean
-        if (network !== null) {
-            network.destroy();
-            network = null;
+        try {
+            // clean
+            if (network !== null) {
+                network.destroy();
+                network = null;
+            }
+            network = new vis.Network(container, data, options);
         }
-        network = new vis.Network(container, data, options);
+        catch (err) {
+            console.log("err")
+        }
     }
 
     function clusterByCid() {
@@ -168,7 +173,90 @@
         }
     }
 
-    checkMethods();
+
+
+    var amountOfOptionChecks = 600;
+    var optionCheckTime = 150;
+    var optionsThreshold = 0.8;
+    function checkOptions(i) {
+        console.log('checking Options iteration:',i)
+        var allOptions = vis.network.allOptions.allOptions;
+        var testOptions = {};
+        constructOptions(allOptions, testOptions);
+        var failed = setTimeout(function() {console.error("FAILED",JSON.stringify(testOptions,null,4))}, 0.9*optionCheckTime);
+        var counter = 0;
+        drawQuick();
+        network.on("afterDrawing", function() {
+            counter++;
+            if (counter > 2) {
+                counter = 0;
+                network.off('afterDrawing');
+                clearTimeout(failed);
+            }
+        })
+        network.on("stabilized", function() {
+            clearTimeout(failed);
+        });
+        network.on("destroy", function() {
+            clearTimeout(failed);
+        })
+        network.setOptions(testOptions);
+    }
+
+    function constructOptions(allOptions, testOptions) {
+
+        for (var option in allOptions) {
+            if (Math.random() < optionsThreshold) {
+                if (option !== "__type__" && option !== '__any__' && option !== 'locales' && option !== 'image' && option !== 'id') {
+                    if (allOptions[option].__type__ !== undefined) {
+                        if (testOptions[option] === undefined) {
+                            testOptions[option] = {};
+                        }
+                        constructOptions(allOptions[option], testOptions[option])
+                        if (Object.keys(testOptions).length === 0) {
+                            testOptions[option] = undefined;
+                            delete testOptions[option];
+                        }
+                    }
+                    else {
+                        if (allOptions[option].boolean !== undefined) {
+                            if (testOptions[option] === undefined) {
+                                testOptions[option] = {};
+                            }
+                            testOptions[option] = Math.random() < 0.5;
+                        }
+                        else if(allOptions[option].number !== undefined) {
+                            if (testOptions[option] === undefined) {
+                                testOptions[option] = {};
+                            }
+                            testOptions[option] = 1 * Math.random();
+                        }
+                        else if(allOptions[option].string !== undefined && Array.isArray(allOptions[option].string)) {
+                            var value = allOptions[option].string[Math.floor(Math.random() * allOptions[option].string.length)];
+                            if (value !== 'image' && value !== 'circularImage' && value !== 'icon') {
+                                if (testOptions[option] === undefined) {
+                                    testOptions[option] = {};
+                                }
+                                testOptions[option] = value;
+                            }
+                        }
+                        else if(allOptions[option].string !== undefined) {
+//                            if (testOptions[option] === undefined) {
+//                                testOptions[option] = {};
+//                            }
+//                            testOptions[option] = "hello world";
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+
+    for (var i = 0; i < amountOfOptionChecks; i++) {
+        setTimeout(checkOptions.bind(this,i), i*optionCheckTime);
+    }
+    setTimeout(checkMethods, amountOfOptionChecks*optionCheckTime);
 </script>
 </body>
 </html>

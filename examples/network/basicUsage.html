@@ -1,53 +1,97 @@
 <!doctype html>
 <html>
 <head>
-  <title>Network | Basic usage</title>
+    <title>Network | Basic usage</title>
 
-  <script type="text/javascript" src="../../dist/vis.js"></script>
-  <link href="../../dist/vis.css" rel="stylesheet" type="text/css" />
+    <script type="text/javascript" src="../../dist/vis.js"></script>
+    <link href="../../dist/vis.css" rel="stylesheet" type="text/css"/>
 
-  <style type="text/css">
-    #mynetwork {
-      width: 600px;
-      height: 400px;
-      border: 1px solid lightgray;
-    }
-  </style>
+    <style type="text/css">
+        #mynetwork {
+            width: 600px;
+            height: 400px;
+            border: 1px solid lightgray;
+        }
+    </style>
 </head>
 <body>
 
 <p>
-  Create a simple network with some nodes and edges.
+    Create a simple network with some nodes and edges.
 </p>
 
 <div id="mynetwork"></div>
 
 <script type="text/javascript">
-  // create an array with nodes
-  var nodes = new vis.DataSet([
-    {id: 1, label: 'Node 1'},
-    {id: 2, label: 'Node 2'},
-    {id: 3, label: 'Node 3'},
-    {id: 4, label: 'Node 4'},
-    {id: 5, label: 'Node 5'}
-  ]);
+    // create an array with nodes
+    var nodes = new vis.DataSet([
+        {id: 1, label: 'Node 1'},
+        {id: 2, label: 'Node 2'},
+        {id: 3, label: 'Node 3'},
+        {id: 4, label: 'Node 4'},
+        {id: 5, label: 'Node 5'}
+    ]);
 
-  // create an array with edges
-  var edges = new vis.DataSet([
-    {from: 1, to: 3},
-    {from: 1, to: 2},
-    {from: 2, to: 4},
-    {from: 2, to: 5}
-  ]);
+    // create an array with edges
+    var edges = new vis.DataSet([
+        {from: 1, to: 3},
+        {from: 1, to: 2},
+        {from: 2, to: 4},
+        {from: 2, to: 5}
+    ]);
 
-  // create a network
-  var container = document.getElementById('mynetwork');
-  var data = {
-    nodes: nodes,
-    edges: edges
-  };
-  var options = {};
-  var network = new vis.Network(container, data, options);
+    // create a network
+    var container = document.getElementById('mynetwork');
+    var data = {
+        nodes: nodes,
+        edges: edges
+    };
+    var options = {
+        "configure": {"filter": false},
+        "groups": {"useDefaultGroups": true},
+        "interaction": {
+            "dragNodes": false,
+            "hideEdgesOnDrag": true,
+            "keyboard": {},
+            "multiselect": true,
+            "selectConnectedEdges": false,
+            "hoverConnectedEdges": false,
+            "tooltipDelay": 0.7989967758767307
+        },
+        "layout": {"hierarchical": {"enabled": true, "levelSeparation": 0.9179429337382317}},
+        "nodes": {
+            "borderWidthSelected": 0.7435446435119957,
+            "color": {"highlight": {}},
+            "icon": {},
+            "physics": false,
+            "scaling": {"max": 0.7851112282369286},
+            "shape": "database",
+            "size": 0.48270674562081695,
+            "value": 0.008877722779288888,
+            "y": 0.3715104619041085
+        },
+        "physics": {
+            "repulsion": {
+                "centralGravity": 0.5645577218383551,
+                "springConstant": 0.5461068388540298,
+                "nodeDistance": 0.4722384719643742,
+                "damping": 0.5188916651532054
+            },
+            "hierarchicalRepulsion": {
+                "centralGravity": 0.5891720526851714,
+                "nodeDistance": 0.9401708527002484,
+                "damping": 0.7773354148957878
+            },
+            "minVelocity": 0.6082209222950041,
+            "solver": "hierarchicalRepulsion"
+        },
+        "edges": {"smooth": false}
+    }
+    var network = new vis.Network(container, data, {physics:{stabilization:false}});
+    network.on("stabilized",function() {
+        console.log("s")
+    })
+    network.setOptions(options)
 </script>
 
 <script src="../googleAnalytics.js"></script>

@@ -84,60 +84,60 @@ return /******/ (function(modules) { // webpackBootstrap
   // utils
   'use strict';
 
-  exports.util = __webpack_require__(4);
-  exports.DOMutil = __webpack_require__(14);
+  exports.util = __webpack_require__(3);
+  exports.DOMutil = __webpack_require__(11);
 
   // data
-  exports.DataSet = __webpack_require__(15);
-  exports.DataView = __webpack_require__(17);
-  exports.Queue = __webpack_require__(16);
+  exports.DataSet = __webpack_require__(12);
+  exports.DataView = __webpack_require__(14);
+  exports.Queue = __webpack_require__(13);
 
   // Graph3d
-  exports.Graph3d = __webpack_require__(18);
+  exports.Graph3d = __webpack_require__(15);
   exports.graph3d = {
-    Camera: __webpack_require__(22),
-    Filter: __webpack_require__(23),
-    Point2d: __webpack_require__(19),
-    Point3d: __webpack_require__(21),
-    Slider: __webpack_require__(24),
-    StepNumber: __webpack_require__(25)
+    Camera: __webpack_require__(19),
+    Filter: __webpack_require__(20),
+    Point2d: __webpack_require__(16),
+    Point3d: __webpack_require__(18),
+    Slider: __webpack_require__(21),
+    StepNumber: __webpack_require__(22)
   };
 
   // Timeline
-  exports.Timeline = __webpack_require__(26);
-  exports.Graph2d = __webpack_require__(56);
+  exports.Timeline = __webpack_require__(23);
+  exports.Graph2d = __webpack_require__(52);
   exports.timeline = {
-    DateUtil: __webpack_require__(36),
-    DataStep: __webpack_require__(58),
-    Range: __webpack_require__(34),
-    stack: __webpack_require__(40),
-    TimeStep: __webpack_require__(43),
+    DateUtil: __webpack_require__(33),
+    DataStep: __webpack_require__(55),
+    Range: __webpack_require__(31),
+    stack: __webpack_require__(37),
+    TimeStep: __webpack_require__(40),
 
     components: {
       items: {
-        Item: __webpack_require__(42),
-        BackgroundItem: __webpack_require__(47),
-        BoxItem: __webpack_require__(45),
-        PointItem: __webpack_require__(46),
-        RangeItem: __webpack_require__(41)
+        Item: __webpack_require__(39),
+        BackgroundItem: __webpack_require__(44),
+        BoxItem: __webpack_require__(42),
+        PointItem: __webpack_require__(43),
+        RangeItem: __webpack_require__(38)
       },
 
-      Component: __webpack_require__(28),
-      CurrentTime: __webpack_require__(27),
-      CustomTime: __webpack_require__(51),
-      DataAxis: __webpack_require__(57),
-      GraphGroup: __webpack_require__(59),
-      Group: __webpack_require__(39),
-      BackgroundGroup: __webpack_require__(44),
-      ItemSet: __webpack_require__(38),
-      Legend: __webpack_require__(63),
-      LineGraph: __webpack_require__(5),
-      TimeAxis: __webpack_require__(48)
+      Component: __webpack_require__(25),
+      CurrentTime: __webpack_require__(24),
+      CustomTime: __webpack_require__(48),
+      DataAxis: __webpack_require__(54),
+      GraphGroup: __webpack_require__(56),
+      Group: __webpack_require__(36),
+      BackgroundGroup: __webpack_require__(41),
+      ItemSet: __webpack_require__(35),
+      Legend: __webpack_require__(60),
+      LineGraph: __webpack_require__(53),
+      TimeAxis: __webpack_require__(45)
     }
   };
 
   // Network
-  exports.Network = __webpack_require__(65);
+  exports.Network = __webpack_require__(5);
   exports.network = {
     Images: __webpack_require__(112),
     dotparser: __webpack_require__(110),
@@ -157,9 +157,9 @@ return /******/ (function(modules) { // webpackBootstrap
   };
 
   // bundled external libraries
-  exports.moment = __webpack_require__(10);
-  exports.hammer = __webpack_require__(30); // TODO: deprecate exports.hammer some day
-  exports.Hammer = __webpack_require__(30);
+  exports.moment = __webpack_require__(7);
+  exports.hammer = __webpack_require__(27); // TODO: deprecate exports.hammer some day
+  exports.Hammer = __webpack_require__(27);
 
 /***/ },
 /* 1 */
@@ -186,638 +186,677 @@ return /******/ (function(modules) { // webpackBootstrap
 
   var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
 
-  var _get = function get(_x, _x2, _x3) { var _again = true; _function: while (_again) { var object = _x, property = _x2, receiver = _x3; desc = parent = getter = undefined; _again = false; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { _x = parent; _x2 = property; _x3 = receiver; _again = true; continue _function; } } else if ('value' in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } } };
-
   function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
 
   function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
 
-  function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; }
+  var _ColorPicker = __webpack_require__(49);
 
-  var _utilBezierEdgeBase = __webpack_require__(88);
+  var _ColorPicker2 = _interopRequireDefault(_ColorPicker);
 
-  var _utilBezierEdgeBase2 = _interopRequireDefault(_utilBezierEdgeBase);
+  var util = __webpack_require__(3);
 
-  var BezierEdgeDynamic = (function (_BezierEdgeBase) {
-    function BezierEdgeDynamic(options, body, labelModule) {
-      _classCallCheck(this, BezierEdgeDynamic);
+  /**
+   * The way this works is for all properties of this.possible options, you can supply the property name in any form to list the options.
+   * Boolean options are recognised as Boolean
+   * Number options should be written as array: [default value, min value, max value, stepsize]
+   * Colors should be written as array: ['color', '#ffffff']
+   * Strings with should be written as array: [option1, option2, option3, ..]
+   *
+   * The options are matched with their counterparts in each of the modules and the values used in the configuration are
+   *
+   * @param parentModule        | the location where parentModule.setOptions() can be called
+   * @param defaultContainer    | the default container of the module
+   * @param configureOptions    | the fully configured and predefined options set found in allOptions.js
+   * @param pixelRatio          | canvas pixel ratio
+   */
 
-      //this.via = undefined; // Here for completeness but not allowed to defined before super() is invoked.
-      _get(Object.getPrototypeOf(BezierEdgeDynamic.prototype), 'constructor', this).call(this, options, body, labelModule); // --> this calls the setOptions below
+  var Configurator = (function () {
+    function Configurator(parentModule, defaultContainer, configureOptions) {
+      var pixelRatio = arguments[3] === undefined ? 1 : arguments[3];
+
+      _classCallCheck(this, Configurator);
+
+      this.parent = parentModule;
+      this.changedOptions = [];
+      this.container = defaultContainer;
+      this.allowCreation = false;
+
+      this.options = {};
+      this.defaultOptions = {
+        enabled: false,
+        filter: true,
+        container: undefined,
+        showButton: true
+      };
+      util.extend(this.options, this.defaultOptions);
+
+      this.configureOptions = configureOptions;
+      this.moduleOptions = {};
+      this.domElements = [];
+      this.colorPicker = new _ColorPicker2['default'](pixelRatio);
+      this.wrapper = undefined;
     }
 
-    _inherits(BezierEdgeDynamic, _BezierEdgeBase);
-
-    _createClass(BezierEdgeDynamic, [{
+    _createClass(Configurator, [{
       key: 'setOptions',
+
+      /**
+       * refresh all options.
+       * Because all modules parse their options by themselves, we just use their options. We copy them here.
+       *
+       * @param options
+       */
       value: function setOptions(options) {
-        this.options = options;
-        this.id = this.options.id;
-        this.setupSupportNode();
-        this.connect();
+        if (options !== undefined) {
+          var enabled = true;
+          if (typeof options === 'string') {
+            this.options.filter = options;
+          } else if (options instanceof Array) {
+            this.options.filter = options.join();
+          } else if (typeof options === 'object') {
+            if (options.container !== undefined) {
+              this.options.container = options.container;
+            }
+            if (options.filter !== undefined) {
+              this.options.filter = options.filter;
+            }
+            if (options.showButton !== undefined) {
+              this.options.showButton = options.showButton;
+            }
+            if (options.enabled !== undefined) {
+              enabled = options.enabled;
+            }
+          } else if (typeof options === 'boolean') {
+            this.options.filter = true;
+            enabled = options;
+          } else if (typeof options === 'function') {
+            this.options.filter = options;
+            enabled = true;
+          }
+          if (this.options.filter === false) {
+            enabled = false;
+          }
+
+          this.options.enabled = enabled;
+        }
+        this._clean();
       }
     }, {
-      key: 'connect',
-      value: function connect() {
-        this.from = this.body.nodes[this.options.from];
-        this.to = this.body.nodes[this.options.to];
-        if (this.from === undefined || this.to === undefined) {
-          this.via.setOptions({ physics: false });
-        } else {
-          // fix weird behaviour where a selfreferencing node has physics enabled
-          if (this.from.id === this.to.id) {
-            this.via.setOptions({ physics: false });
+      key: 'setModuleOptions',
+      value: function setModuleOptions(moduleOptions) {
+        this.moduleOptions = moduleOptions;
+        if (this.options.enabled === true) {
+          this._clean();
+          if (this.options.container !== undefined) {
+            this.container = this.options.container;
+          }
+          this._create();
+        }
+      }
+    }, {
+      key: '_create',
+
+      /**
+       * Create all DOM elements
+       * @private
+       */
+      value: function _create() {
+        var _this = this;
+
+        this._clean();
+        this.changedOptions = [];
+
+        var filter = this.options.filter;
+        var counter = 0;
+        var show = false;
+        for (var option in this.configureOptions) {
+          if (this.configureOptions.hasOwnProperty(option)) {
+            this.allowCreation = false;
+            show = false;
+            if (typeof filter === 'function') {
+              show = filter(option, []);
+              show = show || this._handleObject(this.configureOptions[option], [option], true);
+            } else if (filter === true || filter.indexOf(option) !== -1) {
+              show = true;
+            }
+
+            if (show !== false) {
+              this.allowCreation = true;
+
+              // linebreak between categories
+              if (counter > 0) {
+                this._makeItem([]);
+              }
+              // a header for the category
+              this._makeHeader(option);
+
+              // get the suboptions
+              this._handleObject(this.configureOptions[option], [option]);
+            }
+            counter++;
+          }
+        }
+
+        if (this.options.showButton === true) {
+          (function () {
+            var generateButton = document.createElement('div');
+            generateButton.className = 'vis-network-configuration button';
+            generateButton.innerHTML = 'generate options';
+            generateButton.onclick = function () {
+              _this._printOptions();
+            };
+            generateButton.onmouseover = function () {
+              generateButton.className = 'vis-network-configuration button hover';
+            };
+            generateButton.onmouseout = function () {
+              generateButton.className = 'vis-network-configuration button';
+            };
+
+            _this.optionsContainer = document.createElement('div');
+            _this.optionsContainer.className = 'vis-network-configuration vis-option-container';
+
+            _this.domElements.push(_this.optionsContainer);
+            _this.domElements.push(generateButton);
+          })();
+        }
+
+        this._push();
+        this.colorPicker.insertTo(this.container);
+      }
+    }, {
+      key: '_push',
+
+      /**
+       * draw all DOM elements on the screen
+       * @private
+       */
+      value: function _push() {
+        this.wrapper = document.createElement('div');
+        this.wrapper.className = 'vis-network-configuration-wrapper';
+        this.container.appendChild(this.wrapper);
+        for (var i = 0; i < this.domElements.length; i++) {
+          this.wrapper.appendChild(this.domElements[i]);
+        }
+      }
+    }, {
+      key: '_clean',
+
+      /**
+       * delete all DOM elements
+       * @private
+       */
+      value: function _clean() {
+        for (var i = 0; i < this.domElements.length; i++) {
+          this.wrapper.removeChild(this.domElements[i]);
+        }
+
+        if (this.wrapper !== undefined) {
+          this.container.removeChild(this.wrapper);
+          this.wrapper = undefined;
+        }
+        this.domElements = [];
+      }
+    }, {
+      key: '_getValue',
+
+      /**
+       * get the value from the actualOptions if it exists
+       * @param {array} path    | where to look for the actual option
+       * @returns {*}
+       * @private
+       */
+      value: function _getValue(path) {
+        var base = this.moduleOptions;
+        for (var i = 0; i < path.length; i++) {
+          if (base[path[i]] !== undefined) {
+            base = base[path[i]];
           } else {
-            this.via.setOptions({ physics: true });
+            base = undefined;
+            break;
+          }
+        }
+        return base;
+      }
+    }, {
+      key: '_makeItem',
+
+      /**
+       * all option elements are wrapped in an item
+       * @param path
+       * @param domElements
+       * @private
+       */
+      value: function _makeItem(path) {
+        var _this2 = this;
+
+        for (var _len = arguments.length, domElements = Array(_len > 1 ? _len - 1 : 0), _key = 1; _key < _len; _key++) {
+          domElements[_key - 1] = arguments[_key];
+        }
+
+        if (this.allowCreation === true) {
+          (function () {
+            var item = document.createElement('div');
+            item.className = 'vis-network-configuration item s' + path.length;
+            domElements.forEach(function (element) {
+              item.appendChild(element);
+            });
+            _this2.domElements.push(item);
+          })();
+        }
+      }
+    }, {
+      key: '_makeHeader',
+
+      /**
+       * header for major subjects
+       * @param name
+       * @private
+       */
+      value: function _makeHeader(name) {
+        var div = document.createElement('div');
+        div.className = 'vis-network-configuration header';
+        div.innerHTML = name;
+        this._makeItem([], div);
+      }
+    }, {
+      key: '_makeLabel',
+
+      /**
+       * make a label, if it is an object label, it gets different styling.
+       * @param name
+       * @param path
+       * @param objectLabel
+       * @returns {HTMLElement}
+       * @private
+       */
+      value: function _makeLabel(name, path) {
+        var objectLabel = arguments[2] === undefined ? false : arguments[2];
+
+        var div = document.createElement('div');
+        div.className = 'vis-network-configuration label s' + path.length;
+        if (objectLabel === true) {
+          div.innerHTML = '<i><b>' + name + ':</b></i>';
+        } else {
+          div.innerHTML = name + ':';
+        }
+        return div;
+      }
+    }, {
+      key: '_makeDropdown',
+
+      /**
+       * make a dropdown list for multiple possible string optoins
+       * @param arr
+       * @param value
+       * @param path
+       * @private
+       */
+      value: function _makeDropdown(arr, value, path) {
+        var select = document.createElement('select');
+        select.className = 'vis-network-configuration select';
+        var selectedValue = 0;
+        if (value !== undefined) {
+          if (arr.indexOf(value) !== -1) {
+            selectedValue = arr.indexOf(value);
+          }
+        }
+
+        for (var i = 0; i < arr.length; i++) {
+          var option = document.createElement('option');
+          option.value = arr[i];
+          if (i === selectedValue) {
+            option.selected = 'selected';
+          }
+          option.innerHTML = arr[i];
+          select.appendChild(option);
+        }
+
+        var me = this;
+        select.onchange = function () {
+          me._update(this.value, path);
+        };
+
+        var label = this._makeLabel(path[path.length - 1], path);
+        this._makeItem(path, label, select);
+      }
+    }, {
+      key: '_makeRange',
+
+      /**
+       * make a range object for numeric options
+       * @param arr
+       * @param value
+       * @param path
+       * @private
+       */
+      value: function _makeRange(arr, value, path) {
+        var defaultValue = arr[0];
+        var min = arr[1];
+        var max = arr[2];
+        var step = arr[3];
+        var range = document.createElement('input');
+        range.type = 'range';
+        range.className = 'vis-network-configuration range';
+        range.min = min;
+        range.max = max;
+        range.step = step;
+
+        if (value !== undefined) {
+          if (value < 0 && value * 2 < min) {
+            range.min = value * 2;
+          } else if (value * 0.1 < min) {
+            range.min = value / 10;
+          }
+          if (value * 2 > max && max !== 1) {
+            range.max = value * 2;
+          }
+          range.value = value;
+        } else {
+          range.value = defaultValue;
+        }
+
+        var input = document.createElement('input');
+        input.className = 'vis-network-configuration rangeinput';
+        input.value = range.value;
+
+        var me = this;
+        range.onchange = function () {
+          input.value = this.value;me._update(Number(this.value), path);
+        };
+        range.oninput = function () {
+          input.value = this.value;
+        };
+
+        var label = this._makeLabel(path[path.length - 1], path);
+        this._makeItem(path, label, range, input);
+      }
+    }, {
+      key: '_makeCheckbox',
+
+      /**
+       * make a checkbox for boolean options.
+       * @param defaultValue
+       * @param value
+       * @param path
+       * @private
+       */
+      value: function _makeCheckbox(defaultValue, value, path) {
+        var checkbox = document.createElement('input');
+        checkbox.type = 'checkbox';
+        checkbox.className = 'vis-network-configuration checkbox';
+        checkbox.checked = defaultValue;
+        if (value !== undefined) {
+          checkbox.checked = value;
+          if (value !== defaultValue) {
+            if (typeof defaultValue === 'object') {
+              if (value !== defaultValue.enabled) {
+                this.changedOptions.push({ path: path, value: value });
+              }
+            } else {
+              this.changedOptions.push({ path: path, value: value });
+            }
+          }
+        }
+
+        var me = this;
+        checkbox.onchange = function () {
+          me._update(this.checked, path);
+        };
+
+        var label = this._makeLabel(path[path.length - 1], path);
+        this._makeItem(path, label, checkbox);
+      }
+    }, {
+      key: '_makeTextInput',
+
+      /**
+       * make a text input field for string options.
+       * @param defaultValue
+       * @param value
+       * @param path
+       * @private
+       */
+      value: function _makeTextInput(defaultValue, value, path) {
+        var checkbox = document.createElement('input');
+        checkbox.type = 'text';
+        checkbox.className = 'vis-network-configuration text';
+        checkbox.value = value;
+        if (value !== defaultValue) {
+          this.changedOptions.push({ path: path, value: value });
+        }
+
+        var me = this;
+        checkbox.onchange = function () {
+          me._update(this.value, path);
+        };
+
+        var label = this._makeLabel(path[path.length - 1], path);
+        this._makeItem(path, label, checkbox);
+      }
+    }, {
+      key: '_makeColorField',
+
+      /**
+       * make a color field with a color picker for color fields
+       * @param arr
+       * @param value
+       * @param path
+       * @private
+       */
+      value: function _makeColorField(arr, value, path) {
+        var _this3 = this;
+
+        var defaultColor = arr[1];
+        var div = document.createElement('div');
+        value = value === undefined ? defaultColor : value;
+
+        if (value !== 'none') {
+          div.className = 'vis-network-configuration colorBlock';
+          div.style.backgroundColor = value;
+        } else {
+          div.className = 'vis-network-configuration colorBlock none';
+        }
+
+        value = value === undefined ? defaultColor : value;
+        div.onclick = function () {
+          _this3._showColorPicker(value, div, path);
+        };
+
+        var label = this._makeLabel(path[path.length - 1], path);
+        this._makeItem(path, label, div);
+      }
+    }, {
+      key: '_showColorPicker',
+
+      /**
+       * used by the color buttons to call the color picker.
+       * @param event
+       * @param value
+       * @param div
+       * @param path
+       * @private
+       */
+      value: function _showColorPicker(value, div, path) {
+        var _this4 = this;
+
+        var rect = div.getBoundingClientRect();
+        var bodyRect = document.body.getBoundingClientRect();
+        var pickerX = rect.left + rect.width + 5;
+        var pickerY = rect.top - bodyRect.top + rect.height * 0.5;
+        this.colorPicker.show(pickerX, pickerY);
+        this.colorPicker.setColor(value);
+        this.colorPicker.setCallback(function (color) {
+          var colorString = 'rgba(' + color.r + ',' + color.g + ',' + color.b + ',' + color.a + ')';
+          div.style.backgroundColor = colorString;
+          _this4._update(colorString, path);
+        });
+      }
+    }, {
+      key: '_handleObject',
+
+      /**
+       * parse an object and draw the correct items
+       * @param obj
+       * @param path
+       * @private
+       */
+      value: function _handleObject(obj) {
+        var path = arguments[1] === undefined ? [] : arguments[1];
+        var checkOnly = arguments[2] === undefined ? false : arguments[2];
+
+        var show = false;
+        var filter = this.options.filter;
+        var visibleInSet = false;
+        for (var subObj in obj) {
+          if (obj.hasOwnProperty(subObj)) {
+            show = true;
+            var item = obj[subObj];
+            var newPath = util.copyAndExtendArray(path, subObj);
+            if (typeof filter === 'function') {
+              show = filter(subObj, path);
+
+              // if needed we must go deeper into the object.
+              if (show === false) {
+                if (!(item instanceof Array) && typeof item !== 'string' && typeof item !== 'boolean' && item instanceof Object) {
+                  this.allowCreation = false;
+                  show = this._handleObject(item, newPath, true);
+                  this.allowCreation = checkOnly === false;
+                }
+              }
+            }
+
+            if (show !== false) {
+              visibleInSet = true;
+              var value = this._getValue(newPath);
+
+              if (item instanceof Array) {
+                this._handleArray(item, value, newPath);
+              } else if (typeof item === 'string') {
+                this._makeTextInput(item, value, newPath);
+              } else if (typeof item === 'boolean') {
+                this._makeCheckbox(item, value, newPath);
+              } else if (item instanceof Object) {
+                // collapse the physics options that are not enabled
+                var draw = true;
+                if (path.indexOf('physics') !== -1) {
+                  if (this.moduleOptions.physics.solver !== subObj) {
+                    draw = false;
+                  }
+                }
+
+                if (draw === true) {
+                  // initially collapse options with an disabled enabled option.
+                  if (item.enabled !== undefined) {
+                    var enabledPath = util.copyAndExtendArray(newPath, 'enabled');
+                    var enabledValue = this._getValue(enabledPath);
+                    if (enabledValue === true) {
+                      var label = this._makeLabel(subObj, newPath, true);
+                      this._makeItem(newPath, label);
+                      visibleInSet = this._handleObject(item, newPath) || visibleInSet;
+                    } else {
+                      this._makeCheckbox(item, enabledValue, newPath);
+                    }
+                  } else {
+                    var label = this._makeLabel(subObj, newPath, true);
+                    this._makeItem(newPath, label);
+                    visibleInSet = this._handleObject(item, newPath) || visibleInSet;
+                  }
+                }
+              } else {
+                console.error('dont know how to handle', item, subObj, newPath);
+              }
+            }
+          }
+        }
+        return visibleInSet;
+      }
+    }, {
+      key: '_handleArray',
+
+      /**
+       * handle the array type of option
+       * @param optionName
+       * @param arr
+       * @param value
+       * @param path
+       * @private
+       */
+      value: function _handleArray(arr, value, path) {
+        if (typeof arr[0] === 'string' && arr[0] === 'color') {
+          this._makeColorField(arr, value, path);
+          if (arr[1] !== value) {
+            this.changedOptions.push({ path: path, value: value });
+          }
+        } else if (typeof arr[0] === 'string') {
+          this._makeDropdown(arr, value, path);
+          if (arr[0] !== value) {
+            this.changedOptions.push({ path: path, value: value });
+          }
+        } else if (typeof arr[0] === 'number') {
+          this._makeRange(arr, value, path);
+          if (arr[0] !== value) {
+            this.changedOptions.push({ path: path, value: Number(value) });
           }
         }
       }
     }, {
-      key: 'cleanup',
-      value: function cleanup() {
-        if (this.via !== undefined) {
-          delete this.body.nodes[this.via.id];
-          this.via = undefined;
-          return true;
-        }
-        return false;
-      }
-    }, {
-      key: 'togglePhysics',
-      value: function togglePhysics(status) {
-        this.via.setOptions({ physics: status });
-      }
-    }, {
-      key: 'setupSupportNode',
+      key: '_update',
 
       /**
-       * Bezier curves require an anchor point to calculate the smooth flow. These points are nodes. These nodes are invisible but
-       * are used for the force calculation.
-       *
-       * The changed data is not called, if needed, it is returned by the main edge constructor.
+       * called to update the network with the new settings.
+       * @param value
+       * @param path
        * @private
        */
-      value: function setupSupportNode() {
-        if (this.via === undefined) {
-          var nodeId = 'edgeId:' + this.id;
-          var node = this.body.functions.createNode({
-            id: nodeId,
-            shape: 'circle',
-            physics: true,
-            hidden: true
-          });
-          this.body.nodes[nodeId] = node;
-          this.via = node;
-          this.via.parentEdgeId = this.id;
-          this.positionBezierNode();
+      value: function _update(value, path) {
+        var options = this._constructOptions(value, path);
+        this.parent.setOptions(options);
+      }
+    }, {
+      key: '_constructOptions',
+      value: function _constructOptions(value, path) {
+        var optionsObj = arguments[2] === undefined ? {} : arguments[2];
+
+        var pointer = optionsObj;
+
+        // when dropdown boxes can be string or boolean, we typecast it into correct types
+        value = value === 'true' ? true : value;
+        value = value === 'false' ? false : value;
+
+        for (var i = 0; i < path.length; i++) {
+          if (path[i] !== 'global') {
+            if (pointer[path[i]] === undefined) {
+              pointer[path[i]] = {};
+            }
+            if (i !== path.length - 1) {
+              pointer = pointer[path[i]];
+            } else {
+              pointer[path[i]] = value;
+            }
+          }
         }
+        return optionsObj;
       }
     }, {
-      key: 'positionBezierNode',
-      value: function positionBezierNode() {
-        if (this.via !== undefined && this.from !== undefined && this.to !== undefined) {
-          this.via.x = 0.5 * (this.from.x + this.to.x);
-          this.via.y = 0.5 * (this.from.y + this.to.y);
-        } else if (this.via !== undefined) {
-          this.via.x = 0;
-          this.via.y = 0;
+      key: '_printOptions',
+      value: function _printOptions() {
+        var options = {};
+        for (var i = 0; i < this.changedOptions.length; i++) {
+          this._constructOptions(this.changedOptions[i].value, this.changedOptions[i].path, options);
         }
-      }
-    }, {
-      key: '_line',
-
-      /**
-       * Draw a line between two nodes
-       * @param {CanvasRenderingContext2D} ctx
-       * @private
-       */
-      value: function _line(ctx) {
-        // draw a straight line
-        ctx.beginPath();
-        ctx.moveTo(this.from.x, this.from.y);
-        ctx.quadraticCurveTo(this.via.x, this.via.y, this.to.x, this.to.y);
-        // draw shadow if enabled
-        this.enableShadow(ctx);
-        ctx.stroke();
-        this.disableShadow(ctx);
-        return this.via;
-      }
-    }, {
-      key: 'getPoint',
-
-      /**
-       * Combined function of pointOnLine and pointOnBezier. This gives the coordinates of a point on the line at a certain percentage of the way
-       * @param percentage
-       * @param via
-       * @returns {{x: number, y: number}}
-       * @private
-       */
-      value: function getPoint(percentage) {
-        var t = percentage;
-        var x = Math.pow(1 - t, 2) * this.from.x + 2 * t * (1 - t) * this.via.x + Math.pow(t, 2) * this.to.x;
-        var y = Math.pow(1 - t, 2) * this.from.y + 2 * t * (1 - t) * this.via.y + Math.pow(t, 2) * this.to.y;
-
-        return { x: x, y: y };
-      }
-    }, {
-      key: '_findBorderPosition',
-      value: function _findBorderPosition(nearNode, ctx) {
-        return this._findBorderPositionBezier(nearNode, ctx, this.via);
-      }
-    }, {
-      key: '_getDistanceToEdge',
-      value: function _getDistanceToEdge(x1, y1, x2, y2, x3, y3) {
-        // x3,y3 is the point
-        return this._getDistanceToBezierEdge(x1, y1, x2, y2, x3, y3, this.via);
+        this.optionsContainer.innerHTML = '<pre>var options = ' + JSON.stringify(options, null, 2) + '</pre>';
       }
     }]);
 
-    return BezierEdgeDynamic;
-  })(_utilBezierEdgeBase2['default']);
+    return Configurator;
+  })();
 
-  exports['default'] = BezierEdgeDynamic;
+  exports['default'] = Configurator;
   module.exports = exports['default'];
 
 /***/ },
 /* 3 */
-/***/ function(module, exports, __webpack_require__) {
-
-  'use strict';
-
-  Object.defineProperty(exports, '__esModule', {
-    value: true
-  });
-
-  var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
-
-  function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
-
-  function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
-
-  var _componentsNode = __webpack_require__(67);
-
-  var _componentsNode2 = _interopRequireDefault(_componentsNode);
-
-  var _componentsSharedLabel = __webpack_require__(68);
-
-  var _componentsSharedLabel2 = _interopRequireDefault(_componentsSharedLabel);
-
-  var util = __webpack_require__(4);
-  var DataSet = __webpack_require__(15);
-  var DataView = __webpack_require__(17);
-
-  var NodesHandler = (function () {
-    function NodesHandler(body, images, groups, layoutEngine) {
-      var _this = this;
-
-      _classCallCheck(this, NodesHandler);
-
-      this.body = body;
-      this.images = images;
-      this.groups = groups;
-      this.layoutEngine = layoutEngine;
-
-      // create the node API in the body container
-      this.body.functions.createNode = this.create.bind(this);
-
-      this.nodesListeners = {
-        add: function add(event, params) {
-          _this.add(params.items);
-        },
-        update: function update(event, params) {
-          _this.update(params.items, params.data);
-        },
-        remove: function remove(event, params) {
-          _this.remove(params.items);
-        }
-      };
-
-      this.options = {};
-      this.defaultOptions = {
-        borderWidth: 1,
-        borderWidthSelected: 2,
-        brokenImage: undefined,
-        color: {
-          border: '#2B7CE9',
-          background: '#97C2FC',
-          highlight: {
-            border: '#2B7CE9',
-            background: '#D2E5FF'
-          },
-          hover: {
-            border: '#2B7CE9',
-            background: '#D2E5FF'
-          }
-        },
-        fixed: {
-          x: false,
-          y: false
-        },
-        font: {
-          color: '#343434',
-          size: 14, // px
-          face: 'arial',
-          background: 'none',
-          strokeWidth: 0, // px
-          strokeColor: '#ffffff',
-          align: 'horizontal'
-        },
-        group: undefined,
-        hidden: false,
-        icon: {
-          face: 'FontAwesome', //'FontAwesome',
-          code: undefined, //'\uf007',
-          size: 50, //50,
-          color: '#2B7CE9' //'#aa00ff'
-        },
-        image: undefined, // --> URL
-        label: undefined,
-        level: undefined,
-        mass: 1,
-        physics: true,
-        scaling: {
-          min: 10,
-          max: 30,
-          label: {
-            enabled: false,
-            min: 14,
-            max: 30,
-            maxVisible: 30,
-            drawThreshold: 5
-          },
-          customScalingFunction: function customScalingFunction(min, max, total, value) {
-            if (max === min) {
-              return 0.5;
-            } else {
-              var scale = 1 / (max - min);
-              return Math.max(0, (value - min) * scale);
-            }
-          }
-        },
-        shadow: {
-          enabled: false,
-          size: 10,
-          x: 5,
-          y: 5
-        },
-        shape: 'ellipse',
-        size: 25,
-        title: undefined,
-        value: undefined,
-        x: undefined,
-        y: undefined
-      };
-      util.extend(this.options, this.defaultOptions);
-
-      this.bindEventListeners();
-    }
-
-    _createClass(NodesHandler, [{
-      key: 'bindEventListeners',
-      value: function bindEventListeners() {
-        var _this2 = this;
-
-        // refresh the nodes. Used when reverting from hierarchical layout
-        this.body.emitter.on('refreshNodes', this.refresh.bind(this));
-        this.body.emitter.on('refresh', this.refresh.bind(this));
-        this.body.emitter.on('destroy', function () {
-          delete _this2.body.functions.createNode;
-          delete _this2.nodesListeners.add;
-          delete _this2.nodesListeners.update;
-          delete _this2.nodesListeners.remove;
-          delete _this2.nodesListeners;
-        });
-      }
-    }, {
-      key: 'setOptions',
-      value: function setOptions(options) {
-        if (options !== undefined) {
-          _componentsNode2['default'].parseOptions(this.options, options);
-
-          // update the shape in all nodes
-          if (options.shape !== undefined) {
-            for (var nodeId in this.body.nodes) {
-              if (this.body.nodes.hasOwnProperty(nodeId)) {
-                this.body.nodes[nodeId].updateShape();
-              }
-            }
-          }
-
-          // update the shape size in all nodes
-          if (options.font !== undefined) {
-            _componentsSharedLabel2['default'].parseOptions(this.options.font, options);
-            for (var nodeId in this.body.nodes) {
-              if (this.body.nodes.hasOwnProperty(nodeId)) {
-                this.body.nodes[nodeId].updateLabelModule();
-                this.body.nodes[nodeId]._reset();
-              }
-            }
-          }
-
-          // update the shape size in all nodes
-          if (options.size !== undefined) {
-            for (var nodeId in this.body.nodes) {
-              if (this.body.nodes.hasOwnProperty(nodeId)) {
-                this.body.nodes[nodeId]._reset();
-              }
-            }
-          }
-
-          // update the state of the letiables if needed
-          if (options.hidden !== undefined || options.physics !== undefined) {
-            this.body.emitter.emit('_dataChanged');
-          }
-        }
-      }
-    }, {
-      key: 'setData',
-
-      /**
-       * Set a data set with nodes for the network
-       * @param {Array | DataSet | DataView} nodes         The data containing the nodes.
-       * @private
-       */
-      value: function setData(nodes) {
-        var _this3 = this;
-
-        var doNotEmit = arguments[1] === undefined ? false : arguments[1];
-
-        var oldNodesData = this.body.data.nodes;
-
-        if (nodes instanceof DataSet || nodes instanceof DataView) {
-          this.body.data.nodes = nodes;
-        } else if (Array.isArray(nodes)) {
-          this.body.data.nodes = new DataSet();
-          this.body.data.nodes.add(nodes);
-        } else if (!nodes) {
-          this.body.data.nodes = new DataSet();
-        } else {
-          throw new TypeError('Array or DataSet expected');
-        }
-
-        if (oldNodesData) {
-          // unsubscribe from old dataset
-          util.forEach(this.nodesListeners, function (callback, event) {
-            oldNodesData.off(event, callback);
-          });
-        }
-
-        // remove drawn nodes
-        this.body.nodes = {};
-
-        if (this.body.data.nodes) {
-          (function () {
-            // subscribe to new dataset
-            var me = _this3;
-            util.forEach(_this3.nodesListeners, function (callback, event) {
-              me.body.data.nodes.on(event, callback);
-            });
-
-            // draw all new nodes
-            var ids = _this3.body.data.nodes.getIds();
-            _this3.add(ids, true);
-          })();
-        }
-
-        if (doNotEmit === false) {
-          this.body.emitter.emit('_dataChanged');
-        }
-      }
-    }, {
-      key: 'add',
-
-      /**
-       * Add nodes
-       * @param {Number[] | String[]} ids
-       * @private
-       */
-      value: function add(ids) {
-        var doNotEmit = arguments[1] === undefined ? false : arguments[1];
-
-        var id = undefined;
-        var newNodes = [];
-        for (var i = 0; i < ids.length; i++) {
-          id = ids[i];
-          var properties = this.body.data.nodes.get(id);
-          var node = this.create(properties);
-          newNodes.push(node);
-          this.body.nodes[id] = node; // note: this may replace an existing node
-        }
-
-        this.layoutEngine.positionInitially(newNodes);
-
-        if (doNotEmit === false) {
-          this.body.emitter.emit('_dataChanged');
-        }
-      }
-    }, {
-      key: 'update',
-
-      /**
-       * Update existing nodes, or create them when not yet existing
-       * @param {Number[] | String[]} ids
-       * @private
-       */
-      value: function update(ids, changedData) {
-        var nodes = this.body.nodes;
-        var dataChanged = false;
-        for (var i = 0; i < ids.length; i++) {
-          var id = ids[i];
-          var node = nodes[id];
-          var data = changedData[i];
-          if (node !== undefined) {
-            // update node
-            dataChanged = node.setOptions(data);
-          } else {
-            dataChanged = true;
-            // create node
-            node = this.create(data);
-            nodes[id] = node;
-          }
-        }
-        if (dataChanged === true) {
-          this.body.emitter.emit('_dataChanged');
-        } else {
-          this.body.emitter.emit('_dataUpdated');
-        }
-      }
-    }, {
-      key: 'remove',
-
-      /**
-       * Remove existing nodes. If nodes do not exist, the method will just ignore it.
-       * @param {Number[] | String[]} ids
-       * @private
-       */
-      value: function remove(ids) {
-        var nodes = this.body.nodes;
-
-        for (var i = 0; i < ids.length; i++) {
-          var id = ids[i];
-          delete nodes[id];
-        }
-
-        this.body.emitter.emit('_dataChanged');
-      }
-    }, {
-      key: 'create',
-
-      /**
-       * create a node
-       * @param properties
-       * @param constructorClass
-       */
-      value: function create(properties) {
-        var constructorClass = arguments[1] === undefined ? _componentsNode2['default'] : arguments[1];
-
-        return new constructorClass(properties, this.body, this.images, this.groups, this.options);
-      }
-    }, {
-      key: 'refresh',
-      value: function refresh() {
-        var nodes = this.body.nodes;
-        for (var nodeId in nodes) {
-          var node = undefined;
-          if (nodes.hasOwnProperty(nodeId)) {
-            node = nodes[nodeId];
-          }
-          var data = this.body.data.nodes._data[nodeId];
-          if (node !== undefined && data !== undefined) {
-            node.setOptions({ fixed: false });
-            node.setOptions(data);
-          }
-        }
-      }
-    }, {
-      key: 'getPositions',
-
-      /**
-       * Returns the positions of the nodes.
-       * @param ids  --> optional, can be array of nodeIds, can be string
-       * @returns {{}}
-       */
-      value: function getPositions(ids) {
-        var dataArray = {};
-        if (ids !== undefined) {
-          if (Array.isArray(ids) === true) {
-            for (var i = 0; i < ids.length; i++) {
-              if (this.body.nodes[ids[i]] !== undefined) {
-                var node = this.body.nodes[ids[i]];
-                dataArray[ids[i]] = { x: Math.round(node.x), y: Math.round(node.y) };
-              }
-            }
-          } else {
-            if (this.body.nodes[ids] !== undefined) {
-              var node = this.body.nodes[ids];
-              dataArray[ids] = { x: Math.round(node.x), y: Math.round(node.y) };
-            }
-          }
-        } else {
-          for (var nodeId in this.body.nodes) {
-            if (this.body.nodes.hasOwnProperty(nodeId)) {
-              var node = this.body.nodes[nodeId];
-              dataArray[nodeId] = { x: Math.round(node.x), y: Math.round(node.y) };
-            }
-          }
-        }
-        return dataArray;
-      }
-    }, {
-      key: 'storePositions',
-
-      /**
-       * Load the XY positions of the nodes into the dataset.
-       */
-      value: function storePositions() {
-        // todo: add support for clusters and hierarchical.
-        var dataArray = [];
-        var dataset = this.body.data.nodes.getDataSet();
-
-        for (var nodeId in dataset._data) {
-          if (dataset._data.hasOwnProperty(nodeId)) {
-            var node = this.body.nodes[nodeId];
-            if (dataset._data[nodeId].x != Math.round(node.x) || dataset._data[nodeId].y != Math.round(node.y)) {
-              dataArray.push({ id: nodeId, x: Math.round(node.x), y: Math.round(node.y) });
-            }
-          }
-        }
-        dataset.update(dataArray);
-      }
-    }, {
-      key: 'getBoundingBox',
-
-      /**
-       * get the bounding box of a node.
-       * @param nodeId
-       * @returns {j|*}
-       */
-      value: function getBoundingBox(nodeId) {
-        if (this.body.nodes[nodeId] !== undefined) {
-          return this.body.nodes[nodeId].shape.boundingBox;
-        }
-      }
-    }, {
-      key: 'getConnectedNodes',
-
-      /**
-       * Get the Ids of nodes connected to this node.
-       * @param nodeId
-       * @returns {Array}
-       */
-      value: function getConnectedNodes(nodeId) {
-        var nodeList = [];
-        if (this.body.nodes[nodeId] !== undefined) {
-          var node = this.body.nodes[nodeId];
-          var nodeObj = {}; // used to quickly check if node already exists
-          for (var i = 0; i < node.edges.length; i++) {
-            var edge = node.edges[i];
-            if (edge.toId == nodeId) {
-              // these are double equals since ids can be numeric or string
-              if (nodeObj[edge.fromId] === undefined) {
-                nodeList.push(edge.fromId);
-                nodeObj[edge.fromId] = true;
-              }
-            } else if (edge.fromId == nodeId) {
-              // these are double equals since ids can be numeric or string
-              if (nodeObj[edge.toId] === undefined) {
-                nodeList.push(edge.toId);
-                nodeObj[edge.toId] = true;
-              }
-            }
-          }
-        }
-        return nodeList;
-      }
-    }, {
-      key: 'getConnectedEdges',
-
-      /**
-       * Get the ids of the edges connected to this node.
-       * @param nodeId
-       * @returns {*}
-       */
-      value: function getConnectedEdges(nodeId) {
-        var edgeList = [];
-        if (this.body.nodes[nodeId] !== undefined) {
-          var node = this.body.nodes[nodeId];
-          for (var i = 0; i < node.edges.length; i++) {
-            edgeList.push(node.edges[i].id);
-          }
-        } else {
-          console.log('NodeId provided for getConnectedEdges does not exist. Provided: ', nodeId);
-        }
-        return edgeList;
-      }
-    }]);
-
-    return NodesHandler;
-  })();
-
-  exports['default'] = NodesHandler;
-  module.exports = exports['default'];
-
-/***/ },
-/* 4 */
 /***/ function(module, exports, __webpack_require__) {
 
   // utility functions
@@ -827,8 +866,8 @@ return /******/ (function(modules) { // webpackBootstrap
 
   'use strict';
 
-  var moment = __webpack_require__(10);
-  var uuid = __webpack_require__(13);
+  var moment = __webpack_require__(7);
+  var uuid = __webpack_require__(10);
 
   /**
    * Test whether given object is a number
@@ -2163,983 +2202,7 @@ return /******/ (function(modules) { // webpackBootstrap
   };
 
 /***/ },
-/* 5 */
-/***/ function(module, exports, __webpack_require__) {
-
-  'use strict';
-
-  var util = __webpack_require__(4);
-  var DOMutil = __webpack_require__(14);
-  var DataSet = __webpack_require__(15);
-  var DataView = __webpack_require__(17);
-  var Component = __webpack_require__(28);
-  var DataAxis = __webpack_require__(57);
-  var GraphGroup = __webpack_require__(59);
-  var Legend = __webpack_require__(63);
-  var BarFunctions = __webpack_require__(62);
-  var LineFunctions = __webpack_require__(60);
-
-  var UNGROUPED = '__ungrouped__'; // reserved group id for ungrouped items
-
-  /**
-   * This is the constructor of the LineGraph. It requires a Timeline body and options.
-   *
-   * @param body
-   * @param options
-   * @constructor
-   */
-  function LineGraph(body, options) {
-    this.id = util.randomUUID();
-    this.body = body;
-
-    this.defaultOptions = {
-      yAxisOrientation: 'left',
-      defaultGroup: 'default',
-      sort: true,
-      sampling: true,
-      stack: false,
-      graphHeight: '400px',
-      shaded: {
-        enabled: false,
-        orientation: 'bottom' // top, bottom
-      },
-      style: 'line', // line, bar
-      barChart: {
-        width: 50,
-        sideBySide: false,
-        align: 'center' // left, center, right
-      },
-      interpolation: {
-        enabled: true,
-        parametrization: 'centripetal', // uniform (alpha = 0.0), chordal (alpha = 1.0), centripetal (alpha = 0.5)
-        alpha: 0.5
-      },
-      drawPoints: {
-        enabled: true,
-        size: 6,
-        style: 'square' // square, circle
-      },
-      dataAxis: {
-        showMinorLabels: true,
-        showMajorLabels: true,
-        icons: false,
-        width: '40px',
-        visible: true,
-        alignZeros: true,
-        left: {
-          range: { min: undefined, max: undefined },
-          format: function format(value) {
-            return value;
-          },
-          title: { text: undefined, style: undefined }
-        },
-        right: {
-          range: { min: undefined, max: undefined },
-          format: function format(value) {
-            return value;
-          },
-          title: { text: undefined, style: undefined }
-        }
-      },
-      legend: {
-        enabled: false,
-        icons: true,
-        left: {
-          visible: true,
-          position: 'top-left' // top/bottom - left,right
-        },
-        right: {
-          visible: true,
-          position: 'top-right' // top/bottom - left,right
-        }
-      },
-      groups: {
-        visibility: {}
-      }
-    };
-
-    // options is shared by this ItemSet and all its items
-    this.options = util.extend({}, this.defaultOptions);
-    this.dom = {};
-    this.props = {};
-    this.hammer = null;
-    this.groups = {};
-    this.abortedGraphUpdate = false;
-    this.updateSVGheight = false;
-    this.updateSVGheightOnResize = false;
-
-    var me = this;
-    this.itemsData = null; // DataSet
-    this.groupsData = null; // DataSet
-
-    // listeners for the DataSet of the items
-    this.itemListeners = {
-      'add': function add(event, params, senderId) {
-        me._onAdd(params.items);
-      },
-      'update': function update(event, params, senderId) {
-        me._onUpdate(params.items);
-      },
-      'remove': function remove(event, params, senderId) {
-        me._onRemove(params.items);
-      }
-    };
-
-    // listeners for the DataSet of the groups
-    this.groupListeners = {
-      'add': function add(event, params, senderId) {
-        me._onAddGroups(params.items);
-      },
-      'update': function update(event, params, senderId) {
-        me._onUpdateGroups(params.items);
-      },
-      'remove': function remove(event, params, senderId) {
-        me._onRemoveGroups(params.items);
-      }
-    };
-
-    this.items = {}; // object with an Item for every data item
-    this.selection = []; // list with the ids of all selected nodes
-    this.lastStart = this.body.range.start;
-    this.touchParams = {}; // stores properties while dragging
-
-    this.svgElements = {};
-    this.setOptions(options);
-    this.groupsUsingDefaultStyles = [0];
-    this.COUNTER = 0;
-    this.body.emitter.on('rangechanged', function () {
-      me.lastStart = me.body.range.start;
-      me.svg.style.left = util.option.asSize(-me.props.width);
-      me.redraw.call(me, true);
-    });
-
-    // create the HTML DOM
-    this._create();
-    this.framework = { svg: this.svg, svgElements: this.svgElements, options: this.options, groups: this.groups };
-    this.body.emitter.emit('change');
-  }
-
-  LineGraph.prototype = new Component();
-
-  /**
-   * Create the HTML DOM for the ItemSet
-   */
-  LineGraph.prototype._create = function () {
-    var frame = document.createElement('div');
-    frame.className = 'vis-line-graph';
-    this.dom.frame = frame;
-
-    // create svg element for graph drawing.
-    this.svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-    this.svg.style.position = 'relative';
-    this.svg.style.height = ('' + this.options.graphHeight).replace('px', '') + 'px';
-    this.svg.style.display = 'block';
-    frame.appendChild(this.svg);
-
-    // data axis
-    this.options.dataAxis.orientation = 'left';
-    this.yAxisLeft = new DataAxis(this.body, this.options.dataAxis, this.svg, this.options.groups);
-
-    this.options.dataAxis.orientation = 'right';
-    this.yAxisRight = new DataAxis(this.body, this.options.dataAxis, this.svg, this.options.groups);
-    delete this.options.dataAxis.orientation;
-
-    // legends
-    this.legendLeft = new Legend(this.body, this.options.legend, 'left', this.options.groups);
-    this.legendRight = new Legend(this.body, this.options.legend, 'right', this.options.groups);
-
-    this.show();
-  };
-
-  /**
-   * set the options of the LineGraph. the mergeOptions is used for subObjects that have an enabled element.
-   * @param {object} options
-   */
-  LineGraph.prototype.setOptions = function (options) {
-    if (options) {
-      var fields = ['sampling', 'defaultGroup', 'stack', 'height', 'graphHeight', 'yAxisOrientation', 'style', 'barChart', 'dataAxis', 'sort', 'groups'];
-      if (options.graphHeight === undefined && options.height !== undefined && this.body.domProps.centerContainer.height !== undefined) {
-        this.updateSVGheight = true;
-        this.updateSVGheightOnResize = true;
-      } else if (this.body.domProps.centerContainer.height !== undefined && options.graphHeight !== undefined) {
-        if (parseInt((options.graphHeight + '').replace('px', '')) < this.body.domProps.centerContainer.height) {
-          this.updateSVGheight = true;
-        }
-      }
-      util.selectiveDeepExtend(fields, this.options, options);
-      util.mergeOptions(this.options, options, 'interpolation');
-      util.mergeOptions(this.options, options, 'drawPoints');
-      util.mergeOptions(this.options, options, 'shaded');
-      util.mergeOptions(this.options, options, 'legend');
-
-      if (options.interpolation) {
-        if (typeof options.interpolation == 'object') {
-          if (options.interpolation.parametrization) {
-            if (options.interpolation.parametrization == 'uniform') {
-              this.options.interpolation.alpha = 0;
-            } else if (options.interpolation.parametrization == 'chordal') {
-              this.options.interpolation.alpha = 1;
-            } else {
-              this.options.interpolation.parametrization = 'centripetal';
-              this.options.interpolation.alpha = 0.5;
-            }
-          }
-        }
-      }
-
-      if (this.yAxisLeft) {
-        if (options.dataAxis !== undefined) {
-          this.yAxisLeft.setOptions(this.options.dataAxis);
-          this.yAxisRight.setOptions(this.options.dataAxis);
-        }
-      }
-
-      if (this.legendLeft) {
-        if (options.legend !== undefined) {
-          this.legendLeft.setOptions(this.options.legend);
-          this.legendRight.setOptions(this.options.legend);
-        }
-      }
-
-      if (this.groups.hasOwnProperty(UNGROUPED)) {
-        this.groups[UNGROUPED].setOptions(options);
-      }
-    }
-
-    // this is used to redraw the graph if the visibility of the groups is changed.
-    if (this.dom.frame) {
-      this.redraw(true);
-    }
-  };
-
-  /**
-   * Hide the component from the DOM
-   */
-  LineGraph.prototype.hide = function () {
-    // remove the frame containing the items
-    if (this.dom.frame.parentNode) {
-      this.dom.frame.parentNode.removeChild(this.dom.frame);
-    }
-  };
-
-  /**
-   * Show the component in the DOM (when not already visible).
-   * @return {Boolean} changed
-   */
-  LineGraph.prototype.show = function () {
-    // show frame containing the items
-    if (!this.dom.frame.parentNode) {
-      this.body.dom.center.appendChild(this.dom.frame);
-    }
-  };
-
-  /**
-   * Set items
-   * @param {vis.DataSet | null} items
-   */
-  LineGraph.prototype.setItems = function (items) {
-    var me = this,
-        ids,
-        oldItemsData = this.itemsData;
-
-    // replace the dataset
-    if (!items) {
-      this.itemsData = null;
-    } else if (items instanceof DataSet || items instanceof DataView) {
-      this.itemsData = items;
-    } else {
-      throw new TypeError('Data must be an instance of DataSet or DataView');
-    }
-
-    if (oldItemsData) {
-      // unsubscribe from old dataset
-      util.forEach(this.itemListeners, function (callback, event) {
-        oldItemsData.off(event, callback);
-      });
-
-      // remove all drawn items
-      ids = oldItemsData.getIds();
-      this._onRemove(ids);
-    }
-
-    if (this.itemsData) {
-      // subscribe to new dataset
-      var id = this.id;
-      util.forEach(this.itemListeners, function (callback, event) {
-        me.itemsData.on(event, callback, id);
-      });
-
-      // add all new items
-      ids = this.itemsData.getIds();
-      this._onAdd(ids);
-    }
-    this._updateUngrouped();
-    //this._updateGraph();
-    this.redraw(true);
-  };
-
-  /**
-   * Set groups
-   * @param {vis.DataSet} groups
-   */
-  LineGraph.prototype.setGroups = function (groups) {
-    var me = this;
-    var ids;
-
-    // unsubscribe from current dataset
-    if (this.groupsData) {
-      util.forEach(this.groupListeners, function (callback, event) {
-        me.groupsData.off(event, callback);
-      });
-
-      // remove all drawn groups
-      ids = this.groupsData.getIds();
-      this.groupsData = null;
-      this._onRemoveGroups(ids); // note: this will cause a redraw
-    }
-
-    // replace the dataset
-    if (!groups) {
-      this.groupsData = null;
-    } else if (groups instanceof DataSet || groups instanceof DataView) {
-      this.groupsData = groups;
-    } else {
-      throw new TypeError('Data must be an instance of DataSet or DataView');
-    }
-
-    if (this.groupsData) {
-      // subscribe to new dataset
-      var id = this.id;
-      util.forEach(this.groupListeners, function (callback, event) {
-        me.groupsData.on(event, callback, id);
-      });
-
-      // draw all ms
-      ids = this.groupsData.getIds();
-      this._onAddGroups(ids);
-    }
-    this._onUpdate();
-  };
-
-  /**
-   * Update the data
-   * @param [ids]
-   * @private
-   */
-  LineGraph.prototype._onUpdate = function (ids) {
-    this._updateUngrouped();
-    this._updateAllGroupData();
-    //this._updateGraph();
-    this.redraw(true);
-  };
-  LineGraph.prototype._onAdd = function (ids) {
-    this._onUpdate(ids);
-  };
-  LineGraph.prototype._onRemove = function (ids) {
-    this._onUpdate(ids);
-  };
-  LineGraph.prototype._onUpdateGroups = function (groupIds) {
-    for (var i = 0; i < groupIds.length; i++) {
-      var group = this.groupsData.get(groupIds[i]);
-      this._updateGroup(group, groupIds[i]);
-    }
-
-    //this._updateGraph();
-    this.redraw(true);
-  };
-  LineGraph.prototype._onAddGroups = function (groupIds) {
-    this._onUpdateGroups(groupIds);
-  };
-
-  /**
-   * this cleans the group out off the legends and the dataaxis, updates the ungrouped and updates the graph
-   * @param {Array} groupIds
-   * @private
-   */
-  LineGraph.prototype._onRemoveGroups = function (groupIds) {
-    for (var i = 0; i < groupIds.length; i++) {
-      if (this.groups.hasOwnProperty(groupIds[i])) {
-        if (this.groups[groupIds[i]].options.yAxisOrientation == 'right') {
-          this.yAxisRight.removeGroup(groupIds[i]);
-          this.legendRight.removeGroup(groupIds[i]);
-          this.legendRight.redraw();
-        } else {
-          this.yAxisLeft.removeGroup(groupIds[i]);
-          this.legendLeft.removeGroup(groupIds[i]);
-          this.legendLeft.redraw();
-        }
-        delete this.groups[groupIds[i]];
-      }
-    }
-    this._updateUngrouped();
-    //this._updateGraph();
-    this.redraw(true);
-  };
-
-  /**
-   * update a group object with the group dataset entree
-   *
-   * @param group
-   * @param groupId
-   * @private
-   */
-  LineGraph.prototype._updateGroup = function (group, groupId) {
-    if (!this.groups.hasOwnProperty(groupId)) {
-      this.groups[groupId] = new GraphGroup(group, groupId, this.options, this.groupsUsingDefaultStyles);
-      if (this.groups[groupId].options.yAxisOrientation == 'right') {
-        this.yAxisRight.addGroup(groupId, this.groups[groupId]);
-        this.legendRight.addGroup(groupId, this.groups[groupId]);
-      } else {
-        this.yAxisLeft.addGroup(groupId, this.groups[groupId]);
-        this.legendLeft.addGroup(groupId, this.groups[groupId]);
-      }
-    } else {
-      this.groups[groupId].update(group);
-      if (this.groups[groupId].options.yAxisOrientation == 'right') {
-        this.yAxisRight.updateGroup(groupId, this.groups[groupId]);
-        this.legendRight.updateGroup(groupId, this.groups[groupId]);
-      } else {
-        this.yAxisLeft.updateGroup(groupId, this.groups[groupId]);
-        this.legendLeft.updateGroup(groupId, this.groups[groupId]);
-      }
-    }
-    this.legendLeft.redraw();
-    this.legendRight.redraw();
-  };
-
-  /**
-   * this updates all groups, it is used when there is an update the the itemset.
-   *
-   * @private
-   */
-  LineGraph.prototype._updateAllGroupData = function () {
-    if (this.itemsData != null) {
-      var groupsContent = {};
-      var groupId;
-      for (groupId in this.groups) {
-        if (this.groups.hasOwnProperty(groupId)) {
-          groupsContent[groupId] = [];
-        }
-      }
-      for (var itemId in this.itemsData._data) {
-        if (this.itemsData._data.hasOwnProperty(itemId)) {
-          var item = this.itemsData._data[itemId];
-          if (groupsContent[item.group] === undefined) {
-            throw new Error('Cannot find referenced group. Possible reason: items added before groups? Groups need to be added before items, as items refer to groups.');
-          }
-          item.x = util.convert(item.x, 'Date');
-          groupsContent[item.group].push(item);
-        }
-      }
-      for (groupId in this.groups) {
-        if (this.groups.hasOwnProperty(groupId)) {
-          this.groups[groupId].setItems(groupsContent[groupId]);
-        }
-      }
-    }
-  };
-
-  /**
-   * Create or delete the group holding all ungrouped items. This group is used when
-   * there are no groups specified. This anonymous group is called 'graph'.
-   * @protected
-   */
-  LineGraph.prototype._updateUngrouped = function () {
-    if (this.itemsData && this.itemsData != null) {
-      var ungroupedCounter = 0;
-      for (var itemId in this.itemsData._data) {
-        if (this.itemsData._data.hasOwnProperty(itemId)) {
-          var item = this.itemsData._data[itemId];
-          if (item != undefined) {
-            if (item.hasOwnProperty('group')) {
-              if (item.group === undefined) {
-                item.group = UNGROUPED;
-              }
-            } else {
-              item.group = UNGROUPED;
-            }
-            ungroupedCounter = item.group == UNGROUPED ? ungroupedCounter + 1 : ungroupedCounter;
-          }
-        }
-      }
-
-      if (ungroupedCounter == 0) {
-        delete this.groups[UNGROUPED];
-        this.legendLeft.removeGroup(UNGROUPED);
-        this.legendRight.removeGroup(UNGROUPED);
-        this.yAxisLeft.removeGroup(UNGROUPED);
-        this.yAxisRight.removeGroup(UNGROUPED);
-      } else {
-        var group = { id: UNGROUPED, content: this.options.defaultGroup };
-        this._updateGroup(group, UNGROUPED);
-      }
-    } else {
-      delete this.groups[UNGROUPED];
-      this.legendLeft.removeGroup(UNGROUPED);
-      this.legendRight.removeGroup(UNGROUPED);
-      this.yAxisLeft.removeGroup(UNGROUPED);
-      this.yAxisRight.removeGroup(UNGROUPED);
-    }
-
-    this.legendLeft.redraw();
-    this.legendRight.redraw();
-  };
-
-  /**
-   * Redraw the component, mandatory function
-   * @return {boolean} Returns true if the component is resized
-   */
-  LineGraph.prototype.redraw = function (forceGraphUpdate) {
-    var resized = false;
-
-    // calculate actual size and position
-    this.props.width = this.dom.frame.offsetWidth;
-    this.props.height = this.body.domProps.centerContainer.height - this.body.domProps.border.top - this.body.domProps.border.bottom;
-
-    // update the graph if there is no lastWidth or with, used for the initial draw
-    if (this.lastWidth === undefined && this.props.width) {
-      forceGraphUpdate = true;
-    }
-
-    // check if this component is resized
-    resized = this._isResized() || resized;
-
-    // check whether zoomed (in that case we need to re-stack everything)
-    var visibleInterval = this.body.range.end - this.body.range.start;
-    var zoomed = visibleInterval != this.lastVisibleInterval;
-    this.lastVisibleInterval = visibleInterval;
-
-    // the svg element is three times as big as the width, this allows for fully dragging left and right
-    // without reloading the graph. the controls for this are bound to events in the constructor
-    if (resized == true) {
-      this.svg.style.width = util.option.asSize(3 * this.props.width);
-      this.svg.style.left = util.option.asSize(-this.props.width);
-
-      // if the height of the graph is set as proportional, change the height of the svg
-      if ((this.options.height + '').indexOf('%') != -1 || this.updateSVGheightOnResize == true) {
-        this.updateSVGheight = true;
-      }
-    }
-
-    // update the height of the graph on each redraw of the graph.
-    if (this.updateSVGheight == true) {
-      if (this.options.graphHeight != this.props.height + 'px') {
-        this.options.graphHeight = this.props.height + 'px';
-        this.svg.style.height = this.props.height + 'px';
-      }
-      this.updateSVGheight = false;
-    } else {
-      this.svg.style.height = ('' + this.options.graphHeight).replace('px', '') + 'px';
-    }
-
-    // zoomed is here to ensure that animations are shown correctly.
-    if (resized == true || zoomed == true || this.abortedGraphUpdate == true || forceGraphUpdate == true) {
-      resized = this._updateGraph() || resized;
-    } else {
-      // move the whole svg while dragging
-      if (this.lastStart != 0) {
-        var offset = this.body.range.start - this.lastStart;
-        var range = this.body.range.end - this.body.range.start;
-        if (this.props.width != 0) {
-          var rangePerPixelInv = this.props.width / range;
-          var xOffset = offset * rangePerPixelInv;
-          this.svg.style.left = -this.props.width - xOffset + 'px';
-        }
-      }
-    }
-
-    this.legendLeft.redraw();
-    this.legendRight.redraw();
-    return resized;
-  };
-
-  /**
-   * Update and redraw the graph.
-   *
-   */
-  LineGraph.prototype._updateGraph = function () {
-    // reset the svg elements
-    DOMutil.prepareElements(this.svgElements);
-    if (this.props.width != 0 && this.itemsData != null) {
-      var group, i;
-      var preprocessedGroupData = {};
-      var processedGroupData = {};
-      var groupRanges = {};
-      var changeCalled = false;
-
-      // getting group Ids
-      var groupIds = [];
-      for (var groupId in this.groups) {
-        if (this.groups.hasOwnProperty(groupId)) {
-          group = this.groups[groupId];
-          if (group.visible == true && (this.options.groups.visibility[groupId] === undefined || this.options.groups.visibility[groupId] == true)) {
-            groupIds.push(groupId);
-          }
-        }
-      }
-      if (groupIds.length > 0) {
-        // this is the range of the SVG canvas
-        var minDate = this.body.util.toGlobalTime(-this.body.domProps.root.width);
-        var maxDate = this.body.util.toGlobalTime(2 * this.body.domProps.root.width);
-        var groupsData = {};
-        // fill groups data, this only loads the data we require based on the timewindow
-        this._getRelevantData(groupIds, groupsData, minDate, maxDate);
-
-        // apply sampling, if disabled, it will pass through this function.
-        this._applySampling(groupIds, groupsData);
-
-        // we transform the X coordinates to detect collisions
-        for (i = 0; i < groupIds.length; i++) {
-          preprocessedGroupData[groupIds[i]] = this._convertXcoordinates(groupsData[groupIds[i]]);
-        }
-
-        // now all needed data has been collected we start the processing.
-        this._getYRanges(groupIds, preprocessedGroupData, groupRanges);
-
-        // update the Y axis first, we use this data to draw at the correct Y points
-        // changeCalled is required to clean the SVG on a change emit.
-        changeCalled = this._updateYAxis(groupIds, groupRanges);
-        var MAX_CYCLES = 5;
-        if (changeCalled == true && this.COUNTER < MAX_CYCLES) {
-          DOMutil.cleanupElements(this.svgElements);
-          this.abortedGraphUpdate = true;
-          this.COUNTER++;
-          this.body.emitter.emit('change');
-          return true;
-        } else {
-          if (this.COUNTER > MAX_CYCLES) {
-            console.log('WARNING: there may be an infinite loop in the _updateGraph emitter cycle.');
-          }
-          this.COUNTER = 0;
-          this.abortedGraphUpdate = false;
-
-          // With the yAxis scaled correctly, use this to get the Y values of the points.
-          for (i = 0; i < groupIds.length; i++) {
-            group = this.groups[groupIds[i]];
-            processedGroupData[groupIds[i]] = this._convertYcoordinates(groupsData[groupIds[i]], group);
-          }
-
-          // draw the groups
-          for (i = 0; i < groupIds.length; i++) {
-            group = this.groups[groupIds[i]];
-            if (group.options.style != 'bar') {
-              // bar needs to be drawn enmasse
-              group.draw(processedGroupData[groupIds[i]], group, this.framework);
-            }
-          }
-          BarFunctions.draw(groupIds, processedGroupData, this.framework);
-        }
-      }
-    }
-
-    // cleanup unused svg elements
-    DOMutil.cleanupElements(this.svgElements);
-    return false;
-  };
-
-  /**
-   * first select and preprocess the data from the datasets.
-   * the groups have their preselection of data, we now loop over this data to see
-   * what data we need to draw. Sorted data is much faster.
-   * more optimization is possible by doing the sampling before and using the binary search
-   * to find the end date to determine the increment.
-   *
-   * @param {array}  groupIds
-   * @param {object} groupsData
-   * @param {date}   minDate
-   * @param {date}   maxDate
-   * @private
-   */
-  LineGraph.prototype._getRelevantData = function (groupIds, groupsData, minDate, maxDate) {
-    var group, i, j, item;
-    if (groupIds.length > 0) {
-      for (i = 0; i < groupIds.length; i++) {
-        group = this.groups[groupIds[i]];
-        groupsData[groupIds[i]] = [];
-        var dataContainer = groupsData[groupIds[i]];
-        // optimization for sorted data
-        if (group.options.sort == true) {
-          var guess = Math.max(0, util.binarySearchValue(group.itemsData, minDate, 'x', 'before'));
-          for (j = guess; j < group.itemsData.length; j++) {
-            item = group.itemsData[j];
-            if (item !== undefined) {
-              if (item.x > maxDate) {
-                dataContainer.push(item);
-                break;
-              } else {
-                dataContainer.push(item);
-              }
-            }
-          }
-        } else {
-          for (j = 0; j < group.itemsData.length; j++) {
-            item = group.itemsData[j];
-            if (item !== undefined) {
-              if (item.x > minDate && item.x < maxDate) {
-                dataContainer.push(item);
-              }
-            }
-          }
-        }
-      }
-    }
-  };
-
-  /**
-   *
-   * @param groupIds
-   * @param groupsData
-   * @private
-   */
-  LineGraph.prototype._applySampling = function (groupIds, groupsData) {
-    var group;
-    if (groupIds.length > 0) {
-      for (var i = 0; i < groupIds.length; i++) {
-        group = this.groups[groupIds[i]];
-        if (group.options.sampling == true) {
-          var dataContainer = groupsData[groupIds[i]];
-          if (dataContainer.length > 0) {
-            var increment = 1;
-            var amountOfPoints = dataContainer.length;
-
-            // the global screen is used because changing the width of the yAxis may affect the increment, resulting in an endless loop
-            // of width changing of the yAxis.
-            var xDistance = this.body.util.toGlobalScreen(dataContainer[dataContainer.length - 1].x) - this.body.util.toGlobalScreen(dataContainer[0].x);
-            var pointsPerPixel = amountOfPoints / xDistance;
-            increment = Math.min(Math.ceil(0.2 * amountOfPoints), Math.max(1, Math.round(pointsPerPixel)));
-
-            var sampledData = [];
-            for (var j = 0; j < amountOfPoints; j += increment) {
-              sampledData.push(dataContainer[j]);
-            }
-            groupsData[groupIds[i]] = sampledData;
-          }
-        }
-      }
-    }
-  };
-
-  /**
-   *
-   *
-   * @param {array}  groupIds
-   * @param {object} groupsData
-   * @param {object} groupRanges  | this is being filled here
-   * @private
-   */
-  LineGraph.prototype._getYRanges = function (groupIds, groupsData, groupRanges) {
-    var groupData, group, i;
-    var combinedDataLeft = [];
-    var combinedDataRight = [];
-    var options;
-    if (groupIds.length > 0) {
-      for (i = 0; i < groupIds.length; i++) {
-        groupData = groupsData[groupIds[i]];
-        options = this.groups[groupIds[i]].options;
-        if (groupData.length > 0) {
-          group = this.groups[groupIds[i]];
-          // if bar graphs are stacked, their range need to be handled differently and accumulated over all groups.
-          if (options.stack === true && options.style === 'bar') {
-            if (options.yAxisOrientation === 'left') {
-              combinedDataLeft = combinedDataLeft.concat(group.getData(groupData));
-            } else {
-              combinedDataRight = combinedDataRight.concat(group.getData(groupData));
-            }
-          } else {
-            groupRanges[groupIds[i]] = group.getYRange(groupData, groupIds[i]);
-          }
-        }
-      }
-
-      // if bar graphs are stacked, their range need to be handled differently and accumulated over all groups.
-      BarFunctions.getStackedYRange(combinedDataLeft, groupRanges, groupIds, '__barStackLeft', 'left');
-      BarFunctions.getStackedYRange(combinedDataRight, groupRanges, groupIds, '__barStackRight', 'right');
-      // if line graphs are stacked, their range need to be handled differently and accumulated over all groups.
-      //LineFunctions.getStackedYRange(combinedDataLeft , groupRanges, groupIds, '__lineStackLeft' , 'left' );
-      //LineFunctions.getStackedYRange(combinedDataRight, groupRanges, groupIds, '__lineStackRight', 'right');
-    }
-  };
-
-  /**
-   * this sets the Y ranges for the Y axis. It also determines which of the axis should be shown or hidden.
-   * @param {Array} groupIds
-   * @param {Object} groupRanges
-   * @private
-   */
-  LineGraph.prototype._updateYAxis = function (groupIds, groupRanges) {
-    var resized = false;
-    var yAxisLeftUsed = false;
-    var yAxisRightUsed = false;
-    var minLeft = 1000000000,
-        minRight = 1000000000,
-        maxLeft = -1000000000,
-        maxRight = -1000000000,
-        minVal,
-        maxVal;
-    // if groups are present
-    if (groupIds.length > 0) {
-      // this is here to make sure that if there are no items in the axis but there are groups, that there is no infinite draw/redraw loop.
-      for (var i = 0; i < groupIds.length; i++) {
-        var group = this.groups[groupIds[i]];
-        if (group && group.options.yAxisOrientation != 'right') {
-          yAxisLeftUsed = true;
-          minLeft = 0;
-          maxLeft = 0;
-        } else if (group && group.options.yAxisOrientation) {
-          yAxisRightUsed = true;
-          minRight = 0;
-          maxRight = 0;
-        }
-      }
-
-      // if there are items:
-      for (var i = 0; i < groupIds.length; i++) {
-        if (groupRanges.hasOwnProperty(groupIds[i])) {
-          if (groupRanges[groupIds[i]].ignore !== true) {
-            minVal = groupRanges[groupIds[i]].min;
-            maxVal = groupRanges[groupIds[i]].max;
-
-            if (groupRanges[groupIds[i]].yAxisOrientation != 'right') {
-              yAxisLeftUsed = true;
-              minLeft = minLeft > minVal ? minVal : minLeft;
-              maxLeft = maxLeft < maxVal ? maxVal : maxLeft;
-            } else {
-              yAxisRightUsed = true;
-              minRight = minRight > minVal ? minVal : minRight;
-              maxRight = maxRight < maxVal ? maxVal : maxRight;
-            }
-          }
-        }
-      }
-
-      if (yAxisLeftUsed == true) {
-        this.yAxisLeft.setRange(minLeft, maxLeft);
-      }
-      if (yAxisRightUsed == true) {
-        this.yAxisRight.setRange(minRight, maxRight);
-      }
-    }
-    resized = this._toggleAxisVisiblity(yAxisLeftUsed, this.yAxisLeft) || resized;
-    resized = this._toggleAxisVisiblity(yAxisRightUsed, this.yAxisRight) || resized;
-
-    if (yAxisRightUsed == true && yAxisLeftUsed == true) {
-      this.yAxisLeft.drawIcons = true;
-      this.yAxisRight.drawIcons = true;
-    } else {
-      this.yAxisLeft.drawIcons = false;
-      this.yAxisRight.drawIcons = false;
-    }
-    this.yAxisRight.master = !yAxisLeftUsed;
-    if (this.yAxisRight.master == false) {
-      if (yAxisRightUsed == true) {
-        this.yAxisLeft.lineOffset = this.yAxisRight.width;
-      } else {
-        this.yAxisLeft.lineOffset = 0;
-      }
-
-      resized = this.yAxisLeft.redraw() || resized;
-      this.yAxisRight.stepPixels = this.yAxisLeft.stepPixels;
-      this.yAxisRight.zeroCrossing = this.yAxisLeft.zeroCrossing;
-      this.yAxisRight.amountOfSteps = this.yAxisLeft.amountOfSteps;
-      resized = this.yAxisRight.redraw() || resized;
-    } else {
-      resized = this.yAxisRight.redraw() || resized;
-    }
-
-    // clean the accumulated lists
-    var tempGroups = ['__barStackLeft', '__barStackRight', '__lineStackLeft', '__lineStackRight'];
-    for (var i = 0; i < tempGroups.length; i++) {
-      if (groupIds.indexOf(tempGroups[i]) != -1) {
-        groupIds.splice(groupIds.indexOf(tempGroups[i]), 1);
-      }
-    }
-
-    return resized;
-  };
-
-  /**
-   * This shows or hides the Y axis if needed. If there is a change, the changed event is emitted by the updateYAxis function
-   *
-   * @param {boolean} axisUsed
-   * @returns {boolean}
-   * @private
-   * @param axis
-   */
-  LineGraph.prototype._toggleAxisVisiblity = function (axisUsed, axis) {
-    var changed = false;
-    if (axisUsed == false) {
-      if (axis.dom.frame.parentNode && axis.hidden == false) {
-        axis.hide();
-        changed = true;
-      }
-    } else {
-      if (!axis.dom.frame.parentNode && axis.hidden == true) {
-        axis.show();
-        changed = true;
-      }
-    }
-    return changed;
-  };
-
-  /**
-   * This uses the DataAxis object to generate the correct X coordinate on the SVG window. It uses the
-   * util function toScreen to get the x coordinate from the timestamp. It also pre-filters the data and get the minMax ranges for
-   * the yAxis.
-   *
-   * @param datapoints
-   * @returns {Array}
-   * @private
-   */
-  LineGraph.prototype._convertXcoordinates = function (datapoints) {
-    var extractedData = [];
-    var xValue, yValue;
-    var toScreen = this.body.util.toScreen;
-
-    for (var i = 0; i < datapoints.length; i++) {
-      xValue = toScreen(datapoints[i].x) + this.props.width;
-      yValue = datapoints[i].y;
-      extractedData.push({ x: xValue, y: yValue });
-    }
-
-    return extractedData;
-  };
-
-  /**
-   * This uses the DataAxis object to generate the correct X coordinate on the SVG window. It uses the
-   * util function toScreen to get the x coordinate from the timestamp. It also pre-filters the data and get the minMax ranges for
-   * the yAxis.
-   *
-   * @param datapoints
-   * @param group
-   * @returns {Array}
-   * @private
-   */
-  LineGraph.prototype._convertYcoordinates = function (datapoints, group) {
-    var extractedData = [];
-    var xValue, yValue;
-    var toScreen = this.body.util.toScreen;
-    var axis = this.yAxisLeft;
-    var svgHeight = Number(this.svg.style.height.replace('px', ''));
-    if (group.options.yAxisOrientation == 'right') {
-      axis = this.yAxisRight;
-    }
-
-    for (var i = 0; i < datapoints.length; i++) {
-      var labelValue = datapoints[i].label ? datapoints[i].label : null;
-      xValue = toScreen(datapoints[i].x) + this.props.width;
-      yValue = Math.round(axis.convertValue(datapoints[i].y));
-      extractedData.push({ x: xValue, y: yValue, label: labelValue });
-    }
-
-    group.setZeroPosition(Math.min(svgHeight, axis.convertValue(0)));
-
-    return extractedData;
-  };
-
-  module.exports = LineGraph;
-
-/***/ },
-/* 6 */
+/* 4 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -3154,39 +2217,39 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
 
-  var _componentsPhysicsBarnesHutSolver = __webpack_require__(7);
+  var _componentsPhysicsBarnesHutSolver = __webpack_require__(90);
 
   var _componentsPhysicsBarnesHutSolver2 = _interopRequireDefault(_componentsPhysicsBarnesHutSolver);
 
-  var _componentsPhysicsRepulsionSolver = __webpack_require__(92);
+  var _componentsPhysicsRepulsionSolver = __webpack_require__(91);
 
   var _componentsPhysicsRepulsionSolver2 = _interopRequireDefault(_componentsPhysicsRepulsionSolver);
 
-  var _componentsPhysicsHierarchicalRepulsionSolver = __webpack_require__(93);
+  var _componentsPhysicsHierarchicalRepulsionSolver = __webpack_require__(92);
 
   var _componentsPhysicsHierarchicalRepulsionSolver2 = _interopRequireDefault(_componentsPhysicsHierarchicalRepulsionSolver);
 
-  var _componentsPhysicsSpringSolver = __webpack_require__(8);
+  var _componentsPhysicsSpringSolver = __webpack_require__(93);
 
   var _componentsPhysicsSpringSolver2 = _interopRequireDefault(_componentsPhysicsSpringSolver);
 
-  var _componentsPhysicsHierarchicalSpringSolver = __webpack_require__(94);
+  var _componentsPhysicsHierarchicalSpringSolver = __webpack_require__(6);
 
   var _componentsPhysicsHierarchicalSpringSolver2 = _interopRequireDefault(_componentsPhysicsHierarchicalSpringSolver);
 
-  var _componentsPhysicsCentralGravitySolver = __webpack_require__(95);
+  var _componentsPhysicsCentralGravitySolver = __webpack_require__(94);
 
   var _componentsPhysicsCentralGravitySolver2 = _interopRequireDefault(_componentsPhysicsCentralGravitySolver);
 
-  var _componentsPhysicsFA2BasedRepulsionSolver = __webpack_require__(96);
+  var _componentsPhysicsFA2BasedRepulsionSolver = __webpack_require__(95);
 
   var _componentsPhysicsFA2BasedRepulsionSolver2 = _interopRequireDefault(_componentsPhysicsFA2BasedRepulsionSolver);
 
-  var _componentsPhysicsFA2BasedCentralGravitySolver = __webpack_require__(97);
+  var _componentsPhysicsFA2BasedCentralGravitySolver = __webpack_require__(96);
 
   var _componentsPhysicsFA2BasedCentralGravitySolver2 = _interopRequireDefault(_componentsPhysicsFA2BasedCentralGravitySolver);
 
-  var util = __webpack_require__(4);
+  var util = __webpack_require__(3);
 
   var PhysicsEngine = (function () {
     function PhysicsEngine(body) {
@@ -3366,7 +2429,6 @@ return /******/ (function(modules) { // webpackBootstrap
 
           // this sets the width of all nodes initially which could be required for the avoidOverlap
           this.body.emitter.emit('_resizeNodes');
-
           if (this.viewFunction === undefined) {
             this.viewFunction = this.simulationStep.bind(this);
             this.body.emitter.on('initRedraw', this.viewFunction);
@@ -3435,7 +2497,7 @@ return /******/ (function(modules) { // webpackBootstrap
       value: function _emitStabilized() {
         var _this2 = this;
 
-        if (this.stabilizationIterations > 1) {
+        if (this.stabilizationIterations > 0) {
           setTimeout(function () {
             _this2.body.emitter.emit('stabilized', { iterations: _this2.stabilizationIterations });
             _this2.stabilizationIterations = 0;
@@ -3762,501 +2824,613 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 7 */
+/* 5 */
 /***/ function(module, exports, __webpack_require__) {
 
-  "use strict";
+  // Load custom shapes into CanvasRenderingContext2D
+  'use strict';
 
-  Object.defineProperty(exports, "__esModule", {
-    value: true
-  });
+  function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
 
-  var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
+  var _modulesGroups = __webpack_require__(62);
 
-  function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+  var _modulesGroups2 = _interopRequireDefault(_modulesGroups);
 
-  var BarnesHutSolver = (function () {
-    function BarnesHutSolver(body, physicsBody, options) {
-      _classCallCheck(this, BarnesHutSolver);
+  var _modulesNodesHandler = __webpack_require__(63);
 
-      this.body = body;
-      this.physicsBody = physicsBody;
-      this.barnesHutTree;
-      this.setOptions(options);
+  var _modulesNodesHandler2 = _interopRequireDefault(_modulesNodesHandler);
+
+  var _modulesEdgesHandler = __webpack_require__(83);
+
+  var _modulesEdgesHandler2 = _interopRequireDefault(_modulesEdgesHandler);
+
+  var _modulesPhysicsEngine = __webpack_require__(4);
+
+  var _modulesPhysicsEngine2 = _interopRequireDefault(_modulesPhysicsEngine);
+
+  var _modulesClustering = __webpack_require__(97);
+
+  var _modulesClustering2 = _interopRequireDefault(_modulesClustering);
+
+  var _modulesCanvasRenderer = __webpack_require__(99);
+
+  var _modulesCanvasRenderer2 = _interopRequireDefault(_modulesCanvasRenderer);
+
+  var _modulesCanvas = __webpack_require__(100);
+
+  var _modulesCanvas2 = _interopRequireDefault(_modulesCanvas);
+
+  var _modulesView = __webpack_require__(101);
+
+  var _modulesView2 = _interopRequireDefault(_modulesView);
+
+  var _modulesInteractionHandler = __webpack_require__(102);
+
+  var _modulesInteractionHandler2 = _interopRequireDefault(_modulesInteractionHandler);
+
+  var _modulesSelectionHandler = __webpack_require__(105);
+
+  var _modulesSelectionHandler2 = _interopRequireDefault(_modulesSelectionHandler);
+
+  var _modulesLayoutEngine = __webpack_require__(106);
+
+  var _modulesLayoutEngine2 = _interopRequireDefault(_modulesLayoutEngine);
+
+  var _modulesManipulationSystem = __webpack_require__(107);
+
+  var _modulesManipulationSystem2 = _interopRequireDefault(_modulesManipulationSystem);
+
+  var _sharedConfigurator = __webpack_require__(2);
+
+  var _sharedConfigurator2 = _interopRequireDefault(_sharedConfigurator);
+
+  var _sharedValidator = __webpack_require__(50);
+
+  var _sharedValidator2 = _interopRequireDefault(_sharedValidator);
+
+  var _optionsJs = __webpack_require__(108);
+
+  __webpack_require__(109);
+
+  var Emitter = __webpack_require__(17);
+  var Hammer = __webpack_require__(27);
+  var util = __webpack_require__(3);
+  var DataSet = __webpack_require__(12);
+  var DataView = __webpack_require__(14);
+  var dotparser = __webpack_require__(110);
+  var gephiParser = __webpack_require__(111);
+  var Images = __webpack_require__(112);
+  var Activator = __webpack_require__(46);
+  var locales = __webpack_require__(113);
+
+  /**
+   * @constructor Network
+   * Create a network visualization, displaying nodes and edges.
+   *
+   * @param {Element} container   The DOM element in which the Network will
+   *                                  be created. Normally a div element.
+   * @param {Object} data         An object containing parameters
+   *                              {Array} nodes
+   *                              {Array} edges
+   * @param {Object} options      Options
+   */
+  function Network(container, data, options) {
+    var _this = this;
+
+    if (!(this instanceof Network)) {
+      throw new SyntaxError('Constructor must be called with the new operator');
     }
 
-    _createClass(BarnesHutSolver, [{
-      key: "setOptions",
-      value: function setOptions(options) {
-        this.options = options;
-        this.thetaInversed = 1 / this.options.theta;
-        this.overlapAvoidanceFactor = 1 - Math.max(0, Math.min(1, this.options.avoidOverlap)); // if 1 then min distance = 0.5, if 0.5 then min distance = 0.5 + 0.5*node.shape.radius
+    // set constant values
+    this.options = {};
+    this.defaultOptions = {
+      locale: 'en',
+      locales: locales,
+      clickToUse: false
+    };
+    util.extend(this.options, this.defaultOptions);
+
+    // containers for nodes and edges
+    this.body = {
+      container: container,
+      nodes: {},
+      nodeIndices: [],
+      edges: {},
+      edgeIndices: [],
+      emitter: {
+        on: this.on.bind(this),
+        off: this.off.bind(this),
+        emit: this.emit.bind(this),
+        once: this.once.bind(this)
+      },
+      eventListeners: {
+        onTap: function onTap() {},
+        onTouch: function onTouch() {},
+        onDoubleTap: function onDoubleTap() {},
+        onHold: function onHold() {},
+        onDragStart: function onDragStart() {},
+        onDrag: function onDrag() {},
+        onDragEnd: function onDragEnd() {},
+        onMouseWheel: function onMouseWheel() {},
+        onPinch: function onPinch() {},
+        onMouseMove: function onMouseMove() {},
+        onRelease: function onRelease() {},
+        onContext: function onContext() {}
+      },
+      data: {
+        nodes: null, // A DataSet or DataView
+        edges: null // A DataSet or DataView
+      },
+      functions: {
+        createNode: function createNode() {},
+        createEdge: function createEdge() {},
+        getPointer: function getPointer() {}
+      },
+      view: {
+        scale: 1,
+        translation: { x: 0, y: 0 }
       }
-    }, {
-      key: "solve",
+    };
 
-      /**
-       * This function calculates the forces the nodes apply on eachother based on a gravitational model.
-       * The Barnes Hut method is used to speed up this N-body simulation.
-       *
-       * @private
-       */
-      value: function solve() {
-        if (this.options.gravitationalConstant !== 0 && this.physicsBody.physicsNodeIndices.length > 0) {
-          var node = undefined;
-          var nodes = this.body.nodes;
-          var nodeIndices = this.physicsBody.physicsNodeIndices;
-          var nodeCount = nodeIndices.length;
+    // bind the event listeners
+    this.bindEventListeners();
 
-          // create the tree
-          var barnesHutTree = this._formBarnesHutTree(nodes, nodeIndices);
+    // setting up all modules
+    this.images = new Images(function () {
+      return _this.body.emitter.emit('_requestRedraw');
+    }); // object with images
+    this.groups = new _modulesGroups2['default'](); // object with groups
+    this.canvas = new _modulesCanvas2['default'](this.body); // DOM handler
+    this.selectionHandler = new _modulesSelectionHandler2['default'](this.body, this.canvas); // Selection handler
+    this.interactionHandler = new _modulesInteractionHandler2['default'](this.body, this.canvas, this.selectionHandler); // Interaction handler handles all the hammer bindings (that are bound by canvas), key
+    this.view = new _modulesView2['default'](this.body, this.canvas); // camera handler, does animations and zooms
+    this.renderer = new _modulesCanvasRenderer2['default'](this.body, this.canvas); // renderer, starts renderloop, has events that modules can hook into
+    this.physics = new _modulesPhysicsEngine2['default'](this.body); // physics engine, does all the simulations
+    this.layoutEngine = new _modulesLayoutEngine2['default'](this.body); // layout engine for inital layout and hierarchical layout
+    this.clustering = new _modulesClustering2['default'](this.body); // clustering api
+    this.manipulation = new _modulesManipulationSystem2['default'](this.body, this.canvas, this.selectionHandler); // data manipulation system
 
-          // for debugging
-          this.barnesHutTree = barnesHutTree;
+    this.nodesHandler = new _modulesNodesHandler2['default'](this.body, this.images, this.groups, this.layoutEngine); // Handle adding, deleting and updating of nodes as well as global options
+    this.edgesHandler = new _modulesEdgesHandler2['default'](this.body, this.images, this.groups); // Handle adding, deleting and updating of edges as well as global options
 
-          // place the nodes one by one recursively
-          for (var i = 0; i < nodeCount; i++) {
-            node = nodes[nodeIndices[i]];
-            if (node.options.mass > 0) {
-              // starting with root is irrelevant, it never passes the BarnesHutSolver condition
-              this._getForceContribution(barnesHutTree.root.children.NW, node);
-              this._getForceContribution(barnesHutTree.root.children.NE, node);
-              this._getForceContribution(barnesHutTree.root.children.SW, node);
-              this._getForceContribution(barnesHutTree.root.children.SE, node);
-            }
-          }
-        }
+    // create the DOM elements
+    this.canvas._create();
+
+    // setup configuration system
+    this.configurator = new _sharedConfigurator2['default'](this, this.body.container, _optionsJs.configureOptions, this.canvas.pixelRatio);
+
+    // apply options
+    this.setOptions(options);
+
+    // load data (the disable start variable will be the same as the enabled clustering)
+    this.setData(data);
+  }
+
+  // Extend Network with an Emitter mixin
+  Emitter(Network.prototype);
+
+  /**
+   * Set options
+   * @param {Object} options
+   */
+  Network.prototype.setOptions = function (options) {
+    var _this2 = this;
+
+    if (options !== undefined) {
+
+      var errorFound = _sharedValidator2['default'].validate(options, _optionsJs.allOptions);
+      if (errorFound === true) {
+        console.log('%cErrors have been found in the supplied options object.', _sharedValidator.printStyle);
       }
-    }, {
-      key: "_getForceContribution",
 
-      /**
-       * This function traverses the barnesHutTree. It checks when it can approximate distant nodes with their center of mass.
-       * If a region contains a single node, we check if it is not itself, then we apply the force.
-       *
-       * @param parentBranch
-       * @param node
-       * @private
-       */
-      value: function _getForceContribution(parentBranch, node) {
-        // we get no force contribution from an empty region
-        if (parentBranch.childrenCount > 0) {
-          var dx = undefined,
-              dy = undefined,
-              distance = undefined;
+      // copy the global fields over
+      var fields = ['locale', 'locales', 'clickToUse'];
+      util.selectiveDeepExtend(fields, this.options, options);
 
-          // get the distance from the center of mass to the node.
-          dx = parentBranch.centerOfMass.x - node.x;
-          dy = parentBranch.centerOfMass.y - node.y;
-          distance = Math.sqrt(dx * dx + dy * dy);
+      // the hierarchical system can adapt the edges and the physics to it's own options because not all combinations work with the hierarichical system.
+      options = this.layoutEngine.setOptions(options.layout, options);
 
-          // BarnesHutSolver condition
-          // original condition : s/d < theta = passed  ===  d/s > 1/theta = passed
-          // calcSize = 1/s --> d * 1/s > 1/theta = passed
-          if (distance * parentBranch.calcSize > this.thetaInversed) {
-            this._calculateForces(distance, dx, dy, node, parentBranch);
-          } else {
-            // Did not pass the condition, go into children if available
-            if (parentBranch.childrenCount === 4) {
-              this._getForceContribution(parentBranch.children.NW, node);
-              this._getForceContribution(parentBranch.children.NE, node);
-              this._getForceContribution(parentBranch.children.SW, node);
-              this._getForceContribution(parentBranch.children.SE, node);
-            } else {
-              // parentBranch must have only one node, if it was empty we wouldnt be here
-              if (parentBranch.children.data.id != node.id) {
-                // if it is not self
-                this._calculateForces(distance, dx, dy, node, parentBranch);
-              }
-            }
-          }
-        }
+      this.canvas.setOptions(options); // options for canvas are in globals
+
+      // pass the options to the modules
+      this.groups.setOptions(options.groups);
+      this.nodesHandler.setOptions(options.nodes);
+      this.edgesHandler.setOptions(options.edges);
+      this.physics.setOptions(options.physics);
+      this.manipulation.setOptions(options.manipulation, options, this.options); // manipulation uses the locales in the globals
+
+      this.interactionHandler.setOptions(options.interaction);
+      this.renderer.setOptions(options.interaction); // options for rendering are in interaction
+      this.selectionHandler.setOptions(options.interaction); // options for selection are in interaction
+
+      // reload the settings of the nodes to apply changes in groups that are not referenced by pointer.
+      if (options.groups !== undefined) {
+        this.body.emitter.emit('refreshNodes');
       }
-    }, {
-      key: "_calculateForces",
+      // these two do not have options at the moment, here for completeness
+      //this.view.setOptions(options.view);
+      //this.clustering.setOptions(options.clustering);
 
-      /**
-       * Calculate the forces based on the distance.
-       *
-       * @param distance
-       * @param dx
-       * @param dy
-       * @param node
-       * @param parentBranch
-       * @private
-       */
-      value: function _calculateForces(distance, dx, dy, node, parentBranch) {
-        if (distance === 0) {
-          distance = 0.1;
-          dx = distance;
-        }
+      this.configurator.setOptions(options.configure);
 
-        if (this.overlapAvoidanceFactor < 1) {
-          distance = Math.max(0.1 + this.overlapAvoidanceFactor * node.shape.radius, distance - node.shape.radius);
-        }
+      // if the configuration system is enabled, copy all options and put them into the config system
+      if (this.configurator.options.enabled === true) {
+        var networkOptions = { nodes: {}, edges: {}, layout: {}, interaction: {}, manipulation: {}, physics: {}, global: {} };
+        util.deepExtend(networkOptions.nodes, this.nodesHandler.options);
+        util.deepExtend(networkOptions.edges, this.edgesHandler.options);
+        util.deepExtend(networkOptions.layout, this.layoutEngine.options);
+        // load the selectionHandler and rendere default options in to the interaction group
+        util.deepExtend(networkOptions.interaction, this.selectionHandler.options);
+        util.deepExtend(networkOptions.interaction, this.renderer.options);
 
-        // the dividing by the distance cubed instead of squared allows us to get the fx and fy components without sines and cosines
-        // it is shorthand for gravityforce with distance squared and fx = dx/distance * gravityForce
-        var gravityForce = this.options.gravitationalConstant * parentBranch.mass * node.options.mass / Math.pow(distance, 3);
-        var fx = dx * gravityForce;
-        var fy = dy * gravityForce;
+        util.deepExtend(networkOptions.interaction, this.interactionHandler.options);
+        util.deepExtend(networkOptions.manipulation, this.manipulation.options);
+        util.deepExtend(networkOptions.physics, this.physics.options);
 
-        this.physicsBody.forces[node.id].x += fx;
-        this.physicsBody.forces[node.id].y += fy;
+        // load globals into the global object
+        util.deepExtend(networkOptions.global, this.canvas.options);
+        util.deepExtend(networkOptions.global, this.options);
+
+        this.configurator.setModuleOptions(networkOptions);
       }
-    }, {
-      key: "_formBarnesHutTree",
 
-      /**
-       * This function constructs the barnesHut tree recursively. It creates the root, splits it and starts placing the nodes.
-       *
-       * @param nodes
-       * @param nodeIndices
-       * @private
-       */
-      value: function _formBarnesHutTree(nodes, nodeIndices) {
-        var node = undefined;
-        var nodeCount = nodeIndices.length;
-
-        var minX = nodes[nodeIndices[0]].x;
-        var minY = nodes[nodeIndices[0]].y;
-        var maxX = nodes[nodeIndices[0]].x;
-        var maxY = nodes[nodeIndices[0]].y;
-
-        // get the range of the nodes
-        for (var i = 1; i < nodeCount; i++) {
-          var x = nodes[nodeIndices[i]].x;
-          var y = nodes[nodeIndices[i]].y;
-          if (nodes[nodeIndices[i]].options.mass > 0) {
-            if (x < minX) {
-              minX = x;
-            }
-            if (x > maxX) {
-              maxX = x;
-            }
-            if (y < minY) {
-              minY = y;
-            }
-            if (y > maxY) {
-              maxY = y;
-            }
-          }
-        }
-        // make the range a square
-        var sizeDiff = Math.abs(maxX - minX) - Math.abs(maxY - minY); // difference between X and Y
-        if (sizeDiff > 0) {
-          minY -= 0.5 * sizeDiff;
-          maxY += 0.5 * sizeDiff;
-        } // xSize > ySize
-        else {
-          minX += 0.5 * sizeDiff;
-          maxX -= 0.5 * sizeDiff;
-        } // xSize < ySize
-
-        var minimumTreeSize = 0.00001;
-        var rootSize = Math.max(minimumTreeSize, Math.abs(maxX - minX));
-        var halfRootSize = 0.5 * rootSize;
-        var centerX = 0.5 * (minX + maxX),
-            centerY = 0.5 * (minY + maxY);
-
-        // construct the barnesHutTree
-        var barnesHutTree = {
-          root: {
-            centerOfMass: { x: 0, y: 0 },
-            mass: 0,
-            range: {
-              minX: centerX - halfRootSize, maxX: centerX + halfRootSize,
-              minY: centerY - halfRootSize, maxY: centerY + halfRootSize
-            },
-            size: rootSize,
-            calcSize: 1 / rootSize,
-            children: { data: null },
-            maxWidth: 0,
-            level: 0,
-            childrenCount: 4
-          }
-        };
-        this._splitBranch(barnesHutTree.root);
-
-        // place the nodes one by one recursively
-        for (var i = 0; i < nodeCount; i++) {
-          node = nodes[nodeIndices[i]];
-          if (node.options.mass > 0) {
-            this._placeInTree(barnesHutTree.root, node);
-          }
-        }
-
-        // make global
-        return barnesHutTree;
-      }
-    }, {
-      key: "_updateBranchMass",
-
-      /**
-       * this updates the mass of a branch. this is increased by adding a node.
-       *
-       * @param parentBranch
-       * @param node
-       * @private
-       */
-      value: function _updateBranchMass(parentBranch, node) {
-        var totalMass = parentBranch.mass + node.options.mass;
-        var totalMassInv = 1 / totalMass;
-
-        parentBranch.centerOfMass.x = parentBranch.centerOfMass.x * parentBranch.mass + node.x * node.options.mass;
-        parentBranch.centerOfMass.x *= totalMassInv;
-
-        parentBranch.centerOfMass.y = parentBranch.centerOfMass.y * parentBranch.mass + node.y * node.options.mass;
-        parentBranch.centerOfMass.y *= totalMassInv;
-
-        parentBranch.mass = totalMass;
-        var biggestSize = Math.max(Math.max(node.height, node.radius), node.width);
-        parentBranch.maxWidth = parentBranch.maxWidth < biggestSize ? biggestSize : parentBranch.maxWidth;
-      }
-    }, {
-      key: "_placeInTree",
-
-      /**
-       * determine in which branch the node will be placed.
-       *
-       * @param parentBranch
-       * @param node
-       * @param skipMassUpdate
-       * @private
-       */
-      value: function _placeInTree(parentBranch, node, skipMassUpdate) {
-        if (skipMassUpdate != true || skipMassUpdate === undefined) {
-          // update the mass of the branch.
-          this._updateBranchMass(parentBranch, node);
-        }
-
-        if (parentBranch.children.NW.range.maxX > node.x) {
-          // in NW or SW
-          if (parentBranch.children.NW.range.maxY > node.y) {
-            // in NW
-            this._placeInRegion(parentBranch, node, "NW");
-          } else {
-            // in SW
-            this._placeInRegion(parentBranch, node, "SW");
+      // handle network global options
+      if (options.clickToUse !== undefined) {
+        if (options.clickToUse === true) {
+          if (this.activator === undefined) {
+            this.activator = new Activator(this.canvas.frame);
+            this.activator.on('change', function () {
+              _this2.body.emitter.emit('activate');
+            });
           }
         } else {
-          // in NE or SE
-          if (parentBranch.children.NW.range.maxY > node.y) {
-            // in NE
-            this._placeInRegion(parentBranch, node, "NE");
-          } else {
-            // in SE
-            this._placeInRegion(parentBranch, node, "SE");
+          if (this.activator !== undefined) {
+            this.activator.destroy();
+            delete this.activator;
           }
+          this.body.emitter.emit('activate');
+        }
+      } else {
+        this.body.emitter.emit('activate');
+      }
+
+      this.canvas.setSize();
+      // start the physics simulation. Can be safely called multiple times.
+      this.body.emitter.emit('startSimulation');
+    }
+  };
+
+  /**
+   * Update the this.body.nodeIndices with the most recent node index list
+   * @private
+   */
+  Network.prototype._updateVisibleIndices = function () {
+    var nodes = this.body.nodes;
+    var edges = this.body.edges;
+    this.body.nodeIndices = [];
+    this.body.edgeIndices = [];
+
+    for (var nodeId in nodes) {
+      if (nodes.hasOwnProperty(nodeId)) {
+        if (nodes[nodeId].options.hidden === false) {
+          this.body.nodeIndices.push(nodeId);
         }
       }
-    }, {
-      key: "_placeInRegion",
+    }
 
-      /**
-       * actually place the node in a region (or branch)
-       *
-       * @param parentBranch
-       * @param node
-       * @param region
-       * @private
-       */
-      value: function _placeInRegion(parentBranch, node, region) {
-        switch (parentBranch.children[region].childrenCount) {
-          case 0:
-            // place node here
-            parentBranch.children[region].children.data = node;
-            parentBranch.children[region].childrenCount = 1;
-            this._updateBranchMass(parentBranch.children[region], node);
-            break;
-          case 1:
-            // convert into children
-            // if there are two nodes exactly overlapping (on init, on opening of cluster etc.)
-            // we move one node a pixel and we do not put it in the tree.
-            if (parentBranch.children[region].children.data.x === node.x && parentBranch.children[region].children.data.y === node.y) {
-              //node.x += Math.random();
-              //node.y += Math.random();
-              node.x += 0.1;
-              node.y += 0.1;
-            } else {
-              this._splitBranch(parentBranch.children[region]);
-              this._placeInTree(parentBranch.children[region], node);
-            }
-            break;
-          case 4:
-            // place in branch
-            this._placeInTree(parentBranch.children[region], node);
-            break;
+    for (var edgeId in edges) {
+      if (edges.hasOwnProperty(edgeId)) {
+        if (edges[edgeId].options.hidden === false) {
+          this.body.edgeIndices.push(edgeId);
         }
       }
-    }, {
-      key: "_splitBranch",
+    }
+  };
 
-      /**
-       * this function splits a branch into 4 sub branches. If the branch contained a node, we place it in the subbranch
-       * after the split is complete.
-       *
-       * @param parentBranch
-       * @private
-       */
-      value: function _splitBranch(parentBranch) {
-        // if the branch is shaded with a node, replace the node in the new subset.
-        var containedNode = null;
-        if (parentBranch.childrenCount === 1) {
-          containedNode = parentBranch.children.data;
-          parentBranch.mass = 0;
-          parentBranch.centerOfMass.x = 0;
-          parentBranch.centerOfMass.y = 0;
-        }
-        parentBranch.childrenCount = 4;
-        parentBranch.children.data = null;
-        this._insertRegion(parentBranch, "NW");
-        this._insertRegion(parentBranch, "NE");
-        this._insertRegion(parentBranch, "SW");
-        this._insertRegion(parentBranch, "SE");
+  /**
+   * Bind all events
+   */
+  Network.prototype.bindEventListeners = function () {
+    var _this3 = this;
 
-        if (containedNode != null) {
-          this._placeInTree(parentBranch, containedNode);
+    // this event will trigger a rebuilding of the cache everything. Used when nodes or edges have been added or removed.
+    this.body.emitter.on('_dataChanged', function () {
+      // update shortcut lists
+      _this3._updateVisibleIndices();
+      _this3.physics.updatePhysicsData();
+
+      // call the dataUpdated event because the only difference between the two is the updating of the indices
+      _this3.body.emitter.emit('_dataUpdated');
+    });
+
+    // this is called when options of EXISTING nodes or edges have changed.
+    this.body.emitter.on('_dataUpdated', function () {
+      // update values
+      _this3._updateValueRange(_this3.body.nodes);
+      _this3._updateValueRange(_this3.body.edges);
+      // start simulation (can be called safely, even if already running)
+      _this3.body.emitter.emit('startSimulation');
+    });
+  };
+
+  /**
+   * Set nodes and edges, and optionally options as well.
+   *
+   * @param {Object} data              Object containing parameters:
+   *                                   {Array | DataSet | DataView} [nodes] Array with nodes
+   *                                   {Array | DataSet | DataView} [edges] Array with edges
+   *                                   {String} [dot] String containing data in DOT format
+   *                                   {String} [gephi] String containing data in gephi JSON format
+   *                                   {Options} [options] Object with options
+   */
+  Network.prototype.setData = function (data) {
+    // reset the physics engine.
+    this.body.emitter.emit('resetPhysics');
+    this.body.emitter.emit('_resetData');
+
+    // unselect all to ensure no selections from old data are carried over.
+    this.selectionHandler.unselectAll();
+
+    if (data && data.dot && (data.nodes || data.edges)) {
+      throw new SyntaxError('Data must contain either parameter "dot" or ' + ' parameter pair "nodes" and "edges", but not both.');
+    }
+
+    // set options
+    this.setOptions(data && data.options);
+    // set all data
+    if (data && data.dot) {
+      console.log('The dot property has been depricated. Please use the static convertDot method to convert DOT into vis.network format and use the normal data format with nodes and edges. This converter is used like this: var data = vis.network.convertDot(dotString);');
+      // parse DOT file
+      var dotData = dotparser.DOTToGraph(data.dot);
+      this.setData(dotData);
+      return;
+    } else if (data && data.gephi) {
+      // parse DOT file
+      console.log('The gephi property has been depricated. Please use the static convertGephi method to convert gephi into vis.network format and use the normal data format with nodes and edges. This converter is used like this: var data = vis.network.convertGephi(gephiJson);');
+      var gephiData = gephiParser.parseGephi(data.gephi);
+      this.setData(gephiData);
+      return;
+    } else {
+      this.nodesHandler.setData(data && data.nodes, true);
+      this.edgesHandler.setData(data && data.edges, true);
+    }
+
+    // emit change in data
+    this.body.emitter.emit('_dataChanged');
+
+    // find a stable position or start animating to a stable position
+    this.body.emitter.emit('initPhysics');
+  };
+
+  /**
+   * Cleans up all bindings of the network, removing it fully from the memory IF the variable is set to null after calling this function.
+   * var network = new vis.Network(..);
+   * network.destroy();
+   * network = null;
+   */
+  Network.prototype.destroy = function () {
+    this.body.emitter.emit('destroy');
+    // clear events
+    this.body.emitter.off();
+    this.off();
+
+    // delete modules
+    delete this.groups;
+    delete this.canvas;
+    delete this.selectionHandler;
+    delete this.interactionHandler;
+    delete this.view;
+    delete this.renderer;
+    delete this.physics;
+    delete this.layoutEngine;
+    delete this.clustering;
+    delete this.manipulation;
+    delete this.nodesHandler;
+    delete this.edgesHandler;
+    delete this.configurator;
+    delete this.images;
+
+    for (var nodeId in this.body.nodes) {
+      delete this.body.nodes[nodeId];
+    }
+    for (var edgeId in this.body.edges) {
+      delete this.body.edges[edgeId];
+    }
+
+    // remove the container and everything inside it recursively
+    util.recursiveDOMDelete(this.body.container);
+  };
+
+  /**
+   * Update the values of all object in the given array according to the current
+   * value range of the objects in the array.
+   * @param {Object} obj    An object containing a set of Edges or Nodes
+   *                        The objects must have a method getValue() and
+   *                        setValueRange(min, max).
+   * @private
+   */
+  Network.prototype._updateValueRange = function (obj) {
+    var id;
+
+    // determine the range of the objects
+    var valueMin = undefined;
+    var valueMax = undefined;
+    var valueTotal = 0;
+    for (id in obj) {
+      if (obj.hasOwnProperty(id)) {
+        var value = obj[id].getValue();
+        if (value !== undefined) {
+          valueMin = valueMin === undefined ? value : Math.min(value, valueMin);
+          valueMax = valueMax === undefined ? value : Math.max(value, valueMax);
+          valueTotal += value;
         }
       }
-    }, {
-      key: "_insertRegion",
+    }
 
-      /**
-       * This function subdivides the region into four new segments.
-       * Specifically, this inserts a single new segment.
-       * It fills the children section of the parentBranch
-       *
-       * @param parentBranch
-       * @param region
-       * @param parentRange
-       * @private
-       */
-      value: function _insertRegion(parentBranch, region) {
-        var minX = undefined,
-            maxX = undefined,
-            minY = undefined,
-            maxY = undefined;
-        var childSize = 0.5 * parentBranch.size;
-        switch (region) {
-          case "NW":
-            minX = parentBranch.range.minX;
-            maxX = parentBranch.range.minX + childSize;
-            minY = parentBranch.range.minY;
-            maxY = parentBranch.range.minY + childSize;
-            break;
-          case "NE":
-            minX = parentBranch.range.minX + childSize;
-            maxX = parentBranch.range.maxX;
-            minY = parentBranch.range.minY;
-            maxY = parentBranch.range.minY + childSize;
-            break;
-          case "SW":
-            minX = parentBranch.range.minX;
-            maxX = parentBranch.range.minX + childSize;
-            minY = parentBranch.range.minY + childSize;
-            maxY = parentBranch.range.maxY;
-            break;
-          case "SE":
-            minX = parentBranch.range.minX + childSize;
-            maxX = parentBranch.range.maxX;
-            minY = parentBranch.range.minY + childSize;
-            maxY = parentBranch.range.maxY;
-            break;
-        }
-
-        parentBranch.children[region] = {
-          centerOfMass: { x: 0, y: 0 },
-          mass: 0,
-          range: { minX: minX, maxX: maxX, minY: minY, maxY: maxY },
-          size: 0.5 * parentBranch.size,
-          calcSize: 2 * parentBranch.calcSize,
-          children: { data: null },
-          maxWidth: 0,
-          level: parentBranch.level + 1,
-          childrenCount: 0
-        };
-      }
-    }, {
-      key: "_debug",
-
-      //---------------------------  DEBUGGING BELOW  ---------------------------//
-
-      /**
-       * This function is for debugging purposed, it draws the tree.
-       *
-       * @param ctx
-       * @param color
-       * @private
-       */
-      value: function _debug(ctx, color) {
-        if (this.barnesHutTree !== undefined) {
-
-          ctx.lineWidth = 1;
-
-          this._drawBranch(this.barnesHutTree.root, ctx, color);
+    // adjust the range of all objects
+    if (valueMin !== undefined && valueMax !== undefined) {
+      for (id in obj) {
+        if (obj.hasOwnProperty(id)) {
+          obj[id].setValueRange(valueMin, valueMax, valueTotal);
         }
       }
-    }, {
-      key: "_drawBranch",
+    }
+  };
 
-      /**
-       * This function is for debugging purposes. It draws the branches recursively.
-       *
-       * @param branch
-       * @param ctx
-       * @param color
-       * @private
-       */
-      value: function _drawBranch(branch, ctx, color) {
-        if (color === undefined) {
-          color = "#FF0000";
-        }
+  /**
+   * Returns true when the Network is active.
+   * @returns {boolean}
+   */
+  Network.prototype.isActive = function () {
+    return !this.activator || this.activator.active;
+  };
 
-        if (branch.childrenCount === 4) {
-          this._drawBranch(branch.children.NW, ctx);
-          this._drawBranch(branch.children.NE, ctx);
-          this._drawBranch(branch.children.SE, ctx);
-          this._drawBranch(branch.children.SW, ctx);
-        }
-        ctx.strokeStyle = color;
-        ctx.beginPath();
-        ctx.moveTo(branch.range.minX, branch.range.minY);
-        ctx.lineTo(branch.range.maxX, branch.range.minY);
-        ctx.stroke();
+  Network.prototype.setSize = function () {
+    return this.canvas.setSize.apply(this.canvas, arguments);
+  };
+  Network.prototype.canvasToDOM = function () {
+    return this.canvas.canvasToDOM.apply(this.canvas, arguments);
+  };
+  Network.prototype.DOMtoCanvas = function () {
+    return this.canvas.DOMtoCanvas(this.canvas, arguments);
+  };
+  Network.prototype.findNode = function () {
+    return this.clustering.findNode.apply(this.clustering, arguments);
+  };
+  Network.prototype.isCluster = function () {
+    return this.clustering.isCluster.apply(this.clustering, arguments);
+  };
+  Network.prototype.openCluster = function () {
+    return this.clustering.openCluster.apply(this.clustering, arguments);
+  };
+  Network.prototype.cluster = function () {
+    return this.clustering.cluster.apply(this.clustering, arguments);
+  };
+  Network.prototype.getNodesInCluster = function () {
+    return this.clustering.getNodesInCluster.apply(this.clustering, arguments);
+  };
+  Network.prototype.clusterByConnection = function () {
+    return this.clustering.clusterByConnection.apply(this.clustering, arguments);
+  };
+  Network.prototype.clusterByHubsize = function () {
+    return this.clustering.clusterByHubsize.apply(this.clustering, arguments);
+  };
+  Network.prototype.clusterOutliers = function () {
+    return this.clustering.clusterOutliers.apply(this.clustering, arguments);
+  };
+  Network.prototype.getSeed = function () {
+    return this.layoutEngine.getSeed.apply(this.layoutEngine, arguments);
+  };
+  Network.prototype.enableEditMode = function () {
+    return this.manipulation.enableEditMode.apply(this.manipulation, arguments);
+  };
+  Network.prototype.disableEditMode = function () {
+    return this.manipulation.disableEditMode.apply(this.manipulation, arguments);
+  };
+  Network.prototype.addNodeMode = function () {
+    return this.manipulation.addNodeMode.apply(this.manipulation, arguments);
+  };
+  Network.prototype.editNode = function () {
+    return this.manipulation.editNode.apply(this.manipulation, arguments);
+  };
+  Network.prototype.editNodeMode = function () {
+    console.log('Depricated: Please use editNode instead of editNodeMode.');return this.manipulation.editNode.apply(this.manipulation, arguments);
+  };
+  Network.prototype.addEdgeMode = function () {
+    return this.manipulation.addEdgeMode.apply(this.manipulation, arguments);
+  };
+  Network.prototype.editEdgeMode = function () {
+    return this.manipulation.editEdgeMode.apply(this.manipulation, arguments);
+  };
+  Network.prototype.deleteSelected = function () {
+    return this.manipulation.deleteSelected.apply(this.manipulation, arguments);
+  };
+  Network.prototype.getPositions = function () {
+    return this.nodesHandler.getPositions.apply(this.nodesHandler, arguments);
+  };
+  Network.prototype.storePositions = function () {
+    return this.nodesHandler.storePositions.apply(this.nodesHandler, arguments);
+  };
+  Network.prototype.getBoundingBox = function () {
+    return this.nodesHandler.getBoundingBox.apply(this.nodesHandler, arguments);
+  };
+  Network.prototype.getConnectedNodes = function (objectId) {
+    if (this.body.nodes[objectId] !== undefined) {
+      return this.nodesHandler.getConnectedNodes.apply(this.nodesHandler, arguments);
+    } else {
+      return this.edgesHandler.getConnectedNodes.apply(this.edgesHandler, arguments);
+    }
+  };
+  Network.prototype.getConnectedEdges = function () {
+    return this.nodesHandler.getConnectedEdges.apply(this.nodesHandler, arguments);
+  };
+  Network.prototype.startSimulation = function () {
+    return this.physics.startSimulation.apply(this.physics, arguments);
+  };
+  Network.prototype.stopSimulation = function () {
+    return this.physics.stopSimulation.apply(this.physics, arguments);
+  };
+  Network.prototype.stabilize = function () {
+    return this.physics.stabilize.apply(this.physics, arguments);
+  };
+  Network.prototype.getSelection = function () {
+    return this.selectionHandler.getSelection.apply(this.selectionHandler, arguments);
+  };
+  Network.prototype.getSelectedNodes = function () {
+    return this.selectionHandler.getSelectedNodes.apply(this.selectionHandler, arguments);
+  };
+  Network.prototype.getSelectedEdges = function () {
+    return this.selectionHandler.getSelectedEdges.apply(this.selectionHandler, arguments);
+  };
+  Network.prototype.getNodeAt = function () {
+    var node = this.selectionHandler.getNodeAt.apply(this.selectionHandler, arguments);
+    if (node !== undefined && node.id !== undefined) {
+      return node.id;
+    }
+    return node;
+  };
+  Network.prototype.getEdgeAt = function () {
+    var edge = this.selectionHandler.getEdgeAt.apply(this.selectionHandler, arguments);
+    if (edge !== undefined && edge.id !== undefined) {
+      return edge.id;
+    }
+    return edge;
+  };
+  Network.prototype.selectNodes = function () {
+    return this.selectionHandler.selectNodes.apply(this.selectionHandler, arguments);
+  };
+  Network.prototype.selectEdges = function () {
+    return this.selectionHandler.selectEdges.apply(this.selectionHandler, arguments);
+  };
+  Network.prototype.unselectAll = function () {
+    return this.selectionHandler.unselectAll.apply(this.selectionHandler, arguments);
+  };
+  Network.prototype.redraw = function () {
+    return this.renderer.redraw.apply(this.renderer, arguments);
+  };
+  Network.prototype.getScale = function () {
+    return this.view.getScale.apply(this.view, arguments);
+  };
+  Network.prototype.getViewPosition = function () {
+    return this.view.getViewPosition.apply(this.view, arguments);
+  };
+  Network.prototype.fit = function () {
+    return this.view.fit.apply(this.view, arguments);
+  };
+  Network.prototype.moveTo = function () {
+    return this.view.moveTo.apply(this.view, arguments);
+  };
+  Network.prototype.focus = function () {
+    return this.view.focus.apply(this.view, arguments);
+  };
+  Network.prototype.releaseNode = function () {
+    return this.view.releaseNode.apply(this.view, arguments);
+  };
 
-        ctx.beginPath();
-        ctx.moveTo(branch.range.maxX, branch.range.minY);
-        ctx.lineTo(branch.range.maxX, branch.range.maxY);
-        ctx.stroke();
-
-        ctx.beginPath();
-        ctx.moveTo(branch.range.maxX, branch.range.maxY);
-        ctx.lineTo(branch.range.minX, branch.range.maxY);
-        ctx.stroke();
-
-        ctx.beginPath();
-        ctx.moveTo(branch.range.minX, branch.range.maxY);
-        ctx.lineTo(branch.range.minX, branch.range.minY);
-        ctx.stroke();
-
-        /*
-         if (branch.mass > 0) {
-         ctx.circle(branch.centerOfMass.x, branch.centerOfMass.y, 3*branch.mass);
-         ctx.stroke();
-         }
-         */
-      }
-    }]);
-
-    return BarnesHutSolver;
-  })();
-
-  exports["default"] = BarnesHutSolver;
-  module.exports = exports["default"];
+  module.exports = Network;
 
 /***/ },
-/* 8 */
+/* 6 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
@@ -4269,16 +3443,16 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
-  var SpringSolver = (function () {
-    function SpringSolver(body, physicsBody, options) {
-      _classCallCheck(this, SpringSolver);
+  var HierarchicalSpringSolver = (function () {
+    function HierarchicalSpringSolver(body, physicsBody, options) {
+      _classCallCheck(this, HierarchicalSpringSolver);
 
       this.body = body;
       this.physicsBody = physicsBody;
       this.setOptions(options);
     }
 
-    _createClass(SpringSolver, [{
+    _createClass(HierarchicalSpringSolver, [{
       key: "setOptions",
       value: function setOptions(options) {
         this.options = options;
@@ -4292,1302 +3466,110 @@ return /******/ (function(modules) { // webpackBootstrap
        * @private
        */
       value: function solve() {
-        var edgeLength = undefined,
-            edge = undefined;
-        var edgeIndices = this.physicsBody.physicsEdgeIndices;
+        var edgeLength, edge;
+        var dx, dy, fx, fy, springForce, distance;
         var edges = this.body.edges;
-        var node1 = undefined,
-            node2 = undefined,
-            node3 = undefined;
+        var factor = 0.5;
+
+        var edgeIndices = this.physicsBody.physicsEdgeIndices;
+        var nodeIndices = this.physicsBody.physicsNodeIndices;
+        var forces = this.physicsBody.forces;
+
+        // initialize the spring force counters
+        for (var i = 0; i < nodeIndices.length; i++) {
+          var nodeId = nodeIndices[i];
+          forces[nodeId].springFx = 0;
+          forces[nodeId].springFy = 0;
+        }
 
         // forces caused by the edges, modelled as springs
         for (var i = 0; i < edgeIndices.length; i++) {
           edge = edges[edgeIndices[i]];
-          if (edge.connected === true && edge.toId !== edge.fromId) {
-            // only calculate forces if nodes are in the same sector
-            if (this.body.nodes[edge.toId] !== undefined && this.body.nodes[edge.fromId] !== undefined) {
-              if (edge.edgeType.via !== undefined) {
-                edgeLength = edge.options.length === undefined ? this.options.springLength : edge.options.length;
-                node1 = edge.to;
-                node2 = edge.edgeType.via;
-                node3 = edge.from;
+          if (edge.connected === true) {
+            edgeLength = edge.options.length === undefined ? this.options.springLength : edge.options.length;
 
-                this._calculateSpringForce(node1, node2, 0.5 * edgeLength);
-                this._calculateSpringForce(node2, node3, 0.5 * edgeLength);
-              } else {
-                // the * 1.5 is here so the edge looks as large as a smooth edge. It does not initially because the smooth edges use
-                // the support nodes which exert a repulsive force on the to and from nodes, making the edge appear larger.
-                edgeLength = edge.options.length === undefined ? this.options.springLength * 1.5 : edge.options.length;
-                this._calculateSpringForce(edge.from, edge.to, edgeLength);
+            dx = edge.from.x - edge.to.x;
+            dy = edge.from.y - edge.to.y;
+            distance = Math.sqrt(dx * dx + dy * dy);
+            distance = distance === 0 ? 0.01 : distance;
+
+            // the 1/distance is so the fx and fy can be calculated without sine or cosine.
+            springForce = this.options.springConstant * (edgeLength - distance) / distance;
+
+            fx = dx * springForce;
+            fy = dy * springForce;
+
+            if (edge.to.level != edge.from.level) {
+              if (forces[edge.toId] !== undefined) {
+                forces[edge.toId].springFx -= fx;
+                forces[edge.toId].springFy -= fy;
+              }
+              if (forces[edge.fromId] !== undefined) {
+                forces[edge.fromId].springFx += fx;
+                forces[edge.fromId].springFy += fy;
+              }
+            } else {
+              if (forces[edge.toId] !== undefined) {
+                forces[edge.toId].x -= factor * fx;
+                forces[edge.toId].y -= factor * fy;
+              }
+              if (forces[edge.fromId] !== undefined) {
+                forces[edge.fromId].x += factor * fx;
+                forces[edge.fromId].y += factor * fy;
               }
             }
           }
         }
-      }
-    }, {
-      key: "_calculateSpringForce",
 
-      /**
-       * This is the code actually performing the calculation for the function above.
-       *
-       * @param node1
-       * @param node2
-       * @param edgeLength
-       * @private
-       */
-      value: function _calculateSpringForce(node1, node2, edgeLength) {
-        var dx = node1.x - node2.x;
-        var dy = node1.y - node2.y;
-        var distance = Math.max(Math.sqrt(dx * dx + dy * dy), 0.01);
+        // normalize spring forces
+        var springForce = 1;
+        var springFx, springFy;
+        for (var i = 0; i < nodeIndices.length; i++) {
+          var nodeId = nodeIndices[i];
+          springFx = Math.min(springForce, Math.max(-springForce, forces[nodeId].springFx));
+          springFy = Math.min(springForce, Math.max(-springForce, forces[nodeId].springFy));
 
-        // the 1/distance is so the fx and fy can be calculated without sine or cosine.
-        var springForce = this.options.springConstant * (edgeLength - distance) / distance;
-
-        var fx = dx * springForce;
-        var fy = dy * springForce;
-
-        // handle the case where one node is not part of the physcis
-        if (this.physicsBody.forces[node1.id] !== undefined) {
-          this.physicsBody.forces[node1.id].x += fx;
-          this.physicsBody.forces[node1.id].y += fy;
+          forces[nodeId].x += springFx;
+          forces[nodeId].y += springFy;
         }
 
-        if (this.physicsBody.forces[node2.id] !== undefined) {
-          this.physicsBody.forces[node2.id].x -= fx;
-          this.physicsBody.forces[node2.id].y -= fy;
+        // retain energy balance
+        var totalFx = 0;
+        var totalFy = 0;
+        for (var i = 0; i < nodeIndices.length; i++) {
+          var nodeId = nodeIndices[i];
+          totalFx += forces[nodeId].x;
+          totalFy += forces[nodeId].y;
+        }
+        var correctionFx = totalFx / nodeIndices.length;
+        var correctionFy = totalFy / nodeIndices.length;
+
+        for (var i = 0; i < nodeIndices.length; i++) {
+          var nodeId = nodeIndices[i];
+          forces[nodeId].x -= correctionFx;
+          forces[nodeId].y -= correctionFy;
         }
       }
     }]);
 
-    return SpringSolver;
+    return HierarchicalSpringSolver;
   })();
 
-  exports["default"] = SpringSolver;
+  exports["default"] = HierarchicalSpringSolver;
   module.exports = exports["default"];
 
 /***/ },
-/* 9 */
-/***/ function(module, exports, __webpack_require__) {
-
-  'use strict';
-
-  Object.defineProperty(exports, '__esModule', {
-    value: true
-  });
-
-  var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
-
-  function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
-
-  var util = __webpack_require__(4);
-  var Hammer = __webpack_require__(30);
-  var hammerUtil = __webpack_require__(35);
-
-  /**
-   * clears the toolbar div element of children
-   *
-   * @private
-   */
-
-  var ManipulationSystem = (function () {
-    function ManipulationSystem(body, canvas, selectionHandler) {
-      var _this = this;
-
-      _classCallCheck(this, ManipulationSystem);
-
-      this.body = body;
-      this.canvas = canvas;
-      this.selectionHandler = selectionHandler;
-
-      this.editMode = false;
-      this.manipulationDiv = undefined;
-      this.editModeDiv = undefined;
-      this.closeDiv = undefined;
-
-      this.manipulationHammers = [];
-      this.temporaryUIFunctions = {};
-      this.temporaryEventFunctions = [];
-
-      this.touchTime = 0;
-      this.temporaryIds = { nodes: [], edges: [] };
-      this.guiEnabled = false;
-      this.inMode = false;
-      this.selectedControlNode = undefined;
-
-      this.options = {};
-      this.defaultOptions = {
-        enabled: false,
-        initiallyActive: false,
-        addNode: true,
-        addEdge: true,
-        editNode: undefined,
-        editEdge: true,
-        deleteNode: true,
-        deleteEdge: true,
-        controlNodeStyle: {
-          shape: 'dot',
-          size: 6,
-          color: { background: '#ff0000', border: '#3c3c3c', highlight: { background: '#07f968', border: '#3c3c3c' } },
-          borderWidth: 2,
-          borderWidthSelected: 2
-        }
-      };
-      util.extend(this.options, this.defaultOptions);
-
-      this.body.emitter.on('destroy', function () {
-        _this._clean();
-      });
-      this.body.emitter.on('_dataChanged', this._restore.bind(this));
-      this.body.emitter.on('_resetData', this._restore.bind(this));
-    }
-
-    _createClass(ManipulationSystem, [{
-      key: '_restore',
-
-      /**
-       * If something changes in the data during editing, switch back to the initial datamanipulation state and close all edit modes.
-       * @private
-       */
-      value: function _restore() {
-        if (this.inMode !== false) {
-          if (this.options.initiallyActive === true) {
-            this.enableEditMode();
-          } else {
-            this.disableEditMode();
-          }
-        }
-      }
-    }, {
-      key: 'setOptions',
-
-      /**
-       * Set the Options
-       * @param options
-       */
-      value: function setOptions(options, allOptions, globalOptions) {
-        if (allOptions !== undefined) {
-          if (allOptions.locale !== undefined) {
-            this.options.locale = allOptions.locale;
-          } else {
-            this.options.locale = globalOptions.locale;
-          }
-          if (allOptions.locales !== undefined) {
-            this.options.locales = allOptions.locales;
-          } else {
-            this.options.locales = globalOptions.locales;
-          }
-        }
-
-        if (options !== undefined) {
-          if (typeof options === 'boolean') {
-            this.options.enabled = options;
-          } else {
-            this.options.enabled = true;
-            util.deepExtend(this.options, options);
-          }
-          if (this.options.initiallyActive === true) {
-            this.editMode = true;
-          }
-          this._setup();
-        }
-      }
-    }, {
-      key: 'toggleEditMode',
-
-      /**
-       * Enable or disable edit-mode. Draws the DOM required and cleans up after itself.
-       *
-       * @private
-       */
-      value: function toggleEditMode() {
-        if (this.editMode === true) {
-          this.disableEditMode();
-        } else {
-          this.enableEditMode();
-        }
-      }
-    }, {
-      key: 'enableEditMode',
-      value: function enableEditMode() {
-        this.editMode = true;
-
-        this._clean();
-        if (this.guiEnabled === true) {
-          this.manipulationDiv.style.display = 'block';
-          this.closeDiv.style.display = 'block';
-          this.editModeDiv.style.display = 'none';
-          this.showManipulatorToolbar();
-        }
-      }
-    }, {
-      key: 'disableEditMode',
-      value: function disableEditMode() {
-        this.editMode = false;
-
-        this._clean();
-        if (this.guiEnabled === true) {
-          this.manipulationDiv.style.display = 'none';
-          this.closeDiv.style.display = 'none';
-          this.editModeDiv.style.display = 'block';
-          this._createEditButton();
-        }
-      }
-    }, {
-      key: 'showManipulatorToolbar',
-
-      /**
-       * Creates the main toolbar. Removes functions bound to the select event. Binds all the buttons of the toolbar.
-       *
-       * @private
-       */
-      value: function showManipulatorToolbar() {
-        // restore the state of any bound functions or events, remove control nodes, restore physics
-        this._clean();
-
-        // reset global letiables
-        this.manipulationDOM = {};
-
-        // if the gui is enabled, draw all elements.
-        if (this.guiEnabled === true) {
-          // a _restore will hide these menus
-          this.editMode = true;
-          this.manipulationDiv.style.display = 'block';
-          this.closeDiv.style.display = 'block';
-
-          var selectedNodeCount = this.selectionHandler._getSelectedNodeCount();
-          var selectedEdgeCount = this.selectionHandler._getSelectedEdgeCount();
-          var selectedTotalCount = selectedNodeCount + selectedEdgeCount;
-          var locale = this.options.locales[this.options.locale];
-          var needSeperator = false;
-
-          if (this.options.addNode !== false) {
-            this._createAddNodeButton(locale);
-            needSeperator = true;
-          }
-          if (this.options.addEdge !== false) {
-            if (needSeperator === true) {
-              this._createSeperator(1);
-            } else {
-              needSeperator = true;
-            }
-            this._createAddEdgeButton(locale);
-          }
-
-          if (selectedNodeCount === 1 && typeof this.options.editNode === 'function') {
-            if (needSeperator === true) {
-              this._createSeperator(2);
-            } else {
-              needSeperator = true;
-            }
-            this._createEditNodeButton(locale);
-          } else if (selectedEdgeCount === 1 && selectedNodeCount === 0 && this.options.editEdge !== false) {
-            if (needSeperator === true) {
-              this._createSeperator(3);
-            } else {
-              needSeperator = true;
-            }
-            this._createEditEdgeButton(locale);
-          }
-
-          // remove buttons
-          if (selectedTotalCount !== 0) {
-            if (selectedNodeCount === 1 && this.options.deleteNode !== false) {
-              if (needSeperator === true) {
-                this._createSeperator(4);
-              }
-              this._createDeleteButton(locale);
-            } else if (selectedNodeCount === 0 && this.options.deleteEdge !== false) {
-              if (needSeperator === true) {
-                this._createSeperator(4);
-              }
-              this._createDeleteButton(locale);
-            }
-          }
-
-          // bind the close button
-          this._bindHammerToDiv(this.closeDiv, this.toggleEditMode.bind(this));
-
-          // refresh this bar based on what has been selected
-          this._temporaryBindEvent('select', this.showManipulatorToolbar.bind(this));
-        }
-
-        // redraw to show any possible changes
-        this.body.emitter.emit('_redraw');
-      }
-    }, {
-      key: 'addNodeMode',
-
-      /**
-       * Create the toolbar for adding Nodes
-       *
-       * @private
-       */
-      value: function addNodeMode() {
-        // when using the gui, enable edit mode if it wasnt already.
-        if (this.editMode !== true) {
-          this.enableEditMode();
-        }
-
-        // restore the state of any bound functions or events, remove control nodes, restore physics
-        this._clean();
-
-        this.inMode = 'addNode';
-        if (this.guiEnabled === true) {
-          var locale = this.options.locales[this.options.locale];
-          this.manipulationDOM = {};
-          this._createBackButton(locale);
-          this._createSeperator();
-          this._createDescription(locale['addDescription'] || this.options.locales['en']['addDescription']);
-
-          // bind the close button
-          this._bindHammerToDiv(this.closeDiv, this.toggleEditMode.bind(this));
-        }
-
-        this._temporaryBindEvent('click', this._performAddNode.bind(this));
-      }
-    }, {
-      key: 'editNode',
-
-      /**
-       * call the bound function to handle the editing of the node. The node has to be selected.
-       *
-       * @private
-       */
-      value: function editNode() {
-        var _this2 = this;
-
-        // when using the gui, enable edit mode if it wasnt already.
-        if (this.editMode !== true) {
-          this.enableEditMode();
-        }
-
-        // restore the state of any bound functions or events, remove control nodes, restore physics
-        this._clean();
-        var node = this.selectionHandler._getSelectedNode();
-        if (node !== undefined) {
-          this.inMode = 'editNode';
-          if (typeof this.options.editNode === 'function') {
-            if (node.isCluster !== true) {
-              var data = util.deepExtend({}, node.options, true);
-              data.x = node.x;
-              data.y = node.y;
-
-              if (this.options.editNode.length === 2) {
-                this.options.editNode(data, function (finalizedData) {
-                  if (finalizedData !== null && finalizedData !== undefined && _this2.inMode === 'editNode') {
-                    // if for whatever reason the mode has changes (due to dataset change) disregard the callback) {
-                    _this2.body.data.nodes.getDataSet().update(finalizedData);
-                  }
-                  _this2.showManipulatorToolbar();
-                });
-              } else {
-                throw new Error('The function for edit does not support two arguments (data, callback)');
-              }
-            } else {
-              alert(this.options.locales[this.options.locale]['editClusterError'] || this.options.locales['en']['editClusterError']);
-            }
-          } else {
-            throw new Error('No function has been configured to handle the editing of nodes.');
-          }
-        } else {
-          this.showManipulatorToolbar();
-        }
-      }
-    }, {
-      key: 'addEdgeMode',
-
-      /**
-       * create the toolbar to connect nodes
-       *
-       * @private
-       */
-      value: function addEdgeMode() {
-        // when using the gui, enable edit mode if it wasnt already.
-        if (this.editMode !== true) {
-          this.enableEditMode();
-        }
-
-        // restore the state of any bound functions or events, remove control nodes, restore physics
-        this._clean();
-
-        this.inMode = 'addEdge';
-        if (this.guiEnabled === true) {
-          var locale = this.options.locales[this.options.locale];
-          this.manipulationDOM = {};
-          this._createBackButton(locale);
-          this._createSeperator();
-          this._createDescription(locale['edgeDescription'] || this.options.locales['en']['edgeDescription']);
-
-          // bind the close button
-          this._bindHammerToDiv(this.closeDiv, this.toggleEditMode.bind(this));
-        }
-
-        // temporarily overload functions
-        this._temporaryBindUI('onTouch', this._handleConnect.bind(this));
-        this._temporaryBindUI('onDragEnd', this._finishConnect.bind(this));
-        this._temporaryBindUI('onDrag', this._dragControlNode.bind(this));
-        this._temporaryBindUI('onRelease', this._finishConnect.bind(this));
-
-        this._temporaryBindUI('onDragStart', function () {});
-        this._temporaryBindUI('onHold', function () {});
-      }
-    }, {
-      key: 'editEdgeMode',
-
-      /**
-       * create the toolbar to edit edges
-       *
-       * @private
-       */
-      value: function editEdgeMode() {
-        var _this3 = this;
-
-        // when using the gui, enable edit mode if it wasnt already.
-        if (this.editMode !== true) {
-          this.enableEditMode();
-        }
-
-        // restore the state of any bound functions or events, remove control nodes, restore physics
-        this._clean();
-
-        this.inMode = 'editEdge';
-        if (this.guiEnabled === true) {
-          var locale = this.options.locales[this.options.locale];
-          this.manipulationDOM = {};
-          this._createBackButton(locale);
-          this._createSeperator();
-          this._createDescription(locale['editEdgeDescription'] || this.options.locales['en']['editEdgeDescription']);
-
-          // bind the close button
-          this._bindHammerToDiv(this.closeDiv, this.toggleEditMode.bind(this));
-        }
-
-        this.edgeBeingEditedId = this.selectionHandler.getSelectedEdges()[0];
-        if (this.edgeBeingEditedId !== undefined) {
-          (function () {
-            var edge = _this3.body.edges[_this3.edgeBeingEditedId];
-
-            // create control nodes
-            var controlNodeFrom = _this3._getNewTargetNode(edge.from.x, edge.from.y);
-            var controlNodeTo = _this3._getNewTargetNode(edge.to.x, edge.to.y);
-
-            _this3.temporaryIds.nodes.push(controlNodeFrom.id);
-            _this3.temporaryIds.nodes.push(controlNodeTo.id);
-
-            _this3.body.nodes[controlNodeFrom.id] = controlNodeFrom;
-            _this3.body.nodeIndices.push(controlNodeFrom.id);
-            _this3.body.nodes[controlNodeTo.id] = controlNodeTo;
-            _this3.body.nodeIndices.push(controlNodeTo.id);
-
-            // temporarily overload UI functions, cleaned up automatically because of _temporaryBindUI
-            _this3._temporaryBindUI('onTouch', _this3._controlNodeTouch.bind(_this3)); // used to get the position
-            _this3._temporaryBindUI('onTap', function () {}); // disabled
-            _this3._temporaryBindUI('onHold', function () {}); // disabled
-            _this3._temporaryBindUI('onDragStart', _this3._controlNodeDragStart.bind(_this3)); // used to select control node
-            _this3._temporaryBindUI('onDrag', _this3._controlNodeDrag.bind(_this3)); // used to drag control node
-            _this3._temporaryBindUI('onDragEnd', _this3._controlNodeDragEnd.bind(_this3)); // used to connect or revert control nodes
-            _this3._temporaryBindUI('onMouseMove', function () {}); // disabled
-
-            // create function to position control nodes correctly on movement
-            // automatically cleaned up because we use the temporary bind
-            _this3._temporaryBindEvent('beforeDrawing', function (ctx) {
-              var positions = edge.edgeType.findBorderPositions(ctx);
-              if (controlNodeFrom.selected === false) {
-                controlNodeFrom.x = positions.from.x;
-                controlNodeFrom.y = positions.from.y;
-              }
-              if (controlNodeTo.selected === false) {
-                controlNodeTo.x = positions.to.x;
-                controlNodeTo.y = positions.to.y;
-              }
-            });
-
-            _this3.body.emitter.emit('_redraw');
-          })();
-        } else {
-          this.showManipulatorToolbar();
-        }
-      }
-    }, {
-      key: 'deleteSelected',
-
-      /**
-       * delete everything in the selection
-       *
-       * @private
-       */
-      value: function deleteSelected() {
-        var _this4 = this;
-
-        // when using the gui, enable edit mode if it wasnt already.
-        if (this.editMode !== true) {
-          this.enableEditMode();
-        }
-
-        // restore the state of any bound functions or events, remove control nodes, restore physics
-        this._clean();
-
-        this.inMode = 'delete';
-        var selectedNodes = this.selectionHandler.getSelectedNodes();
-        var selectedEdges = this.selectionHandler.getSelectedEdges();
-        var deleteFunction = undefined;
-        if (selectedNodes.length > 0) {
-          for (var i = 0; i < selectedNodes.length; i++) {
-            if (this.body.nodes[selectedNodes[i]].isCluster === true) {
-              alert(this.options.locales[this.options.locale]['deleteClusterError'] || this.options.locales['en']['deleteClusterError']);
-              return;
-            }
-          }
-
-          if (typeof this.options.deleteNode === 'function') {
-            deleteFunction = this.options.deleteNode;
-          }
-        } else if (selectedEdges.length > 0) {
-          if (typeof this.options.deleteEdge === 'function') {
-            deleteFunction = this.options.deleteEdge;
-          }
-        }
-
-        if (typeof deleteFunction === 'function') {
-          var data = { nodes: selectedNodes, edges: selectedEdges };
-          if (deleteFunction.length === 2) {
-            deleteFunction(data, function (finalizedData) {
-              if (finalizedData !== null && finalizedData !== undefined && _this4.inMode === 'delete') {
-                // if for whatever reason the mode has changes (due to dataset change) disregard the callback) {
-                _this4.body.data.edges.getDataSet().remove(finalizedData.edges);
-                _this4.body.data.nodes.getDataSet().remove(finalizedData.nodes);
-                _this4.body.emitter.emit('startSimulation');
-                _this4.showManipulatorToolbar();
-              }
-            });
-          } else {
-            throw new Error('The function for delete does not support two arguments (data, callback)');
-          }
-        } else {
-          this.body.data.edges.getDataSet().remove(selectedEdges);
-          this.body.data.nodes.getDataSet().remove(selectedNodes);
-          this.body.emitter.emit('startSimulation');
-          this.showManipulatorToolbar();
-        }
-      }
-    }, {
-      key: '_setup',
-
-      //********************************************** PRIVATE ***************************************//
-
-      /**
-       * draw or remove the DOM
-       * @private
-       */
-      value: function _setup() {
-        if (this.options.enabled === true) {
-          // Enable the GUI
-          this.guiEnabled = true;
-
-          this._createWrappers();
-          if (this.editMode === false) {
-            this._createEditButton();
-          } else {
-            this.showManipulatorToolbar();
-          }
-        } else {
-          this._removeManipulationDOM();
-
-          // disable the gui
-          this.guiEnabled = false;
-        }
-      }
-    }, {
-      key: '_createWrappers',
-
-      /**
-       * create the div overlays that contain the DOM
-       * @private
-       */
-      value: function _createWrappers() {
-        // load the manipulator HTML elements. All styling done in css.
-        if (this.manipulationDiv === undefined) {
-          this.manipulationDiv = document.createElement('div');
-          this.manipulationDiv.className = 'vis-manipulation';
-          if (this.editMode === true) {
-            this.manipulationDiv.style.display = 'block';
-          } else {
-            this.manipulationDiv.style.display = 'none';
-          }
-          this.canvas.frame.appendChild(this.manipulationDiv);
-        }
-
-        // container for the edit button.
-        if (this.editModeDiv === undefined) {
-          this.editModeDiv = document.createElement('div');
-          this.editModeDiv.className = 'vis-edit-mode';
-          if (this.editMode === true) {
-            this.editModeDiv.style.display = 'none';
-          } else {
-            this.editModeDiv.style.display = 'block';
-          }
-          this.canvas.frame.appendChild(this.editModeDiv);
-        }
-
-        // container for the close div button
-        if (this.closeDiv === undefined) {
-          this.closeDiv = document.createElement('div');
-          this.closeDiv.className = 'vis-close';
-          this.closeDiv.style.display = this.manipulationDiv.style.display;
-          this.canvas.frame.appendChild(this.closeDiv);
-        }
-      }
-    }, {
-      key: '_getNewTargetNode',
-
-      /**
-       * generate a new target node. Used for creating new edges and editing edges
-       * @param x
-       * @param y
-       * @returns {*}
-       * @private
-       */
-      value: function _getNewTargetNode(x, y) {
-        var controlNodeStyle = util.deepExtend({}, this.options.controlNodeStyle);
-
-        controlNodeStyle.id = 'targetNode' + util.randomUUID();
-        controlNodeStyle.hidden = false;
-        controlNodeStyle.physics = false;
-        controlNodeStyle.x = x;
-        controlNodeStyle.y = y;
-
-        return this.body.functions.createNode(controlNodeStyle);
-      }
-    }, {
-      key: '_createEditButton',
-
-      /**
-       * Create the edit button
-       */
-      value: function _createEditButton() {
-        // restore everything to it's original state (if applicable)
-        this._clean();
-
-        // reset the manipulationDOM
-        this.manipulationDOM = {};
-
-        // empty the editModeDiv
-        util.recursiveDOMDelete(this.editModeDiv);
-
-        // create the contents for the editMode button
-        var locale = this.options.locales[this.options.locale];
-        var button = this._createButton('editMode', 'vis-button vis-edit vis-edit-mode', locale['edit'] || this.options.locales['en']['edit']);
-        this.editModeDiv.appendChild(button);
-
-        // bind a hammer listener to the button, calling the function toggleEditMode.
-        this._bindHammerToDiv(button, this.toggleEditMode.bind(this));
-      }
-    }, {
-      key: '_clean',
-
-      /**
-       * this function cleans up after everything this module does. Temporary elements, functions and events are removed, physics restored, hammers removed.
-       * @private
-       */
-      value: function _clean() {
-        // not in mode
-        this.inMode = false;
-
-        // _clean the divs
-        if (this.guiEnabled === true) {
-          util.recursiveDOMDelete(this.editModeDiv);
-          util.recursiveDOMDelete(this.manipulationDiv);
-
-          // removes all the bindings and overloads
-          this._cleanManipulatorHammers();
-        }
-
-        // remove temporary nodes and edges
-        this._cleanupTemporaryNodesAndEdges();
-
-        // restore overloaded UI functions
-        this._unbindTemporaryUIs();
-
-        // remove the temporaryEventFunctions
-        this._unbindTemporaryEvents();
-
-        // restore the physics if required
-        this.body.emitter.emit('restorePhysics');
-      }
-    }, {
-      key: '_cleanManipulatorHammers',
-
-      /**
-       * Each dom element has it's own hammer. They are stored in this.manipulationHammers. This cleans them up.
-       * @private
-       */
-      value: function _cleanManipulatorHammers() {
-        // _clean hammer bindings
-        if (this.manipulationHammers.length != 0) {
-          for (var i = 0; i < this.manipulationHammers.length; i++) {
-            this.manipulationHammers[i].destroy();
-          }
-          this.manipulationHammers = [];
-        }
-      }
-    }, {
-      key: '_removeManipulationDOM',
-
-      /**
-       * Remove all DOM elements created by this module.
-       * @private
-       */
-      value: function _removeManipulationDOM() {
-        // removes all the bindings and overloads
-        this._clean();
-
-        // empty the manipulation divs
-        util.recursiveDOMDelete(this.manipulationDiv);
-        util.recursiveDOMDelete(this.editModeDiv);
-        util.recursiveDOMDelete(this.closeDiv);
-
-        // remove the manipulation divs
-        if (this.manipulationDiv) {
-          this.canvas.frame.removeChild(this.manipulationDiv);
-        }
-        if (this.editModeDiv) {
-          this.canvas.frame.removeChild(this.editModeDiv);
-        }
-        if (this.closeDiv) {
-          this.canvas.frame.removeChild(this.manipulationDiv);
-        }
-
-        // set the references to undefined
-        this.manipulationDiv = undefined;
-        this.editModeDiv = undefined;
-        this.closeDiv = undefined;
-      }
-    }, {
-      key: '_createSeperator',
-
-      /**
-       * create a seperator line. the index is to differentiate in the manipulation dom
-       * @param index
-       * @private
-       */
-      value: function _createSeperator() {
-        var index = arguments[0] === undefined ? 1 : arguments[0];
-
-        this.manipulationDOM['seperatorLineDiv' + index] = document.createElement('div');
-        this.manipulationDOM['seperatorLineDiv' + index].className = 'vis-separator-line';
-        this.manipulationDiv.appendChild(this.manipulationDOM['seperatorLineDiv' + index]);
-      }
-    }, {
-      key: '_createAddNodeButton',
-
-      // ----------------------    DOM functions for buttons    --------------------------//
-
-      value: function _createAddNodeButton(locale) {
-        var button = this._createButton('addNode', 'vis-button vis-add', locale['addNode'] || this.options.locales['en']['addNode']);
-        this.manipulationDiv.appendChild(button);
-        this._bindHammerToDiv(button, this.addNodeMode.bind(this));
-      }
-    }, {
-      key: '_createAddEdgeButton',
-      value: function _createAddEdgeButton(locale) {
-        var button = this._createButton('addEdge', 'vis-button vis-connect', locale['addEdge'] || this.options.locales['en']['addEdge']);
-        this.manipulationDiv.appendChild(button);
-        this._bindHammerToDiv(button, this.addEdgeMode.bind(this));
-      }
-    }, {
-      key: '_createEditNodeButton',
-      value: function _createEditNodeButton(locale) {
-        var button = this._createButton('editNode', 'vis-button vis-edit', locale['editNode'] || this.options.locales['en']['editNode']);
-        this.manipulationDiv.appendChild(button);
-        this._bindHammerToDiv(button, this.editNode.bind(this));
-      }
-    }, {
-      key: '_createEditEdgeButton',
-      value: function _createEditEdgeButton(locale) {
-        var button = this._createButton('editEdge', 'vis-button vis-edit', locale['editEdge'] || this.options.locales['en']['editEdge']);
-        this.manipulationDiv.appendChild(button);
-        this._bindHammerToDiv(button, this.editEdgeMode.bind(this));
-      }
-    }, {
-      key: '_createDeleteButton',
-      value: function _createDeleteButton(locale) {
-        var button = this._createButton('delete', 'vis-button vis-delete', locale['del'] || this.options.locales['en']['del']);
-        this.manipulationDiv.appendChild(button);
-        this._bindHammerToDiv(button, this.deleteSelected.bind(this));
-      }
-    }, {
-      key: '_createBackButton',
-      value: function _createBackButton(locale) {
-        var button = this._createButton('back', 'vis-button vis-back', locale['back'] || this.options.locales['en']['back']);
-        this.manipulationDiv.appendChild(button);
-        this._bindHammerToDiv(button, this.showManipulatorToolbar.bind(this));
-      }
-    }, {
-      key: '_createButton',
-      value: function _createButton(id, className, label) {
-        var labelClassName = arguments[3] === undefined ? 'vis-label' : arguments[3];
-
-        this.manipulationDOM[id + 'Div'] = document.createElement('div');
-        this.manipulationDOM[id + 'Div'].className = className;
-        this.manipulationDOM[id + 'Label'] = document.createElement('div');
-        this.manipulationDOM[id + 'Label'].className = labelClassName;
-        this.manipulationDOM[id + 'Label'].innerHTML = label;
-        this.manipulationDOM[id + 'Div'].appendChild(this.manipulationDOM[id + 'Label']);
-        return this.manipulationDOM[id + 'Div'];
-      }
-    }, {
-      key: '_createDescription',
-      value: function _createDescription(label) {
-        this.manipulationDiv.appendChild(this._createButton('description', 'vis-button vis-none', label));
-      }
-    }, {
-      key: '_temporaryBindEvent',
-
-      // -------------------------- End of DOM functions for buttons ------------------------------//
-
-      /**
-       * this binds an event until cleanup by the clean functions.
-       * @param event
-       * @param newFunction
-       * @private
-       */
-      value: function _temporaryBindEvent(event, newFunction) {
-        this.temporaryEventFunctions.push({ event: event, boundFunction: newFunction });
-        this.body.emitter.on(event, newFunction);
-      }
-    }, {
-      key: '_temporaryBindUI',
-
-      /**
-       * this overrides an UI function until cleanup by the clean function
-       * @param UIfunctionName
-       * @param newFunction
-       * @private
-       */
-      value: function _temporaryBindUI(UIfunctionName, newFunction) {
-        if (this.body.eventListeners[UIfunctionName] !== undefined) {
-          this.temporaryUIFunctions[UIfunctionName] = this.body.eventListeners[UIfunctionName];
-          this.body.eventListeners[UIfunctionName] = newFunction;
-        } else {
-          throw new Error('This UI function does not exist. Typo? You tried: ' + UIfunctionName + ' possible are: ' + JSON.stringify(Object.keys(this.body.eventListeners)));
-        }
-      }
-    }, {
-      key: '_unbindTemporaryUIs',
-
-      /**
-       * Restore the overridden UI functions to their original state.
-       *
-       * @private
-       */
-      value: function _unbindTemporaryUIs() {
-        for (var functionName in this.temporaryUIFunctions) {
-          if (this.temporaryUIFunctions.hasOwnProperty(functionName)) {
-            this.body.eventListeners[functionName] = this.temporaryUIFunctions[functionName];
-            delete this.temporaryUIFunctions[functionName];
-          }
-        }
-        this.temporaryUIFunctions = {};
-      }
-    }, {
-      key: '_unbindTemporaryEvents',
-
-      /**
-       * Unbind the events created by _temporaryBindEvent
-       * @private
-       */
-      value: function _unbindTemporaryEvents() {
-        for (var i = 0; i < this.temporaryEventFunctions.length; i++) {
-          var eventName = this.temporaryEventFunctions[i].event;
-          var boundFunction = this.temporaryEventFunctions[i].boundFunction;
-          this.body.emitter.off(eventName, boundFunction);
-        }
-        this.temporaryEventFunctions = [];
-      }
-    }, {
-      key: '_bindHammerToDiv',
-
-      /**
-       * Bind an hammer instance to a DOM element.
-       * @param domElement
-       * @param funct
-       */
-      value: function _bindHammerToDiv(domElement, boundFunction) {
-        var hammer = new Hammer(domElement, {});
-        hammerUtil.onTouch(hammer, boundFunction);
-        this.manipulationHammers.push(hammer);
-      }
-    }, {
-      key: '_cleanupTemporaryNodesAndEdges',
-
-      /**
-       * Neatly clean up temporary edges and nodes
-       * @private
-       */
-      value: function _cleanupTemporaryNodesAndEdges() {
-        // _clean temporary edges
-        for (var i = 0; i < this.temporaryIds.edges.length; i++) {
-          this.body.edges[this.temporaryIds.edges[i]].disconnect();
-          delete this.body.edges[this.temporaryIds.edges[i]];
-          var indexTempEdge = this.body.edgeIndices.indexOf(this.temporaryIds.edges[i]);
-          if (indexTempEdge !== -1) {
-            this.body.edgeIndices.splice(indexTempEdge, 1);
-          }
-        }
-
-        // _clean temporary nodes
-        for (var i = 0; i < this.temporaryIds.nodes.length; i++) {
-          delete this.body.nodes[this.temporaryIds.nodes[i]];
-          var indexTempNode = this.body.nodeIndices.indexOf(this.temporaryIds.nodes[i]);
-          if (indexTempNode !== -1) {
-            this.body.nodeIndices.splice(indexTempNode, 1);
-          }
-        }
-
-        this.temporaryIds = { nodes: [], edges: [] };
-      }
-    }, {
-      key: '_controlNodeTouch',
-
-      // ------------------------------------------ EDIT EDGE FUNCTIONS -----------------------------------------//
-
-      /**
-       * the touch is used to get the position of the initial click
-       * @param event
-       * @private
-       */
-      value: function _controlNodeTouch(event) {
-        this.selectionHandler.unselectAll();
-        this.lastTouch = this.body.functions.getPointer(event.center);
-        this.lastTouch.translation = util.extend({}, this.body.view.translation); // copy the object
-      }
-    }, {
-      key: '_controlNodeDragStart',
-
-      /**
-       * the drag start is used to mark one of the control nodes as selected.
-       * @param event
-       * @private
-       */
-      value: function _controlNodeDragStart(event) {
-        var pointer = this.lastTouch;
-        var pointerObj = this.selectionHandler._pointerToPositionObject(pointer);
-        var from = this.body.nodes[this.temporaryIds.nodes[0]];
-        var to = this.body.nodes[this.temporaryIds.nodes[1]];
-        var edge = this.body.edges[this.edgeBeingEditedId];
-        this.selectedControlNode = undefined;
-
-        var fromSelect = from.isOverlappingWith(pointerObj);
-        var toSelect = to.isOverlappingWith(pointerObj);
-
-        if (fromSelect === true) {
-          this.selectedControlNode = from;
-          edge.edgeType.from = from;
-        } else if (toSelect === true) {
-          this.selectedControlNode = to;
-          edge.edgeType.to = to;
-        }
-
-        this.body.emitter.emit('_redraw');
-      }
-    }, {
-      key: '_controlNodeDrag',
-
-      /**
-       * dragging the control nodes or the canvas
-       * @param event
-       * @private
-       */
-      value: function _controlNodeDrag(event) {
-        this.body.emitter.emit('disablePhysics');
-        var pointer = this.body.functions.getPointer(event.center);
-        var pos = this.canvas.DOMtoCanvas(pointer);
-
-        if (this.selectedControlNode !== undefined) {
-          this.selectedControlNode.x = pos.x;
-          this.selectedControlNode.y = pos.y;
-        } else {
-          // if the drag was not started properly because the click started outside the network div, start it now.
-          var diffX = pointer.x - this.lastTouch.x;
-          var diffY = pointer.y - this.lastTouch.y;
-          this.body.view.translation = { x: this.lastTouch.translation.x + diffX, y: this.lastTouch.translation.y + diffY };
-        }
-        this.body.emitter.emit('_redraw');
-      }
-    }, {
-      key: '_controlNodeDragEnd',
-
-      /**
-       * connecting or restoring the control nodes.
-       * @param event
-       * @private
-       */
-      value: function _controlNodeDragEnd(event) {
-        var pointer = this.body.functions.getPointer(event.center);
-        var pointerObj = this.selectionHandler._pointerToPositionObject(pointer);
-        var edge = this.body.edges[this.edgeBeingEditedId];
-
-        var overlappingNodeIds = this.selectionHandler._getAllNodesOverlappingWith(pointerObj);
-        var node = undefined;
-        for (var i = overlappingNodeIds.length - 1; i >= 0; i--) {
-          if (overlappingNodeIds[i] !== this.selectedControlNode.id) {
-            node = this.body.nodes[overlappingNodeIds[i]];
-            break;
-          }
-        }
-
-        // perform the connection
-        if (node !== undefined && this.selectedControlNode !== undefined) {
-          if (node.isCluster === true) {
-            alert(this.options.locales[this.options.locale]['createEdgeError'] || this.options.locales['en']['createEdgeError']);
-          } else {
-            var from = this.body.nodes[this.temporaryIds.nodes[0]];
-            if (this.selectedControlNode.id === from.id) {
-              this._performEditEdge(node.id, edge.to.id);
-            } else {
-              this._performEditEdge(edge.from.id, node.id);
-            }
-          }
-        } else {
-          edge.updateEdgeType();
-          this.body.emitter.emit('restorePhysics');
-        }
-        this.body.emitter.emit('_redraw');
-      }
-    }, {
-      key: '_handleConnect',
-
-      // ------------------------------------ END OF EDIT EDGE FUNCTIONS -----------------------------------------//
-
-      // ------------------------------------------- ADD EDGE FUNCTIONS -----------------------------------------//
-      /**
-       * the function bound to the selection event. It checks if you want to connect a cluster and changes the description
-       * to walk the user through the process.
-       *
-       * @private
-       */
-      value: function _handleConnect(event) {
-        // check to avoid double fireing of this function.
-        if (new Date().valueOf() - this.touchTime > 100) {
-          this.lastTouch = this.body.functions.getPointer(event.center);
-          this.lastTouch.translation = util.extend({}, this.body.view.translation); // copy the object
-
-          var pointer = this.lastTouch;
-          var node = this.selectionHandler.getNodeAt(pointer);
-
-          if (node !== undefined) {
-            if (node.isCluster === true) {
-              alert(this.options.locales[this.options.locale]['createEdgeError'] || this.options.locales['en']['createEdgeError']);
-            } else {
-              // create a node the temporary line can look at
-              var targetNode = this._getNewTargetNode(node.x, node.y);
-              this.body.nodes[targetNode.id] = targetNode;
-              this.body.nodeIndices.push(targetNode.id);
-
-              // create a temporary edge
-              var connectionEdge = this.body.functions.createEdge({
-                id: 'connectionEdge' + util.randomUUID(),
-                from: node.id,
-                to: targetNode.id,
-                physics: false,
-                smooth: {
-                  enabled: true,
-                  type: 'continuous',
-                  roundness: 0.5
-                }
-              });
-              this.body.edges[connectionEdge.id] = connectionEdge;
-              this.body.edgeIndices.push(connectionEdge.id);
-
-              this.temporaryIds.nodes.push(targetNode.id);
-              this.temporaryIds.edges.push(connectionEdge.id);
-            }
-          }
-          this.touchTime = new Date().valueOf();
-        }
-      }
-    }, {
-      key: '_dragControlNode',
-      value: function _dragControlNode(event) {
-        var pointer = this.body.functions.getPointer(event.center);
-        if (this.temporaryIds.nodes[0] !== undefined) {
-          var targetNode = this.body.nodes[this.temporaryIds.nodes[0]]; // there is only one temp node in the add edge mode.
-          targetNode.x = this.canvas._XconvertDOMtoCanvas(pointer.x);
-          targetNode.y = this.canvas._YconvertDOMtoCanvas(pointer.y);
-          this.body.emitter.emit('_redraw');
-        } else {
-          var diffX = pointer.x - this.lastTouch.x;
-          var diffY = pointer.y - this.lastTouch.y;
-          this.body.view.translation = { x: this.lastTouch.translation.x + diffX, y: this.lastTouch.translation.y + diffY };
-        }
-      }
-    }, {
-      key: '_finishConnect',
-
-      /**
-       * Connect the new edge to the target if one exists, otherwise remove temp line
-       * @param event
-       * @private
-       */
-      value: function _finishConnect(event) {
-        var pointer = this.body.functions.getPointer(event.center);
-        var pointerObj = this.selectionHandler._pointerToPositionObject(pointer);
-
-        // remember the edge id
-        var connectFromId = undefined;
-        if (this.temporaryIds.edges[0] !== undefined) {
-          connectFromId = this.body.edges[this.temporaryIds.edges[0]].fromId;
-        }
-
-        // get the overlapping node but NOT the temporary node;
-        var overlappingNodeIds = this.selectionHandler._getAllNodesOverlappingWith(pointerObj);
-        var node = undefined;
-        for (var i = overlappingNodeIds.length - 1; i >= 0; i--) {
-          // if the node id is NOT a temporary node, accept the node.
-          if (this.temporaryIds.nodes.indexOf(overlappingNodeIds[i]) === -1) {
-            node = this.body.nodes[overlappingNodeIds[i]];
-            break;
-          }
-        }
-
-        // clean temporary nodes and edges.
-        this._cleanupTemporaryNodesAndEdges();
-
-        // perform the connection
-        if (node !== undefined) {
-          if (node.isCluster === true) {
-            alert(this.options.locales[this.options.locale]['createEdgeError'] || this.options.locales['en']['createEdgeError']);
-          } else {
-            if (this.body.nodes[connectFromId] !== undefined && this.body.nodes[node.id] !== undefined) {
-              this._performAddEdge(connectFromId, node.id);
-            }
-          }
-        }
-        this.body.emitter.emit('_redraw');
-      }
-    }, {
-      key: '_performAddNode',
-
-      // --------------------------------------- END OF ADD EDGE FUNCTIONS -------------------------------------//
-
-      // ------------------------------ Performing all the actual data manipulation ------------------------//
-
-      /**
-       * Adds a node on the specified location
-       */
-      value: function _performAddNode(clickData) {
-        var _this5 = this;
-
-        var defaultData = {
-          id: util.randomUUID(),
-          x: clickData.pointer.canvas.x,
-          y: clickData.pointer.canvas.y,
-          label: 'new'
-        };
-
-        if (typeof this.options.addNode === 'function') {
-          if (this.options.addNode.length === 2) {
-            this.options.addNode(defaultData, function (finalizedData) {
-              if (finalizedData !== null && finalizedData !== undefined && _this5.inMode === 'addNode') {
-                // if for whatever reason the mode has changes (due to dataset change) disregard the callback
-                _this5.body.data.nodes.getDataSet().add(finalizedData);
-                _this5.showManipulatorToolbar();
-              }
-            });
-          } else {
-            throw new Error('The function for add does not support two arguments (data,callback)');
-            this.showManipulatorToolbar();
-          }
-        } else {
-          this.body.data.nodes.getDataSet().add(defaultData);
-          this.showManipulatorToolbar();
-        }
-      }
-    }, {
-      key: '_performAddEdge',
-
-      /**
-       * connect two nodes with a new edge.
-       *
-       * @private
-       */
-      value: function _performAddEdge(sourceNodeId, targetNodeId) {
-        var _this6 = this;
-
-        var defaultData = { from: sourceNodeId, to: targetNodeId };
-        if (typeof this.options.addEdge === 'function') {
-          if (this.options.addEdge.length === 2) {
-            this.options.addEdge(defaultData, function (finalizedData) {
-              if (finalizedData !== null && finalizedData !== undefined && _this6.inMode === 'addEdge') {
-                // if for whatever reason the mode has changes (due to dataset change) disregard the callback
-                _this6.body.data.edges.add(finalizedData);
-                _this6.selectionHandler.unselectAll();
-                _this6.showManipulatorToolbar();
-              }
-            });
-          } else {
-            throw new Error('The function for connect does not support two arguments (data,callback)');
-          }
-        } else {
-          this.body.data.edges.add(defaultData);
-          this.selectionHandler.unselectAll();
-          this.showManipulatorToolbar();
-        }
-      }
-    }, {
-      key: '_performEditEdge',
-
-      /**
-       * connect two nodes with a new edge.
-       *
-       * @private
-       */
-      value: function _performEditEdge(sourceNodeId, targetNodeId) {
-        var _this7 = this;
-
-        var defaultData = { id: this.edgeBeingEditedId, from: sourceNodeId, to: targetNodeId };
-        if (typeof this.options.editEdge === 'function') {
-          if (this.options.editEdge.length === 2) {
-            this.options.editEdge(defaultData, function (finalizedData) {
-              if (finalizedData === null || finalizedData === undefined || _this7.inMode !== 'editEdge') {
-                // if for whatever reason the mode has changes (due to dataset change) disregard the callback) {
-                _this7.body.edges[defaultData.id].updateEdgeType();
-                _this7.body.emitter.emit('_redraw');
-              } else {
-                _this7.body.data.edges.update(finalizedData);
-                _this7.selectionHandler.unselectAll();
-                _this7.showManipulatorToolbar();
-              }
-            });
-          } else {
-            throw new Error('The function for edit does not support two arguments (data, callback)');
-          }
-        } else {
-          this.body.data.edges.update(defaultData);
-          this.selectionHandler.unselectAll();
-          this.showManipulatorToolbar();
-        }
-      }
-    }]);
-
-    return ManipulationSystem;
-  })();
-
-  exports['default'] = ManipulationSystem;
-  module.exports = exports['default'];
-
-/***/ },
-/* 10 */
+/* 7 */
 /***/ function(module, exports, __webpack_require__) {
 
   // first check if moment.js is already loaded in the browser window, if so,
   // use this instance. Else, load via commonjs.
   'use strict';
 
-  module.exports = typeof window !== 'undefined' && window['moment'] || __webpack_require__(11);
+  module.exports = typeof window !== 'undefined' && window['moment'] || __webpack_require__(8);
 
 /***/ },
-/* 11 */
+/* 8 */
 /***/ function(module, exports, __webpack_require__) {
 
   /* WEBPACK VAR INJECTION */(function(module) {//! moment.js
@@ -8701,10 +6683,10 @@ return /******/ (function(modules) { // webpackBootstrap
       return _moment;
 
   }));
-  /* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(12)(module)))
+  /* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(9)(module)))
 
 /***/ },
-/* 12 */
+/* 9 */
 /***/ function(module, exports, __webpack_require__) {
 
   module.exports = function(module) {
@@ -8720,7 +6702,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 13 */
+/* 10 */
 /***/ function(module, exports, __webpack_require__) {
 
   /* WEBPACK VAR INJECTION */(function(global) {'use strict';
@@ -8936,7 +6918,7 @@ return /******/ (function(modules) { // webpackBootstrap
   /* WEBPACK VAR INJECTION */}.call(exports, (function() { return this; }())))
 
 /***/ },
-/* 14 */
+/* 11 */
 /***/ function(module, exports, __webpack_require__) {
 
   // DOM utility methods
@@ -9138,13 +7120,13 @@ return /******/ (function(modules) { // webpackBootstrap
   };
 
 /***/ },
-/* 15 */
+/* 12 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
 
-  var util = __webpack_require__(4);
-  var Queue = __webpack_require__(16);
+  var util = __webpack_require__(3);
+  var Queue = __webpack_require__(13);
 
   /**
    * DataSet
@@ -10033,7 +8015,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = DataSet;
 
 /***/ },
-/* 16 */
+/* 13 */
 /***/ function(module, exports, __webpack_require__) {
 
   /**
@@ -10238,13 +8220,13 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = Queue;
 
 /***/ },
-/* 17 */
+/* 14 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
 
-  var util = __webpack_require__(4);
-  var DataSet = __webpack_require__(15);
+  var util = __webpack_require__(3);
+  var DataSet = __webpack_require__(12);
 
   /**
    * DataView
@@ -10586,21 +8568,21 @@ return /******/ (function(modules) { // webpackBootstrap
   // nothing interesting for me :-(
 
 /***/ },
-/* 18 */
+/* 15 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
 
-  var Emitter = __webpack_require__(20);
-  var DataSet = __webpack_require__(15);
-  var DataView = __webpack_require__(17);
-  var util = __webpack_require__(4);
-  var Point3d = __webpack_require__(21);
-  var Point2d = __webpack_require__(19);
-  var Camera = __webpack_require__(22);
-  var Filter = __webpack_require__(23);
-  var Slider = __webpack_require__(24);
-  var StepNumber = __webpack_require__(25);
+  var Emitter = __webpack_require__(17);
+  var DataSet = __webpack_require__(12);
+  var DataView = __webpack_require__(14);
+  var util = __webpack_require__(3);
+  var Point3d = __webpack_require__(18);
+  var Point2d = __webpack_require__(16);
+  var Camera = __webpack_require__(19);
+  var Filter = __webpack_require__(20);
+  var Slider = __webpack_require__(21);
+  var StepNumber = __webpack_require__(22);
 
   /**
    * @constructor Graph3d
@@ -12804,7 +10786,7 @@ return /******/ (function(modules) { // webpackBootstrap
   // use use defaults
 
 /***/ },
-/* 19 */
+/* 16 */
 /***/ function(module, exports, __webpack_require__) {
 
   /**
@@ -12822,7 +10804,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = Point2d;
 
 /***/ },
-/* 20 */
+/* 17 */
 /***/ function(module, exports, __webpack_require__) {
 
   
@@ -12992,7 +10974,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 21 */
+/* 18 */
 /***/ function(module, exports, __webpack_require__) {
 
   /**
@@ -13075,12 +11057,12 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = Point3d;
 
 /***/ },
-/* 22 */
+/* 19 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
 
-  var Point3d = __webpack_require__(21);
+  var Point3d = __webpack_require__(18);
 
   /**
    * @class Camera
@@ -13216,12 +11198,12 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = Camera;
 
 /***/ },
-/* 23 */
+/* 20 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
 
-  var DataView = __webpack_require__(17);
+  var DataView = __webpack_require__(14);
 
   /**
    * @class Filter
@@ -13427,12 +11409,12 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = Filter;
 
 /***/ },
-/* 24 */
+/* 21 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
 
-  var util = __webpack_require__(4);
+  var util = __webpack_require__(3);
 
   /**
    * @constructor Slider
@@ -13775,7 +11757,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = Slider;
 
 /***/ },
-/* 25 */
+/* 22 */
 /***/ function(module, exports, __webpack_require__) {
 
   /**
@@ -13919,28 +11901,28 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = StepNumber;
 
 /***/ },
-/* 26 */
+/* 23 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
 
-  var Emitter = __webpack_require__(20);
-  var Hammer = __webpack_require__(30);
-  var util = __webpack_require__(4);
-  var DataSet = __webpack_require__(15);
-  var DataView = __webpack_require__(17);
-  var Range = __webpack_require__(34);
-  var Core = __webpack_require__(37);
-  var TimeAxis = __webpack_require__(48);
-  var CurrentTime = __webpack_require__(27);
-  var CustomTime = __webpack_require__(51);
-  var ItemSet = __webpack_require__(38);
+  var Emitter = __webpack_require__(17);
+  var Hammer = __webpack_require__(27);
+  var util = __webpack_require__(3);
+  var DataSet = __webpack_require__(12);
+  var DataView = __webpack_require__(14);
+  var Range = __webpack_require__(31);
+  var Core = __webpack_require__(34);
+  var TimeAxis = __webpack_require__(45);
+  var CurrentTime = __webpack_require__(24);
+  var CustomTime = __webpack_require__(48);
+  var ItemSet = __webpack_require__(35);
 
-  var Configurator = __webpack_require__(52);
-  var Validator = __webpack_require__(54)['default'];
-  var printStyle = __webpack_require__(54).printStyle;
-  var allOptions = __webpack_require__(55).allOptions;
-  var configureOptions = __webpack_require__(55).configureOptions;
+  var Configurator = __webpack_require__(2);
+  var Validator = __webpack_require__(50)['default'];
+  var printStyle = __webpack_require__(50).printStyle;
+  var allOptions = __webpack_require__(51).allOptions;
+  var configureOptions = __webpack_require__(51).configureOptions;
 
   /**
    * Create a timeline visualization
@@ -14443,15 +12425,15 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = Timeline;
 
 /***/ },
-/* 27 */
+/* 24 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
 
-  var util = __webpack_require__(4);
-  var Component = __webpack_require__(28);
-  var moment = __webpack_require__(10);
-  var locales = __webpack_require__(29);
+  var util = __webpack_require__(3);
+  var Component = __webpack_require__(25);
+  var moment = __webpack_require__(7);
+  var locales = __webpack_require__(26);
 
   /**
    * A current time bar
@@ -14619,7 +12601,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = CurrentTime;
 
 /***/ },
-/* 28 */
+/* 25 */
 /***/ function(module, exports, __webpack_require__) {
 
   /**
@@ -14679,7 +12661,7 @@ return /******/ (function(modules) { // webpackBootstrap
   // should be implemented by the component
 
 /***/ },
-/* 29 */
+/* 26 */
 /***/ function(module, exports, __webpack_require__) {
 
   // English
@@ -14701,7 +12683,7 @@ return /******/ (function(modules) { // webpackBootstrap
   exports['nl_BE'] = exports['nl'];
 
 /***/ },
-/* 30 */
+/* 27 */
 /***/ function(module, exports, __webpack_require__) {
 
   // Only load hammer.js when in a browser environment
@@ -14709,8 +12691,8 @@ return /******/ (function(modules) { // webpackBootstrap
   'use strict';
 
   if (typeof window !== 'undefined') {
-    var propagating = __webpack_require__(31);
-    var Hammer = window['Hammer'] || __webpack_require__(32);
+    var propagating = __webpack_require__(28);
+    var Hammer = window['Hammer'] || __webpack_require__(29);
     module.exports = propagating(Hammer, {
       preventDefault: 'mouse'
     });
@@ -14721,7 +12703,7 @@ return /******/ (function(modules) { // webpackBootstrap
   }
 
 /***/ },
-/* 31 */
+/* 28 */
 /***/ function(module, exports, __webpack_require__) {
 
   var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;'use strict';
@@ -14949,7 +12931,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 32 */
+/* 29 */
 /***/ function(module, exports, __webpack_require__) {
 
   var __WEBPACK_AMD_DEFINE_RESULT__;/*! Hammer.JS - v2.0.4 - 2014-09-28
@@ -17404,7 +15386,7 @@ return /******/ (function(modules) { // webpackBootstrap
       prefixed: prefixed
   });
 
-  if ("function" == TYPE_FUNCTION && __webpack_require__(33)) {
+  if ("function" == TYPE_FUNCTION && __webpack_require__(30)) {
       !(__WEBPACK_AMD_DEFINE_RESULT__ = function() {
           return Hammer;
       }.call(exports, __webpack_require__, exports, module), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__));
@@ -17418,7 +15400,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 33 */
+/* 30 */
 /***/ function(module, exports, __webpack_require__) {
 
   /* WEBPACK VAR INJECTION */(function(__webpack_amd_options__) {module.exports = __webpack_amd_options__;
@@ -17426,16 +15408,16 @@ return /******/ (function(modules) { // webpackBootstrap
   /* WEBPACK VAR INJECTION */}.call(exports, {}))
 
 /***/ },
-/* 34 */
+/* 31 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
 
-  var util = __webpack_require__(4);
-  var hammerUtil = __webpack_require__(35);
-  var moment = __webpack_require__(10);
-  var Component = __webpack_require__(28);
-  var DateUtil = __webpack_require__(36);
+  var util = __webpack_require__(3);
+  var hammerUtil = __webpack_require__(32);
+  var moment = __webpack_require__(7);
+  var Component = __webpack_require__(25);
+  var DateUtil = __webpack_require__(33);
 
   /**
    * @constructor Range
@@ -18102,12 +16084,12 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = Range;
 
 /***/ },
-/* 35 */
+/* 32 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
 
-  var Hammer = __webpack_require__(30);
+  var Hammer = __webpack_require__(27);
 
   /**
    * Register a touch event, taking place before a gesture
@@ -18174,12 +16156,12 @@ return /******/ (function(modules) { // webpackBootstrap
   exports.offRelease = exports.offTouch;
 
 /***/ },
-/* 36 */
+/* 33 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
 
-  var moment = __webpack_require__(10);
+  var moment = __webpack_require__(7);
 
   /**
    * used in Core to convert the options into a volatile variable
@@ -18634,23 +16616,23 @@ return /******/ (function(modules) { // webpackBootstrap
   };
 
 /***/ },
-/* 37 */
+/* 34 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
 
-  var Emitter = __webpack_require__(20);
-  var Hammer = __webpack_require__(30);
-  var hammerUtil = __webpack_require__(35);
-  var util = __webpack_require__(4);
-  var DataSet = __webpack_require__(15);
-  var DataView = __webpack_require__(17);
-  var Range = __webpack_require__(34);
-  var ItemSet = __webpack_require__(38);
-  var TimeAxis = __webpack_require__(48);
-  var Activator = __webpack_require__(49);
-  var DateUtil = __webpack_require__(36);
-  var CustomTime = __webpack_require__(51);
+  var Emitter = __webpack_require__(17);
+  var Hammer = __webpack_require__(27);
+  var hammerUtil = __webpack_require__(32);
+  var util = __webpack_require__(3);
+  var DataSet = __webpack_require__(12);
+  var DataView = __webpack_require__(14);
+  var Range = __webpack_require__(31);
+  var ItemSet = __webpack_require__(35);
+  var TimeAxis = __webpack_require__(45);
+  var Activator = __webpack_require__(46);
+  var DateUtil = __webpack_require__(33);
+  var CustomTime = __webpack_require__(48);
 
   /**
    * Create a timeline visualization
@@ -19605,23 +17587,23 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = Core;
 
 /***/ },
-/* 38 */
+/* 35 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
 
-  var Hammer = __webpack_require__(30);
-  var util = __webpack_require__(4);
-  var DataSet = __webpack_require__(15);
-  var DataView = __webpack_require__(17);
-  var TimeStep = __webpack_require__(43);
-  var Component = __webpack_require__(28);
-  var Group = __webpack_require__(39);
-  var BackgroundGroup = __webpack_require__(44);
-  var BoxItem = __webpack_require__(45);
-  var PointItem = __webpack_require__(46);
-  var RangeItem = __webpack_require__(41);
-  var BackgroundItem = __webpack_require__(47);
+  var Hammer = __webpack_require__(27);
+  var util = __webpack_require__(3);
+  var DataSet = __webpack_require__(12);
+  var DataView = __webpack_require__(14);
+  var TimeStep = __webpack_require__(40);
+  var Component = __webpack_require__(25);
+  var Group = __webpack_require__(36);
+  var BackgroundGroup = __webpack_require__(41);
+  var BoxItem = __webpack_require__(42);
+  var PointItem = __webpack_require__(43);
+  var RangeItem = __webpack_require__(38);
+  var BackgroundItem = __webpack_require__(44);
 
   var UNGROUPED = '__ungrouped__'; // reserved group id for ungrouped items
   var BACKGROUND = '__background__'; // reserved group id for background items without group
@@ -21216,14 +19198,14 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = ItemSet;
 
 /***/ },
-/* 39 */
+/* 36 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
 
-  var util = __webpack_require__(4);
-  var stack = __webpack_require__(40);
-  var RangeItem = __webpack_require__(41);
+  var util = __webpack_require__(3);
+  var stack = __webpack_require__(37);
+  var RangeItem = __webpack_require__(38);
 
   /**
    * @constructor Group
@@ -21802,7 +19784,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = Group;
 
 /***/ },
-/* 40 */
+/* 37 */
 /***/ function(module, exports, __webpack_require__) {
 
   // Utility functions for ordering and stacking of items
@@ -21926,13 +19908,13 @@ return /******/ (function(modules) { // webpackBootstrap
   };
 
 /***/ },
-/* 41 */
+/* 38 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
 
-  var Hammer = __webpack_require__(30);
-  var Item = __webpack_require__(42);
+  var Hammer = __webpack_require__(27);
+  var Item = __webpack_require__(39);
 
   /**
    * @constructor RangeItem
@@ -22220,13 +20202,13 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = RangeItem;
 
 /***/ },
-/* 42 */
+/* 39 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
 
-  var Hammer = __webpack_require__(30);
-  var util = __webpack_require__(4);
+  var Hammer = __webpack_require__(27);
+  var util = __webpack_require__(3);
 
   /**
    * @constructor Item
@@ -22510,14 +20492,14 @@ return /******/ (function(modules) { // webpackBootstrap
   // should be implemented by the item
 
 /***/ },
-/* 43 */
+/* 40 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
 
-  var moment = __webpack_require__(10);
-  var DateUtil = __webpack_require__(36);
-  var util = __webpack_require__(4);
+  var moment = __webpack_require__(7);
+  var DateUtil = __webpack_require__(33);
+  var util = __webpack_require__(3);
 
   /**
    * @constructor  TimeStep
@@ -23200,13 +21182,13 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = TimeStep;
 
 /***/ },
-/* 44 */
+/* 41 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
 
-  var util = __webpack_require__(4);
-  var Group = __webpack_require__(39);
+  var util = __webpack_require__(3);
+  var Group = __webpack_require__(36);
 
   /**
    * @constructor BackgroundGroup
@@ -23264,13 +21246,13 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = BackgroundGroup;
 
 /***/ },
-/* 45 */
+/* 42 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
 
-  var Item = __webpack_require__(42);
-  var util = __webpack_require__(4);
+  var Item = __webpack_require__(39);
+  var util = __webpack_require__(3);
 
   /**
    * @constructor BoxItem
@@ -23502,12 +21484,12 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = BoxItem;
 
 /***/ },
-/* 46 */
+/* 43 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
 
-  var Item = __webpack_require__(42);
+  var Item = __webpack_require__(39);
 
   /**
    * @constructor PointItem
@@ -23705,15 +21687,15 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = PointItem;
 
 /***/ },
-/* 47 */
+/* 44 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
 
-  var Hammer = __webpack_require__(30);
-  var Item = __webpack_require__(42);
-  var BackgroundGroup = __webpack_require__(44);
-  var RangeItem = __webpack_require__(41);
+  var Hammer = __webpack_require__(27);
+  var Item = __webpack_require__(39);
+  var BackgroundGroup = __webpack_require__(41);
+  var RangeItem = __webpack_require__(38);
 
   /**
    * @constructor BackgroundItem
@@ -23926,16 +21908,16 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = BackgroundItem;
 
 /***/ },
-/* 48 */
+/* 45 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
 
-  var util = __webpack_require__(4);
-  var Component = __webpack_require__(28);
-  var TimeStep = __webpack_require__(43);
-  var DateUtil = __webpack_require__(36);
-  var moment = __webpack_require__(10);
+  var util = __webpack_require__(3);
+  var Component = __webpack_require__(25);
+  var TimeStep = __webpack_require__(40);
+  var DateUtil = __webpack_require__(33);
+  var moment = __webpack_require__(7);
 
   /**
    * A horizontal time axis
@@ -24366,15 +22348,15 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = TimeAxis;
 
 /***/ },
-/* 49 */
+/* 46 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
 
-  var keycharm = __webpack_require__(50);
-  var Emitter = __webpack_require__(20);
-  var Hammer = __webpack_require__(30);
-  var util = __webpack_require__(4);
+  var keycharm = __webpack_require__(47);
+  var Emitter = __webpack_require__(17);
+  var Hammer = __webpack_require__(27);
+  var util = __webpack_require__(3);
 
   /**
    * Turn an element into an clickToUse element.
@@ -24519,7 +22501,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = Activator;
 
 /***/ },
-/* 50 */
+/* 47 */
 /***/ function(module, exports, __webpack_require__) {
 
   var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;"use strict";
@@ -24718,16 +22700,16 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 51 */
+/* 48 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
 
-  var Hammer = __webpack_require__(30);
-  var util = __webpack_require__(4);
-  var Component = __webpack_require__(28);
-  var moment = __webpack_require__(10);
-  var locales = __webpack_require__(29);
+  var Hammer = __webpack_require__(27);
+  var util = __webpack_require__(3);
+  var Component = __webpack_require__(25);
+  var moment = __webpack_require__(7);
+  var locales = __webpack_require__(26);
 
   /**
    * A custom time bar
@@ -24957,684 +22939,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = CustomTime;
 
 /***/ },
-/* 52 */
-/***/ function(module, exports, __webpack_require__) {
-
-  'use strict';
-
-  Object.defineProperty(exports, '__esModule', {
-    value: true
-  });
-
-  var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
-
-  function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
-
-  function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
-
-  var _ColorPicker = __webpack_require__(53);
-
-  var _ColorPicker2 = _interopRequireDefault(_ColorPicker);
-
-  var util = __webpack_require__(4);
-
-  /**
-   * The way this works is for all properties of this.possible options, you can supply the property name in any form to list the options.
-   * Boolean options are recognised as Boolean
-   * Number options should be written as array: [default value, min value, max value, stepsize]
-   * Colors should be written as array: ['color', '#ffffff']
-   * Strings with should be written as array: [option1, option2, option3, ..]
-   *
-   * The options are matched with their counterparts in each of the modules and the values used in the configuration are
-   *
-   * @param parentModule        | the location where parentModule.setOptions() can be called
-   * @param defaultContainer    | the default container of the module
-   * @param configureOptions    | the fully configured and predefined options set found in allOptions.js
-   * @param pixelRatio          | canvas pixel ratio
-   */
-
-  var Configurator = (function () {
-    function Configurator(parentModule, defaultContainer, configureOptions) {
-      var pixelRatio = arguments[3] === undefined ? 1 : arguments[3];
-
-      _classCallCheck(this, Configurator);
-
-      this.parent = parentModule;
-      this.changedOptions = [];
-      this.container = defaultContainer;
-      this.allowCreation = false;
-
-      this.options = {};
-      this.defaultOptions = {
-        enabled: false,
-        filter: true,
-        container: undefined,
-        showButton: true
-      };
-      util.extend(this.options, this.defaultOptions);
-
-      this.configureOptions = configureOptions;
-      this.moduleOptions = {};
-      this.domElements = [];
-      this.colorPicker = new _ColorPicker2['default'](pixelRatio);
-      this.wrapper = undefined;
-    }
-
-    _createClass(Configurator, [{
-      key: 'setOptions',
-
-      /**
-       * refresh all options.
-       * Because all modules parse their options by themselves, we just use their options. We copy them here.
-       *
-       * @param options
-       */
-      value: function setOptions(options) {
-        if (options !== undefined) {
-          var enabled = true;
-          if (typeof options === 'string') {
-            this.options.filter = options;
-          } else if (options instanceof Array) {
-            this.options.filter = options.join();
-          } else if (typeof options === 'object') {
-            if (options.container !== undefined) {
-              this.options.container = options.container;
-            }
-            if (options.filter !== undefined) {
-              this.options.filter = options.filter;
-            }
-            if (options.showButton !== undefined) {
-              this.options.showButton = options.showButton;
-            }
-            if (options.enabled !== undefined) {
-              enabled = options.enabled;
-            }
-          } else if (typeof options === 'boolean') {
-            this.options.filter = true;
-            enabled = options;
-          } else if (typeof options === 'function') {
-            this.options.filter = options;
-            enabled = true;
-          }
-          this.options.enabled = enabled;
-        }
-        this._clean();
-      }
-    }, {
-      key: 'setModuleOptions',
-      value: function setModuleOptions(moduleOptions) {
-        this.moduleOptions = moduleOptions;
-        if (this.options.enabled === true) {
-          this._clean();
-          if (this.options.container !== undefined) {
-            this.container = this.options.container;
-          }
-          this._create();
-        }
-      }
-    }, {
-      key: '_create',
-
-      /**
-       * Create all DOM elements
-       * @private
-       */
-      value: function _create() {
-        var _this = this;
-
-        this._clean();
-        this.changedOptions = [];
-
-        var filter = this.options.filter;
-        var counter = 0;
-        var show = false;
-        for (var option in this.configureOptions) {
-          if (this.configureOptions.hasOwnProperty(option)) {
-            this.allowCreation = false;
-            show = false;
-            if (typeof filter === 'function') {
-              show = filter(option, []);
-              show = show || this._handleObject(this.configureOptions[option], [option], true);
-            } else if (filter === true || filter.indexOf(option) !== -1) {
-              show = true;
-            }
-
-            if (show !== false) {
-              this.allowCreation = true;
-
-              // linebreak between categories
-              if (counter > 0) {
-                this._makeItem([]);
-              }
-              // a header for the category
-              this._makeHeader(option);
-
-              // get the suboptions
-              this._handleObject(this.configureOptions[option], [option]);
-            }
-            counter++;
-          }
-        }
-
-        if (this.options.showButton === true) {
-          (function () {
-            var generateButton = document.createElement('div');
-            generateButton.className = 'vis-network-configuration button';
-            generateButton.innerHTML = 'generate options';
-            generateButton.onclick = function () {
-              _this._printOptions();
-            };
-            generateButton.onmouseover = function () {
-              generateButton.className = 'vis-network-configuration button hover';
-            };
-            generateButton.onmouseout = function () {
-              generateButton.className = 'vis-network-configuration button';
-            };
-
-            _this.optionsContainer = document.createElement('div');
-            _this.optionsContainer.className = 'vis-network-configuration vis-option-container';
-
-            _this.domElements.push(_this.optionsContainer);
-            _this.domElements.push(generateButton);
-          })();
-        }
-
-        this._push();
-        this.colorPicker.insertTo(this.container);
-      }
-    }, {
-      key: '_push',
-
-      /**
-       * draw all DOM elements on the screen
-       * @private
-       */
-      value: function _push() {
-        this.wrapper = document.createElement('div');
-        this.wrapper.className = 'vis-network-configuration-wrapper';
-        this.container.appendChild(this.wrapper);
-        for (var i = 0; i < this.domElements.length; i++) {
-          this.wrapper.appendChild(this.domElements[i]);
-        }
-      }
-    }, {
-      key: '_clean',
-
-      /**
-       * delete all DOM elements
-       * @private
-       */
-      value: function _clean() {
-        for (var i = 0; i < this.domElements.length; i++) {
-          this.wrapper.removeChild(this.domElements[i]);
-        }
-
-        if (this.wrapper !== undefined) {
-          this.container.removeChild(this.wrapper);
-          this.wrapper = undefined;
-        }
-        this.domElements = [];
-      }
-    }, {
-      key: '_getValue',
-
-      /**
-       * get the value from the actualOptions if it exists
-       * @param {array} path    | where to look for the actual option
-       * @returns {*}
-       * @private
-       */
-      value: function _getValue(path) {
-        var base = this.moduleOptions;
-        for (var i = 0; i < path.length; i++) {
-          if (base[path[i]] !== undefined) {
-            base = base[path[i]];
-          } else {
-            base = undefined;
-            break;
-          }
-        }
-        return base;
-      }
-    }, {
-      key: '_makeItem',
-
-      /**
-       * all option elements are wrapped in an item
-       * @param path
-       * @param domElements
-       * @private
-       */
-      value: function _makeItem(path) {
-        var _this2 = this;
-
-        for (var _len = arguments.length, domElements = Array(_len > 1 ? _len - 1 : 0), _key = 1; _key < _len; _key++) {
-          domElements[_key - 1] = arguments[_key];
-        }
-
-        if (this.allowCreation === true) {
-          (function () {
-            var item = document.createElement('div');
-            item.className = 'vis-network-configuration item s' + path.length;
-            domElements.forEach(function (element) {
-              item.appendChild(element);
-            });
-            _this2.domElements.push(item);
-          })();
-        }
-      }
-    }, {
-      key: '_makeHeader',
-
-      /**
-       * header for major subjects
-       * @param name
-       * @private
-       */
-      value: function _makeHeader(name) {
-        var div = document.createElement('div');
-        div.className = 'vis-network-configuration header';
-        div.innerHTML = name;
-        this._makeItem([], div);
-      }
-    }, {
-      key: '_makeLabel',
-
-      /**
-       * make a label, if it is an object label, it gets different styling.
-       * @param name
-       * @param path
-       * @param objectLabel
-       * @returns {HTMLElement}
-       * @private
-       */
-      value: function _makeLabel(name, path) {
-        var objectLabel = arguments[2] === undefined ? false : arguments[2];
-
-        var div = document.createElement('div');
-        div.className = 'vis-network-configuration label s' + path.length;
-        if (objectLabel === true) {
-          div.innerHTML = '<i><b>' + name + ':</b></i>';
-        } else {
-          div.innerHTML = name + ':';
-        }
-        return div;
-      }
-    }, {
-      key: '_makeDropdown',
-
-      /**
-       * make a dropdown list for multiple possible string optoins
-       * @param arr
-       * @param value
-       * @param path
-       * @private
-       */
-      value: function _makeDropdown(arr, value, path) {
-        var select = document.createElement('select');
-        select.className = 'vis-network-configuration select';
-        var selectedValue = 0;
-        if (value !== undefined) {
-          if (arr.indexOf(value) !== -1) {
-            selectedValue = arr.indexOf(value);
-          }
-        }
-
-        for (var i = 0; i < arr.length; i++) {
-          var option = document.createElement('option');
-          option.value = arr[i];
-          if (i === selectedValue) {
-            option.selected = 'selected';
-          }
-          option.innerHTML = arr[i];
-          select.appendChild(option);
-        }
-
-        var me = this;
-        select.onchange = function () {
-          me._update(this.value, path);
-        };
-
-        var label = this._makeLabel(path[path.length - 1], path);
-        this._makeItem(path, label, select);
-      }
-    }, {
-      key: '_makeRange',
-
-      /**
-       * make a range object for numeric options
-       * @param arr
-       * @param value
-       * @param path
-       * @private
-       */
-      value: function _makeRange(arr, value, path) {
-        var defaultValue = arr[0];
-        var min = arr[1];
-        var max = arr[2];
-        var step = arr[3];
-        var range = document.createElement('input');
-        range.type = 'range';
-        range.className = 'vis-network-configuration range';
-        range.min = min;
-        range.max = max;
-        range.step = step;
-
-        if (value !== undefined) {
-          if (value < 0 && value * 2 < min) {
-            range.min = value * 2;
-          } else if (value * 0.1 < min) {
-            range.min = value / 10;
-          }
-          if (value * 2 > max && max !== 1) {
-            range.max = value * 2;
-          }
-          range.value = value;
-        } else {
-          range.value = defaultValue;
-        }
-
-        var input = document.createElement('input');
-        input.className = 'vis-network-configuration rangeinput';
-        input.value = range.value;
-
-        var me = this;
-        range.onchange = function () {
-          input.value = this.value;me._update(Number(this.value), path);
-        };
-        range.oninput = function () {
-          input.value = this.value;
-        };
-
-        var label = this._makeLabel(path[path.length - 1], path);
-        this._makeItem(path, label, range, input);
-      }
-    }, {
-      key: '_makeCheckbox',
-
-      /**
-       * make a checkbox for boolean options.
-       * @param defaultValue
-       * @param value
-       * @param path
-       * @private
-       */
-      value: function _makeCheckbox(defaultValue, value, path) {
-        var checkbox = document.createElement('input');
-        checkbox.type = 'checkbox';
-        checkbox.className = 'vis-network-configuration checkbox';
-        checkbox.checked = defaultValue;
-        if (value !== undefined) {
-          checkbox.checked = value;
-          if (value !== defaultValue) {
-            if (typeof defaultValue === 'object') {
-              if (value !== defaultValue.enabled) {
-                this.changedOptions.push({ path: path, value: value });
-              }
-            } else {
-              this.changedOptions.push({ path: path, value: value });
-            }
-          }
-        }
-
-        var me = this;
-        checkbox.onchange = function () {
-          me._update(this.checked, path);
-        };
-
-        var label = this._makeLabel(path[path.length - 1], path);
-        this._makeItem(path, label, checkbox);
-      }
-    }, {
-      key: '_makeTextInput',
-
-      /**
-       * make a text input field for string options.
-       * @param defaultValue
-       * @param value
-       * @param path
-       * @private
-       */
-      value: function _makeTextInput(defaultValue, value, path) {
-        var checkbox = document.createElement('input');
-        checkbox.type = 'text';
-        checkbox.className = 'vis-network-configuration text';
-        checkbox.value = value;
-        if (value !== defaultValue) {
-          this.changedOptions.push({ path: path, value: value });
-        }
-
-        var me = this;
-        checkbox.onchange = function () {
-          me._update(this.value, path);
-        };
-
-        var label = this._makeLabel(path[path.length - 1], path);
-        this._makeItem(path, label, checkbox);
-      }
-    }, {
-      key: '_makeColorField',
-
-      /**
-       * make a color field with a color picker for color fields
-       * @param arr
-       * @param value
-       * @param path
-       * @private
-       */
-      value: function _makeColorField(arr, value, path) {
-        var _this3 = this;
-
-        var defaultColor = arr[1];
-        var div = document.createElement('div');
-        value = value === undefined ? defaultColor : value;
-
-        if (value !== 'none') {
-          div.className = 'vis-network-configuration colorBlock';
-          div.style.backgroundColor = value;
-        } else {
-          div.className = 'vis-network-configuration colorBlock none';
-        }
-
-        value = value === undefined ? defaultColor : value;
-        div.onclick = function () {
-          _this3._showColorPicker(value, div, path);
-        };
-
-        var label = this._makeLabel(path[path.length - 1], path);
-        this._makeItem(path, label, div);
-      }
-    }, {
-      key: '_showColorPicker',
-
-      /**
-       * used by the color buttons to call the color picker.
-       * @param event
-       * @param value
-       * @param div
-       * @param path
-       * @private
-       */
-      value: function _showColorPicker(value, div, path) {
-        var _this4 = this;
-
-        var rect = div.getBoundingClientRect();
-        var bodyRect = document.body.getBoundingClientRect();
-        var pickerX = rect.left + rect.width + 5;
-        var pickerY = rect.top - bodyRect.top + rect.height * 0.5;
-        this.colorPicker.show(pickerX, pickerY);
-        this.colorPicker.setColor(value);
-        this.colorPicker.setCallback(function (color) {
-          var colorString = 'rgba(' + color.r + ',' + color.g + ',' + color.b + ',' + color.a + ')';
-          div.style.backgroundColor = colorString;
-          _this4._update(colorString, path);
-        });
-      }
-    }, {
-      key: '_handleObject',
-
-      /**
-       * parse an object and draw the correct items
-       * @param obj
-       * @param path
-       * @private
-       */
-      value: function _handleObject(obj) {
-        var path = arguments[1] === undefined ? [] : arguments[1];
-        var checkOnly = arguments[2] === undefined ? false : arguments[2];
-
-        var show = false;
-        var filter = this.options.filter;
-        var visibleInSet = false;
-        for (var subObj in obj) {
-          if (obj.hasOwnProperty(subObj)) {
-            show = true;
-            var item = obj[subObj];
-            var newPath = util.copyAndExtendArray(path, subObj);
-            if (typeof filter === 'function') {
-              show = filter(subObj, path);
-
-              // if needed we must go deeper into the object.
-              if (show === false) {
-                if (!(item instanceof Array) && typeof item !== 'string' && typeof item !== 'boolean' && item instanceof Object) {
-                  this.allowCreation = false;
-                  show = this._handleObject(item, newPath, true);
-                  this.allowCreation = checkOnly === false;
-                }
-              }
-            }
-
-            if (show !== false) {
-              visibleInSet = true;
-              var value = this._getValue(newPath);
-
-              if (item instanceof Array) {
-                this._handleArray(item, value, newPath);
-              } else if (typeof item === 'string') {
-                this._makeTextInput(item, value, newPath);
-              } else if (typeof item === 'boolean') {
-                this._makeCheckbox(item, value, newPath);
-              } else if (item instanceof Object) {
-                // collapse the physics options that are not enabled
-                var draw = true;
-                if (path.indexOf('physics') !== -1) {
-                  if (this.moduleOptions.physics.solver !== subObj) {
-                    draw = false;
-                  }
-                }
-
-                if (draw === true) {
-                  // initially collapse options with an disabled enabled option.
-                  if (item.enabled !== undefined) {
-                    var enabledPath = util.copyAndExtendArray(newPath, 'enabled');
-                    var enabledValue = this._getValue(enabledPath);
-                    if (enabledValue === true) {
-                      var label = this._makeLabel(subObj, newPath, true);
-                      this._makeItem(newPath, label);
-                      visibleInSet = this._handleObject(item, newPath) || visibleInSet;
-                    } else {
-                      this._makeCheckbox(item, enabledValue, newPath);
-                    }
-                  } else {
-                    var label = this._makeLabel(subObj, newPath, true);
-                    this._makeItem(newPath, label);
-                    visibleInSet = this._handleObject(item, newPath) || visibleInSet;
-                  }
-                }
-              } else {
-                console.error('dont know how to handle', item, subObj, newPath);
-              }
-            }
-          }
-        }
-        return visibleInSet;
-      }
-    }, {
-      key: '_handleArray',
-
-      /**
-       * handle the array type of option
-       * @param optionName
-       * @param arr
-       * @param value
-       * @param path
-       * @private
-       */
-      value: function _handleArray(arr, value, path) {
-        if (typeof arr[0] === 'string' && arr[0] === 'color') {
-          this._makeColorField(arr, value, path);
-          if (arr[1] !== value) {
-            this.changedOptions.push({ path: path, value: value });
-          }
-        } else if (typeof arr[0] === 'string') {
-          this._makeDropdown(arr, value, path);
-          if (arr[0] !== value) {
-            this.changedOptions.push({ path: path, value: value });
-          }
-        } else if (typeof arr[0] === 'number') {
-          this._makeRange(arr, value, path);
-          if (arr[0] !== value) {
-            this.changedOptions.push({ path: path, value: Number(value) });
-          }
-        }
-      }
-    }, {
-      key: '_update',
-
-      /**
-       * called to update the network with the new settings.
-       * @param value
-       * @param path
-       * @private
-       */
-      value: function _update(value, path) {
-        var options = this._constructOptions(value, path);
-        this.parent.setOptions(options);
-      }
-    }, {
-      key: '_constructOptions',
-      value: function _constructOptions(value, path) {
-        var optionsObj = arguments[2] === undefined ? {} : arguments[2];
-
-        var pointer = optionsObj;
-
-        // when dropdown boxes can be string or boolean, we typecast it into correct types
-        value = value === 'true' ? true : value;
-        value = value === 'false' ? false : value;
-
-        for (var i = 0; i < path.length; i++) {
-          if (path[i] !== 'global') {
-            if (pointer[path[i]] === undefined) {
-              pointer[path[i]] = {};
-            }
-            if (i !== path.length - 1) {
-              pointer = pointer[path[i]];
-            } else {
-              pointer[path[i]] = value;
-            }
-          }
-        }
-        return optionsObj;
-      }
-    }, {
-      key: '_printOptions',
-      value: function _printOptions() {
-        var options = {};
-        for (var i = 0; i < this.changedOptions.length; i++) {
-          this._constructOptions(this.changedOptions[i].value, this.changedOptions[i].path, options);
-        }
-        this.optionsContainer.innerHTML = '<pre>var options = ' + JSON.stringify(options, null, 2) + '</pre>';
-      }
-    }]);
-
-    return Configurator;
-  })();
-
-  exports['default'] = Configurator;
-  module.exports = exports['default'];
-
-/***/ },
-/* 53 */
+/* 49 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -25647,9 +22952,9 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
 
-  var Hammer = __webpack_require__(30);
-  var hammerUtil = __webpack_require__(35);
-  var util = __webpack_require__(4);
+  var Hammer = __webpack_require__(27);
+  var hammerUtil = __webpack_require__(32);
+  var util = __webpack_require__(3);
 
   var ColorPicker = (function () {
     function ColorPicker() {
@@ -26214,7 +23519,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 54 */
+/* 50 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -26227,7 +23532,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
 
-  var util = __webpack_require__(4);
+  var util = __webpack_require__(3);
 
   var errorFound = false;
   var allOptions = undefined;
@@ -26533,7 +23838,7 @@ return /******/ (function(modules) { // webpackBootstrap
   // item is a function, which is allowed
 
 /***/ },
-/* 55 */
+/* 51 */
 /***/ function(module, exports, __webpack_require__) {
 
   /**
@@ -26750,28 +24055,28 @@ return /******/ (function(modules) { // webpackBootstrap
   exports.configureOptions = configureOptions;
 
 /***/ },
-/* 56 */
+/* 52 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
 
-  var Emitter = __webpack_require__(20);
-  var Hammer = __webpack_require__(30);
-  var util = __webpack_require__(4);
-  var DataSet = __webpack_require__(15);
-  var DataView = __webpack_require__(17);
-  var Range = __webpack_require__(34);
-  var Core = __webpack_require__(37);
-  var TimeAxis = __webpack_require__(48);
-  var CurrentTime = __webpack_require__(27);
-  var CustomTime = __webpack_require__(51);
-  var LineGraph = __webpack_require__(5);
+  var Emitter = __webpack_require__(17);
+  var Hammer = __webpack_require__(27);
+  var util = __webpack_require__(3);
+  var DataSet = __webpack_require__(12);
+  var DataView = __webpack_require__(14);
+  var Range = __webpack_require__(31);
+  var Core = __webpack_require__(34);
+  var TimeAxis = __webpack_require__(45);
+  var CurrentTime = __webpack_require__(24);
+  var CustomTime = __webpack_require__(48);
+  var LineGraph = __webpack_require__(53);
 
-  var Configurator = __webpack_require__(52);
-  var Validator = __webpack_require__(54)['default'];
-  var printStyle = __webpack_require__(54).printStyle;
-  var allOptions = __webpack_require__(64).allOptions;
-  var configureOptions = __webpack_require__(64).configureOptions;
+  var Configurator = __webpack_require__(2);
+  var Validator = __webpack_require__(50)['default'];
+  var printStyle = __webpack_require__(50).printStyle;
+  var allOptions = __webpack_require__(61).allOptions;
+  var configureOptions = __webpack_require__(61).configureOptions;
 
   /**
    * Create a timeline visualization
@@ -27080,15 +24385,991 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = Graph2d;
 
 /***/ },
-/* 57 */
+/* 53 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
 
-  var util = __webpack_require__(4);
-  var DOMutil = __webpack_require__(14);
-  var Component = __webpack_require__(28);
-  var DataStep = __webpack_require__(58);
+  var util = __webpack_require__(3);
+  var DOMutil = __webpack_require__(11);
+  var DataSet = __webpack_require__(12);
+  var DataView = __webpack_require__(14);
+  var Component = __webpack_require__(25);
+  var DataAxis = __webpack_require__(54);
+  var GraphGroup = __webpack_require__(56);
+  var Legend = __webpack_require__(60);
+  var BarFunctions = __webpack_require__(59);
+  var LineFunctions = __webpack_require__(57);
+
+  var UNGROUPED = '__ungrouped__'; // reserved group id for ungrouped items
+
+  /**
+   * This is the constructor of the LineGraph. It requires a Timeline body and options.
+   *
+   * @param body
+   * @param options
+   * @constructor
+   */
+  function LineGraph(body, options) {
+    this.id = util.randomUUID();
+    this.body = body;
+
+    this.defaultOptions = {
+      yAxisOrientation: 'left',
+      defaultGroup: 'default',
+      sort: true,
+      sampling: true,
+      stack: false,
+      graphHeight: '400px',
+      shaded: {
+        enabled: false,
+        orientation: 'bottom' // top, bottom
+      },
+      style: 'line', // line, bar
+      barChart: {
+        width: 50,
+        sideBySide: false,
+        align: 'center' // left, center, right
+      },
+      interpolation: {
+        enabled: true,
+        parametrization: 'centripetal', // uniform (alpha = 0.0), chordal (alpha = 1.0), centripetal (alpha = 0.5)
+        alpha: 0.5
+      },
+      drawPoints: {
+        enabled: true,
+        size: 6,
+        style: 'square' // square, circle
+      },
+      dataAxis: {
+        showMinorLabels: true,
+        showMajorLabels: true,
+        icons: false,
+        width: '40px',
+        visible: true,
+        alignZeros: true,
+        left: {
+          range: { min: undefined, max: undefined },
+          format: function format(value) {
+            return value;
+          },
+          title: { text: undefined, style: undefined }
+        },
+        right: {
+          range: { min: undefined, max: undefined },
+          format: function format(value) {
+            return value;
+          },
+          title: { text: undefined, style: undefined }
+        }
+      },
+      legend: {
+        enabled: false,
+        icons: true,
+        left: {
+          visible: true,
+          position: 'top-left' // top/bottom - left,right
+        },
+        right: {
+          visible: true,
+          position: 'top-right' // top/bottom - left,right
+        }
+      },
+      groups: {
+        visibility: {}
+      }
+    };
+
+    // options is shared by this ItemSet and all its items
+    this.options = util.extend({}, this.defaultOptions);
+    this.dom = {};
+    this.props = {};
+    this.hammer = null;
+    this.groups = {};
+    this.abortedGraphUpdate = false;
+    this.updateSVGheight = false;
+    this.updateSVGheightOnResize = false;
+
+    var me = this;
+    this.itemsData = null; // DataSet
+    this.groupsData = null; // DataSet
+
+    // listeners for the DataSet of the items
+    this.itemListeners = {
+      'add': function add(event, params, senderId) {
+        me._onAdd(params.items);
+      },
+      'update': function update(event, params, senderId) {
+        me._onUpdate(params.items);
+      },
+      'remove': function remove(event, params, senderId) {
+        me._onRemove(params.items);
+      }
+    };
+
+    // listeners for the DataSet of the groups
+    this.groupListeners = {
+      'add': function add(event, params, senderId) {
+        me._onAddGroups(params.items);
+      },
+      'update': function update(event, params, senderId) {
+        me._onUpdateGroups(params.items);
+      },
+      'remove': function remove(event, params, senderId) {
+        me._onRemoveGroups(params.items);
+      }
+    };
+
+    this.items = {}; // object with an Item for every data item
+    this.selection = []; // list with the ids of all selected nodes
+    this.lastStart = this.body.range.start;
+    this.touchParams = {}; // stores properties while dragging
+
+    this.svgElements = {};
+    this.setOptions(options);
+    this.groupsUsingDefaultStyles = [0];
+    this.COUNTER = 0;
+    this.body.emitter.on('rangechanged', function () {
+      me.lastStart = me.body.range.start;
+      me.svg.style.left = util.option.asSize(-me.props.width);
+      me.redraw.call(me, true);
+    });
+
+    // create the HTML DOM
+    this._create();
+    this.framework = { svg: this.svg, svgElements: this.svgElements, options: this.options, groups: this.groups };
+    this.body.emitter.emit('change');
+  }
+
+  LineGraph.prototype = new Component();
+
+  /**
+   * Create the HTML DOM for the ItemSet
+   */
+  LineGraph.prototype._create = function () {
+    var frame = document.createElement('div');
+    frame.className = 'vis-line-graph';
+    this.dom.frame = frame;
+
+    // create svg element for graph drawing.
+    this.svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+    this.svg.style.position = 'relative';
+    this.svg.style.height = ('' + this.options.graphHeight).replace('px', '') + 'px';
+    this.svg.style.display = 'block';
+    frame.appendChild(this.svg);
+
+    // data axis
+    this.options.dataAxis.orientation = 'left';
+    this.yAxisLeft = new DataAxis(this.body, this.options.dataAxis, this.svg, this.options.groups);
+
+    this.options.dataAxis.orientation = 'right';
+    this.yAxisRight = new DataAxis(this.body, this.options.dataAxis, this.svg, this.options.groups);
+    delete this.options.dataAxis.orientation;
+
+    // legends
+    this.legendLeft = new Legend(this.body, this.options.legend, 'left', this.options.groups);
+    this.legendRight = new Legend(this.body, this.options.legend, 'right', this.options.groups);
+
+    this.show();
+  };
+
+  /**
+   * set the options of the LineGraph. the mergeOptions is used for subObjects that have an enabled element.
+   * @param {object} options
+   */
+  LineGraph.prototype.setOptions = function (options) {
+    if (options) {
+      var fields = ['sampling', 'defaultGroup', 'stack', 'height', 'graphHeight', 'yAxisOrientation', 'style', 'barChart', 'dataAxis', 'sort', 'groups'];
+      if (options.graphHeight === undefined && options.height !== undefined && this.body.domProps.centerContainer.height !== undefined) {
+        this.updateSVGheight = true;
+        this.updateSVGheightOnResize = true;
+      } else if (this.body.domProps.centerContainer.height !== undefined && options.graphHeight !== undefined) {
+        if (parseInt((options.graphHeight + '').replace('px', '')) < this.body.domProps.centerContainer.height) {
+          this.updateSVGheight = true;
+        }
+      }
+      util.selectiveDeepExtend(fields, this.options, options);
+      util.mergeOptions(this.options, options, 'interpolation');
+      util.mergeOptions(this.options, options, 'drawPoints');
+      util.mergeOptions(this.options, options, 'shaded');
+      util.mergeOptions(this.options, options, 'legend');
+
+      if (options.interpolation) {
+        if (typeof options.interpolation == 'object') {
+          if (options.interpolation.parametrization) {
+            if (options.interpolation.parametrization == 'uniform') {
+              this.options.interpolation.alpha = 0;
+            } else if (options.interpolation.parametrization == 'chordal') {
+              this.options.interpolation.alpha = 1;
+            } else {
+              this.options.interpolation.parametrization = 'centripetal';
+              this.options.interpolation.alpha = 0.5;
+            }
+          }
+        }
+      }
+
+      if (this.yAxisLeft) {
+        if (options.dataAxis !== undefined) {
+          this.yAxisLeft.setOptions(this.options.dataAxis);
+          this.yAxisRight.setOptions(this.options.dataAxis);
+        }
+      }
+
+      if (this.legendLeft) {
+        if (options.legend !== undefined) {
+          this.legendLeft.setOptions(this.options.legend);
+          this.legendRight.setOptions(this.options.legend);
+        }
+      }
+
+      if (this.groups.hasOwnProperty(UNGROUPED)) {
+        this.groups[UNGROUPED].setOptions(options);
+      }
+    }
+
+    // this is used to redraw the graph if the visibility of the groups is changed.
+    if (this.dom.frame) {
+      this.redraw(true);
+    }
+  };
+
+  /**
+   * Hide the component from the DOM
+   */
+  LineGraph.prototype.hide = function () {
+    // remove the frame containing the items
+    if (this.dom.frame.parentNode) {
+      this.dom.frame.parentNode.removeChild(this.dom.frame);
+    }
+  };
+
+  /**
+   * Show the component in the DOM (when not already visible).
+   * @return {Boolean} changed
+   */
+  LineGraph.prototype.show = function () {
+    // show frame containing the items
+    if (!this.dom.frame.parentNode) {
+      this.body.dom.center.appendChild(this.dom.frame);
+    }
+  };
+
+  /**
+   * Set items
+   * @param {vis.DataSet | null} items
+   */
+  LineGraph.prototype.setItems = function (items) {
+    var me = this,
+        ids,
+        oldItemsData = this.itemsData;
+
+    // replace the dataset
+    if (!items) {
+      this.itemsData = null;
+    } else if (items instanceof DataSet || items instanceof DataView) {
+      this.itemsData = items;
+    } else {
+      throw new TypeError('Data must be an instance of DataSet or DataView');
+    }
+
+    if (oldItemsData) {
+      // unsubscribe from old dataset
+      util.forEach(this.itemListeners, function (callback, event) {
+        oldItemsData.off(event, callback);
+      });
+
+      // remove all drawn items
+      ids = oldItemsData.getIds();
+      this._onRemove(ids);
+    }
+
+    if (this.itemsData) {
+      // subscribe to new dataset
+      var id = this.id;
+      util.forEach(this.itemListeners, function (callback, event) {
+        me.itemsData.on(event, callback, id);
+      });
+
+      // add all new items
+      ids = this.itemsData.getIds();
+      this._onAdd(ids);
+    }
+    this._updateUngrouped();
+    //this._updateGraph();
+    this.redraw(true);
+  };
+
+  /**
+   * Set groups
+   * @param {vis.DataSet} groups
+   */
+  LineGraph.prototype.setGroups = function (groups) {
+    var me = this;
+    var ids;
+
+    // unsubscribe from current dataset
+    if (this.groupsData) {
+      util.forEach(this.groupListeners, function (callback, event) {
+        me.groupsData.off(event, callback);
+      });
+
+      // remove all drawn groups
+      ids = this.groupsData.getIds();
+      this.groupsData = null;
+      this._onRemoveGroups(ids); // note: this will cause a redraw
+    }
+
+    // replace the dataset
+    if (!groups) {
+      this.groupsData = null;
+    } else if (groups instanceof DataSet || groups instanceof DataView) {
+      this.groupsData = groups;
+    } else {
+      throw new TypeError('Data must be an instance of DataSet or DataView');
+    }
+
+    if (this.groupsData) {
+      // subscribe to new dataset
+      var id = this.id;
+      util.forEach(this.groupListeners, function (callback, event) {
+        me.groupsData.on(event, callback, id);
+      });
+
+      // draw all ms
+      ids = this.groupsData.getIds();
+      this._onAddGroups(ids);
+    }
+    this._onUpdate();
+  };
+
+  /**
+   * Update the data
+   * @param [ids]
+   * @private
+   */
+  LineGraph.prototype._onUpdate = function (ids) {
+    this._updateUngrouped();
+    this._updateAllGroupData();
+    //this._updateGraph();
+    this.redraw(true);
+  };
+  LineGraph.prototype._onAdd = function (ids) {
+    this._onUpdate(ids);
+  };
+  LineGraph.prototype._onRemove = function (ids) {
+    this._onUpdate(ids);
+  };
+  LineGraph.prototype._onUpdateGroups = function (groupIds) {
+    for (var i = 0; i < groupIds.length; i++) {
+      var group = this.groupsData.get(groupIds[i]);
+      this._updateGroup(group, groupIds[i]);
+    }
+
+    //this._updateGraph();
+    this.redraw(true);
+  };
+  LineGraph.prototype._onAddGroups = function (groupIds) {
+    this._onUpdateGroups(groupIds);
+  };
+
+  /**
+   * this cleans the group out off the legends and the dataaxis, updates the ungrouped and updates the graph
+   * @param {Array} groupIds
+   * @private
+   */
+  LineGraph.prototype._onRemoveGroups = function (groupIds) {
+    for (var i = 0; i < groupIds.length; i++) {
+      if (this.groups.hasOwnProperty(groupIds[i])) {
+        if (this.groups[groupIds[i]].options.yAxisOrientation == 'right') {
+          this.yAxisRight.removeGroup(groupIds[i]);
+          this.legendRight.removeGroup(groupIds[i]);
+          this.legendRight.redraw();
+        } else {
+          this.yAxisLeft.removeGroup(groupIds[i]);
+          this.legendLeft.removeGroup(groupIds[i]);
+          this.legendLeft.redraw();
+        }
+        delete this.groups[groupIds[i]];
+      }
+    }
+    this._updateUngrouped();
+    //this._updateGraph();
+    this.redraw(true);
+  };
+
+  /**
+   * update a group object with the group dataset entree
+   *
+   * @param group
+   * @param groupId
+   * @private
+   */
+  LineGraph.prototype._updateGroup = function (group, groupId) {
+    if (!this.groups.hasOwnProperty(groupId)) {
+      this.groups[groupId] = new GraphGroup(group, groupId, this.options, this.groupsUsingDefaultStyles);
+      if (this.groups[groupId].options.yAxisOrientation == 'right') {
+        this.yAxisRight.addGroup(groupId, this.groups[groupId]);
+        this.legendRight.addGroup(groupId, this.groups[groupId]);
+      } else {
+        this.yAxisLeft.addGroup(groupId, this.groups[groupId]);
+        this.legendLeft.addGroup(groupId, this.groups[groupId]);
+      }
+    } else {
+      this.groups[groupId].update(group);
+      if (this.groups[groupId].options.yAxisOrientation == 'right') {
+        this.yAxisRight.updateGroup(groupId, this.groups[groupId]);
+        this.legendRight.updateGroup(groupId, this.groups[groupId]);
+      } else {
+        this.yAxisLeft.updateGroup(groupId, this.groups[groupId]);
+        this.legendLeft.updateGroup(groupId, this.groups[groupId]);
+      }
+    }
+    this.legendLeft.redraw();
+    this.legendRight.redraw();
+  };
+
+  /**
+   * this updates all groups, it is used when there is an update the the itemset.
+   *
+   * @private
+   */
+  LineGraph.prototype._updateAllGroupData = function () {
+    if (this.itemsData != null) {
+      var groupsContent = {};
+      var groupId;
+      for (groupId in this.groups) {
+        if (this.groups.hasOwnProperty(groupId)) {
+          groupsContent[groupId] = [];
+        }
+      }
+      for (var itemId in this.itemsData._data) {
+        if (this.itemsData._data.hasOwnProperty(itemId)) {
+          var item = this.itemsData._data[itemId];
+          if (groupsContent[item.group] === undefined) {
+            throw new Error('Cannot find referenced group. Possible reason: items added before groups? Groups need to be added before items, as items refer to groups.');
+          }
+          item.x = util.convert(item.x, 'Date');
+          groupsContent[item.group].push(item);
+        }
+      }
+      for (groupId in this.groups) {
+        if (this.groups.hasOwnProperty(groupId)) {
+          this.groups[groupId].setItems(groupsContent[groupId]);
+        }
+      }
+    }
+  };
+
+  /**
+   * Create or delete the group holding all ungrouped items. This group is used when
+   * there are no groups specified. This anonymous group is called 'graph'.
+   * @protected
+   */
+  LineGraph.prototype._updateUngrouped = function () {
+    if (this.itemsData && this.itemsData != null) {
+      var ungroupedCounter = 0;
+      for (var itemId in this.itemsData._data) {
+        if (this.itemsData._data.hasOwnProperty(itemId)) {
+          var item = this.itemsData._data[itemId];
+          if (item != undefined) {
+            if (item.hasOwnProperty('group')) {
+              if (item.group === undefined) {
+                item.group = UNGROUPED;
+              }
+            } else {
+              item.group = UNGROUPED;
+            }
+            ungroupedCounter = item.group == UNGROUPED ? ungroupedCounter + 1 : ungroupedCounter;
+          }
+        }
+      }
+
+      if (ungroupedCounter == 0) {
+        delete this.groups[UNGROUPED];
+        this.legendLeft.removeGroup(UNGROUPED);
+        this.legendRight.removeGroup(UNGROUPED);
+        this.yAxisLeft.removeGroup(UNGROUPED);
+        this.yAxisRight.removeGroup(UNGROUPED);
+      } else {
+        var group = { id: UNGROUPED, content: this.options.defaultGroup };
+        this._updateGroup(group, UNGROUPED);
+      }
+    } else {
+      delete this.groups[UNGROUPED];
+      this.legendLeft.removeGroup(UNGROUPED);
+      this.legendRight.removeGroup(UNGROUPED);
+      this.yAxisLeft.removeGroup(UNGROUPED);
+      this.yAxisRight.removeGroup(UNGROUPED);
+    }
+
+    this.legendLeft.redraw();
+    this.legendRight.redraw();
+  };
+
+  /**
+   * Redraw the component, mandatory function
+   * @return {boolean} Returns true if the component is resized
+   */
+  LineGraph.prototype.redraw = function (forceGraphUpdate) {
+    var resized = false;
+
+    // calculate actual size and position
+    this.props.width = this.dom.frame.offsetWidth;
+    this.props.height = this.body.domProps.centerContainer.height - this.body.domProps.border.top - this.body.domProps.border.bottom;
+
+    // update the graph if there is no lastWidth or with, used for the initial draw
+    if (this.lastWidth === undefined && this.props.width) {
+      forceGraphUpdate = true;
+    }
+
+    // check if this component is resized
+    resized = this._isResized() || resized;
+
+    // check whether zoomed (in that case we need to re-stack everything)
+    var visibleInterval = this.body.range.end - this.body.range.start;
+    var zoomed = visibleInterval != this.lastVisibleInterval;
+    this.lastVisibleInterval = visibleInterval;
+
+    // the svg element is three times as big as the width, this allows for fully dragging left and right
+    // without reloading the graph. the controls for this are bound to events in the constructor
+    if (resized == true) {
+      this.svg.style.width = util.option.asSize(3 * this.props.width);
+      this.svg.style.left = util.option.asSize(-this.props.width);
+
+      // if the height of the graph is set as proportional, change the height of the svg
+      if ((this.options.height + '').indexOf('%') != -1 || this.updateSVGheightOnResize == true) {
+        this.updateSVGheight = true;
+      }
+    }
+
+    // update the height of the graph on each redraw of the graph.
+    if (this.updateSVGheight == true) {
+      if (this.options.graphHeight != this.props.height + 'px') {
+        this.options.graphHeight = this.props.height + 'px';
+        this.svg.style.height = this.props.height + 'px';
+      }
+      this.updateSVGheight = false;
+    } else {
+      this.svg.style.height = ('' + this.options.graphHeight).replace('px', '') + 'px';
+    }
+
+    // zoomed is here to ensure that animations are shown correctly.
+    if (resized == true || zoomed == true || this.abortedGraphUpdate == true || forceGraphUpdate == true) {
+      resized = this._updateGraph() || resized;
+    } else {
+      // move the whole svg while dragging
+      if (this.lastStart != 0) {
+        var offset = this.body.range.start - this.lastStart;
+        var range = this.body.range.end - this.body.range.start;
+        if (this.props.width != 0) {
+          var rangePerPixelInv = this.props.width / range;
+          var xOffset = offset * rangePerPixelInv;
+          this.svg.style.left = -this.props.width - xOffset + 'px';
+        }
+      }
+    }
+
+    this.legendLeft.redraw();
+    this.legendRight.redraw();
+    return resized;
+  };
+
+  /**
+   * Update and redraw the graph.
+   *
+   */
+  LineGraph.prototype._updateGraph = function () {
+    // reset the svg elements
+    DOMutil.prepareElements(this.svgElements);
+    if (this.props.width != 0 && this.itemsData != null) {
+      var group, i;
+      var preprocessedGroupData = {};
+      var processedGroupData = {};
+      var groupRanges = {};
+      var changeCalled = false;
+
+      // getting group Ids
+      var groupIds = [];
+      for (var groupId in this.groups) {
+        if (this.groups.hasOwnProperty(groupId)) {
+          group = this.groups[groupId];
+          if (group.visible == true && (this.options.groups.visibility[groupId] === undefined || this.options.groups.visibility[groupId] == true)) {
+            groupIds.push(groupId);
+          }
+        }
+      }
+      if (groupIds.length > 0) {
+        // this is the range of the SVG canvas
+        var minDate = this.body.util.toGlobalTime(-this.body.domProps.root.width);
+        var maxDate = this.body.util.toGlobalTime(2 * this.body.domProps.root.width);
+        var groupsData = {};
+        // fill groups data, this only loads the data we require based on the timewindow
+        this._getRelevantData(groupIds, groupsData, minDate, maxDate);
+
+        // apply sampling, if disabled, it will pass through this function.
+        this._applySampling(groupIds, groupsData);
+
+        // we transform the X coordinates to detect collisions
+        for (i = 0; i < groupIds.length; i++) {
+          preprocessedGroupData[groupIds[i]] = this._convertXcoordinates(groupsData[groupIds[i]]);
+        }
+
+        // now all needed data has been collected we start the processing.
+        this._getYRanges(groupIds, preprocessedGroupData, groupRanges);
+
+        // update the Y axis first, we use this data to draw at the correct Y points
+        // changeCalled is required to clean the SVG on a change emit.
+        changeCalled = this._updateYAxis(groupIds, groupRanges);
+        var MAX_CYCLES = 5;
+        if (changeCalled == true && this.COUNTER < MAX_CYCLES) {
+          DOMutil.cleanupElements(this.svgElements);
+          this.abortedGraphUpdate = true;
+          this.COUNTER++;
+          this.body.emitter.emit('change');
+          return true;
+        } else {
+          if (this.COUNTER > MAX_CYCLES) {
+            console.log('WARNING: there may be an infinite loop in the _updateGraph emitter cycle.');
+          }
+          this.COUNTER = 0;
+          this.abortedGraphUpdate = false;
+
+          // With the yAxis scaled correctly, use this to get the Y values of the points.
+          for (i = 0; i < groupIds.length; i++) {
+            group = this.groups[groupIds[i]];
+            processedGroupData[groupIds[i]] = this._convertYcoordinates(groupsData[groupIds[i]], group);
+          }
+
+          // draw the groups
+          for (i = 0; i < groupIds.length; i++) {
+            group = this.groups[groupIds[i]];
+            if (group.options.style != 'bar') {
+              // bar needs to be drawn enmasse
+              group.draw(processedGroupData[groupIds[i]], group, this.framework);
+            }
+          }
+          BarFunctions.draw(groupIds, processedGroupData, this.framework);
+        }
+      }
+    }
+
+    // cleanup unused svg elements
+    DOMutil.cleanupElements(this.svgElements);
+    return false;
+  };
+
+  /**
+   * first select and preprocess the data from the datasets.
+   * the groups have their preselection of data, we now loop over this data to see
+   * what data we need to draw. Sorted data is much faster.
+   * more optimization is possible by doing the sampling before and using the binary search
+   * to find the end date to determine the increment.
+   *
+   * @param {array}  groupIds
+   * @param {object} groupsData
+   * @param {date}   minDate
+   * @param {date}   maxDate
+   * @private
+   */
+  LineGraph.prototype._getRelevantData = function (groupIds, groupsData, minDate, maxDate) {
+    var group, i, j, item;
+    if (groupIds.length > 0) {
+      for (i = 0; i < groupIds.length; i++) {
+        group = this.groups[groupIds[i]];
+        groupsData[groupIds[i]] = [];
+        var dataContainer = groupsData[groupIds[i]];
+        // optimization for sorted data
+        if (group.options.sort == true) {
+          var guess = Math.max(0, util.binarySearchValue(group.itemsData, minDate, 'x', 'before'));
+          for (j = guess; j < group.itemsData.length; j++) {
+            item = group.itemsData[j];
+            if (item !== undefined) {
+              if (item.x > maxDate) {
+                dataContainer.push(item);
+                break;
+              } else {
+                dataContainer.push(item);
+              }
+            }
+          }
+        } else {
+          for (j = 0; j < group.itemsData.length; j++) {
+            item = group.itemsData[j];
+            if (item !== undefined) {
+              if (item.x > minDate && item.x < maxDate) {
+                dataContainer.push(item);
+              }
+            }
+          }
+        }
+      }
+    }
+  };
+
+  /**
+   *
+   * @param groupIds
+   * @param groupsData
+   * @private
+   */
+  LineGraph.prototype._applySampling = function (groupIds, groupsData) {
+    var group;
+    if (groupIds.length > 0) {
+      for (var i = 0; i < groupIds.length; i++) {
+        group = this.groups[groupIds[i]];
+        if (group.options.sampling == true) {
+          var dataContainer = groupsData[groupIds[i]];
+          if (dataContainer.length > 0) {
+            var increment = 1;
+            var amountOfPoints = dataContainer.length;
+
+            // the global screen is used because changing the width of the yAxis may affect the increment, resulting in an endless loop
+            // of width changing of the yAxis.
+            var xDistance = this.body.util.toGlobalScreen(dataContainer[dataContainer.length - 1].x) - this.body.util.toGlobalScreen(dataContainer[0].x);
+            var pointsPerPixel = amountOfPoints / xDistance;
+            increment = Math.min(Math.ceil(0.2 * amountOfPoints), Math.max(1, Math.round(pointsPerPixel)));
+
+            var sampledData = [];
+            for (var j = 0; j < amountOfPoints; j += increment) {
+              sampledData.push(dataContainer[j]);
+            }
+            groupsData[groupIds[i]] = sampledData;
+          }
+        }
+      }
+    }
+  };
+
+  /**
+   *
+   *
+   * @param {array}  groupIds
+   * @param {object} groupsData
+   * @param {object} groupRanges  | this is being filled here
+   * @private
+   */
+  LineGraph.prototype._getYRanges = function (groupIds, groupsData, groupRanges) {
+    var groupData, group, i;
+    var combinedDataLeft = [];
+    var combinedDataRight = [];
+    var options;
+    if (groupIds.length > 0) {
+      for (i = 0; i < groupIds.length; i++) {
+        groupData = groupsData[groupIds[i]];
+        options = this.groups[groupIds[i]].options;
+        if (groupData.length > 0) {
+          group = this.groups[groupIds[i]];
+          // if bar graphs are stacked, their range need to be handled differently and accumulated over all groups.
+          if (options.stack === true && options.style === 'bar') {
+            if (options.yAxisOrientation === 'left') {
+              combinedDataLeft = combinedDataLeft.concat(group.getData(groupData));
+            } else {
+              combinedDataRight = combinedDataRight.concat(group.getData(groupData));
+            }
+          } else {
+            groupRanges[groupIds[i]] = group.getYRange(groupData, groupIds[i]);
+          }
+        }
+      }
+
+      // if bar graphs are stacked, their range need to be handled differently and accumulated over all groups.
+      BarFunctions.getStackedYRange(combinedDataLeft, groupRanges, groupIds, '__barStackLeft', 'left');
+      BarFunctions.getStackedYRange(combinedDataRight, groupRanges, groupIds, '__barStackRight', 'right');
+      // if line graphs are stacked, their range need to be handled differently and accumulated over all groups.
+      //LineFunctions.getStackedYRange(combinedDataLeft , groupRanges, groupIds, '__lineStackLeft' , 'left' );
+      //LineFunctions.getStackedYRange(combinedDataRight, groupRanges, groupIds, '__lineStackRight', 'right');
+    }
+  };
+
+  /**
+   * this sets the Y ranges for the Y axis. It also determines which of the axis should be shown or hidden.
+   * @param {Array} groupIds
+   * @param {Object} groupRanges
+   * @private
+   */
+  LineGraph.prototype._updateYAxis = function (groupIds, groupRanges) {
+    var resized = false;
+    var yAxisLeftUsed = false;
+    var yAxisRightUsed = false;
+    var minLeft = 1000000000,
+        minRight = 1000000000,
+        maxLeft = -1000000000,
+        maxRight = -1000000000,
+        minVal,
+        maxVal;
+    // if groups are present
+    if (groupIds.length > 0) {
+      // this is here to make sure that if there are no items in the axis but there are groups, that there is no infinite draw/redraw loop.
+      for (var i = 0; i < groupIds.length; i++) {
+        var group = this.groups[groupIds[i]];
+        if (group && group.options.yAxisOrientation != 'right') {
+          yAxisLeftUsed = true;
+          minLeft = 0;
+          maxLeft = 0;
+        } else if (group && group.options.yAxisOrientation) {
+          yAxisRightUsed = true;
+          minRight = 0;
+          maxRight = 0;
+        }
+      }
+
+      // if there are items:
+      for (var i = 0; i < groupIds.length; i++) {
+        if (groupRanges.hasOwnProperty(groupIds[i])) {
+          if (groupRanges[groupIds[i]].ignore !== true) {
+            minVal = groupRanges[groupIds[i]].min;
+            maxVal = groupRanges[groupIds[i]].max;
+
+            if (groupRanges[groupIds[i]].yAxisOrientation != 'right') {
+              yAxisLeftUsed = true;
+              minLeft = minLeft > minVal ? minVal : minLeft;
+              maxLeft = maxLeft < maxVal ? maxVal : maxLeft;
+            } else {
+              yAxisRightUsed = true;
+              minRight = minRight > minVal ? minVal : minRight;
+              maxRight = maxRight < maxVal ? maxVal : maxRight;
+            }
+          }
+        }
+      }
+
+      if (yAxisLeftUsed == true) {
+        this.yAxisLeft.setRange(minLeft, maxLeft);
+      }
+      if (yAxisRightUsed == true) {
+        this.yAxisRight.setRange(minRight, maxRight);
+      }
+    }
+    resized = this._toggleAxisVisiblity(yAxisLeftUsed, this.yAxisLeft) || resized;
+    resized = this._toggleAxisVisiblity(yAxisRightUsed, this.yAxisRight) || resized;
+
+    if (yAxisRightUsed == true && yAxisLeftUsed == true) {
+      this.yAxisLeft.drawIcons = true;
+      this.yAxisRight.drawIcons = true;
+    } else {
+      this.yAxisLeft.drawIcons = false;
+      this.yAxisRight.drawIcons = false;
+    }
+    this.yAxisRight.master = !yAxisLeftUsed;
+    if (this.yAxisRight.master == false) {
+      if (yAxisRightUsed == true) {
+        this.yAxisLeft.lineOffset = this.yAxisRight.width;
+      } else {
+        this.yAxisLeft.lineOffset = 0;
+      }
+
+      resized = this.yAxisLeft.redraw() || resized;
+      this.yAxisRight.stepPixels = this.yAxisLeft.stepPixels;
+      this.yAxisRight.zeroCrossing = this.yAxisLeft.zeroCrossing;
+      this.yAxisRight.amountOfSteps = this.yAxisLeft.amountOfSteps;
+      resized = this.yAxisRight.redraw() || resized;
+    } else {
+      resized = this.yAxisRight.redraw() || resized;
+    }
+
+    // clean the accumulated lists
+    var tempGroups = ['__barStackLeft', '__barStackRight', '__lineStackLeft', '__lineStackRight'];
+    for (var i = 0; i < tempGroups.length; i++) {
+      if (groupIds.indexOf(tempGroups[i]) != -1) {
+        groupIds.splice(groupIds.indexOf(tempGroups[i]), 1);
+      }
+    }
+
+    return resized;
+  };
+
+  /**
+   * This shows or hides the Y axis if needed. If there is a change, the changed event is emitted by the updateYAxis function
+   *
+   * @param {boolean} axisUsed
+   * @returns {boolean}
+   * @private
+   * @param axis
+   */
+  LineGraph.prototype._toggleAxisVisiblity = function (axisUsed, axis) {
+    var changed = false;
+    if (axisUsed == false) {
+      if (axis.dom.frame.parentNode && axis.hidden == false) {
+        axis.hide();
+        changed = true;
+      }
+    } else {
+      if (!axis.dom.frame.parentNode && axis.hidden == true) {
+        axis.show();
+        changed = true;
+      }
+    }
+    return changed;
+  };
+
+  /**
+   * This uses the DataAxis object to generate the correct X coordinate on the SVG window. It uses the
+   * util function toScreen to get the x coordinate from the timestamp. It also pre-filters the data and get the minMax ranges for
+   * the yAxis.
+   *
+   * @param datapoints
+   * @returns {Array}
+   * @private
+   */
+  LineGraph.prototype._convertXcoordinates = function (datapoints) {
+    var extractedData = [];
+    var xValue, yValue;
+    var toScreen = this.body.util.toScreen;
+
+    for (var i = 0; i < datapoints.length; i++) {
+      xValue = toScreen(datapoints[i].x) + this.props.width;
+      yValue = datapoints[i].y;
+      extractedData.push({ x: xValue, y: yValue });
+    }
+
+    return extractedData;
+  };
+
+  /**
+   * This uses the DataAxis object to generate the correct X coordinate on the SVG window. It uses the
+   * util function toScreen to get the x coordinate from the timestamp. It also pre-filters the data and get the minMax ranges for
+   * the yAxis.
+   *
+   * @param datapoints
+   * @param group
+   * @returns {Array}
+   * @private
+   */
+  LineGraph.prototype._convertYcoordinates = function (datapoints, group) {
+    var extractedData = [];
+    var xValue, yValue;
+    var toScreen = this.body.util.toScreen;
+    var axis = this.yAxisLeft;
+    var svgHeight = Number(this.svg.style.height.replace('px', ''));
+    if (group.options.yAxisOrientation == 'right') {
+      axis = this.yAxisRight;
+    }
+
+    for (var i = 0; i < datapoints.length; i++) {
+      var labelValue = datapoints[i].label ? datapoints[i].label : null;
+      xValue = toScreen(datapoints[i].x) + this.props.width;
+      yValue = Math.round(axis.convertValue(datapoints[i].y));
+      extractedData.push({ x: xValue, y: yValue, label: labelValue });
+    }
+
+    group.setZeroPosition(Math.min(svgHeight, axis.convertValue(0)));
+
+    return extractedData;
+  };
+
+  module.exports = LineGraph;
+
+/***/ },
+/* 54 */
+/***/ function(module, exports, __webpack_require__) {
+
+  'use strict';
+
+  var util = __webpack_require__(3);
+  var DOMutil = __webpack_require__(11);
+  var Component = __webpack_require__(25);
+  var DataStep = __webpack_require__(55);
 
   /**
    * A horizontal time axis
@@ -27684,7 +25965,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = DataAxis;
 
 /***/ },
-/* 58 */
+/* 55 */
 /***/ function(module, exports, __webpack_require__) {
 
   /**
@@ -27911,16 +26192,16 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = DataStep;
 
 /***/ },
-/* 59 */
+/* 56 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
 
-  var util = __webpack_require__(4);
-  var DOMutil = __webpack_require__(14);
-  var Line = __webpack_require__(60);
-  var Bar = __webpack_require__(62);
-  var Points = __webpack_require__(61);
+  var util = __webpack_require__(3);
+  var DOMutil = __webpack_require__(11);
+  var Line = __webpack_require__(57);
+  var Bar = __webpack_require__(59);
+  var Points = __webpack_require__(58);
 
   /**
    * /**
@@ -28105,13 +26386,13 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = GraphGroup;
 
 /***/ },
-/* 60 */
+/* 57 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
 
-  var DOMutil = __webpack_require__(14);
-  var Points = __webpack_require__(61);
+  var DOMutil = __webpack_require__(11);
+  var Points = __webpack_require__(58);
 
   function Line(groupId, options) {
     this.groupId = groupId;
@@ -28400,12 +26681,12 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = Line;
 
 /***/ },
-/* 61 */
+/* 58 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
 
-  var DOMutil = __webpack_require__(14);
+  var DOMutil = __webpack_require__(11);
 
   function Points(groupId, options) {
     this.groupId = groupId;
@@ -28447,13 +26728,13 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = Points;
 
 /***/ },
-/* 62 */
+/* 59 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
 
-  var DOMutil = __webpack_require__(14);
-  var Points = __webpack_require__(61);
+  var DOMutil = __webpack_require__(11);
+  var Points = __webpack_require__(58);
 
   function Bargraph(groupId, options) {
     this.groupId = groupId;
@@ -28695,14 +26976,14 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = Bargraph;
 
 /***/ },
-/* 63 */
+/* 60 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
 
-  var util = __webpack_require__(4);
-  var DOMutil = __webpack_require__(14);
-  var Component = __webpack_require__(28);
+  var util = __webpack_require__(3);
+  var DOMutil = __webpack_require__(11);
+  var Component = __webpack_require__(25);
 
   /**
    * Legend for Graph2d
@@ -28909,7 +27190,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = Legend;
 
 /***/ },
-/* 64 */
+/* 61 */
 /***/ function(module, exports, __webpack_require__) {
 
   /**
@@ -29180,614 +27461,7 @@ return /******/ (function(modules) { // webpackBootstrap
   exports.configureOptions = configureOptions;
 
 /***/ },
-/* 65 */
-/***/ function(module, exports, __webpack_require__) {
-
-  // Load custom shapes into CanvasRenderingContext2D
-  'use strict';
-
-  function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
-
-  var _modulesGroups = __webpack_require__(66);
-
-  var _modulesGroups2 = _interopRequireDefault(_modulesGroups);
-
-  var _modulesNodesHandler = __webpack_require__(3);
-
-  var _modulesNodesHandler2 = _interopRequireDefault(_modulesNodesHandler);
-
-  var _modulesEdgesHandler = __webpack_require__(86);
-
-  var _modulesEdgesHandler2 = _interopRequireDefault(_modulesEdgesHandler);
-
-  var _modulesPhysicsEngine = __webpack_require__(6);
-
-  var _modulesPhysicsEngine2 = _interopRequireDefault(_modulesPhysicsEngine);
-
-  var _modulesClustering = __webpack_require__(98);
-
-  var _modulesClustering2 = _interopRequireDefault(_modulesClustering);
-
-  var _modulesCanvasRenderer = __webpack_require__(100);
-
-  var _modulesCanvasRenderer2 = _interopRequireDefault(_modulesCanvasRenderer);
-
-  var _modulesCanvas = __webpack_require__(101);
-
-  var _modulesCanvas2 = _interopRequireDefault(_modulesCanvas);
-
-  var _modulesView = __webpack_require__(102);
-
-  var _modulesView2 = _interopRequireDefault(_modulesView);
-
-  var _modulesInteractionHandler = __webpack_require__(103);
-
-  var _modulesInteractionHandler2 = _interopRequireDefault(_modulesInteractionHandler);
-
-  var _modulesSelectionHandler = __webpack_require__(106);
-
-  var _modulesSelectionHandler2 = _interopRequireDefault(_modulesSelectionHandler);
-
-  var _modulesLayoutEngine = __webpack_require__(107);
-
-  var _modulesLayoutEngine2 = _interopRequireDefault(_modulesLayoutEngine);
-
-  var _modulesManipulationSystem = __webpack_require__(9);
-
-  var _modulesManipulationSystem2 = _interopRequireDefault(_modulesManipulationSystem);
-
-  var _sharedConfigurator = __webpack_require__(52);
-
-  var _sharedConfigurator2 = _interopRequireDefault(_sharedConfigurator);
-
-  var _sharedValidator = __webpack_require__(54);
-
-  var _sharedValidator2 = _interopRequireDefault(_sharedValidator);
-
-  var _optionsJs = __webpack_require__(108);
-
-  __webpack_require__(109);
-
-  var Emitter = __webpack_require__(20);
-  var Hammer = __webpack_require__(30);
-  var util = __webpack_require__(4);
-  var DataSet = __webpack_require__(15);
-  var DataView = __webpack_require__(17);
-  var dotparser = __webpack_require__(110);
-  var gephiParser = __webpack_require__(111);
-  var Images = __webpack_require__(112);
-  var Activator = __webpack_require__(49);
-  var locales = __webpack_require__(113);
-
-  /**
-   * @constructor Network
-   * Create a network visualization, displaying nodes and edges.
-   *
-   * @param {Element} container   The DOM element in which the Network will
-   *                                  be created. Normally a div element.
-   * @param {Object} data         An object containing parameters
-   *                              {Array} nodes
-   *                              {Array} edges
-   * @param {Object} options      Options
-   */
-  function Network(container, data, options) {
-    var _this = this;
-
-    if (!(this instanceof Network)) {
-      throw new SyntaxError('Constructor must be called with the new operator');
-    }
-
-    // set constant values
-    this.options = {};
-    this.defaultOptions = {
-      locale: 'en',
-      locales: locales,
-      clickToUse: false
-    };
-    util.extend(this.options, this.defaultOptions);
-
-    // containers for nodes and edges
-    this.body = {
-      container: container,
-      nodes: {},
-      nodeIndices: [],
-      edges: {},
-      edgeIndices: [],
-      emitter: {
-        on: this.on.bind(this),
-        off: this.off.bind(this),
-        emit: this.emit.bind(this),
-        once: this.once.bind(this)
-      },
-      eventListeners: {
-        onTap: function onTap() {},
-        onTouch: function onTouch() {},
-        onDoubleTap: function onDoubleTap() {},
-        onHold: function onHold() {},
-        onDragStart: function onDragStart() {},
-        onDrag: function onDrag() {},
-        onDragEnd: function onDragEnd() {},
-        onMouseWheel: function onMouseWheel() {},
-        onPinch: function onPinch() {},
-        onMouseMove: function onMouseMove() {},
-        onRelease: function onRelease() {},
-        onContext: function onContext() {}
-      },
-      data: {
-        nodes: null, // A DataSet or DataView
-        edges: null // A DataSet or DataView
-      },
-      functions: {
-        createNode: function createNode() {},
-        createEdge: function createEdge() {},
-        getPointer: function getPointer() {}
-      },
-      view: {
-        scale: 1,
-        translation: { x: 0, y: 0 }
-      }
-    };
-
-    // bind the event listeners
-    this.bindEventListeners();
-
-    // setting up all modules
-    this.images = new Images(function () {
-      return _this.body.emitter.emit('_requestRedraw');
-    }); // object with images
-    this.groups = new _modulesGroups2['default'](); // object with groups
-    this.canvas = new _modulesCanvas2['default'](this.body); // DOM handler
-    this.selectionHandler = new _modulesSelectionHandler2['default'](this.body, this.canvas); // Selection handler
-    this.interactionHandler = new _modulesInteractionHandler2['default'](this.body, this.canvas, this.selectionHandler); // Interaction handler handles all the hammer bindings (that are bound by canvas), key
-    this.view = new _modulesView2['default'](this.body, this.canvas); // camera handler, does animations and zooms
-    this.renderer = new _modulesCanvasRenderer2['default'](this.body, this.canvas); // renderer, starts renderloop, has events that modules can hook into
-    this.physics = new _modulesPhysicsEngine2['default'](this.body); // physics engine, does all the simulations
-    this.layoutEngine = new _modulesLayoutEngine2['default'](this.body); // layout engine for inital layout and hierarchical layout
-    this.clustering = new _modulesClustering2['default'](this.body); // clustering api
-    this.manipulation = new _modulesManipulationSystem2['default'](this.body, this.canvas, this.selectionHandler); // data manipulation system
-
-    this.nodesHandler = new _modulesNodesHandler2['default'](this.body, this.images, this.groups, this.layoutEngine); // Handle adding, deleting and updating of nodes as well as global options
-    this.edgesHandler = new _modulesEdgesHandler2['default'](this.body, this.images, this.groups); // Handle adding, deleting and updating of edges as well as global options
-
-    // create the DOM elements
-    this.canvas._create();
-
-    // setup configuration system
-    this.configurator = new _sharedConfigurator2['default'](this, this.body.container, _optionsJs.configureOptions, this.canvas.pixelRatio);
-
-    // apply options
-    this.setOptions(options);
-
-    // load data (the disable start variable will be the same as the enabled clustering)
-    this.setData(data);
-  }
-
-  // Extend Network with an Emitter mixin
-  Emitter(Network.prototype);
-
-  /**
-   * Set options
-   * @param {Object} options
-   */
-  Network.prototype.setOptions = function (options) {
-    var _this2 = this;
-
-    if (options !== undefined) {
-
-      var errorFound = _sharedValidator2['default'].validate(options, _optionsJs.allOptions);
-      if (errorFound === true) {
-        console.log('%cErrors have been found in the supplied options object.', _sharedValidator.printStyle);
-      }
-
-      // copy the global fields over
-      var fields = ['locale', 'locales', 'clickToUse'];
-      util.selectiveDeepExtend(fields, this.options, options);
-
-      // the hierarchical system can adapt the edges and the physics to it's own options because not all combinations work with the hierarichical system.
-      options = this.layoutEngine.setOptions(options.layout, options);
-
-      this.canvas.setOptions(options); // options for canvas are in globals
-
-      // pass the options to the modules
-      this.groups.setOptions(options.groups);
-      this.nodesHandler.setOptions(options.nodes);
-      this.edgesHandler.setOptions(options.edges);
-      this.physics.setOptions(options.physics);
-      this.manipulation.setOptions(options.manipulation, options, this.options); // manipulation uses the locales in the globals
-
-      this.interactionHandler.setOptions(options.interaction);
-      this.renderer.setOptions(options.interaction); // options for rendering are in interaction
-      this.selectionHandler.setOptions(options.interaction); // options for selection are in interaction
-
-      // reload the settings of the nodes to apply changes in groups that are not referenced by pointer.
-      if (options.groups !== undefined) {
-        this.body.emitter.emit('refreshNodes');
-      }
-      // these two do not have options at the moment, here for completeness
-      //this.view.setOptions(options.view);
-      //this.clustering.setOptions(options.clustering);
-
-      this.configurator.setOptions(options.configure);
-
-      // if the configuration system is enabled, copy all options and put them into the config system
-      if (this.configurator.options.enabled === true) {
-        var networkOptions = { nodes: {}, edges: {}, layout: {}, interaction: {}, manipulation: {}, physics: {}, global: {} };
-        util.deepExtend(networkOptions.nodes, this.nodesHandler.options);
-        util.deepExtend(networkOptions.edges, this.edgesHandler.options);
-        util.deepExtend(networkOptions.layout, this.layoutEngine.options);
-        // load the selectionHandler and rendere default options in to the interaction group
-        util.deepExtend(networkOptions.interaction, this.selectionHandler.options);
-        util.deepExtend(networkOptions.interaction, this.renderer.options);
-
-        util.deepExtend(networkOptions.interaction, this.interactionHandler.options);
-        util.deepExtend(networkOptions.manipulation, this.manipulation.options);
-        util.deepExtend(networkOptions.physics, this.physics.options);
-
-        // load globals into the global object
-        util.deepExtend(networkOptions.global, this.canvas.options);
-        util.deepExtend(networkOptions.global, this.options);
-
-        this.configurator.setModuleOptions(networkOptions);
-      }
-
-      // handle network global options
-      if (options.clickToUse !== undefined) {
-        if (options.clickToUse === true) {
-          if (this.activator === undefined) {
-            this.activator = new Activator(this.canvas.frame);
-            this.activator.on('change', function () {
-              _this2.body.emitter.emit('activate');
-            });
-          }
-        } else {
-          if (this.activator !== undefined) {
-            this.activator.destroy();
-            delete this.activator;
-          }
-          this.body.emitter.emit('activate');
-        }
-      } else {
-        this.body.emitter.emit('activate');
-      }
-
-      this.canvas.setSize();
-
-      // start the physics simulation. Can be safely called multiple times.
-      this.body.emitter.emit('startSimulation');
-    }
-  };
-
-  /**
-   * Update the this.body.nodeIndices with the most recent node index list
-   * @private
-   */
-  Network.prototype._updateVisibleIndices = function () {
-    var nodes = this.body.nodes;
-    var edges = this.body.edges;
-    this.body.nodeIndices = [];
-    this.body.edgeIndices = [];
-
-    for (var nodeId in nodes) {
-      if (nodes.hasOwnProperty(nodeId)) {
-        if (nodes[nodeId].options.hidden === false) {
-          this.body.nodeIndices.push(nodeId);
-        }
-      }
-    }
-
-    for (var edgeId in edges) {
-      if (edges.hasOwnProperty(edgeId)) {
-        if (edges[edgeId].options.hidden === false) {
-          this.body.edgeIndices.push(edgeId);
-        }
-      }
-    }
-  };
-
-  /**
-   * Bind all events
-   */
-  Network.prototype.bindEventListeners = function () {
-    var _this3 = this;
-
-    // this event will trigger a rebuilding of the cache everything. Used when nodes or edges have been added or removed.
-    this.body.emitter.on('_dataChanged', function () {
-      // update shortcut lists
-      _this3._updateVisibleIndices();
-      _this3.physics.updatePhysicsData();
-
-      // call the dataUpdated event because the only difference between the two is the updating of the indices
-      _this3.body.emitter.emit('_dataUpdated');
-    });
-
-    // this is called when options of EXISTING nodes or edges have changed.
-    this.body.emitter.on('_dataUpdated', function () {
-      // update values
-      _this3._updateValueRange(_this3.body.nodes);
-      _this3._updateValueRange(_this3.body.edges);
-      // start simulation (can be called safely, even if already running)
-      _this3.body.emitter.emit('startSimulation');
-    });
-  };
-
-  /**
-   * Set nodes and edges, and optionally options as well.
-   *
-   * @param {Object} data              Object containing parameters:
-   *                                   {Array | DataSet | DataView} [nodes] Array with nodes
-   *                                   {Array | DataSet | DataView} [edges] Array with edges
-   *                                   {String} [dot] String containing data in DOT format
-   *                                   {String} [gephi] String containing data in gephi JSON format
-   *                                   {Options} [options] Object with options
-   */
-  Network.prototype.setData = function (data) {
-    // reset the physics engine.
-    this.body.emitter.emit('resetPhysics');
-    this.body.emitter.emit('_resetData');
-
-    // unselect all to ensure no selections from old data are carried over.
-    this.selectionHandler.unselectAll();
-
-    if (data && data.dot && (data.nodes || data.edges)) {
-      throw new SyntaxError('Data must contain either parameter "dot" or ' + ' parameter pair "nodes" and "edges", but not both.');
-    }
-
-    // set options
-    this.setOptions(data && data.options);
-    // set all data
-    if (data && data.dot) {
-      console.log('The dot property has been depricated. Please use the static convertDot method to convert DOT into vis.network format and use the normal data format with nodes and edges. This converter is used like this: var data = vis.network.convertDot(dotString);');
-      // parse DOT file
-      var dotData = dotparser.DOTToGraph(data.dot);
-      this.setData(dotData);
-      return;
-    } else if (data && data.gephi) {
-      // parse DOT file
-      console.log('The gephi property has been depricated. Please use the static convertGephi method to convert gephi into vis.network format and use the normal data format with nodes and edges. This converter is used like this: var data = vis.network.convertGephi(gephiJson);');
-      var gephiData = gephiParser.parseGephi(data.gephi);
-      this.setData(gephiData);
-      return;
-    } else {
-      this.nodesHandler.setData(data && data.nodes, true);
-      this.edgesHandler.setData(data && data.edges, true);
-    }
-
-    // emit change in data
-    this.body.emitter.emit('_dataChanged');
-
-    // find a stable position or start animating to a stable position
-    this.body.emitter.emit('initPhysics');
-  };
-
-  /**
-   * Cleans up all bindings of the network, removing it fully from the memory IF the variable is set to null after calling this function.
-   * var network = new vis.Network(..);
-   * network.destroy();
-   * network = null;
-   */
-  Network.prototype.destroy = function () {
-    this.body.emitter.emit('destroy');
-    // clear events
-    this.body.emitter.off();
-    this.off();
-
-    // delete modules
-    delete this.groups;
-    delete this.canvas;
-    delete this.selectionHandler;
-    delete this.interactionHandler;
-    delete this.view;
-    delete this.renderer;
-    delete this.physics;
-    delete this.layoutEngine;
-    delete this.clustering;
-    delete this.manipulation;
-    delete this.nodesHandler;
-    delete this.edgesHandler;
-    delete this.configurator;
-    delete this.images;
-
-    for (var nodeId in this.body.nodes) {
-      delete this.body.nodes[nodeId];
-    }
-    for (var edgeId in this.body.edges) {
-      delete this.body.edges[edgeId];
-    }
-
-    // remove the container and everything inside it recursively
-    util.recursiveDOMDelete(this.body.container);
-  };
-
-  /**
-   * Update the values of all object in the given array according to the current
-   * value range of the objects in the array.
-   * @param {Object} obj    An object containing a set of Edges or Nodes
-   *                        The objects must have a method getValue() and
-   *                        setValueRange(min, max).
-   * @private
-   */
-  Network.prototype._updateValueRange = function (obj) {
-    var id;
-
-    // determine the range of the objects
-    var valueMin = undefined;
-    var valueMax = undefined;
-    var valueTotal = 0;
-    for (id in obj) {
-      if (obj.hasOwnProperty(id)) {
-        var value = obj[id].getValue();
-        if (value !== undefined) {
-          valueMin = valueMin === undefined ? value : Math.min(value, valueMin);
-          valueMax = valueMax === undefined ? value : Math.max(value, valueMax);
-          valueTotal += value;
-        }
-      }
-    }
-
-    // adjust the range of all objects
-    if (valueMin !== undefined && valueMax !== undefined) {
-      for (id in obj) {
-        if (obj.hasOwnProperty(id)) {
-          obj[id].setValueRange(valueMin, valueMax, valueTotal);
-        }
-      }
-    }
-  };
-
-  /**
-   * Returns true when the Network is active.
-   * @returns {boolean}
-   */
-  Network.prototype.isActive = function () {
-    return !this.activator || this.activator.active;
-  };
-
-  Network.prototype.setSize = function () {
-    return this.canvas.setSize.apply(this.canvas, arguments);
-  };
-  Network.prototype.canvasToDOM = function () {
-    return this.canvas.canvasToDOM.apply(this.canvas, arguments);
-  };
-  Network.prototype.DOMtoCanvas = function () {
-    return this.canvas.DOMtoCanvas(this.canvas, arguments);
-  };
-  Network.prototype.findNode = function () {
-    return this.clustering.findNode.apply(this.clustering, arguments);
-  };
-  Network.prototype.isCluster = function () {
-    return this.clustering.isCluster.apply(this.clustering, arguments);
-  };
-  Network.prototype.openCluster = function () {
-    return this.clustering.openCluster.apply(this.clustering, arguments);
-  };
-  Network.prototype.cluster = function () {
-    return this.clustering.cluster.apply(this.clustering, arguments);
-  };
-  Network.prototype.getNodesInCluster = function () {
-    return this.clustering.getNodesInCluster.apply(this.clustering, arguments);
-  };
-  Network.prototype.clusterByConnection = function () {
-    return this.clustering.clusterByConnection.apply(this.clustering, arguments);
-  };
-  Network.prototype.clusterByHubsize = function () {
-    return this.clustering.clusterByHubsize.apply(this.clustering, arguments);
-  };
-  Network.prototype.clusterOutliers = function () {
-    return this.clustering.clusterOutliers.apply(this.clustering, arguments);
-  };
-  Network.prototype.getSeed = function () {
-    return this.layoutEngine.getSeed.apply(this.layoutEngine, arguments);
-  };
-  Network.prototype.enableEditMode = function () {
-    return this.manipulation.enableEditMode.apply(this.manipulation, arguments);
-  };
-  Network.prototype.disableEditMode = function () {
-    return this.manipulation.disableEditMode.apply(this.manipulation, arguments);
-  };
-  Network.prototype.addNodeMode = function () {
-    return this.manipulation.addNodeMode.apply(this.manipulation, arguments);
-  };
-  Network.prototype.editNode = function () {
-    return this.manipulation.editNode.apply(this.manipulation, arguments);
-  };
-  Network.prototype.editNodeMode = function () {
-    console.log('Depricated: Please use editNode instead of editNodeMode.');return this.manipulation.editNode.apply(this.manipulation, arguments);
-  };
-  Network.prototype.addEdgeMode = function () {
-    return this.manipulation.addEdgeMode.apply(this.manipulation, arguments);
-  };
-  Network.prototype.editEdgeMode = function () {
-    return this.manipulation.editEdgeMode.apply(this.manipulation, arguments);
-  };
-  Network.prototype.deleteSelected = function () {
-    return this.manipulation.deleteSelected.apply(this.manipulation, arguments);
-  };
-  Network.prototype.getPositions = function () {
-    return this.nodesHandler.getPositions.apply(this.nodesHandler, arguments);
-  };
-  Network.prototype.storePositions = function () {
-    return this.nodesHandler.storePositions.apply(this.nodesHandler, arguments);
-  };
-  Network.prototype.getBoundingBox = function () {
-    return this.nodesHandler.getBoundingBox.apply(this.nodesHandler, arguments);
-  };
-  Network.prototype.getConnectedNodes = function (objectId) {
-    if (this.body.nodes[objectId] !== undefined) {
-      return this.nodesHandler.getConnectedNodes.apply(this.nodesHandler, arguments);
-    } else {
-      return this.edgesHandler.getConnectedNodes.apply(this.edgesHandler, arguments);
-    }
-  };
-  Network.prototype.getConnectedEdges = function () {
-    return this.nodesHandler.getConnectedEdges.apply(this.nodesHandler, arguments);
-  };
-  Network.prototype.startSimulation = function () {
-    return this.physics.startSimulation.apply(this.physics, arguments);
-  };
-  Network.prototype.stopSimulation = function () {
-    return this.physics.stopSimulation.apply(this.physics, arguments);
-  };
-  Network.prototype.stabilize = function () {
-    return this.physics.stabilize.apply(this.physics, arguments);
-  };
-  Network.prototype.getSelection = function () {
-    return this.selectionHandler.getSelection.apply(this.selectionHandler, arguments);
-  };
-  Network.prototype.getSelectedNodes = function () {
-    return this.selectionHandler.getSelectedNodes.apply(this.selectionHandler, arguments);
-  };
-  Network.prototype.getSelectedEdges = function () {
-    return this.selectionHandler.getSelectedEdges.apply(this.selectionHandler, arguments);
-  };
-  Network.prototype.getNodeAt = function () {
-    var node = this.selectionHandler.getNodeAt.apply(this.selectionHandler, arguments);
-    if (node !== undefined && node.id !== undefined) {
-      return node.id;
-    }
-    return node;
-  };
-  Network.prototype.getEdgeAt = function () {
-    var edge = this.selectionHandler.getEdgeAt.apply(this.selectionHandler, arguments);
-    if (edge !== undefined && edge.id !== undefined) {
-      return edge.id;
-    }
-    return edge;
-  };
-  Network.prototype.selectNodes = function () {
-    return this.selectionHandler.selectNodes.apply(this.selectionHandler, arguments);
-  };
-  Network.prototype.selectEdges = function () {
-    return this.selectionHandler.selectEdges.apply(this.selectionHandler, arguments);
-  };
-  Network.prototype.unselectAll = function () {
-    return this.selectionHandler.unselectAll.apply(this.selectionHandler, arguments);
-  };
-  Network.prototype.redraw = function () {
-    return this.renderer.redraw.apply(this.renderer, arguments);
-  };
-  Network.prototype.getScale = function () {
-    return this.view.getScale.apply(this.view, arguments);
-  };
-  Network.prototype.getViewPosition = function () {
-    return this.view.getViewPosition.apply(this.view, arguments);
-  };
-  Network.prototype.fit = function () {
-    return this.view.fit.apply(this.view, arguments);
-  };
-  Network.prototype.moveTo = function () {
-    return this.view.moveTo.apply(this.view, arguments);
-  };
-  Network.prototype.focus = function () {
-    return this.view.focus.apply(this.view, arguments);
-  };
-  Network.prototype.releaseNode = function () {
-    return this.view.releaseNode.apply(this.view, arguments);
-  };
-
-  module.exports = Network;
-
-/***/ },
-/* 66 */
+/* 62 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
@@ -29800,7 +27474,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
-  var util = __webpack_require__(4);
+  var util = __webpack_require__(3);
 
   /**
    * @class Groups
@@ -29929,7 +27603,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports["default"];
 
 /***/ },
-/* 67 */
+/* 63 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -29944,71 +27618,549 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
 
-  var _sharedLabel = __webpack_require__(68);
+  var _componentsNode = __webpack_require__(64);
+
+  var _componentsNode2 = _interopRequireDefault(_componentsNode);
+
+  var _componentsSharedLabel = __webpack_require__(65);
+
+  var _componentsSharedLabel2 = _interopRequireDefault(_componentsSharedLabel);
+
+  var util = __webpack_require__(3);
+  var DataSet = __webpack_require__(12);
+  var DataView = __webpack_require__(14);
+
+  var NodesHandler = (function () {
+    function NodesHandler(body, images, groups, layoutEngine) {
+      var _this = this;
+
+      _classCallCheck(this, NodesHandler);
+
+      this.body = body;
+      this.images = images;
+      this.groups = groups;
+      this.layoutEngine = layoutEngine;
+
+      // create the node API in the body container
+      this.body.functions.createNode = this.create.bind(this);
+
+      this.nodesListeners = {
+        add: function add(event, params) {
+          _this.add(params.items);
+        },
+        update: function update(event, params) {
+          _this.update(params.items, params.data);
+        },
+        remove: function remove(event, params) {
+          _this.remove(params.items);
+        }
+      };
+
+      this.options = {};
+      this.defaultOptions = {
+        borderWidth: 1,
+        borderWidthSelected: 2,
+        brokenImage: undefined,
+        color: {
+          border: '#2B7CE9',
+          background: '#97C2FC',
+          highlight: {
+            border: '#2B7CE9',
+            background: '#D2E5FF'
+          },
+          hover: {
+            border: '#2B7CE9',
+            background: '#D2E5FF'
+          }
+        },
+        fixed: {
+          x: false,
+          y: false
+        },
+        font: {
+          color: '#343434',
+          size: 14, // px
+          face: 'arial',
+          background: 'none',
+          strokeWidth: 0, // px
+          strokeColor: '#ffffff',
+          align: 'horizontal'
+        },
+        group: undefined,
+        hidden: false,
+        icon: {
+          face: 'FontAwesome', //'FontAwesome',
+          code: undefined, //'\uf007',
+          size: 50, //50,
+          color: '#2B7CE9' //'#aa00ff'
+        },
+        image: undefined, // --> URL
+        label: undefined,
+        level: undefined,
+        mass: 1,
+        physics: true,
+        scaling: {
+          min: 10,
+          max: 30,
+          label: {
+            enabled: false,
+            min: 14,
+            max: 30,
+            maxVisible: 30,
+            drawThreshold: 5
+          },
+          customScalingFunction: function customScalingFunction(min, max, total, value) {
+            if (max === min) {
+              return 0.5;
+            } else {
+              var scale = 1 / (max - min);
+              return Math.max(0, (value - min) * scale);
+            }
+          }
+        },
+        shadow: {
+          enabled: false,
+          size: 10,
+          x: 5,
+          y: 5
+        },
+        shape: 'ellipse',
+        size: 25,
+        title: undefined,
+        value: undefined,
+        x: undefined,
+        y: undefined
+      };
+      util.extend(this.options, this.defaultOptions);
+
+      this.bindEventListeners();
+    }
+
+    _createClass(NodesHandler, [{
+      key: 'bindEventListeners',
+      value: function bindEventListeners() {
+        var _this2 = this;
+
+        // refresh the nodes. Used when reverting from hierarchical layout
+        this.body.emitter.on('refreshNodes', this.refresh.bind(this));
+        this.body.emitter.on('refresh', this.refresh.bind(this));
+        this.body.emitter.on('destroy', function () {
+          delete _this2.body.functions.createNode;
+          delete _this2.nodesListeners.add;
+          delete _this2.nodesListeners.update;
+          delete _this2.nodesListeners.remove;
+          delete _this2.nodesListeners;
+        });
+      }
+    }, {
+      key: 'setOptions',
+      value: function setOptions(options) {
+        if (options !== undefined) {
+          _componentsNode2['default'].parseOptions(this.options, options);
+
+          // update the shape in all nodes
+          if (options.shape !== undefined) {
+            for (var nodeId in this.body.nodes) {
+              if (this.body.nodes.hasOwnProperty(nodeId)) {
+                this.body.nodes[nodeId].updateShape();
+              }
+            }
+          }
+
+          // update the shape size in all nodes
+          if (options.font !== undefined) {
+            _componentsSharedLabel2['default'].parseOptions(this.options.font, options);
+            for (var nodeId in this.body.nodes) {
+              if (this.body.nodes.hasOwnProperty(nodeId)) {
+                this.body.nodes[nodeId].updateLabelModule();
+                this.body.nodes[nodeId]._reset();
+              }
+            }
+          }
+
+          // update the shape size in all nodes
+          if (options.size !== undefined) {
+            for (var nodeId in this.body.nodes) {
+              if (this.body.nodes.hasOwnProperty(nodeId)) {
+                this.body.nodes[nodeId]._reset();
+              }
+            }
+          }
+
+          // update the state of the letiables if needed
+          if (options.hidden !== undefined || options.physics !== undefined) {
+            this.body.emitter.emit('_dataChanged');
+          }
+        }
+      }
+    }, {
+      key: 'setData',
+
+      /**
+       * Set a data set with nodes for the network
+       * @param {Array | DataSet | DataView} nodes         The data containing the nodes.
+       * @private
+       */
+      value: function setData(nodes) {
+        var _this3 = this;
+
+        var doNotEmit = arguments[1] === undefined ? false : arguments[1];
+
+        var oldNodesData = this.body.data.nodes;
+
+        if (nodes instanceof DataSet || nodes instanceof DataView) {
+          this.body.data.nodes = nodes;
+        } else if (Array.isArray(nodes)) {
+          this.body.data.nodes = new DataSet();
+          this.body.data.nodes.add(nodes);
+        } else if (!nodes) {
+          this.body.data.nodes = new DataSet();
+        } else {
+          throw new TypeError('Array or DataSet expected');
+        }
+
+        if (oldNodesData) {
+          // unsubscribe from old dataset
+          util.forEach(this.nodesListeners, function (callback, event) {
+            oldNodesData.off(event, callback);
+          });
+        }
+
+        // remove drawn nodes
+        this.body.nodes = {};
+
+        if (this.body.data.nodes) {
+          (function () {
+            // subscribe to new dataset
+            var me = _this3;
+            util.forEach(_this3.nodesListeners, function (callback, event) {
+              me.body.data.nodes.on(event, callback);
+            });
+
+            // draw all new nodes
+            var ids = _this3.body.data.nodes.getIds();
+            _this3.add(ids, true);
+          })();
+        }
+
+        if (doNotEmit === false) {
+          this.body.emitter.emit('_dataChanged');
+        }
+      }
+    }, {
+      key: 'add',
+
+      /**
+       * Add nodes
+       * @param {Number[] | String[]} ids
+       * @private
+       */
+      value: function add(ids) {
+        var doNotEmit = arguments[1] === undefined ? false : arguments[1];
+
+        var id = undefined;
+        var newNodes = [];
+        for (var i = 0; i < ids.length; i++) {
+          id = ids[i];
+          var properties = this.body.data.nodes.get(id);
+          var node = this.create(properties);
+          newNodes.push(node);
+          this.body.nodes[id] = node; // note: this may replace an existing node
+        }
+
+        this.layoutEngine.positionInitially(newNodes);
+
+        if (doNotEmit === false) {
+          this.body.emitter.emit('_dataChanged');
+        }
+      }
+    }, {
+      key: 'update',
+
+      /**
+       * Update existing nodes, or create them when not yet existing
+       * @param {Number[] | String[]} ids
+       * @private
+       */
+      value: function update(ids, changedData) {
+        var nodes = this.body.nodes;
+        var dataChanged = false;
+        for (var i = 0; i < ids.length; i++) {
+          var id = ids[i];
+          var node = nodes[id];
+          var data = changedData[i];
+          if (node !== undefined) {
+            // update node
+            dataChanged = node.setOptions(data);
+          } else {
+            dataChanged = true;
+            // create node
+            node = this.create(data);
+            nodes[id] = node;
+          }
+        }
+        if (dataChanged === true) {
+          this.body.emitter.emit('_dataChanged');
+        } else {
+          this.body.emitter.emit('_dataUpdated');
+        }
+      }
+    }, {
+      key: 'remove',
+
+      /**
+       * Remove existing nodes. If nodes do not exist, the method will just ignore it.
+       * @param {Number[] | String[]} ids
+       * @private
+       */
+      value: function remove(ids) {
+        var nodes = this.body.nodes;
+
+        for (var i = 0; i < ids.length; i++) {
+          var id = ids[i];
+          delete nodes[id];
+        }
+
+        this.body.emitter.emit('_dataChanged');
+      }
+    }, {
+      key: 'create',
+
+      /**
+       * create a node
+       * @param properties
+       * @param constructorClass
+       */
+      value: function create(properties) {
+        var constructorClass = arguments[1] === undefined ? _componentsNode2['default'] : arguments[1];
+
+        return new constructorClass(properties, this.body, this.images, this.groups, this.options);
+      }
+    }, {
+      key: 'refresh',
+      value: function refresh() {
+        var nodes = this.body.nodes;
+        for (var nodeId in nodes) {
+          var node = undefined;
+          if (nodes.hasOwnProperty(nodeId)) {
+            node = nodes[nodeId];
+          }
+          var data = this.body.data.nodes._data[nodeId];
+          if (node !== undefined && data !== undefined) {
+            node.setOptions({ fixed: false });
+            node.setOptions(data);
+          }
+        }
+      }
+    }, {
+      key: 'getPositions',
+
+      /**
+       * Returns the positions of the nodes.
+       * @param ids  --> optional, can be array of nodeIds, can be string
+       * @returns {{}}
+       */
+      value: function getPositions(ids) {
+        var dataArray = {};
+        if (ids !== undefined) {
+          if (Array.isArray(ids) === true) {
+            for (var i = 0; i < ids.length; i++) {
+              if (this.body.nodes[ids[i]] !== undefined) {
+                var node = this.body.nodes[ids[i]];
+                dataArray[ids[i]] = { x: Math.round(node.x), y: Math.round(node.y) };
+              }
+            }
+          } else {
+            if (this.body.nodes[ids] !== undefined) {
+              var node = this.body.nodes[ids];
+              dataArray[ids] = { x: Math.round(node.x), y: Math.round(node.y) };
+            }
+          }
+        } else {
+          for (var nodeId in this.body.nodes) {
+            if (this.body.nodes.hasOwnProperty(nodeId)) {
+              var node = this.body.nodes[nodeId];
+              dataArray[nodeId] = { x: Math.round(node.x), y: Math.round(node.y) };
+            }
+          }
+        }
+        return dataArray;
+      }
+    }, {
+      key: 'storePositions',
+
+      /**
+       * Load the XY positions of the nodes into the dataset.
+       */
+      value: function storePositions() {
+        // todo: add support for clusters and hierarchical.
+        var dataArray = [];
+        var dataset = this.body.data.nodes.getDataSet();
+
+        for (var nodeId in dataset._data) {
+          if (dataset._data.hasOwnProperty(nodeId)) {
+            var node = this.body.nodes[nodeId];
+            if (dataset._data[nodeId].x != Math.round(node.x) || dataset._data[nodeId].y != Math.round(node.y)) {
+              dataArray.push({ id: nodeId, x: Math.round(node.x), y: Math.round(node.y) });
+            }
+          }
+        }
+        dataset.update(dataArray);
+      }
+    }, {
+      key: 'getBoundingBox',
+
+      /**
+       * get the bounding box of a node.
+       * @param nodeId
+       * @returns {j|*}
+       */
+      value: function getBoundingBox(nodeId) {
+        if (this.body.nodes[nodeId] !== undefined) {
+          return this.body.nodes[nodeId].shape.boundingBox;
+        }
+      }
+    }, {
+      key: 'getConnectedNodes',
+
+      /**
+       * Get the Ids of nodes connected to this node.
+       * @param nodeId
+       * @returns {Array}
+       */
+      value: function getConnectedNodes(nodeId) {
+        var nodeList = [];
+        if (this.body.nodes[nodeId] !== undefined) {
+          var node = this.body.nodes[nodeId];
+          var nodeObj = {}; // used to quickly check if node already exists
+          for (var i = 0; i < node.edges.length; i++) {
+            var edge = node.edges[i];
+            if (edge.toId == nodeId) {
+              // these are double equals since ids can be numeric or string
+              if (nodeObj[edge.fromId] === undefined) {
+                nodeList.push(edge.fromId);
+                nodeObj[edge.fromId] = true;
+              }
+            } else if (edge.fromId == nodeId) {
+              // these are double equals since ids can be numeric or string
+              if (nodeObj[edge.toId] === undefined) {
+                nodeList.push(edge.toId);
+                nodeObj[edge.toId] = true;
+              }
+            }
+          }
+        }
+        return nodeList;
+      }
+    }, {
+      key: 'getConnectedEdges',
+
+      /**
+       * Get the ids of the edges connected to this node.
+       * @param nodeId
+       * @returns {*}
+       */
+      value: function getConnectedEdges(nodeId) {
+        var edgeList = [];
+        if (this.body.nodes[nodeId] !== undefined) {
+          var node = this.body.nodes[nodeId];
+          for (var i = 0; i < node.edges.length; i++) {
+            edgeList.push(node.edges[i].id);
+          }
+        } else {
+          console.log('NodeId provided for getConnectedEdges does not exist. Provided: ', nodeId);
+        }
+        return edgeList;
+      }
+    }]);
+
+    return NodesHandler;
+  })();
+
+  exports['default'] = NodesHandler;
+  module.exports = exports['default'];
+
+/***/ },
+/* 64 */
+/***/ function(module, exports, __webpack_require__) {
+
+  'use strict';
+
+  Object.defineProperty(exports, '__esModule', {
+    value: true
+  });
+
+  var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
+
+  function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
+
+  function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
+
+  var _sharedLabel = __webpack_require__(65);
 
   var _sharedLabel2 = _interopRequireDefault(_sharedLabel);
 
-  var _nodesShapesBox = __webpack_require__(69);
+  var _nodesShapesBox = __webpack_require__(66);
 
   var _nodesShapesBox2 = _interopRequireDefault(_nodesShapesBox);
 
-  var _nodesShapesCircle = __webpack_require__(71);
+  var _nodesShapesCircle = __webpack_require__(68);
 
   var _nodesShapesCircle2 = _interopRequireDefault(_nodesShapesCircle);
 
-  var _nodesShapesCircularImage = __webpack_require__(73);
+  var _nodesShapesCircularImage = __webpack_require__(70);
 
   var _nodesShapesCircularImage2 = _interopRequireDefault(_nodesShapesCircularImage);
 
-  var _nodesShapesDatabase = __webpack_require__(74);
+  var _nodesShapesDatabase = __webpack_require__(71);
 
   var _nodesShapesDatabase2 = _interopRequireDefault(_nodesShapesDatabase);
 
-  var _nodesShapesDiamond = __webpack_require__(75);
+  var _nodesShapesDiamond = __webpack_require__(72);
 
   var _nodesShapesDiamond2 = _interopRequireDefault(_nodesShapesDiamond);
 
-  var _nodesShapesDot = __webpack_require__(77);
+  var _nodesShapesDot = __webpack_require__(74);
 
   var _nodesShapesDot2 = _interopRequireDefault(_nodesShapesDot);
 
-  var _nodesShapesEllipse = __webpack_require__(78);
+  var _nodesShapesEllipse = __webpack_require__(75);
 
   var _nodesShapesEllipse2 = _interopRequireDefault(_nodesShapesEllipse);
 
-  var _nodesShapesIcon = __webpack_require__(79);
+  var _nodesShapesIcon = __webpack_require__(76);
 
   var _nodesShapesIcon2 = _interopRequireDefault(_nodesShapesIcon);
 
-  var _nodesShapesImage = __webpack_require__(80);
+  var _nodesShapesImage = __webpack_require__(77);
 
   var _nodesShapesImage2 = _interopRequireDefault(_nodesShapesImage);
 
-  var _nodesShapesSquare = __webpack_require__(81);
+  var _nodesShapesSquare = __webpack_require__(78);
 
   var _nodesShapesSquare2 = _interopRequireDefault(_nodesShapesSquare);
 
-  var _nodesShapesStar = __webpack_require__(82);
+  var _nodesShapesStar = __webpack_require__(79);
 
   var _nodesShapesStar2 = _interopRequireDefault(_nodesShapesStar);
 
-  var _nodesShapesText = __webpack_require__(83);
+  var _nodesShapesText = __webpack_require__(80);
 
   var _nodesShapesText2 = _interopRequireDefault(_nodesShapesText);
 
-  var _nodesShapesTriangle = __webpack_require__(84);
+  var _nodesShapesTriangle = __webpack_require__(81);
 
   var _nodesShapesTriangle2 = _interopRequireDefault(_nodesShapesTriangle);
 
-  var _nodesShapesTriangleDown = __webpack_require__(85);
+  var _nodesShapesTriangleDown = __webpack_require__(82);
 
   var _nodesShapesTriangleDown2 = _interopRequireDefault(_nodesShapesTriangleDown);
 
-  var _sharedValidator = __webpack_require__(54);
+  var _sharedValidator = __webpack_require__(50);
 
   var _sharedValidator2 = _interopRequireDefault(_sharedValidator);
 
-  var util = __webpack_require__(4);
+  var util = __webpack_require__(3);
 
   /**
    * @class Node
@@ -30449,7 +28601,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 68 */
+/* 65 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -30464,7 +28616,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
 
-  var util = __webpack_require__(4);
+  var util = __webpack_require__(3);
 
   var Label = (function () {
     function Label(body, options) {
@@ -30765,7 +28917,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 69 */
+/* 66 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -30784,7 +28936,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; }
 
-  var _utilNodeBase = __webpack_require__(70);
+  var _utilNodeBase = __webpack_require__(67);
 
   var _utilNodeBase2 = _interopRequireDefault(_utilNodeBase);
 
@@ -30870,7 +29022,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 70 */
+/* 67 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -30938,7 +29090,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 71 */
+/* 68 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -30957,7 +29109,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; }
 
-  var _utilCircleImageBase = __webpack_require__(72);
+  var _utilCircleImageBase = __webpack_require__(69);
 
   var _utilCircleImageBase2 = _interopRequireDefault(_utilCircleImageBase);
 
@@ -31028,7 +29180,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 72 */
+/* 69 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -31047,7 +29199,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; }
 
-  var _utilNodeBase = __webpack_require__(70);
+  var _utilNodeBase = __webpack_require__(67);
 
   var _utilNodeBase2 = _interopRequireDefault(_utilNodeBase);
 
@@ -31177,7 +29329,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 73 */
+/* 70 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -31196,7 +29348,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; }
 
-  var _utilCircleImageBase = __webpack_require__(72);
+  var _utilCircleImageBase = __webpack_require__(69);
 
   var _utilCircleImageBase2 = _interopRequireDefault(_utilCircleImageBase);
 
@@ -31282,7 +29434,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 74 */
+/* 71 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -31301,7 +29453,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; }
 
-  var _utilNodeBase = __webpack_require__(70);
+  var _utilNodeBase = __webpack_require__(67);
 
   var _utilNodeBase2 = _interopRequireDefault(_utilNodeBase);
 
@@ -31387,7 +29539,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 75 */
+/* 72 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -31406,7 +29558,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; }
 
-  var _utilShapeBase = __webpack_require__(76);
+  var _utilShapeBase = __webpack_require__(73);
 
   var _utilShapeBase2 = _interopRequireDefault(_utilShapeBase);
 
@@ -31443,7 +29595,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 76 */
+/* 73 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -31462,7 +29614,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; }
 
-  var _utilNodeBase = __webpack_require__(70);
+  var _utilNodeBase = __webpack_require__(67);
 
   var _utilNodeBase2 = _interopRequireDefault(_utilNodeBase);
 
@@ -31542,7 +29694,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 77 */
+/* 74 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -31561,7 +29713,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; }
 
-  var _utilShapeBase = __webpack_require__(76);
+  var _utilShapeBase = __webpack_require__(73);
 
   var _utilShapeBase2 = _interopRequireDefault(_utilShapeBase);
 
@@ -31598,7 +29750,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 78 */
+/* 75 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -31617,7 +29769,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; }
 
-  var _utilNodeBase = __webpack_require__(70);
+  var _utilNodeBase = __webpack_require__(67);
 
   var _utilNodeBase2 = _interopRequireDefault(_utilNodeBase);
 
@@ -31705,7 +29857,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 79 */
+/* 76 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -31724,7 +29876,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; }
 
-  var _utilNodeBase = __webpack_require__(70);
+  var _utilNodeBase = __webpack_require__(67);
 
   var _utilNodeBase2 = _interopRequireDefault(_utilNodeBase);
 
@@ -31821,7 +29973,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 80 */
+/* 77 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -31840,7 +29992,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; }
 
-  var _utilCircleImageBase = __webpack_require__(72);
+  var _utilCircleImageBase = __webpack_require__(69);
 
   var _utilCircleImageBase2 = _interopRequireDefault(_utilCircleImageBase);
 
@@ -31908,7 +30060,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 81 */
+/* 78 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -31927,7 +30079,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; }
 
-  var _utilShapeBase = __webpack_require__(76);
+  var _utilShapeBase = __webpack_require__(73);
 
   var _utilShapeBase2 = _interopRequireDefault(_utilShapeBase);
 
@@ -31965,7 +30117,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 82 */
+/* 79 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -31984,7 +30136,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; }
 
-  var _utilShapeBase = __webpack_require__(76);
+  var _utilShapeBase = __webpack_require__(73);
 
   var _utilShapeBase2 = _interopRequireDefault(_utilShapeBase);
 
@@ -32021,7 +30173,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 83 */
+/* 80 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -32040,7 +30192,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; }
 
-  var _utilNodeBase = __webpack_require__(70);
+  var _utilNodeBase = __webpack_require__(67);
 
   var _utilNodeBase2 = _interopRequireDefault(_utilNodeBase);
 
@@ -32106,7 +30258,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 84 */
+/* 81 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -32125,7 +30277,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; }
 
-  var _utilShapeBase = __webpack_require__(76);
+  var _utilShapeBase = __webpack_require__(73);
 
   var _utilShapeBase2 = _interopRequireDefault(_utilShapeBase);
 
@@ -32162,7 +30314,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 85 */
+/* 82 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -32181,7 +30333,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; }
 
-  var _utilShapeBase = __webpack_require__(76);
+  var _utilShapeBase = __webpack_require__(73);
 
   var _utilShapeBase2 = _interopRequireDefault(_utilShapeBase);
 
@@ -32218,7 +30370,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 86 */
+/* 83 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -32233,17 +30385,17 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
 
-  var _componentsEdge = __webpack_require__(87);
+  var _componentsEdge = __webpack_require__(84);
 
   var _componentsEdge2 = _interopRequireDefault(_componentsEdge);
 
-  var _componentsSharedLabel = __webpack_require__(68);
+  var _componentsSharedLabel = __webpack_require__(65);
 
   var _componentsSharedLabel2 = _interopRequireDefault(_componentsSharedLabel);
 
-  var util = __webpack_require__(4);
-  var DataSet = __webpack_require__(15);
-  var DataView = __webpack_require__(17);
+  var util = __webpack_require__(3);
+  var DataSet = __webpack_require__(12);
+  var DataView = __webpack_require__(14);
 
   var EdgesHandler = (function () {
     function EdgesHandler(body, images, groups) {
@@ -32655,7 +30807,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 87 */
+/* 84 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -32670,23 +30822,23 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
 
-  var _sharedLabel = __webpack_require__(68);
+  var _sharedLabel = __webpack_require__(65);
 
   var _sharedLabel2 = _interopRequireDefault(_sharedLabel);
 
-  var _edgesBezierEdgeDynamic = __webpack_require__(2);
+  var _edgesBezierEdgeDynamic = __webpack_require__(85);
 
   var _edgesBezierEdgeDynamic2 = _interopRequireDefault(_edgesBezierEdgeDynamic);
 
-  var _edgesBezierEdgeStatic = __webpack_require__(90);
+  var _edgesBezierEdgeStatic = __webpack_require__(88);
 
   var _edgesBezierEdgeStatic2 = _interopRequireDefault(_edgesBezierEdgeStatic);
 
-  var _edgesStraightEdge = __webpack_require__(91);
+  var _edgesStraightEdge = __webpack_require__(89);
 
   var _edgesStraightEdge2 = _interopRequireDefault(_edgesStraightEdge);
 
-  var util = __webpack_require__(4);
+  var util = __webpack_require__(3);
 
   /**
    * @class Edge
@@ -33219,7 +31371,171 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 88 */
+/* 85 */
+/***/ function(module, exports, __webpack_require__) {
+
+  'use strict';
+
+  Object.defineProperty(exports, '__esModule', {
+    value: true
+  });
+
+  var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
+
+  var _get = function get(_x, _x2, _x3) { var _again = true; _function: while (_again) { var object = _x, property = _x2, receiver = _x3; desc = parent = getter = undefined; _again = false; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { _x = parent; _x2 = property; _x3 = receiver; _again = true; continue _function; } } else if ('value' in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } } };
+
+  function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
+
+  function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
+
+  function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; }
+
+  var _utilBezierEdgeBase = __webpack_require__(86);
+
+  var _utilBezierEdgeBase2 = _interopRequireDefault(_utilBezierEdgeBase);
+
+  var BezierEdgeDynamic = (function (_BezierEdgeBase) {
+    function BezierEdgeDynamic(options, body, labelModule) {
+      _classCallCheck(this, BezierEdgeDynamic);
+
+      //this.via = undefined; // Here for completeness but not allowed to defined before super() is invoked.
+      _get(Object.getPrototypeOf(BezierEdgeDynamic.prototype), 'constructor', this).call(this, options, body, labelModule); // --> this calls the setOptions below
+    }
+
+    _inherits(BezierEdgeDynamic, _BezierEdgeBase);
+
+    _createClass(BezierEdgeDynamic, [{
+      key: 'setOptions',
+      value: function setOptions(options) {
+        this.options = options;
+        this.id = this.options.id;
+        this.setupSupportNode();
+        this.connect();
+      }
+    }, {
+      key: 'connect',
+      value: function connect() {
+        this.from = this.body.nodes[this.options.from];
+        this.to = this.body.nodes[this.options.to];
+        if (this.from === undefined || this.to === undefined) {
+          this.via.setOptions({ physics: false });
+        } else {
+          // fix weird behaviour where a selfreferencing node has physics enabled
+          if (this.from.id === this.to.id) {
+            this.via.setOptions({ physics: false });
+          } else {
+            this.via.setOptions({ physics: true });
+          }
+        }
+      }
+    }, {
+      key: 'cleanup',
+      value: function cleanup() {
+        if (this.via !== undefined) {
+          delete this.body.nodes[this.via.id];
+          this.via = undefined;
+          return true;
+        }
+        return false;
+      }
+    }, {
+      key: 'togglePhysics',
+      value: function togglePhysics(status) {
+        this.via.setOptions({ physics: status });
+      }
+    }, {
+      key: 'setupSupportNode',
+
+      /**
+       * Bezier curves require an anchor point to calculate the smooth flow. These points are nodes. These nodes are invisible but
+       * are used for the force calculation.
+       *
+       * The changed data is not called, if needed, it is returned by the main edge constructor.
+       * @private
+       */
+      value: function setupSupportNode() {
+        if (this.via === undefined) {
+          var nodeId = 'edgeId:' + this.id;
+          var node = this.body.functions.createNode({
+            id: nodeId,
+            shape: 'circle',
+            physics: true,
+            hidden: true
+          });
+          this.body.nodes[nodeId] = node;
+          this.via = node;
+          this.via.parentEdgeId = this.id;
+          this.positionBezierNode();
+        }
+      }
+    }, {
+      key: 'positionBezierNode',
+      value: function positionBezierNode() {
+        if (this.via !== undefined && this.from !== undefined && this.to !== undefined) {
+          this.via.x = 0.5 * (this.from.x + this.to.x);
+          this.via.y = 0.5 * (this.from.y + this.to.y);
+        } else if (this.via !== undefined) {
+          this.via.x = 0;
+          this.via.y = 0;
+        }
+      }
+    }, {
+      key: '_line',
+
+      /**
+       * Draw a line between two nodes
+       * @param {CanvasRenderingContext2D} ctx
+       * @private
+       */
+      value: function _line(ctx) {
+        // draw a straight line
+        ctx.beginPath();
+        ctx.moveTo(this.from.x, this.from.y);
+        ctx.quadraticCurveTo(this.via.x, this.via.y, this.to.x, this.to.y);
+        // draw shadow if enabled
+        this.enableShadow(ctx);
+        ctx.stroke();
+        this.disableShadow(ctx);
+        return this.via;
+      }
+    }, {
+      key: 'getPoint',
+
+      /**
+       * Combined function of pointOnLine and pointOnBezier. This gives the coordinates of a point on the line at a certain percentage of the way
+       * @param percentage
+       * @param via
+       * @returns {{x: number, y: number}}
+       * @private
+       */
+      value: function getPoint(percentage) {
+        var t = percentage;
+        var x = Math.pow(1 - t, 2) * this.from.x + 2 * t * (1 - t) * this.via.x + Math.pow(t, 2) * this.to.x;
+        var y = Math.pow(1 - t, 2) * this.from.y + 2 * t * (1 - t) * this.via.y + Math.pow(t, 2) * this.to.y;
+
+        return { x: x, y: y };
+      }
+    }, {
+      key: '_findBorderPosition',
+      value: function _findBorderPosition(nearNode, ctx) {
+        return this._findBorderPositionBezier(nearNode, ctx, this.via);
+      }
+    }, {
+      key: '_getDistanceToEdge',
+      value: function _getDistanceToEdge(x1, y1, x2, y2, x3, y3) {
+        // x3,y3 is the point
+        return this._getDistanceToBezierEdge(x1, y1, x2, y2, x3, y3, this.via);
+      }
+    }]);
+
+    return BezierEdgeDynamic;
+  })(_utilBezierEdgeBase2['default']);
+
+  exports['default'] = BezierEdgeDynamic;
+  module.exports = exports['default'];
+
+/***/ },
+/* 86 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -33238,7 +31554,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; }
 
-  var _EdgeBase2 = __webpack_require__(89);
+  var _EdgeBase2 = __webpack_require__(87);
 
   var _EdgeBase3 = _interopRequireDefault(_EdgeBase2);
 
@@ -33366,7 +31682,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 89 */
+/* 87 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -33381,7 +31697,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
 
-  var util = __webpack_require__(4);
+  var util = __webpack_require__(3);
 
   var EdgeBase = (function () {
     function EdgeBase(options, body, labelModule) {
@@ -33960,7 +32276,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 90 */
+/* 88 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -33979,7 +32295,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; }
 
-  var _utilBezierEdgeBase = __webpack_require__(88);
+  var _utilBezierEdgeBase = __webpack_require__(86);
 
   var _utilBezierEdgeBase2 = _interopRequireDefault(_utilBezierEdgeBase);
 
@@ -34219,7 +32535,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 91 */
+/* 89 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -34238,7 +32554,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; }
 
-  var _utilEdgeBase = __webpack_require__(89);
+  var _utilEdgeBase = __webpack_require__(87);
 
   var _utilEdgeBase2 = _interopRequireDefault(_utilEdgeBase);
 
@@ -34324,7 +32640,501 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 92 */
+/* 90 */
+/***/ function(module, exports, __webpack_require__) {
+
+  "use strict";
+
+  Object.defineProperty(exports, "__esModule", {
+    value: true
+  });
+
+  var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
+
+  function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+  var BarnesHutSolver = (function () {
+    function BarnesHutSolver(body, physicsBody, options) {
+      _classCallCheck(this, BarnesHutSolver);
+
+      this.body = body;
+      this.physicsBody = physicsBody;
+      this.barnesHutTree;
+      this.setOptions(options);
+    }
+
+    _createClass(BarnesHutSolver, [{
+      key: "setOptions",
+      value: function setOptions(options) {
+        this.options = options;
+        this.thetaInversed = 1 / this.options.theta;
+        this.overlapAvoidanceFactor = 1 - Math.max(0, Math.min(1, this.options.avoidOverlap)); // if 1 then min distance = 0.5, if 0.5 then min distance = 0.5 + 0.5*node.shape.radius
+      }
+    }, {
+      key: "solve",
+
+      /**
+       * This function calculates the forces the nodes apply on eachother based on a gravitational model.
+       * The Barnes Hut method is used to speed up this N-body simulation.
+       *
+       * @private
+       */
+      value: function solve() {
+        if (this.options.gravitationalConstant !== 0 && this.physicsBody.physicsNodeIndices.length > 0) {
+          var node = undefined;
+          var nodes = this.body.nodes;
+          var nodeIndices = this.physicsBody.physicsNodeIndices;
+          var nodeCount = nodeIndices.length;
+
+          // create the tree
+          var barnesHutTree = this._formBarnesHutTree(nodes, nodeIndices);
+
+          // for debugging
+          this.barnesHutTree = barnesHutTree;
+
+          // place the nodes one by one recursively
+          for (var i = 0; i < nodeCount; i++) {
+            node = nodes[nodeIndices[i]];
+            if (node.options.mass > 0) {
+              // starting with root is irrelevant, it never passes the BarnesHutSolver condition
+              this._getForceContribution(barnesHutTree.root.children.NW, node);
+              this._getForceContribution(barnesHutTree.root.children.NE, node);
+              this._getForceContribution(barnesHutTree.root.children.SW, node);
+              this._getForceContribution(barnesHutTree.root.children.SE, node);
+            }
+          }
+        }
+      }
+    }, {
+      key: "_getForceContribution",
+
+      /**
+       * This function traverses the barnesHutTree. It checks when it can approximate distant nodes with their center of mass.
+       * If a region contains a single node, we check if it is not itself, then we apply the force.
+       *
+       * @param parentBranch
+       * @param node
+       * @private
+       */
+      value: function _getForceContribution(parentBranch, node) {
+        // we get no force contribution from an empty region
+        if (parentBranch.childrenCount > 0) {
+          var dx = undefined,
+              dy = undefined,
+              distance = undefined;
+
+          // get the distance from the center of mass to the node.
+          dx = parentBranch.centerOfMass.x - node.x;
+          dy = parentBranch.centerOfMass.y - node.y;
+          distance = Math.sqrt(dx * dx + dy * dy);
+
+          // BarnesHutSolver condition
+          // original condition : s/d < theta = passed  ===  d/s > 1/theta = passed
+          // calcSize = 1/s --> d * 1/s > 1/theta = passed
+          if (distance * parentBranch.calcSize > this.thetaInversed) {
+            this._calculateForces(distance, dx, dy, node, parentBranch);
+          } else {
+            // Did not pass the condition, go into children if available
+            if (parentBranch.childrenCount === 4) {
+              this._getForceContribution(parentBranch.children.NW, node);
+              this._getForceContribution(parentBranch.children.NE, node);
+              this._getForceContribution(parentBranch.children.SW, node);
+              this._getForceContribution(parentBranch.children.SE, node);
+            } else {
+              // parentBranch must have only one node, if it was empty we wouldnt be here
+              if (parentBranch.children.data.id != node.id) {
+                // if it is not self
+                this._calculateForces(distance, dx, dy, node, parentBranch);
+              }
+            }
+          }
+        }
+      }
+    }, {
+      key: "_calculateForces",
+
+      /**
+       * Calculate the forces based on the distance.
+       *
+       * @param distance
+       * @param dx
+       * @param dy
+       * @param node
+       * @param parentBranch
+       * @private
+       */
+      value: function _calculateForces(distance, dx, dy, node, parentBranch) {
+        if (distance === 0) {
+          distance = 0.1;
+          dx = distance;
+        }
+
+        if (this.overlapAvoidanceFactor < 1) {
+          distance = Math.max(0.1 + this.overlapAvoidanceFactor * node.shape.radius, distance - node.shape.radius);
+        }
+
+        // the dividing by the distance cubed instead of squared allows us to get the fx and fy components without sines and cosines
+        // it is shorthand for gravityforce with distance squared and fx = dx/distance * gravityForce
+        var gravityForce = this.options.gravitationalConstant * parentBranch.mass * node.options.mass / Math.pow(distance, 3);
+        var fx = dx * gravityForce;
+        var fy = dy * gravityForce;
+
+        this.physicsBody.forces[node.id].x += fx;
+        this.physicsBody.forces[node.id].y += fy;
+      }
+    }, {
+      key: "_formBarnesHutTree",
+
+      /**
+       * This function constructs the barnesHut tree recursively. It creates the root, splits it and starts placing the nodes.
+       *
+       * @param nodes
+       * @param nodeIndices
+       * @private
+       */
+      value: function _formBarnesHutTree(nodes, nodeIndices) {
+        var node = undefined;
+        var nodeCount = nodeIndices.length;
+
+        var minX = nodes[nodeIndices[0]].x;
+        var minY = nodes[nodeIndices[0]].y;
+        var maxX = nodes[nodeIndices[0]].x;
+        var maxY = nodes[nodeIndices[0]].y;
+
+        // get the range of the nodes
+        for (var i = 1; i < nodeCount; i++) {
+          var x = nodes[nodeIndices[i]].x;
+          var y = nodes[nodeIndices[i]].y;
+          if (nodes[nodeIndices[i]].options.mass > 0) {
+            if (x < minX) {
+              minX = x;
+            }
+            if (x > maxX) {
+              maxX = x;
+            }
+            if (y < minY) {
+              minY = y;
+            }
+            if (y > maxY) {
+              maxY = y;
+            }
+          }
+        }
+        // make the range a square
+        var sizeDiff = Math.abs(maxX - minX) - Math.abs(maxY - minY); // difference between X and Y
+        if (sizeDiff > 0) {
+          minY -= 0.5 * sizeDiff;
+          maxY += 0.5 * sizeDiff;
+        } // xSize > ySize
+        else {
+          minX += 0.5 * sizeDiff;
+          maxX -= 0.5 * sizeDiff;
+        } // xSize < ySize
+
+        var minimumTreeSize = 0.00001;
+        var rootSize = Math.max(minimumTreeSize, Math.abs(maxX - minX));
+        var halfRootSize = 0.5 * rootSize;
+        var centerX = 0.5 * (minX + maxX),
+            centerY = 0.5 * (minY + maxY);
+
+        // construct the barnesHutTree
+        var barnesHutTree = {
+          root: {
+            centerOfMass: { x: 0, y: 0 },
+            mass: 0,
+            range: {
+              minX: centerX - halfRootSize, maxX: centerX + halfRootSize,
+              minY: centerY - halfRootSize, maxY: centerY + halfRootSize
+            },
+            size: rootSize,
+            calcSize: 1 / rootSize,
+            children: { data: null },
+            maxWidth: 0,
+            level: 0,
+            childrenCount: 4
+          }
+        };
+        this._splitBranch(barnesHutTree.root);
+
+        // place the nodes one by one recursively
+        for (var i = 0; i < nodeCount; i++) {
+          node = nodes[nodeIndices[i]];
+          if (node.options.mass > 0) {
+            this._placeInTree(barnesHutTree.root, node);
+          }
+        }
+
+        // make global
+        return barnesHutTree;
+      }
+    }, {
+      key: "_updateBranchMass",
+
+      /**
+       * this updates the mass of a branch. this is increased by adding a node.
+       *
+       * @param parentBranch
+       * @param node
+       * @private
+       */
+      value: function _updateBranchMass(parentBranch, node) {
+        var totalMass = parentBranch.mass + node.options.mass;
+        var totalMassInv = 1 / totalMass;
+
+        parentBranch.centerOfMass.x = parentBranch.centerOfMass.x * parentBranch.mass + node.x * node.options.mass;
+        parentBranch.centerOfMass.x *= totalMassInv;
+
+        parentBranch.centerOfMass.y = parentBranch.centerOfMass.y * parentBranch.mass + node.y * node.options.mass;
+        parentBranch.centerOfMass.y *= totalMassInv;
+
+        parentBranch.mass = totalMass;
+        var biggestSize = Math.max(Math.max(node.height, node.radius), node.width);
+        parentBranch.maxWidth = parentBranch.maxWidth < biggestSize ? biggestSize : parentBranch.maxWidth;
+      }
+    }, {
+      key: "_placeInTree",
+
+      /**
+       * determine in which branch the node will be placed.
+       *
+       * @param parentBranch
+       * @param node
+       * @param skipMassUpdate
+       * @private
+       */
+      value: function _placeInTree(parentBranch, node, skipMassUpdate) {
+        if (skipMassUpdate != true || skipMassUpdate === undefined) {
+          // update the mass of the branch.
+          this._updateBranchMass(parentBranch, node);
+        }
+
+        if (parentBranch.children.NW.range.maxX > node.x) {
+          // in NW or SW
+          if (parentBranch.children.NW.range.maxY > node.y) {
+            // in NW
+            this._placeInRegion(parentBranch, node, "NW");
+          } else {
+            // in SW
+            this._placeInRegion(parentBranch, node, "SW");
+          }
+        } else {
+          // in NE or SE
+          if (parentBranch.children.NW.range.maxY > node.y) {
+            // in NE
+            this._placeInRegion(parentBranch, node, "NE");
+          } else {
+            // in SE
+            this._placeInRegion(parentBranch, node, "SE");
+          }
+        }
+      }
+    }, {
+      key: "_placeInRegion",
+
+      /**
+       * actually place the node in a region (or branch)
+       *
+       * @param parentBranch
+       * @param node
+       * @param region
+       * @private
+       */
+      value: function _placeInRegion(parentBranch, node, region) {
+        switch (parentBranch.children[region].childrenCount) {
+          case 0:
+            // place node here
+            parentBranch.children[region].children.data = node;
+            parentBranch.children[region].childrenCount = 1;
+            this._updateBranchMass(parentBranch.children[region], node);
+            break;
+          case 1:
+            // convert into children
+            // if there are two nodes exactly overlapping (on init, on opening of cluster etc.)
+            // we move one node a pixel and we do not put it in the tree.
+            if (parentBranch.children[region].children.data.x === node.x && parentBranch.children[region].children.data.y === node.y) {
+              //node.x += Math.random();
+              //node.y += Math.random();
+              node.x += 0.1;
+              node.y += 0.1;
+            } else {
+              this._splitBranch(parentBranch.children[region]);
+              this._placeInTree(parentBranch.children[region], node);
+            }
+            break;
+          case 4:
+            // place in branch
+            this._placeInTree(parentBranch.children[region], node);
+            break;
+        }
+      }
+    }, {
+      key: "_splitBranch",
+
+      /**
+       * this function splits a branch into 4 sub branches. If the branch contained a node, we place it in the subbranch
+       * after the split is complete.
+       *
+       * @param parentBranch
+       * @private
+       */
+      value: function _splitBranch(parentBranch) {
+        // if the branch is shaded with a node, replace the node in the new subset.
+        var containedNode = null;
+        if (parentBranch.childrenCount === 1) {
+          containedNode = parentBranch.children.data;
+          parentBranch.mass = 0;
+          parentBranch.centerOfMass.x = 0;
+          parentBranch.centerOfMass.y = 0;
+        }
+        parentBranch.childrenCount = 4;
+        parentBranch.children.data = null;
+        this._insertRegion(parentBranch, "NW");
+        this._insertRegion(parentBranch, "NE");
+        this._insertRegion(parentBranch, "SW");
+        this._insertRegion(parentBranch, "SE");
+
+        if (containedNode != null) {
+          this._placeInTree(parentBranch, containedNode);
+        }
+      }
+    }, {
+      key: "_insertRegion",
+
+      /**
+       * This function subdivides the region into four new segments.
+       * Specifically, this inserts a single new segment.
+       * It fills the children section of the parentBranch
+       *
+       * @param parentBranch
+       * @param region
+       * @param parentRange
+       * @private
+       */
+      value: function _insertRegion(parentBranch, region) {
+        var minX = undefined,
+            maxX = undefined,
+            minY = undefined,
+            maxY = undefined;
+        var childSize = 0.5 * parentBranch.size;
+        switch (region) {
+          case "NW":
+            minX = parentBranch.range.minX;
+            maxX = parentBranch.range.minX + childSize;
+            minY = parentBranch.range.minY;
+            maxY = parentBranch.range.minY + childSize;
+            break;
+          case "NE":
+            minX = parentBranch.range.minX + childSize;
+            maxX = parentBranch.range.maxX;
+            minY = parentBranch.range.minY;
+            maxY = parentBranch.range.minY + childSize;
+            break;
+          case "SW":
+            minX = parentBranch.range.minX;
+            maxX = parentBranch.range.minX + childSize;
+            minY = parentBranch.range.minY + childSize;
+            maxY = parentBranch.range.maxY;
+            break;
+          case "SE":
+            minX = parentBranch.range.minX + childSize;
+            maxX = parentBranch.range.maxX;
+            minY = parentBranch.range.minY + childSize;
+            maxY = parentBranch.range.maxY;
+            break;
+        }
+
+        parentBranch.children[region] = {
+          centerOfMass: { x: 0, y: 0 },
+          mass: 0,
+          range: { minX: minX, maxX: maxX, minY: minY, maxY: maxY },
+          size: 0.5 * parentBranch.size,
+          calcSize: 2 * parentBranch.calcSize,
+          children: { data: null },
+          maxWidth: 0,
+          level: parentBranch.level + 1,
+          childrenCount: 0
+        };
+      }
+    }, {
+      key: "_debug",
+
+      //---------------------------  DEBUGGING BELOW  ---------------------------//
+
+      /**
+       * This function is for debugging purposed, it draws the tree.
+       *
+       * @param ctx
+       * @param color
+       * @private
+       */
+      value: function _debug(ctx, color) {
+        if (this.barnesHutTree !== undefined) {
+
+          ctx.lineWidth = 1;
+
+          this._drawBranch(this.barnesHutTree.root, ctx, color);
+        }
+      }
+    }, {
+      key: "_drawBranch",
+
+      /**
+       * This function is for debugging purposes. It draws the branches recursively.
+       *
+       * @param branch
+       * @param ctx
+       * @param color
+       * @private
+       */
+      value: function _drawBranch(branch, ctx, color) {
+        if (color === undefined) {
+          color = "#FF0000";
+        }
+
+        if (branch.childrenCount === 4) {
+          this._drawBranch(branch.children.NW, ctx);
+          this._drawBranch(branch.children.NE, ctx);
+          this._drawBranch(branch.children.SE, ctx);
+          this._drawBranch(branch.children.SW, ctx);
+        }
+        ctx.strokeStyle = color;
+        ctx.beginPath();
+        ctx.moveTo(branch.range.minX, branch.range.minY);
+        ctx.lineTo(branch.range.maxX, branch.range.minY);
+        ctx.stroke();
+
+        ctx.beginPath();
+        ctx.moveTo(branch.range.maxX, branch.range.minY);
+        ctx.lineTo(branch.range.maxX, branch.range.maxY);
+        ctx.stroke();
+
+        ctx.beginPath();
+        ctx.moveTo(branch.range.maxX, branch.range.maxY);
+        ctx.lineTo(branch.range.minX, branch.range.maxY);
+        ctx.stroke();
+
+        ctx.beginPath();
+        ctx.moveTo(branch.range.minX, branch.range.maxY);
+        ctx.lineTo(branch.range.minX, branch.range.minY);
+        ctx.stroke();
+
+        /*
+         if (branch.mass > 0) {
+         ctx.circle(branch.centerOfMass.x, branch.centerOfMass.y, 3*branch.mass);
+         ctx.stroke();
+         }
+         */
+      }
+    }]);
+
+    return BarnesHutSolver;
+  })();
+
+  exports["default"] = BarnesHutSolver;
+  module.exports = exports["default"];
+
+/***/ },
+/* 91 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
@@ -34419,7 +33229,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports["default"];
 
 /***/ },
-/* 93 */
+/* 92 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
@@ -34510,7 +33320,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports["default"];
 
 /***/ },
-/* 94 */
+/* 93 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
@@ -34523,16 +33333,16 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
-  var HierarchicalSpringSolver = (function () {
-    function HierarchicalSpringSolver(body, physicsBody, options) {
-      _classCallCheck(this, HierarchicalSpringSolver);
+  var SpringSolver = (function () {
+    function SpringSolver(body, physicsBody, options) {
+      _classCallCheck(this, SpringSolver);
 
       this.body = body;
       this.physicsBody = physicsBody;
       this.setOptions(options);
     }
 
-    _createClass(HierarchicalSpringSolver, [{
+    _createClass(SpringSolver, [{
       key: "setOptions",
       value: function setOptions(options) {
         this.options = options;
@@ -34546,92 +33356,81 @@ return /******/ (function(modules) { // webpackBootstrap
        * @private
        */
       value: function solve() {
-        var edgeLength, edge;
-        var dx, dy, fx, fy, springForce, distance;
-        var edges = this.body.edges;
-        var factor = 0.5;
-
+        var edgeLength = undefined,
+            edge = undefined;
         var edgeIndices = this.physicsBody.physicsEdgeIndices;
-        var nodeIndices = this.physicsBody.physicsNodeIndices;
-        var forces = this.physicsBody.forces;
-
-        // initialize the spring force counters
-        for (var i = 0; i < nodeIndices.length; i++) {
-          var nodeId = nodeIndices[i];
-          forces[nodeId].springFx = 0;
-          forces[nodeId].springFy = 0;
-        }
+        var edges = this.body.edges;
+        var node1 = undefined,
+            node2 = undefined,
+            node3 = undefined;
 
         // forces caused by the edges, modelled as springs
         for (var i = 0; i < edgeIndices.length; i++) {
           edge = edges[edgeIndices[i]];
-          if (edge.connected === true) {
-            edgeLength = edge.options.length === undefined ? this.options.springLength : edge.options.length;
+          if (edge.connected === true && edge.toId !== edge.fromId) {
+            // only calculate forces if nodes are in the same sector
+            if (this.body.nodes[edge.toId] !== undefined && this.body.nodes[edge.fromId] !== undefined) {
+              if (edge.edgeType.via !== undefined) {
+                edgeLength = edge.options.length === undefined ? this.options.springLength : edge.options.length;
+                node1 = edge.to;
+                node2 = edge.edgeType.via;
+                node3 = edge.from;
 
-            dx = edge.from.x - edge.to.x;
-            dy = edge.from.y - edge.to.y;
-            distance = Math.sqrt(dx * dx + dy * dy);
-            distance = distance === 0 ? 0.01 : distance;
-
-            // the 1/distance is so the fx and fy can be calculated without sine or cosine.
-            springForce = this.options.springConstant * (edgeLength - distance) / distance;
-
-            fx = dx * springForce;
-            fy = dy * springForce;
-
-            if (edge.to.level != edge.from.level) {
-              forces[edge.toId].springFx -= fx;
-              forces[edge.toId].springFy -= fy;
-              forces[edge.fromId].springFx += fx;
-              forces[edge.fromId].springFy += fy;
-            } else {
-              forces[edge.toId].x -= factor * fx;
-              forces[edge.toId].y -= factor * fy;
-              forces[edge.fromId].x += factor * fx;
-              forces[edge.fromId].y += factor * fy;
+                this._calculateSpringForce(node1, node2, 0.5 * edgeLength);
+                this._calculateSpringForce(node2, node3, 0.5 * edgeLength);
+              } else {
+                // the * 1.5 is here so the edge looks as large as a smooth edge. It does not initially because the smooth edges use
+                // the support nodes which exert a repulsive force on the to and from nodes, making the edge appear larger.
+                edgeLength = edge.options.length === undefined ? this.options.springLength * 1.5 : edge.options.length;
+                this._calculateSpringForce(edge.from, edge.to, edgeLength);
+              }
             }
           }
         }
+      }
+    }, {
+      key: "_calculateSpringForce",
 
-        // normalize spring forces
-        var springForce = 1;
-        var springFx, springFy;
-        for (var i = 0; i < nodeIndices.length; i++) {
-          var nodeId = nodeIndices[i];
-          springFx = Math.min(springForce, Math.max(-springForce, forces[nodeId].springFx));
-          springFy = Math.min(springForce, Math.max(-springForce, forces[nodeId].springFy));
+      /**
+       * This is the code actually performing the calculation for the function above.
+       *
+       * @param node1
+       * @param node2
+       * @param edgeLength
+       * @private
+       */
+      value: function _calculateSpringForce(node1, node2, edgeLength) {
+        var dx = node1.x - node2.x;
+        var dy = node1.y - node2.y;
+        var distance = Math.max(Math.sqrt(dx * dx + dy * dy), 0.01);
 
-          forces[nodeId].x += springFx;
-          forces[nodeId].y += springFy;
+        // the 1/distance is so the fx and fy can be calculated without sine or cosine.
+        var springForce = this.options.springConstant * (edgeLength - distance) / distance;
+
+        var fx = dx * springForce;
+        var fy = dy * springForce;
+
+        // handle the case where one node is not part of the physcis
+        if (this.physicsBody.forces[node1.id] !== undefined) {
+          this.physicsBody.forces[node1.id].x += fx;
+          this.physicsBody.forces[node1.id].y += fy;
         }
 
-        // retain energy balance
-        var totalFx = 0;
-        var totalFy = 0;
-        for (var i = 0; i < nodeIndices.length; i++) {
-          var nodeId = nodeIndices[i];
-          totalFx += forces[nodeId].x;
-          totalFy += forces[nodeId].y;
-        }
-        var correctionFx = totalFx / nodeIndices.length;
-        var correctionFy = totalFy / nodeIndices.length;
-
-        for (var i = 0; i < nodeIndices.length; i++) {
-          var nodeId = nodeIndices[i];
-          forces[nodeId].x -= correctionFx;
-          forces[nodeId].y -= correctionFy;
+        if (this.physicsBody.forces[node2.id] !== undefined) {
+          this.physicsBody.forces[node2.id].x -= fx;
+          this.physicsBody.forces[node2.id].y -= fy;
         }
       }
     }]);
 
-    return HierarchicalSpringSolver;
+    return SpringSolver;
   })();
 
-  exports["default"] = HierarchicalSpringSolver;
+  exports["default"] = SpringSolver;
   module.exports = exports["default"];
 
 /***/ },
-/* 95 */
+/* 94 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
@@ -34700,7 +33499,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports["default"];
 
 /***/ },
-/* 96 */
+/* 95 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
@@ -34719,7 +33518,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; }
 
-  var _BarnesHutSolver2 = __webpack_require__(7);
+  var _BarnesHutSolver2 = __webpack_require__(90);
 
   var _BarnesHutSolver3 = _interopRequireDefault(_BarnesHutSolver2);
 
@@ -34774,7 +33573,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports["default"];
 
 /***/ },
-/* 97 */
+/* 96 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
@@ -34793,7 +33592,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; }
 
-  var _CentralGravitySolver2 = __webpack_require__(95);
+  var _CentralGravitySolver2 = __webpack_require__(94);
 
   var _CentralGravitySolver3 = _interopRequireDefault(_CentralGravitySolver2);
 
@@ -34830,7 +33629,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports["default"];
 
 /***/ },
-/* 98 */
+/* 97 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -34845,11 +33644,11 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
 
-  var _componentsNodesCluster = __webpack_require__(99);
+  var _componentsNodesCluster = __webpack_require__(98);
 
   var _componentsNodesCluster2 = _interopRequireDefault(_componentsNodesCluster);
 
-  var util = __webpack_require__(4);
+  var util = __webpack_require__(3);
 
   var ClusterEngine = (function () {
     function ClusterEngine(body) {
@@ -35555,7 +34354,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 99 */
+/* 98 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -35572,7 +34371,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; }
 
-  var _Node2 = __webpack_require__(67);
+  var _Node2 = __webpack_require__(64);
 
   var _Node3 = _interopRequireDefault(_Node2);
 
@@ -35600,7 +34399,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 100 */
+/* 99 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -35617,7 +34416,7 @@ return /******/ (function(modules) { // webpackBootstrap
     window.requestAnimationFrame = window.requestAnimationFrame || window.mozRequestAnimationFrame || window.webkitRequestAnimationFrame || window.msRequestAnimationFrame;
   }
 
-  var util = __webpack_require__(4);
+  var util = __webpack_require__(3);
 
   var CanvasRenderer = (function () {
     function CanvasRenderer(body, canvas) {
@@ -35986,7 +34785,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 101 */
+/* 100 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -35999,10 +34798,10 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
 
-  var Hammer = __webpack_require__(30);
-  var hammerUtil = __webpack_require__(35);
+  var Hammer = __webpack_require__(27);
+  var hammerUtil = __webpack_require__(32);
 
-  var util = __webpack_require__(4);
+  var util = __webpack_require__(3);
 
   /**
    * Create the main frame for the Network.
@@ -36354,7 +35153,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 102 */
+/* 101 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
@@ -36367,7 +35166,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
-  var util = __webpack_require__(4);
+  var util = __webpack_require__(3);
 
   var View = (function () {
     function View(body, canvas) {
@@ -36757,7 +35556,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports["default"];
 
 /***/ },
-/* 103 */
+/* 102 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -36772,15 +35571,15 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
 
-  var _componentsNavigationHandler = __webpack_require__(104);
+  var _componentsNavigationHandler = __webpack_require__(103);
 
   var _componentsNavigationHandler2 = _interopRequireDefault(_componentsNavigationHandler);
 
-  var _componentsPopup = __webpack_require__(105);
+  var _componentsPopup = __webpack_require__(104);
 
   var _componentsPopup2 = _interopRequireDefault(_componentsPopup);
 
-  var util = __webpack_require__(4);
+  var util = __webpack_require__(3);
 
   var InteractionHandler = (function () {
     function InteractionHandler(body, canvas, selectionHandler) {
@@ -37514,7 +36313,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 104 */
+/* 103 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -37527,10 +36326,10 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
 
-  var util = __webpack_require__(4);
-  var Hammer = __webpack_require__(30);
-  var hammerUtil = __webpack_require__(35);
-  var keycharm = __webpack_require__(50);
+  var util = __webpack_require__(3);
+  var Hammer = __webpack_require__(27);
+  var hammerUtil = __webpack_require__(32);
+  var keycharm = __webpack_require__(47);
 
   var NavigationHandler = (function () {
     function NavigationHandler(body, canvas) {
@@ -37831,7 +36630,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 105 */
+/* 104 */
 /***/ function(module, exports, __webpack_require__) {
 
   /**
@@ -37957,7 +36756,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 106 */
+/* 105 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
@@ -37970,9 +36769,9 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
-  var Node = __webpack_require__(67);
-  var Edge = __webpack_require__(87);
-  var util = __webpack_require__(4);
+  var Node = __webpack_require__(64);
+  var Edge = __webpack_require__(84);
+  var util = __webpack_require__(3);
 
   var SelectionHandler = (function () {
     function SelectionHandler(body, canvas) {
@@ -38678,7 +37477,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports["default"];
 
 /***/ },
-/* 107 */
+/* 106 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -38691,7 +37490,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
 
-  var util = __webpack_require__(4);
+  var util = __webpack_require__(3);
 
   var LayoutEngine = (function () {
     function LayoutEngine(body) {
@@ -39185,6 +37984,1217 @@ return /******/ (function(modules) { // webpackBootstrap
   })();
 
   exports['default'] = LayoutEngine;
+  module.exports = exports['default'];
+
+/***/ },
+/* 107 */
+/***/ function(module, exports, __webpack_require__) {
+
+  'use strict';
+
+  Object.defineProperty(exports, '__esModule', {
+    value: true
+  });
+
+  var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
+
+  function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
+
+  var util = __webpack_require__(3);
+  var Hammer = __webpack_require__(27);
+  var hammerUtil = __webpack_require__(32);
+
+  /**
+   * clears the toolbar div element of children
+   *
+   * @private
+   */
+
+  var ManipulationSystem = (function () {
+    function ManipulationSystem(body, canvas, selectionHandler) {
+      var _this = this;
+
+      _classCallCheck(this, ManipulationSystem);
+
+      this.body = body;
+      this.canvas = canvas;
+      this.selectionHandler = selectionHandler;
+
+      this.editMode = false;
+      this.manipulationDiv = undefined;
+      this.editModeDiv = undefined;
+      this.closeDiv = undefined;
+
+      this.manipulationHammers = [];
+      this.temporaryUIFunctions = {};
+      this.temporaryEventFunctions = [];
+
+      this.touchTime = 0;
+      this.temporaryIds = { nodes: [], edges: [] };
+      this.guiEnabled = false;
+      this.inMode = false;
+      this.selectedControlNode = undefined;
+
+      this.options = {};
+      this.defaultOptions = {
+        enabled: false,
+        initiallyActive: false,
+        addNode: true,
+        addEdge: true,
+        editNode: undefined,
+        editEdge: true,
+        deleteNode: true,
+        deleteEdge: true,
+        controlNodeStyle: {
+          shape: 'dot',
+          size: 6,
+          color: { background: '#ff0000', border: '#3c3c3c', highlight: { background: '#07f968', border: '#3c3c3c' } },
+          borderWidth: 2,
+          borderWidthSelected: 2
+        }
+      };
+      util.extend(this.options, this.defaultOptions);
+
+      this.body.emitter.on('destroy', function () {
+        _this._clean();
+      });
+      this.body.emitter.on('_dataChanged', this._restore.bind(this));
+      this.body.emitter.on('_resetData', this._restore.bind(this));
+    }
+
+    _createClass(ManipulationSystem, [{
+      key: '_restore',
+
+      /**
+       * If something changes in the data during editing, switch back to the initial datamanipulation state and close all edit modes.
+       * @private
+       */
+      value: function _restore() {
+        if (this.inMode !== false) {
+          if (this.options.initiallyActive === true) {
+            this.enableEditMode();
+          } else {
+            this.disableEditMode();
+          }
+        }
+      }
+    }, {
+      key: 'setOptions',
+
+      /**
+       * Set the Options
+       * @param options
+       */
+      value: function setOptions(options, allOptions, globalOptions) {
+        if (allOptions !== undefined) {
+          if (allOptions.locale !== undefined) {
+            this.options.locale = allOptions.locale;
+          } else {
+            this.options.locale = globalOptions.locale;
+          }
+          if (allOptions.locales !== undefined) {
+            this.options.locales = allOptions.locales;
+          } else {
+            this.options.locales = globalOptions.locales;
+          }
+        }
+
+        if (options !== undefined) {
+          if (typeof options === 'boolean') {
+            this.options.enabled = options;
+          } else {
+            this.options.enabled = true;
+            util.deepExtend(this.options, options);
+          }
+          if (this.options.initiallyActive === true) {
+            this.editMode = true;
+          }
+          this._setup();
+        }
+      }
+    }, {
+      key: 'toggleEditMode',
+
+      /**
+       * Enable or disable edit-mode. Draws the DOM required and cleans up after itself.
+       *
+       * @private
+       */
+      value: function toggleEditMode() {
+        if (this.editMode === true) {
+          this.disableEditMode();
+        } else {
+          this.enableEditMode();
+        }
+      }
+    }, {
+      key: 'enableEditMode',
+      value: function enableEditMode() {
+        this.editMode = true;
+
+        this._clean();
+        if (this.guiEnabled === true) {
+          this.manipulationDiv.style.display = 'block';
+          this.closeDiv.style.display = 'block';
+          this.editModeDiv.style.display = 'none';
+          this.showManipulatorToolbar();
+        }
+      }
+    }, {
+      key: 'disableEditMode',
+      value: function disableEditMode() {
+        this.editMode = false;
+
+        this._clean();
+        if (this.guiEnabled === true) {
+          this.manipulationDiv.style.display = 'none';
+          this.closeDiv.style.display = 'none';
+          this.editModeDiv.style.display = 'block';
+          this._createEditButton();
+        }
+      }
+    }, {
+      key: 'showManipulatorToolbar',
+
+      /**
+       * Creates the main toolbar. Removes functions bound to the select event. Binds all the buttons of the toolbar.
+       *
+       * @private
+       */
+      value: function showManipulatorToolbar() {
+        // restore the state of any bound functions or events, remove control nodes, restore physics
+        this._clean();
+
+        // reset global letiables
+        this.manipulationDOM = {};
+
+        // if the gui is enabled, draw all elements.
+        if (this.guiEnabled === true) {
+          // a _restore will hide these menus
+          this.editMode = true;
+          this.manipulationDiv.style.display = 'block';
+          this.closeDiv.style.display = 'block';
+
+          var selectedNodeCount = this.selectionHandler._getSelectedNodeCount();
+          var selectedEdgeCount = this.selectionHandler._getSelectedEdgeCount();
+          var selectedTotalCount = selectedNodeCount + selectedEdgeCount;
+          var locale = this.options.locales[this.options.locale];
+          var needSeperator = false;
+
+          if (this.options.addNode !== false) {
+            this._createAddNodeButton(locale);
+            needSeperator = true;
+          }
+          if (this.options.addEdge !== false) {
+            if (needSeperator === true) {
+              this._createSeperator(1);
+            } else {
+              needSeperator = true;
+            }
+            this._createAddEdgeButton(locale);
+          }
+
+          if (selectedNodeCount === 1 && typeof this.options.editNode === 'function') {
+            if (needSeperator === true) {
+              this._createSeperator(2);
+            } else {
+              needSeperator = true;
+            }
+            this._createEditNodeButton(locale);
+          } else if (selectedEdgeCount === 1 && selectedNodeCount === 0 && this.options.editEdge !== false) {
+            if (needSeperator === true) {
+              this._createSeperator(3);
+            } else {
+              needSeperator = true;
+            }
+            this._createEditEdgeButton(locale);
+          }
+
+          // remove buttons
+          if (selectedTotalCount !== 0) {
+            if (selectedNodeCount === 1 && this.options.deleteNode !== false) {
+              if (needSeperator === true) {
+                this._createSeperator(4);
+              }
+              this._createDeleteButton(locale);
+            } else if (selectedNodeCount === 0 && this.options.deleteEdge !== false) {
+              if (needSeperator === true) {
+                this._createSeperator(4);
+              }
+              this._createDeleteButton(locale);
+            }
+          }
+
+          // bind the close button
+          this._bindHammerToDiv(this.closeDiv, this.toggleEditMode.bind(this));
+
+          // refresh this bar based on what has been selected
+          this._temporaryBindEvent('select', this.showManipulatorToolbar.bind(this));
+        }
+
+        // redraw to show any possible changes
+        this.body.emitter.emit('_redraw');
+      }
+    }, {
+      key: 'addNodeMode',
+
+      /**
+       * Create the toolbar for adding Nodes
+       *
+       * @private
+       */
+      value: function addNodeMode() {
+        // when using the gui, enable edit mode if it wasnt already.
+        if (this.editMode !== true) {
+          this.enableEditMode();
+        }
+
+        // restore the state of any bound functions or events, remove control nodes, restore physics
+        this._clean();
+
+        this.inMode = 'addNode';
+        if (this.guiEnabled === true) {
+          var locale = this.options.locales[this.options.locale];
+          this.manipulationDOM = {};
+          this._createBackButton(locale);
+          this._createSeperator();
+          this._createDescription(locale['addDescription'] || this.options.locales['en']['addDescription']);
+
+          // bind the close button
+          this._bindHammerToDiv(this.closeDiv, this.toggleEditMode.bind(this));
+        }
+
+        this._temporaryBindEvent('click', this._performAddNode.bind(this));
+      }
+    }, {
+      key: 'editNode',
+
+      /**
+       * call the bound function to handle the editing of the node. The node has to be selected.
+       *
+       * @private
+       */
+      value: function editNode() {
+        var _this2 = this;
+
+        // when using the gui, enable edit mode if it wasnt already.
+        if (this.editMode !== true) {
+          this.enableEditMode();
+        }
+
+        // restore the state of any bound functions or events, remove control nodes, restore physics
+        this._clean();
+        var node = this.selectionHandler._getSelectedNode();
+        if (node !== undefined) {
+          this.inMode = 'editNode';
+          if (typeof this.options.editNode === 'function') {
+            if (node.isCluster !== true) {
+              var data = util.deepExtend({}, node.options, true);
+              data.x = node.x;
+              data.y = node.y;
+
+              if (this.options.editNode.length === 2) {
+                this.options.editNode(data, function (finalizedData) {
+                  if (finalizedData !== null && finalizedData !== undefined && _this2.inMode === 'editNode') {
+                    // if for whatever reason the mode has changes (due to dataset change) disregard the callback) {
+                    _this2.body.data.nodes.getDataSet().update(finalizedData);
+                  }
+                  _this2.showManipulatorToolbar();
+                });
+              } else {
+                throw new Error('The function for edit does not support two arguments (data, callback)');
+              }
+            } else {
+              alert(this.options.locales[this.options.locale]['editClusterError'] || this.options.locales['en']['editClusterError']);
+            }
+          } else {
+            throw new Error('No function has been configured to handle the editing of nodes.');
+          }
+        } else {
+          this.showManipulatorToolbar();
+        }
+      }
+    }, {
+      key: 'addEdgeMode',
+
+      /**
+       * create the toolbar to connect nodes
+       *
+       * @private
+       */
+      value: function addEdgeMode() {
+        // when using the gui, enable edit mode if it wasnt already.
+        if (this.editMode !== true) {
+          this.enableEditMode();
+        }
+
+        // restore the state of any bound functions or events, remove control nodes, restore physics
+        this._clean();
+
+        this.inMode = 'addEdge';
+        if (this.guiEnabled === true) {
+          var locale = this.options.locales[this.options.locale];
+          this.manipulationDOM = {};
+          this._createBackButton(locale);
+          this._createSeperator();
+          this._createDescription(locale['edgeDescription'] || this.options.locales['en']['edgeDescription']);
+
+          // bind the close button
+          this._bindHammerToDiv(this.closeDiv, this.toggleEditMode.bind(this));
+        }
+
+        // temporarily overload functions
+        this._temporaryBindUI('onTouch', this._handleConnect.bind(this));
+        this._temporaryBindUI('onDragEnd', this._finishConnect.bind(this));
+        this._temporaryBindUI('onDrag', this._dragControlNode.bind(this));
+        this._temporaryBindUI('onRelease', this._finishConnect.bind(this));
+
+        this._temporaryBindUI('onDragStart', function () {});
+        this._temporaryBindUI('onHold', function () {});
+      }
+    }, {
+      key: 'editEdgeMode',
+
+      /**
+       * create the toolbar to edit edges
+       *
+       * @private
+       */
+      value: function editEdgeMode() {
+        var _this3 = this;
+
+        // when using the gui, enable edit mode if it wasnt already.
+        if (this.editMode !== true) {
+          this.enableEditMode();
+        }
+
+        // restore the state of any bound functions or events, remove control nodes, restore physics
+        this._clean();
+
+        this.inMode = 'editEdge';
+        if (this.guiEnabled === true) {
+          var locale = this.options.locales[this.options.locale];
+          this.manipulationDOM = {};
+          this._createBackButton(locale);
+          this._createSeperator();
+          this._createDescription(locale['editEdgeDescription'] || this.options.locales['en']['editEdgeDescription']);
+
+          // bind the close button
+          this._bindHammerToDiv(this.closeDiv, this.toggleEditMode.bind(this));
+        }
+
+        this.edgeBeingEditedId = this.selectionHandler.getSelectedEdges()[0];
+        if (this.edgeBeingEditedId !== undefined) {
+          (function () {
+            var edge = _this3.body.edges[_this3.edgeBeingEditedId];
+
+            // create control nodes
+            var controlNodeFrom = _this3._getNewTargetNode(edge.from.x, edge.from.y);
+            var controlNodeTo = _this3._getNewTargetNode(edge.to.x, edge.to.y);
+
+            _this3.temporaryIds.nodes.push(controlNodeFrom.id);
+            _this3.temporaryIds.nodes.push(controlNodeTo.id);
+
+            _this3.body.nodes[controlNodeFrom.id] = controlNodeFrom;
+            _this3.body.nodeIndices.push(controlNodeFrom.id);
+            _this3.body.nodes[controlNodeTo.id] = controlNodeTo;
+            _this3.body.nodeIndices.push(controlNodeTo.id);
+
+            // temporarily overload UI functions, cleaned up automatically because of _temporaryBindUI
+            _this3._temporaryBindUI('onTouch', _this3._controlNodeTouch.bind(_this3)); // used to get the position
+            _this3._temporaryBindUI('onTap', function () {}); // disabled
+            _this3._temporaryBindUI('onHold', function () {}); // disabled
+            _this3._temporaryBindUI('onDragStart', _this3._controlNodeDragStart.bind(_this3)); // used to select control node
+            _this3._temporaryBindUI('onDrag', _this3._controlNodeDrag.bind(_this3)); // used to drag control node
+            _this3._temporaryBindUI('onDragEnd', _this3._controlNodeDragEnd.bind(_this3)); // used to connect or revert control nodes
+            _this3._temporaryBindUI('onMouseMove', function () {}); // disabled
+
+            // create function to position control nodes correctly on movement
+            // automatically cleaned up because we use the temporary bind
+            _this3._temporaryBindEvent('beforeDrawing', function (ctx) {
+              var positions = edge.edgeType.findBorderPositions(ctx);
+              if (controlNodeFrom.selected === false) {
+                controlNodeFrom.x = positions.from.x;
+                controlNodeFrom.y = positions.from.y;
+              }
+              if (controlNodeTo.selected === false) {
+                controlNodeTo.x = positions.to.x;
+                controlNodeTo.y = positions.to.y;
+              }
+            });
+
+            _this3.body.emitter.emit('_redraw');
+          })();
+        } else {
+          this.showManipulatorToolbar();
+        }
+      }
+    }, {
+      key: 'deleteSelected',
+
+      /**
+       * delete everything in the selection
+       *
+       * @private
+       */
+      value: function deleteSelected() {
+        var _this4 = this;
+
+        // when using the gui, enable edit mode if it wasnt already.
+        if (this.editMode !== true) {
+          this.enableEditMode();
+        }
+
+        // restore the state of any bound functions or events, remove control nodes, restore physics
+        this._clean();
+
+        this.inMode = 'delete';
+        var selectedNodes = this.selectionHandler.getSelectedNodes();
+        var selectedEdges = this.selectionHandler.getSelectedEdges();
+        var deleteFunction = undefined;
+        if (selectedNodes.length > 0) {
+          for (var i = 0; i < selectedNodes.length; i++) {
+            if (this.body.nodes[selectedNodes[i]].isCluster === true) {
+              alert(this.options.locales[this.options.locale]['deleteClusterError'] || this.options.locales['en']['deleteClusterError']);
+              return;
+            }
+          }
+
+          if (typeof this.options.deleteNode === 'function') {
+            deleteFunction = this.options.deleteNode;
+          }
+        } else if (selectedEdges.length > 0) {
+          if (typeof this.options.deleteEdge === 'function') {
+            deleteFunction = this.options.deleteEdge;
+          }
+        }
+
+        if (typeof deleteFunction === 'function') {
+          var data = { nodes: selectedNodes, edges: selectedEdges };
+          if (deleteFunction.length === 2) {
+            deleteFunction(data, function (finalizedData) {
+              if (finalizedData !== null && finalizedData !== undefined && _this4.inMode === 'delete') {
+                // if for whatever reason the mode has changes (due to dataset change) disregard the callback) {
+                _this4.body.data.edges.getDataSet().remove(finalizedData.edges);
+                _this4.body.data.nodes.getDataSet().remove(finalizedData.nodes);
+                _this4.body.emitter.emit('startSimulation');
+                _this4.showManipulatorToolbar();
+              }
+            });
+          } else {
+            throw new Error('The function for delete does not support two arguments (data, callback)');
+          }
+        } else {
+          this.body.data.edges.getDataSet().remove(selectedEdges);
+          this.body.data.nodes.getDataSet().remove(selectedNodes);
+          this.body.emitter.emit('startSimulation');
+          this.showManipulatorToolbar();
+        }
+      }
+    }, {
+      key: '_setup',
+
+      //********************************************** PRIVATE ***************************************//
+
+      /**
+       * draw or remove the DOM
+       * @private
+       */
+      value: function _setup() {
+        if (this.options.enabled === true) {
+          // Enable the GUI
+          this.guiEnabled = true;
+
+          this._createWrappers();
+          if (this.editMode === false) {
+            this._createEditButton();
+          } else {
+            this.showManipulatorToolbar();
+          }
+        } else {
+          this._removeManipulationDOM();
+
+          // disable the gui
+          this.guiEnabled = false;
+        }
+      }
+    }, {
+      key: '_createWrappers',
+
+      /**
+       * create the div overlays that contain the DOM
+       * @private
+       */
+      value: function _createWrappers() {
+        // load the manipulator HTML elements. All styling done in css.
+        if (this.manipulationDiv === undefined) {
+          this.manipulationDiv = document.createElement('div');
+          this.manipulationDiv.className = 'vis-manipulation';
+          if (this.editMode === true) {
+            this.manipulationDiv.style.display = 'block';
+          } else {
+            this.manipulationDiv.style.display = 'none';
+          }
+          this.canvas.frame.appendChild(this.manipulationDiv);
+        }
+
+        // container for the edit button.
+        if (this.editModeDiv === undefined) {
+          this.editModeDiv = document.createElement('div');
+          this.editModeDiv.className = 'vis-edit-mode';
+          if (this.editMode === true) {
+            this.editModeDiv.style.display = 'none';
+          } else {
+            this.editModeDiv.style.display = 'block';
+          }
+          this.canvas.frame.appendChild(this.editModeDiv);
+        }
+
+        // container for the close div button
+        if (this.closeDiv === undefined) {
+          this.closeDiv = document.createElement('div');
+          this.closeDiv.className = 'vis-close';
+          this.closeDiv.style.display = this.manipulationDiv.style.display;
+          this.canvas.frame.appendChild(this.closeDiv);
+        }
+      }
+    }, {
+      key: '_getNewTargetNode',
+
+      /**
+       * generate a new target node. Used for creating new edges and editing edges
+       * @param x
+       * @param y
+       * @returns {*}
+       * @private
+       */
+      value: function _getNewTargetNode(x, y) {
+        var controlNodeStyle = util.deepExtend({}, this.options.controlNodeStyle);
+
+        controlNodeStyle.id = 'targetNode' + util.randomUUID();
+        controlNodeStyle.hidden = false;
+        controlNodeStyle.physics = false;
+        controlNodeStyle.x = x;
+        controlNodeStyle.y = y;
+
+        return this.body.functions.createNode(controlNodeStyle);
+      }
+    }, {
+      key: '_createEditButton',
+
+      /**
+       * Create the edit button
+       */
+      value: function _createEditButton() {
+        // restore everything to it's original state (if applicable)
+        this._clean();
+
+        // reset the manipulationDOM
+        this.manipulationDOM = {};
+
+        // empty the editModeDiv
+        util.recursiveDOMDelete(this.editModeDiv);
+
+        // create the contents for the editMode button
+        var locale = this.options.locales[this.options.locale];
+        var button = this._createButton('editMode', 'vis-button vis-edit vis-edit-mode', locale['edit'] || this.options.locales['en']['edit']);
+        this.editModeDiv.appendChild(button);
+
+        // bind a hammer listener to the button, calling the function toggleEditMode.
+        this._bindHammerToDiv(button, this.toggleEditMode.bind(this));
+      }
+    }, {
+      key: '_clean',
+
+      /**
+       * this function cleans up after everything this module does. Temporary elements, functions and events are removed, physics restored, hammers removed.
+       * @private
+       */
+      value: function _clean() {
+        // not in mode
+        this.inMode = false;
+
+        // _clean the divs
+        if (this.guiEnabled === true) {
+          util.recursiveDOMDelete(this.editModeDiv);
+          util.recursiveDOMDelete(this.manipulationDiv);
+
+          // removes all the bindings and overloads
+          this._cleanManipulatorHammers();
+        }
+
+        // remove temporary nodes and edges
+        this._cleanupTemporaryNodesAndEdges();
+
+        // restore overloaded UI functions
+        this._unbindTemporaryUIs();
+
+        // remove the temporaryEventFunctions
+        this._unbindTemporaryEvents();
+
+        // restore the physics if required
+        this.body.emitter.emit('restorePhysics');
+      }
+    }, {
+      key: '_cleanManipulatorHammers',
+
+      /**
+       * Each dom element has it's own hammer. They are stored in this.manipulationHammers. This cleans them up.
+       * @private
+       */
+      value: function _cleanManipulatorHammers() {
+        // _clean hammer bindings
+        if (this.manipulationHammers.length != 0) {
+          for (var i = 0; i < this.manipulationHammers.length; i++) {
+            this.manipulationHammers[i].destroy();
+          }
+          this.manipulationHammers = [];
+        }
+      }
+    }, {
+      key: '_removeManipulationDOM',
+
+      /**
+       * Remove all DOM elements created by this module.
+       * @private
+       */
+      value: function _removeManipulationDOM() {
+        // removes all the bindings and overloads
+        this._clean();
+
+        // empty the manipulation divs
+        util.recursiveDOMDelete(this.manipulationDiv);
+        util.recursiveDOMDelete(this.editModeDiv);
+        util.recursiveDOMDelete(this.closeDiv);
+
+        // remove the manipulation divs
+        if (this.manipulationDiv) {
+          this.canvas.frame.removeChild(this.manipulationDiv);
+        }
+        if (this.editModeDiv) {
+          this.canvas.frame.removeChild(this.editModeDiv);
+        }
+        if (this.closeDiv) {
+          this.canvas.frame.removeChild(this.manipulationDiv);
+        }
+
+        // set the references to undefined
+        this.manipulationDiv = undefined;
+        this.editModeDiv = undefined;
+        this.closeDiv = undefined;
+      }
+    }, {
+      key: '_createSeperator',
+
+      /**
+       * create a seperator line. the index is to differentiate in the manipulation dom
+       * @param index
+       * @private
+       */
+      value: function _createSeperator() {
+        var index = arguments[0] === undefined ? 1 : arguments[0];
+
+        this.manipulationDOM['seperatorLineDiv' + index] = document.createElement('div');
+        this.manipulationDOM['seperatorLineDiv' + index].className = 'vis-separator-line';
+        this.manipulationDiv.appendChild(this.manipulationDOM['seperatorLineDiv' + index]);
+      }
+    }, {
+      key: '_createAddNodeButton',
+
+      // ----------------------    DOM functions for buttons    --------------------------//
+
+      value: function _createAddNodeButton(locale) {
+        var button = this._createButton('addNode', 'vis-button vis-add', locale['addNode'] || this.options.locales['en']['addNode']);
+        this.manipulationDiv.appendChild(button);
+        this._bindHammerToDiv(button, this.addNodeMode.bind(this));
+      }
+    }, {
+      key: '_createAddEdgeButton',
+      value: function _createAddEdgeButton(locale) {
+        var button = this._createButton('addEdge', 'vis-button vis-connect', locale['addEdge'] || this.options.locales['en']['addEdge']);
+        this.manipulationDiv.appendChild(button);
+        this._bindHammerToDiv(button, this.addEdgeMode.bind(this));
+      }
+    }, {
+      key: '_createEditNodeButton',
+      value: function _createEditNodeButton(locale) {
+        var button = this._createButton('editNode', 'vis-button vis-edit', locale['editNode'] || this.options.locales['en']['editNode']);
+        this.manipulationDiv.appendChild(button);
+        this._bindHammerToDiv(button, this.editNode.bind(this));
+      }
+    }, {
+      key: '_createEditEdgeButton',
+      value: function _createEditEdgeButton(locale) {
+        var button = this._createButton('editEdge', 'vis-button vis-edit', locale['editEdge'] || this.options.locales['en']['editEdge']);
+        this.manipulationDiv.appendChild(button);
+        this._bindHammerToDiv(button, this.editEdgeMode.bind(this));
+      }
+    }, {
+      key: '_createDeleteButton',
+      value: function _createDeleteButton(locale) {
+        var button = this._createButton('delete', 'vis-button vis-delete', locale['del'] || this.options.locales['en']['del']);
+        this.manipulationDiv.appendChild(button);
+        this._bindHammerToDiv(button, this.deleteSelected.bind(this));
+      }
+    }, {
+      key: '_createBackButton',
+      value: function _createBackButton(locale) {
+        var button = this._createButton('back', 'vis-button vis-back', locale['back'] || this.options.locales['en']['back']);
+        this.manipulationDiv.appendChild(button);
+        this._bindHammerToDiv(button, this.showManipulatorToolbar.bind(this));
+      }
+    }, {
+      key: '_createButton',
+      value: function _createButton(id, className, label) {
+        var labelClassName = arguments[3] === undefined ? 'vis-label' : arguments[3];
+
+        this.manipulationDOM[id + 'Div'] = document.createElement('div');
+        this.manipulationDOM[id + 'Div'].className = className;
+        this.manipulationDOM[id + 'Label'] = document.createElement('div');
+        this.manipulationDOM[id + 'Label'].className = labelClassName;
+        this.manipulationDOM[id + 'Label'].innerHTML = label;
+        this.manipulationDOM[id + 'Div'].appendChild(this.manipulationDOM[id + 'Label']);
+        return this.manipulationDOM[id + 'Div'];
+      }
+    }, {
+      key: '_createDescription',
+      value: function _createDescription(label) {
+        this.manipulationDiv.appendChild(this._createButton('description', 'vis-button vis-none', label));
+      }
+    }, {
+      key: '_temporaryBindEvent',
+
+      // -------------------------- End of DOM functions for buttons ------------------------------//
+
+      /**
+       * this binds an event until cleanup by the clean functions.
+       * @param event
+       * @param newFunction
+       * @private
+       */
+      value: function _temporaryBindEvent(event, newFunction) {
+        this.temporaryEventFunctions.push({ event: event, boundFunction: newFunction });
+        this.body.emitter.on(event, newFunction);
+      }
+    }, {
+      key: '_temporaryBindUI',
+
+      /**
+       * this overrides an UI function until cleanup by the clean function
+       * @param UIfunctionName
+       * @param newFunction
+       * @private
+       */
+      value: function _temporaryBindUI(UIfunctionName, newFunction) {
+        if (this.body.eventListeners[UIfunctionName] !== undefined) {
+          this.temporaryUIFunctions[UIfunctionName] = this.body.eventListeners[UIfunctionName];
+          this.body.eventListeners[UIfunctionName] = newFunction;
+        } else {
+          throw new Error('This UI function does not exist. Typo? You tried: ' + UIfunctionName + ' possible are: ' + JSON.stringify(Object.keys(this.body.eventListeners)));
+        }
+      }
+    }, {
+      key: '_unbindTemporaryUIs',
+
+      /**
+       * Restore the overridden UI functions to their original state.
+       *
+       * @private
+       */
+      value: function _unbindTemporaryUIs() {
+        for (var functionName in this.temporaryUIFunctions) {
+          if (this.temporaryUIFunctions.hasOwnProperty(functionName)) {
+            this.body.eventListeners[functionName] = this.temporaryUIFunctions[functionName];
+            delete this.temporaryUIFunctions[functionName];
+          }
+        }
+        this.temporaryUIFunctions = {};
+      }
+    }, {
+      key: '_unbindTemporaryEvents',
+
+      /**
+       * Unbind the events created by _temporaryBindEvent
+       * @private
+       */
+      value: function _unbindTemporaryEvents() {
+        for (var i = 0; i < this.temporaryEventFunctions.length; i++) {
+          var eventName = this.temporaryEventFunctions[i].event;
+          var boundFunction = this.temporaryEventFunctions[i].boundFunction;
+          this.body.emitter.off(eventName, boundFunction);
+        }
+        this.temporaryEventFunctions = [];
+      }
+    }, {
+      key: '_bindHammerToDiv',
+
+      /**
+       * Bind an hammer instance to a DOM element.
+       * @param domElement
+       * @param funct
+       */
+      value: function _bindHammerToDiv(domElement, boundFunction) {
+        var hammer = new Hammer(domElement, {});
+        hammerUtil.onTouch(hammer, boundFunction);
+        this.manipulationHammers.push(hammer);
+      }
+    }, {
+      key: '_cleanupTemporaryNodesAndEdges',
+
+      /**
+       * Neatly clean up temporary edges and nodes
+       * @private
+       */
+      value: function _cleanupTemporaryNodesAndEdges() {
+        // _clean temporary edges
+        for (var i = 0; i < this.temporaryIds.edges.length; i++) {
+          this.body.edges[this.temporaryIds.edges[i]].disconnect();
+          delete this.body.edges[this.temporaryIds.edges[i]];
+          var indexTempEdge = this.body.edgeIndices.indexOf(this.temporaryIds.edges[i]);
+          if (indexTempEdge !== -1) {
+            this.body.edgeIndices.splice(indexTempEdge, 1);
+          }
+        }
+
+        // _clean temporary nodes
+        for (var i = 0; i < this.temporaryIds.nodes.length; i++) {
+          delete this.body.nodes[this.temporaryIds.nodes[i]];
+          var indexTempNode = this.body.nodeIndices.indexOf(this.temporaryIds.nodes[i]);
+          if (indexTempNode !== -1) {
+            this.body.nodeIndices.splice(indexTempNode, 1);
+          }
+        }
+
+        this.temporaryIds = { nodes: [], edges: [] };
+      }
+    }, {
+      key: '_controlNodeTouch',
+
+      // ------------------------------------------ EDIT EDGE FUNCTIONS -----------------------------------------//
+
+      /**
+       * the touch is used to get the position of the initial click
+       * @param event
+       * @private
+       */
+      value: function _controlNodeTouch(event) {
+        this.selectionHandler.unselectAll();
+        this.lastTouch = this.body.functions.getPointer(event.center);
+        this.lastTouch.translation = util.extend({}, this.body.view.translation); // copy the object
+      }
+    }, {
+      key: '_controlNodeDragStart',
+
+      /**
+       * the drag start is used to mark one of the control nodes as selected.
+       * @param event
+       * @private
+       */
+      value: function _controlNodeDragStart(event) {
+        var pointer = this.lastTouch;
+        var pointerObj = this.selectionHandler._pointerToPositionObject(pointer);
+        var from = this.body.nodes[this.temporaryIds.nodes[0]];
+        var to = this.body.nodes[this.temporaryIds.nodes[1]];
+        var edge = this.body.edges[this.edgeBeingEditedId];
+        this.selectedControlNode = undefined;
+
+        var fromSelect = from.isOverlappingWith(pointerObj);
+        var toSelect = to.isOverlappingWith(pointerObj);
+
+        if (fromSelect === true) {
+          this.selectedControlNode = from;
+          edge.edgeType.from = from;
+        } else if (toSelect === true) {
+          this.selectedControlNode = to;
+          edge.edgeType.to = to;
+        }
+
+        this.body.emitter.emit('_redraw');
+      }
+    }, {
+      key: '_controlNodeDrag',
+
+      /**
+       * dragging the control nodes or the canvas
+       * @param event
+       * @private
+       */
+      value: function _controlNodeDrag(event) {
+        this.body.emitter.emit('disablePhysics');
+        var pointer = this.body.functions.getPointer(event.center);
+        var pos = this.canvas.DOMtoCanvas(pointer);
+
+        if (this.selectedControlNode !== undefined) {
+          this.selectedControlNode.x = pos.x;
+          this.selectedControlNode.y = pos.y;
+        } else {
+          // if the drag was not started properly because the click started outside the network div, start it now.
+          var diffX = pointer.x - this.lastTouch.x;
+          var diffY = pointer.y - this.lastTouch.y;
+          this.body.view.translation = { x: this.lastTouch.translation.x + diffX, y: this.lastTouch.translation.y + diffY };
+        }
+        this.body.emitter.emit('_redraw');
+      }
+    }, {
+      key: '_controlNodeDragEnd',
+
+      /**
+       * connecting or restoring the control nodes.
+       * @param event
+       * @private
+       */
+      value: function _controlNodeDragEnd(event) {
+        var pointer = this.body.functions.getPointer(event.center);
+        var pointerObj = this.selectionHandler._pointerToPositionObject(pointer);
+        var edge = this.body.edges[this.edgeBeingEditedId];
+
+        var overlappingNodeIds = this.selectionHandler._getAllNodesOverlappingWith(pointerObj);
+        var node = undefined;
+        for (var i = overlappingNodeIds.length - 1; i >= 0; i--) {
+          if (overlappingNodeIds[i] !== this.selectedControlNode.id) {
+            node = this.body.nodes[overlappingNodeIds[i]];
+            break;
+          }
+        }
+
+        // perform the connection
+        if (node !== undefined && this.selectedControlNode !== undefined) {
+          if (node.isCluster === true) {
+            alert(this.options.locales[this.options.locale]['createEdgeError'] || this.options.locales['en']['createEdgeError']);
+          } else {
+            var from = this.body.nodes[this.temporaryIds.nodes[0]];
+            if (this.selectedControlNode.id === from.id) {
+              this._performEditEdge(node.id, edge.to.id);
+            } else {
+              this._performEditEdge(edge.from.id, node.id);
+            }
+          }
+        } else {
+          edge.updateEdgeType();
+          this.body.emitter.emit('restorePhysics');
+        }
+        this.body.emitter.emit('_redraw');
+      }
+    }, {
+      key: '_handleConnect',
+
+      // ------------------------------------ END OF EDIT EDGE FUNCTIONS -----------------------------------------//
+
+      // ------------------------------------------- ADD EDGE FUNCTIONS -----------------------------------------//
+      /**
+       * the function bound to the selection event. It checks if you want to connect a cluster and changes the description
+       * to walk the user through the process.
+       *
+       * @private
+       */
+      value: function _handleConnect(event) {
+        // check to avoid double fireing of this function.
+        if (new Date().valueOf() - this.touchTime > 100) {
+          this.lastTouch = this.body.functions.getPointer(event.center);
+          this.lastTouch.translation = util.extend({}, this.body.view.translation); // copy the object
+
+          var pointer = this.lastTouch;
+          var node = this.selectionHandler.getNodeAt(pointer);
+
+          if (node !== undefined) {
+            if (node.isCluster === true) {
+              alert(this.options.locales[this.options.locale]['createEdgeError'] || this.options.locales['en']['createEdgeError']);
+            } else {
+              // create a node the temporary line can look at
+              var targetNode = this._getNewTargetNode(node.x, node.y);
+              this.body.nodes[targetNode.id] = targetNode;
+              this.body.nodeIndices.push(targetNode.id);
+
+              // create a temporary edge
+              var connectionEdge = this.body.functions.createEdge({
+                id: 'connectionEdge' + util.randomUUID(),
+                from: node.id,
+                to: targetNode.id,
+                physics: false,
+                smooth: {
+                  enabled: true,
+                  type: 'continuous',
+                  roundness: 0.5
+                }
+              });
+              this.body.edges[connectionEdge.id] = connectionEdge;
+              this.body.edgeIndices.push(connectionEdge.id);
+
+              this.temporaryIds.nodes.push(targetNode.id);
+              this.temporaryIds.edges.push(connectionEdge.id);
+            }
+          }
+          this.touchTime = new Date().valueOf();
+        }
+      }
+    }, {
+      key: '_dragControlNode',
+      value: function _dragControlNode(event) {
+        var pointer = this.body.functions.getPointer(event.center);
+        if (this.temporaryIds.nodes[0] !== undefined) {
+          var targetNode = this.body.nodes[this.temporaryIds.nodes[0]]; // there is only one temp node in the add edge mode.
+          targetNode.x = this.canvas._XconvertDOMtoCanvas(pointer.x);
+          targetNode.y = this.canvas._YconvertDOMtoCanvas(pointer.y);
+          this.body.emitter.emit('_redraw');
+        } else {
+          var diffX = pointer.x - this.lastTouch.x;
+          var diffY = pointer.y - this.lastTouch.y;
+          this.body.view.translation = { x: this.lastTouch.translation.x + diffX, y: this.lastTouch.translation.y + diffY };
+        }
+      }
+    }, {
+      key: '_finishConnect',
+
+      /**
+       * Connect the new edge to the target if one exists, otherwise remove temp line
+       * @param event
+       * @private
+       */
+      value: function _finishConnect(event) {
+        var pointer = this.body.functions.getPointer(event.center);
+        var pointerObj = this.selectionHandler._pointerToPositionObject(pointer);
+
+        // remember the edge id
+        var connectFromId = undefined;
+        if (this.temporaryIds.edges[0] !== undefined) {
+          connectFromId = this.body.edges[this.temporaryIds.edges[0]].fromId;
+        }
+
+        // get the overlapping node but NOT the temporary node;
+        var overlappingNodeIds = this.selectionHandler._getAllNodesOverlappingWith(pointerObj);
+        var node = undefined;
+        for (var i = overlappingNodeIds.length - 1; i >= 0; i--) {
+          // if the node id is NOT a temporary node, accept the node.
+          if (this.temporaryIds.nodes.indexOf(overlappingNodeIds[i]) === -1) {
+            node = this.body.nodes[overlappingNodeIds[i]];
+            break;
+          }
+        }
+
+        // clean temporary nodes and edges.
+        this._cleanupTemporaryNodesAndEdges();
+
+        // perform the connection
+        if (node !== undefined) {
+          if (node.isCluster === true) {
+            alert(this.options.locales[this.options.locale]['createEdgeError'] || this.options.locales['en']['createEdgeError']);
+          } else {
+            if (this.body.nodes[connectFromId] !== undefined && this.body.nodes[node.id] !== undefined) {
+              this._performAddEdge(connectFromId, node.id);
+            }
+          }
+        }
+        this.body.emitter.emit('_redraw');
+      }
+    }, {
+      key: '_performAddNode',
+
+      // --------------------------------------- END OF ADD EDGE FUNCTIONS -------------------------------------//
+
+      // ------------------------------ Performing all the actual data manipulation ------------------------//
+
+      /**
+       * Adds a node on the specified location
+       */
+      value: function _performAddNode(clickData) {
+        var _this5 = this;
+
+        var defaultData = {
+          id: util.randomUUID(),
+          x: clickData.pointer.canvas.x,
+          y: clickData.pointer.canvas.y,
+          label: 'new'
+        };
+
+        if (typeof this.options.addNode === 'function') {
+          if (this.options.addNode.length === 2) {
+            this.options.addNode(defaultData, function (finalizedData) {
+              if (finalizedData !== null && finalizedData !== undefined && _this5.inMode === 'addNode') {
+                // if for whatever reason the mode has changes (due to dataset change) disregard the callback
+                _this5.body.data.nodes.getDataSet().add(finalizedData);
+                _this5.showManipulatorToolbar();
+              }
+            });
+          } else {
+            throw new Error('The function for add does not support two arguments (data,callback)');
+            this.showManipulatorToolbar();
+          }
+        } else {
+          this.body.data.nodes.getDataSet().add(defaultData);
+          this.showManipulatorToolbar();
+        }
+      }
+    }, {
+      key: '_performAddEdge',
+
+      /**
+       * connect two nodes with a new edge.
+       *
+       * @private
+       */
+      value: function _performAddEdge(sourceNodeId, targetNodeId) {
+        var _this6 = this;
+
+        var defaultData = { from: sourceNodeId, to: targetNodeId };
+        if (typeof this.options.addEdge === 'function') {
+          if (this.options.addEdge.length === 2) {
+            this.options.addEdge(defaultData, function (finalizedData) {
+              if (finalizedData !== null && finalizedData !== undefined && _this6.inMode === 'addEdge') {
+                // if for whatever reason the mode has changes (due to dataset change) disregard the callback
+                _this6.body.data.edges.add(finalizedData);
+                _this6.selectionHandler.unselectAll();
+                _this6.showManipulatorToolbar();
+              }
+            });
+          } else {
+            throw new Error('The function for connect does not support two arguments (data,callback)');
+          }
+        } else {
+          this.body.data.edges.add(defaultData);
+          this.selectionHandler.unselectAll();
+          this.showManipulatorToolbar();
+        }
+      }
+    }, {
+      key: '_performEditEdge',
+
+      /**
+       * connect two nodes with a new edge.
+       *
+       * @private
+       */
+      value: function _performEditEdge(sourceNodeId, targetNodeId) {
+        var _this7 = this;
+
+        var defaultData = { id: this.edgeBeingEditedId, from: sourceNodeId, to: targetNodeId };
+        if (typeof this.options.editEdge === 'function') {
+          if (this.options.editEdge.length === 2) {
+            this.options.editEdge(defaultData, function (finalizedData) {
+              if (finalizedData === null || finalizedData === undefined || _this7.inMode !== 'editEdge') {
+                // if for whatever reason the mode has changes (due to dataset change) disregard the callback) {
+                _this7.body.edges[defaultData.id].updateEdgeType();
+                _this7.body.emitter.emit('_redraw');
+              } else {
+                _this7.body.data.edges.update(finalizedData);
+                _this7.selectionHandler.unselectAll();
+                _this7.showManipulatorToolbar();
+              }
+            });
+          } else {
+            throw new Error('The function for edit does not support two arguments (data, callback)');
+          }
+        } else {
+          this.body.data.edges.update(defaultData);
+          this.selectionHandler.unselectAll();
+          this.showManipulatorToolbar();
+        }
+      }
+    }]);
+
+    return ManipulationSystem;
+  })();
+
+  exports['default'] = ManipulationSystem;
   module.exports = exports['default'];
 
 /***/ },
