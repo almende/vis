@@ -10,6 +10,7 @@ http://visjs.org
 ### Graph2D
 
 - Fixed #892, addressed any case in validator.
+- Fixed #898, lines are not taken into account for stacking.
 
 ### Network
 
