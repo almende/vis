@@ -645,6 +645,7 @@ function releaseFunction (clusterPosition, containedNodesPositions) {
     newPositions[nodeId] = {x:newPosX, y:newPosY};
     return newPositions;
 }</pre>
+                    The containedNodesPositions contain the positions of the nodes in the cluster at the moment they were clustered.
                     This function is expected to return the newPositions, which can be the containedNodesPositions (altered) or a new object. This has to be an object with keys equal
                     to the nodeIds that exist in the containedNodesPositions and an <code>{x:x,y:y}</code> position object. <br><br>
 
