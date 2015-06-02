@@ -77,7 +77,7 @@ Click any of the buttons below to cluster the network. On every push the network
   network.on("selectNode", function(params) {
       if (params.nodes.length == 1) {
           if (network.isCluster(params.nodes[0]) == true) {
-              network.openCluster(params.nodes[0])
+              network.openCluster(params.nodes[0]);
           }
       }
   })

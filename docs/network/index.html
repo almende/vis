@@ -630,12 +630,25 @@ var locales = {
             </tr>
             <tr class="collapsible toggle" onclick="toggleTable('methodTable','openCluster', this);">
                 <td colspan="2"><span parent="openCluster" class="right-caret"></span> openCluster(
-                    <code>String nodeId</code>)
+                    <code>String nodeId, Object options</code>)
             </tr>
             <tr class="hidden" parent="openCluster">
                 <td class="midMethods">Returns: none</td>
                 <td>Opens the cluster, releases the contained nodes and edges, removing the cluster node and cluster
-                    edges.
+                    edges. The options object is optional and currently supports one option, releaseFunction, which is a function that can be used to manually
+                    position the nodes after the cluster is opened. <br>
+<pre class="code">
+function releaseFunction (clusterPosition, containedNodesPositions) {
+    var newPositions = {};
+    // clusterPosition = {x:clusterX, y:clusterY};
+    // containedNodesPositions = {nodeId:{x:nodeX,y:nodeY}, nodeId2....}
+    newPositions[nodeId] = {x:newPosX, y:newPosY};
+    return newPositions;
+}</pre>
+                    This function is expected to return the newPositions, which can be the containedNodesPositions (altered) or a new object. This has to be an object with keys equal
+                    to the nodeIds that exist in the containedNodesPositions and an <code>{x:x,y:y}</code> position object. <br><br>
+
+                    For all nodeIds not listed in this returned object, we will position them at the location of the cluster. This is also the default behaviour when no releaseFunction is defined.
                 </td>
             </tr>
 
