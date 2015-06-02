@@ -3,6 +3,11 @@ http://visjs.org
 
 ## not-yet-released, version 4.1.1-SNAPSHOT
 
+### General
+
+- Fixed #893, #911: the `clickToUse` option of Network, Graph2d, and Network 
+  was blocking click events in the web page.  
+
 ### Timeline
 
 - Improved function `fit()` to take into account the actual width of items.
