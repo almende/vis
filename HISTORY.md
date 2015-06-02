@@ -6,11 +6,12 @@ http://visjs.org
 ### General
 
 - Fixed #893, #911: the `clickToUse` option of Network, Graph2d, and Network 
-  was blocking click events in the web page.  
+  was blocking click events in the web page.
 
 ### Timeline
 
 - Improved function `fit()` to take into account the actual width of items.
+- Fixed #897: Timeline option `{snap: null}` did give a validation error.
 
 ### Graph2D
 
