@@ -10,6 +10,7 @@ http://visjs.org
 
 ### Timeline
 
+- Added axis orientation option `'none'`.
 - Improved function `fit()` to take into account the actual width of items.
 - Fixed #897: Timeline option `{snap: null}` did give a validation error.
 
