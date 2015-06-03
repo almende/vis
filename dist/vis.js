@@ -84,60 +84,60 @@ return /******/ (function(modules) { // webpackBootstrap
   // utils
   'use strict';
 
-  exports.util = __webpack_require__(1);
-  exports.DOMutil = __webpack_require__(7);
+  exports.util = __webpack_require__(2);
+  exports.DOMutil = __webpack_require__(9);
 
   // data
-  exports.DataSet = __webpack_require__(8);
-  exports.DataView = __webpack_require__(10);
-  exports.Queue = __webpack_require__(9);
+  exports.DataSet = __webpack_require__(10);
+  exports.DataView = __webpack_require__(12);
+  exports.Queue = __webpack_require__(11);
 
   // Graph3d
-  exports.Graph3d = __webpack_require__(11);
+  exports.Graph3d = __webpack_require__(13);
   exports.graph3d = {
-    Camera: __webpack_require__(15),
-    Filter: __webpack_require__(16),
-    Point2d: __webpack_require__(12),
-    Point3d: __webpack_require__(14),
-    Slider: __webpack_require__(17),
-    StepNumber: __webpack_require__(18)
+    Camera: __webpack_require__(17),
+    Filter: __webpack_require__(18),
+    Point2d: __webpack_require__(14),
+    Point3d: __webpack_require__(16),
+    Slider: __webpack_require__(19),
+    StepNumber: __webpack_require__(20)
   };
 
   // Timeline
-  exports.Timeline = __webpack_require__(19);
-  exports.Graph2d = __webpack_require__(49);
+  exports.Timeline = __webpack_require__(21);
+  exports.Graph2d = __webpack_require__(51);
   exports.timeline = {
-    DateUtil: __webpack_require__(29),
-    DataStep: __webpack_require__(52),
-    Range: __webpack_require__(27),
-    stack: __webpack_require__(33),
-    TimeStep: __webpack_require__(36),
+    DateUtil: __webpack_require__(31),
+    DataStep: __webpack_require__(54),
+    Range: __webpack_require__(29),
+    stack: __webpack_require__(35),
+    TimeStep: __webpack_require__(38),
 
     components: {
       items: {
-        Item: __webpack_require__(35),
-        BackgroundItem: __webpack_require__(40),
-        BoxItem: __webpack_require__(38),
-        PointItem: __webpack_require__(39),
-        RangeItem: __webpack_require__(34)
+        Item: __webpack_require__(37),
+        BackgroundItem: __webpack_require__(42),
+        BoxItem: __webpack_require__(40),
+        PointItem: __webpack_require__(41),
+        RangeItem: __webpack_require__(36)
       },
 
-      Component: __webpack_require__(21),
-      CurrentTime: __webpack_require__(20),
-      CustomTime: __webpack_require__(44),
-      DataAxis: __webpack_require__(51),
-      GraphGroup: __webpack_require__(53),
-      Group: __webpack_require__(32),
-      BackgroundGroup: __webpack_require__(37),
-      ItemSet: __webpack_require__(31),
-      Legend: __webpack_require__(57),
-      LineGraph: __webpack_require__(50),
-      TimeAxis: __webpack_require__(41)
+      Component: __webpack_require__(23),
+      CurrentTime: __webpack_require__(22),
+      CustomTime: __webpack_require__(46),
+      DataAxis: __webpack_require__(53),
+      GraphGroup: __webpack_require__(55),
+      Group: __webpack_require__(34),
+      BackgroundGroup: __webpack_require__(39),
+      ItemSet: __webpack_require__(33),
+      Legend: __webpack_require__(59),
+      LineGraph: __webpack_require__(52),
+      TimeAxis: __webpack_require__(43)
     }
   };
 
   // Network
-  exports.Network = __webpack_require__(59);
+  exports.Network = __webpack_require__(61);
   exports.network = {
     Images: __webpack_require__(112),
     dotparser: __webpack_require__(110),
@@ -157,12 +157,25 @@ return /******/ (function(modules) { // webpackBootstrap
   };
 
   // bundled external libraries
-  exports.moment = __webpack_require__(2);
-  exports.hammer = __webpack_require__(23); // TODO: deprecate exports.hammer some day
-  exports.Hammer = __webpack_require__(23);
+  exports.moment = __webpack_require__(5);
+  exports.hammer = __webpack_require__(25); // TODO: deprecate exports.hammer some day
+  exports.Hammer = __webpack_require__(25);
 
 /***/ },
 /* 1 */
+/***/ function(module, exports, __webpack_require__) {
+
+  function webpackContext(req) {
+  	throw new Error("Cannot find module '" + req + "'.");
+  }
+  webpackContext.keys = function() { return []; };
+  webpackContext.resolve = webpackContext;
+  module.exports = webpackContext;
+  webpackContext.id = 1;
+
+
+/***/ },
+/* 2 */
 /***/ function(module, exports, __webpack_require__) {
 
   // utility functions
@@ -172,8 +185,8 @@ return /******/ (function(modules) { // webpackBootstrap
 
   'use strict';
 
-  var moment = __webpack_require__(2);
-  var uuid = __webpack_require__(6);
+  var moment = __webpack_require__(5);
+  var uuid = __webpack_require__(8);
 
   /**
    * Test whether given object is a number
@@ -1508,17 +1521,781 @@ return /******/ (function(modules) { // webpackBootstrap
   };
 
 /***/ },
-/* 2 */
+/* 3 */
+/***/ function(module, exports, __webpack_require__) {
+
+  'use strict';
+
+  Object.defineProperty(exports, '__esModule', {
+    value: true
+  });
+
+  var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
+
+  function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
+
+  if (typeof window !== 'undefined') {
+    window.requestAnimationFrame = window.requestAnimationFrame || window.mozRequestAnimationFrame || window.webkitRequestAnimationFrame || window.msRequestAnimationFrame;
+  }
+
+  var util = __webpack_require__(2);
+
+  var CanvasRenderer = (function () {
+    function CanvasRenderer(body, canvas) {
+      _classCallCheck(this, CanvasRenderer);
+
+      this.body = body;
+      this.canvas = canvas;
+
+      this.redrawRequested = false;
+      this.renderTimer = undefined;
+      this.requiresTimeout = true;
+      this.renderingActive = false;
+      this.renderRequests = 0;
+      this.pixelRatio = undefined;
+      this.allowRedrawRequests = true;
+
+      this.dragging = false;
+      this.options = {};
+      this.defaultOptions = {
+        hideEdgesOnDrag: false,
+        hideNodesOnDrag: false
+      };
+      util.extend(this.options, this.defaultOptions);
+
+      this._determineBrowserMethod();
+      this.bindEventListeners();
+    }
+
+    _createClass(CanvasRenderer, [{
+      key: 'bindEventListeners',
+      value: function bindEventListeners() {
+        var _this = this;
+
+        this.body.emitter.on('dragStart', function () {
+          _this.dragging = true;
+        });
+        this.body.emitter.on('dragEnd', function () {
+          return _this.dragging = false;
+        });
+        this.body.emitter.on('_resizeNodes', function () {
+          return _this._resizeNodes();
+        });
+        this.body.emitter.on('_redraw', function () {
+          if (_this.renderingActive === false) {
+            _this._redraw();
+          }
+        });
+        this.body.emitter.on('_blockRedrawRequests', function () {
+          _this.allowRedrawRequests = false;
+        });
+        this.body.emitter.on('_allowRedrawRequests', function () {
+          _this.allowRedrawRequests = true;
+        });
+        this.body.emitter.on('_requestRedraw', this._requestRedraw.bind(this));
+        this.body.emitter.on('_startRendering', function () {
+          _this.renderRequests += 1;
+          _this.renderingActive = true;
+          _this._startRendering();
+        });
+        this.body.emitter.on('_stopRendering', function () {
+          _this.renderRequests -= 1;
+          _this.renderingActive = _this.renderRequests > 0;
+          _this.renderTimer = undefined;
+        });
+        this.body.emitter.on('destroy', function () {
+          _this.renderRequests = 0;
+          _this.renderingActive = false;
+          if (_this.requiresTimeout === true) {
+            clearTimeout(_this.renderTimer);
+          } else {
+            cancelAnimationFrame(_this.renderTimer);
+          }
+          _this.body.emitter.off();
+        });
+      }
+    }, {
+      key: 'setOptions',
+      value: function setOptions(options) {
+        if (options !== undefined) {
+          var fields = ['hideEdgesOnDrag', 'hideNodesOnDrag'];
+          util.selectiveDeepExtend(fields, this.options, options);
+        }
+      }
+    }, {
+      key: '_startRendering',
+      value: function _startRendering() {
+        if (this.renderingActive === true) {
+          if (this.renderTimer === undefined) {
+            if (this.requiresTimeout === true) {
+              this.renderTimer = window.setTimeout(this._renderStep.bind(this), this.simulationInterval); // wait this.renderTimeStep milliseconds and perform the animation step function
+            } else {
+              this.renderTimer = window.requestAnimationFrame(this._renderStep.bind(this)); // wait this.renderTimeStep milliseconds and perform the animation step function
+            }
+          }
+        }
+      }
+    }, {
+      key: '_renderStep',
+      value: function _renderStep() {
+        if (this.renderingActive === true) {
+          // reset the renderTimer so a new scheduled animation step can be set
+          this.renderTimer = undefined;
+
+          if (this.requiresTimeout === true) {
+            // this schedules a new simulation step
+            this._startRendering();
+          }
+
+          this._redraw();
+
+          if (this.requiresTimeout === false) {
+            // this schedules a new simulation step
+            this._startRendering();
+          }
+        }
+      }
+    }, {
+      key: 'redraw',
+
+      /**
+       * Redraw the network with the current data
+       * chart will be resized too.
+       */
+      value: function redraw() {
+        this.body.emitter.emit('setSize');
+        this._redraw();
+      }
+    }, {
+      key: '_requestRedraw',
+
+      /**
+       * Redraw the network with the current data
+       * @param hidden | used to get the first estimate of the node sizes. only the nodes are drawn after which they are quickly drawn over.
+       * @private
+       */
+      value: function _requestRedraw() {
+        var _this2 = this;
+
+        if (this.redrawRequested !== true && this.renderingActive === false && this.allowRedrawRequests === true) {
+          this.redrawRequested = true;
+          if (this.requiresTimeout === true) {
+            window.setTimeout(function () {
+              _this2._redraw(false);
+            }, 0);
+          } else {
+            window.requestAnimationFrame(function () {
+              _this2._redraw(false);
+            });
+          }
+        }
+      }
+    }, {
+      key: '_redraw',
+      value: function _redraw() {
+        var hidden = arguments[0] === undefined ? false : arguments[0];
+
+        this.body.emitter.emit('initRedraw');
+
+        this.redrawRequested = false;
+        var ctx = this.canvas.frame.canvas.getContext('2d');
+
+        // when the container div was hidden, this fixes it back up!
+        if (this.canvas.frame.canvas.width === 0 || this.canvas.frame.canvas.height === 0) {
+          this.canvas.setSize();
+        }
+
+        if (this.pixelRatio === undefined) {
+          this.pixelRatio = (window.devicePixelRatio || 1) / (ctx.webkitBackingStorePixelRatio || ctx.mozBackingStorePixelRatio || ctx.msBackingStorePixelRatio || ctx.oBackingStorePixelRatio || ctx.backingStorePixelRatio || 1);
+        }
+
+        ctx.setTransform(this.pixelRatio, 0, 0, this.pixelRatio, 0, 0);
+
+        // clear the canvas
+        var w = this.canvas.frame.canvas.clientWidth;
+        var h = this.canvas.frame.canvas.clientHeight;
+        ctx.clearRect(0, 0, w, h);
+
+        // set scaling and translation
+        ctx.save();
+        ctx.translate(this.body.view.translation.x, this.body.view.translation.y);
+        ctx.scale(this.body.view.scale, this.body.view.scale);
+
+        ctx.beginPath();
+        this.body.emitter.emit('beforeDrawing', ctx);
+        ctx.closePath();
+
+        if (hidden === false) {
+          if (this.dragging === false || this.dragging === true && this.options.hideEdgesOnDrag === false) {
+            this._drawEdges(ctx);
+          }
+        }
+
+        if (this.dragging === false || this.dragging === true && this.options.hideNodesOnDrag === false) {
+          this._drawNodes(ctx, hidden);
+        }
+
+        if (this.controlNodesActive === true) {
+          this._drawControlNodes(ctx);
+        }
+
+        ctx.beginPath();
+        //this.physics.nodesSolver._debug(ctx,"#F00F0F");
+        this.body.emitter.emit('afterDrawing', ctx);
+        ctx.closePath();
+        // restore original scaling and translation
+        ctx.restore();
+
+        if (hidden === true) {
+          ctx.clearRect(0, 0, w, h);
+        }
+      }
+    }, {
+      key: '_resizeNodes',
+
+      /**
+       * Redraw all nodes
+       * The 2d context of a HTML canvas can be retrieved by canvas.getContext('2d');
+       * @param {CanvasRenderingContext2D}   ctx
+       * @param {Boolean} [alwaysShow]
+       * @private
+       */
+      value: function _resizeNodes() {
+        var ctx = this.canvas.frame.canvas.getContext('2d');
+        if (this.pixelRatio === undefined) {
+          this.pixelRatio = (window.devicePixelRatio || 1) / (ctx.webkitBackingStorePixelRatio || ctx.mozBackingStorePixelRatio || ctx.msBackingStorePixelRatio || ctx.oBackingStorePixelRatio || ctx.backingStorePixelRatio || 1);
+        }
+        ctx.setTransform(this.pixelRatio, 0, 0, this.pixelRatio, 0, 0);
+        ctx.save();
+        ctx.translate(this.body.view.translation.x, this.body.view.translation.y);
+        ctx.scale(this.body.view.scale, this.body.view.scale);
+
+        var nodes = this.body.nodes;
+        var node = undefined;
+
+        // resize all nodes
+        for (var nodeId in nodes) {
+          if (nodes.hasOwnProperty(nodeId)) {
+            node = nodes[nodeId];
+            node.resize(ctx);
+            node.updateBoundingBox(ctx);
+          }
+        }
+
+        // restore original scaling and translation
+        ctx.restore();
+      }
+    }, {
+      key: '_drawNodes',
+
+      /**
+       * Redraw all nodes
+       * The 2d context of a HTML canvas can be retrieved by canvas.getContext('2d');
+       * @param {CanvasRenderingContext2D}   ctx
+       * @param {Boolean} [alwaysShow]
+       * @private
+       */
+      value: function _drawNodes(ctx) {
+        var alwaysShow = arguments[1] === undefined ? false : arguments[1];
+
+        var nodes = this.body.nodes;
+        var nodeIndices = this.body.nodeIndices;
+        var node = undefined;
+        var selected = [];
+        var margin = 20;
+        var topLeft = this.canvas.DOMtoCanvas({ x: -margin, y: -margin });
+        var bottomRight = this.canvas.DOMtoCanvas({
+          x: this.canvas.frame.canvas.clientWidth + margin,
+          y: this.canvas.frame.canvas.clientHeight + margin
+        });
+        var viewableArea = { top: topLeft.y, left: topLeft.x, bottom: bottomRight.y, right: bottomRight.x };
+
+        // draw unselected nodes;
+        for (var i = 0; i < nodeIndices.length; i++) {
+          node = nodes[nodeIndices[i]];
+          // set selected nodes aside
+          if (node.isSelected()) {
+            selected.push(nodeIndices[i]);
+          } else {
+            if (alwaysShow === true) {
+              node.draw(ctx);
+            } else if (node.isBoundingBoxOverlappingWith(viewableArea) === true) {
+              node.draw(ctx);
+            } else {
+              node.updateBoundingBox(ctx);
+            }
+          }
+        }
+
+        // draw the selected nodes on top
+        for (var i = 0; i < selected.length; i++) {
+          node = nodes[selected[i]];
+          node.draw(ctx);
+        }
+      }
+    }, {
+      key: '_drawEdges',
+
+      /**
+       * Redraw all edges
+       * The 2d context of a HTML canvas can be retrieved by canvas.getContext('2d');
+       * @param {CanvasRenderingContext2D}   ctx
+       * @private
+       */
+      value: function _drawEdges(ctx) {
+        var edges = this.body.edges;
+        var edgeIndices = this.body.edgeIndices;
+        var edge = undefined;
+
+        for (var i = 0; i < edgeIndices.length; i++) {
+          edge = edges[edgeIndices[i]];
+          if (edge.connected === true) {
+            edge.draw(ctx);
+          }
+        }
+      }
+    }, {
+      key: '_drawControlNodes',
+
+      /**
+       * Redraw all edges
+       * The 2d context of a HTML canvas can be retrieved by canvas.getContext('2d');
+       * @param {CanvasRenderingContext2D}   ctx
+       * @private
+       */
+      value: function _drawControlNodes(ctx) {
+        var edges = this.body.edges;
+        var edgeIndices = this.body.edgeIndices;
+        var edge = undefined;
+
+        for (var i = 0; i < edgeIndices.length; i++) {
+          edge = edges[edgeIndices[i]];
+          edge._drawControlNodes(ctx);
+        }
+      }
+    }, {
+      key: '_determineBrowserMethod',
+
+      /**
+       * Determine if the browser requires a setTimeout or a requestAnimationFrame. This was required because
+       * some implementations (safari and IE9) did not support requestAnimationFrame
+       * @private
+       */
+      value: function _determineBrowserMethod() {
+        if (typeof window !== 'undefined') {
+          var browserType = navigator.userAgent.toLowerCase();
+          this.requiresTimeout = false;
+          if (browserType.indexOf('msie 9.0') != -1) {
+            // IE 9
+            this.requiresTimeout = true;
+          } else if (browserType.indexOf('safari') != -1) {
+            // safari
+            if (browserType.indexOf('chrome') <= -1) {
+              this.requiresTimeout = true;
+            }
+          }
+        } else {
+          this.requiresTimeout = true;
+        }
+      }
+    }]);
+
+    return CanvasRenderer;
+  })();
+
+  exports['default'] = CanvasRenderer;
+  module.exports = exports['default'];
+
+/***/ },
+/* 4 */
+/***/ function(module, exports, __webpack_require__) {
+
+  'use strict';
+
+  Object.defineProperty(exports, '__esModule', {
+    value: true
+  });
+
+  var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
+
+  function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
+
+  var Hammer = __webpack_require__(25);
+  var hammerUtil = __webpack_require__(30);
+
+  var util = __webpack_require__(2);
+
+  /**
+   * Create the main frame for the Network.
+   * This function is executed once when a Network object is created. The frame
+   * contains a canvas, and this canvas contains all objects like the axis and
+   * nodes.
+   * @private
+   */
+
+  var Canvas = (function () {
+    function Canvas(body) {
+      _classCallCheck(this, Canvas);
+
+      this.body = body;
+      this.pixelRatio = 1;
+      this.resizeTimer = undefined;
+      this.resizeFunction = this._onResize.bind(this);
+
+      this.options = {};
+      this.defaultOptions = {
+        autoResize: true,
+        height: '100%',
+        width: '100%'
+      };
+      util.extend(this.options, this.defaultOptions);
+
+      this.bindEventListeners();
+    }
+
+    _createClass(Canvas, [{
+      key: 'bindEventListeners',
+      value: function bindEventListeners() {
+        var _this = this;
+
+        // bind the events
+        this.body.emitter.once('resize', function (obj) {
+          if (obj.width !== 0) {
+            _this.body.view.translation.x = obj.width * 0.5;
+          }
+          if (obj.height !== 0) {
+            _this.body.view.translation.y = obj.height * 0.5;
+          }
+        });
+        this.body.emitter.on('setSize', this.setSize.bind(this));
+        this.body.emitter.on('destroy', function () {
+          _this.hammerFrame.destroy();
+          _this.hammer.destroy();
+          _this._cleanUp();
+        });
+      }
+    }, {
+      key: 'setOptions',
+      value: function setOptions(options) {
+        var _this2 = this;
+
+        if (options !== undefined) {
+          var fields = ['width', 'height', 'autoResize'];
+          util.selectiveDeepExtend(fields, this.options, options);
+        }
+
+        if (this.options.autoResize === true) {
+          // automatically adapt to a changing size of the browser.
+          this._cleanUp();
+          this.resizeTimer = setInterval(function () {
+            var changed = _this2.setSize();
+            if (changed === true) {
+              _this2.body.emitter.emit('_requestRedraw');
+            }
+          }, 1000);
+          this.resizeFunction = this._onResize.bind(this);
+          util.addEventListener(window, 'resize', this.resizeFunction);
+        }
+      }
+    }, {
+      key: '_cleanUp',
+      value: function _cleanUp() {
+        // automatically adapt to a changing size of the browser.
+        if (this.resizeTimer !== undefined) {
+          clearInterval(this.resizeTimer);
+        }
+        util.removeEventListener(window, 'resize', this.resizeFunction);
+        this.resizeFunction = undefined;
+      }
+    }, {
+      key: '_onResize',
+      value: function _onResize() {
+        this.setSize();
+        this.body.emitter.emit('_redraw');
+      }
+    }, {
+      key: '_prepareValue',
+      value: function _prepareValue(value) {
+        if (typeof value === 'number') {
+          return value + 'px';
+        } else if (typeof value === 'string') {
+          if (value.indexOf('%') !== -1 || value.indexOf('px') !== -1) {
+            return value;
+          } else if (value.indexOf('%') === -1) {
+            return value + 'px';
+          }
+        }
+        throw new Error('Could not use the value supplie for width or height:' + value);
+      }
+    }, {
+      key: '_create',
+
+      /**
+       * Create the HTML
+       */
+      value: function _create() {
+        // remove all elements from the container element.
+        while (this.body.container.hasChildNodes()) {
+          this.body.container.removeChild(this.body.container.firstChild);
+        }
+
+        this.frame = document.createElement('div');
+        this.frame.className = 'vis-network';
+        this.frame.style.position = 'relative';
+        this.frame.style.overflow = 'hidden';
+        this.frame.tabIndex = 900; // tab index is required for keycharm to bind keystrokes to the div instead of the window
+
+        //////////////////////////////////////////////////////////////////
+
+        this.frame.canvas = document.createElement('canvas');
+        this.frame.canvas.style.position = 'relative';
+        this.frame.appendChild(this.frame.canvas);
+
+        if (!this.frame.canvas.getContext) {
+          var noCanvas = document.createElement('DIV');
+          noCanvas.style.color = 'red';
+          noCanvas.style.fontWeight = 'bold';
+          noCanvas.style.padding = '10px';
+          noCanvas.innerHTML = 'Error: your browser does not support HTML canvas';
+          this.frame.canvas.appendChild(noCanvas);
+        } else {
+          var ctx = this.frame.canvas.getContext('2d');
+          this.pixelRatio = (window.devicePixelRatio || 1) / (ctx.webkitBackingStorePixelRatio || ctx.mozBackingStorePixelRatio || ctx.msBackingStorePixelRatio || ctx.oBackingStorePixelRatio || ctx.backingStorePixelRatio || 1);
+
+          this.frame.canvas.getContext('2d').setTransform(this.pixelRatio, 0, 0, this.pixelRatio, 0, 0);
+        }
+
+        // add the frame to the container element
+        this.body.container.appendChild(this.frame);
+
+        this.body.view.scale = 1;
+        this.body.view.translation = { x: 0.5 * this.frame.canvas.clientWidth, y: 0.5 * this.frame.canvas.clientHeight };
+
+        this._bindHammer();
+      }
+    }, {
+      key: '_bindHammer',
+
+      /**
+       * This function binds hammer, it can be repeated over and over due to the uniqueness check.
+       * @private
+       */
+      value: function _bindHammer() {
+        var _this3 = this;
+
+        if (this.hammer !== undefined) {
+          this.hammer.destroy();
+        }
+        this.drag = {};
+        this.pinch = {};
+
+        // init hammer
+        this.hammer = new Hammer(this.frame.canvas);
+        this.hammer.get('pinch').set({ enable: true });
+        // enable to get better response, todo: test on mobile.
+        //this.hammer.get('pan').set({threshold:2});
+
+        hammerUtil.onTouch(this.hammer, function (event) {
+          _this3.body.eventListeners.onTouch(event);
+        });
+        this.hammer.on('tap', function (event) {
+          _this3.body.eventListeners.onTap(event);
+        });
+        this.hammer.on('doubletap', function (event) {
+          _this3.body.eventListeners.onDoubleTap(event);
+        });
+        this.hammer.on('press', function (event) {
+          _this3.body.eventListeners.onHold(event);
+        });
+        this.hammer.on('panstart', function (event) {
+          _this3.body.eventListeners.onDragStart(event);
+        });
+        this.hammer.on('panmove', function (event) {
+          _this3.body.eventListeners.onDrag(event);
+        });
+        this.hammer.on('panend', function (event) {
+          _this3.body.eventListeners.onDragEnd(event);
+        });
+        this.hammer.on('pinch', function (event) {
+          _this3.body.eventListeners.onPinch(event);
+        });
+
+        // TODO: neatly cleanup these handlers when re-creating the Canvas, IF these are done with hammer, event.stopPropagation will not work?
+        this.frame.canvas.addEventListener('mousewheel', function (event) {
+          _this3.body.eventListeners.onMouseWheel(event);
+        });
+        this.frame.canvas.addEventListener('DOMMouseScroll', function (event) {
+          _this3.body.eventListeners.onMouseWheel(event);
+        });
+
+        this.frame.canvas.addEventListener('mousemove', function (event) {
+          _this3.body.eventListeners.onMouseMove(event);
+        });
+        this.frame.canvas.addEventListener('contextmenu', function (event) {
+          _this3.body.eventListeners.onContext(event);
+        });
+
+        this.hammerFrame = new Hammer(this.frame);
+        hammerUtil.onRelease(this.hammerFrame, function (event) {
+          _this3.body.eventListeners.onRelease(event);
+        });
+      }
+    }, {
+      key: 'setSize',
+
+      /**
+       * Set a new size for the network
+       * @param {string} width   Width in pixels or percentage (for example '800px'
+       *                         or '50%')
+       * @param {string} height  Height in pixels or percentage  (for example '400px'
+       *                         or '30%')
+       */
+      value: function setSize() {
+        var width = arguments[0] === undefined ? this.options.width : arguments[0];
+        var height = arguments[1] === undefined ? this.options.height : arguments[1];
+
+        width = this._prepareValue(width);
+        height = this._prepareValue(height);
+
+        var emitEvent = false;
+        var oldWidth = this.frame.canvas.width;
+        var oldHeight = this.frame.canvas.height;
+
+        if (width != this.options.width || height != this.options.height || this.frame.style.width != width || this.frame.style.height != height) {
+          this.frame.style.width = width;
+          this.frame.style.height = height;
+
+          this.frame.canvas.style.width = '100%';
+          this.frame.canvas.style.height = '100%';
+
+          this.frame.canvas.width = Math.round(this.frame.canvas.clientWidth * this.pixelRatio);
+          this.frame.canvas.height = Math.round(this.frame.canvas.clientHeight * this.pixelRatio);
+
+          this.options.width = width;
+          this.options.height = height;
+
+          emitEvent = true;
+        } else {
+          // this would adapt the width of the canvas to the width from 100% if and only if
+          // there is a change.
+
+          if (this.frame.canvas.width != Math.round(this.frame.canvas.clientWidth * this.pixelRatio)) {
+            this.frame.canvas.width = Math.round(this.frame.canvas.clientWidth * this.pixelRatio);
+            emitEvent = true;
+          }
+          if (this.frame.canvas.height != Math.round(this.frame.canvas.clientHeight * this.pixelRatio)) {
+            this.frame.canvas.height = Math.round(this.frame.canvas.clientHeight * this.pixelRatio);
+            emitEvent = true;
+          }
+        }
+
+        if (emitEvent === true) {
+          this.body.emitter.emit('resize', {
+            width: Math.round(this.frame.canvas.width / this.pixelRatio),
+            height: Math.round(this.frame.canvas.height / this.pixelRatio),
+            oldWidth: Math.round(oldWidth / this.pixelRatio),
+            oldHeight: Math.round(oldHeight / this.pixelRatio)
+          });
+        }
+
+        return emitEvent;
+      }
+    }, {
+      key: '_XconvertDOMtoCanvas',
+
+      /**
+       * Convert the X coordinate in DOM-space (coordinate point in browser relative to the container div) to
+       * the X coordinate in canvas-space (the simulation sandbox, which the camera looks upon)
+       * @param {number} x
+       * @returns {number}
+       * @private
+       */
+      value: function _XconvertDOMtoCanvas(x) {
+        return (x - this.body.view.translation.x) / this.body.view.scale;
+      }
+    }, {
+      key: '_XconvertCanvasToDOM',
+
+      /**
+       * Convert the X coordinate in canvas-space (the simulation sandbox, which the camera looks upon) to
+       * the X coordinate in DOM-space (coordinate point in browser relative to the container div)
+       * @param {number} x
+       * @returns {number}
+       * @private
+       */
+      value: function _XconvertCanvasToDOM(x) {
+        return x * this.body.view.scale + this.body.view.translation.x;
+      }
+    }, {
+      key: '_YconvertDOMtoCanvas',
+
+      /**
+       * Convert the Y coordinate in DOM-space (coordinate point in browser relative to the container div) to
+       * the Y coordinate in canvas-space (the simulation sandbox, which the camera looks upon)
+       * @param {number} y
+       * @returns {number}
+       * @private
+       */
+      value: function _YconvertDOMtoCanvas(y) {
+        return (y - this.body.view.translation.y) / this.body.view.scale;
+      }
+    }, {
+      key: '_YconvertCanvasToDOM',
+
+      /**
+       * Convert the Y coordinate in canvas-space (the simulation sandbox, which the camera looks upon) to
+       * the Y coordinate in DOM-space (coordinate point in browser relative to the container div)
+       * @param {number} y
+       * @returns {number}
+       * @private
+       */
+      value: function _YconvertCanvasToDOM(y) {
+        return y * this.body.view.scale + this.body.view.translation.y;
+      }
+    }, {
+      key: 'canvasToDOM',
+
+      /**
+       *
+       * @param {object} pos   = {x: number, y: number}
+       * @returns {{x: number, y: number}}
+       * @constructor
+       */
+      value: function canvasToDOM(pos) {
+        return { x: this._XconvertCanvasToDOM(pos.x), y: this._YconvertCanvasToDOM(pos.y) };
+      }
+    }, {
+      key: 'DOMtoCanvas',
+
+      /**
+       *
+       * @param {object} pos   = {x: number, y: number}
+       * @returns {{x: number, y: number}}
+       * @constructor
+       */
+      value: function DOMtoCanvas(pos) {
+        return { x: this._XconvertDOMtoCanvas(pos.x), y: this._YconvertDOMtoCanvas(pos.y) };
+      }
+    }]);
+
+    return Canvas;
+  })();
+
+  exports['default'] = Canvas;
+  module.exports = exports['default'];
+
+/***/ },
+/* 5 */
 /***/ function(module, exports, __webpack_require__) {
 
   // first check if moment.js is already loaded in the browser window, if so,
   // use this instance. Else, load via commonjs.
   'use strict';
 
-  module.exports = typeof window !== 'undefined' && window['moment'] || __webpack_require__(3);
+  module.exports = typeof window !== 'undefined' && window['moment'] || __webpack_require__(6);
 
 /***/ },
-/* 3 */
+/* 6 */
 /***/ function(module, exports, __webpack_require__) {
 
   /* WEBPACK VAR INJECTION */(function(module) {//! moment.js
@@ -4632,10 +5409,10 @@ return /******/ (function(modules) { // webpackBootstrap
       return _moment;
 
   }));
-  /* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(4)(module)))
+  /* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(7)(module)))
 
 /***/ },
-/* 4 */
+/* 7 */
 /***/ function(module, exports, __webpack_require__) {
 
   module.exports = function(module) {
@@ -4651,20 +5428,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 5 */
-/***/ function(module, exports, __webpack_require__) {
-
-  function webpackContext(req) {
-  	throw new Error("Cannot find module '" + req + "'.");
-  }
-  webpackContext.keys = function() { return []; };
-  webpackContext.resolve = webpackContext;
-  module.exports = webpackContext;
-  webpackContext.id = 5;
-
-
-/***/ },
-/* 6 */
+/* 8 */
 /***/ function(module, exports, __webpack_require__) {
 
   /* WEBPACK VAR INJECTION */(function(global) {'use strict';
@@ -4880,7 +5644,7 @@ return /******/ (function(modules) { // webpackBootstrap
   /* WEBPACK VAR INJECTION */}.call(exports, (function() { return this; }())))
 
 /***/ },
-/* 7 */
+/* 9 */
 /***/ function(module, exports, __webpack_require__) {
 
   // DOM utility methods
@@ -5082,13 +5846,13 @@ return /******/ (function(modules) { // webpackBootstrap
   };
 
 /***/ },
-/* 8 */
+/* 10 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
 
-  var util = __webpack_require__(1);
-  var Queue = __webpack_require__(9);
+  var util = __webpack_require__(2);
+  var Queue = __webpack_require__(11);
 
   /**
    * DataSet
@@ -5977,7 +6741,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = DataSet;
 
 /***/ },
-/* 9 */
+/* 11 */
 /***/ function(module, exports, __webpack_require__) {
 
   /**
@@ -6182,13 +6946,13 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = Queue;
 
 /***/ },
-/* 10 */
+/* 12 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
 
-  var util = __webpack_require__(1);
-  var DataSet = __webpack_require__(8);
+  var util = __webpack_require__(2);
+  var DataSet = __webpack_require__(10);
 
   /**
    * DataView
@@ -6530,21 +7294,21 @@ return /******/ (function(modules) { // webpackBootstrap
   // nothing interesting for me :-(
 
 /***/ },
-/* 11 */
+/* 13 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
 
-  var Emitter = __webpack_require__(13);
-  var DataSet = __webpack_require__(8);
-  var DataView = __webpack_require__(10);
-  var util = __webpack_require__(1);
-  var Point3d = __webpack_require__(14);
-  var Point2d = __webpack_require__(12);
-  var Camera = __webpack_require__(15);
-  var Filter = __webpack_require__(16);
-  var Slider = __webpack_require__(17);
-  var StepNumber = __webpack_require__(18);
+  var Emitter = __webpack_require__(15);
+  var DataSet = __webpack_require__(10);
+  var DataView = __webpack_require__(12);
+  var util = __webpack_require__(2);
+  var Point3d = __webpack_require__(16);
+  var Point2d = __webpack_require__(14);
+  var Camera = __webpack_require__(17);
+  var Filter = __webpack_require__(18);
+  var Slider = __webpack_require__(19);
+  var StepNumber = __webpack_require__(20);
 
   /**
    * @constructor Graph3d
@@ -8748,7 +9512,7 @@ return /******/ (function(modules) { // webpackBootstrap
   // use use defaults
 
 /***/ },
-/* 12 */
+/* 14 */
 /***/ function(module, exports, __webpack_require__) {
 
   /**
@@ -8766,7 +9530,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = Point2d;
 
 /***/ },
-/* 13 */
+/* 15 */
 /***/ function(module, exports, __webpack_require__) {
 
   
@@ -8936,7 +9700,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 14 */
+/* 16 */
 /***/ function(module, exports, __webpack_require__) {
 
   /**
@@ -9019,12 +9783,12 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = Point3d;
 
 /***/ },
-/* 15 */
+/* 17 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
 
-  var Point3d = __webpack_require__(14);
+  var Point3d = __webpack_require__(16);
 
   /**
    * @class Camera
@@ -9160,12 +9924,12 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = Camera;
 
 /***/ },
-/* 16 */
+/* 18 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
 
-  var DataView = __webpack_require__(10);
+  var DataView = __webpack_require__(12);
 
   /**
    * @class Filter
@@ -9371,12 +10135,12 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = Filter;
 
 /***/ },
-/* 17 */
+/* 19 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
 
-  var util = __webpack_require__(1);
+  var util = __webpack_require__(2);
 
   /**
    * @constructor Slider
@@ -9719,7 +10483,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = Slider;
 
 /***/ },
-/* 18 */
+/* 20 */
 /***/ function(module, exports, __webpack_require__) {
 
   /**
@@ -9863,28 +10627,28 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = StepNumber;
 
 /***/ },
-/* 19 */
+/* 21 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
 
-  var Emitter = __webpack_require__(13);
-  var Hammer = __webpack_require__(23);
-  var util = __webpack_require__(1);
-  var DataSet = __webpack_require__(8);
-  var DataView = __webpack_require__(10);
-  var Range = __webpack_require__(27);
-  var Core = __webpack_require__(30);
-  var TimeAxis = __webpack_require__(41);
-  var CurrentTime = __webpack_require__(20);
-  var CustomTime = __webpack_require__(44);
-  var ItemSet = __webpack_require__(31);
+  var Emitter = __webpack_require__(15);
+  var Hammer = __webpack_require__(25);
+  var util = __webpack_require__(2);
+  var DataSet = __webpack_require__(10);
+  var DataView = __webpack_require__(12);
+  var Range = __webpack_require__(29);
+  var Core = __webpack_require__(32);
+  var TimeAxis = __webpack_require__(43);
+  var CurrentTime = __webpack_require__(22);
+  var CustomTime = __webpack_require__(46);
+  var ItemSet = __webpack_require__(33);
 
-  var Configurator = __webpack_require__(45);
-  var Validator = __webpack_require__(47)['default'];
-  var printStyle = __webpack_require__(47).printStyle;
-  var allOptions = __webpack_require__(48).allOptions;
-  var configureOptions = __webpack_require__(48).configureOptions;
+  var Configurator = __webpack_require__(47);
+  var Validator = __webpack_require__(49)['default'];
+  var printStyle = __webpack_require__(49).printStyle;
+  var allOptions = __webpack_require__(50).allOptions;
+  var configureOptions = __webpack_require__(50).configureOptions;
 
   /**
    * Create a timeline visualization
@@ -10387,15 +11151,15 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = Timeline;
 
 /***/ },
-/* 20 */
+/* 22 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
 
-  var util = __webpack_require__(1);
-  var Component = __webpack_require__(21);
-  var moment = __webpack_require__(2);
-  var locales = __webpack_require__(22);
+  var util = __webpack_require__(2);
+  var Component = __webpack_require__(23);
+  var moment = __webpack_require__(5);
+  var locales = __webpack_require__(24);
 
   /**
    * A current time bar
@@ -10563,7 +11327,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = CurrentTime;
 
 /***/ },
-/* 21 */
+/* 23 */
 /***/ function(module, exports, __webpack_require__) {
 
   /**
@@ -10623,7 +11387,7 @@ return /******/ (function(modules) { // webpackBootstrap
   // should be implemented by the component
 
 /***/ },
-/* 22 */
+/* 24 */
 /***/ function(module, exports, __webpack_require__) {
 
   // English
@@ -10645,7 +11409,7 @@ return /******/ (function(modules) { // webpackBootstrap
   exports['nl_BE'] = exports['nl'];
 
 /***/ },
-/* 23 */
+/* 25 */
 /***/ function(module, exports, __webpack_require__) {
 
   // Only load hammer.js when in a browser environment
@@ -10653,8 +11417,8 @@ return /******/ (function(modules) { // webpackBootstrap
   'use strict';
 
   if (typeof window !== 'undefined') {
-    var propagating = __webpack_require__(24);
-    var Hammer = window['Hammer'] || __webpack_require__(25);
+    var propagating = __webpack_require__(26);
+    var Hammer = window['Hammer'] || __webpack_require__(27);
     module.exports = propagating(Hammer, {
       preventDefault: 'mouse'
     });
@@ -10665,7 +11429,7 @@ return /******/ (function(modules) { // webpackBootstrap
   }
 
 /***/ },
-/* 24 */
+/* 26 */
 /***/ function(module, exports, __webpack_require__) {
 
   var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;'use strict';
@@ -10893,7 +11657,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 25 */
+/* 27 */
 /***/ function(module, exports, __webpack_require__) {
 
   var __WEBPACK_AMD_DEFINE_RESULT__;/*! Hammer.JS - v2.0.4 - 2014-09-28
@@ -13348,7 +14112,7 @@ return /******/ (function(modules) { // webpackBootstrap
       prefixed: prefixed
   });
 
-  if ("function" == TYPE_FUNCTION && __webpack_require__(26)) {
+  if ("function" == TYPE_FUNCTION && __webpack_require__(28)) {
       !(__WEBPACK_AMD_DEFINE_RESULT__ = function() {
           return Hammer;
       }.call(exports, __webpack_require__, exports, module), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__));
@@ -13362,7 +14126,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 26 */
+/* 28 */
 /***/ function(module, exports, __webpack_require__) {
 
   /* WEBPACK VAR INJECTION */(function(__webpack_amd_options__) {module.exports = __webpack_amd_options__;
@@ -13370,16 +14134,16 @@ return /******/ (function(modules) { // webpackBootstrap
   /* WEBPACK VAR INJECTION */}.call(exports, {}))
 
 /***/ },
-/* 27 */
+/* 29 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
 
-  var util = __webpack_require__(1);
-  var hammerUtil = __webpack_require__(28);
-  var moment = __webpack_require__(2);
-  var Component = __webpack_require__(21);
-  var DateUtil = __webpack_require__(29);
+  var util = __webpack_require__(2);
+  var hammerUtil = __webpack_require__(30);
+  var moment = __webpack_require__(5);
+  var Component = __webpack_require__(23);
+  var DateUtil = __webpack_require__(31);
 
   /**
    * @constructor Range
@@ -14046,12 +14810,12 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = Range;
 
 /***/ },
-/* 28 */
+/* 30 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
 
-  var Hammer = __webpack_require__(23);
+  var Hammer = __webpack_require__(25);
 
   /**
    * Register a touch event, taking place before a gesture
@@ -14118,12 +14882,12 @@ return /******/ (function(modules) { // webpackBootstrap
   exports.offRelease = exports.offTouch;
 
 /***/ },
-/* 29 */
+/* 31 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
 
-  var moment = __webpack_require__(2);
+  var moment = __webpack_require__(5);
 
   /**
    * used in Core to convert the options into a volatile variable
@@ -14578,23 +15342,23 @@ return /******/ (function(modules) { // webpackBootstrap
   };
 
 /***/ },
-/* 30 */
+/* 32 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
 
-  var Emitter = __webpack_require__(13);
-  var Hammer = __webpack_require__(23);
-  var hammerUtil = __webpack_require__(28);
-  var util = __webpack_require__(1);
-  var DataSet = __webpack_require__(8);
-  var DataView = __webpack_require__(10);
-  var Range = __webpack_require__(27);
-  var ItemSet = __webpack_require__(31);
-  var TimeAxis = __webpack_require__(41);
-  var Activator = __webpack_require__(42);
-  var DateUtil = __webpack_require__(29);
-  var CustomTime = __webpack_require__(44);
+  var Emitter = __webpack_require__(15);
+  var Hammer = __webpack_require__(25);
+  var hammerUtil = __webpack_require__(30);
+  var util = __webpack_require__(2);
+  var DataSet = __webpack_require__(10);
+  var DataView = __webpack_require__(12);
+  var Range = __webpack_require__(29);
+  var ItemSet = __webpack_require__(33);
+  var TimeAxis = __webpack_require__(43);
+  var Activator = __webpack_require__(44);
+  var DateUtil = __webpack_require__(31);
+  var CustomTime = __webpack_require__(46);
 
   /**
    * Create a timeline visualization
@@ -15549,23 +16313,23 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = Core;
 
 /***/ },
-/* 31 */
+/* 33 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
 
-  var Hammer = __webpack_require__(23);
-  var util = __webpack_require__(1);
-  var DataSet = __webpack_require__(8);
-  var DataView = __webpack_require__(10);
-  var TimeStep = __webpack_require__(36);
-  var Component = __webpack_require__(21);
-  var Group = __webpack_require__(32);
-  var BackgroundGroup = __webpack_require__(37);
-  var BoxItem = __webpack_require__(38);
-  var PointItem = __webpack_require__(39);
-  var RangeItem = __webpack_require__(34);
-  var BackgroundItem = __webpack_require__(40);
+  var Hammer = __webpack_require__(25);
+  var util = __webpack_require__(2);
+  var DataSet = __webpack_require__(10);
+  var DataView = __webpack_require__(12);
+  var TimeStep = __webpack_require__(38);
+  var Component = __webpack_require__(23);
+  var Group = __webpack_require__(34);
+  var BackgroundGroup = __webpack_require__(39);
+  var BoxItem = __webpack_require__(40);
+  var PointItem = __webpack_require__(41);
+  var RangeItem = __webpack_require__(36);
+  var BackgroundItem = __webpack_require__(42);
 
   var UNGROUPED = '__ungrouped__'; // reserved group id for ungrouped items
   var BACKGROUND = '__background__'; // reserved group id for background items without group
@@ -17160,14 +17924,14 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = ItemSet;
 
 /***/ },
-/* 32 */
+/* 34 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
 
-  var util = __webpack_require__(1);
-  var stack = __webpack_require__(33);
-  var RangeItem = __webpack_require__(34);
+  var util = __webpack_require__(2);
+  var stack = __webpack_require__(35);
+  var RangeItem = __webpack_require__(36);
 
   /**
    * @constructor Group
@@ -17746,7 +18510,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = Group;
 
 /***/ },
-/* 33 */
+/* 35 */
 /***/ function(module, exports, __webpack_require__) {
 
   // Utility functions for ordering and stacking of items
@@ -17870,13 +18634,13 @@ return /******/ (function(modules) { // webpackBootstrap
   };
 
 /***/ },
-/* 34 */
+/* 36 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
 
-  var Hammer = __webpack_require__(23);
-  var Item = __webpack_require__(35);
+  var Hammer = __webpack_require__(25);
+  var Item = __webpack_require__(37);
 
   /**
    * @constructor RangeItem
@@ -18164,13 +18928,13 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = RangeItem;
 
 /***/ },
-/* 35 */
+/* 37 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
 
-  var Hammer = __webpack_require__(23);
-  var util = __webpack_require__(1);
+  var Hammer = __webpack_require__(25);
+  var util = __webpack_require__(2);
 
   /**
    * @constructor Item
@@ -18454,14 +19218,14 @@ return /******/ (function(modules) { // webpackBootstrap
   // should be implemented by the item
 
 /***/ },
-/* 36 */
+/* 38 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
 
-  var moment = __webpack_require__(2);
-  var DateUtil = __webpack_require__(29);
-  var util = __webpack_require__(1);
+  var moment = __webpack_require__(5);
+  var DateUtil = __webpack_require__(31);
+  var util = __webpack_require__(2);
 
   /**
    * @constructor  TimeStep
@@ -19144,13 +19908,13 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = TimeStep;
 
 /***/ },
-/* 37 */
+/* 39 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
 
-  var util = __webpack_require__(1);
-  var Group = __webpack_require__(32);
+  var util = __webpack_require__(2);
+  var Group = __webpack_require__(34);
 
   /**
    * @constructor BackgroundGroup
@@ -19208,13 +19972,13 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = BackgroundGroup;
 
 /***/ },
-/* 38 */
+/* 40 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
 
-  var Item = __webpack_require__(35);
-  var util = __webpack_require__(1);
+  var Item = __webpack_require__(37);
+  var util = __webpack_require__(2);
 
   /**
    * @constructor BoxItem
@@ -19446,12 +20210,12 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = BoxItem;
 
 /***/ },
-/* 39 */
+/* 41 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
 
-  var Item = __webpack_require__(35);
+  var Item = __webpack_require__(37);
 
   /**
    * @constructor PointItem
@@ -19649,15 +20413,15 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = PointItem;
 
 /***/ },
-/* 40 */
+/* 42 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
 
-  var Hammer = __webpack_require__(23);
-  var Item = __webpack_require__(35);
-  var BackgroundGroup = __webpack_require__(37);
-  var RangeItem = __webpack_require__(34);
+  var Hammer = __webpack_require__(25);
+  var Item = __webpack_require__(37);
+  var BackgroundGroup = __webpack_require__(39);
+  var RangeItem = __webpack_require__(36);
 
   /**
    * @constructor BackgroundItem
@@ -19870,16 +20634,16 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = BackgroundItem;
 
 /***/ },
-/* 41 */
+/* 43 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
 
-  var util = __webpack_require__(1);
-  var Component = __webpack_require__(21);
-  var TimeStep = __webpack_require__(36);
-  var DateUtil = __webpack_require__(29);
-  var moment = __webpack_require__(2);
+  var util = __webpack_require__(2);
+  var Component = __webpack_require__(23);
+  var TimeStep = __webpack_require__(38);
+  var DateUtil = __webpack_require__(31);
+  var moment = __webpack_require__(5);
 
   /**
    * A horizontal time axis
@@ -20309,15 +21073,15 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = TimeAxis;
 
 /***/ },
-/* 42 */
+/* 44 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
 
-  var keycharm = __webpack_require__(43);
-  var Emitter = __webpack_require__(13);
-  var Hammer = __webpack_require__(23);
-  var util = __webpack_require__(1);
+  var keycharm = __webpack_require__(45);
+  var Emitter = __webpack_require__(15);
+  var Hammer = __webpack_require__(25);
+  var util = __webpack_require__(2);
 
   /**
    * Turn an element into an clickToUse element.
@@ -20468,7 +21232,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = Activator;
 
 /***/ },
-/* 43 */
+/* 45 */
 /***/ function(module, exports, __webpack_require__) {
 
   var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;"use strict";
@@ -20667,16 +21431,16 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 44 */
+/* 46 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
 
-  var Hammer = __webpack_require__(23);
-  var util = __webpack_require__(1);
-  var Component = __webpack_require__(21);
-  var moment = __webpack_require__(2);
-  var locales = __webpack_require__(22);
+  var Hammer = __webpack_require__(25);
+  var util = __webpack_require__(2);
+  var Component = __webpack_require__(23);
+  var moment = __webpack_require__(5);
+  var locales = __webpack_require__(24);
 
   /**
    * A custom time bar
@@ -20906,7 +21670,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = CustomTime;
 
 /***/ },
-/* 45 */
+/* 47 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -20921,11 +21685,11 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
 
-  var _ColorPicker = __webpack_require__(46);
+  var _ColorPicker = __webpack_require__(48);
 
   var _ColorPicker2 = _interopRequireDefault(_ColorPicker);
 
-  var util = __webpack_require__(1);
+  var util = __webpack_require__(2);
 
   /**
    * The way this works is for all properties of this.possible options, you can supply the property name in any form to list the options.
@@ -21587,7 +22351,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 46 */
+/* 48 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -21600,9 +22364,9 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
 
-  var Hammer = __webpack_require__(23);
-  var hammerUtil = __webpack_require__(28);
-  var util = __webpack_require__(1);
+  var Hammer = __webpack_require__(25);
+  var hammerUtil = __webpack_require__(30);
+  var util = __webpack_require__(2);
 
   var ColorPicker = (function () {
     function ColorPicker() {
@@ -22167,7 +22931,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 47 */
+/* 49 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -22180,7 +22944,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
 
-  var util = __webpack_require__(1);
+  var util = __webpack_require__(2);
 
   var errorFound = false;
   var allOptions = undefined;
@@ -22480,7 +23244,7 @@ return /******/ (function(modules) { // webpackBootstrap
   exports.printStyle = printStyle;
 
 /***/ },
-/* 48 */
+/* 50 */
 /***/ function(module, exports, __webpack_require__) {
 
   /**
@@ -22694,28 +23458,28 @@ return /******/ (function(modules) { // webpackBootstrap
   exports.configureOptions = configureOptions;
 
 /***/ },
-/* 49 */
+/* 51 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
 
-  var Emitter = __webpack_require__(13);
-  var Hammer = __webpack_require__(23);
-  var util = __webpack_require__(1);
-  var DataSet = __webpack_require__(8);
-  var DataView = __webpack_require__(10);
-  var Range = __webpack_require__(27);
-  var Core = __webpack_require__(30);
-  var TimeAxis = __webpack_require__(41);
-  var CurrentTime = __webpack_require__(20);
-  var CustomTime = __webpack_require__(44);
-  var LineGraph = __webpack_require__(50);
+  var Emitter = __webpack_require__(15);
+  var Hammer = __webpack_require__(25);
+  var util = __webpack_require__(2);
+  var DataSet = __webpack_require__(10);
+  var DataView = __webpack_require__(12);
+  var Range = __webpack_require__(29);
+  var Core = __webpack_require__(32);
+  var TimeAxis = __webpack_require__(43);
+  var CurrentTime = __webpack_require__(22);
+  var CustomTime = __webpack_require__(46);
+  var LineGraph = __webpack_require__(52);
 
-  var Configurator = __webpack_require__(45);
-  var Validator = __webpack_require__(47)['default'];
-  var printStyle = __webpack_require__(47).printStyle;
-  var allOptions = __webpack_require__(58).allOptions;
-  var configureOptions = __webpack_require__(58).configureOptions;
+  var Configurator = __webpack_require__(47);
+  var Validator = __webpack_require__(49)['default'];
+  var printStyle = __webpack_require__(49).printStyle;
+  var allOptions = __webpack_require__(60).allOptions;
+  var configureOptions = __webpack_require__(60).configureOptions;
 
   /**
    * Create a timeline visualization
@@ -23024,21 +23788,21 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = Graph2d;
 
 /***/ },
-/* 50 */
+/* 52 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
 
-  var util = __webpack_require__(1);
-  var DOMutil = __webpack_require__(7);
-  var DataSet = __webpack_require__(8);
-  var DataView = __webpack_require__(10);
-  var Component = __webpack_require__(21);
-  var DataAxis = __webpack_require__(51);
-  var GraphGroup = __webpack_require__(53);
-  var Legend = __webpack_require__(57);
-  var BarFunctions = __webpack_require__(56);
-  var LineFunctions = __webpack_require__(54);
+  var util = __webpack_require__(2);
+  var DOMutil = __webpack_require__(9);
+  var DataSet = __webpack_require__(10);
+  var DataView = __webpack_require__(12);
+  var Component = __webpack_require__(23);
+  var DataAxis = __webpack_require__(53);
+  var GraphGroup = __webpack_require__(55);
+  var Legend = __webpack_require__(59);
+  var BarFunctions = __webpack_require__(58);
+  var LineFunctions = __webpack_require__(56);
 
   var UNGROUPED = '__ungrouped__'; // reserved group id for ungrouped items
 
@@ -24000,15 +24764,15 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = LineGraph;
 
 /***/ },
-/* 51 */
+/* 53 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
 
-  var util = __webpack_require__(1);
-  var DOMutil = __webpack_require__(7);
-  var Component = __webpack_require__(21);
-  var DataStep = __webpack_require__(52);
+  var util = __webpack_require__(2);
+  var DOMutil = __webpack_require__(9);
+  var Component = __webpack_require__(23);
+  var DataStep = __webpack_require__(54);
 
   /**
    * A horizontal time axis
@@ -24604,7 +25368,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = DataAxis;
 
 /***/ },
-/* 52 */
+/* 54 */
 /***/ function(module, exports, __webpack_require__) {
 
   /**
@@ -24831,16 +25595,16 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = DataStep;
 
 /***/ },
-/* 53 */
+/* 55 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
 
-  var util = __webpack_require__(1);
-  var DOMutil = __webpack_require__(7);
-  var Line = __webpack_require__(54);
-  var Bar = __webpack_require__(56);
-  var Points = __webpack_require__(55);
+  var util = __webpack_require__(2);
+  var DOMutil = __webpack_require__(9);
+  var Line = __webpack_require__(56);
+  var Bar = __webpack_require__(58);
+  var Points = __webpack_require__(57);
 
   /**
    * /**
@@ -25025,13 +25789,13 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = GraphGroup;
 
 /***/ },
-/* 54 */
+/* 56 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
 
-  var DOMutil = __webpack_require__(7);
-  var Points = __webpack_require__(55);
+  var DOMutil = __webpack_require__(9);
+  var Points = __webpack_require__(57);
 
   function Line(groupId, options) {
     this.groupId = groupId;
@@ -25320,12 +26084,12 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = Line;
 
 /***/ },
-/* 55 */
+/* 57 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
 
-  var DOMutil = __webpack_require__(7);
+  var DOMutil = __webpack_require__(9);
 
   function Points(groupId, options) {
     this.groupId = groupId;
@@ -25367,13 +26131,13 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = Points;
 
 /***/ },
-/* 56 */
+/* 58 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
 
-  var DOMutil = __webpack_require__(7);
-  var Points = __webpack_require__(55);
+  var DOMutil = __webpack_require__(9);
+  var Points = __webpack_require__(57);
 
   function Bargraph(groupId, options) {
     this.groupId = groupId;
@@ -25615,14 +26379,14 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = Bargraph;
 
 /***/ },
-/* 57 */
+/* 59 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
 
-  var util = __webpack_require__(1);
-  var DOMutil = __webpack_require__(7);
-  var Component = __webpack_require__(21);
+  var util = __webpack_require__(2);
+  var DOMutil = __webpack_require__(9);
+  var Component = __webpack_require__(23);
 
   /**
    * Legend for Graph2d
@@ -25829,7 +26593,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = Legend;
 
 /***/ },
-/* 58 */
+/* 60 */
 /***/ function(module, exports, __webpack_require__) {
 
   /**
@@ -26097,7 +26861,7 @@ return /******/ (function(modules) { // webpackBootstrap
   exports.configureOptions = configureOptions;
 
 /***/ },
-/* 59 */
+/* 61 */
 /***/ function(module, exports, __webpack_require__) {
 
   // Load custom shapes into CanvasRenderingContext2D
@@ -26105,31 +26869,31 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
 
-  var _modulesGroups = __webpack_require__(60);
+  var _modulesGroups = __webpack_require__(62);
 
   var _modulesGroups2 = _interopRequireDefault(_modulesGroups);
 
-  var _modulesNodesHandler = __webpack_require__(61);
+  var _modulesNodesHandler = __webpack_require__(63);
 
   var _modulesNodesHandler2 = _interopRequireDefault(_modulesNodesHandler);
 
-  var _modulesEdgesHandler = __webpack_require__(81);
+  var _modulesEdgesHandler = __webpack_require__(83);
 
   var _modulesEdgesHandler2 = _interopRequireDefault(_modulesEdgesHandler);
 
-  var _modulesPhysicsEngine = __webpack_require__(88);
+  var _modulesPhysicsEngine = __webpack_require__(90);
 
   var _modulesPhysicsEngine2 = _interopRequireDefault(_modulesPhysicsEngine);
 
-  var _modulesClustering = __webpack_require__(97);
+  var _modulesClustering = __webpack_require__(99);
 
   var _modulesClustering2 = _interopRequireDefault(_modulesClustering);
 
-  var _modulesCanvasRenderer = __webpack_require__(99);
+  var _modulesCanvasRenderer = __webpack_require__(3);
 
   var _modulesCanvasRenderer2 = _interopRequireDefault(_modulesCanvasRenderer);
 
-  var _modulesCanvas = __webpack_require__(100);
+  var _modulesCanvas = __webpack_require__(4);
 
   var _modulesCanvas2 = _interopRequireDefault(_modulesCanvas);
 
@@ -26153,11 +26917,11 @@ return /******/ (function(modules) { // webpackBootstrap
 
   var _modulesManipulationSystem2 = _interopRequireDefault(_modulesManipulationSystem);
 
-  var _sharedConfigurator = __webpack_require__(45);
+  var _sharedConfigurator = __webpack_require__(47);
 
   var _sharedConfigurator2 = _interopRequireDefault(_sharedConfigurator);
 
-  var _sharedValidator = __webpack_require__(47);
+  var _sharedValidator = __webpack_require__(49);
 
   var _sharedValidator2 = _interopRequireDefault(_sharedValidator);
 
@@ -26165,15 +26929,15 @@ return /******/ (function(modules) { // webpackBootstrap
 
   __webpack_require__(109);
 
-  var Emitter = __webpack_require__(13);
-  var Hammer = __webpack_require__(23);
-  var util = __webpack_require__(1);
-  var DataSet = __webpack_require__(8);
-  var DataView = __webpack_require__(10);
+  var Emitter = __webpack_require__(15);
+  var Hammer = __webpack_require__(25);
+  var util = __webpack_require__(2);
+  var DataSet = __webpack_require__(10);
+  var DataView = __webpack_require__(12);
   var dotparser = __webpack_require__(110);
   var gephiParser = __webpack_require__(111);
   var Images = __webpack_require__(112);
-  var Activator = __webpack_require__(42);
+  var Activator = __webpack_require__(44);
   var locales = __webpack_require__(113);
 
   /**
@@ -26703,7 +27467,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = Network;
 
 /***/ },
-/* 60 */
+/* 62 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
@@ -26716,7 +27480,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
-  var util = __webpack_require__(1);
+  var util = __webpack_require__(2);
 
   /**
    * @class Groups
@@ -26845,7 +27609,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports["default"];
 
 /***/ },
-/* 61 */
+/* 63 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -26860,17 +27624,17 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
 
-  var _componentsNode = __webpack_require__(62);
+  var _componentsNode = __webpack_require__(64);
 
   var _componentsNode2 = _interopRequireDefault(_componentsNode);
 
-  var _componentsSharedLabel = __webpack_require__(63);
+  var _componentsSharedLabel = __webpack_require__(65);
 
   var _componentsSharedLabel2 = _interopRequireDefault(_componentsSharedLabel);
 
-  var util = __webpack_require__(1);
-  var DataSet = __webpack_require__(8);
-  var DataView = __webpack_require__(10);
+  var util = __webpack_require__(2);
+  var DataSet = __webpack_require__(10);
+  var DataView = __webpack_require__(12);
 
   var NodesHandler = (function () {
     function NodesHandler(body, images, groups, layoutEngine) {
@@ -27323,7 +28087,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 62 */
+/* 64 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -27338,71 +28102,71 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
 
-  var _sharedLabel = __webpack_require__(63);
+  var _sharedLabel = __webpack_require__(65);
 
   var _sharedLabel2 = _interopRequireDefault(_sharedLabel);
 
-  var _nodesShapesBox = __webpack_require__(64);
+  var _nodesShapesBox = __webpack_require__(66);
 
   var _nodesShapesBox2 = _interopRequireDefault(_nodesShapesBox);
 
-  var _nodesShapesCircle = __webpack_require__(66);
+  var _nodesShapesCircle = __webpack_require__(68);
 
   var _nodesShapesCircle2 = _interopRequireDefault(_nodesShapesCircle);
 
-  var _nodesShapesCircularImage = __webpack_require__(68);
+  var _nodesShapesCircularImage = __webpack_require__(70);
 
   var _nodesShapesCircularImage2 = _interopRequireDefault(_nodesShapesCircularImage);
 
-  var _nodesShapesDatabase = __webpack_require__(69);
+  var _nodesShapesDatabase = __webpack_require__(71);
 
   var _nodesShapesDatabase2 = _interopRequireDefault(_nodesShapesDatabase);
 
-  var _nodesShapesDiamond = __webpack_require__(70);
+  var _nodesShapesDiamond = __webpack_require__(72);
 
   var _nodesShapesDiamond2 = _interopRequireDefault(_nodesShapesDiamond);
 
-  var _nodesShapesDot = __webpack_require__(72);
+  var _nodesShapesDot = __webpack_require__(74);
 
   var _nodesShapesDot2 = _interopRequireDefault(_nodesShapesDot);
 
-  var _nodesShapesEllipse = __webpack_require__(73);
+  var _nodesShapesEllipse = __webpack_require__(75);
 
   var _nodesShapesEllipse2 = _interopRequireDefault(_nodesShapesEllipse);
 
-  var _nodesShapesIcon = __webpack_require__(74);
+  var _nodesShapesIcon = __webpack_require__(76);
 
   var _nodesShapesIcon2 = _interopRequireDefault(_nodesShapesIcon);
 
-  var _nodesShapesImage = __webpack_require__(75);
+  var _nodesShapesImage = __webpack_require__(77);
 
   var _nodesShapesImage2 = _interopRequireDefault(_nodesShapesImage);
 
-  var _nodesShapesSquare = __webpack_require__(76);
+  var _nodesShapesSquare = __webpack_require__(78);
 
   var _nodesShapesSquare2 = _interopRequireDefault(_nodesShapesSquare);
 
-  var _nodesShapesStar = __webpack_require__(77);
+  var _nodesShapesStar = __webpack_require__(79);
 
   var _nodesShapesStar2 = _interopRequireDefault(_nodesShapesStar);
 
-  var _nodesShapesText = __webpack_require__(78);
+  var _nodesShapesText = __webpack_require__(80);
 
   var _nodesShapesText2 = _interopRequireDefault(_nodesShapesText);
 
-  var _nodesShapesTriangle = __webpack_require__(79);
+  var _nodesShapesTriangle = __webpack_require__(81);
 
   var _nodesShapesTriangle2 = _interopRequireDefault(_nodesShapesTriangle);
 
-  var _nodesShapesTriangleDown = __webpack_require__(80);
+  var _nodesShapesTriangleDown = __webpack_require__(82);
 
   var _nodesShapesTriangleDown2 = _interopRequireDefault(_nodesShapesTriangleDown);
 
-  var _sharedValidator = __webpack_require__(47);
+  var _sharedValidator = __webpack_require__(49);
 
   var _sharedValidator2 = _interopRequireDefault(_sharedValidator);
 
-  var util = __webpack_require__(1);
+  var util = __webpack_require__(2);
 
   /**
    * @class Node
@@ -27843,7 +28607,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 63 */
+/* 65 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -27858,7 +28622,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
 
-  var util = __webpack_require__(1);
+  var util = __webpack_require__(2);
 
   var Label = (function () {
     function Label(body, options) {
@@ -28159,7 +28923,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 64 */
+/* 66 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -28178,7 +28942,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; }
 
-  var _utilNodeBase = __webpack_require__(65);
+  var _utilNodeBase = __webpack_require__(67);
 
   var _utilNodeBase2 = _interopRequireDefault(_utilNodeBase);
 
@@ -28264,7 +29028,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 65 */
+/* 67 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -28332,7 +29096,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 66 */
+/* 68 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -28351,7 +29115,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; }
 
-  var _utilCircleImageBase = __webpack_require__(67);
+  var _utilCircleImageBase = __webpack_require__(69);
 
   var _utilCircleImageBase2 = _interopRequireDefault(_utilCircleImageBase);
 
@@ -28422,7 +29186,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 67 */
+/* 69 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -28441,7 +29205,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; }
 
-  var _utilNodeBase = __webpack_require__(65);
+  var _utilNodeBase = __webpack_require__(67);
 
   var _utilNodeBase2 = _interopRequireDefault(_utilNodeBase);
 
@@ -28571,7 +29335,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 68 */
+/* 70 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -28590,7 +29354,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; }
 
-  var _utilCircleImageBase = __webpack_require__(67);
+  var _utilCircleImageBase = __webpack_require__(69);
 
   var _utilCircleImageBase2 = _interopRequireDefault(_utilCircleImageBase);
 
@@ -28676,7 +29440,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 69 */
+/* 71 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -28695,7 +29459,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; }
 
-  var _utilNodeBase = __webpack_require__(65);
+  var _utilNodeBase = __webpack_require__(67);
 
   var _utilNodeBase2 = _interopRequireDefault(_utilNodeBase);
 
@@ -28781,7 +29545,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 70 */
+/* 72 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -28800,7 +29564,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; }
 
-  var _utilShapeBase = __webpack_require__(71);
+  var _utilShapeBase = __webpack_require__(73);
 
   var _utilShapeBase2 = _interopRequireDefault(_utilShapeBase);
 
@@ -28837,7 +29601,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 71 */
+/* 73 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -28856,7 +29620,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; }
 
-  var _utilNodeBase = __webpack_require__(65);
+  var _utilNodeBase = __webpack_require__(67);
 
   var _utilNodeBase2 = _interopRequireDefault(_utilNodeBase);
 
@@ -28936,7 +29700,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 72 */
+/* 74 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -28955,7 +29719,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; }
 
-  var _utilShapeBase = __webpack_require__(71);
+  var _utilShapeBase = __webpack_require__(73);
 
   var _utilShapeBase2 = _interopRequireDefault(_utilShapeBase);
 
@@ -28992,7 +29756,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 73 */
+/* 75 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -29011,7 +29775,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; }
 
-  var _utilNodeBase = __webpack_require__(65);
+  var _utilNodeBase = __webpack_require__(67);
 
   var _utilNodeBase2 = _interopRequireDefault(_utilNodeBase);
 
@@ -29099,7 +29863,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 74 */
+/* 76 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -29118,7 +29882,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; }
 
-  var _utilNodeBase = __webpack_require__(65);
+  var _utilNodeBase = __webpack_require__(67);
 
   var _utilNodeBase2 = _interopRequireDefault(_utilNodeBase);
 
@@ -29215,7 +29979,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 75 */
+/* 77 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -29234,7 +29998,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; }
 
-  var _utilCircleImageBase = __webpack_require__(67);
+  var _utilCircleImageBase = __webpack_require__(69);
 
   var _utilCircleImageBase2 = _interopRequireDefault(_utilCircleImageBase);
 
@@ -29302,7 +30066,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 76 */
+/* 78 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -29321,7 +30085,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; }
 
-  var _utilShapeBase = __webpack_require__(71);
+  var _utilShapeBase = __webpack_require__(73);
 
   var _utilShapeBase2 = _interopRequireDefault(_utilShapeBase);
 
@@ -29359,7 +30123,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 77 */
+/* 79 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -29378,7 +30142,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; }
 
-  var _utilShapeBase = __webpack_require__(71);
+  var _utilShapeBase = __webpack_require__(73);
 
   var _utilShapeBase2 = _interopRequireDefault(_utilShapeBase);
 
@@ -29415,7 +30179,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 78 */
+/* 80 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -29434,7 +30198,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; }
 
-  var _utilNodeBase = __webpack_require__(65);
+  var _utilNodeBase = __webpack_require__(67);
 
   var _utilNodeBase2 = _interopRequireDefault(_utilNodeBase);
 
@@ -29500,7 +30264,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 79 */
+/* 81 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -29519,7 +30283,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; }
 
-  var _utilShapeBase = __webpack_require__(71);
+  var _utilShapeBase = __webpack_require__(73);
 
   var _utilShapeBase2 = _interopRequireDefault(_utilShapeBase);
 
@@ -29556,7 +30320,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 80 */
+/* 82 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -29575,7 +30339,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; }
 
-  var _utilShapeBase = __webpack_require__(71);
+  var _utilShapeBase = __webpack_require__(73);
 
   var _utilShapeBase2 = _interopRequireDefault(_utilShapeBase);
 
@@ -29612,7 +30376,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 81 */
+/* 83 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -29627,17 +30391,17 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
 
-  var _componentsEdge = __webpack_require__(82);
+  var _componentsEdge = __webpack_require__(84);
 
   var _componentsEdge2 = _interopRequireDefault(_componentsEdge);
 
-  var _componentsSharedLabel = __webpack_require__(63);
+  var _componentsSharedLabel = __webpack_require__(65);
 
   var _componentsSharedLabel2 = _interopRequireDefault(_componentsSharedLabel);
 
-  var util = __webpack_require__(1);
-  var DataSet = __webpack_require__(8);
-  var DataView = __webpack_require__(10);
+  var util = __webpack_require__(2);
+  var DataSet = __webpack_require__(10);
+  var DataView = __webpack_require__(12);
 
   var EdgesHandler = (function () {
     function EdgesHandler(body, images, groups) {
@@ -30049,7 +30813,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 82 */
+/* 84 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -30064,23 +30828,23 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
 
-  var _sharedLabel = __webpack_require__(63);
+  var _sharedLabel = __webpack_require__(65);
 
   var _sharedLabel2 = _interopRequireDefault(_sharedLabel);
 
-  var _edgesBezierEdgeDynamic = __webpack_require__(83);
+  var _edgesBezierEdgeDynamic = __webpack_require__(85);
 
   var _edgesBezierEdgeDynamic2 = _interopRequireDefault(_edgesBezierEdgeDynamic);
 
-  var _edgesBezierEdgeStatic = __webpack_require__(86);
+  var _edgesBezierEdgeStatic = __webpack_require__(88);
 
   var _edgesBezierEdgeStatic2 = _interopRequireDefault(_edgesBezierEdgeStatic);
 
-  var _edgesStraightEdge = __webpack_require__(87);
+  var _edgesStraightEdge = __webpack_require__(89);
 
   var _edgesStraightEdge2 = _interopRequireDefault(_edgesStraightEdge);
 
-  var util = __webpack_require__(1);
+  var util = __webpack_require__(2);
 
   /**
    * @class Edge
@@ -30613,7 +31377,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 83 */
+/* 85 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -30632,7 +31396,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; }
 
-  var _utilBezierEdgeBase = __webpack_require__(84);
+  var _utilBezierEdgeBase = __webpack_require__(86);
 
   var _utilBezierEdgeBase2 = _interopRequireDefault(_utilBezierEdgeBase);
 
@@ -30778,7 +31542,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 84 */
+/* 86 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -30797,7 +31561,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; }
 
-  var _EdgeBase2 = __webpack_require__(85);
+  var _EdgeBase2 = __webpack_require__(87);
 
   var _EdgeBase3 = _interopRequireDefault(_EdgeBase2);
 
@@ -30925,7 +31689,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 85 */
+/* 87 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -30940,7 +31704,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
 
-  var util = __webpack_require__(1);
+  var util = __webpack_require__(2);
 
   var EdgeBase = (function () {
     function EdgeBase(options, body, labelModule) {
@@ -31519,7 +32283,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 86 */
+/* 88 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -31538,7 +32302,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; }
 
-  var _utilBezierEdgeBase = __webpack_require__(84);
+  var _utilBezierEdgeBase = __webpack_require__(86);
 
   var _utilBezierEdgeBase2 = _interopRequireDefault(_utilBezierEdgeBase);
 
@@ -31778,7 +32542,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 87 */
+/* 89 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -31797,7 +32561,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; }
 
-  var _utilEdgeBase = __webpack_require__(85);
+  var _utilEdgeBase = __webpack_require__(87);
 
   var _utilEdgeBase2 = _interopRequireDefault(_utilEdgeBase);
 
@@ -31883,7 +32647,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 88 */
+/* 90 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -31898,39 +32662,39 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
 
-  var _componentsPhysicsBarnesHutSolver = __webpack_require__(89);
+  var _componentsPhysicsBarnesHutSolver = __webpack_require__(91);
 
   var _componentsPhysicsBarnesHutSolver2 = _interopRequireDefault(_componentsPhysicsBarnesHutSolver);
 
-  var _componentsPhysicsRepulsionSolver = __webpack_require__(90);
+  var _componentsPhysicsRepulsionSolver = __webpack_require__(92);
 
   var _componentsPhysicsRepulsionSolver2 = _interopRequireDefault(_componentsPhysicsRepulsionSolver);
 
-  var _componentsPhysicsHierarchicalRepulsionSolver = __webpack_require__(91);
+  var _componentsPhysicsHierarchicalRepulsionSolver = __webpack_require__(93);
 
   var _componentsPhysicsHierarchicalRepulsionSolver2 = _interopRequireDefault(_componentsPhysicsHierarchicalRepulsionSolver);
 
-  var _componentsPhysicsSpringSolver = __webpack_require__(92);
+  var _componentsPhysicsSpringSolver = __webpack_require__(94);
 
   var _componentsPhysicsSpringSolver2 = _interopRequireDefault(_componentsPhysicsSpringSolver);
 
-  var _componentsPhysicsHierarchicalSpringSolver = __webpack_require__(93);
+  var _componentsPhysicsHierarchicalSpringSolver = __webpack_require__(95);
 
   var _componentsPhysicsHierarchicalSpringSolver2 = _interopRequireDefault(_componentsPhysicsHierarchicalSpringSolver);
 
-  var _componentsPhysicsCentralGravitySolver = __webpack_require__(94);
+  var _componentsPhysicsCentralGravitySolver = __webpack_require__(96);
 
   var _componentsPhysicsCentralGravitySolver2 = _interopRequireDefault(_componentsPhysicsCentralGravitySolver);
 
-  var _componentsPhysicsFA2BasedRepulsionSolver = __webpack_require__(95);
+  var _componentsPhysicsFA2BasedRepulsionSolver = __webpack_require__(97);
 
   var _componentsPhysicsFA2BasedRepulsionSolver2 = _interopRequireDefault(_componentsPhysicsFA2BasedRepulsionSolver);
 
-  var _componentsPhysicsFA2BasedCentralGravitySolver = __webpack_require__(96);
+  var _componentsPhysicsFA2BasedCentralGravitySolver = __webpack_require__(98);
 
   var _componentsPhysicsFA2BasedCentralGravitySolver2 = _interopRequireDefault(_componentsPhysicsFA2BasedCentralGravitySolver);
 
-  var util = __webpack_require__(1);
+  var util = __webpack_require__(2);
 
   var PhysicsEngine = (function () {
     function PhysicsEngine(body) {
@@ -32507,7 +33271,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 89 */
+/* 91 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
@@ -33006,7 +33770,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports["default"];
 
 /***/ },
-/* 90 */
+/* 92 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
@@ -33101,7 +33865,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports["default"];
 
 /***/ },
-/* 91 */
+/* 93 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
@@ -33192,7 +33956,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports["default"];
 
 /***/ },
-/* 92 */
+/* 94 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
@@ -33302,7 +34066,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports["default"];
 
 /***/ },
-/* 93 */
+/* 95 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
@@ -33431,7 +34195,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports["default"];
 
 /***/ },
-/* 94 */
+/* 96 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
@@ -33500,7 +34264,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports["default"];
 
 /***/ },
-/* 95 */
+/* 97 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
@@ -33519,7 +34283,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; }
 
-  var _BarnesHutSolver2 = __webpack_require__(89);
+  var _BarnesHutSolver2 = __webpack_require__(91);
 
   var _BarnesHutSolver3 = _interopRequireDefault(_BarnesHutSolver2);
 
@@ -33574,7 +34338,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports["default"];
 
 /***/ },
-/* 96 */
+/* 98 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
@@ -33593,7 +34357,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; }
 
-  var _CentralGravitySolver2 = __webpack_require__(94);
+  var _CentralGravitySolver2 = __webpack_require__(96);
 
   var _CentralGravitySolver3 = _interopRequireDefault(_CentralGravitySolver2);
 
@@ -33630,7 +34394,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports["default"];
 
 /***/ },
-/* 97 */
+/* 99 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -33645,11 +34409,11 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
 
-  var _componentsNodesCluster = __webpack_require__(98);
+  var _componentsNodesCluster = __webpack_require__(100);
 
   var _componentsNodesCluster2 = _interopRequireDefault(_componentsNodesCluster);
 
-  var util = __webpack_require__(1);
+  var util = __webpack_require__(2);
 
   var ClusterEngine = (function () {
     function ClusterEngine(body) {
@@ -34385,7 +35149,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 98 */
+/* 100 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -34402,7 +35166,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; }
 
-  var _Node2 = __webpack_require__(62);
+  var _Node2 = __webpack_require__(64);
 
   var _Node3 = _interopRequireDefault(_Node2);
 
@@ -34430,765 +35194,6 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 99 */
-/***/ function(module, exports, __webpack_require__) {
-
-  'use strict';
-
-  Object.defineProperty(exports, '__esModule', {
-    value: true
-  });
-
-  var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
-
-  function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
-
-  if (typeof window !== 'undefined') {
-    window.requestAnimationFrame = window.requestAnimationFrame || window.mozRequestAnimationFrame || window.webkitRequestAnimationFrame || window.msRequestAnimationFrame;
-  }
-
-  var util = __webpack_require__(1);
-
-  var CanvasRenderer = (function () {
-    function CanvasRenderer(body, canvas) {
-      _classCallCheck(this, CanvasRenderer);
-
-      this.body = body;
-      this.canvas = canvas;
-
-      this.redrawRequested = false;
-      this.renderTimer = undefined;
-      this.requiresTimeout = true;
-      this.renderingActive = false;
-      this.renderRequests = 0;
-      this.pixelRatio = undefined;
-      this.allowRedrawRequests = true;
-
-      this.dragging = false;
-      this.options = {};
-      this.defaultOptions = {
-        hideEdgesOnDrag: false,
-        hideNodesOnDrag: false
-      };
-      util.extend(this.options, this.defaultOptions);
-
-      this._determineBrowserMethod();
-      this.bindEventListeners();
-    }
-
-    _createClass(CanvasRenderer, [{
-      key: 'bindEventListeners',
-      value: function bindEventListeners() {
-        var _this = this;
-
-        this.body.emitter.on('dragStart', function () {
-          _this.dragging = true;
-        });
-        this.body.emitter.on('dragEnd', function () {
-          return _this.dragging = false;
-        });
-        this.body.emitter.on('_resizeNodes', function () {
-          return _this._resizeNodes();
-        });
-        this.body.emitter.on('_redraw', function () {
-          if (_this.renderingActive === false) {
-            _this._redraw();
-          }
-        });
-        this.body.emitter.on('_blockRedrawRequests', function () {
-          _this.allowRedrawRequests = false;
-        });
-        this.body.emitter.on('_allowRedrawRequests', function () {
-          _this.allowRedrawRequests = true;
-        });
-        this.body.emitter.on('_requestRedraw', this._requestRedraw.bind(this));
-        this.body.emitter.on('_startRendering', function () {
-          _this.renderRequests += 1;
-          _this.renderingActive = true;
-          _this._startRendering();
-        });
-        this.body.emitter.on('_stopRendering', function () {
-          _this.renderRequests -= 1;
-          _this.renderingActive = _this.renderRequests > 0;
-          _this.renderTimer = undefined;
-        });
-        this.body.emitter.on('destroy', function () {
-          _this.renderRequests = 0;
-          _this.renderingActive = false;
-          if (_this.requiresTimeout === true) {
-            clearTimeout(_this.renderTimer);
-          } else {
-            cancelAnimationFrame(_this.renderTimer);
-          }
-          _this.body.emitter.off();
-        });
-      }
-    }, {
-      key: 'setOptions',
-      value: function setOptions(options) {
-        if (options !== undefined) {
-          var fields = ['hideEdgesOnDrag', 'hideNodesOnDrag'];
-          util.selectiveDeepExtend(fields, this.options, options);
-        }
-      }
-    }, {
-      key: '_startRendering',
-      value: function _startRendering() {
-        if (this.renderingActive === true) {
-          if (this.renderTimer === undefined) {
-            if (this.requiresTimeout === true) {
-              this.renderTimer = window.setTimeout(this._renderStep.bind(this), this.simulationInterval); // wait this.renderTimeStep milliseconds and perform the animation step function
-            } else {
-              this.renderTimer = window.requestAnimationFrame(this._renderStep.bind(this)); // wait this.renderTimeStep milliseconds and perform the animation step function
-            }
-          }
-        }
-      }
-    }, {
-      key: '_renderStep',
-      value: function _renderStep() {
-        if (this.renderingActive === true) {
-          // reset the renderTimer so a new scheduled animation step can be set
-          this.renderTimer = undefined;
-
-          if (this.requiresTimeout === true) {
-            // this schedules a new simulation step
-            this._startRendering();
-          }
-
-          this._redraw();
-
-          if (this.requiresTimeout === false) {
-            // this schedules a new simulation step
-            this._startRendering();
-          }
-        }
-      }
-    }, {
-      key: 'redraw',
-
-      /**
-       * Redraw the network with the current data
-       * chart will be resized too.
-       */
-      value: function redraw() {
-        this.body.emitter.emit('setSize');
-        this._redraw();
-      }
-    }, {
-      key: '_requestRedraw',
-
-      /**
-       * Redraw the network with the current data
-       * @param hidden | used to get the first estimate of the node sizes. only the nodes are drawn after which they are quickly drawn over.
-       * @private
-       */
-      value: function _requestRedraw() {
-        var _this2 = this;
-
-        if (this.redrawRequested !== true && this.renderingActive === false && this.allowRedrawRequests === true) {
-          this.redrawRequested = true;
-          if (this.requiresTimeout === true) {
-            window.setTimeout(function () {
-              _this2._redraw(false);
-            }, 0);
-          } else {
-            window.requestAnimationFrame(function () {
-              _this2._redraw(false);
-            });
-          }
-        }
-      }
-    }, {
-      key: '_redraw',
-      value: function _redraw() {
-        var hidden = arguments[0] === undefined ? false : arguments[0];
-
-        this.body.emitter.emit('initRedraw');
-
-        this.redrawRequested = false;
-        var ctx = this.canvas.frame.canvas.getContext('2d');
-
-        // when the container div was hidden, this fixes it back up!
-        if (this.canvas.frame.canvas.width === 0 || this.canvas.frame.canvas.height === 0) {
-          this.canvas.setSize();
-        }
-
-        if (this.pixelRatio === undefined) {
-          this.pixelRatio = (window.devicePixelRatio || 1) / (ctx.webkitBackingStorePixelRatio || ctx.mozBackingStorePixelRatio || ctx.msBackingStorePixelRatio || ctx.oBackingStorePixelRatio || ctx.backingStorePixelRatio || 1);
-        }
-
-        ctx.setTransform(this.pixelRatio, 0, 0, this.pixelRatio, 0, 0);
-
-        // clear the canvas
-        var w = this.canvas.frame.canvas.clientWidth;
-        var h = this.canvas.frame.canvas.clientHeight;
-        ctx.clearRect(0, 0, w, h);
-
-        // set scaling and translation
-        ctx.save();
-        ctx.translate(this.body.view.translation.x, this.body.view.translation.y);
-        ctx.scale(this.body.view.scale, this.body.view.scale);
-
-        ctx.beginPath();
-        this.body.emitter.emit('beforeDrawing', ctx);
-        ctx.closePath();
-
-        if (hidden === false) {
-          if (this.dragging === false || this.dragging === true && this.options.hideEdgesOnDrag === false) {
-            this._drawEdges(ctx);
-          }
-        }
-
-        if (this.dragging === false || this.dragging === true && this.options.hideNodesOnDrag === false) {
-          this._drawNodes(ctx, hidden);
-        }
-
-        if (this.controlNodesActive === true) {
-          this._drawControlNodes(ctx);
-        }
-
-        ctx.beginPath();
-        //this.physics.nodesSolver._debug(ctx,"#F00F0F");
-        this.body.emitter.emit('afterDrawing', ctx);
-        ctx.closePath();
-        // restore original scaling and translation
-        ctx.restore();
-
-        if (hidden === true) {
-          ctx.clearRect(0, 0, w, h);
-        }
-      }
-    }, {
-      key: '_resizeNodes',
-
-      /**
-       * Redraw all nodes
-       * The 2d context of a HTML canvas can be retrieved by canvas.getContext('2d');
-       * @param {CanvasRenderingContext2D}   ctx
-       * @param {Boolean} [alwaysShow]
-       * @private
-       */
-      value: function _resizeNodes() {
-        var ctx = this.canvas.frame.canvas.getContext('2d');
-        if (this.pixelRatio === undefined) {
-          this.pixelRatio = (window.devicePixelRatio || 1) / (ctx.webkitBackingStorePixelRatio || ctx.mozBackingStorePixelRatio || ctx.msBackingStorePixelRatio || ctx.oBackingStorePixelRatio || ctx.backingStorePixelRatio || 1);
-        }
-        ctx.setTransform(this.pixelRatio, 0, 0, this.pixelRatio, 0, 0);
-        ctx.save();
-        ctx.translate(this.body.view.translation.x, this.body.view.translation.y);
-        ctx.scale(this.body.view.scale, this.body.view.scale);
-
-        var nodes = this.body.nodes;
-        var node = undefined;
-
-        // resize all nodes
-        for (var nodeId in nodes) {
-          if (nodes.hasOwnProperty(nodeId)) {
-            node = nodes[nodeId];
-            node.resize(ctx);
-            node.updateBoundingBox(ctx);
-          }
-        }
-
-        // restore original scaling and translation
-        ctx.restore();
-      }
-    }, {
-      key: '_drawNodes',
-
-      /**
-       * Redraw all nodes
-       * The 2d context of a HTML canvas can be retrieved by canvas.getContext('2d');
-       * @param {CanvasRenderingContext2D}   ctx
-       * @param {Boolean} [alwaysShow]
-       * @private
-       */
-      value: function _drawNodes(ctx) {
-        var alwaysShow = arguments[1] === undefined ? false : arguments[1];
-
-        var nodes = this.body.nodes;
-        var nodeIndices = this.body.nodeIndices;
-        var node = undefined;
-        var selected = [];
-        var margin = 20;
-        var topLeft = this.canvas.DOMtoCanvas({ x: -margin, y: -margin });
-        var bottomRight = this.canvas.DOMtoCanvas({
-          x: this.canvas.frame.canvas.clientWidth + margin,
-          y: this.canvas.frame.canvas.clientHeight + margin
-        });
-        var viewableArea = { top: topLeft.y, left: topLeft.x, bottom: bottomRight.y, right: bottomRight.x };
-
-        // draw unselected nodes;
-        for (var i = 0; i < nodeIndices.length; i++) {
-          node = nodes[nodeIndices[i]];
-          // set selected nodes aside
-          if (node.isSelected()) {
-            selected.push(nodeIndices[i]);
-          } else {
-            if (alwaysShow === true) {
-              node.draw(ctx);
-            } else if (node.isBoundingBoxOverlappingWith(viewableArea) === true) {
-              node.draw(ctx);
-            } else {
-              node.updateBoundingBox(ctx);
-            }
-          }
-        }
-
-        // draw the selected nodes on top
-        for (var i = 0; i < selected.length; i++) {
-          node = nodes[selected[i]];
-          node.draw(ctx);
-        }
-      }
-    }, {
-      key: '_drawEdges',
-
-      /**
-       * Redraw all edges
-       * The 2d context of a HTML canvas can be retrieved by canvas.getContext('2d');
-       * @param {CanvasRenderingContext2D}   ctx
-       * @private
-       */
-      value: function _drawEdges(ctx) {
-        var edges = this.body.edges;
-        var edgeIndices = this.body.edgeIndices;
-        var edge = undefined;
-
-        for (var i = 0; i < edgeIndices.length; i++) {
-          edge = edges[edgeIndices[i]];
-          if (edge.connected === true) {
-            edge.draw(ctx);
-          }
-        }
-      }
-    }, {
-      key: '_drawControlNodes',
-
-      /**
-       * Redraw all edges
-       * The 2d context of a HTML canvas can be retrieved by canvas.getContext('2d');
-       * @param {CanvasRenderingContext2D}   ctx
-       * @private
-       */
-      value: function _drawControlNodes(ctx) {
-        var edges = this.body.edges;
-        var edgeIndices = this.body.edgeIndices;
-        var edge = undefined;
-
-        for (var i = 0; i < edgeIndices.length; i++) {
-          edge = edges[edgeIndices[i]];
-          edge._drawControlNodes(ctx);
-        }
-      }
-    }, {
-      key: '_determineBrowserMethod',
-
-      /**
-       * Determine if the browser requires a setTimeout or a requestAnimationFrame. This was required because
-       * some implementations (safari and IE9) did not support requestAnimationFrame
-       * @private
-       */
-      value: function _determineBrowserMethod() {
-        if (typeof window !== 'undefined') {
-          var browserType = navigator.userAgent.toLowerCase();
-          this.requiresTimeout = false;
-          if (browserType.indexOf('msie 9.0') != -1) {
-            // IE 9
-            this.requiresTimeout = true;
-          } else if (browserType.indexOf('safari') != -1) {
-            // safari
-            if (browserType.indexOf('chrome') <= -1) {
-              this.requiresTimeout = true;
-            }
-          }
-        } else {
-          this.requiresTimeout = true;
-        }
-      }
-    }]);
-
-    return CanvasRenderer;
-  })();
-
-  exports['default'] = CanvasRenderer;
-  module.exports = exports['default'];
-
-/***/ },
-/* 100 */
-/***/ function(module, exports, __webpack_require__) {
-
-  'use strict';
-
-  Object.defineProperty(exports, '__esModule', {
-    value: true
-  });
-
-  var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
-
-  function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
-
-  var Hammer = __webpack_require__(23);
-  var hammerUtil = __webpack_require__(28);
-
-  var util = __webpack_require__(1);
-
-  /**
-   * Create the main frame for the Network.
-   * This function is executed once when a Network object is created. The frame
-   * contains a canvas, and this canvas contains all objects like the axis and
-   * nodes.
-   * @private
-   */
-
-  var Canvas = (function () {
-    function Canvas(body) {
-      _classCallCheck(this, Canvas);
-
-      this.body = body;
-      this.pixelRatio = 1;
-      this.resizeTimer = undefined;
-      this.resizeFunction = this._onResize.bind(this);
-
-      this.options = {};
-      this.defaultOptions = {
-        autoResize: true,
-        height: '100%',
-        width: '100%'
-      };
-      util.extend(this.options, this.defaultOptions);
-
-      this.bindEventListeners();
-    }
-
-    _createClass(Canvas, [{
-      key: 'bindEventListeners',
-      value: function bindEventListeners() {
-        var _this = this;
-
-        // bind the events
-        this.body.emitter.once('resize', function (obj) {
-          if (obj.width !== 0) {
-            _this.body.view.translation.x = obj.width * 0.5;
-          }
-          if (obj.height !== 0) {
-            _this.body.view.translation.y = obj.height * 0.5;
-          }
-        });
-        this.body.emitter.on('setSize', this.setSize.bind(this));
-        this.body.emitter.on('destroy', function () {
-          _this.hammerFrame.destroy();
-          _this.hammer.destroy();
-          _this._cleanUp();
-        });
-      }
-    }, {
-      key: 'setOptions',
-      value: function setOptions(options) {
-        var _this2 = this;
-
-        if (options !== undefined) {
-          var fields = ['width', 'height', 'autoResize'];
-          util.selectiveDeepExtend(fields, this.options, options);
-        }
-
-        if (this.options.autoResize === true) {
-          // automatically adapt to a changing size of the browser.
-          this._cleanUp();
-          this.resizeTimer = setInterval(function () {
-            var changed = _this2.setSize();
-            if (changed === true) {
-              _this2.body.emitter.emit('_requestRedraw');
-            }
-          }, 1000);
-          this.resizeFunction = this._onResize.bind(this);
-          util.addEventListener(window, 'resize', this.resizeFunction);
-        }
-      }
-    }, {
-      key: '_cleanUp',
-      value: function _cleanUp() {
-        // automatically adapt to a changing size of the browser.
-        if (this.resizeTimer !== undefined) {
-          clearInterval(this.resizeTimer);
-        }
-        util.removeEventListener(window, 'resize', this.resizeFunction);
-        this.resizeFunction = undefined;
-      }
-    }, {
-      key: '_onResize',
-      value: function _onResize() {
-        this.setSize();
-        this.body.emitter.emit('_redraw');
-      }
-    }, {
-      key: '_prepareValue',
-      value: function _prepareValue(value) {
-        if (typeof value === 'number') {
-          return value + 'px';
-        } else if (typeof value === 'string') {
-          if (value.indexOf('%') !== -1 || value.indexOf('px') !== -1) {
-            return value;
-          } else if (value.indexOf('%') === -1) {
-            return value + 'px';
-          }
-        }
-        throw new Error('Could not use the value supplie for width or height:' + value);
-      }
-    }, {
-      key: '_create',
-
-      /**
-       * Create the HTML
-       */
-      value: function _create() {
-        // remove all elements from the container element.
-        while (this.body.container.hasChildNodes()) {
-          this.body.container.removeChild(this.body.container.firstChild);
-        }
-
-        this.frame = document.createElement('div');
-        this.frame.className = 'vis-network';
-        this.frame.style.position = 'relative';
-        this.frame.style.overflow = 'hidden';
-        this.frame.tabIndex = 900; // tab index is required for keycharm to bind keystrokes to the div instead of the window
-
-        //////////////////////////////////////////////////////////////////
-
-        this.frame.canvas = document.createElement('canvas');
-        this.frame.canvas.style.position = 'relative';
-        this.frame.appendChild(this.frame.canvas);
-
-        if (!this.frame.canvas.getContext) {
-          var noCanvas = document.createElement('DIV');
-          noCanvas.style.color = 'red';
-          noCanvas.style.fontWeight = 'bold';
-          noCanvas.style.padding = '10px';
-          noCanvas.innerHTML = 'Error: your browser does not support HTML canvas';
-          this.frame.canvas.appendChild(noCanvas);
-        } else {
-          var ctx = this.frame.canvas.getContext('2d');
-          this.pixelRatio = (window.devicePixelRatio || 1) / (ctx.webkitBackingStorePixelRatio || ctx.mozBackingStorePixelRatio || ctx.msBackingStorePixelRatio || ctx.oBackingStorePixelRatio || ctx.backingStorePixelRatio || 1);
-
-          this.frame.canvas.getContext('2d').setTransform(this.pixelRatio, 0, 0, this.pixelRatio, 0, 0);
-        }
-
-        // add the frame to the container element
-        this.body.container.appendChild(this.frame);
-
-        this.body.view.scale = 1;
-        this.body.view.translation = { x: 0.5 * this.frame.canvas.clientWidth, y: 0.5 * this.frame.canvas.clientHeight };
-
-        this._bindHammer();
-      }
-    }, {
-      key: '_bindHammer',
-
-      /**
-       * This function binds hammer, it can be repeated over and over due to the uniqueness check.
-       * @private
-       */
-      value: function _bindHammer() {
-        var _this3 = this;
-
-        if (this.hammer !== undefined) {
-          this.hammer.destroy();
-        }
-        this.drag = {};
-        this.pinch = {};
-
-        // init hammer
-        this.hammer = new Hammer(this.frame.canvas);
-        this.hammer.get('pinch').set({ enable: true });
-        // enable to get better response, todo: test on mobile.
-        //this.hammer.get('pan').set({threshold:2});
-
-        hammerUtil.onTouch(this.hammer, function (event) {
-          _this3.body.eventListeners.onTouch(event);
-        });
-        this.hammer.on('tap', function (event) {
-          _this3.body.eventListeners.onTap(event);
-        });
-        this.hammer.on('doubletap', function (event) {
-          _this3.body.eventListeners.onDoubleTap(event);
-        });
-        this.hammer.on('press', function (event) {
-          _this3.body.eventListeners.onHold(event);
-        });
-        this.hammer.on('panstart', function (event) {
-          _this3.body.eventListeners.onDragStart(event);
-        });
-        this.hammer.on('panmove', function (event) {
-          _this3.body.eventListeners.onDrag(event);
-        });
-        this.hammer.on('panend', function (event) {
-          _this3.body.eventListeners.onDragEnd(event);
-        });
-        this.hammer.on('pinch', function (event) {
-          _this3.body.eventListeners.onPinch(event);
-        });
-
-        // TODO: neatly cleanup these handlers when re-creating the Canvas, IF these are done with hammer, event.stopPropagation will not work?
-        this.frame.canvas.addEventListener('mousewheel', function (event) {
-          _this3.body.eventListeners.onMouseWheel(event);
-        });
-        this.frame.canvas.addEventListener('DOMMouseScroll', function (event) {
-          _this3.body.eventListeners.onMouseWheel(event);
-        });
-
-        this.frame.canvas.addEventListener('mousemove', function (event) {
-          _this3.body.eventListeners.onMouseMove(event);
-        });
-        this.frame.canvas.addEventListener('contextmenu', function (event) {
-          _this3.body.eventListeners.onContext(event);
-        });
-
-        this.hammerFrame = new Hammer(this.frame);
-        hammerUtil.onRelease(this.hammerFrame, function (event) {
-          _this3.body.eventListeners.onRelease(event);
-        });
-      }
-    }, {
-      key: 'setSize',
-
-      /**
-       * Set a new size for the network
-       * @param {string} width   Width in pixels or percentage (for example '800px'
-       *                         or '50%')
-       * @param {string} height  Height in pixels or percentage  (for example '400px'
-       *                         or '30%')
-       */
-      value: function setSize() {
-        var width = arguments[0] === undefined ? this.options.width : arguments[0];
-        var height = arguments[1] === undefined ? this.options.height : arguments[1];
-
-        width = this._prepareValue(width);
-        height = this._prepareValue(height);
-
-        var emitEvent = false;
-        var oldWidth = this.frame.canvas.width;
-        var oldHeight = this.frame.canvas.height;
-
-        if (width != this.options.width || height != this.options.height || this.frame.style.width != width || this.frame.style.height != height) {
-          this.frame.style.width = width;
-          this.frame.style.height = height;
-
-          this.frame.canvas.style.width = '100%';
-          this.frame.canvas.style.height = '100%';
-
-          this.frame.canvas.width = this.frame.canvas.clientWidth * this.pixelRatio;
-          this.frame.canvas.height = this.frame.canvas.clientHeight * this.pixelRatio;
-
-          this.options.width = width;
-          this.options.height = height;
-
-          emitEvent = true;
-        } else {
-          // this would adapt the width of the canvas to the width from 100% if and only if
-          // there is a change.
-
-          if (this.frame.canvas.width != this.frame.canvas.clientWidth * this.pixelRatio) {
-            this.frame.canvas.width = this.frame.canvas.clientWidth * this.pixelRatio;
-            emitEvent = true;
-          }
-          if (this.frame.canvas.height != this.frame.canvas.clientHeight * this.pixelRatio) {
-            this.frame.canvas.height = this.frame.canvas.clientHeight * this.pixelRatio;
-            emitEvent = true;
-          }
-        }
-
-        if (emitEvent === true) {
-          this.body.emitter.emit('resize', { width: this.frame.canvas.width / this.pixelRatio, height: this.frame.canvas.height / this.pixelRatio, oldWidth: oldWidth / this.pixelRatio, oldHeight: oldHeight / this.pixelRatio });
-        }
-
-        return emitEvent;
-      }
-    }, {
-      key: '_XconvertDOMtoCanvas',
-
-      /**
-       * Convert the X coordinate in DOM-space (coordinate point in browser relative to the container div) to
-       * the X coordinate in canvas-space (the simulation sandbox, which the camera looks upon)
-       * @param {number} x
-       * @returns {number}
-       * @private
-       */
-      value: function _XconvertDOMtoCanvas(x) {
-        return (x - this.body.view.translation.x) / this.body.view.scale;
-      }
-    }, {
-      key: '_XconvertCanvasToDOM',
-
-      /**
-       * Convert the X coordinate in canvas-space (the simulation sandbox, which the camera looks upon) to
-       * the X coordinate in DOM-space (coordinate point in browser relative to the container div)
-       * @param {number} x
-       * @returns {number}
-       * @private
-       */
-      value: function _XconvertCanvasToDOM(x) {
-        return x * this.body.view.scale + this.body.view.translation.x;
-      }
-    }, {
-      key: '_YconvertDOMtoCanvas',
-
-      /**
-       * Convert the Y coordinate in DOM-space (coordinate point in browser relative to the container div) to
-       * the Y coordinate in canvas-space (the simulation sandbox, which the camera looks upon)
-       * @param {number} y
-       * @returns {number}
-       * @private
-       */
-      value: function _YconvertDOMtoCanvas(y) {
-        return (y - this.body.view.translation.y) / this.body.view.scale;
-      }
-    }, {
-      key: '_YconvertCanvasToDOM',
-
-      /**
-       * Convert the Y coordinate in canvas-space (the simulation sandbox, which the camera looks upon) to
-       * the Y coordinate in DOM-space (coordinate point in browser relative to the container div)
-       * @param {number} y
-       * @returns {number}
-       * @private
-       */
-      value: function _YconvertCanvasToDOM(y) {
-        return y * this.body.view.scale + this.body.view.translation.y;
-      }
-    }, {
-      key: 'canvasToDOM',
-
-      /**
-       *
-       * @param {object} pos   = {x: number, y: number}
-       * @returns {{x: number, y: number}}
-       * @constructor
-       */
-      value: function canvasToDOM(pos) {
-        return { x: this._XconvertCanvasToDOM(pos.x), y: this._YconvertCanvasToDOM(pos.y) };
-      }
-    }, {
-      key: 'DOMtoCanvas',
-
-      /**
-       *
-       * @param {object} pos   = {x: number, y: number}
-       * @returns {{x: number, y: number}}
-       * @constructor
-       */
-      value: function DOMtoCanvas(pos) {
-        return { x: this._XconvertDOMtoCanvas(pos.x), y: this._YconvertDOMtoCanvas(pos.y) };
-      }
-    }]);
-
-    return Canvas;
-  })();
-
-  exports['default'] = Canvas;
-  module.exports = exports['default'];
-
-/***/ },
 /* 101 */
 /***/ function(module, exports, __webpack_require__) {
 
@@ -35202,7 +35207,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
-  var util = __webpack_require__(1);
+  var util = __webpack_require__(2);
 
   var View = (function () {
     function View(body, canvas) {
@@ -35615,7 +35620,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   var _componentsPopup2 = _interopRequireDefault(_componentsPopup);
 
-  var util = __webpack_require__(1);
+  var util = __webpack_require__(2);
 
   var InteractionHandler = (function () {
     function InteractionHandler(body, canvas, selectionHandler) {
@@ -36362,10 +36367,10 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
 
-  var util = __webpack_require__(1);
-  var Hammer = __webpack_require__(23);
-  var hammerUtil = __webpack_require__(28);
-  var keycharm = __webpack_require__(43);
+  var util = __webpack_require__(2);
+  var Hammer = __webpack_require__(25);
+  var hammerUtil = __webpack_require__(30);
+  var keycharm = __webpack_require__(45);
 
   var NavigationHandler = (function () {
     function NavigationHandler(body, canvas) {
@@ -36805,9 +36810,9 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
-  var Node = __webpack_require__(62);
-  var Edge = __webpack_require__(82);
-  var util = __webpack_require__(1);
+  var Node = __webpack_require__(64);
+  var Edge = __webpack_require__(84);
+  var util = __webpack_require__(2);
 
   var SelectionHandler = (function () {
     function SelectionHandler(body, canvas) {
@@ -37529,7 +37534,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
 
-  var util = __webpack_require__(1);
+  var util = __webpack_require__(2);
 
   var LayoutEngine = (function () {
     function LayoutEngine(body) {
@@ -38039,9 +38044,9 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
 
-  var util = __webpack_require__(1);
-  var Hammer = __webpack_require__(23);
-  var hammerUtil = __webpack_require__(28);
+  var util = __webpack_require__(2);
+  var Hammer = __webpack_require__(25);
+  var hammerUtil = __webpack_require__(30);
 
   /**
    * clears the toolbar div element of children

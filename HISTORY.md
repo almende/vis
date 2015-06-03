@@ -28,6 +28,7 @@ http://visjs.org
 - Fixed dataView support for storePositions.
 - Second click on node is no longer unselect.
 - Added releaseFunction to openCluster.
+- Fixed bug where the network could flicker when the pixelRatio is not integer.
 
 
 ## 2015-05-28, version 4.1.0
