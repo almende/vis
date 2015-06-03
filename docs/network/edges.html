@@ -362,6 +362,12 @@ network.setOptions(options);
             </td>
         </tr>
         <tr>
+            <td>from</td>
+            <td>Number or String</td>
+            <td></td>
+            <td>Edges are between two nodes, one to and one from. This is where you define the from node. You have to supply the corresponding node ID. This naturally only applies to individual edges.</td>
+        </tr>
+        <tr>
             <td>hidden</td>
             <td>Boolean</td>
             <td><code>false</code></td>
@@ -393,7 +399,7 @@ var options: {
             <td>id</td>
             <td>String</td>
             <td><code>undefined</code></td>
-            <td>The id of the edge. The id is optional for edges. When not supplied, an UUID will be assigned to the edge.</td>
+            <td>The id of the edge. The id is optional for edges. When not supplied, an UUID will be assigned to the edge. This naturally only applies to individual edges.</td>
         </tr>
         <tr>
             <td>label</td>
@@ -613,6 +619,12 @@ var options: {
             <td>String</td>
             <td><code>undefined</code></td>
             <td>The title is shown in a pop-up when the mouse moves over the edge.</td>
+        </tr>
+        <tr>
+            <td>to</td>
+            <td>Number or String</td>
+            <td></td>
+            <td>Edges are between two nodes, one to and one from. This is where you define the to node. You have to supply the corresponding node ID. This naturally only applies to individual edges.</td>
         </tr>
         <tr>
             <td>value</td>

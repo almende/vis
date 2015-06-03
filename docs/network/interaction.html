@@ -86,7 +86,7 @@ var options = {
     hideEdgesOnDrag: false,
     hideNodesOnDrag: false,
     hover: false,
-    hoverSelectedEdges: true,
+    hoverConnectedEdges: true,
     keyboard: {
       enabled: false,
       speed: {x: 10, y: 10, zoom: 0.02},
@@ -123,7 +123,7 @@ network.setOptions(options);
         <tr><td>hideEdgesOnDrag</td>        <td>Boolean</td>            <td><code>false</code></td>     <td>When true, the edges are not drawn when dragging the view. This can greatly speed up responsiveness on dragging, improving user experience.</td></tr>
         <tr><td>hideNodesOnDrag</td>        <td>Boolean</td>            <td><code>false</code></td>     <td>When true, the nodes are not drawn when dragging the view. This can greatly speed up responsiveness on dragging, improving user experience.</td></tr>
         <tr><td>hover</td>                  <td>Boolean</td>            <td><code>false</code></td>     <td>When true, the nodes use their hover colors when the mouse moves over them.</td></tr>
-        <tr><td>hoverSelectedEdges</td>     <td>Boolean</td>            <td><code>true</code></td>      <td>When true, on hovering over a node, it's connecting edges are highlighted.</td></tr>
+        <tr><td>hoverConnectedEdges</td>     <td>Boolean</td>            <td><code>true</code></td>      <td>When true, on hovering over a node, it's connecting edges are highlighted.</td></tr>
         <tr class='toggle collapsible' onclick="toggleTable('optionTable','keyboard', this);"><td><span parent="keyboard" class="right-caret"></span> keyboard</td>               <td>Object or Boolean</td>   <td><code>Object</code></td>    <td>When true, the keyboard shortcuts are enabled with the default settings. For further customization, you can supply an object.</td></tr>
         <tr parent="keyboard" class="hidden"><td class="indent">keyboard.enabled</td>       <td>Boolean</td>            <td><code>false</code></td>     <td>Toggle the usage of the keyboard shortcuts. If this option is not defined, it is set to true if any of the properties in this object are defined.</td></tr>
         <tr parent="keyboard" class="hidden"><td class="indent">keyboard.speed.x</td>       <td>Number</td>             <td><code>1</code></td>         <td>The speed at which the view moves in the x direction on pressing a key or pressing a navigation button.</td></tr>
