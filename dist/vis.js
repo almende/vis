@@ -5,7 +5,7 @@
  * A dynamic, browser-based visualization library.
  *
  * @version 4.1.1-SNAPSHOT
- * @date    2015-06-03
+ * @date    2015-06-04
  *
  * @license
  * Copyright (C) 2011-2014 Almende B.V, http://almende.com
@@ -84,65 +84,65 @@ return /******/ (function(modules) { // webpackBootstrap
   // utils
   'use strict';
 
-  exports.util = __webpack_require__(2);
-  exports.DOMutil = __webpack_require__(9);
+  exports.util = __webpack_require__(4);
+  exports.DOMutil = __webpack_require__(10);
 
   // data
-  exports.DataSet = __webpack_require__(10);
-  exports.DataView = __webpack_require__(12);
-  exports.Queue = __webpack_require__(11);
+  exports.DataSet = __webpack_require__(11);
+  exports.DataView = __webpack_require__(13);
+  exports.Queue = __webpack_require__(12);
 
   // Graph3d
-  exports.Graph3d = __webpack_require__(13);
+  exports.Graph3d = __webpack_require__(14);
   exports.graph3d = {
-    Camera: __webpack_require__(17),
-    Filter: __webpack_require__(18),
-    Point2d: __webpack_require__(14),
-    Point3d: __webpack_require__(16),
-    Slider: __webpack_require__(19),
-    StepNumber: __webpack_require__(20)
+    Camera: __webpack_require__(18),
+    Filter: __webpack_require__(19),
+    Point2d: __webpack_require__(15),
+    Point3d: __webpack_require__(17),
+    Slider: __webpack_require__(20),
+    StepNumber: __webpack_require__(21)
   };
 
   // Timeline
-  exports.Timeline = __webpack_require__(21);
-  exports.Graph2d = __webpack_require__(51);
+  exports.Timeline = __webpack_require__(22);
+  exports.Graph2d = __webpack_require__(52);
   exports.timeline = {
-    DateUtil: __webpack_require__(31),
-    DataStep: __webpack_require__(54),
-    Range: __webpack_require__(29),
-    stack: __webpack_require__(35),
-    TimeStep: __webpack_require__(38),
+    DateUtil: __webpack_require__(32),
+    DataStep: __webpack_require__(55),
+    Range: __webpack_require__(30),
+    stack: __webpack_require__(36),
+    TimeStep: __webpack_require__(39),
 
     components: {
       items: {
-        Item: __webpack_require__(37),
-        BackgroundItem: __webpack_require__(42),
-        BoxItem: __webpack_require__(40),
-        PointItem: __webpack_require__(41),
-        RangeItem: __webpack_require__(36)
+        Item: __webpack_require__(38),
+        BackgroundItem: __webpack_require__(43),
+        BoxItem: __webpack_require__(41),
+        PointItem: __webpack_require__(42),
+        RangeItem: __webpack_require__(37)
       },
 
-      Component: __webpack_require__(23),
-      CurrentTime: __webpack_require__(22),
-      CustomTime: __webpack_require__(46),
-      DataAxis: __webpack_require__(53),
-      GraphGroup: __webpack_require__(55),
-      Group: __webpack_require__(34),
-      BackgroundGroup: __webpack_require__(39),
-      ItemSet: __webpack_require__(33),
-      Legend: __webpack_require__(59),
-      LineGraph: __webpack_require__(52),
-      TimeAxis: __webpack_require__(43)
+      Component: __webpack_require__(24),
+      CurrentTime: __webpack_require__(23),
+      CustomTime: __webpack_require__(47),
+      DataAxis: __webpack_require__(54),
+      GraphGroup: __webpack_require__(56),
+      Group: __webpack_require__(35),
+      BackgroundGroup: __webpack_require__(40),
+      ItemSet: __webpack_require__(34),
+      Legend: __webpack_require__(60),
+      LineGraph: __webpack_require__(53),
+      TimeAxis: __webpack_require__(44)
     }
   };
 
   // Network
-  exports.Network = __webpack_require__(61);
+  exports.Network = __webpack_require__(62);
   exports.network = {
     Images: __webpack_require__(112),
     dotparser: __webpack_require__(110),
     gephiParser: __webpack_require__(111),
-    allOptions: __webpack_require__(108)
+    allOptions: __webpack_require__(5)
   };
   exports.network.convertDot = function (input) {
     return exports.network.dotparser.DOTToGraph(input);
@@ -157,9 +157,9 @@ return /******/ (function(modules) { // webpackBootstrap
   };
 
   // bundled external libraries
-  exports.moment = __webpack_require__(5);
-  exports.hammer = __webpack_require__(25); // TODO: deprecate exports.hammer some day
-  exports.Hammer = __webpack_require__(25);
+  exports.moment = __webpack_require__(6);
+  exports.hammer = __webpack_require__(26); // TODO: deprecate exports.hammer some day
+  exports.Hammer = __webpack_require__(26);
 
 /***/ },
 /* 1 */
@@ -178,6 +178,1852 @@ return /******/ (function(modules) { // webpackBootstrap
 /* 2 */
 /***/ function(module, exports, __webpack_require__) {
 
+  'use strict';
+
+  Object.defineProperty(exports, '__esModule', {
+    value: true
+  });
+
+  var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
+
+  function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
+
+  var util = __webpack_require__(4);
+  var Hammer = __webpack_require__(26);
+  var hammerUtil = __webpack_require__(31);
+
+  /**
+   * clears the toolbar div element of children
+   *
+   * @private
+   */
+
+  var ManipulationSystem = (function () {
+    function ManipulationSystem(body, canvas, selectionHandler) {
+      var _this = this;
+
+      _classCallCheck(this, ManipulationSystem);
+
+      this.body = body;
+      this.canvas = canvas;
+      this.selectionHandler = selectionHandler;
+
+      this.editMode = false;
+      this.manipulationDiv = undefined;
+      this.editModeDiv = undefined;
+      this.closeDiv = undefined;
+
+      this.manipulationHammers = [];
+      this.temporaryUIFunctions = {};
+      this.temporaryEventFunctions = [];
+
+      this.touchTime = 0;
+      this.temporaryIds = { nodes: [], edges: [] };
+      this.guiEnabled = false;
+      this.inMode = false;
+      this.selectedControlNode = undefined;
+
+      this.options = {};
+      this.defaultOptions = {
+        enabled: false,
+        initiallyActive: false,
+        addNode: true,
+        addEdge: true,
+        editNode: undefined,
+        editEdge: true,
+        deleteNode: true,
+        deleteEdge: true,
+        controlNodeStyle: {
+          shape: 'dot',
+          size: 6,
+          color: { background: '#ff0000', border: '#3c3c3c', highlight: { background: '#07f968', border: '#3c3c3c' } },
+          borderWidth: 2,
+          borderWidthSelected: 2
+        }
+      };
+      util.extend(this.options, this.defaultOptions);
+
+      this.body.emitter.on('destroy', function () {
+        _this._clean();
+      });
+      this.body.emitter.on('_dataChanged', this._restore.bind(this));
+      this.body.emitter.on('_resetData', this._restore.bind(this));
+    }
+
+    _createClass(ManipulationSystem, [{
+      key: '_restore',
+
+      /**
+       * If something changes in the data during editing, switch back to the initial datamanipulation state and close all edit modes.
+       * @private
+       */
+      value: function _restore() {
+        if (this.inMode !== false) {
+          if (this.options.initiallyActive === true) {
+            this.enableEditMode();
+          } else {
+            this.disableEditMode();
+          }
+        }
+      }
+    }, {
+      key: 'setOptions',
+
+      /**
+       * Set the Options
+       * @param options
+       */
+      value: function setOptions(options, allOptions, globalOptions) {
+        if (allOptions !== undefined) {
+          if (allOptions.locale !== undefined) {
+            this.options.locale = allOptions.locale;
+          } else {
+            this.options.locale = globalOptions.locale;
+          }
+          if (allOptions.locales !== undefined) {
+            this.options.locales = allOptions.locales;
+          } else {
+            this.options.locales = globalOptions.locales;
+          }
+        }
+
+        if (options !== undefined) {
+          if (typeof options === 'boolean') {
+            this.options.enabled = options;
+          } else {
+            this.options.enabled = true;
+            util.deepExtend(this.options, options);
+          }
+          if (this.options.initiallyActive === true) {
+            this.editMode = true;
+          }
+          this._setup();
+        }
+      }
+    }, {
+      key: 'toggleEditMode',
+
+      /**
+       * Enable or disable edit-mode. Draws the DOM required and cleans up after itself.
+       *
+       * @private
+       */
+      value: function toggleEditMode() {
+        if (this.editMode === true) {
+          this.disableEditMode();
+        } else {
+          this.enableEditMode();
+        }
+      }
+    }, {
+      key: 'enableEditMode',
+      value: function enableEditMode() {
+        this.editMode = true;
+
+        this._clean();
+        if (this.guiEnabled === true) {
+          this.manipulationDiv.style.display = 'block';
+          this.closeDiv.style.display = 'block';
+          this.editModeDiv.style.display = 'none';
+          this.showManipulatorToolbar();
+        }
+      }
+    }, {
+      key: 'disableEditMode',
+      value: function disableEditMode() {
+        this.editMode = false;
+
+        this._clean();
+        if (this.guiEnabled === true) {
+          this.manipulationDiv.style.display = 'none';
+          this.closeDiv.style.display = 'none';
+          this.editModeDiv.style.display = 'block';
+          this._createEditButton();
+        }
+      }
+    }, {
+      key: 'showManipulatorToolbar',
+
+      /**
+       * Creates the main toolbar. Removes functions bound to the select event. Binds all the buttons of the toolbar.
+       *
+       * @private
+       */
+      value: function showManipulatorToolbar() {
+        // restore the state of any bound functions or events, remove control nodes, restore physics
+        this._clean();
+
+        // reset global letiables
+        this.manipulationDOM = {};
+
+        // if the gui is enabled, draw all elements.
+        if (this.guiEnabled === true) {
+          // a _restore will hide these menus
+          this.editMode = true;
+          this.manipulationDiv.style.display = 'block';
+          this.closeDiv.style.display = 'block';
+
+          var selectedNodeCount = this.selectionHandler._getSelectedNodeCount();
+          var selectedEdgeCount = this.selectionHandler._getSelectedEdgeCount();
+          var selectedTotalCount = selectedNodeCount + selectedEdgeCount;
+          var locale = this.options.locales[this.options.locale];
+          var needSeperator = false;
+
+          if (this.options.addNode !== false) {
+            this._createAddNodeButton(locale);
+            needSeperator = true;
+          }
+          if (this.options.addEdge !== false) {
+            if (needSeperator === true) {
+              this._createSeperator(1);
+            } else {
+              needSeperator = true;
+            }
+            this._createAddEdgeButton(locale);
+          }
+
+          if (selectedNodeCount === 1 && typeof this.options.editNode === 'function') {
+            if (needSeperator === true) {
+              this._createSeperator(2);
+            } else {
+              needSeperator = true;
+            }
+            this._createEditNodeButton(locale);
+          } else if (selectedEdgeCount === 1 && selectedNodeCount === 0 && this.options.editEdge !== false) {
+            if (needSeperator === true) {
+              this._createSeperator(3);
+            } else {
+              needSeperator = true;
+            }
+            this._createEditEdgeButton(locale);
+          }
+
+          // remove buttons
+          if (selectedTotalCount !== 0) {
+            if (selectedNodeCount === 1 && this.options.deleteNode !== false) {
+              if (needSeperator === true) {
+                this._createSeperator(4);
+              }
+              this._createDeleteButton(locale);
+            } else if (selectedNodeCount === 0 && this.options.deleteEdge !== false) {
+              if (needSeperator === true) {
+                this._createSeperator(4);
+              }
+              this._createDeleteButton(locale);
+            }
+          }
+
+          // bind the close button
+          this._bindHammerToDiv(this.closeDiv, this.toggleEditMode.bind(this));
+
+          // refresh this bar based on what has been selected
+          this._temporaryBindEvent('select', this.showManipulatorToolbar.bind(this));
+        }
+
+        // redraw to show any possible changes
+        this.body.emitter.emit('_redraw');
+      }
+    }, {
+      key: 'addNodeMode',
+
+      /**
+       * Create the toolbar for adding Nodes
+       *
+       * @private
+       */
+      value: function addNodeMode() {
+        // when using the gui, enable edit mode if it wasnt already.
+        if (this.editMode !== true) {
+          this.enableEditMode();
+        }
+
+        // restore the state of any bound functions or events, remove control nodes, restore physics
+        this._clean();
+
+        this.inMode = 'addNode';
+        if (this.guiEnabled === true) {
+          var locale = this.options.locales[this.options.locale];
+          this.manipulationDOM = {};
+          this._createBackButton(locale);
+          this._createSeperator();
+          this._createDescription(locale['addDescription'] || this.options.locales['en']['addDescription']);
+
+          // bind the close button
+          this._bindHammerToDiv(this.closeDiv, this.toggleEditMode.bind(this));
+        }
+
+        this._temporaryBindEvent('click', this._performAddNode.bind(this));
+      }
+    }, {
+      key: 'editNode',
+
+      /**
+       * call the bound function to handle the editing of the node. The node has to be selected.
+       *
+       * @private
+       */
+      value: function editNode() {
+        var _this2 = this;
+
+        // when using the gui, enable edit mode if it wasnt already.
+        if (this.editMode !== true) {
+          this.enableEditMode();
+        }
+
+        // restore the state of any bound functions or events, remove control nodes, restore physics
+        this._clean();
+        var node = this.selectionHandler._getSelectedNode();
+        if (node !== undefined) {
+          this.inMode = 'editNode';
+          if (typeof this.options.editNode === 'function') {
+            if (node.isCluster !== true) {
+              var data = util.deepExtend({}, node.options, true);
+              data.x = node.x;
+              data.y = node.y;
+
+              if (this.options.editNode.length === 2) {
+                this.options.editNode(data, function (finalizedData) {
+                  if (finalizedData !== null && finalizedData !== undefined && _this2.inMode === 'editNode') {
+                    // if for whatever reason the mode has changes (due to dataset change) disregard the callback) {
+                    _this2.body.data.nodes.getDataSet().update(finalizedData);
+                  }
+                  _this2.showManipulatorToolbar();
+                });
+              } else {
+                throw new Error('The function for edit does not support two arguments (data, callback)');
+              }
+            } else {
+              alert(this.options.locales[this.options.locale]['editClusterError'] || this.options.locales['en']['editClusterError']);
+            }
+          } else {
+            throw new Error('No function has been configured to handle the editing of nodes.');
+          }
+        } else {
+          this.showManipulatorToolbar();
+        }
+      }
+    }, {
+      key: 'addEdgeMode',
+
+      /**
+       * create the toolbar to connect nodes
+       *
+       * @private
+       */
+      value: function addEdgeMode() {
+        // when using the gui, enable edit mode if it wasnt already.
+        if (this.editMode !== true) {
+          this.enableEditMode();
+        }
+
+        // restore the state of any bound functions or events, remove control nodes, restore physics
+        this._clean();
+
+        this.inMode = 'addEdge';
+        if (this.guiEnabled === true) {
+          var locale = this.options.locales[this.options.locale];
+          this.manipulationDOM = {};
+          this._createBackButton(locale);
+          this._createSeperator();
+          this._createDescription(locale['edgeDescription'] || this.options.locales['en']['edgeDescription']);
+
+          // bind the close button
+          this._bindHammerToDiv(this.closeDiv, this.toggleEditMode.bind(this));
+        }
+
+        // temporarily overload functions
+        this._temporaryBindUI('onTouch', this._handleConnect.bind(this));
+        this._temporaryBindUI('onDragEnd', this._finishConnect.bind(this));
+        this._temporaryBindUI('onDrag', this._dragControlNode.bind(this));
+        this._temporaryBindUI('onRelease', this._finishConnect.bind(this));
+
+        this._temporaryBindUI('onDragStart', function () {});
+        this._temporaryBindUI('onHold', function () {});
+      }
+    }, {
+      key: 'editEdgeMode',
+
+      /**
+       * create the toolbar to edit edges
+       *
+       * @private
+       */
+      value: function editEdgeMode() {
+        var _this3 = this;
+
+        // when using the gui, enable edit mode if it wasnt already.
+        if (this.editMode !== true) {
+          this.enableEditMode();
+        }
+
+        // restore the state of any bound functions or events, remove control nodes, restore physics
+        this._clean();
+
+        this.inMode = 'editEdge';
+        if (this.guiEnabled === true) {
+          var locale = this.options.locales[this.options.locale];
+          this.manipulationDOM = {};
+          this._createBackButton(locale);
+          this._createSeperator();
+          this._createDescription(locale['editEdgeDescription'] || this.options.locales['en']['editEdgeDescription']);
+
+          // bind the close button
+          this._bindHammerToDiv(this.closeDiv, this.toggleEditMode.bind(this));
+        }
+
+        this.edgeBeingEditedId = this.selectionHandler.getSelectedEdges()[0];
+        if (this.edgeBeingEditedId !== undefined) {
+          (function () {
+            var edge = _this3.body.edges[_this3.edgeBeingEditedId];
+
+            // create control nodes
+            var controlNodeFrom = _this3._getNewTargetNode(edge.from.x, edge.from.y);
+            var controlNodeTo = _this3._getNewTargetNode(edge.to.x, edge.to.y);
+
+            _this3.temporaryIds.nodes.push(controlNodeFrom.id);
+            _this3.temporaryIds.nodes.push(controlNodeTo.id);
+
+            _this3.body.nodes[controlNodeFrom.id] = controlNodeFrom;
+            _this3.body.nodeIndices.push(controlNodeFrom.id);
+            _this3.body.nodes[controlNodeTo.id] = controlNodeTo;
+            _this3.body.nodeIndices.push(controlNodeTo.id);
+
+            // temporarily overload UI functions, cleaned up automatically because of _temporaryBindUI
+            _this3._temporaryBindUI('onTouch', _this3._controlNodeTouch.bind(_this3)); // used to get the position
+            _this3._temporaryBindUI('onTap', function () {}); // disabled
+            _this3._temporaryBindUI('onHold', function () {}); // disabled
+            _this3._temporaryBindUI('onDragStart', _this3._controlNodeDragStart.bind(_this3)); // used to select control node
+            _this3._temporaryBindUI('onDrag', _this3._controlNodeDrag.bind(_this3)); // used to drag control node
+            _this3._temporaryBindUI('onDragEnd', _this3._controlNodeDragEnd.bind(_this3)); // used to connect or revert control nodes
+            _this3._temporaryBindUI('onMouseMove', function () {}); // disabled
+
+            // create function to position control nodes correctly on movement
+            // automatically cleaned up because we use the temporary bind
+            _this3._temporaryBindEvent('beforeDrawing', function (ctx) {
+              var positions = edge.edgeType.findBorderPositions(ctx);
+              if (controlNodeFrom.selected === false) {
+                controlNodeFrom.x = positions.from.x;
+                controlNodeFrom.y = positions.from.y;
+              }
+              if (controlNodeTo.selected === false) {
+                controlNodeTo.x = positions.to.x;
+                controlNodeTo.y = positions.to.y;
+              }
+            });
+
+            _this3.body.emitter.emit('_redraw');
+          })();
+        } else {
+          this.showManipulatorToolbar();
+        }
+      }
+    }, {
+      key: 'deleteSelected',
+
+      /**
+       * delete everything in the selection
+       *
+       * @private
+       */
+      value: function deleteSelected() {
+        var _this4 = this;
+
+        // when using the gui, enable edit mode if it wasnt already.
+        if (this.editMode !== true) {
+          this.enableEditMode();
+        }
+
+        // restore the state of any bound functions or events, remove control nodes, restore physics
+        this._clean();
+
+        this.inMode = 'delete';
+        var selectedNodes = this.selectionHandler.getSelectedNodes();
+        var selectedEdges = this.selectionHandler.getSelectedEdges();
+        var deleteFunction = undefined;
+        if (selectedNodes.length > 0) {
+          for (var i = 0; i < selectedNodes.length; i++) {
+            if (this.body.nodes[selectedNodes[i]].isCluster === true) {
+              alert(this.options.locales[this.options.locale]['deleteClusterError'] || this.options.locales['en']['deleteClusterError']);
+              return;
+            }
+          }
+
+          if (typeof this.options.deleteNode === 'function') {
+            deleteFunction = this.options.deleteNode;
+          }
+        } else if (selectedEdges.length > 0) {
+          if (typeof this.options.deleteEdge === 'function') {
+            deleteFunction = this.options.deleteEdge;
+          }
+        }
+
+        if (typeof deleteFunction === 'function') {
+          var data = { nodes: selectedNodes, edges: selectedEdges };
+          if (deleteFunction.length === 2) {
+            deleteFunction(data, function (finalizedData) {
+              if (finalizedData !== null && finalizedData !== undefined && _this4.inMode === 'delete') {
+                // if for whatever reason the mode has changes (due to dataset change) disregard the callback) {
+                _this4.body.data.edges.getDataSet().remove(finalizedData.edges);
+                _this4.body.data.nodes.getDataSet().remove(finalizedData.nodes);
+                _this4.body.emitter.emit('startSimulation');
+                _this4.showManipulatorToolbar();
+              }
+            });
+          } else {
+            throw new Error('The function for delete does not support two arguments (data, callback)');
+          }
+        } else {
+          this.body.data.edges.getDataSet().remove(selectedEdges);
+          this.body.data.nodes.getDataSet().remove(selectedNodes);
+          this.body.emitter.emit('startSimulation');
+          this.showManipulatorToolbar();
+        }
+      }
+    }, {
+      key: '_setup',
+
+      //********************************************** PRIVATE ***************************************//
+
+      /**
+       * draw or remove the DOM
+       * @private
+       */
+      value: function _setup() {
+        if (this.options.enabled === true) {
+          // Enable the GUI
+          this.guiEnabled = true;
+
+          this._createWrappers();
+          if (this.editMode === false) {
+            this._createEditButton();
+          } else {
+            this.showManipulatorToolbar();
+          }
+        } else {
+          this._removeManipulationDOM();
+
+          // disable the gui
+          this.guiEnabled = false;
+        }
+      }
+    }, {
+      key: '_createWrappers',
+
+      /**
+       * create the div overlays that contain the DOM
+       * @private
+       */
+      value: function _createWrappers() {
+        // load the manipulator HTML elements. All styling done in css.
+        if (this.manipulationDiv === undefined) {
+          this.manipulationDiv = document.createElement('div');
+          this.manipulationDiv.className = 'vis-manipulation';
+          if (this.editMode === true) {
+            this.manipulationDiv.style.display = 'block';
+          } else {
+            this.manipulationDiv.style.display = 'none';
+          }
+          this.canvas.frame.appendChild(this.manipulationDiv);
+        }
+
+        // container for the edit button.
+        if (this.editModeDiv === undefined) {
+          this.editModeDiv = document.createElement('div');
+          this.editModeDiv.className = 'vis-edit-mode';
+          if (this.editMode === true) {
+            this.editModeDiv.style.display = 'none';
+          } else {
+            this.editModeDiv.style.display = 'block';
+          }
+          this.canvas.frame.appendChild(this.editModeDiv);
+        }
+
+        // container for the close div button
+        if (this.closeDiv === undefined) {
+          this.closeDiv = document.createElement('div');
+          this.closeDiv.className = 'vis-close';
+          this.closeDiv.style.display = this.manipulationDiv.style.display;
+          this.canvas.frame.appendChild(this.closeDiv);
+        }
+      }
+    }, {
+      key: '_getNewTargetNode',
+
+      /**
+       * generate a new target node. Used for creating new edges and editing edges
+       * @param x
+       * @param y
+       * @returns {*}
+       * @private
+       */
+      value: function _getNewTargetNode(x, y) {
+        var controlNodeStyle = util.deepExtend({}, this.options.controlNodeStyle);
+
+        controlNodeStyle.id = 'targetNode' + util.randomUUID();
+        controlNodeStyle.hidden = false;
+        controlNodeStyle.physics = false;
+        controlNodeStyle.x = x;
+        controlNodeStyle.y = y;
+
+        return this.body.functions.createNode(controlNodeStyle);
+      }
+    }, {
+      key: '_createEditButton',
+
+      /**
+       * Create the edit button
+       */
+      value: function _createEditButton() {
+        // restore everything to it's original state (if applicable)
+        this._clean();
+
+        // reset the manipulationDOM
+        this.manipulationDOM = {};
+
+        // empty the editModeDiv
+        util.recursiveDOMDelete(this.editModeDiv);
+
+        // create the contents for the editMode button
+        var locale = this.options.locales[this.options.locale];
+        var button = this._createButton('editMode', 'vis-button vis-edit vis-edit-mode', locale['edit'] || this.options.locales['en']['edit']);
+        this.editModeDiv.appendChild(button);
+
+        // bind a hammer listener to the button, calling the function toggleEditMode.
+        this._bindHammerToDiv(button, this.toggleEditMode.bind(this));
+      }
+    }, {
+      key: '_clean',
+
+      /**
+       * this function cleans up after everything this module does. Temporary elements, functions and events are removed, physics restored, hammers removed.
+       * @private
+       */
+      value: function _clean() {
+        // not in mode
+        this.inMode = false;
+
+        // _clean the divs
+        if (this.guiEnabled === true) {
+          util.recursiveDOMDelete(this.editModeDiv);
+          util.recursiveDOMDelete(this.manipulationDiv);
+
+          // removes all the bindings and overloads
+          this._cleanManipulatorHammers();
+        }
+
+        // remove temporary nodes and edges
+        this._cleanupTemporaryNodesAndEdges();
+
+        // restore overloaded UI functions
+        this._unbindTemporaryUIs();
+
+        // remove the temporaryEventFunctions
+        this._unbindTemporaryEvents();
+
+        // restore the physics if required
+        this.body.emitter.emit('restorePhysics');
+      }
+    }, {
+      key: '_cleanManipulatorHammers',
+
+      /**
+       * Each dom element has it's own hammer. They are stored in this.manipulationHammers. This cleans them up.
+       * @private
+       */
+      value: function _cleanManipulatorHammers() {
+        // _clean hammer bindings
+        if (this.manipulationHammers.length != 0) {
+          for (var i = 0; i < this.manipulationHammers.length; i++) {
+            this.manipulationHammers[i].destroy();
+          }
+          this.manipulationHammers = [];
+        }
+      }
+    }, {
+      key: '_removeManipulationDOM',
+
+      /**
+       * Remove all DOM elements created by this module.
+       * @private
+       */
+      value: function _removeManipulationDOM() {
+        // removes all the bindings and overloads
+        this._clean();
+
+        // empty the manipulation divs
+        util.recursiveDOMDelete(this.manipulationDiv);
+        util.recursiveDOMDelete(this.editModeDiv);
+        util.recursiveDOMDelete(this.closeDiv);
+
+        // remove the manipulation divs
+        if (this.manipulationDiv) {
+          this.canvas.frame.removeChild(this.manipulationDiv);
+        }
+        if (this.editModeDiv) {
+          this.canvas.frame.removeChild(this.editModeDiv);
+        }
+        if (this.closeDiv) {
+          this.canvas.frame.removeChild(this.manipulationDiv);
+        }
+
+        // set the references to undefined
+        this.manipulationDiv = undefined;
+        this.editModeDiv = undefined;
+        this.closeDiv = undefined;
+      }
+    }, {
+      key: '_createSeperator',
+
+      /**
+       * create a seperator line. the index is to differentiate in the manipulation dom
+       * @param index
+       * @private
+       */
+      value: function _createSeperator() {
+        var index = arguments[0] === undefined ? 1 : arguments[0];
+
+        this.manipulationDOM['seperatorLineDiv' + index] = document.createElement('div');
+        this.manipulationDOM['seperatorLineDiv' + index].className = 'vis-separator-line';
+        this.manipulationDiv.appendChild(this.manipulationDOM['seperatorLineDiv' + index]);
+      }
+    }, {
+      key: '_createAddNodeButton',
+
+      // ----------------------    DOM functions for buttons    --------------------------//
+
+      value: function _createAddNodeButton(locale) {
+        var button = this._createButton('addNode', 'vis-button vis-add', locale['addNode'] || this.options.locales['en']['addNode']);
+        this.manipulationDiv.appendChild(button);
+        this._bindHammerToDiv(button, this.addNodeMode.bind(this));
+      }
+    }, {
+      key: '_createAddEdgeButton',
+      value: function _createAddEdgeButton(locale) {
+        var button = this._createButton('addEdge', 'vis-button vis-connect', locale['addEdge'] || this.options.locales['en']['addEdge']);
+        this.manipulationDiv.appendChild(button);
+        this._bindHammerToDiv(button, this.addEdgeMode.bind(this));
+      }
+    }, {
+      key: '_createEditNodeButton',
+      value: function _createEditNodeButton(locale) {
+        var button = this._createButton('editNode', 'vis-button vis-edit', locale['editNode'] || this.options.locales['en']['editNode']);
+        this.manipulationDiv.appendChild(button);
+        this._bindHammerToDiv(button, this.editNode.bind(this));
+      }
+    }, {
+      key: '_createEditEdgeButton',
+      value: function _createEditEdgeButton(locale) {
+        var button = this._createButton('editEdge', 'vis-button vis-edit', locale['editEdge'] || this.options.locales['en']['editEdge']);
+        this.manipulationDiv.appendChild(button);
+        this._bindHammerToDiv(button, this.editEdgeMode.bind(this));
+      }
+    }, {
+      key: '_createDeleteButton',
+      value: function _createDeleteButton(locale) {
+        var button = this._createButton('delete', 'vis-button vis-delete', locale['del'] || this.options.locales['en']['del']);
+        this.manipulationDiv.appendChild(button);
+        this._bindHammerToDiv(button, this.deleteSelected.bind(this));
+      }
+    }, {
+      key: '_createBackButton',
+      value: function _createBackButton(locale) {
+        var button = this._createButton('back', 'vis-button vis-back', locale['back'] || this.options.locales['en']['back']);
+        this.manipulationDiv.appendChild(button);
+        this._bindHammerToDiv(button, this.showManipulatorToolbar.bind(this));
+      }
+    }, {
+      key: '_createButton',
+      value: function _createButton(id, className, label) {
+        var labelClassName = arguments[3] === undefined ? 'vis-label' : arguments[3];
+
+        this.manipulationDOM[id + 'Div'] = document.createElement('div');
+        this.manipulationDOM[id + 'Div'].className = className;
+        this.manipulationDOM[id + 'Label'] = document.createElement('div');
+        this.manipulationDOM[id + 'Label'].className = labelClassName;
+        this.manipulationDOM[id + 'Label'].innerHTML = label;
+        this.manipulationDOM[id + 'Div'].appendChild(this.manipulationDOM[id + 'Label']);
+        return this.manipulationDOM[id + 'Div'];
+      }
+    }, {
+      key: '_createDescription',
+      value: function _createDescription(label) {
+        this.manipulationDiv.appendChild(this._createButton('description', 'vis-button vis-none', label));
+      }
+    }, {
+      key: '_temporaryBindEvent',
+
+      // -------------------------- End of DOM functions for buttons ------------------------------//
+
+      /**
+       * this binds an event until cleanup by the clean functions.
+       * @param event
+       * @param newFunction
+       * @private
+       */
+      value: function _temporaryBindEvent(event, newFunction) {
+        this.temporaryEventFunctions.push({ event: event, boundFunction: newFunction });
+        this.body.emitter.on(event, newFunction);
+      }
+    }, {
+      key: '_temporaryBindUI',
+
+      /**
+       * this overrides an UI function until cleanup by the clean function
+       * @param UIfunctionName
+       * @param newFunction
+       * @private
+       */
+      value: function _temporaryBindUI(UIfunctionName, newFunction) {
+        if (this.body.eventListeners[UIfunctionName] !== undefined) {
+          this.temporaryUIFunctions[UIfunctionName] = this.body.eventListeners[UIfunctionName];
+          this.body.eventListeners[UIfunctionName] = newFunction;
+        } else {
+          throw new Error('This UI function does not exist. Typo? You tried: ' + UIfunctionName + ' possible are: ' + JSON.stringify(Object.keys(this.body.eventListeners)));
+        }
+      }
+    }, {
+      key: '_unbindTemporaryUIs',
+
+      /**
+       * Restore the overridden UI functions to their original state.
+       *
+       * @private
+       */
+      value: function _unbindTemporaryUIs() {
+        for (var functionName in this.temporaryUIFunctions) {
+          if (this.temporaryUIFunctions.hasOwnProperty(functionName)) {
+            this.body.eventListeners[functionName] = this.temporaryUIFunctions[functionName];
+            delete this.temporaryUIFunctions[functionName];
+          }
+        }
+        this.temporaryUIFunctions = {};
+      }
+    }, {
+      key: '_unbindTemporaryEvents',
+
+      /**
+       * Unbind the events created by _temporaryBindEvent
+       * @private
+       */
+      value: function _unbindTemporaryEvents() {
+        for (var i = 0; i < this.temporaryEventFunctions.length; i++) {
+          var eventName = this.temporaryEventFunctions[i].event;
+          var boundFunction = this.temporaryEventFunctions[i].boundFunction;
+          this.body.emitter.off(eventName, boundFunction);
+        }
+        this.temporaryEventFunctions = [];
+      }
+    }, {
+      key: '_bindHammerToDiv',
+
+      /**
+       * Bind an hammer instance to a DOM element.
+       * @param domElement
+       * @param funct
+       */
+      value: function _bindHammerToDiv(domElement, boundFunction) {
+        var hammer = new Hammer(domElement, {});
+        hammerUtil.onTouch(hammer, boundFunction);
+        this.manipulationHammers.push(hammer);
+      }
+    }, {
+      key: '_cleanupTemporaryNodesAndEdges',
+
+      /**
+       * Neatly clean up temporary edges and nodes
+       * @private
+       */
+      value: function _cleanupTemporaryNodesAndEdges() {
+        // _clean temporary edges
+        for (var i = 0; i < this.temporaryIds.edges.length; i++) {
+          this.body.edges[this.temporaryIds.edges[i]].disconnect();
+          delete this.body.edges[this.temporaryIds.edges[i]];
+          var indexTempEdge = this.body.edgeIndices.indexOf(this.temporaryIds.edges[i]);
+          if (indexTempEdge !== -1) {
+            this.body.edgeIndices.splice(indexTempEdge, 1);
+          }
+        }
+
+        // _clean temporary nodes
+        for (var i = 0; i < this.temporaryIds.nodes.length; i++) {
+          delete this.body.nodes[this.temporaryIds.nodes[i]];
+          var indexTempNode = this.body.nodeIndices.indexOf(this.temporaryIds.nodes[i]);
+          if (indexTempNode !== -1) {
+            this.body.nodeIndices.splice(indexTempNode, 1);
+          }
+        }
+
+        this.temporaryIds = { nodes: [], edges: [] };
+      }
+    }, {
+      key: '_controlNodeTouch',
+
+      // ------------------------------------------ EDIT EDGE FUNCTIONS -----------------------------------------//
+
+      /**
+       * the touch is used to get the position of the initial click
+       * @param event
+       * @private
+       */
+      value: function _controlNodeTouch(event) {
+        this.selectionHandler.unselectAll();
+        this.lastTouch = this.body.functions.getPointer(event.center);
+        this.lastTouch.translation = util.extend({}, this.body.view.translation); // copy the object
+      }
+    }, {
+      key: '_controlNodeDragStart',
+
+      /**
+       * the drag start is used to mark one of the control nodes as selected.
+       * @param event
+       * @private
+       */
+      value: function _controlNodeDragStart(event) {
+        var pointer = this.lastTouch;
+        var pointerObj = this.selectionHandler._pointerToPositionObject(pointer);
+        var from = this.body.nodes[this.temporaryIds.nodes[0]];
+        var to = this.body.nodes[this.temporaryIds.nodes[1]];
+        var edge = this.body.edges[this.edgeBeingEditedId];
+        this.selectedControlNode = undefined;
+
+        var fromSelect = from.isOverlappingWith(pointerObj);
+        var toSelect = to.isOverlappingWith(pointerObj);
+
+        if (fromSelect === true) {
+          this.selectedControlNode = from;
+          edge.edgeType.from = from;
+        } else if (toSelect === true) {
+          this.selectedControlNode = to;
+          edge.edgeType.to = to;
+        }
+
+        this.body.emitter.emit('_redraw');
+      }
+    }, {
+      key: '_controlNodeDrag',
+
+      /**
+       * dragging the control nodes or the canvas
+       * @param event
+       * @private
+       */
+      value: function _controlNodeDrag(event) {
+        this.body.emitter.emit('disablePhysics');
+        var pointer = this.body.functions.getPointer(event.center);
+        var pos = this.canvas.DOMtoCanvas(pointer);
+
+        if (this.selectedControlNode !== undefined) {
+          this.selectedControlNode.x = pos.x;
+          this.selectedControlNode.y = pos.y;
+        } else {
+          // if the drag was not started properly because the click started outside the network div, start it now.
+          var diffX = pointer.x - this.lastTouch.x;
+          var diffY = pointer.y - this.lastTouch.y;
+          this.body.view.translation = { x: this.lastTouch.translation.x + diffX, y: this.lastTouch.translation.y + diffY };
+        }
+        this.body.emitter.emit('_redraw');
+      }
+    }, {
+      key: '_controlNodeDragEnd',
+
+      /**
+       * connecting or restoring the control nodes.
+       * @param event
+       * @private
+       */
+      value: function _controlNodeDragEnd(event) {
+        var pointer = this.body.functions.getPointer(event.center);
+        var pointerObj = this.selectionHandler._pointerToPositionObject(pointer);
+        var edge = this.body.edges[this.edgeBeingEditedId];
+
+        var overlappingNodeIds = this.selectionHandler._getAllNodesOverlappingWith(pointerObj);
+        var node = undefined;
+        for (var i = overlappingNodeIds.length - 1; i >= 0; i--) {
+          if (overlappingNodeIds[i] !== this.selectedControlNode.id) {
+            node = this.body.nodes[overlappingNodeIds[i]];
+            break;
+          }
+        }
+
+        // perform the connection
+        if (node !== undefined && this.selectedControlNode !== undefined) {
+          if (node.isCluster === true) {
+            alert(this.options.locales[this.options.locale]['createEdgeError'] || this.options.locales['en']['createEdgeError']);
+          } else {
+            var from = this.body.nodes[this.temporaryIds.nodes[0]];
+            if (this.selectedControlNode.id === from.id) {
+              this._performEditEdge(node.id, edge.to.id);
+            } else {
+              this._performEditEdge(edge.from.id, node.id);
+            }
+          }
+        } else {
+          edge.updateEdgeType();
+          this.body.emitter.emit('restorePhysics');
+        }
+        this.body.emitter.emit('_redraw');
+      }
+    }, {
+      key: '_handleConnect',
+
+      // ------------------------------------ END OF EDIT EDGE FUNCTIONS -----------------------------------------//
+
+      // ------------------------------------------- ADD EDGE FUNCTIONS -----------------------------------------//
+      /**
+       * the function bound to the selection event. It checks if you want to connect a cluster and changes the description
+       * to walk the user through the process.
+       *
+       * @private
+       */
+      value: function _handleConnect(event) {
+        // check to avoid double fireing of this function.
+        if (new Date().valueOf() - this.touchTime > 100) {
+          this.lastTouch = this.body.functions.getPointer(event.center);
+          this.lastTouch.translation = util.extend({}, this.body.view.translation); // copy the object
+
+          var pointer = this.lastTouch;
+          var node = this.selectionHandler.getNodeAt(pointer);
+
+          if (node !== undefined) {
+            if (node.isCluster === true) {
+              alert(this.options.locales[this.options.locale]['createEdgeError'] || this.options.locales['en']['createEdgeError']);
+            } else {
+              // create a node the temporary line can look at
+              var targetNode = this._getNewTargetNode(node.x, node.y);
+              this.body.nodes[targetNode.id] = targetNode;
+              this.body.nodeIndices.push(targetNode.id);
+
+              // create a temporary edge
+              var connectionEdge = this.body.functions.createEdge({
+                id: 'connectionEdge' + util.randomUUID(),
+                from: node.id,
+                to: targetNode.id,
+                physics: false,
+                smooth: {
+                  enabled: true,
+                  type: 'continuous',
+                  roundness: 0.5
+                }
+              });
+              this.body.edges[connectionEdge.id] = connectionEdge;
+              this.body.edgeIndices.push(connectionEdge.id);
+
+              this.temporaryIds.nodes.push(targetNode.id);
+              this.temporaryIds.edges.push(connectionEdge.id);
+            }
+          }
+          this.touchTime = new Date().valueOf();
+        }
+      }
+    }, {
+      key: '_dragControlNode',
+      value: function _dragControlNode(event) {
+        var pointer = this.body.functions.getPointer(event.center);
+        if (this.temporaryIds.nodes[0] !== undefined) {
+          var targetNode = this.body.nodes[this.temporaryIds.nodes[0]]; // there is only one temp node in the add edge mode.
+          targetNode.x = this.canvas._XconvertDOMtoCanvas(pointer.x);
+          targetNode.y = this.canvas._YconvertDOMtoCanvas(pointer.y);
+          this.body.emitter.emit('_redraw');
+        } else {
+          var diffX = pointer.x - this.lastTouch.x;
+          var diffY = pointer.y - this.lastTouch.y;
+          this.body.view.translation = { x: this.lastTouch.translation.x + diffX, y: this.lastTouch.translation.y + diffY };
+        }
+      }
+    }, {
+      key: '_finishConnect',
+
+      /**
+       * Connect the new edge to the target if one exists, otherwise remove temp line
+       * @param event
+       * @private
+       */
+      value: function _finishConnect(event) {
+        var pointer = this.body.functions.getPointer(event.center);
+        var pointerObj = this.selectionHandler._pointerToPositionObject(pointer);
+
+        // remember the edge id
+        var connectFromId = undefined;
+        if (this.temporaryIds.edges[0] !== undefined) {
+          connectFromId = this.body.edges[this.temporaryIds.edges[0]].fromId;
+        }
+
+        // get the overlapping node but NOT the temporary node;
+        var overlappingNodeIds = this.selectionHandler._getAllNodesOverlappingWith(pointerObj);
+        var node = undefined;
+        for (var i = overlappingNodeIds.length - 1; i >= 0; i--) {
+          // if the node id is NOT a temporary node, accept the node.
+          if (this.temporaryIds.nodes.indexOf(overlappingNodeIds[i]) === -1) {
+            node = this.body.nodes[overlappingNodeIds[i]];
+            break;
+          }
+        }
+
+        // clean temporary nodes and edges.
+        this._cleanupTemporaryNodesAndEdges();
+
+        // perform the connection
+        if (node !== undefined) {
+          if (node.isCluster === true) {
+            alert(this.options.locales[this.options.locale]['createEdgeError'] || this.options.locales['en']['createEdgeError']);
+          } else {
+            if (this.body.nodes[connectFromId] !== undefined && this.body.nodes[node.id] !== undefined) {
+              this._performAddEdge(connectFromId, node.id);
+            }
+          }
+        }
+        this.body.emitter.emit('_redraw');
+      }
+    }, {
+      key: '_performAddNode',
+
+      // --------------------------------------- END OF ADD EDGE FUNCTIONS -------------------------------------//
+
+      // ------------------------------ Performing all the actual data manipulation ------------------------//
+
+      /**
+       * Adds a node on the specified location
+       */
+      value: function _performAddNode(clickData) {
+        var _this5 = this;
+
+        var defaultData = {
+          id: util.randomUUID(),
+          x: clickData.pointer.canvas.x,
+          y: clickData.pointer.canvas.y,
+          label: 'new'
+        };
+
+        if (typeof this.options.addNode === 'function') {
+          if (this.options.addNode.length === 2) {
+            this.options.addNode(defaultData, function (finalizedData) {
+              if (finalizedData !== null && finalizedData !== undefined && _this5.inMode === 'addNode') {
+                // if for whatever reason the mode has changes (due to dataset change) disregard the callback
+                _this5.body.data.nodes.getDataSet().add(finalizedData);
+                _this5.showManipulatorToolbar();
+              }
+            });
+          } else {
+            throw new Error('The function for add does not support two arguments (data,callback)');
+            this.showManipulatorToolbar();
+          }
+        } else {
+          this.body.data.nodes.getDataSet().add(defaultData);
+          this.showManipulatorToolbar();
+        }
+      }
+    }, {
+      key: '_performAddEdge',
+
+      /**
+       * connect two nodes with a new edge.
+       *
+       * @private
+       */
+      value: function _performAddEdge(sourceNodeId, targetNodeId) {
+        var _this6 = this;
+
+        var defaultData = { from: sourceNodeId, to: targetNodeId };
+        if (typeof this.options.addEdge === 'function') {
+          if (this.options.addEdge.length === 2) {
+            this.options.addEdge(defaultData, function (finalizedData) {
+              if (finalizedData !== null && finalizedData !== undefined && _this6.inMode === 'addEdge') {
+                // if for whatever reason the mode has changes (due to dataset change) disregard the callback
+                _this6.body.data.edges.add(finalizedData);
+                _this6.selectionHandler.unselectAll();
+                _this6.showManipulatorToolbar();
+              }
+            });
+          } else {
+            throw new Error('The function for connect does not support two arguments (data,callback)');
+          }
+        } else {
+          this.body.data.edges.add(defaultData);
+          this.selectionHandler.unselectAll();
+          this.showManipulatorToolbar();
+        }
+      }
+    }, {
+      key: '_performEditEdge',
+
+      /**
+       * connect two nodes with a new edge.
+       *
+       * @private
+       */
+      value: function _performEditEdge(sourceNodeId, targetNodeId) {
+        var _this7 = this;
+
+        var defaultData = { id: this.edgeBeingEditedId, from: sourceNodeId, to: targetNodeId };
+        if (typeof this.options.editEdge === 'function') {
+          if (this.options.editEdge.length === 2) {
+            this.options.editEdge(defaultData, function (finalizedData) {
+              if (finalizedData === null || finalizedData === undefined || _this7.inMode !== 'editEdge') {
+                // if for whatever reason the mode has changes (due to dataset change) disregard the callback) {
+                _this7.body.edges[defaultData.id].updateEdgeType();
+                _this7.body.emitter.emit('_redraw');
+              } else {
+                _this7.body.data.edges.update(finalizedData);
+                _this7.selectionHandler.unselectAll();
+                _this7.showManipulatorToolbar();
+              }
+            });
+          } else {
+            throw new Error('The function for edit does not support two arguments (data, callback)');
+          }
+        } else {
+          this.body.data.edges.update(defaultData);
+          this.selectionHandler.unselectAll();
+          this.showManipulatorToolbar();
+        }
+      }
+    }]);
+
+    return ManipulationSystem;
+  })();
+
+  exports['default'] = ManipulationSystem;
+  module.exports = exports['default'];
+
+/***/ },
+/* 3 */
+/***/ function(module, exports, __webpack_require__) {
+
+  'use strict';
+
+  Object.defineProperty(exports, '__esModule', {
+    value: true
+  });
+
+  var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
+
+  function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
+
+  function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
+
+  var _componentsPhysicsBarnesHutSolver = __webpack_require__(91);
+
+  var _componentsPhysicsBarnesHutSolver2 = _interopRequireDefault(_componentsPhysicsBarnesHutSolver);
+
+  var _componentsPhysicsRepulsionSolver = __webpack_require__(92);
+
+  var _componentsPhysicsRepulsionSolver2 = _interopRequireDefault(_componentsPhysicsRepulsionSolver);
+
+  var _componentsPhysicsHierarchicalRepulsionSolver = __webpack_require__(93);
+
+  var _componentsPhysicsHierarchicalRepulsionSolver2 = _interopRequireDefault(_componentsPhysicsHierarchicalRepulsionSolver);
+
+  var _componentsPhysicsSpringSolver = __webpack_require__(94);
+
+  var _componentsPhysicsSpringSolver2 = _interopRequireDefault(_componentsPhysicsSpringSolver);
+
+  var _componentsPhysicsHierarchicalSpringSolver = __webpack_require__(95);
+
+  var _componentsPhysicsHierarchicalSpringSolver2 = _interopRequireDefault(_componentsPhysicsHierarchicalSpringSolver);
+
+  var _componentsPhysicsCentralGravitySolver = __webpack_require__(96);
+
+  var _componentsPhysicsCentralGravitySolver2 = _interopRequireDefault(_componentsPhysicsCentralGravitySolver);
+
+  var _componentsPhysicsFA2BasedRepulsionSolver = __webpack_require__(97);
+
+  var _componentsPhysicsFA2BasedRepulsionSolver2 = _interopRequireDefault(_componentsPhysicsFA2BasedRepulsionSolver);
+
+  var _componentsPhysicsFA2BasedCentralGravitySolver = __webpack_require__(98);
+
+  var _componentsPhysicsFA2BasedCentralGravitySolver2 = _interopRequireDefault(_componentsPhysicsFA2BasedCentralGravitySolver);
+
+  var util = __webpack_require__(4);
+
+  var PhysicsEngine = (function () {
+    function PhysicsEngine(body) {
+      _classCallCheck(this, PhysicsEngine);
+
+      this.body = body;
+      this.physicsBody = { physicsNodeIndices: [], physicsEdgeIndices: [], forces: {}, velocities: {} };
+
+      this.physicsEnabled = true;
+      this.simulationInterval = 1000 / 60;
+      this.requiresTimeout = true;
+      this.previousStates = {};
+      this.freezeCache = {};
+      this.renderTimer = undefined;
+      this.initialStabilizationEmitted = false;
+
+      this.stabilized = false;
+      this.startedStabilization = false;
+      this.stabilizationIterations = 0;
+      this.ready = false; // will be set to true if the stabilize
+
+      // default options
+      this.options = {};
+      this.defaultOptions = {
+        enabled: true,
+        barnesHut: {
+          theta: 0.5,
+          gravitationalConstant: -2000,
+          centralGravity: 0.3,
+          springLength: 95,
+          springConstant: 0.04,
+          damping: 0.09,
+          avoidOverlap: 0
+        },
+        forceAtlas2Based: {
+          theta: 0.5,
+          gravitationalConstant: -50,
+          centralGravity: 0.01,
+          springConstant: 0.08,
+          springLength: 100,
+          damping: 0.4,
+          avoidOverlap: 0
+        },
+        repulsion: {
+          centralGravity: 0.2,
+          springLength: 200,
+          springConstant: 0.05,
+          nodeDistance: 100,
+          damping: 0.09,
+          avoidOverlap: 0
+        },
+        hierarchicalRepulsion: {
+          centralGravity: 0,
+          springLength: 100,
+          springConstant: 0.01,
+          nodeDistance: 120,
+          damping: 0.09
+        },
+        maxVelocity: 50,
+        minVelocity: 0.1, // px/s
+        solver: 'barnesHut',
+        stabilization: {
+          enabled: true,
+          iterations: 1000, // maximum number of iteration to stabilize
+          updateInterval: 50,
+          onlyDynamicEdges: false,
+          fit: true
+        },
+        timestep: 0.5
+      };
+      util.extend(this.options, this.defaultOptions);
+
+      this.bindEventListeners();
+    }
+
+    _createClass(PhysicsEngine, [{
+      key: 'bindEventListeners',
+      value: function bindEventListeners() {
+        var _this = this;
+
+        this.body.emitter.on('initPhysics', function () {
+          _this.initPhysics();
+        });
+        this.body.emitter.on('resetPhysics', function () {
+          _this.stopSimulation();_this.ready = false;
+        });
+        this.body.emitter.on('disablePhysics', function () {
+          _this.physicsEnabled = false;_this.stopSimulation();
+        });
+        this.body.emitter.on('restorePhysics', function () {
+          _this.setOptions(_this.options);
+          if (_this.ready === true) {
+            _this.startSimulation();
+          }
+        });
+        this.body.emitter.on('startSimulation', function () {
+          if (_this.ready === true) {
+            _this.startSimulation();
+          }
+        });
+        this.body.emitter.on('stopSimulation', function () {
+          _this.stopSimulation();
+        });
+        this.body.emitter.on('destroy', function () {
+          _this.stopSimulation(false);
+          _this.body.emitter.off();
+        });
+      }
+    }, {
+      key: 'setOptions',
+      value: function setOptions(options) {
+        if (options !== undefined) {
+          if (options === false) {
+            this.options.enabled = false;
+            this.physicsEnabled = false;
+            this.stopSimulation();
+          } else {
+            this.physicsEnabled = true;
+            util.selectiveNotDeepExtend(['stabilization'], this.options, options);
+            util.mergeOptions(this.options, options, 'stabilization');
+
+            if (options.enabled === undefined) {
+              this.options.enabled = true;
+            }
+
+            if (this.options.enabled === false) {
+              this.physicsEnabled = false;
+              this.stopSimulation();
+            }
+          }
+        }
+        this.init();
+      }
+    }, {
+      key: 'init',
+      value: function init() {
+        var options;
+        if (this.options.solver === 'forceAtlas2Based') {
+          options = this.options.forceAtlas2Based;
+          this.nodesSolver = new _componentsPhysicsFA2BasedRepulsionSolver2['default'](this.body, this.physicsBody, options);
+          this.edgesSolver = new _componentsPhysicsSpringSolver2['default'](this.body, this.physicsBody, options);
+          this.gravitySolver = new _componentsPhysicsFA2BasedCentralGravitySolver2['default'](this.body, this.physicsBody, options);
+        } else if (this.options.solver === 'repulsion') {
+          options = this.options.repulsion;
+          this.nodesSolver = new _componentsPhysicsRepulsionSolver2['default'](this.body, this.physicsBody, options);
+          this.edgesSolver = new _componentsPhysicsSpringSolver2['default'](this.body, this.physicsBody, options);
+          this.gravitySolver = new _componentsPhysicsCentralGravitySolver2['default'](this.body, this.physicsBody, options);
+        } else if (this.options.solver === 'hierarchicalRepulsion') {
+          options = this.options.hierarchicalRepulsion;
+          this.nodesSolver = new _componentsPhysicsHierarchicalRepulsionSolver2['default'](this.body, this.physicsBody, options);
+          this.edgesSolver = new _componentsPhysicsHierarchicalSpringSolver2['default'](this.body, this.physicsBody, options);
+          this.gravitySolver = new _componentsPhysicsCentralGravitySolver2['default'](this.body, this.physicsBody, options);
+        } else {
+          // barnesHut
+          options = this.options.barnesHut;
+          this.nodesSolver = new _componentsPhysicsBarnesHutSolver2['default'](this.body, this.physicsBody, options);
+          this.edgesSolver = new _componentsPhysicsSpringSolver2['default'](this.body, this.physicsBody, options);
+          this.gravitySolver = new _componentsPhysicsCentralGravitySolver2['default'](this.body, this.physicsBody, options);
+        }
+
+        this.modelOptions = options;
+      }
+    }, {
+      key: 'initPhysics',
+      value: function initPhysics() {
+        if (this.physicsEnabled === true && this.options.enabled === true) {
+          if (this.options.stabilization.enabled === true) {
+            this.stabilize();
+          } else {
+            this.stabilized = false;
+            this.ready = true;
+            this.body.emitter.emit('fit', {}, true);
+            this.startSimulation();
+          }
+        } else {
+          this.ready = true;
+          this.body.emitter.emit('fit');
+        }
+      }
+    }, {
+      key: 'startSimulation',
+
+      /**
+       * Start the simulation
+       */
+      value: function startSimulation() {
+        if (this.physicsEnabled === true && this.options.enabled === true) {
+          this.stabilized = false;
+
+          // this sets the width of all nodes initially which could be required for the avoidOverlap
+          this.body.emitter.emit('_resizeNodes');
+          if (this.viewFunction === undefined) {
+            this.viewFunction = this.simulationStep.bind(this);
+            this.body.emitter.on('initRedraw', this.viewFunction);
+            this.body.emitter.emit('_startRendering');
+          }
+        } else {
+          this.body.emitter.emit('_redraw');
+        }
+      }
+    }, {
+      key: 'stopSimulation',
+
+      /**
+       * Stop the simulation, force stabilization.
+       */
+      value: function stopSimulation() {
+        var emit = arguments[0] === undefined ? true : arguments[0];
+
+        this.stabilized = true;
+        if (emit === true) {
+          this._emitStabilized();
+        }
+        if (this.viewFunction !== undefined) {
+          this.body.emitter.off('initRedraw', this.viewFunction);
+          this.viewFunction = undefined;
+          if (emit === true) {
+            this.body.emitter.emit('_stopRendering');
+          }
+        }
+      }
+    }, {
+      key: 'simulationStep',
+
+      /**
+       * The viewFunction inserts this step into each renderloop. It calls the physics tick and handles the cleanup at stabilized.
+       *
+       */
+      value: function simulationStep() {
+        // check if the physics have settled
+        var startTime = Date.now();
+        this.physicsTick();
+        var physicsTime = Date.now() - startTime;
+
+        // run double speed if it is a little graph
+        if ((physicsTime < 0.4 * this.simulationInterval || this.runDoubleSpeed === true) && this.stabilized === false) {
+          this.physicsTick();
+
+          // this makes sure there is no jitter. The decision is taken once to run it at double speed.
+          this.runDoubleSpeed = true;
+        }
+
+        if (this.stabilized === true) {
+          if (this.stabilizationIterations > 1) {
+            // trigger the 'stabilized' event.
+            // The event is triggered on the next tick, to prevent the case that
+            // it is fired while initializing the Network, in which case you would not
+            // be able to catch it
+            this.startedStabilization = false;
+            //this._emitStabilized();
+          }
+          this.stopSimulation();
+        }
+      }
+    }, {
+      key: '_emitStabilized',
+      value: function _emitStabilized() {
+        var _this2 = this;
+
+        if (this.stabilizationIterations > 1 || this.initialStabilizationEmitted === false) {
+          this.initialStabilizationEmitted = true;
+          setTimeout(function () {
+            _this2.body.emitter.emit('stabilized', { iterations: _this2.stabilizationIterations });
+            _this2.stabilizationIterations = 0;
+          }, 0);
+        }
+      }
+    }, {
+      key: 'physicsTick',
+
+      /**
+       * A single simulation step (or 'tick') in the physics simulation
+       *
+       * @private
+       */
+      value: function physicsTick() {
+        if (this.stabilized === false) {
+          this.calculateForces();
+          this.stabilized = this.moveNodes();
+
+          // determine if the network has stabilzied
+          if (this.stabilized === true) {
+            this.revert();
+          } else {
+            // this is here to ensure that there is no start event when the network is already stable.
+            if (this.startedStabilization === false) {
+              this.body.emitter.emit('startStabilizing');
+              this.startedStabilization = true;
+            }
+          }
+
+          this.stabilizationIterations++;
+        }
+      }
+    }, {
+      key: 'updatePhysicsData',
+
+      /**
+       * Nodes and edges can have the physics toggles on or off. A collection of indices is created here so we can skip the check all the time.
+       *
+       * @private
+       */
+      value: function updatePhysicsData() {
+        this.physicsBody.forces = {};
+        this.physicsBody.physicsNodeIndices = [];
+        this.physicsBody.physicsEdgeIndices = [];
+        var nodes = this.body.nodes;
+        var edges = this.body.edges;
+
+        // get node indices for physics
+        for (var nodeId in nodes) {
+          if (nodes.hasOwnProperty(nodeId)) {
+            if (nodes[nodeId].options.physics === true) {
+              this.physicsBody.physicsNodeIndices.push(nodeId);
+            }
+          }
+        }
+
+        // get edge indices for physics
+        for (var edgeId in edges) {
+          if (edges.hasOwnProperty(edgeId)) {
+            if (edges[edgeId].options.physics === true) {
+              this.physicsBody.physicsEdgeIndices.push(edgeId);
+            }
+          }
+        }
+
+        // get the velocity and the forces vector
+        for (var i = 0; i < this.physicsBody.physicsNodeIndices.length; i++) {
+          var nodeId = this.physicsBody.physicsNodeIndices[i];
+          this.physicsBody.forces[nodeId] = { x: 0, y: 0 };
+
+          // forces can be reset because they are recalculated. Velocities have to persist.
+          if (this.physicsBody.velocities[nodeId] === undefined) {
+            this.physicsBody.velocities[nodeId] = { x: 0, y: 0 };
+          }
+        }
+
+        // clean deleted nodes from the velocity vector
+        for (var nodeId in this.physicsBody.velocities) {
+          if (nodes[nodeId] === undefined) {
+            delete this.physicsBody.velocities[nodeId];
+          }
+        }
+      }
+    }, {
+      key: 'revert',
+
+      /**
+       * Revert the simulation one step. This is done so after stabilization, every new start of the simulation will also say stabilized.
+       */
+      value: function revert() {
+        var nodeIds = Object.keys(this.previousStates);
+        var nodes = this.body.nodes;
+        var velocities = this.physicsBody.velocities;
+
+        for (var i = 0; i < nodeIds.length; i++) {
+          var nodeId = nodeIds[i];
+          if (nodes[nodeId] !== undefined) {
+            if (nodes[nodeId].options.physics === true) {
+              velocities[nodeId].x = this.previousStates[nodeId].vx;
+              velocities[nodeId].y = this.previousStates[nodeId].vy;
+              nodes[nodeId].x = this.previousStates[nodeId].x;
+              nodes[nodeId].y = this.previousStates[nodeId].y;
+            }
+          } else {
+            delete this.previousStates[nodeId];
+          }
+        }
+      }
+    }, {
+      key: 'moveNodes',
+
+      /**
+       * move the nodes one timestap and check if they are stabilized
+       * @returns {boolean}
+       */
+      value: function moveNodes() {
+        var nodesPresent = false;
+        var nodeIndices = this.physicsBody.physicsNodeIndices;
+        var maxVelocity = this.options.maxVelocity ? this.options.maxVelocity : 1000000000;
+        var stabilized = true;
+        var vminCorrected = this.options.minVelocity / Math.max(this.body.view.scale, 0.05);
+
+        for (var i = 0; i < nodeIndices.length; i++) {
+          var nodeId = nodeIndices[i];
+          var nodeVelocity = this._performStep(nodeId, maxVelocity);
+          // stabilized is true if stabilized is true and velocity is smaller than vmin --> all nodes must be stabilized
+          stabilized = nodeVelocity < vminCorrected && stabilized === true;
+          nodesPresent = true;
+        }
+
+        if (nodesPresent === true) {
+          if (vminCorrected > 0.5 * this.options.maxVelocity) {
+            return false;
+          } else {
+            return stabilized;
+          }
+        }
+        return true;
+      }
+    }, {
+      key: '_performStep',
+
+      /**
+       * Perform the actual step
+       *
+       * @param nodeId
+       * @param maxVelocity
+       * @returns {number}
+       * @private
+       */
+      value: function _performStep(nodeId, maxVelocity) {
+        var node = this.body.nodes[nodeId];
+        var timestep = this.options.timestep;
+        var forces = this.physicsBody.forces;
+        var velocities = this.physicsBody.velocities;
+
+        // store the state so we can revert
+        this.previousStates[nodeId] = { x: node.x, y: node.y, vx: velocities[nodeId].x, vy: velocities[nodeId].y };
+
+        if (node.options.fixed.x === false) {
+          var dx = this.modelOptions.damping * velocities[nodeId].x; // damping force
+          var ax = (forces[nodeId].x - dx) / node.options.mass; // acceleration
+          velocities[nodeId].x += ax * timestep; // velocity
+          velocities[nodeId].x = Math.abs(velocities[nodeId].x) > maxVelocity ? velocities[nodeId].x > 0 ? maxVelocity : -maxVelocity : velocities[nodeId].x;
+          node.x += velocities[nodeId].x * timestep; // position
+        } else {
+          forces[nodeId].x = 0;
+          velocities[nodeId].x = 0;
+        }
+
+        if (node.options.fixed.y === false) {
+          var dy = this.modelOptions.damping * velocities[nodeId].y; // damping force
+          var ay = (forces[nodeId].y - dy) / node.options.mass; // acceleration
+          velocities[nodeId].y += ay * timestep; // velocity
+          velocities[nodeId].y = Math.abs(velocities[nodeId].y) > maxVelocity ? velocities[nodeId].y > 0 ? maxVelocity : -maxVelocity : velocities[nodeId].y;
+          node.y += velocities[nodeId].y * timestep; // position
+        } else {
+          forces[nodeId].y = 0;
+          velocities[nodeId].y = 0;
+        }
+
+        var totalVelocity = Math.sqrt(Math.pow(velocities[nodeId].x, 2) + Math.pow(velocities[nodeId].y, 2));
+        return totalVelocity;
+      }
+    }, {
+      key: 'calculateForces',
+
+      /**
+       * calculate the forces for one physics iteration.
+       */
+      value: function calculateForces() {
+        this.gravitySolver.solve();
+        this.nodesSolver.solve();
+        this.edgesSolver.solve();
+      }
+    }, {
+      key: '_freezeNodes',
+
+      /**
+       * When initializing and stabilizing, we can freeze nodes with a predefined position. This greatly speeds up stabilization
+       * because only the supportnodes for the smoothCurves have to settle.
+       *
+       * @private
+       */
+      value: function _freezeNodes() {
+        var nodes = this.body.nodes;
+        for (var id in nodes) {
+          if (nodes.hasOwnProperty(id)) {
+            if (nodes[id].x && nodes[id].y) {
+              this.freezeCache[id] = { x: nodes[id].options.fixed.x, y: nodes[id].options.fixed.y };
+              nodes[id].options.fixed.x = true;
+              nodes[id].options.fixed.y = true;
+            }
+          }
+        }
+      }
+    }, {
+      key: '_restoreFrozenNodes',
+
+      /**
+       * Unfreezes the nodes that have been frozen by _freezeDefinedNodes.
+       *
+       * @private
+       */
+      value: function _restoreFrozenNodes() {
+        var nodes = this.body.nodes;
+        for (var id in nodes) {
+          if (nodes.hasOwnProperty(id)) {
+            if (this.freezeCache[id] !== undefined) {
+              nodes[id].options.fixed.x = this.freezeCache[id].x;
+              nodes[id].options.fixed.y = this.freezeCache[id].y;
+            }
+          }
+        }
+        this.freezeCache = {};
+      }
+    }, {
+      key: 'stabilize',
+
+      /**
+       * Find a stable position for all nodes
+       * @private
+       */
+      value: function stabilize() {
+        var _this3 = this;
+
+        var iterations = arguments[0] === undefined ? this.options.stabilization.iterations : arguments[0];
+
+        if (typeof iterations !== 'number') {
+          console.log('The stabilize method needs a numeric amount of iterations. Switching to default: ', this.options.stabilization.iterations);
+          iterations = this.options.stabilization.iterations;
+        }
+
+        // this sets the width of all nodes initially which could be required for the avoidOverlap
+        this.body.emitter.emit('_resizeNodes');
+
+        // stop the render loop
+        this.stopSimulation();
+
+        // set stabilze to false
+        this.stabilized = false;
+
+        // block redraw requests
+        this.body.emitter.emit('_blockRedrawRequests');
+        this.targetIterations = iterations;
+
+        // start the stabilization
+        if (this.options.stabilization.onlyDynamicEdges === true) {
+          this._freezeNodes();
+        }
+        this.stabilizationIterations = 0;
+
+        setTimeout(function () {
+          return _this3._stabilizationBatch();
+        }, 0);
+      }
+    }, {
+      key: '_stabilizationBatch',
+      value: function _stabilizationBatch() {
+        var count = 0;
+        while (this.stabilized === false && count < this.options.stabilization.updateInterval && this.stabilizationIterations < this.targetIterations) {
+          this.physicsTick();
+          this.stabilizationIterations++;
+          count++;
+        }
+
+        if (this.stabilized === false && this.stabilizationIterations < this.targetIterations) {
+          this.body.emitter.emit('stabilizationProgress', { iterations: this.stabilizationIterations, total: this.targetIterations });
+          setTimeout(this._stabilizationBatch.bind(this), 0);
+        } else {
+          this._finalizeStabilization();
+        }
+      }
+    }, {
+      key: '_finalizeStabilization',
+      value: function _finalizeStabilization() {
+        this.body.emitter.emit('_allowRedrawRequests');
+        if (this.options.stabilization.fit === true) {
+          this.body.emitter.emit('fit');
+        }
+
+        if (this.options.stabilization.onlyDynamicEdges === true) {
+          this._restoreFrozenNodes();
+        }
+
+        this.body.emitter.emit('stabilizationIterationsDone');
+        this.body.emitter.emit('_requestRedraw');
+
+        if (this.stabilized === true) {
+          this._emitStabilized();
+        } else {
+          this.startSimulation();
+        }
+
+        this.ready = true;
+      }
+    }]);
+
+    return PhysicsEngine;
+  })();
+
+  exports['default'] = PhysicsEngine;
+  module.exports = exports['default'];
+
+/***/ },
+/* 4 */
+/***/ function(module, exports, __webpack_require__) {
+
   // utility functions
 
   // first check if moment.js is already loaded in the browser window, if so,
@@ -185,8 +2031,8 @@ return /******/ (function(modules) { // webpackBootstrap
 
   'use strict';
 
-  var moment = __webpack_require__(5);
-  var uuid = __webpack_require__(8);
+  var moment = __webpack_require__(6);
+  var uuid = __webpack_require__(9);
 
   /**
    * Test whether given object is a number
@@ -1521,781 +3367,496 @@ return /******/ (function(modules) { // webpackBootstrap
   };
 
 /***/ },
-/* 3 */
+/* 5 */
 /***/ function(module, exports, __webpack_require__) {
-
-  'use strict';
-
-  Object.defineProperty(exports, '__esModule', {
-    value: true
-  });
-
-  var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
-
-  function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
-
-  if (typeof window !== 'undefined') {
-    window.requestAnimationFrame = window.requestAnimationFrame || window.mozRequestAnimationFrame || window.webkitRequestAnimationFrame || window.msRequestAnimationFrame;
-  }
-
-  var util = __webpack_require__(2);
-
-  var CanvasRenderer = (function () {
-    function CanvasRenderer(body, canvas) {
-      _classCallCheck(this, CanvasRenderer);
-
-      this.body = body;
-      this.canvas = canvas;
-
-      this.redrawRequested = false;
-      this.renderTimer = undefined;
-      this.requiresTimeout = true;
-      this.renderingActive = false;
-      this.renderRequests = 0;
-      this.pixelRatio = undefined;
-      this.allowRedrawRequests = true;
-
-      this.dragging = false;
-      this.options = {};
-      this.defaultOptions = {
-        hideEdgesOnDrag: false,
-        hideNodesOnDrag: false
-      };
-      util.extend(this.options, this.defaultOptions);
-
-      this._determineBrowserMethod();
-      this.bindEventListeners();
-    }
-
-    _createClass(CanvasRenderer, [{
-      key: 'bindEventListeners',
-      value: function bindEventListeners() {
-        var _this = this;
-
-        this.body.emitter.on('dragStart', function () {
-          _this.dragging = true;
-        });
-        this.body.emitter.on('dragEnd', function () {
-          return _this.dragging = false;
-        });
-        this.body.emitter.on('_resizeNodes', function () {
-          return _this._resizeNodes();
-        });
-        this.body.emitter.on('_redraw', function () {
-          if (_this.renderingActive === false) {
-            _this._redraw();
-          }
-        });
-        this.body.emitter.on('_blockRedrawRequests', function () {
-          _this.allowRedrawRequests = false;
-        });
-        this.body.emitter.on('_allowRedrawRequests', function () {
-          _this.allowRedrawRequests = true;
-        });
-        this.body.emitter.on('_requestRedraw', this._requestRedraw.bind(this));
-        this.body.emitter.on('_startRendering', function () {
-          _this.renderRequests += 1;
-          _this.renderingActive = true;
-          _this._startRendering();
-        });
-        this.body.emitter.on('_stopRendering', function () {
-          _this.renderRequests -= 1;
-          _this.renderingActive = _this.renderRequests > 0;
-          _this.renderTimer = undefined;
-        });
-        this.body.emitter.on('destroy', function () {
-          _this.renderRequests = 0;
-          _this.renderingActive = false;
-          if (_this.requiresTimeout === true) {
-            clearTimeout(_this.renderTimer);
-          } else {
-            cancelAnimationFrame(_this.renderTimer);
-          }
-          _this.body.emitter.off();
-        });
-      }
-    }, {
-      key: 'setOptions',
-      value: function setOptions(options) {
-        if (options !== undefined) {
-          var fields = ['hideEdgesOnDrag', 'hideNodesOnDrag'];
-          util.selectiveDeepExtend(fields, this.options, options);
-        }
-      }
-    }, {
-      key: '_startRendering',
-      value: function _startRendering() {
-        if (this.renderingActive === true) {
-          if (this.renderTimer === undefined) {
-            if (this.requiresTimeout === true) {
-              this.renderTimer = window.setTimeout(this._renderStep.bind(this), this.simulationInterval); // wait this.renderTimeStep milliseconds and perform the animation step function
-            } else {
-              this.renderTimer = window.requestAnimationFrame(this._renderStep.bind(this)); // wait this.renderTimeStep milliseconds and perform the animation step function
-            }
-          }
-        }
-      }
-    }, {
-      key: '_renderStep',
-      value: function _renderStep() {
-        if (this.renderingActive === true) {
-          // reset the renderTimer so a new scheduled animation step can be set
-          this.renderTimer = undefined;
-
-          if (this.requiresTimeout === true) {
-            // this schedules a new simulation step
-            this._startRendering();
-          }
-
-          this._redraw();
-
-          if (this.requiresTimeout === false) {
-            // this schedules a new simulation step
-            this._startRendering();
-          }
-        }
-      }
-    }, {
-      key: 'redraw',
-
-      /**
-       * Redraw the network with the current data
-       * chart will be resized too.
-       */
-      value: function redraw() {
-        this.body.emitter.emit('setSize');
-        this._redraw();
-      }
-    }, {
-      key: '_requestRedraw',
-
-      /**
-       * Redraw the network with the current data
-       * @param hidden | used to get the first estimate of the node sizes. only the nodes are drawn after which they are quickly drawn over.
-       * @private
-       */
-      value: function _requestRedraw() {
-        var _this2 = this;
-
-        if (this.redrawRequested !== true && this.renderingActive === false && this.allowRedrawRequests === true) {
-          this.redrawRequested = true;
-          if (this.requiresTimeout === true) {
-            window.setTimeout(function () {
-              _this2._redraw(false);
-            }, 0);
-          } else {
-            window.requestAnimationFrame(function () {
-              _this2._redraw(false);
-            });
-          }
-        }
-      }
-    }, {
-      key: '_redraw',
-      value: function _redraw() {
-        var hidden = arguments[0] === undefined ? false : arguments[0];
-
-        this.body.emitter.emit('initRedraw');
-
-        this.redrawRequested = false;
-        var ctx = this.canvas.frame.canvas.getContext('2d');
-
-        // when the container div was hidden, this fixes it back up!
-        if (this.canvas.frame.canvas.width === 0 || this.canvas.frame.canvas.height === 0) {
-          this.canvas.setSize();
-        }
-
-        if (this.pixelRatio === undefined) {
-          this.pixelRatio = (window.devicePixelRatio || 1) / (ctx.webkitBackingStorePixelRatio || ctx.mozBackingStorePixelRatio || ctx.msBackingStorePixelRatio || ctx.oBackingStorePixelRatio || ctx.backingStorePixelRatio || 1);
-        }
-
-        ctx.setTransform(this.pixelRatio, 0, 0, this.pixelRatio, 0, 0);
-
-        // clear the canvas
-        var w = this.canvas.frame.canvas.clientWidth;
-        var h = this.canvas.frame.canvas.clientHeight;
-        ctx.clearRect(0, 0, w, h);
-
-        // set scaling and translation
-        ctx.save();
-        ctx.translate(this.body.view.translation.x, this.body.view.translation.y);
-        ctx.scale(this.body.view.scale, this.body.view.scale);
-
-        ctx.beginPath();
-        this.body.emitter.emit('beforeDrawing', ctx);
-        ctx.closePath();
-
-        if (hidden === false) {
-          if (this.dragging === false || this.dragging === true && this.options.hideEdgesOnDrag === false) {
-            this._drawEdges(ctx);
-          }
-        }
-
-        if (this.dragging === false || this.dragging === true && this.options.hideNodesOnDrag === false) {
-          this._drawNodes(ctx, hidden);
-        }
-
-        if (this.controlNodesActive === true) {
-          this._drawControlNodes(ctx);
-        }
-
-        ctx.beginPath();
-        //this.physics.nodesSolver._debug(ctx,"#F00F0F");
-        this.body.emitter.emit('afterDrawing', ctx);
-        ctx.closePath();
-        // restore original scaling and translation
-        ctx.restore();
-
-        if (hidden === true) {
-          ctx.clearRect(0, 0, w, h);
-        }
-      }
-    }, {
-      key: '_resizeNodes',
-
-      /**
-       * Redraw all nodes
-       * The 2d context of a HTML canvas can be retrieved by canvas.getContext('2d');
-       * @param {CanvasRenderingContext2D}   ctx
-       * @param {Boolean} [alwaysShow]
-       * @private
-       */
-      value: function _resizeNodes() {
-        var ctx = this.canvas.frame.canvas.getContext('2d');
-        if (this.pixelRatio === undefined) {
-          this.pixelRatio = (window.devicePixelRatio || 1) / (ctx.webkitBackingStorePixelRatio || ctx.mozBackingStorePixelRatio || ctx.msBackingStorePixelRatio || ctx.oBackingStorePixelRatio || ctx.backingStorePixelRatio || 1);
-        }
-        ctx.setTransform(this.pixelRatio, 0, 0, this.pixelRatio, 0, 0);
-        ctx.save();
-        ctx.translate(this.body.view.translation.x, this.body.view.translation.y);
-        ctx.scale(this.body.view.scale, this.body.view.scale);
-
-        var nodes = this.body.nodes;
-        var node = undefined;
-
-        // resize all nodes
-        for (var nodeId in nodes) {
-          if (nodes.hasOwnProperty(nodeId)) {
-            node = nodes[nodeId];
-            node.resize(ctx);
-            node.updateBoundingBox(ctx);
-          }
-        }
-
-        // restore original scaling and translation
-        ctx.restore();
-      }
-    }, {
-      key: '_drawNodes',
-
-      /**
-       * Redraw all nodes
-       * The 2d context of a HTML canvas can be retrieved by canvas.getContext('2d');
-       * @param {CanvasRenderingContext2D}   ctx
-       * @param {Boolean} [alwaysShow]
-       * @private
-       */
-      value: function _drawNodes(ctx) {
-        var alwaysShow = arguments[1] === undefined ? false : arguments[1];
-
-        var nodes = this.body.nodes;
-        var nodeIndices = this.body.nodeIndices;
-        var node = undefined;
-        var selected = [];
-        var margin = 20;
-        var topLeft = this.canvas.DOMtoCanvas({ x: -margin, y: -margin });
-        var bottomRight = this.canvas.DOMtoCanvas({
-          x: this.canvas.frame.canvas.clientWidth + margin,
-          y: this.canvas.frame.canvas.clientHeight + margin
-        });
-        var viewableArea = { top: topLeft.y, left: topLeft.x, bottom: bottomRight.y, right: bottomRight.x };
-
-        // draw unselected nodes;
-        for (var i = 0; i < nodeIndices.length; i++) {
-          node = nodes[nodeIndices[i]];
-          // set selected nodes aside
-          if (node.isSelected()) {
-            selected.push(nodeIndices[i]);
-          } else {
-            if (alwaysShow === true) {
-              node.draw(ctx);
-            } else if (node.isBoundingBoxOverlappingWith(viewableArea) === true) {
-              node.draw(ctx);
-            } else {
-              node.updateBoundingBox(ctx);
-            }
-          }
-        }
-
-        // draw the selected nodes on top
-        for (var i = 0; i < selected.length; i++) {
-          node = nodes[selected[i]];
-          node.draw(ctx);
-        }
-      }
-    }, {
-      key: '_drawEdges',
-
-      /**
-       * Redraw all edges
-       * The 2d context of a HTML canvas can be retrieved by canvas.getContext('2d');
-       * @param {CanvasRenderingContext2D}   ctx
-       * @private
-       */
-      value: function _drawEdges(ctx) {
-        var edges = this.body.edges;
-        var edgeIndices = this.body.edgeIndices;
-        var edge = undefined;
-
-        for (var i = 0; i < edgeIndices.length; i++) {
-          edge = edges[edgeIndices[i]];
-          if (edge.connected === true) {
-            edge.draw(ctx);
-          }
-        }
-      }
-    }, {
-      key: '_drawControlNodes',
-
-      /**
-       * Redraw all edges
-       * The 2d context of a HTML canvas can be retrieved by canvas.getContext('2d');
-       * @param {CanvasRenderingContext2D}   ctx
-       * @private
-       */
-      value: function _drawControlNodes(ctx) {
-        var edges = this.body.edges;
-        var edgeIndices = this.body.edgeIndices;
-        var edge = undefined;
-
-        for (var i = 0; i < edgeIndices.length; i++) {
-          edge = edges[edgeIndices[i]];
-          edge._drawControlNodes(ctx);
-        }
-      }
-    }, {
-      key: '_determineBrowserMethod',
-
-      /**
-       * Determine if the browser requires a setTimeout or a requestAnimationFrame. This was required because
-       * some implementations (safari and IE9) did not support requestAnimationFrame
-       * @private
-       */
-      value: function _determineBrowserMethod() {
-        if (typeof window !== 'undefined') {
-          var browserType = navigator.userAgent.toLowerCase();
-          this.requiresTimeout = false;
-          if (browserType.indexOf('msie 9.0') != -1) {
-            // IE 9
-            this.requiresTimeout = true;
-          } else if (browserType.indexOf('safari') != -1) {
-            // safari
-            if (browserType.indexOf('chrome') <= -1) {
-              this.requiresTimeout = true;
-            }
-          }
-        } else {
-          this.requiresTimeout = true;
-        }
-      }
-    }]);
-
-    return CanvasRenderer;
-  })();
-
-  exports['default'] = CanvasRenderer;
-  module.exports = exports['default'];
-
-/***/ },
-/* 4 */
-/***/ function(module, exports, __webpack_require__) {
-
-  'use strict';
-
-  Object.defineProperty(exports, '__esModule', {
-    value: true
-  });
-
-  var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
-
-  function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
-
-  var Hammer = __webpack_require__(25);
-  var hammerUtil = __webpack_require__(30);
-
-  var util = __webpack_require__(2);
 
   /**
-   * Create the main frame for the Network.
-   * This function is executed once when a Network object is created. The frame
-   * contains a canvas, and this canvas contains all objects like the axis and
-   * nodes.
-   * @private
+   * This object contains all possible options. It will check if the types are correct, if required if the option is one
+   * of the allowed values.
+   *
+   * __any__ means that the name of the property does not matter.
+   * __type__ is a required field for all objects and contains the allowed types of all objects
    */
+  'use strict';
 
-  var Canvas = (function () {
-    function Canvas(body) {
-      _classCallCheck(this, Canvas);
+  Object.defineProperty(exports, '__esModule', {
+    value: true
+  });
+  var string = 'string';
+  var boolean = 'boolean';
+  var number = 'number';
+  var array = 'array';
+  var object = 'object'; // should only be in a __type__ property
+  var dom = 'dom';
+  var any = 'any';
 
-      this.body = body;
-      this.pixelRatio = 1;
-      this.resizeTimer = undefined;
-      this.resizeFunction = this._onResize.bind(this);
+  var allOptions = {
+    configure: {
+      enabled: { boolean: boolean },
+      filter: { boolean: boolean, string: string, array: array, 'function': 'function' },
+      container: { dom: dom },
+      showButton: { boolean: boolean },
+      __type__: { object: object, boolean: boolean, string: string, array: array, 'function': 'function' }
+    },
+    edges: {
+      arrows: {
+        to: { enabled: { boolean: boolean }, scaleFactor: { number: number }, __type__: { object: object, boolean: boolean } },
+        middle: { enabled: { boolean: boolean }, scaleFactor: { number: number }, __type__: { object: object, boolean: boolean } },
+        from: { enabled: { boolean: boolean }, scaleFactor: { number: number }, __type__: { object: object, boolean: boolean } },
+        __type__: { string: ['from', 'to', 'middle'], object: object }
+      },
+      color: {
+        color: { string: string },
+        highlight: { string: string },
+        hover: { string: string },
+        inherit: { string: ['from', 'to', 'both'], boolean: boolean },
+        opacity: { number: number },
+        __type__: { object: object, string: string }
+      },
+      dashes: { boolean: boolean, array: array },
+      font: {
+        color: { string: string },
+        size: { number: number }, // px
+        face: { string: string },
+        background: { string: string },
+        strokeWidth: { number: number }, // px
+        strokeColor: { string: string },
+        align: { string: ['horizontal', 'top', 'middle', 'bottom'] },
+        __type__: { object: object, string: string }
+      },
+      hidden: { boolean: boolean },
+      hoverWidth: { 'function': 'function', number: number },
+      label: { string: string, 'undefined': 'undefined' },
+      length: { number: number, 'undefined': 'undefined' },
+      physics: { boolean: boolean },
+      scaling: {
+        min: { number: number },
+        max: { number: number },
+        label: {
+          enabled: { boolean: boolean },
+          min: { number: number },
+          max: { number: number },
+          maxVisible: { number: number },
+          drawThreshold: { number: number },
+          __type__: { object: object, boolean: boolean }
+        },
+        customScalingFunction: { 'function': 'function' },
+        __type__: { object: object }
+      },
+      selectionWidth: { 'function': 'function', number: number },
+      selfReferenceSize: { number: number },
+      shadow: {
+        enabled: { boolean: boolean },
+        size: { number: number },
+        x: { number: number },
+        y: { number: number },
+        __type__: { object: object, boolean: boolean }
+      },
+      smooth: {
+        enabled: { boolean: boolean },
+        type: { string: ['dynamic', 'continuous', 'discrete', 'diagonalCross', 'straightCross', 'horizontal', 'vertical', 'curvedCW', 'curvedCCW'] },
+        roundness: { number: number },
+        __type__: { object: object, boolean: boolean }
+      },
+      title: { string: string, 'undefined': 'undefined' },
+      width: { number: number },
+      value: { number: number, 'undefined': 'undefined' },
+      __type__: { object: object }
+    },
+    groups: {
+      useDefaultGroups: { boolean: boolean },
+      __any__: 'get from nodes, will be overwritten below',
+      __type__: { object: object }
+    },
+    interaction: {
+      dragNodes: { boolean: boolean },
+      dragView: { boolean: boolean },
+      hideEdgesOnDrag: { boolean: boolean },
+      hideNodesOnDrag: { boolean: boolean },
+      hover: { boolean: boolean },
+      keyboard: {
+        enabled: { boolean: boolean },
+        speed: { x: { number: number }, y: { number: number }, zoom: { number: number }, __type__: { object: object } },
+        bindToWindow: { boolean: boolean },
+        __type__: { object: object, boolean: boolean }
+      },
+      multiselect: { boolean: boolean },
+      navigationButtons: { boolean: boolean },
+      selectable: { boolean: boolean },
+      selectConnectedEdges: { boolean: boolean },
+      hoverConnectedEdges: { boolean: boolean },
+      tooltipDelay: { number: number },
+      zoomView: { boolean: boolean },
+      __type__: { object: object }
+    },
+    layout: {
+      randomSeed: { 'undefined': 'undefined', number: number },
+      hierarchical: {
+        enabled: { boolean: boolean },
+        levelSeparation: { number: number },
+        direction: { string: ['UD', 'DU', 'LR', 'RL'] }, // UD, DU, LR, RL
+        sortMethod: { string: ['hubsize', 'directed'] }, // hubsize, directed
+        __type__: { object: object, boolean: boolean }
+      },
+      __type__: { object: object }
+    },
+    manipulation: {
+      enabled: { boolean: boolean },
+      initiallyActive: { boolean: boolean },
+      addNode: { boolean: boolean, 'function': 'function' },
+      addEdge: { boolean: boolean, 'function': 'function' },
+      editNode: { 'function': 'function' },
+      editEdge: { boolean: boolean, 'function': 'function' },
+      deleteNode: { boolean: boolean, 'function': 'function' },
+      deleteEdge: { boolean: boolean, 'function': 'function' },
+      controlNodeStyle: 'get from nodes, will be overwritten below',
+      __type__: { object: object, boolean: boolean }
+    },
+    nodes: {
+      borderWidth: { number: number },
+      borderWidthSelected: { number: number, 'undefined': 'undefined' },
+      brokenImage: { string: string, 'undefined': 'undefined' },
+      color: {
+        border: { string: string },
+        background: { string: string },
+        highlight: {
+          border: { string: string },
+          background: { string: string },
+          __type__: { object: object, string: string }
+        },
+        hover: {
+          border: { string: string },
+          background: { string: string },
+          __type__: { object: object, string: string }
+        },
+        __type__: { object: object, string: string }
+      },
+      fixed: {
+        x: { boolean: boolean },
+        y: { boolean: boolean },
+        __type__: { object: object, boolean: boolean }
+      },
+      font: {
+        color: { string: string },
+        size: { number: number }, // px
+        face: { string: string },
+        background: { string: string },
+        strokeWidth: { number: number }, // px
+        strokeColor: { string: string },
+        __type__: { object: object, string: string }
+      },
+      group: { string: string, number: number, 'undefined': 'undefined' },
+      hidden: { boolean: boolean },
+      icon: {
+        face: { string: string },
+        code: { string: string }, //'\uf007',
+        size: { number: number }, //50,
+        color: { string: string },
+        __type__: { object: object }
+      },
+      id: { string: string, number: number },
+      image: { string: string, 'undefined': 'undefined' }, // --> URL
+      label: { string: string, 'undefined': 'undefined' },
+      level: { number: number, 'undefined': 'undefined' },
+      mass: { number: number },
+      physics: { boolean: boolean },
+      scaling: {
+        min: { number: number },
+        max: { number: number },
+        label: {
+          enabled: { boolean: boolean },
+          min: { number: number },
+          max: { number: number },
+          maxVisible: { number: number },
+          drawThreshold: { number: number },
+          __type__: { object: object, boolean: boolean }
+        },
+        customScalingFunction: { 'function': 'function' },
+        __type__: { object: object }
+      },
+      shadow: {
+        enabled: { boolean: boolean },
+        size: { number: number },
+        x: { number: number },
+        y: { number: number },
+        __type__: { object: object, boolean: boolean }
+      },
+      shape: { string: ['ellipse', 'circle', 'database', 'box', 'text', 'image', 'circularImage', 'diamond', 'dot', 'star', 'triangle', 'triangleDown', 'square', 'icon'] },
+      size: { number: number },
+      title: { string: string, 'undefined': 'undefined' },
+      value: { number: number, 'undefined': 'undefined' },
+      x: { number: number },
+      y: { number: number },
+      __type__: { object: object }
+    },
+    physics: {
+      enabled: { boolean: boolean },
+      barnesHut: {
+        gravitationalConstant: { number: number },
+        centralGravity: { number: number },
+        springLength: { number: number },
+        springConstant: { number: number },
+        damping: { number: number },
+        avoidOverlap: { number: number },
+        __type__: { object: object }
+      },
+      forceAtlas2Based: {
+        gravitationalConstant: { number: number },
+        centralGravity: { number: number },
+        springLength: { number: number },
+        springConstant: { number: number },
+        damping: { number: number },
+        avoidOverlap: { number: number },
+        __type__: { object: object }
+      },
+      repulsion: {
+        centralGravity: { number: number },
+        springLength: { number: number },
+        springConstant: { number: number },
+        nodeDistance: { number: number },
+        damping: { number: number },
+        __type__: { object: object }
+      },
+      hierarchicalRepulsion: {
+        centralGravity: { number: number },
+        springLength: { number: number },
+        springConstant: { number: number },
+        nodeDistance: { number: number },
+        damping: { number: number },
+        __type__: { object: object }
+      },
+      maxVelocity: { number: number },
+      minVelocity: { number: number }, // px/s
+      solver: { string: ['barnesHut', 'repulsion', 'hierarchicalRepulsion', 'forceAtlas2Based'] },
+      stabilization: {
+        enabled: { boolean: boolean },
+        iterations: { number: number }, // maximum number of iteration to stabilize
+        updateInterval: { number: number },
+        onlyDynamicEdges: { boolean: boolean },
+        fit: { boolean: boolean },
+        __type__: { object: object, boolean: boolean }
+      },
+      timestep: { number: number },
+      __type__: { object: object, boolean: boolean }
+    },
 
-      this.options = {};
-      this.defaultOptions = {
-        autoResize: true,
-        height: '100%',
-        width: '100%'
-      };
-      util.extend(this.options, this.defaultOptions);
+    //globals :
+    autoResize: { boolean: boolean },
+    clickToUse: { boolean: boolean },
+    locale: { string: string },
+    locales: {
+      __any__: { object: object },
+      __type__: { object: object }
+    },
+    height: { string: string },
+    width: { string: string },
+    __type__: { object: object }
+  };
 
-      this.bindEventListeners();
+  allOptions.groups.__any__ = allOptions.nodes;
+  allOptions.manipulation.controlNodeStyle = allOptions.nodes;
+
+  var configureOptions = {
+    nodes: {
+      borderWidth: [1, 0, 10, 1],
+      borderWidthSelected: [2, 0, 10, 1],
+      color: {
+        border: ['color', '#2B7CE9'],
+        background: ['color', '#97C2FC'],
+        highlight: {
+          border: ['color', '#2B7CE9'],
+          background: ['color', '#D2E5FF']
+        },
+        hover: {
+          border: ['color', '#2B7CE9'],
+          background: ['color', '#D2E5FF']
+        }
+      },
+      fixed: {
+        x: false,
+        y: false
+      },
+      font: {
+        color: ['color', '#343434'],
+        size: [14, 0, 100, 1], // px
+        face: ['arial', 'verdana', 'tahoma'],
+        background: ['color', 'none'],
+        strokeWidth: [0, 0, 50, 1], // px
+        strokeColor: ['color', '#ffffff']
+      },
+      //group: 'string',
+      hidden: false,
+      //icon: {
+      //  face: 'string',  //'FontAwesome',
+      //  code: 'string',  //'\uf007',
+      //  size: [50, 0, 200, 1],  //50,
+      //  color: ['color','#2B7CE9']   //'#aa00ff'
+      //},
+      //image: 'string', // --> URL
+      physics: true,
+      scaling: {
+        min: [10, 0, 200, 1],
+        max: [30, 0, 200, 1],
+        label: {
+          enabled: false,
+          min: [14, 0, 200, 1],
+          max: [30, 0, 200, 1],
+          maxVisible: [30, 0, 200, 1],
+          drawThreshold: [5, 0, 20, 1]
+        }
+      },
+      shadow: {
+        enabled: false,
+        size: [10, 0, 20, 1],
+        x: [5, -30, 30, 1],
+        y: [5, -30, 30, 1]
+      },
+      shape: ['ellipse', 'box', 'circle', 'database', 'diamond', 'dot', 'square', 'star', 'text', 'triangle', 'triangleDown'],
+      size: [25, 0, 200, 1]
+    },
+    edges: {
+      arrows: {
+        to: { enabled: false, scaleFactor: [1, 0, 3, 0.05] }, // boolean / {arrowScaleFactor:1} / {enabled: false, arrowScaleFactor:1}
+        middle: { enabled: false, scaleFactor: [1, 0, 3, 0.05] },
+        from: { enabled: false, scaleFactor: [1, 0, 3, 0.05] }
+      },
+      color: {
+        color: ['color', '#848484'],
+        highlight: ['color', '#848484'],
+        hover: ['color', '#848484'],
+        inherit: ['from', 'to', 'both', true, false],
+        opacity: [1, 0, 1, 0.05]
+      },
+      dashes: false,
+      font: {
+        color: ['color', '#343434'],
+        size: [14, 0, 100, 1], // px
+        face: ['arial', 'verdana', 'tahoma'],
+        background: ['color', 'none'],
+        strokeWidth: [2, 0, 50, 1], // px
+        strokeColor: ['color', '#ffffff'],
+        align: ['horizontal', 'top', 'middle', 'bottom']
+      },
+      hidden: false,
+      hoverWidth: [1.5, 0, 5, 0.1],
+      physics: true,
+      scaling: {
+        min: [1, 0, 100, 1],
+        max: [15, 0, 100, 1],
+        label: {
+          enabled: true,
+          min: [14, 0, 200, 1],
+          max: [30, 0, 200, 1],
+          maxVisible: [30, 0, 200, 1],
+          drawThreshold: [5, 0, 20, 1]
+        }
+      },
+      selectionWidth: [1.5, 0, 5, 0.1],
+      selfReferenceSize: [20, 0, 200, 1],
+      shadow: {
+        enabled: false,
+        size: [10, 0, 20, 1],
+        x: [5, -30, 30, 1],
+        y: [5, -30, 30, 1]
+      },
+      smooth: {
+        enabled: true,
+        type: ['dynamic', 'continuous', 'discrete', 'diagonalCross', 'straightCross', 'horizontal', 'vertical', 'curvedCW', 'curvedCCW'],
+        roundness: [0.5, 0, 1, 0.05]
+      },
+      width: [1, 0, 30, 1]
+    },
+    layout: {
+      //randomSeed: [0, 0, 500, 1],
+      hierarchical: {
+        enabled: false,
+        levelSeparation: [150, 20, 500, 5],
+        direction: ['UD', 'DU', 'LR', 'RL'], // UD, DU, LR, RL
+        sortMethod: ['hubsize', 'directed'] // hubsize, directed
+      }
+    },
+    interaction: {
+      dragNodes: true,
+      dragView: true,
+      hideEdgesOnDrag: false,
+      hideNodesOnDrag: false,
+      hover: false,
+      keyboard: {
+        enabled: false,
+        speed: { x: [10, 0, 40, 1], y: [10, 0, 40, 1], zoom: [0.02, 0, 0.1, 0.005] },
+        bindToWindow: true
+      },
+      multiselect: false,
+      navigationButtons: false,
+      selectable: true,
+      selectConnectedEdges: true,
+      hoverConnectedEdges: true,
+      tooltipDelay: [300, 0, 1000, 25],
+      zoomView: true
+    },
+    manipulation: {
+      enabled: false,
+      initiallyActive: false
+    },
+    physics: {
+      enabled: true,
+      barnesHut: {
+        //theta: [0.5, 0.1, 1, 0.05],
+        gravitationalConstant: [-2000, -30000, 0, 50],
+        centralGravity: [0.3, 0, 10, 0.05],
+        springLength: [95, 0, 500, 5],
+        springConstant: [0.04, 0, 1.2, 0.005],
+        damping: [0.09, 0, 1, 0.01],
+        avoidOverlap: [0, 0, 1, 0.01]
+      },
+      forceAtlas2Based: {
+        //theta: [0.5, 0.1, 1, 0.05],
+        gravitationalConstant: [-50, -500, 0, 1],
+        centralGravity: [0.01, 0, 1, 0.005],
+        springLength: [95, 0, 500, 5],
+        springConstant: [0.08, 0, 1.2, 0.005],
+        damping: [0.4, 0, 1, 0.01],
+        avoidOverlap: [0, 0, 1, 0.01]
+      },
+      repulsion: {
+        centralGravity: [0.2, 0, 10, 0.05],
+        springLength: [200, 0, 500, 5],
+        springConstant: [0.05, 0, 1.2, 0.005],
+        nodeDistance: [100, 0, 500, 5],
+        damping: [0.09, 0, 1, 0.01]
+      },
+      hierarchicalRepulsion: {
+        centralGravity: [0.2, 0, 10, 0.05],
+        springLength: [100, 0, 500, 5],
+        springConstant: [0.01, 0, 1.2, 0.005],
+        nodeDistance: [120, 0, 500, 5],
+        damping: [0.09, 0, 1, 0.01]
+      },
+      maxVelocity: [50, 0, 150, 1],
+      minVelocity: [0.1, 0.01, 0.5, 0.01],
+      solver: ['barnesHut', 'forceAtlas2Based', 'repulsion', 'hierarchicalRepulsion'],
+      timestep: [0.5, 0.01, 1, 0.01]
+    },
+    global: {
+      locale: ['en', 'nl']
     }
+  };
 
-    _createClass(Canvas, [{
-      key: 'bindEventListeners',
-      value: function bindEventListeners() {
-        var _this = this;
-
-        // bind the events
-        this.body.emitter.once('resize', function (obj) {
-          if (obj.width !== 0) {
-            _this.body.view.translation.x = obj.width * 0.5;
-          }
-          if (obj.height !== 0) {
-            _this.body.view.translation.y = obj.height * 0.5;
-          }
-        });
-        this.body.emitter.on('setSize', this.setSize.bind(this));
-        this.body.emitter.on('destroy', function () {
-          _this.hammerFrame.destroy();
-          _this.hammer.destroy();
-          _this._cleanUp();
-        });
-      }
-    }, {
-      key: 'setOptions',
-      value: function setOptions(options) {
-        var _this2 = this;
-
-        if (options !== undefined) {
-          var fields = ['width', 'height', 'autoResize'];
-          util.selectiveDeepExtend(fields, this.options, options);
-        }
-
-        if (this.options.autoResize === true) {
-          // automatically adapt to a changing size of the browser.
-          this._cleanUp();
-          this.resizeTimer = setInterval(function () {
-            var changed = _this2.setSize();
-            if (changed === true) {
-              _this2.body.emitter.emit('_requestRedraw');
-            }
-          }, 1000);
-          this.resizeFunction = this._onResize.bind(this);
-          util.addEventListener(window, 'resize', this.resizeFunction);
-        }
-      }
-    }, {
-      key: '_cleanUp',
-      value: function _cleanUp() {
-        // automatically adapt to a changing size of the browser.
-        if (this.resizeTimer !== undefined) {
-          clearInterval(this.resizeTimer);
-        }
-        util.removeEventListener(window, 'resize', this.resizeFunction);
-        this.resizeFunction = undefined;
-      }
-    }, {
-      key: '_onResize',
-      value: function _onResize() {
-        this.setSize();
-        this.body.emitter.emit('_redraw');
-      }
-    }, {
-      key: '_prepareValue',
-      value: function _prepareValue(value) {
-        if (typeof value === 'number') {
-          return value + 'px';
-        } else if (typeof value === 'string') {
-          if (value.indexOf('%') !== -1 || value.indexOf('px') !== -1) {
-            return value;
-          } else if (value.indexOf('%') === -1) {
-            return value + 'px';
-          }
-        }
-        throw new Error('Could not use the value supplie for width or height:' + value);
-      }
-    }, {
-      key: '_create',
-
-      /**
-       * Create the HTML
-       */
-      value: function _create() {
-        // remove all elements from the container element.
-        while (this.body.container.hasChildNodes()) {
-          this.body.container.removeChild(this.body.container.firstChild);
-        }
-
-        this.frame = document.createElement('div');
-        this.frame.className = 'vis-network';
-        this.frame.style.position = 'relative';
-        this.frame.style.overflow = 'hidden';
-        this.frame.tabIndex = 900; // tab index is required for keycharm to bind keystrokes to the div instead of the window
-
-        //////////////////////////////////////////////////////////////////
-
-        this.frame.canvas = document.createElement('canvas');
-        this.frame.canvas.style.position = 'relative';
-        this.frame.appendChild(this.frame.canvas);
-
-        if (!this.frame.canvas.getContext) {
-          var noCanvas = document.createElement('DIV');
-          noCanvas.style.color = 'red';
-          noCanvas.style.fontWeight = 'bold';
-          noCanvas.style.padding = '10px';
-          noCanvas.innerHTML = 'Error: your browser does not support HTML canvas';
-          this.frame.canvas.appendChild(noCanvas);
-        } else {
-          var ctx = this.frame.canvas.getContext('2d');
-          this.pixelRatio = (window.devicePixelRatio || 1) / (ctx.webkitBackingStorePixelRatio || ctx.mozBackingStorePixelRatio || ctx.msBackingStorePixelRatio || ctx.oBackingStorePixelRatio || ctx.backingStorePixelRatio || 1);
-
-          this.frame.canvas.getContext('2d').setTransform(this.pixelRatio, 0, 0, this.pixelRatio, 0, 0);
-        }
-
-        // add the frame to the container element
-        this.body.container.appendChild(this.frame);
-
-        this.body.view.scale = 1;
-        this.body.view.translation = { x: 0.5 * this.frame.canvas.clientWidth, y: 0.5 * this.frame.canvas.clientHeight };
-
-        this._bindHammer();
-      }
-    }, {
-      key: '_bindHammer',
-
-      /**
-       * This function binds hammer, it can be repeated over and over due to the uniqueness check.
-       * @private
-       */
-      value: function _bindHammer() {
-        var _this3 = this;
-
-        if (this.hammer !== undefined) {
-          this.hammer.destroy();
-        }
-        this.drag = {};
-        this.pinch = {};
-
-        // init hammer
-        this.hammer = new Hammer(this.frame.canvas);
-        this.hammer.get('pinch').set({ enable: true });
-        // enable to get better response, todo: test on mobile.
-        //this.hammer.get('pan').set({threshold:2});
-
-        hammerUtil.onTouch(this.hammer, function (event) {
-          _this3.body.eventListeners.onTouch(event);
-        });
-        this.hammer.on('tap', function (event) {
-          _this3.body.eventListeners.onTap(event);
-        });
-        this.hammer.on('doubletap', function (event) {
-          _this3.body.eventListeners.onDoubleTap(event);
-        });
-        this.hammer.on('press', function (event) {
-          _this3.body.eventListeners.onHold(event);
-        });
-        this.hammer.on('panstart', function (event) {
-          _this3.body.eventListeners.onDragStart(event);
-        });
-        this.hammer.on('panmove', function (event) {
-          _this3.body.eventListeners.onDrag(event);
-        });
-        this.hammer.on('panend', function (event) {
-          _this3.body.eventListeners.onDragEnd(event);
-        });
-        this.hammer.on('pinch', function (event) {
-          _this3.body.eventListeners.onPinch(event);
-        });
-
-        // TODO: neatly cleanup these handlers when re-creating the Canvas, IF these are done with hammer, event.stopPropagation will not work?
-        this.frame.canvas.addEventListener('mousewheel', function (event) {
-          _this3.body.eventListeners.onMouseWheel(event);
-        });
-        this.frame.canvas.addEventListener('DOMMouseScroll', function (event) {
-          _this3.body.eventListeners.onMouseWheel(event);
-        });
-
-        this.frame.canvas.addEventListener('mousemove', function (event) {
-          _this3.body.eventListeners.onMouseMove(event);
-        });
-        this.frame.canvas.addEventListener('contextmenu', function (event) {
-          _this3.body.eventListeners.onContext(event);
-        });
-
-        this.hammerFrame = new Hammer(this.frame);
-        hammerUtil.onRelease(this.hammerFrame, function (event) {
-          _this3.body.eventListeners.onRelease(event);
-        });
-      }
-    }, {
-      key: 'setSize',
-
-      /**
-       * Set a new size for the network
-       * @param {string} width   Width in pixels or percentage (for example '800px'
-       *                         or '50%')
-       * @param {string} height  Height in pixels or percentage  (for example '400px'
-       *                         or '30%')
-       */
-      value: function setSize() {
-        var width = arguments[0] === undefined ? this.options.width : arguments[0];
-        var height = arguments[1] === undefined ? this.options.height : arguments[1];
-
-        width = this._prepareValue(width);
-        height = this._prepareValue(height);
-
-        var emitEvent = false;
-        var oldWidth = this.frame.canvas.width;
-        var oldHeight = this.frame.canvas.height;
-
-        if (width != this.options.width || height != this.options.height || this.frame.style.width != width || this.frame.style.height != height) {
-          this.frame.style.width = width;
-          this.frame.style.height = height;
-
-          this.frame.canvas.style.width = '100%';
-          this.frame.canvas.style.height = '100%';
-
-          this.frame.canvas.width = Math.round(this.frame.canvas.clientWidth * this.pixelRatio);
-          this.frame.canvas.height = Math.round(this.frame.canvas.clientHeight * this.pixelRatio);
-
-          this.options.width = width;
-          this.options.height = height;
-
-          emitEvent = true;
-        } else {
-          // this would adapt the width of the canvas to the width from 100% if and only if
-          // there is a change.
-
-          if (this.frame.canvas.width != Math.round(this.frame.canvas.clientWidth * this.pixelRatio)) {
-            this.frame.canvas.width = Math.round(this.frame.canvas.clientWidth * this.pixelRatio);
-            emitEvent = true;
-          }
-          if (this.frame.canvas.height != Math.round(this.frame.canvas.clientHeight * this.pixelRatio)) {
-            this.frame.canvas.height = Math.round(this.frame.canvas.clientHeight * this.pixelRatio);
-            emitEvent = true;
-          }
-        }
-
-        if (emitEvent === true) {
-          this.body.emitter.emit('resize', {
-            width: Math.round(this.frame.canvas.width / this.pixelRatio),
-            height: Math.round(this.frame.canvas.height / this.pixelRatio),
-            oldWidth: Math.round(oldWidth / this.pixelRatio),
-            oldHeight: Math.round(oldHeight / this.pixelRatio)
-          });
-        }
-
-        return emitEvent;
-      }
-    }, {
-      key: '_XconvertDOMtoCanvas',
-
-      /**
-       * Convert the X coordinate in DOM-space (coordinate point in browser relative to the container div) to
-       * the X coordinate in canvas-space (the simulation sandbox, which the camera looks upon)
-       * @param {number} x
-       * @returns {number}
-       * @private
-       */
-      value: function _XconvertDOMtoCanvas(x) {
-        return (x - this.body.view.translation.x) / this.body.view.scale;
-      }
-    }, {
-      key: '_XconvertCanvasToDOM',
-
-      /**
-       * Convert the X coordinate in canvas-space (the simulation sandbox, which the camera looks upon) to
-       * the X coordinate in DOM-space (coordinate point in browser relative to the container div)
-       * @param {number} x
-       * @returns {number}
-       * @private
-       */
-      value: function _XconvertCanvasToDOM(x) {
-        return x * this.body.view.scale + this.body.view.translation.x;
-      }
-    }, {
-      key: '_YconvertDOMtoCanvas',
-
-      /**
-       * Convert the Y coordinate in DOM-space (coordinate point in browser relative to the container div) to
-       * the Y coordinate in canvas-space (the simulation sandbox, which the camera looks upon)
-       * @param {number} y
-       * @returns {number}
-       * @private
-       */
-      value: function _YconvertDOMtoCanvas(y) {
-        return (y - this.body.view.translation.y) / this.body.view.scale;
-      }
-    }, {
-      key: '_YconvertCanvasToDOM',
-
-      /**
-       * Convert the Y coordinate in canvas-space (the simulation sandbox, which the camera looks upon) to
-       * the Y coordinate in DOM-space (coordinate point in browser relative to the container div)
-       * @param {number} y
-       * @returns {number}
-       * @private
-       */
-      value: function _YconvertCanvasToDOM(y) {
-        return y * this.body.view.scale + this.body.view.translation.y;
-      }
-    }, {
-      key: 'canvasToDOM',
-
-      /**
-       *
-       * @param {object} pos   = {x: number, y: number}
-       * @returns {{x: number, y: number}}
-       * @constructor
-       */
-      value: function canvasToDOM(pos) {
-        return { x: this._XconvertCanvasToDOM(pos.x), y: this._YconvertCanvasToDOM(pos.y) };
-      }
-    }, {
-      key: 'DOMtoCanvas',
-
-      /**
-       *
-       * @param {object} pos   = {x: number, y: number}
-       * @returns {{x: number, y: number}}
-       * @constructor
-       */
-      value: function DOMtoCanvas(pos) {
-        return { x: this._XconvertDOMtoCanvas(pos.x), y: this._YconvertDOMtoCanvas(pos.y) };
-      }
-    }]);
-
-    return Canvas;
-  })();
-
-  exports['default'] = Canvas;
-  module.exports = exports['default'];
+  exports.allOptions = allOptions;
+  exports.configureOptions = configureOptions;
 
 /***/ },
-/* 5 */
+/* 6 */
 /***/ function(module, exports, __webpack_require__) {
 
   // first check if moment.js is already loaded in the browser window, if so,
   // use this instance. Else, load via commonjs.
   'use strict';
 
-  module.exports = typeof window !== 'undefined' && window['moment'] || __webpack_require__(6);
+  module.exports = typeof window !== 'undefined' && window['moment'] || __webpack_require__(7);
 
 /***/ },
-/* 6 */
+/* 7 */
 /***/ function(module, exports, __webpack_require__) {
 
   /* WEBPACK VAR INJECTION */(function(module) {//! moment.js
@@ -5409,10 +6970,10 @@ return /******/ (function(modules) { // webpackBootstrap
       return _moment;
 
   }));
-  /* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(7)(module)))
+  /* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(8)(module)))
 
 /***/ },
-/* 7 */
+/* 8 */
 /***/ function(module, exports, __webpack_require__) {
 
   module.exports = function(module) {
@@ -5428,7 +6989,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 8 */
+/* 9 */
 /***/ function(module, exports, __webpack_require__) {
 
   /* WEBPACK VAR INJECTION */(function(global) {'use strict';
@@ -5644,7 +7205,7 @@ return /******/ (function(modules) { // webpackBootstrap
   /* WEBPACK VAR INJECTION */}.call(exports, (function() { return this; }())))
 
 /***/ },
-/* 9 */
+/* 10 */
 /***/ function(module, exports, __webpack_require__) {
 
   // DOM utility methods
@@ -5846,13 +7407,13 @@ return /******/ (function(modules) { // webpackBootstrap
   };
 
 /***/ },
-/* 10 */
+/* 11 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
 
-  var util = __webpack_require__(2);
-  var Queue = __webpack_require__(11);
+  var util = __webpack_require__(4);
+  var Queue = __webpack_require__(12);
 
   /**
    * DataSet
@@ -6741,7 +8302,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = DataSet;
 
 /***/ },
-/* 11 */
+/* 12 */
 /***/ function(module, exports, __webpack_require__) {
 
   /**
@@ -6946,13 +8507,13 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = Queue;
 
 /***/ },
-/* 12 */
+/* 13 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
 
-  var util = __webpack_require__(2);
-  var DataSet = __webpack_require__(10);
+  var util = __webpack_require__(4);
+  var DataSet = __webpack_require__(11);
 
   /**
    * DataView
@@ -7294,21 +8855,21 @@ return /******/ (function(modules) { // webpackBootstrap
   // nothing interesting for me :-(
 
 /***/ },
-/* 13 */
+/* 14 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
 
-  var Emitter = __webpack_require__(15);
-  var DataSet = __webpack_require__(10);
-  var DataView = __webpack_require__(12);
-  var util = __webpack_require__(2);
-  var Point3d = __webpack_require__(16);
-  var Point2d = __webpack_require__(14);
-  var Camera = __webpack_require__(17);
-  var Filter = __webpack_require__(18);
-  var Slider = __webpack_require__(19);
-  var StepNumber = __webpack_require__(20);
+  var Emitter = __webpack_require__(16);
+  var DataSet = __webpack_require__(11);
+  var DataView = __webpack_require__(13);
+  var util = __webpack_require__(4);
+  var Point3d = __webpack_require__(17);
+  var Point2d = __webpack_require__(15);
+  var Camera = __webpack_require__(18);
+  var Filter = __webpack_require__(19);
+  var Slider = __webpack_require__(20);
+  var StepNumber = __webpack_require__(21);
 
   /**
    * @constructor Graph3d
@@ -9512,7 +11073,7 @@ return /******/ (function(modules) { // webpackBootstrap
   // use use defaults
 
 /***/ },
-/* 14 */
+/* 15 */
 /***/ function(module, exports, __webpack_require__) {
 
   /**
@@ -9530,7 +11091,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = Point2d;
 
 /***/ },
-/* 15 */
+/* 16 */
 /***/ function(module, exports, __webpack_require__) {
 
   
@@ -9700,7 +11261,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 16 */
+/* 17 */
 /***/ function(module, exports, __webpack_require__) {
 
   /**
@@ -9783,12 +11344,12 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = Point3d;
 
 /***/ },
-/* 17 */
+/* 18 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
 
-  var Point3d = __webpack_require__(16);
+  var Point3d = __webpack_require__(17);
 
   /**
    * @class Camera
@@ -9924,12 +11485,12 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = Camera;
 
 /***/ },
-/* 18 */
+/* 19 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
 
-  var DataView = __webpack_require__(12);
+  var DataView = __webpack_require__(13);
 
   /**
    * @class Filter
@@ -10135,12 +11696,12 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = Filter;
 
 /***/ },
-/* 19 */
+/* 20 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
 
-  var util = __webpack_require__(2);
+  var util = __webpack_require__(4);
 
   /**
    * @constructor Slider
@@ -10483,7 +12044,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = Slider;
 
 /***/ },
-/* 20 */
+/* 21 */
 /***/ function(module, exports, __webpack_require__) {
 
   /**
@@ -10627,28 +12188,28 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = StepNumber;
 
 /***/ },
-/* 21 */
+/* 22 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
 
-  var Emitter = __webpack_require__(15);
-  var Hammer = __webpack_require__(25);
-  var util = __webpack_require__(2);
-  var DataSet = __webpack_require__(10);
-  var DataView = __webpack_require__(12);
-  var Range = __webpack_require__(29);
-  var Core = __webpack_require__(32);
-  var TimeAxis = __webpack_require__(43);
-  var CurrentTime = __webpack_require__(22);
-  var CustomTime = __webpack_require__(46);
-  var ItemSet = __webpack_require__(33);
+  var Emitter = __webpack_require__(16);
+  var Hammer = __webpack_require__(26);
+  var util = __webpack_require__(4);
+  var DataSet = __webpack_require__(11);
+  var DataView = __webpack_require__(13);
+  var Range = __webpack_require__(30);
+  var Core = __webpack_require__(33);
+  var TimeAxis = __webpack_require__(44);
+  var CurrentTime = __webpack_require__(23);
+  var CustomTime = __webpack_require__(47);
+  var ItemSet = __webpack_require__(34);
 
-  var Configurator = __webpack_require__(47);
-  var Validator = __webpack_require__(49)['default'];
-  var printStyle = __webpack_require__(49).printStyle;
-  var allOptions = __webpack_require__(50).allOptions;
-  var configureOptions = __webpack_require__(50).configureOptions;
+  var Configurator = __webpack_require__(48);
+  var Validator = __webpack_require__(50)['default'];
+  var printStyle = __webpack_require__(50).printStyle;
+  var allOptions = __webpack_require__(51).allOptions;
+  var configureOptions = __webpack_require__(51).configureOptions;
 
   /**
    * Create a timeline visualization
@@ -11151,15 +12712,15 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = Timeline;
 
 /***/ },
-/* 22 */
+/* 23 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
 
-  var util = __webpack_require__(2);
-  var Component = __webpack_require__(23);
-  var moment = __webpack_require__(5);
-  var locales = __webpack_require__(24);
+  var util = __webpack_require__(4);
+  var Component = __webpack_require__(24);
+  var moment = __webpack_require__(6);
+  var locales = __webpack_require__(25);
 
   /**
    * A current time bar
@@ -11327,7 +12888,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = CurrentTime;
 
 /***/ },
-/* 23 */
+/* 24 */
 /***/ function(module, exports, __webpack_require__) {
 
   /**
@@ -11387,7 +12948,7 @@ return /******/ (function(modules) { // webpackBootstrap
   // should be implemented by the component
 
 /***/ },
-/* 24 */
+/* 25 */
 /***/ function(module, exports, __webpack_require__) {
 
   // English
@@ -11409,7 +12970,7 @@ return /******/ (function(modules) { // webpackBootstrap
   exports['nl_BE'] = exports['nl'];
 
 /***/ },
-/* 25 */
+/* 26 */
 /***/ function(module, exports, __webpack_require__) {
 
   // Only load hammer.js when in a browser environment
@@ -11417,8 +12978,8 @@ return /******/ (function(modules) { // webpackBootstrap
   'use strict';
 
   if (typeof window !== 'undefined') {
-    var propagating = __webpack_require__(26);
-    var Hammer = window['Hammer'] || __webpack_require__(27);
+    var propagating = __webpack_require__(27);
+    var Hammer = window['Hammer'] || __webpack_require__(28);
     module.exports = propagating(Hammer, {
       preventDefault: 'mouse'
     });
@@ -11429,7 +12990,7 @@ return /******/ (function(modules) { // webpackBootstrap
   }
 
 /***/ },
-/* 26 */
+/* 27 */
 /***/ function(module, exports, __webpack_require__) {
 
   var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;'use strict';
@@ -11657,7 +13218,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 27 */
+/* 28 */
 /***/ function(module, exports, __webpack_require__) {
 
   var __WEBPACK_AMD_DEFINE_RESULT__;/*! Hammer.JS - v2.0.4 - 2014-09-28
@@ -14112,7 +15673,7 @@ return /******/ (function(modules) { // webpackBootstrap
       prefixed: prefixed
   });
 
-  if ("function" == TYPE_FUNCTION && __webpack_require__(28)) {
+  if ("function" == TYPE_FUNCTION && __webpack_require__(29)) {
       !(__WEBPACK_AMD_DEFINE_RESULT__ = function() {
           return Hammer;
       }.call(exports, __webpack_require__, exports, module), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__));
@@ -14126,7 +15687,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 28 */
+/* 29 */
 /***/ function(module, exports, __webpack_require__) {
 
   /* WEBPACK VAR INJECTION */(function(__webpack_amd_options__) {module.exports = __webpack_amd_options__;
@@ -14134,16 +15695,16 @@ return /******/ (function(modules) { // webpackBootstrap
   /* WEBPACK VAR INJECTION */}.call(exports, {}))
 
 /***/ },
-/* 29 */
+/* 30 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
 
-  var util = __webpack_require__(2);
-  var hammerUtil = __webpack_require__(30);
-  var moment = __webpack_require__(5);
-  var Component = __webpack_require__(23);
-  var DateUtil = __webpack_require__(31);
+  var util = __webpack_require__(4);
+  var hammerUtil = __webpack_require__(31);
+  var moment = __webpack_require__(6);
+  var Component = __webpack_require__(24);
+  var DateUtil = __webpack_require__(32);
 
   /**
    * @constructor Range
@@ -14810,12 +16371,12 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = Range;
 
 /***/ },
-/* 30 */
+/* 31 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
 
-  var Hammer = __webpack_require__(25);
+  var Hammer = __webpack_require__(26);
 
   /**
    * Register a touch event, taking place before a gesture
@@ -14882,12 +16443,12 @@ return /******/ (function(modules) { // webpackBootstrap
   exports.offRelease = exports.offTouch;
 
 /***/ },
-/* 31 */
+/* 32 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
 
-  var moment = __webpack_require__(5);
+  var moment = __webpack_require__(6);
 
   /**
    * used in Core to convert the options into a volatile variable
@@ -15342,23 +16903,23 @@ return /******/ (function(modules) { // webpackBootstrap
   };
 
 /***/ },
-/* 32 */
+/* 33 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
 
-  var Emitter = __webpack_require__(15);
-  var Hammer = __webpack_require__(25);
-  var hammerUtil = __webpack_require__(30);
-  var util = __webpack_require__(2);
-  var DataSet = __webpack_require__(10);
-  var DataView = __webpack_require__(12);
-  var Range = __webpack_require__(29);
-  var ItemSet = __webpack_require__(33);
-  var TimeAxis = __webpack_require__(43);
-  var Activator = __webpack_require__(44);
-  var DateUtil = __webpack_require__(31);
-  var CustomTime = __webpack_require__(46);
+  var Emitter = __webpack_require__(16);
+  var Hammer = __webpack_require__(26);
+  var hammerUtil = __webpack_require__(31);
+  var util = __webpack_require__(4);
+  var DataSet = __webpack_require__(11);
+  var DataView = __webpack_require__(13);
+  var Range = __webpack_require__(30);
+  var ItemSet = __webpack_require__(34);
+  var TimeAxis = __webpack_require__(44);
+  var Activator = __webpack_require__(45);
+  var DateUtil = __webpack_require__(32);
+  var CustomTime = __webpack_require__(47);
 
   /**
    * Create a timeline visualization
@@ -16313,23 +17874,23 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = Core;
 
 /***/ },
-/* 33 */
+/* 34 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
 
-  var Hammer = __webpack_require__(25);
-  var util = __webpack_require__(2);
-  var DataSet = __webpack_require__(10);
-  var DataView = __webpack_require__(12);
-  var TimeStep = __webpack_require__(38);
-  var Component = __webpack_require__(23);
-  var Group = __webpack_require__(34);
-  var BackgroundGroup = __webpack_require__(39);
-  var BoxItem = __webpack_require__(40);
-  var PointItem = __webpack_require__(41);
-  var RangeItem = __webpack_require__(36);
-  var BackgroundItem = __webpack_require__(42);
+  var Hammer = __webpack_require__(26);
+  var util = __webpack_require__(4);
+  var DataSet = __webpack_require__(11);
+  var DataView = __webpack_require__(13);
+  var TimeStep = __webpack_require__(39);
+  var Component = __webpack_require__(24);
+  var Group = __webpack_require__(35);
+  var BackgroundGroup = __webpack_require__(40);
+  var BoxItem = __webpack_require__(41);
+  var PointItem = __webpack_require__(42);
+  var RangeItem = __webpack_require__(37);
+  var BackgroundItem = __webpack_require__(43);
 
   var UNGROUPED = '__ungrouped__'; // reserved group id for ungrouped items
   var BACKGROUND = '__background__'; // reserved group id for background items without group
@@ -17924,14 +19485,14 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = ItemSet;
 
 /***/ },
-/* 34 */
+/* 35 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
 
-  var util = __webpack_require__(2);
-  var stack = __webpack_require__(35);
-  var RangeItem = __webpack_require__(36);
+  var util = __webpack_require__(4);
+  var stack = __webpack_require__(36);
+  var RangeItem = __webpack_require__(37);
 
   /**
    * @constructor Group
@@ -18510,7 +20071,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = Group;
 
 /***/ },
-/* 35 */
+/* 36 */
 /***/ function(module, exports, __webpack_require__) {
 
   // Utility functions for ordering and stacking of items
@@ -18634,13 +20195,13 @@ return /******/ (function(modules) { // webpackBootstrap
   };
 
 /***/ },
-/* 36 */
+/* 37 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
 
-  var Hammer = __webpack_require__(25);
-  var Item = __webpack_require__(37);
+  var Hammer = __webpack_require__(26);
+  var Item = __webpack_require__(38);
 
   /**
    * @constructor RangeItem
@@ -18928,13 +20489,13 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = RangeItem;
 
 /***/ },
-/* 37 */
+/* 38 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
 
-  var Hammer = __webpack_require__(25);
-  var util = __webpack_require__(2);
+  var Hammer = __webpack_require__(26);
+  var util = __webpack_require__(4);
 
   /**
    * @constructor Item
@@ -19218,14 +20779,14 @@ return /******/ (function(modules) { // webpackBootstrap
   // should be implemented by the item
 
 /***/ },
-/* 38 */
+/* 39 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
 
-  var moment = __webpack_require__(5);
-  var DateUtil = __webpack_require__(31);
-  var util = __webpack_require__(2);
+  var moment = __webpack_require__(6);
+  var DateUtil = __webpack_require__(32);
+  var util = __webpack_require__(4);
 
   /**
    * @constructor  TimeStep
@@ -19908,13 +21469,13 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = TimeStep;
 
 /***/ },
-/* 39 */
+/* 40 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
 
-  var util = __webpack_require__(2);
-  var Group = __webpack_require__(34);
+  var util = __webpack_require__(4);
+  var Group = __webpack_require__(35);
 
   /**
    * @constructor BackgroundGroup
@@ -19972,13 +21533,13 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = BackgroundGroup;
 
 /***/ },
-/* 40 */
+/* 41 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
 
-  var Item = __webpack_require__(37);
-  var util = __webpack_require__(2);
+  var Item = __webpack_require__(38);
+  var util = __webpack_require__(4);
 
   /**
    * @constructor BoxItem
@@ -20210,12 +21771,12 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = BoxItem;
 
 /***/ },
-/* 41 */
+/* 42 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
 
-  var Item = __webpack_require__(37);
+  var Item = __webpack_require__(38);
 
   /**
    * @constructor PointItem
@@ -20413,15 +21974,15 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = PointItem;
 
 /***/ },
-/* 42 */
+/* 43 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
 
-  var Hammer = __webpack_require__(25);
-  var Item = __webpack_require__(37);
-  var BackgroundGroup = __webpack_require__(39);
-  var RangeItem = __webpack_require__(36);
+  var Hammer = __webpack_require__(26);
+  var Item = __webpack_require__(38);
+  var BackgroundGroup = __webpack_require__(40);
+  var RangeItem = __webpack_require__(37);
 
   /**
    * @constructor BackgroundItem
@@ -20634,16 +22195,16 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = BackgroundItem;
 
 /***/ },
-/* 43 */
+/* 44 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
 
-  var util = __webpack_require__(2);
-  var Component = __webpack_require__(23);
-  var TimeStep = __webpack_require__(38);
-  var DateUtil = __webpack_require__(31);
-  var moment = __webpack_require__(5);
+  var util = __webpack_require__(4);
+  var Component = __webpack_require__(24);
+  var TimeStep = __webpack_require__(39);
+  var DateUtil = __webpack_require__(32);
+  var moment = __webpack_require__(6);
 
   /**
    * A horizontal time axis
@@ -21073,15 +22634,15 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = TimeAxis;
 
 /***/ },
-/* 44 */
+/* 45 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
 
-  var keycharm = __webpack_require__(45);
-  var Emitter = __webpack_require__(15);
-  var Hammer = __webpack_require__(25);
-  var util = __webpack_require__(2);
+  var keycharm = __webpack_require__(46);
+  var Emitter = __webpack_require__(16);
+  var Hammer = __webpack_require__(26);
+  var util = __webpack_require__(4);
 
   /**
    * Turn an element into an clickToUse element.
@@ -21232,7 +22793,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = Activator;
 
 /***/ },
-/* 45 */
+/* 46 */
 /***/ function(module, exports, __webpack_require__) {
 
   var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;"use strict";
@@ -21431,16 +22992,16 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 46 */
+/* 47 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
 
-  var Hammer = __webpack_require__(25);
-  var util = __webpack_require__(2);
-  var Component = __webpack_require__(23);
-  var moment = __webpack_require__(5);
-  var locales = __webpack_require__(24);
+  var Hammer = __webpack_require__(26);
+  var util = __webpack_require__(4);
+  var Component = __webpack_require__(24);
+  var moment = __webpack_require__(6);
+  var locales = __webpack_require__(25);
 
   /**
    * A custom time bar
@@ -21670,7 +23231,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = CustomTime;
 
 /***/ },
-/* 47 */
+/* 48 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -21685,11 +23246,11 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
 
-  var _ColorPicker = __webpack_require__(48);
+  var _ColorPicker = __webpack_require__(49);
 
   var _ColorPicker2 = _interopRequireDefault(_ColorPicker);
 
-  var util = __webpack_require__(2);
+  var util = __webpack_require__(4);
 
   /**
    * The way this works is for all properties of this.possible options, you can supply the property name in any form to list the options.
@@ -22351,7 +23912,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 48 */
+/* 49 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -22364,9 +23925,9 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
 
-  var Hammer = __webpack_require__(25);
-  var hammerUtil = __webpack_require__(30);
-  var util = __webpack_require__(2);
+  var Hammer = __webpack_require__(26);
+  var hammerUtil = __webpack_require__(31);
+  var util = __webpack_require__(4);
 
   var ColorPicker = (function () {
     function ColorPicker() {
@@ -22931,7 +24492,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 49 */
+/* 50 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -22944,7 +24505,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
 
-  var util = __webpack_require__(2);
+  var util = __webpack_require__(4);
 
   var errorFound = false;
   var allOptions = undefined;
@@ -23244,7 +24805,7 @@ return /******/ (function(modules) { // webpackBootstrap
   exports.printStyle = printStyle;
 
 /***/ },
-/* 50 */
+/* 51 */
 /***/ function(module, exports, __webpack_require__) {
 
   /**
@@ -23458,28 +25019,28 @@ return /******/ (function(modules) { // webpackBootstrap
   exports.configureOptions = configureOptions;
 
 /***/ },
-/* 51 */
+/* 52 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
 
-  var Emitter = __webpack_require__(15);
-  var Hammer = __webpack_require__(25);
-  var util = __webpack_require__(2);
-  var DataSet = __webpack_require__(10);
-  var DataView = __webpack_require__(12);
-  var Range = __webpack_require__(29);
-  var Core = __webpack_require__(32);
-  var TimeAxis = __webpack_require__(43);
-  var CurrentTime = __webpack_require__(22);
-  var CustomTime = __webpack_require__(46);
-  var LineGraph = __webpack_require__(52);
+  var Emitter = __webpack_require__(16);
+  var Hammer = __webpack_require__(26);
+  var util = __webpack_require__(4);
+  var DataSet = __webpack_require__(11);
+  var DataView = __webpack_require__(13);
+  var Range = __webpack_require__(30);
+  var Core = __webpack_require__(33);
+  var TimeAxis = __webpack_require__(44);
+  var CurrentTime = __webpack_require__(23);
+  var CustomTime = __webpack_require__(47);
+  var LineGraph = __webpack_require__(53);
 
-  var Configurator = __webpack_require__(47);
-  var Validator = __webpack_require__(49)['default'];
-  var printStyle = __webpack_require__(49).printStyle;
-  var allOptions = __webpack_require__(60).allOptions;
-  var configureOptions = __webpack_require__(60).configureOptions;
+  var Configurator = __webpack_require__(48);
+  var Validator = __webpack_require__(50)['default'];
+  var printStyle = __webpack_require__(50).printStyle;
+  var allOptions = __webpack_require__(61).allOptions;
+  var configureOptions = __webpack_require__(61).configureOptions;
 
   /**
    * Create a timeline visualization
@@ -23788,21 +25349,21 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = Graph2d;
 
 /***/ },
-/* 52 */
+/* 53 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
 
-  var util = __webpack_require__(2);
-  var DOMutil = __webpack_require__(9);
-  var DataSet = __webpack_require__(10);
-  var DataView = __webpack_require__(12);
-  var Component = __webpack_require__(23);
-  var DataAxis = __webpack_require__(53);
-  var GraphGroup = __webpack_require__(55);
-  var Legend = __webpack_require__(59);
-  var BarFunctions = __webpack_require__(58);
-  var LineFunctions = __webpack_require__(56);
+  var util = __webpack_require__(4);
+  var DOMutil = __webpack_require__(10);
+  var DataSet = __webpack_require__(11);
+  var DataView = __webpack_require__(13);
+  var Component = __webpack_require__(24);
+  var DataAxis = __webpack_require__(54);
+  var GraphGroup = __webpack_require__(56);
+  var Legend = __webpack_require__(60);
+  var BarFunctions = __webpack_require__(59);
+  var LineFunctions = __webpack_require__(57);
 
   var UNGROUPED = '__ungrouped__'; // reserved group id for ungrouped items
 
@@ -24764,15 +26325,15 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = LineGraph;
 
 /***/ },
-/* 53 */
+/* 54 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
 
-  var util = __webpack_require__(2);
-  var DOMutil = __webpack_require__(9);
-  var Component = __webpack_require__(23);
-  var DataStep = __webpack_require__(54);
+  var util = __webpack_require__(4);
+  var DOMutil = __webpack_require__(10);
+  var Component = __webpack_require__(24);
+  var DataStep = __webpack_require__(55);
 
   /**
    * A horizontal time axis
@@ -25368,7 +26929,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = DataAxis;
 
 /***/ },
-/* 54 */
+/* 55 */
 /***/ function(module, exports, __webpack_require__) {
 
   /**
@@ -25595,16 +27156,16 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = DataStep;
 
 /***/ },
-/* 55 */
+/* 56 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
 
-  var util = __webpack_require__(2);
-  var DOMutil = __webpack_require__(9);
-  var Line = __webpack_require__(56);
-  var Bar = __webpack_require__(58);
-  var Points = __webpack_require__(57);
+  var util = __webpack_require__(4);
+  var DOMutil = __webpack_require__(10);
+  var Line = __webpack_require__(57);
+  var Bar = __webpack_require__(59);
+  var Points = __webpack_require__(58);
 
   /**
    * /**
@@ -25789,13 +27350,13 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = GraphGroup;
 
 /***/ },
-/* 56 */
+/* 57 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
 
-  var DOMutil = __webpack_require__(9);
-  var Points = __webpack_require__(57);
+  var DOMutil = __webpack_require__(10);
+  var Points = __webpack_require__(58);
 
   function Line(groupId, options) {
     this.groupId = groupId;
@@ -26084,12 +27645,12 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = Line;
 
 /***/ },
-/* 57 */
+/* 58 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
 
-  var DOMutil = __webpack_require__(9);
+  var DOMutil = __webpack_require__(10);
 
   function Points(groupId, options) {
     this.groupId = groupId;
@@ -26131,13 +27692,13 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = Points;
 
 /***/ },
-/* 58 */
+/* 59 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
 
-  var DOMutil = __webpack_require__(9);
-  var Points = __webpack_require__(57);
+  var DOMutil = __webpack_require__(10);
+  var Points = __webpack_require__(58);
 
   function Bargraph(groupId, options) {
     this.groupId = groupId;
@@ -26379,14 +27940,14 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = Bargraph;
 
 /***/ },
-/* 59 */
+/* 60 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
 
-  var util = __webpack_require__(2);
-  var DOMutil = __webpack_require__(9);
-  var Component = __webpack_require__(23);
+  var util = __webpack_require__(4);
+  var DOMutil = __webpack_require__(10);
+  var Component = __webpack_require__(24);
 
   /**
    * Legend for Graph2d
@@ -26593,7 +28154,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = Legend;
 
 /***/ },
-/* 60 */
+/* 61 */
 /***/ function(module, exports, __webpack_require__) {
 
   /**
@@ -26861,7 +28422,7 @@ return /******/ (function(modules) { // webpackBootstrap
   exports.configureOptions = configureOptions;
 
 /***/ },
-/* 61 */
+/* 62 */
 /***/ function(module, exports, __webpack_require__) {
 
   // Load custom shapes into CanvasRenderingContext2D
@@ -26869,19 +28430,19 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
 
-  var _modulesGroups = __webpack_require__(62);
+  var _modulesGroups = __webpack_require__(63);
 
   var _modulesGroups2 = _interopRequireDefault(_modulesGroups);
 
-  var _modulesNodesHandler = __webpack_require__(63);
+  var _modulesNodesHandler = __webpack_require__(64);
 
   var _modulesNodesHandler2 = _interopRequireDefault(_modulesNodesHandler);
 
-  var _modulesEdgesHandler = __webpack_require__(83);
+  var _modulesEdgesHandler = __webpack_require__(84);
 
   var _modulesEdgesHandler2 = _interopRequireDefault(_modulesEdgesHandler);
 
-  var _modulesPhysicsEngine = __webpack_require__(90);
+  var _modulesPhysicsEngine = __webpack_require__(3);
 
   var _modulesPhysicsEngine2 = _interopRequireDefault(_modulesPhysicsEngine);
 
@@ -26889,55 +28450,55 @@ return /******/ (function(modules) { // webpackBootstrap
 
   var _modulesClustering2 = _interopRequireDefault(_modulesClustering);
 
-  var _modulesCanvasRenderer = __webpack_require__(3);
+  var _modulesCanvasRenderer = __webpack_require__(101);
 
   var _modulesCanvasRenderer2 = _interopRequireDefault(_modulesCanvasRenderer);
 
-  var _modulesCanvas = __webpack_require__(4);
+  var _modulesCanvas = __webpack_require__(102);
 
   var _modulesCanvas2 = _interopRequireDefault(_modulesCanvas);
 
-  var _modulesView = __webpack_require__(101);
+  var _modulesView = __webpack_require__(103);
 
   var _modulesView2 = _interopRequireDefault(_modulesView);
 
-  var _modulesInteractionHandler = __webpack_require__(102);
+  var _modulesInteractionHandler = __webpack_require__(104);
 
   var _modulesInteractionHandler2 = _interopRequireDefault(_modulesInteractionHandler);
 
-  var _modulesSelectionHandler = __webpack_require__(105);
+  var _modulesSelectionHandler = __webpack_require__(107);
 
   var _modulesSelectionHandler2 = _interopRequireDefault(_modulesSelectionHandler);
 
-  var _modulesLayoutEngine = __webpack_require__(106);
+  var _modulesLayoutEngine = __webpack_require__(108);
 
   var _modulesLayoutEngine2 = _interopRequireDefault(_modulesLayoutEngine);
 
-  var _modulesManipulationSystem = __webpack_require__(107);
+  var _modulesManipulationSystem = __webpack_require__(2);
 
   var _modulesManipulationSystem2 = _interopRequireDefault(_modulesManipulationSystem);
 
-  var _sharedConfigurator = __webpack_require__(47);
+  var _sharedConfigurator = __webpack_require__(48);
 
   var _sharedConfigurator2 = _interopRequireDefault(_sharedConfigurator);
 
-  var _sharedValidator = __webpack_require__(49);
+  var _sharedValidator = __webpack_require__(50);
 
   var _sharedValidator2 = _interopRequireDefault(_sharedValidator);
 
-  var _optionsJs = __webpack_require__(108);
+  var _optionsJs = __webpack_require__(5);
 
   __webpack_require__(109);
 
-  var Emitter = __webpack_require__(15);
-  var Hammer = __webpack_require__(25);
-  var util = __webpack_require__(2);
-  var DataSet = __webpack_require__(10);
-  var DataView = __webpack_require__(12);
+  var Emitter = __webpack_require__(16);
+  var Hammer = __webpack_require__(26);
+  var util = __webpack_require__(4);
+  var DataSet = __webpack_require__(11);
+  var DataView = __webpack_require__(13);
   var dotparser = __webpack_require__(110);
   var gephiParser = __webpack_require__(111);
   var Images = __webpack_require__(112);
-  var Activator = __webpack_require__(44);
+  var Activator = __webpack_require__(45);
   var locales = __webpack_require__(113);
 
   /**
@@ -27467,7 +29028,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = Network;
 
 /***/ },
-/* 62 */
+/* 63 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
@@ -27480,7 +29041,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
-  var util = __webpack_require__(2);
+  var util = __webpack_require__(4);
 
   /**
    * @class Groups
@@ -27609,7 +29170,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports["default"];
 
 /***/ },
-/* 63 */
+/* 64 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -27624,17 +29185,17 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
 
-  var _componentsNode = __webpack_require__(64);
+  var _componentsNode = __webpack_require__(65);
 
   var _componentsNode2 = _interopRequireDefault(_componentsNode);
 
-  var _componentsSharedLabel = __webpack_require__(65);
+  var _componentsSharedLabel = __webpack_require__(66);
 
   var _componentsSharedLabel2 = _interopRequireDefault(_componentsSharedLabel);
 
-  var util = __webpack_require__(2);
-  var DataSet = __webpack_require__(10);
-  var DataView = __webpack_require__(12);
+  var util = __webpack_require__(4);
+  var DataSet = __webpack_require__(11);
+  var DataView = __webpack_require__(13);
 
   var NodesHandler = (function () {
     function NodesHandler(body, images, groups, layoutEngine) {
@@ -28087,7 +29648,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 64 */
+/* 65 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -28102,71 +29663,71 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
 
-  var _sharedLabel = __webpack_require__(65);
+  var _sharedLabel = __webpack_require__(66);
 
   var _sharedLabel2 = _interopRequireDefault(_sharedLabel);
 
-  var _nodesShapesBox = __webpack_require__(66);
+  var _nodesShapesBox = __webpack_require__(67);
 
   var _nodesShapesBox2 = _interopRequireDefault(_nodesShapesBox);
 
-  var _nodesShapesCircle = __webpack_require__(68);
+  var _nodesShapesCircle = __webpack_require__(69);
 
   var _nodesShapesCircle2 = _interopRequireDefault(_nodesShapesCircle);
 
-  var _nodesShapesCircularImage = __webpack_require__(70);
+  var _nodesShapesCircularImage = __webpack_require__(71);
 
   var _nodesShapesCircularImage2 = _interopRequireDefault(_nodesShapesCircularImage);
 
-  var _nodesShapesDatabase = __webpack_require__(71);
+  var _nodesShapesDatabase = __webpack_require__(72);
 
   var _nodesShapesDatabase2 = _interopRequireDefault(_nodesShapesDatabase);
 
-  var _nodesShapesDiamond = __webpack_require__(72);
+  var _nodesShapesDiamond = __webpack_require__(73);
 
   var _nodesShapesDiamond2 = _interopRequireDefault(_nodesShapesDiamond);
 
-  var _nodesShapesDot = __webpack_require__(74);
+  var _nodesShapesDot = __webpack_require__(75);
 
   var _nodesShapesDot2 = _interopRequireDefault(_nodesShapesDot);
 
-  var _nodesShapesEllipse = __webpack_require__(75);
+  var _nodesShapesEllipse = __webpack_require__(76);
 
   var _nodesShapesEllipse2 = _interopRequireDefault(_nodesShapesEllipse);
 
-  var _nodesShapesIcon = __webpack_require__(76);
+  var _nodesShapesIcon = __webpack_require__(77);
 
   var _nodesShapesIcon2 = _interopRequireDefault(_nodesShapesIcon);
 
-  var _nodesShapesImage = __webpack_require__(77);
+  var _nodesShapesImage = __webpack_require__(78);
 
   var _nodesShapesImage2 = _interopRequireDefault(_nodesShapesImage);
 
-  var _nodesShapesSquare = __webpack_require__(78);
+  var _nodesShapesSquare = __webpack_require__(79);
 
   var _nodesShapesSquare2 = _interopRequireDefault(_nodesShapesSquare);
 
-  var _nodesShapesStar = __webpack_require__(79);
+  var _nodesShapesStar = __webpack_require__(80);
 
   var _nodesShapesStar2 = _interopRequireDefault(_nodesShapesStar);
 
-  var _nodesShapesText = __webpack_require__(80);
+  var _nodesShapesText = __webpack_require__(81);
 
   var _nodesShapesText2 = _interopRequireDefault(_nodesShapesText);
 
-  var _nodesShapesTriangle = __webpack_require__(81);
+  var _nodesShapesTriangle = __webpack_require__(82);
 
   var _nodesShapesTriangle2 = _interopRequireDefault(_nodesShapesTriangle);
 
-  var _nodesShapesTriangleDown = __webpack_require__(82);
+  var _nodesShapesTriangleDown = __webpack_require__(83);
 
   var _nodesShapesTriangleDown2 = _interopRequireDefault(_nodesShapesTriangleDown);
 
-  var _sharedValidator = __webpack_require__(49);
+  var _sharedValidator = __webpack_require__(50);
 
   var _sharedValidator2 = _interopRequireDefault(_sharedValidator);
 
-  var util = __webpack_require__(2);
+  var util = __webpack_require__(4);
 
   /**
    * @class Node
@@ -28607,7 +30168,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 65 */
+/* 66 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -28622,7 +30183,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
 
-  var util = __webpack_require__(2);
+  var util = __webpack_require__(4);
 
   var Label = (function () {
     function Label(body, options) {
@@ -28923,7 +30484,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 66 */
+/* 67 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -28942,7 +30503,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; }
 
-  var _utilNodeBase = __webpack_require__(67);
+  var _utilNodeBase = __webpack_require__(68);
 
   var _utilNodeBase2 = _interopRequireDefault(_utilNodeBase);
 
@@ -29028,7 +30589,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 67 */
+/* 68 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -29096,7 +30657,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 68 */
+/* 69 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -29115,7 +30676,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; }
 
-  var _utilCircleImageBase = __webpack_require__(69);
+  var _utilCircleImageBase = __webpack_require__(70);
 
   var _utilCircleImageBase2 = _interopRequireDefault(_utilCircleImageBase);
 
@@ -29186,7 +30747,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 69 */
+/* 70 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -29205,7 +30766,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; }
 
-  var _utilNodeBase = __webpack_require__(67);
+  var _utilNodeBase = __webpack_require__(68);
 
   var _utilNodeBase2 = _interopRequireDefault(_utilNodeBase);
 
@@ -29335,7 +30896,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 70 */
+/* 71 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -29354,7 +30915,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; }
 
-  var _utilCircleImageBase = __webpack_require__(69);
+  var _utilCircleImageBase = __webpack_require__(70);
 
   var _utilCircleImageBase2 = _interopRequireDefault(_utilCircleImageBase);
 
@@ -29440,7 +31001,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 71 */
+/* 72 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -29459,7 +31020,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; }
 
-  var _utilNodeBase = __webpack_require__(67);
+  var _utilNodeBase = __webpack_require__(68);
 
   var _utilNodeBase2 = _interopRequireDefault(_utilNodeBase);
 
@@ -29545,7 +31106,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 72 */
+/* 73 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -29564,7 +31125,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; }
 
-  var _utilShapeBase = __webpack_require__(73);
+  var _utilShapeBase = __webpack_require__(74);
 
   var _utilShapeBase2 = _interopRequireDefault(_utilShapeBase);
 
@@ -29601,7 +31162,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 73 */
+/* 74 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -29620,7 +31181,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; }
 
-  var _utilNodeBase = __webpack_require__(67);
+  var _utilNodeBase = __webpack_require__(68);
 
   var _utilNodeBase2 = _interopRequireDefault(_utilNodeBase);
 
@@ -29700,7 +31261,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 74 */
+/* 75 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -29719,7 +31280,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; }
 
-  var _utilShapeBase = __webpack_require__(73);
+  var _utilShapeBase = __webpack_require__(74);
 
   var _utilShapeBase2 = _interopRequireDefault(_utilShapeBase);
 
@@ -29756,7 +31317,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 75 */
+/* 76 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -29775,7 +31336,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; }
 
-  var _utilNodeBase = __webpack_require__(67);
+  var _utilNodeBase = __webpack_require__(68);
 
   var _utilNodeBase2 = _interopRequireDefault(_utilNodeBase);
 
@@ -29863,7 +31424,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 76 */
+/* 77 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -29882,7 +31443,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; }
 
-  var _utilNodeBase = __webpack_require__(67);
+  var _utilNodeBase = __webpack_require__(68);
 
   var _utilNodeBase2 = _interopRequireDefault(_utilNodeBase);
 
@@ -29979,7 +31540,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 77 */
+/* 78 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -29998,7 +31559,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; }
 
-  var _utilCircleImageBase = __webpack_require__(69);
+  var _utilCircleImageBase = __webpack_require__(70);
 
   var _utilCircleImageBase2 = _interopRequireDefault(_utilCircleImageBase);
 
@@ -30066,7 +31627,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 78 */
+/* 79 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -30085,7 +31646,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; }
 
-  var _utilShapeBase = __webpack_require__(73);
+  var _utilShapeBase = __webpack_require__(74);
 
   var _utilShapeBase2 = _interopRequireDefault(_utilShapeBase);
 
@@ -30123,7 +31684,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 79 */
+/* 80 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -30142,7 +31703,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; }
 
-  var _utilShapeBase = __webpack_require__(73);
+  var _utilShapeBase = __webpack_require__(74);
 
   var _utilShapeBase2 = _interopRequireDefault(_utilShapeBase);
 
@@ -30179,7 +31740,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 80 */
+/* 81 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -30198,7 +31759,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; }
 
-  var _utilNodeBase = __webpack_require__(67);
+  var _utilNodeBase = __webpack_require__(68);
 
   var _utilNodeBase2 = _interopRequireDefault(_utilNodeBase);
 
@@ -30264,7 +31825,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 81 */
+/* 82 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -30283,7 +31844,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; }
 
-  var _utilShapeBase = __webpack_require__(73);
+  var _utilShapeBase = __webpack_require__(74);
 
   var _utilShapeBase2 = _interopRequireDefault(_utilShapeBase);
 
@@ -30320,7 +31881,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 82 */
+/* 83 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -30339,7 +31900,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; }
 
-  var _utilShapeBase = __webpack_require__(73);
+  var _utilShapeBase = __webpack_require__(74);
 
   var _utilShapeBase2 = _interopRequireDefault(_utilShapeBase);
 
@@ -30376,7 +31937,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 83 */
+/* 84 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -30391,17 +31952,17 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
 
-  var _componentsEdge = __webpack_require__(84);
+  var _componentsEdge = __webpack_require__(85);
 
   var _componentsEdge2 = _interopRequireDefault(_componentsEdge);
 
-  var _componentsSharedLabel = __webpack_require__(65);
+  var _componentsSharedLabel = __webpack_require__(66);
 
   var _componentsSharedLabel2 = _interopRequireDefault(_componentsSharedLabel);
 
-  var util = __webpack_require__(2);
-  var DataSet = __webpack_require__(10);
-  var DataView = __webpack_require__(12);
+  var util = __webpack_require__(4);
+  var DataSet = __webpack_require__(11);
+  var DataView = __webpack_require__(13);
 
   var EdgesHandler = (function () {
     function EdgesHandler(body, images, groups) {
@@ -30813,7 +32374,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 84 */
+/* 85 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -30828,23 +32389,23 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
 
-  var _sharedLabel = __webpack_require__(65);
+  var _sharedLabel = __webpack_require__(66);
 
   var _sharedLabel2 = _interopRequireDefault(_sharedLabel);
 
-  var _edgesBezierEdgeDynamic = __webpack_require__(85);
+  var _edgesBezierEdgeDynamic = __webpack_require__(86);
 
   var _edgesBezierEdgeDynamic2 = _interopRequireDefault(_edgesBezierEdgeDynamic);
 
-  var _edgesBezierEdgeStatic = __webpack_require__(88);
+  var _edgesBezierEdgeStatic = __webpack_require__(89);
 
   var _edgesBezierEdgeStatic2 = _interopRequireDefault(_edgesBezierEdgeStatic);
 
-  var _edgesStraightEdge = __webpack_require__(89);
+  var _edgesStraightEdge = __webpack_require__(90);
 
   var _edgesStraightEdge2 = _interopRequireDefault(_edgesStraightEdge);
 
-  var util = __webpack_require__(2);
+  var util = __webpack_require__(4);
 
   /**
    * @class Edge
@@ -31377,7 +32938,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 85 */
+/* 86 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -31396,7 +32957,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; }
 
-  var _utilBezierEdgeBase = __webpack_require__(86);
+  var _utilBezierEdgeBase = __webpack_require__(87);
 
   var _utilBezierEdgeBase2 = _interopRequireDefault(_utilBezierEdgeBase);
 
@@ -31542,7 +33103,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 86 */
+/* 87 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -31561,7 +33122,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; }
 
-  var _EdgeBase2 = __webpack_require__(87);
+  var _EdgeBase2 = __webpack_require__(88);
 
   var _EdgeBase3 = _interopRequireDefault(_EdgeBase2);
 
@@ -31689,7 +33250,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 87 */
+/* 88 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -31704,7 +33265,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
 
-  var util = __webpack_require__(2);
+  var util = __webpack_require__(4);
 
   var EdgeBase = (function () {
     function EdgeBase(options, body, labelModule) {
@@ -32283,7 +33844,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 88 */
+/* 89 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -32302,7 +33863,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; }
 
-  var _utilBezierEdgeBase = __webpack_require__(86);
+  var _utilBezierEdgeBase = __webpack_require__(87);
 
   var _utilBezierEdgeBase2 = _interopRequireDefault(_utilBezierEdgeBase);
 
@@ -32542,7 +34103,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 89 */
+/* 90 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -32561,7 +34122,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; }
 
-  var _utilEdgeBase = __webpack_require__(87);
+  var _utilEdgeBase = __webpack_require__(88);
 
   var _utilEdgeBase2 = _interopRequireDefault(_utilEdgeBase);
 
@@ -32644,630 +34205,6 @@ return /******/ (function(modules) { // webpackBootstrap
   })(_utilEdgeBase2['default']);
 
   exports['default'] = StraightEdge;
-  module.exports = exports['default'];
-
-/***/ },
-/* 90 */
-/***/ function(module, exports, __webpack_require__) {
-
-  'use strict';
-
-  Object.defineProperty(exports, '__esModule', {
-    value: true
-  });
-
-  var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
-
-  function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
-
-  function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
-
-  var _componentsPhysicsBarnesHutSolver = __webpack_require__(91);
-
-  var _componentsPhysicsBarnesHutSolver2 = _interopRequireDefault(_componentsPhysicsBarnesHutSolver);
-
-  var _componentsPhysicsRepulsionSolver = __webpack_require__(92);
-
-  var _componentsPhysicsRepulsionSolver2 = _interopRequireDefault(_componentsPhysicsRepulsionSolver);
-
-  var _componentsPhysicsHierarchicalRepulsionSolver = __webpack_require__(93);
-
-  var _componentsPhysicsHierarchicalRepulsionSolver2 = _interopRequireDefault(_componentsPhysicsHierarchicalRepulsionSolver);
-
-  var _componentsPhysicsSpringSolver = __webpack_require__(94);
-
-  var _componentsPhysicsSpringSolver2 = _interopRequireDefault(_componentsPhysicsSpringSolver);
-
-  var _componentsPhysicsHierarchicalSpringSolver = __webpack_require__(95);
-
-  var _componentsPhysicsHierarchicalSpringSolver2 = _interopRequireDefault(_componentsPhysicsHierarchicalSpringSolver);
-
-  var _componentsPhysicsCentralGravitySolver = __webpack_require__(96);
-
-  var _componentsPhysicsCentralGravitySolver2 = _interopRequireDefault(_componentsPhysicsCentralGravitySolver);
-
-  var _componentsPhysicsFA2BasedRepulsionSolver = __webpack_require__(97);
-
-  var _componentsPhysicsFA2BasedRepulsionSolver2 = _interopRequireDefault(_componentsPhysicsFA2BasedRepulsionSolver);
-
-  var _componentsPhysicsFA2BasedCentralGravitySolver = __webpack_require__(98);
-
-  var _componentsPhysicsFA2BasedCentralGravitySolver2 = _interopRequireDefault(_componentsPhysicsFA2BasedCentralGravitySolver);
-
-  var util = __webpack_require__(2);
-
-  var PhysicsEngine = (function () {
-    function PhysicsEngine(body) {
-      _classCallCheck(this, PhysicsEngine);
-
-      this.body = body;
-      this.physicsBody = { physicsNodeIndices: [], physicsEdgeIndices: [], forces: {}, velocities: {} };
-
-      this.physicsEnabled = true;
-      this.simulationInterval = 1000 / 60;
-      this.requiresTimeout = true;
-      this.previousStates = {};
-      this.freezeCache = {};
-      this.renderTimer = undefined;
-      this.initialStabilizationEmitted = false;
-
-      this.stabilized = false;
-      this.startedStabilization = false;
-      this.stabilizationIterations = 0;
-      this.ready = false; // will be set to true if the stabilize
-
-      // default options
-      this.options = {};
-      this.defaultOptions = {
-        barnesHut: {
-          theta: 0.5,
-          gravitationalConstant: -2000,
-          centralGravity: 0.3,
-          springLength: 95,
-          springConstant: 0.04,
-          damping: 0.09,
-          avoidOverlap: 0
-        },
-        forceAtlas2Based: {
-          theta: 0.5,
-          gravitationalConstant: -50,
-          centralGravity: 0.01,
-          springConstant: 0.08,
-          springLength: 100,
-          damping: 0.4,
-          avoidOverlap: 0
-        },
-        repulsion: {
-          centralGravity: 0.2,
-          springLength: 200,
-          springConstant: 0.05,
-          nodeDistance: 100,
-          damping: 0.09,
-          avoidOverlap: 0
-        },
-        hierarchicalRepulsion: {
-          centralGravity: 0,
-          springLength: 100,
-          springConstant: 0.01,
-          nodeDistance: 120,
-          damping: 0.09
-        },
-        maxVelocity: 50,
-        minVelocity: 0.1, // px/s
-        solver: 'barnesHut',
-        stabilization: {
-          enabled: true,
-          iterations: 1000, // maximum number of iteration to stabilize
-          updateInterval: 50,
-          onlyDynamicEdges: false,
-          fit: true
-        },
-        timestep: 0.5
-      };
-      util.extend(this.options, this.defaultOptions);
-
-      this.bindEventListeners();
-    }
-
-    _createClass(PhysicsEngine, [{
-      key: 'bindEventListeners',
-      value: function bindEventListeners() {
-        var _this = this;
-
-        this.body.emitter.on('initPhysics', function () {
-          _this.initPhysics();
-        });
-        this.body.emitter.on('resetPhysics', function () {
-          _this.stopSimulation();_this.ready = false;
-        });
-        this.body.emitter.on('disablePhysics', function () {
-          _this.physicsEnabled = false;_this.stopSimulation();
-        });
-        this.body.emitter.on('restorePhysics', function () {
-          _this.setOptions(_this.options);
-          if (_this.ready === true) {
-            _this.startSimulation();
-          }
-        });
-        this.body.emitter.on('startSimulation', function () {
-          if (_this.ready === true) {
-            _this.startSimulation();
-          }
-        });
-        this.body.emitter.on('stopSimulation', function () {
-          _this.stopSimulation();
-        });
-        this.body.emitter.on('destroy', function () {
-          _this.stopSimulation(false);
-          _this.body.emitter.off();
-        });
-      }
-    }, {
-      key: 'setOptions',
-      value: function setOptions(options) {
-        if (options !== undefined) {
-          if (options === false) {
-            this.physicsEnabled = false;
-            this.stopSimulation();
-          } else {
-            this.physicsEnabled = true;
-            util.selectiveNotDeepExtend(['stabilization'], this.options, options);
-            util.mergeOptions(this.options, options, 'stabilization');
-          }
-        }
-        this.init();
-      }
-    }, {
-      key: 'init',
-      value: function init() {
-        var options;
-        if (this.options.solver === 'forceAtlas2Based') {
-          options = this.options.forceAtlas2Based;
-          this.nodesSolver = new _componentsPhysicsFA2BasedRepulsionSolver2['default'](this.body, this.physicsBody, options);
-          this.edgesSolver = new _componentsPhysicsSpringSolver2['default'](this.body, this.physicsBody, options);
-          this.gravitySolver = new _componentsPhysicsFA2BasedCentralGravitySolver2['default'](this.body, this.physicsBody, options);
-        } else if (this.options.solver === 'repulsion') {
-          options = this.options.repulsion;
-          this.nodesSolver = new _componentsPhysicsRepulsionSolver2['default'](this.body, this.physicsBody, options);
-          this.edgesSolver = new _componentsPhysicsSpringSolver2['default'](this.body, this.physicsBody, options);
-          this.gravitySolver = new _componentsPhysicsCentralGravitySolver2['default'](this.body, this.physicsBody, options);
-        } else if (this.options.solver === 'hierarchicalRepulsion') {
-          options = this.options.hierarchicalRepulsion;
-          this.nodesSolver = new _componentsPhysicsHierarchicalRepulsionSolver2['default'](this.body, this.physicsBody, options);
-          this.edgesSolver = new _componentsPhysicsHierarchicalSpringSolver2['default'](this.body, this.physicsBody, options);
-          this.gravitySolver = new _componentsPhysicsCentralGravitySolver2['default'](this.body, this.physicsBody, options);
-        } else {
-          // barnesHut
-          options = this.options.barnesHut;
-          this.nodesSolver = new _componentsPhysicsBarnesHutSolver2['default'](this.body, this.physicsBody, options);
-          this.edgesSolver = new _componentsPhysicsSpringSolver2['default'](this.body, this.physicsBody, options);
-          this.gravitySolver = new _componentsPhysicsCentralGravitySolver2['default'](this.body, this.physicsBody, options);
-        }
-
-        this.modelOptions = options;
-      }
-    }, {
-      key: 'initPhysics',
-      value: function initPhysics() {
-        if (this.physicsEnabled === true) {
-          if (this.options.stabilization.enabled === true) {
-            this.stabilize();
-          } else {
-            this.stabilized = false;
-            this.ready = true;
-            this.body.emitter.emit('fit', {}, true);
-            this.startSimulation();
-          }
-        } else {
-          this.ready = true;
-          this.body.emitter.emit('fit');
-        }
-      }
-    }, {
-      key: 'startSimulation',
-
-      /**
-       * Start the simulation
-       */
-      value: function startSimulation() {
-        if (this.physicsEnabled === true) {
-          this.stabilized = false;
-
-          // this sets the width of all nodes initially which could be required for the avoidOverlap
-          this.body.emitter.emit('_resizeNodes');
-          if (this.viewFunction === undefined) {
-            this.viewFunction = this.simulationStep.bind(this);
-            this.body.emitter.on('initRedraw', this.viewFunction);
-            this.body.emitter.emit('_startRendering');
-          }
-        } else {
-          this.body.emitter.emit('_redraw');
-        }
-      }
-    }, {
-      key: 'stopSimulation',
-
-      /**
-       * Stop the simulation, force stabilization.
-       */
-      value: function stopSimulation() {
-        var emit = arguments[0] === undefined ? true : arguments[0];
-
-        this.stabilized = true;
-        if (emit === true) {
-          this._emitStabilized();
-        }
-        if (this.viewFunction !== undefined) {
-          this.body.emitter.off('initRedraw', this.viewFunction);
-          this.viewFunction = undefined;
-          if (emit === true) {
-            this.body.emitter.emit('_stopRendering');
-          }
-        }
-      }
-    }, {
-      key: 'simulationStep',
-
-      /**
-       * The viewFunction inserts this step into each renderloop. It calls the physics tick and handles the cleanup at stabilized.
-       *
-       */
-      value: function simulationStep() {
-        // check if the physics have settled
-        var startTime = Date.now();
-        this.physicsTick();
-        var physicsTime = Date.now() - startTime;
-
-        // run double speed if it is a little graph
-        if ((physicsTime < 0.4 * this.simulationInterval || this.runDoubleSpeed === true) && this.stabilized === false) {
-          this.physicsTick();
-
-          // this makes sure there is no jitter. The decision is taken once to run it at double speed.
-          this.runDoubleSpeed = true;
-        }
-
-        if (this.stabilized === true) {
-          if (this.stabilizationIterations > 1) {
-            // trigger the 'stabilized' event.
-            // The event is triggered on the next tick, to prevent the case that
-            // it is fired while initializing the Network, in which case you would not
-            // be able to catch it
-            this.startedStabilization = false;
-            //this._emitStabilized();
-          }
-          this.stopSimulation();
-        }
-      }
-    }, {
-      key: '_emitStabilized',
-      value: function _emitStabilized() {
-        var _this2 = this;
-
-        if (this.stabilizationIterations > 1 || this.initialStabilizationEmitted === false) {
-          this.initialStabilizationEmitted = true;
-          setTimeout(function () {
-            _this2.body.emitter.emit('stabilized', { iterations: _this2.stabilizationIterations });
-            _this2.stabilizationIterations = 0;
-          }, 0);
-        }
-      }
-    }, {
-      key: 'physicsTick',
-
-      /**
-       * A single simulation step (or 'tick') in the physics simulation
-       *
-       * @private
-       */
-      value: function physicsTick() {
-        if (this.stabilized === false) {
-          this.calculateForces();
-          this.stabilized = this.moveNodes();
-
-          // determine if the network has stabilzied
-          if (this.stabilized === true) {
-            this.revert();
-          } else {
-            // this is here to ensure that there is no start event when the network is already stable.
-            if (this.startedStabilization === false) {
-              this.body.emitter.emit('startStabilizing');
-              this.startedStabilization = true;
-            }
-          }
-
-          this.stabilizationIterations++;
-        }
-      }
-    }, {
-      key: 'updatePhysicsData',
-
-      /**
-       * Nodes and edges can have the physics toggles on or off. A collection of indices is created here so we can skip the check all the time.
-       *
-       * @private
-       */
-      value: function updatePhysicsData() {
-        this.physicsBody.forces = {};
-        this.physicsBody.physicsNodeIndices = [];
-        this.physicsBody.physicsEdgeIndices = [];
-        var nodes = this.body.nodes;
-        var edges = this.body.edges;
-
-        // get node indices for physics
-        for (var nodeId in nodes) {
-          if (nodes.hasOwnProperty(nodeId)) {
-            if (nodes[nodeId].options.physics === true) {
-              this.physicsBody.physicsNodeIndices.push(nodeId);
-            }
-          }
-        }
-
-        // get edge indices for physics
-        for (var edgeId in edges) {
-          if (edges.hasOwnProperty(edgeId)) {
-            if (edges[edgeId].options.physics === true) {
-              this.physicsBody.physicsEdgeIndices.push(edgeId);
-            }
-          }
-        }
-
-        // get the velocity and the forces vector
-        for (var i = 0; i < this.physicsBody.physicsNodeIndices.length; i++) {
-          var nodeId = this.physicsBody.physicsNodeIndices[i];
-          this.physicsBody.forces[nodeId] = { x: 0, y: 0 };
-
-          // forces can be reset because they are recalculated. Velocities have to persist.
-          if (this.physicsBody.velocities[nodeId] === undefined) {
-            this.physicsBody.velocities[nodeId] = { x: 0, y: 0 };
-          }
-        }
-
-        // clean deleted nodes from the velocity vector
-        for (var nodeId in this.physicsBody.velocities) {
-          if (nodes[nodeId] === undefined) {
-            delete this.physicsBody.velocities[nodeId];
-          }
-        }
-      }
-    }, {
-      key: 'revert',
-
-      /**
-       * Revert the simulation one step. This is done so after stabilization, every new start of the simulation will also say stabilized.
-       */
-      value: function revert() {
-        var nodeIds = Object.keys(this.previousStates);
-        var nodes = this.body.nodes;
-        var velocities = this.physicsBody.velocities;
-
-        for (var i = 0; i < nodeIds.length; i++) {
-          var nodeId = nodeIds[i];
-          if (nodes[nodeId] !== undefined) {
-            if (nodes[nodeId].options.physics === true) {
-              velocities[nodeId].x = this.previousStates[nodeId].vx;
-              velocities[nodeId].y = this.previousStates[nodeId].vy;
-              nodes[nodeId].x = this.previousStates[nodeId].x;
-              nodes[nodeId].y = this.previousStates[nodeId].y;
-            }
-          } else {
-            delete this.previousStates[nodeId];
-          }
-        }
-      }
-    }, {
-      key: 'moveNodes',
-
-      /**
-       * move the nodes one timestap and check if they are stabilized
-       * @returns {boolean}
-       */
-      value: function moveNodes() {
-        var nodesPresent = false;
-        var nodeIndices = this.physicsBody.physicsNodeIndices;
-        var maxVelocity = this.options.maxVelocity ? this.options.maxVelocity : 1000000000;
-        var stabilized = true;
-        var vminCorrected = this.options.minVelocity / Math.max(this.body.view.scale, 0.05);
-
-        for (var i = 0; i < nodeIndices.length; i++) {
-          var nodeId = nodeIndices[i];
-          var nodeVelocity = this._performStep(nodeId, maxVelocity);
-          // stabilized is true if stabilized is true and velocity is smaller than vmin --> all nodes must be stabilized
-          stabilized = nodeVelocity < vminCorrected && stabilized === true;
-          nodesPresent = true;
-        }
-
-        if (nodesPresent === true) {
-          if (vminCorrected > 0.5 * this.options.maxVelocity) {
-            return false;
-          } else {
-            return stabilized;
-          }
-        }
-        return true;
-      }
-    }, {
-      key: '_performStep',
-
-      /**
-       * Perform the actual step
-       *
-       * @param nodeId
-       * @param maxVelocity
-       * @returns {number}
-       * @private
-       */
-      value: function _performStep(nodeId, maxVelocity) {
-        var node = this.body.nodes[nodeId];
-        var timestep = this.options.timestep;
-        var forces = this.physicsBody.forces;
-        var velocities = this.physicsBody.velocities;
-
-        // store the state so we can revert
-        this.previousStates[nodeId] = { x: node.x, y: node.y, vx: velocities[nodeId].x, vy: velocities[nodeId].y };
-
-        if (node.options.fixed.x === false) {
-          var dx = this.modelOptions.damping * velocities[nodeId].x; // damping force
-          var ax = (forces[nodeId].x - dx) / node.options.mass; // acceleration
-          velocities[nodeId].x += ax * timestep; // velocity
-          velocities[nodeId].x = Math.abs(velocities[nodeId].x) > maxVelocity ? velocities[nodeId].x > 0 ? maxVelocity : -maxVelocity : velocities[nodeId].x;
-          node.x += velocities[nodeId].x * timestep; // position
-        } else {
-          forces[nodeId].x = 0;
-          velocities[nodeId].x = 0;
-        }
-
-        if (node.options.fixed.y === false) {
-          var dy = this.modelOptions.damping * velocities[nodeId].y; // damping force
-          var ay = (forces[nodeId].y - dy) / node.options.mass; // acceleration
-          velocities[nodeId].y += ay * timestep; // velocity
-          velocities[nodeId].y = Math.abs(velocities[nodeId].y) > maxVelocity ? velocities[nodeId].y > 0 ? maxVelocity : -maxVelocity : velocities[nodeId].y;
-          node.y += velocities[nodeId].y * timestep; // position
-        } else {
-          forces[nodeId].y = 0;
-          velocities[nodeId].y = 0;
-        }
-
-        var totalVelocity = Math.sqrt(Math.pow(velocities[nodeId].x, 2) + Math.pow(velocities[nodeId].y, 2));
-        return totalVelocity;
-      }
-    }, {
-      key: 'calculateForces',
-
-      /**
-       * calculate the forces for one physics iteration.
-       */
-      value: function calculateForces() {
-        this.gravitySolver.solve();
-        this.nodesSolver.solve();
-        this.edgesSolver.solve();
-      }
-    }, {
-      key: '_freezeNodes',
-
-      /**
-       * When initializing and stabilizing, we can freeze nodes with a predefined position. This greatly speeds up stabilization
-       * because only the supportnodes for the smoothCurves have to settle.
-       *
-       * @private
-       */
-      value: function _freezeNodes() {
-        var nodes = this.body.nodes;
-        for (var id in nodes) {
-          if (nodes.hasOwnProperty(id)) {
-            if (nodes[id].x && nodes[id].y) {
-              this.freezeCache[id] = { x: nodes[id].options.fixed.x, y: nodes[id].options.fixed.y };
-              nodes[id].options.fixed.x = true;
-              nodes[id].options.fixed.y = true;
-            }
-          }
-        }
-      }
-    }, {
-      key: '_restoreFrozenNodes',
-
-      /**
-       * Unfreezes the nodes that have been frozen by _freezeDefinedNodes.
-       *
-       * @private
-       */
-      value: function _restoreFrozenNodes() {
-        var nodes = this.body.nodes;
-        for (var id in nodes) {
-          if (nodes.hasOwnProperty(id)) {
-            if (this.freezeCache[id] !== undefined) {
-              nodes[id].options.fixed.x = this.freezeCache[id].x;
-              nodes[id].options.fixed.y = this.freezeCache[id].y;
-            }
-          }
-        }
-        this.freezeCache = {};
-      }
-    }, {
-      key: 'stabilize',
-
-      /**
-       * Find a stable position for all nodes
-       * @private
-       */
-      value: function stabilize() {
-        var _this3 = this;
-
-        var iterations = arguments[0] === undefined ? this.options.stabilization.iterations : arguments[0];
-
-        if (typeof iterations !== 'number') {
-          console.log('The stabilize method needs a numeric amount of iterations. Switching to default: ', this.options.stabilization.iterations);
-          iterations = this.options.stabilization.iterations;
-        }
-
-        // this sets the width of all nodes initially which could be required for the avoidOverlap
-        this.body.emitter.emit('_resizeNodes');
-
-        // stop the render loop
-        this.stopSimulation();
-
-        // set stabilze to false
-        this.stabilized = false;
-
-        // block redraw requests
-        this.body.emitter.emit('_blockRedrawRequests');
-        this.targetIterations = iterations;
-
-        // start the stabilization
-        if (this.options.stabilization.onlyDynamicEdges === true) {
-          this._freezeNodes();
-        }
-        this.stabilizationIterations = 0;
-
-        setTimeout(function () {
-          return _this3._stabilizationBatch();
-        }, 0);
-      }
-    }, {
-      key: '_stabilizationBatch',
-      value: function _stabilizationBatch() {
-        var count = 0;
-        while (this.stabilized === false && count < this.options.stabilization.updateInterval && this.stabilizationIterations < this.targetIterations) {
-          this.physicsTick();
-          this.stabilizationIterations++;
-          count++;
-        }
-
-        if (this.stabilized === false && this.stabilizationIterations < this.targetIterations) {
-          this.body.emitter.emit('stabilizationProgress', { iterations: this.stabilizationIterations, total: this.targetIterations });
-          setTimeout(this._stabilizationBatch.bind(this), 0);
-        } else {
-          this._finalizeStabilization();
-        }
-      }
-    }, {
-      key: '_finalizeStabilization',
-      value: function _finalizeStabilization() {
-        this.body.emitter.emit('_allowRedrawRequests');
-        if (this.options.stabilization.fit === true) {
-          this.body.emitter.emit('fit');
-        }
-
-        if (this.options.stabilization.onlyDynamicEdges === true) {
-          this._restoreFrozenNodes();
-        }
-
-        this.body.emitter.emit('stabilizationIterationsDone');
-        this.body.emitter.emit('_requestRedraw');
-
-        if (this.stabilized === true) {
-          this._emitStabilized();
-        } else {
-          this.startSimulation();
-        }
-
-        this.ready = true;
-      }
-    }]);
-
-    return PhysicsEngine;
-  })();
-
-  exports['default'] = PhysicsEngine;
   module.exports = exports['default'];
 
 /***/ },
@@ -34413,7 +35350,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   var _componentsNodesCluster2 = _interopRequireDefault(_componentsNodesCluster);
 
-  var util = __webpack_require__(2);
+  var util = __webpack_require__(4);
 
   var ClusterEngine = (function () {
     function ClusterEngine(body) {
@@ -35166,7 +36103,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; }
 
-  var _Node2 = __webpack_require__(64);
+  var _Node2 = __webpack_require__(65);
 
   var _Node3 = _interopRequireDefault(_Node2);
 
@@ -35197,6 +36134,770 @@ return /******/ (function(modules) { // webpackBootstrap
 /* 101 */
 /***/ function(module, exports, __webpack_require__) {
 
+  'use strict';
+
+  Object.defineProperty(exports, '__esModule', {
+    value: true
+  });
+
+  var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
+
+  function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
+
+  if (typeof window !== 'undefined') {
+    window.requestAnimationFrame = window.requestAnimationFrame || window.mozRequestAnimationFrame || window.webkitRequestAnimationFrame || window.msRequestAnimationFrame;
+  }
+
+  var util = __webpack_require__(4);
+
+  var CanvasRenderer = (function () {
+    function CanvasRenderer(body, canvas) {
+      _classCallCheck(this, CanvasRenderer);
+
+      this.body = body;
+      this.canvas = canvas;
+
+      this.redrawRequested = false;
+      this.renderTimer = undefined;
+      this.requiresTimeout = true;
+      this.renderingActive = false;
+      this.renderRequests = 0;
+      this.pixelRatio = undefined;
+      this.allowRedrawRequests = true;
+
+      this.dragging = false;
+      this.options = {};
+      this.defaultOptions = {
+        hideEdgesOnDrag: false,
+        hideNodesOnDrag: false
+      };
+      util.extend(this.options, this.defaultOptions);
+
+      this._determineBrowserMethod();
+      this.bindEventListeners();
+    }
+
+    _createClass(CanvasRenderer, [{
+      key: 'bindEventListeners',
+      value: function bindEventListeners() {
+        var _this = this;
+
+        this.body.emitter.on('dragStart', function () {
+          _this.dragging = true;
+        });
+        this.body.emitter.on('dragEnd', function () {
+          return _this.dragging = false;
+        });
+        this.body.emitter.on('_resizeNodes', function () {
+          return _this._resizeNodes();
+        });
+        this.body.emitter.on('_redraw', function () {
+          if (_this.renderingActive === false) {
+            _this._redraw();
+          }
+        });
+        this.body.emitter.on('_blockRedrawRequests', function () {
+          _this.allowRedrawRequests = false;
+        });
+        this.body.emitter.on('_allowRedrawRequests', function () {
+          _this.allowRedrawRequests = true;
+        });
+        this.body.emitter.on('_requestRedraw', this._requestRedraw.bind(this));
+        this.body.emitter.on('_startRendering', function () {
+          _this.renderRequests += 1;
+          _this.renderingActive = true;
+          _this._startRendering();
+        });
+        this.body.emitter.on('_stopRendering', function () {
+          _this.renderRequests -= 1;
+          _this.renderingActive = _this.renderRequests > 0;
+          _this.renderTimer = undefined;
+        });
+        this.body.emitter.on('destroy', function () {
+          _this.renderRequests = 0;
+          _this.renderingActive = false;
+          if (_this.requiresTimeout === true) {
+            clearTimeout(_this.renderTimer);
+          } else {
+            cancelAnimationFrame(_this.renderTimer);
+          }
+          _this.body.emitter.off();
+        });
+      }
+    }, {
+      key: 'setOptions',
+      value: function setOptions(options) {
+        if (options !== undefined) {
+          var fields = ['hideEdgesOnDrag', 'hideNodesOnDrag'];
+          util.selectiveDeepExtend(fields, this.options, options);
+        }
+      }
+    }, {
+      key: '_startRendering',
+      value: function _startRendering() {
+        if (this.renderingActive === true) {
+          if (this.renderTimer === undefined) {
+            if (this.requiresTimeout === true) {
+              this.renderTimer = window.setTimeout(this._renderStep.bind(this), this.simulationInterval); // wait this.renderTimeStep milliseconds and perform the animation step function
+            } else {
+              this.renderTimer = window.requestAnimationFrame(this._renderStep.bind(this)); // wait this.renderTimeStep milliseconds and perform the animation step function
+            }
+          }
+        }
+      }
+    }, {
+      key: '_renderStep',
+      value: function _renderStep() {
+        if (this.renderingActive === true) {
+          // reset the renderTimer so a new scheduled animation step can be set
+          this.renderTimer = undefined;
+
+          if (this.requiresTimeout === true) {
+            // this schedules a new simulation step
+            this._startRendering();
+          }
+
+          this._redraw();
+
+          if (this.requiresTimeout === false) {
+            // this schedules a new simulation step
+            this._startRendering();
+          }
+        }
+      }
+    }, {
+      key: 'redraw',
+
+      /**
+       * Redraw the network with the current data
+       * chart will be resized too.
+       */
+      value: function redraw() {
+        this.body.emitter.emit('setSize');
+        this._redraw();
+      }
+    }, {
+      key: '_requestRedraw',
+
+      /**
+       * Redraw the network with the current data
+       * @param hidden | used to get the first estimate of the node sizes. only the nodes are drawn after which they are quickly drawn over.
+       * @private
+       */
+      value: function _requestRedraw() {
+        var _this2 = this;
+
+        if (this.redrawRequested !== true && this.renderingActive === false && this.allowRedrawRequests === true) {
+          this.redrawRequested = true;
+          if (this.requiresTimeout === true) {
+            window.setTimeout(function () {
+              _this2._redraw(false);
+            }, 0);
+          } else {
+            window.requestAnimationFrame(function () {
+              _this2._redraw(false);
+            });
+          }
+        }
+      }
+    }, {
+      key: '_redraw',
+      value: function _redraw() {
+        var hidden = arguments[0] === undefined ? false : arguments[0];
+
+        this.body.emitter.emit('initRedraw');
+
+        this.redrawRequested = false;
+        var ctx = this.canvas.frame.canvas.getContext('2d');
+
+        // when the container div was hidden, this fixes it back up!
+        if (this.canvas.frame.canvas.width === 0 || this.canvas.frame.canvas.height === 0) {
+          this.canvas.setSize();
+        }
+
+        if (this.pixelRatio === undefined) {
+          this.pixelRatio = (window.devicePixelRatio || 1) / (ctx.webkitBackingStorePixelRatio || ctx.mozBackingStorePixelRatio || ctx.msBackingStorePixelRatio || ctx.oBackingStorePixelRatio || ctx.backingStorePixelRatio || 1);
+        }
+
+        ctx.setTransform(this.pixelRatio, 0, 0, this.pixelRatio, 0, 0);
+
+        // clear the canvas
+        var w = this.canvas.frame.canvas.clientWidth;
+        var h = this.canvas.frame.canvas.clientHeight;
+        ctx.clearRect(0, 0, w, h);
+
+        // set scaling and translation
+        ctx.save();
+        ctx.translate(this.body.view.translation.x, this.body.view.translation.y);
+        ctx.scale(this.body.view.scale, this.body.view.scale);
+
+        ctx.beginPath();
+        this.body.emitter.emit('beforeDrawing', ctx);
+        ctx.closePath();
+
+        if (hidden === false) {
+          if (this.dragging === false || this.dragging === true && this.options.hideEdgesOnDrag === false) {
+            this._drawEdges(ctx);
+          }
+        }
+
+        if (this.dragging === false || this.dragging === true && this.options.hideNodesOnDrag === false) {
+          this._drawNodes(ctx, hidden);
+        }
+
+        if (this.controlNodesActive === true) {
+          this._drawControlNodes(ctx);
+        }
+
+        ctx.beginPath();
+        //this.physics.nodesSolver._debug(ctx,"#F00F0F");
+        this.body.emitter.emit('afterDrawing', ctx);
+        ctx.closePath();
+        // restore original scaling and translation
+        ctx.restore();
+
+        if (hidden === true) {
+          ctx.clearRect(0, 0, w, h);
+        }
+      }
+    }, {
+      key: '_resizeNodes',
+
+      /**
+       * Redraw all nodes
+       * The 2d context of a HTML canvas can be retrieved by canvas.getContext('2d');
+       * @param {CanvasRenderingContext2D}   ctx
+       * @param {Boolean} [alwaysShow]
+       * @private
+       */
+      value: function _resizeNodes() {
+        var ctx = this.canvas.frame.canvas.getContext('2d');
+        if (this.pixelRatio === undefined) {
+          this.pixelRatio = (window.devicePixelRatio || 1) / (ctx.webkitBackingStorePixelRatio || ctx.mozBackingStorePixelRatio || ctx.msBackingStorePixelRatio || ctx.oBackingStorePixelRatio || ctx.backingStorePixelRatio || 1);
+        }
+        ctx.setTransform(this.pixelRatio, 0, 0, this.pixelRatio, 0, 0);
+        ctx.save();
+        ctx.translate(this.body.view.translation.x, this.body.view.translation.y);
+        ctx.scale(this.body.view.scale, this.body.view.scale);
+
+        var nodes = this.body.nodes;
+        var node = undefined;
+
+        // resize all nodes
+        for (var nodeId in nodes) {
+          if (nodes.hasOwnProperty(nodeId)) {
+            node = nodes[nodeId];
+            node.resize(ctx);
+            node.updateBoundingBox(ctx);
+          }
+        }
+
+        // restore original scaling and translation
+        ctx.restore();
+      }
+    }, {
+      key: '_drawNodes',
+
+      /**
+       * Redraw all nodes
+       * The 2d context of a HTML canvas can be retrieved by canvas.getContext('2d');
+       * @param {CanvasRenderingContext2D}   ctx
+       * @param {Boolean} [alwaysShow]
+       * @private
+       */
+      value: function _drawNodes(ctx) {
+        var alwaysShow = arguments[1] === undefined ? false : arguments[1];
+
+        var nodes = this.body.nodes;
+        var nodeIndices = this.body.nodeIndices;
+        var node = undefined;
+        var selected = [];
+        var margin = 20;
+        var topLeft = this.canvas.DOMtoCanvas({ x: -margin, y: -margin });
+        var bottomRight = this.canvas.DOMtoCanvas({
+          x: this.canvas.frame.canvas.clientWidth + margin,
+          y: this.canvas.frame.canvas.clientHeight + margin
+        });
+        var viewableArea = { top: topLeft.y, left: topLeft.x, bottom: bottomRight.y, right: bottomRight.x };
+
+        // draw unselected nodes;
+        for (var i = 0; i < nodeIndices.length; i++) {
+          node = nodes[nodeIndices[i]];
+          // set selected nodes aside
+          if (node.isSelected()) {
+            selected.push(nodeIndices[i]);
+          } else {
+            if (alwaysShow === true) {
+              node.draw(ctx);
+            } else if (node.isBoundingBoxOverlappingWith(viewableArea) === true) {
+              node.draw(ctx);
+            } else {
+              node.updateBoundingBox(ctx);
+            }
+          }
+        }
+
+        // draw the selected nodes on top
+        for (var i = 0; i < selected.length; i++) {
+          node = nodes[selected[i]];
+          node.draw(ctx);
+        }
+      }
+    }, {
+      key: '_drawEdges',
+
+      /**
+       * Redraw all edges
+       * The 2d context of a HTML canvas can be retrieved by canvas.getContext('2d');
+       * @param {CanvasRenderingContext2D}   ctx
+       * @private
+       */
+      value: function _drawEdges(ctx) {
+        var edges = this.body.edges;
+        var edgeIndices = this.body.edgeIndices;
+        var edge = undefined;
+
+        for (var i = 0; i < edgeIndices.length; i++) {
+          edge = edges[edgeIndices[i]];
+          if (edge.connected === true) {
+            edge.draw(ctx);
+          }
+        }
+      }
+    }, {
+      key: '_drawControlNodes',
+
+      /**
+       * Redraw all edges
+       * The 2d context of a HTML canvas can be retrieved by canvas.getContext('2d');
+       * @param {CanvasRenderingContext2D}   ctx
+       * @private
+       */
+      value: function _drawControlNodes(ctx) {
+        var edges = this.body.edges;
+        var edgeIndices = this.body.edgeIndices;
+        var edge = undefined;
+
+        for (var i = 0; i < edgeIndices.length; i++) {
+          edge = edges[edgeIndices[i]];
+          edge._drawControlNodes(ctx);
+        }
+      }
+    }, {
+      key: '_determineBrowserMethod',
+
+      /**
+       * Determine if the browser requires a setTimeout or a requestAnimationFrame. This was required because
+       * some implementations (safari and IE9) did not support requestAnimationFrame
+       * @private
+       */
+      value: function _determineBrowserMethod() {
+        if (typeof window !== 'undefined') {
+          var browserType = navigator.userAgent.toLowerCase();
+          this.requiresTimeout = false;
+          if (browserType.indexOf('msie 9.0') != -1) {
+            // IE 9
+            this.requiresTimeout = true;
+          } else if (browserType.indexOf('safari') != -1) {
+            // safari
+            if (browserType.indexOf('chrome') <= -1) {
+              this.requiresTimeout = true;
+            }
+          }
+        } else {
+          this.requiresTimeout = true;
+        }
+      }
+    }]);
+
+    return CanvasRenderer;
+  })();
+
+  exports['default'] = CanvasRenderer;
+  module.exports = exports['default'];
+
+/***/ },
+/* 102 */
+/***/ function(module, exports, __webpack_require__) {
+
+  'use strict';
+
+  Object.defineProperty(exports, '__esModule', {
+    value: true
+  });
+
+  var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
+
+  function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
+
+  var Hammer = __webpack_require__(26);
+  var hammerUtil = __webpack_require__(31);
+
+  var util = __webpack_require__(4);
+
+  /**
+   * Create the main frame for the Network.
+   * This function is executed once when a Network object is created. The frame
+   * contains a canvas, and this canvas contains all objects like the axis and
+   * nodes.
+   * @private
+   */
+
+  var Canvas = (function () {
+    function Canvas(body) {
+      _classCallCheck(this, Canvas);
+
+      this.body = body;
+      this.pixelRatio = 1;
+      this.resizeTimer = undefined;
+      this.resizeFunction = this._onResize.bind(this);
+
+      this.options = {};
+      this.defaultOptions = {
+        autoResize: true,
+        height: '100%',
+        width: '100%'
+      };
+      util.extend(this.options, this.defaultOptions);
+
+      this.bindEventListeners();
+    }
+
+    _createClass(Canvas, [{
+      key: 'bindEventListeners',
+      value: function bindEventListeners() {
+        var _this = this;
+
+        // bind the events
+        this.body.emitter.once('resize', function (obj) {
+          if (obj.width !== 0) {
+            _this.body.view.translation.x = obj.width * 0.5;
+          }
+          if (obj.height !== 0) {
+            _this.body.view.translation.y = obj.height * 0.5;
+          }
+        });
+        this.body.emitter.on('setSize', this.setSize.bind(this));
+        this.body.emitter.on('destroy', function () {
+          _this.hammerFrame.destroy();
+          _this.hammer.destroy();
+          _this._cleanUp();
+        });
+      }
+    }, {
+      key: 'setOptions',
+      value: function setOptions(options) {
+        var _this2 = this;
+
+        if (options !== undefined) {
+          var fields = ['width', 'height', 'autoResize'];
+          util.selectiveDeepExtend(fields, this.options, options);
+        }
+
+        if (this.options.autoResize === true) {
+          // automatically adapt to a changing size of the browser.
+          this._cleanUp();
+          this.resizeTimer = setInterval(function () {
+            var changed = _this2.setSize();
+            if (changed === true) {
+              _this2.body.emitter.emit('_requestRedraw');
+            }
+          }, 1000);
+          this.resizeFunction = this._onResize.bind(this);
+          util.addEventListener(window, 'resize', this.resizeFunction);
+        }
+      }
+    }, {
+      key: '_cleanUp',
+      value: function _cleanUp() {
+        // automatically adapt to a changing size of the browser.
+        if (this.resizeTimer !== undefined) {
+          clearInterval(this.resizeTimer);
+        }
+        util.removeEventListener(window, 'resize', this.resizeFunction);
+        this.resizeFunction = undefined;
+      }
+    }, {
+      key: '_onResize',
+      value: function _onResize() {
+        this.setSize();
+        this.body.emitter.emit('_redraw');
+      }
+    }, {
+      key: '_prepareValue',
+      value: function _prepareValue(value) {
+        if (typeof value === 'number') {
+          return value + 'px';
+        } else if (typeof value === 'string') {
+          if (value.indexOf('%') !== -1 || value.indexOf('px') !== -1) {
+            return value;
+          } else if (value.indexOf('%') === -1) {
+            return value + 'px';
+          }
+        }
+        throw new Error('Could not use the value supplie for width or height:' + value);
+      }
+    }, {
+      key: '_create',
+
+      /**
+       * Create the HTML
+       */
+      value: function _create() {
+        // remove all elements from the container element.
+        while (this.body.container.hasChildNodes()) {
+          this.body.container.removeChild(this.body.container.firstChild);
+        }
+
+        this.frame = document.createElement('div');
+        this.frame.className = 'vis-network';
+        this.frame.style.position = 'relative';
+        this.frame.style.overflow = 'hidden';
+        this.frame.tabIndex = 900; // tab index is required for keycharm to bind keystrokes to the div instead of the window
+
+        //////////////////////////////////////////////////////////////////
+
+        this.frame.canvas = document.createElement('canvas');
+        this.frame.canvas.style.position = 'relative';
+        this.frame.appendChild(this.frame.canvas);
+
+        if (!this.frame.canvas.getContext) {
+          var noCanvas = document.createElement('DIV');
+          noCanvas.style.color = 'red';
+          noCanvas.style.fontWeight = 'bold';
+          noCanvas.style.padding = '10px';
+          noCanvas.innerHTML = 'Error: your browser does not support HTML canvas';
+          this.frame.canvas.appendChild(noCanvas);
+        } else {
+          var ctx = this.frame.canvas.getContext('2d');
+          this.pixelRatio = (window.devicePixelRatio || 1) / (ctx.webkitBackingStorePixelRatio || ctx.mozBackingStorePixelRatio || ctx.msBackingStorePixelRatio || ctx.oBackingStorePixelRatio || ctx.backingStorePixelRatio || 1);
+
+          this.frame.canvas.getContext('2d').setTransform(this.pixelRatio, 0, 0, this.pixelRatio, 0, 0);
+        }
+
+        // add the frame to the container element
+        this.body.container.appendChild(this.frame);
+
+        this.body.view.scale = 1;
+        this.body.view.translation = { x: 0.5 * this.frame.canvas.clientWidth, y: 0.5 * this.frame.canvas.clientHeight };
+
+        this._bindHammer();
+      }
+    }, {
+      key: '_bindHammer',
+
+      /**
+       * This function binds hammer, it can be repeated over and over due to the uniqueness check.
+       * @private
+       */
+      value: function _bindHammer() {
+        var _this3 = this;
+
+        if (this.hammer !== undefined) {
+          this.hammer.destroy();
+        }
+        this.drag = {};
+        this.pinch = {};
+
+        // init hammer
+        this.hammer = new Hammer(this.frame.canvas);
+        this.hammer.get('pinch').set({ enable: true });
+        // enable to get better response, todo: test on mobile.
+        //this.hammer.get('pan').set({threshold:2});
+
+        hammerUtil.onTouch(this.hammer, function (event) {
+          _this3.body.eventListeners.onTouch(event);
+        });
+        this.hammer.on('tap', function (event) {
+          _this3.body.eventListeners.onTap(event);
+        });
+        this.hammer.on('doubletap', function (event) {
+          _this3.body.eventListeners.onDoubleTap(event);
+        });
+        this.hammer.on('press', function (event) {
+          _this3.body.eventListeners.onHold(event);
+        });
+        this.hammer.on('panstart', function (event) {
+          _this3.body.eventListeners.onDragStart(event);
+        });
+        this.hammer.on('panmove', function (event) {
+          _this3.body.eventListeners.onDrag(event);
+        });
+        this.hammer.on('panend', function (event) {
+          _this3.body.eventListeners.onDragEnd(event);
+        });
+        this.hammer.on('pinch', function (event) {
+          _this3.body.eventListeners.onPinch(event);
+        });
+
+        // TODO: neatly cleanup these handlers when re-creating the Canvas, IF these are done with hammer, event.stopPropagation will not work?
+        this.frame.canvas.addEventListener('mousewheel', function (event) {
+          _this3.body.eventListeners.onMouseWheel(event);
+        });
+        this.frame.canvas.addEventListener('DOMMouseScroll', function (event) {
+          _this3.body.eventListeners.onMouseWheel(event);
+        });
+
+        this.frame.canvas.addEventListener('mousemove', function (event) {
+          _this3.body.eventListeners.onMouseMove(event);
+        });
+        this.frame.canvas.addEventListener('contextmenu', function (event) {
+          _this3.body.eventListeners.onContext(event);
+        });
+
+        this.hammerFrame = new Hammer(this.frame);
+        hammerUtil.onRelease(this.hammerFrame, function (event) {
+          _this3.body.eventListeners.onRelease(event);
+        });
+      }
+    }, {
+      key: 'setSize',
+
+      /**
+       * Set a new size for the network
+       * @param {string} width   Width in pixels or percentage (for example '800px'
+       *                         or '50%')
+       * @param {string} height  Height in pixels or percentage  (for example '400px'
+       *                         or '30%')
+       */
+      value: function setSize() {
+        var width = arguments[0] === undefined ? this.options.width : arguments[0];
+        var height = arguments[1] === undefined ? this.options.height : arguments[1];
+
+        width = this._prepareValue(width);
+        height = this._prepareValue(height);
+
+        var emitEvent = false;
+        var oldWidth = this.frame.canvas.width;
+        var oldHeight = this.frame.canvas.height;
+
+        if (width != this.options.width || height != this.options.height || this.frame.style.width != width || this.frame.style.height != height) {
+          this.frame.style.width = width;
+          this.frame.style.height = height;
+
+          this.frame.canvas.style.width = '100%';
+          this.frame.canvas.style.height = '100%';
+
+          this.frame.canvas.width = Math.round(this.frame.canvas.clientWidth * this.pixelRatio);
+          this.frame.canvas.height = Math.round(this.frame.canvas.clientHeight * this.pixelRatio);
+
+          this.options.width = width;
+          this.options.height = height;
+
+          emitEvent = true;
+        } else {
+          // this would adapt the width of the canvas to the width from 100% if and only if
+          // there is a change.
+
+          if (this.frame.canvas.width != Math.round(this.frame.canvas.clientWidth * this.pixelRatio)) {
+            this.frame.canvas.width = Math.round(this.frame.canvas.clientWidth * this.pixelRatio);
+            emitEvent = true;
+          }
+          if (this.frame.canvas.height != Math.round(this.frame.canvas.clientHeight * this.pixelRatio)) {
+            this.frame.canvas.height = Math.round(this.frame.canvas.clientHeight * this.pixelRatio);
+            emitEvent = true;
+          }
+        }
+
+        if (emitEvent === true) {
+          this.body.emitter.emit('resize', {
+            width: Math.round(this.frame.canvas.width / this.pixelRatio),
+            height: Math.round(this.frame.canvas.height / this.pixelRatio),
+            oldWidth: Math.round(oldWidth / this.pixelRatio),
+            oldHeight: Math.round(oldHeight / this.pixelRatio)
+          });
+        }
+
+        return emitEvent;
+      }
+    }, {
+      key: '_XconvertDOMtoCanvas',
+
+      /**
+       * Convert the X coordinate in DOM-space (coordinate point in browser relative to the container div) to
+       * the X coordinate in canvas-space (the simulation sandbox, which the camera looks upon)
+       * @param {number} x
+       * @returns {number}
+       * @private
+       */
+      value: function _XconvertDOMtoCanvas(x) {
+        return (x - this.body.view.translation.x) / this.body.view.scale;
+      }
+    }, {
+      key: '_XconvertCanvasToDOM',
+
+      /**
+       * Convert the X coordinate in canvas-space (the simulation sandbox, which the camera looks upon) to
+       * the X coordinate in DOM-space (coordinate point in browser relative to the container div)
+       * @param {number} x
+       * @returns {number}
+       * @private
+       */
+      value: function _XconvertCanvasToDOM(x) {
+        return x * this.body.view.scale + this.body.view.translation.x;
+      }
+    }, {
+      key: '_YconvertDOMtoCanvas',
+
+      /**
+       * Convert the Y coordinate in DOM-space (coordinate point in browser relative to the container div) to
+       * the Y coordinate in canvas-space (the simulation sandbox, which the camera looks upon)
+       * @param {number} y
+       * @returns {number}
+       * @private
+       */
+      value: function _YconvertDOMtoCanvas(y) {
+        return (y - this.body.view.translation.y) / this.body.view.scale;
+      }
+    }, {
+      key: '_YconvertCanvasToDOM',
+
+      /**
+       * Convert the Y coordinate in canvas-space (the simulation sandbox, which the camera looks upon) to
+       * the Y coordinate in DOM-space (coordinate point in browser relative to the container div)
+       * @param {number} y
+       * @returns {number}
+       * @private
+       */
+      value: function _YconvertCanvasToDOM(y) {
+        return y * this.body.view.scale + this.body.view.translation.y;
+      }
+    }, {
+      key: 'canvasToDOM',
+
+      /**
+       *
+       * @param {object} pos   = {x: number, y: number}
+       * @returns {{x: number, y: number}}
+       * @constructor
+       */
+      value: function canvasToDOM(pos) {
+        return { x: this._XconvertCanvasToDOM(pos.x), y: this._YconvertCanvasToDOM(pos.y) };
+      }
+    }, {
+      key: 'DOMtoCanvas',
+
+      /**
+       *
+       * @param {object} pos   = {x: number, y: number}
+       * @returns {{x: number, y: number}}
+       * @constructor
+       */
+      value: function DOMtoCanvas(pos) {
+        return { x: this._XconvertDOMtoCanvas(pos.x), y: this._YconvertDOMtoCanvas(pos.y) };
+      }
+    }]);
+
+    return Canvas;
+  })();
+
+  exports['default'] = Canvas;
+  module.exports = exports['default'];
+
+/***/ },
+/* 103 */
+/***/ function(module, exports, __webpack_require__) {
+
   "use strict";
 
   Object.defineProperty(exports, "__esModule", {
@@ -35207,7 +36908,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
-  var util = __webpack_require__(2);
+  var util = __webpack_require__(4);
 
   var View = (function () {
     function View(body, canvas) {
@@ -35597,7 +37298,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports["default"];
 
 /***/ },
-/* 102 */
+/* 104 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -35612,15 +37313,15 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
 
-  var _componentsNavigationHandler = __webpack_require__(103);
+  var _componentsNavigationHandler = __webpack_require__(105);
 
   var _componentsNavigationHandler2 = _interopRequireDefault(_componentsNavigationHandler);
 
-  var _componentsPopup = __webpack_require__(104);
+  var _componentsPopup = __webpack_require__(106);
 
   var _componentsPopup2 = _interopRequireDefault(_componentsPopup);
 
-  var util = __webpack_require__(2);
+  var util = __webpack_require__(4);
 
   var InteractionHandler = (function () {
     function InteractionHandler(body, canvas, selectionHandler) {
@@ -36354,7 +38055,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 103 */
+/* 105 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -36367,10 +38068,10 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
 
-  var util = __webpack_require__(2);
-  var Hammer = __webpack_require__(25);
-  var hammerUtil = __webpack_require__(30);
-  var keycharm = __webpack_require__(45);
+  var util = __webpack_require__(4);
+  var Hammer = __webpack_require__(26);
+  var hammerUtil = __webpack_require__(31);
+  var keycharm = __webpack_require__(46);
 
   var NavigationHandler = (function () {
     function NavigationHandler(body, canvas) {
@@ -36671,7 +38372,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 104 */
+/* 106 */
 /***/ function(module, exports, __webpack_require__) {
 
   /**
@@ -36797,7 +38498,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 105 */
+/* 107 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
@@ -36810,9 +38511,9 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
-  var Node = __webpack_require__(64);
-  var Edge = __webpack_require__(84);
-  var util = __webpack_require__(2);
+  var Node = __webpack_require__(65);
+  var Edge = __webpack_require__(85);
+  var util = __webpack_require__(4);
 
   var SelectionHandler = (function () {
     function SelectionHandler(body, canvas) {
@@ -37521,7 +39222,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports["default"];
 
 /***/ },
-/* 106 */
+/* 108 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -37534,7 +39235,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
 
-  var util = __webpack_require__(2);
+  var util = __webpack_require__(4);
 
   var LayoutEngine = (function () {
     function LayoutEngine(body) {
@@ -38029,1694 +39730,6 @@ return /******/ (function(modules) { // webpackBootstrap
 
   exports['default'] = LayoutEngine;
   module.exports = exports['default'];
-
-/***/ },
-/* 107 */
-/***/ function(module, exports, __webpack_require__) {
-
-  'use strict';
-
-  Object.defineProperty(exports, '__esModule', {
-    value: true
-  });
-
-  var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
-
-  function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
-
-  var util = __webpack_require__(2);
-  var Hammer = __webpack_require__(25);
-  var hammerUtil = __webpack_require__(30);
-
-  /**
-   * clears the toolbar div element of children
-   *
-   * @private
-   */
-
-  var ManipulationSystem = (function () {
-    function ManipulationSystem(body, canvas, selectionHandler) {
-      var _this = this;
-
-      _classCallCheck(this, ManipulationSystem);
-
-      this.body = body;
-      this.canvas = canvas;
-      this.selectionHandler = selectionHandler;
-
-      this.editMode = false;
-      this.manipulationDiv = undefined;
-      this.editModeDiv = undefined;
-      this.closeDiv = undefined;
-
-      this.manipulationHammers = [];
-      this.temporaryUIFunctions = {};
-      this.temporaryEventFunctions = [];
-
-      this.touchTime = 0;
-      this.temporaryIds = { nodes: [], edges: [] };
-      this.guiEnabled = false;
-      this.inMode = false;
-      this.selectedControlNode = undefined;
-
-      this.options = {};
-      this.defaultOptions = {
-        enabled: false,
-        initiallyActive: false,
-        addNode: true,
-        addEdge: true,
-        editNode: undefined,
-        editEdge: true,
-        deleteNode: true,
-        deleteEdge: true,
-        controlNodeStyle: {
-          shape: 'dot',
-          size: 6,
-          color: { background: '#ff0000', border: '#3c3c3c', highlight: { background: '#07f968', border: '#3c3c3c' } },
-          borderWidth: 2,
-          borderWidthSelected: 2
-        }
-      };
-      util.extend(this.options, this.defaultOptions);
-
-      this.body.emitter.on('destroy', function () {
-        _this._clean();
-      });
-      this.body.emitter.on('_dataChanged', this._restore.bind(this));
-      this.body.emitter.on('_resetData', this._restore.bind(this));
-    }
-
-    _createClass(ManipulationSystem, [{
-      key: '_restore',
-
-      /**
-       * If something changes in the data during editing, switch back to the initial datamanipulation state and close all edit modes.
-       * @private
-       */
-      value: function _restore() {
-        if (this.inMode !== false) {
-          if (this.options.initiallyActive === true) {
-            this.enableEditMode();
-          } else {
-            this.disableEditMode();
-          }
-        }
-      }
-    }, {
-      key: 'setOptions',
-
-      /**
-       * Set the Options
-       * @param options
-       */
-      value: function setOptions(options, allOptions, globalOptions) {
-        if (allOptions !== undefined) {
-          if (allOptions.locale !== undefined) {
-            this.options.locale = allOptions.locale;
-          } else {
-            this.options.locale = globalOptions.locale;
-          }
-          if (allOptions.locales !== undefined) {
-            this.options.locales = allOptions.locales;
-          } else {
-            this.options.locales = globalOptions.locales;
-          }
-        }
-
-        if (options !== undefined) {
-          if (typeof options === 'boolean') {
-            this.options.enabled = options;
-          } else {
-            this.options.enabled = true;
-            util.deepExtend(this.options, options);
-          }
-          if (this.options.initiallyActive === true) {
-            this.editMode = true;
-          }
-          this._setup();
-        }
-      }
-    }, {
-      key: 'toggleEditMode',
-
-      /**
-       * Enable or disable edit-mode. Draws the DOM required and cleans up after itself.
-       *
-       * @private
-       */
-      value: function toggleEditMode() {
-        if (this.editMode === true) {
-          this.disableEditMode();
-        } else {
-          this.enableEditMode();
-        }
-      }
-    }, {
-      key: 'enableEditMode',
-      value: function enableEditMode() {
-        this.editMode = true;
-
-        this._clean();
-        if (this.guiEnabled === true) {
-          this.manipulationDiv.style.display = 'block';
-          this.closeDiv.style.display = 'block';
-          this.editModeDiv.style.display = 'none';
-          this.showManipulatorToolbar();
-        }
-      }
-    }, {
-      key: 'disableEditMode',
-      value: function disableEditMode() {
-        this.editMode = false;
-
-        this._clean();
-        if (this.guiEnabled === true) {
-          this.manipulationDiv.style.display = 'none';
-          this.closeDiv.style.display = 'none';
-          this.editModeDiv.style.display = 'block';
-          this._createEditButton();
-        }
-      }
-    }, {
-      key: 'showManipulatorToolbar',
-
-      /**
-       * Creates the main toolbar. Removes functions bound to the select event. Binds all the buttons of the toolbar.
-       *
-       * @private
-       */
-      value: function showManipulatorToolbar() {
-        // restore the state of any bound functions or events, remove control nodes, restore physics
-        this._clean();
-
-        // reset global letiables
-        this.manipulationDOM = {};
-
-        // if the gui is enabled, draw all elements.
-        if (this.guiEnabled === true) {
-          // a _restore will hide these menus
-          this.editMode = true;
-          this.manipulationDiv.style.display = 'block';
-          this.closeDiv.style.display = 'block';
-
-          var selectedNodeCount = this.selectionHandler._getSelectedNodeCount();
-          var selectedEdgeCount = this.selectionHandler._getSelectedEdgeCount();
-          var selectedTotalCount = selectedNodeCount + selectedEdgeCount;
-          var locale = this.options.locales[this.options.locale];
-          var needSeperator = false;
-
-          if (this.options.addNode !== false) {
-            this._createAddNodeButton(locale);
-            needSeperator = true;
-          }
-          if (this.options.addEdge !== false) {
-            if (needSeperator === true) {
-              this._createSeperator(1);
-            } else {
-              needSeperator = true;
-            }
-            this._createAddEdgeButton(locale);
-          }
-
-          if (selectedNodeCount === 1 && typeof this.options.editNode === 'function') {
-            if (needSeperator === true) {
-              this._createSeperator(2);
-            } else {
-              needSeperator = true;
-            }
-            this._createEditNodeButton(locale);
-          } else if (selectedEdgeCount === 1 && selectedNodeCount === 0 && this.options.editEdge !== false) {
-            if (needSeperator === true) {
-              this._createSeperator(3);
-            } else {
-              needSeperator = true;
-            }
-            this._createEditEdgeButton(locale);
-          }
-
-          // remove buttons
-          if (selectedTotalCount !== 0) {
-            if (selectedNodeCount === 1 && this.options.deleteNode !== false) {
-              if (needSeperator === true) {
-                this._createSeperator(4);
-              }
-              this._createDeleteButton(locale);
-            } else if (selectedNodeCount === 0 && this.options.deleteEdge !== false) {
-              if (needSeperator === true) {
-                this._createSeperator(4);
-              }
-              this._createDeleteButton(locale);
-            }
-          }
-
-          // bind the close button
-          this._bindHammerToDiv(this.closeDiv, this.toggleEditMode.bind(this));
-
-          // refresh this bar based on what has been selected
-          this._temporaryBindEvent('select', this.showManipulatorToolbar.bind(this));
-        }
-
-        // redraw to show any possible changes
-        this.body.emitter.emit('_redraw');
-      }
-    }, {
-      key: 'addNodeMode',
-
-      /**
-       * Create the toolbar for adding Nodes
-       *
-       * @private
-       */
-      value: function addNodeMode() {
-        // when using the gui, enable edit mode if it wasnt already.
-        if (this.editMode !== true) {
-          this.enableEditMode();
-        }
-
-        // restore the state of any bound functions or events, remove control nodes, restore physics
-        this._clean();
-
-        this.inMode = 'addNode';
-        if (this.guiEnabled === true) {
-          var locale = this.options.locales[this.options.locale];
-          this.manipulationDOM = {};
-          this._createBackButton(locale);
-          this._createSeperator();
-          this._createDescription(locale['addDescription'] || this.options.locales['en']['addDescription']);
-
-          // bind the close button
-          this._bindHammerToDiv(this.closeDiv, this.toggleEditMode.bind(this));
-        }
-
-        this._temporaryBindEvent('click', this._performAddNode.bind(this));
-      }
-    }, {
-      key: 'editNode',
-
-      /**
-       * call the bound function to handle the editing of the node. The node has to be selected.
-       *
-       * @private
-       */
-      value: function editNode() {
-        var _this2 = this;
-
-        // when using the gui, enable edit mode if it wasnt already.
-        if (this.editMode !== true) {
-          this.enableEditMode();
-        }
-
-        // restore the state of any bound functions or events, remove control nodes, restore physics
-        this._clean();
-        var node = this.selectionHandler._getSelectedNode();
-        if (node !== undefined) {
-          this.inMode = 'editNode';
-          if (typeof this.options.editNode === 'function') {
-            if (node.isCluster !== true) {
-              var data = util.deepExtend({}, node.options, true);
-              data.x = node.x;
-              data.y = node.y;
-
-              if (this.options.editNode.length === 2) {
-                this.options.editNode(data, function (finalizedData) {
-                  if (finalizedData !== null && finalizedData !== undefined && _this2.inMode === 'editNode') {
-                    // if for whatever reason the mode has changes (due to dataset change) disregard the callback) {
-                    _this2.body.data.nodes.getDataSet().update(finalizedData);
-                  }
-                  _this2.showManipulatorToolbar();
-                });
-              } else {
-                throw new Error('The function for edit does not support two arguments (data, callback)');
-              }
-            } else {
-              alert(this.options.locales[this.options.locale]['editClusterError'] || this.options.locales['en']['editClusterError']);
-            }
-          } else {
-            throw new Error('No function has been configured to handle the editing of nodes.');
-          }
-        } else {
-          this.showManipulatorToolbar();
-        }
-      }
-    }, {
-      key: 'addEdgeMode',
-
-      /**
-       * create the toolbar to connect nodes
-       *
-       * @private
-       */
-      value: function addEdgeMode() {
-        // when using the gui, enable edit mode if it wasnt already.
-        if (this.editMode !== true) {
-          this.enableEditMode();
-        }
-
-        // restore the state of any bound functions or events, remove control nodes, restore physics
-        this._clean();
-
-        this.inMode = 'addEdge';
-        if (this.guiEnabled === true) {
-          var locale = this.options.locales[this.options.locale];
-          this.manipulationDOM = {};
-          this._createBackButton(locale);
-          this._createSeperator();
-          this._createDescription(locale['edgeDescription'] || this.options.locales['en']['edgeDescription']);
-
-          // bind the close button
-          this._bindHammerToDiv(this.closeDiv, this.toggleEditMode.bind(this));
-        }
-
-        // temporarily overload functions
-        this._temporaryBindUI('onTouch', this._handleConnect.bind(this));
-        this._temporaryBindUI('onDragEnd', this._finishConnect.bind(this));
-        this._temporaryBindUI('onDrag', this._dragControlNode.bind(this));
-        this._temporaryBindUI('onRelease', this._finishConnect.bind(this));
-
-        this._temporaryBindUI('onDragStart', function () {});
-        this._temporaryBindUI('onHold', function () {});
-      }
-    }, {
-      key: 'editEdgeMode',
-
-      /**
-       * create the toolbar to edit edges
-       *
-       * @private
-       */
-      value: function editEdgeMode() {
-        var _this3 = this;
-
-        // when using the gui, enable edit mode if it wasnt already.
-        if (this.editMode !== true) {
-          this.enableEditMode();
-        }
-
-        // restore the state of any bound functions or events, remove control nodes, restore physics
-        this._clean();
-
-        this.inMode = 'editEdge';
-        if (this.guiEnabled === true) {
-          var locale = this.options.locales[this.options.locale];
-          this.manipulationDOM = {};
-          this._createBackButton(locale);
-          this._createSeperator();
-          this._createDescription(locale['editEdgeDescription'] || this.options.locales['en']['editEdgeDescription']);
-
-          // bind the close button
-          this._bindHammerToDiv(this.closeDiv, this.toggleEditMode.bind(this));
-        }
-
-        this.edgeBeingEditedId = this.selectionHandler.getSelectedEdges()[0];
-        if (this.edgeBeingEditedId !== undefined) {
-          (function () {
-            var edge = _this3.body.edges[_this3.edgeBeingEditedId];
-
-            // create control nodes
-            var controlNodeFrom = _this3._getNewTargetNode(edge.from.x, edge.from.y);
-            var controlNodeTo = _this3._getNewTargetNode(edge.to.x, edge.to.y);
-
-            _this3.temporaryIds.nodes.push(controlNodeFrom.id);
-            _this3.temporaryIds.nodes.push(controlNodeTo.id);
-
-            _this3.body.nodes[controlNodeFrom.id] = controlNodeFrom;
-            _this3.body.nodeIndices.push(controlNodeFrom.id);
-            _this3.body.nodes[controlNodeTo.id] = controlNodeTo;
-            _this3.body.nodeIndices.push(controlNodeTo.id);
-
-            // temporarily overload UI functions, cleaned up automatically because of _temporaryBindUI
-            _this3._temporaryBindUI('onTouch', _this3._controlNodeTouch.bind(_this3)); // used to get the position
-            _this3._temporaryBindUI('onTap', function () {}); // disabled
-            _this3._temporaryBindUI('onHold', function () {}); // disabled
-            _this3._temporaryBindUI('onDragStart', _this3._controlNodeDragStart.bind(_this3)); // used to select control node
-            _this3._temporaryBindUI('onDrag', _this3._controlNodeDrag.bind(_this3)); // used to drag control node
-            _this3._temporaryBindUI('onDragEnd', _this3._controlNodeDragEnd.bind(_this3)); // used to connect or revert control nodes
-            _this3._temporaryBindUI('onMouseMove', function () {}); // disabled
-
-            // create function to position control nodes correctly on movement
-            // automatically cleaned up because we use the temporary bind
-            _this3._temporaryBindEvent('beforeDrawing', function (ctx) {
-              var positions = edge.edgeType.findBorderPositions(ctx);
-              if (controlNodeFrom.selected === false) {
-                controlNodeFrom.x = positions.from.x;
-                controlNodeFrom.y = positions.from.y;
-              }
-              if (controlNodeTo.selected === false) {
-                controlNodeTo.x = positions.to.x;
-                controlNodeTo.y = positions.to.y;
-              }
-            });
-
-            _this3.body.emitter.emit('_redraw');
-          })();
-        } else {
-          this.showManipulatorToolbar();
-        }
-      }
-    }, {
-      key: 'deleteSelected',
-
-      /**
-       * delete everything in the selection
-       *
-       * @private
-       */
-      value: function deleteSelected() {
-        var _this4 = this;
-
-        // when using the gui, enable edit mode if it wasnt already.
-        if (this.editMode !== true) {
-          this.enableEditMode();
-        }
-
-        // restore the state of any bound functions or events, remove control nodes, restore physics
-        this._clean();
-
-        this.inMode = 'delete';
-        var selectedNodes = this.selectionHandler.getSelectedNodes();
-        var selectedEdges = this.selectionHandler.getSelectedEdges();
-        var deleteFunction = undefined;
-        if (selectedNodes.length > 0) {
-          for (var i = 0; i < selectedNodes.length; i++) {
-            if (this.body.nodes[selectedNodes[i]].isCluster === true) {
-              alert(this.options.locales[this.options.locale]['deleteClusterError'] || this.options.locales['en']['deleteClusterError']);
-              return;
-            }
-          }
-
-          if (typeof this.options.deleteNode === 'function') {
-            deleteFunction = this.options.deleteNode;
-          }
-        } else if (selectedEdges.length > 0) {
-          if (typeof this.options.deleteEdge === 'function') {
-            deleteFunction = this.options.deleteEdge;
-          }
-        }
-
-        if (typeof deleteFunction === 'function') {
-          var data = { nodes: selectedNodes, edges: selectedEdges };
-          if (deleteFunction.length === 2) {
-            deleteFunction(data, function (finalizedData) {
-              if (finalizedData !== null && finalizedData !== undefined && _this4.inMode === 'delete') {
-                // if for whatever reason the mode has changes (due to dataset change) disregard the callback) {
-                _this4.body.data.edges.getDataSet().remove(finalizedData.edges);
-                _this4.body.data.nodes.getDataSet().remove(finalizedData.nodes);
-                _this4.body.emitter.emit('startSimulation');
-                _this4.showManipulatorToolbar();
-              }
-            });
-          } else {
-            throw new Error('The function for delete does not support two arguments (data, callback)');
-          }
-        } else {
-          this.body.data.edges.getDataSet().remove(selectedEdges);
-          this.body.data.nodes.getDataSet().remove(selectedNodes);
-          this.body.emitter.emit('startSimulation');
-          this.showManipulatorToolbar();
-        }
-      }
-    }, {
-      key: '_setup',
-
-      //********************************************** PRIVATE ***************************************//
-
-      /**
-       * draw or remove the DOM
-       * @private
-       */
-      value: function _setup() {
-        if (this.options.enabled === true) {
-          // Enable the GUI
-          this.guiEnabled = true;
-
-          this._createWrappers();
-          if (this.editMode === false) {
-            this._createEditButton();
-          } else {
-            this.showManipulatorToolbar();
-          }
-        } else {
-          this._removeManipulationDOM();
-
-          // disable the gui
-          this.guiEnabled = false;
-        }
-      }
-    }, {
-      key: '_createWrappers',
-
-      /**
-       * create the div overlays that contain the DOM
-       * @private
-       */
-      value: function _createWrappers() {
-        // load the manipulator HTML elements. All styling done in css.
-        if (this.manipulationDiv === undefined) {
-          this.manipulationDiv = document.createElement('div');
-          this.manipulationDiv.className = 'vis-manipulation';
-          if (this.editMode === true) {
-            this.manipulationDiv.style.display = 'block';
-          } else {
-            this.manipulationDiv.style.display = 'none';
-          }
-          this.canvas.frame.appendChild(this.manipulationDiv);
-        }
-
-        // container for the edit button.
-        if (this.editModeDiv === undefined) {
-          this.editModeDiv = document.createElement('div');
-          this.editModeDiv.className = 'vis-edit-mode';
-          if (this.editMode === true) {
-            this.editModeDiv.style.display = 'none';
-          } else {
-            this.editModeDiv.style.display = 'block';
-          }
-          this.canvas.frame.appendChild(this.editModeDiv);
-        }
-
-        // container for the close div button
-        if (this.closeDiv === undefined) {
-          this.closeDiv = document.createElement('div');
-          this.closeDiv.className = 'vis-close';
-          this.closeDiv.style.display = this.manipulationDiv.style.display;
-          this.canvas.frame.appendChild(this.closeDiv);
-        }
-      }
-    }, {
-      key: '_getNewTargetNode',
-
-      /**
-       * generate a new target node. Used for creating new edges and editing edges
-       * @param x
-       * @param y
-       * @returns {*}
-       * @private
-       */
-      value: function _getNewTargetNode(x, y) {
-        var controlNodeStyle = util.deepExtend({}, this.options.controlNodeStyle);
-
-        controlNodeStyle.id = 'targetNode' + util.randomUUID();
-        controlNodeStyle.hidden = false;
-        controlNodeStyle.physics = false;
-        controlNodeStyle.x = x;
-        controlNodeStyle.y = y;
-
-        return this.body.functions.createNode(controlNodeStyle);
-      }
-    }, {
-      key: '_createEditButton',
-
-      /**
-       * Create the edit button
-       */
-      value: function _createEditButton() {
-        // restore everything to it's original state (if applicable)
-        this._clean();
-
-        // reset the manipulationDOM
-        this.manipulationDOM = {};
-
-        // empty the editModeDiv
-        util.recursiveDOMDelete(this.editModeDiv);
-
-        // create the contents for the editMode button
-        var locale = this.options.locales[this.options.locale];
-        var button = this._createButton('editMode', 'vis-button vis-edit vis-edit-mode', locale['edit'] || this.options.locales['en']['edit']);
-        this.editModeDiv.appendChild(button);
-
-        // bind a hammer listener to the button, calling the function toggleEditMode.
-        this._bindHammerToDiv(button, this.toggleEditMode.bind(this));
-      }
-    }, {
-      key: '_clean',
-
-      /**
-       * this function cleans up after everything this module does. Temporary elements, functions and events are removed, physics restored, hammers removed.
-       * @private
-       */
-      value: function _clean() {
-        // not in mode
-        this.inMode = false;
-
-        // _clean the divs
-        if (this.guiEnabled === true) {
-          util.recursiveDOMDelete(this.editModeDiv);
-          util.recursiveDOMDelete(this.manipulationDiv);
-
-          // removes all the bindings and overloads
-          this._cleanManipulatorHammers();
-        }
-
-        // remove temporary nodes and edges
-        this._cleanupTemporaryNodesAndEdges();
-
-        // restore overloaded UI functions
-        this._unbindTemporaryUIs();
-
-        // remove the temporaryEventFunctions
-        this._unbindTemporaryEvents();
-
-        // restore the physics if required
-        this.body.emitter.emit('restorePhysics');
-      }
-    }, {
-      key: '_cleanManipulatorHammers',
-
-      /**
-       * Each dom element has it's own hammer. They are stored in this.manipulationHammers. This cleans them up.
-       * @private
-       */
-      value: function _cleanManipulatorHammers() {
-        // _clean hammer bindings
-        if (this.manipulationHammers.length != 0) {
-          for (var i = 0; i < this.manipulationHammers.length; i++) {
-            this.manipulationHammers[i].destroy();
-          }
-          this.manipulationHammers = [];
-        }
-      }
-    }, {
-      key: '_removeManipulationDOM',
-
-      /**
-       * Remove all DOM elements created by this module.
-       * @private
-       */
-      value: function _removeManipulationDOM() {
-        // removes all the bindings and overloads
-        this._clean();
-
-        // empty the manipulation divs
-        util.recursiveDOMDelete(this.manipulationDiv);
-        util.recursiveDOMDelete(this.editModeDiv);
-        util.recursiveDOMDelete(this.closeDiv);
-
-        // remove the manipulation divs
-        if (this.manipulationDiv) {
-          this.canvas.frame.removeChild(this.manipulationDiv);
-        }
-        if (this.editModeDiv) {
-          this.canvas.frame.removeChild(this.editModeDiv);
-        }
-        if (this.closeDiv) {
-          this.canvas.frame.removeChild(this.manipulationDiv);
-        }
-
-        // set the references to undefined
-        this.manipulationDiv = undefined;
-        this.editModeDiv = undefined;
-        this.closeDiv = undefined;
-      }
-    }, {
-      key: '_createSeperator',
-
-      /**
-       * create a seperator line. the index is to differentiate in the manipulation dom
-       * @param index
-       * @private
-       */
-      value: function _createSeperator() {
-        var index = arguments[0] === undefined ? 1 : arguments[0];
-
-        this.manipulationDOM['seperatorLineDiv' + index] = document.createElement('div');
-        this.manipulationDOM['seperatorLineDiv' + index].className = 'vis-separator-line';
-        this.manipulationDiv.appendChild(this.manipulationDOM['seperatorLineDiv' + index]);
-      }
-    }, {
-      key: '_createAddNodeButton',
-
-      // ----------------------    DOM functions for buttons    --------------------------//
-
-      value: function _createAddNodeButton(locale) {
-        var button = this._createButton('addNode', 'vis-button vis-add', locale['addNode'] || this.options.locales['en']['addNode']);
-        this.manipulationDiv.appendChild(button);
-        this._bindHammerToDiv(button, this.addNodeMode.bind(this));
-      }
-    }, {
-      key: '_createAddEdgeButton',
-      value: function _createAddEdgeButton(locale) {
-        var button = this._createButton('addEdge', 'vis-button vis-connect', locale['addEdge'] || this.options.locales['en']['addEdge']);
-        this.manipulationDiv.appendChild(button);
-        this._bindHammerToDiv(button, this.addEdgeMode.bind(this));
-      }
-    }, {
-      key: '_createEditNodeButton',
-      value: function _createEditNodeButton(locale) {
-        var button = this._createButton('editNode', 'vis-button vis-edit', locale['editNode'] || this.options.locales['en']['editNode']);
-        this.manipulationDiv.appendChild(button);
-        this._bindHammerToDiv(button, this.editNode.bind(this));
-      }
-    }, {
-      key: '_createEditEdgeButton',
-      value: function _createEditEdgeButton(locale) {
-        var button = this._createButton('editEdge', 'vis-button vis-edit', locale['editEdge'] || this.options.locales['en']['editEdge']);
-        this.manipulationDiv.appendChild(button);
-        this._bindHammerToDiv(button, this.editEdgeMode.bind(this));
-      }
-    }, {
-      key: '_createDeleteButton',
-      value: function _createDeleteButton(locale) {
-        var button = this._createButton('delete', 'vis-button vis-delete', locale['del'] || this.options.locales['en']['del']);
-        this.manipulationDiv.appendChild(button);
-        this._bindHammerToDiv(button, this.deleteSelected.bind(this));
-      }
-    }, {
-      key: '_createBackButton',
-      value: function _createBackButton(locale) {
-        var button = this._createButton('back', 'vis-button vis-back', locale['back'] || this.options.locales['en']['back']);
-        this.manipulationDiv.appendChild(button);
-        this._bindHammerToDiv(button, this.showManipulatorToolbar.bind(this));
-      }
-    }, {
-      key: '_createButton',
-      value: function _createButton(id, className, label) {
-        var labelClassName = arguments[3] === undefined ? 'vis-label' : arguments[3];
-
-        this.manipulationDOM[id + 'Div'] = document.createElement('div');
-        this.manipulationDOM[id + 'Div'].className = className;
-        this.manipulationDOM[id + 'Label'] = document.createElement('div');
-        this.manipulationDOM[id + 'Label'].className = labelClassName;
-        this.manipulationDOM[id + 'Label'].innerHTML = label;
-        this.manipulationDOM[id + 'Div'].appendChild(this.manipulationDOM[id + 'Label']);
-        return this.manipulationDOM[id + 'Div'];
-      }
-    }, {
-      key: '_createDescription',
-      value: function _createDescription(label) {
-        this.manipulationDiv.appendChild(this._createButton('description', 'vis-button vis-none', label));
-      }
-    }, {
-      key: '_temporaryBindEvent',
-
-      // -------------------------- End of DOM functions for buttons ------------------------------//
-
-      /**
-       * this binds an event until cleanup by the clean functions.
-       * @param event
-       * @param newFunction
-       * @private
-       */
-      value: function _temporaryBindEvent(event, newFunction) {
-        this.temporaryEventFunctions.push({ event: event, boundFunction: newFunction });
-        this.body.emitter.on(event, newFunction);
-      }
-    }, {
-      key: '_temporaryBindUI',
-
-      /**
-       * this overrides an UI function until cleanup by the clean function
-       * @param UIfunctionName
-       * @param newFunction
-       * @private
-       */
-      value: function _temporaryBindUI(UIfunctionName, newFunction) {
-        if (this.body.eventListeners[UIfunctionName] !== undefined) {
-          this.temporaryUIFunctions[UIfunctionName] = this.body.eventListeners[UIfunctionName];
-          this.body.eventListeners[UIfunctionName] = newFunction;
-        } else {
-          throw new Error('This UI function does not exist. Typo? You tried: ' + UIfunctionName + ' possible are: ' + JSON.stringify(Object.keys(this.body.eventListeners)));
-        }
-      }
-    }, {
-      key: '_unbindTemporaryUIs',
-
-      /**
-       * Restore the overridden UI functions to their original state.
-       *
-       * @private
-       */
-      value: function _unbindTemporaryUIs() {
-        for (var functionName in this.temporaryUIFunctions) {
-          if (this.temporaryUIFunctions.hasOwnProperty(functionName)) {
-            this.body.eventListeners[functionName] = this.temporaryUIFunctions[functionName];
-            delete this.temporaryUIFunctions[functionName];
-          }
-        }
-        this.temporaryUIFunctions = {};
-      }
-    }, {
-      key: '_unbindTemporaryEvents',
-
-      /**
-       * Unbind the events created by _temporaryBindEvent
-       * @private
-       */
-      value: function _unbindTemporaryEvents() {
-        for (var i = 0; i < this.temporaryEventFunctions.length; i++) {
-          var eventName = this.temporaryEventFunctions[i].event;
-          var boundFunction = this.temporaryEventFunctions[i].boundFunction;
-          this.body.emitter.off(eventName, boundFunction);
-        }
-        this.temporaryEventFunctions = [];
-      }
-    }, {
-      key: '_bindHammerToDiv',
-
-      /**
-       * Bind an hammer instance to a DOM element.
-       * @param domElement
-       * @param funct
-       */
-      value: function _bindHammerToDiv(domElement, boundFunction) {
-        var hammer = new Hammer(domElement, {});
-        hammerUtil.onTouch(hammer, boundFunction);
-        this.manipulationHammers.push(hammer);
-      }
-    }, {
-      key: '_cleanupTemporaryNodesAndEdges',
-
-      /**
-       * Neatly clean up temporary edges and nodes
-       * @private
-       */
-      value: function _cleanupTemporaryNodesAndEdges() {
-        // _clean temporary edges
-        for (var i = 0; i < this.temporaryIds.edges.length; i++) {
-          this.body.edges[this.temporaryIds.edges[i]].disconnect();
-          delete this.body.edges[this.temporaryIds.edges[i]];
-          var indexTempEdge = this.body.edgeIndices.indexOf(this.temporaryIds.edges[i]);
-          if (indexTempEdge !== -1) {
-            this.body.edgeIndices.splice(indexTempEdge, 1);
-          }
-        }
-
-        // _clean temporary nodes
-        for (var i = 0; i < this.temporaryIds.nodes.length; i++) {
-          delete this.body.nodes[this.temporaryIds.nodes[i]];
-          var indexTempNode = this.body.nodeIndices.indexOf(this.temporaryIds.nodes[i]);
-          if (indexTempNode !== -1) {
-            this.body.nodeIndices.splice(indexTempNode, 1);
-          }
-        }
-
-        this.temporaryIds = { nodes: [], edges: [] };
-      }
-    }, {
-      key: '_controlNodeTouch',
-
-      // ------------------------------------------ EDIT EDGE FUNCTIONS -----------------------------------------//
-
-      /**
-       * the touch is used to get the position of the initial click
-       * @param event
-       * @private
-       */
-      value: function _controlNodeTouch(event) {
-        this.selectionHandler.unselectAll();
-        this.lastTouch = this.body.functions.getPointer(event.center);
-        this.lastTouch.translation = util.extend({}, this.body.view.translation); // copy the object
-      }
-    }, {
-      key: '_controlNodeDragStart',
-
-      /**
-       * the drag start is used to mark one of the control nodes as selected.
-       * @param event
-       * @private
-       */
-      value: function _controlNodeDragStart(event) {
-        var pointer = this.lastTouch;
-        var pointerObj = this.selectionHandler._pointerToPositionObject(pointer);
-        var from = this.body.nodes[this.temporaryIds.nodes[0]];
-        var to = this.body.nodes[this.temporaryIds.nodes[1]];
-        var edge = this.body.edges[this.edgeBeingEditedId];
-        this.selectedControlNode = undefined;
-
-        var fromSelect = from.isOverlappingWith(pointerObj);
-        var toSelect = to.isOverlappingWith(pointerObj);
-
-        if (fromSelect === true) {
-          this.selectedControlNode = from;
-          edge.edgeType.from = from;
-        } else if (toSelect === true) {
-          this.selectedControlNode = to;
-          edge.edgeType.to = to;
-        }
-
-        this.body.emitter.emit('_redraw');
-      }
-    }, {
-      key: '_controlNodeDrag',
-
-      /**
-       * dragging the control nodes or the canvas
-       * @param event
-       * @private
-       */
-      value: function _controlNodeDrag(event) {
-        this.body.emitter.emit('disablePhysics');
-        var pointer = this.body.functions.getPointer(event.center);
-        var pos = this.canvas.DOMtoCanvas(pointer);
-
-        if (this.selectedControlNode !== undefined) {
-          this.selectedControlNode.x = pos.x;
-          this.selectedControlNode.y = pos.y;
-        } else {
-          // if the drag was not started properly because the click started outside the network div, start it now.
-          var diffX = pointer.x - this.lastTouch.x;
-          var diffY = pointer.y - this.lastTouch.y;
-          this.body.view.translation = { x: this.lastTouch.translation.x + diffX, y: this.lastTouch.translation.y + diffY };
-        }
-        this.body.emitter.emit('_redraw');
-      }
-    }, {
-      key: '_controlNodeDragEnd',
-
-      /**
-       * connecting or restoring the control nodes.
-       * @param event
-       * @private
-       */
-      value: function _controlNodeDragEnd(event) {
-        var pointer = this.body.functions.getPointer(event.center);
-        var pointerObj = this.selectionHandler._pointerToPositionObject(pointer);
-        var edge = this.body.edges[this.edgeBeingEditedId];
-
-        var overlappingNodeIds = this.selectionHandler._getAllNodesOverlappingWith(pointerObj);
-        var node = undefined;
-        for (var i = overlappingNodeIds.length - 1; i >= 0; i--) {
-          if (overlappingNodeIds[i] !== this.selectedControlNode.id) {
-            node = this.body.nodes[overlappingNodeIds[i]];
-            break;
-          }
-        }
-
-        // perform the connection
-        if (node !== undefined && this.selectedControlNode !== undefined) {
-          if (node.isCluster === true) {
-            alert(this.options.locales[this.options.locale]['createEdgeError'] || this.options.locales['en']['createEdgeError']);
-          } else {
-            var from = this.body.nodes[this.temporaryIds.nodes[0]];
-            if (this.selectedControlNode.id === from.id) {
-              this._performEditEdge(node.id, edge.to.id);
-            } else {
-              this._performEditEdge(edge.from.id, node.id);
-            }
-          }
-        } else {
-          edge.updateEdgeType();
-          this.body.emitter.emit('restorePhysics');
-        }
-        this.body.emitter.emit('_redraw');
-      }
-    }, {
-      key: '_handleConnect',
-
-      // ------------------------------------ END OF EDIT EDGE FUNCTIONS -----------------------------------------//
-
-      // ------------------------------------------- ADD EDGE FUNCTIONS -----------------------------------------//
-      /**
-       * the function bound to the selection event. It checks if you want to connect a cluster and changes the description
-       * to walk the user through the process.
-       *
-       * @private
-       */
-      value: function _handleConnect(event) {
-        // check to avoid double fireing of this function.
-        if (new Date().valueOf() - this.touchTime > 100) {
-          this.lastTouch = this.body.functions.getPointer(event.center);
-          this.lastTouch.translation = util.extend({}, this.body.view.translation); // copy the object
-
-          var pointer = this.lastTouch;
-          var node = this.selectionHandler.getNodeAt(pointer);
-
-          if (node !== undefined) {
-            if (node.isCluster === true) {
-              alert(this.options.locales[this.options.locale]['createEdgeError'] || this.options.locales['en']['createEdgeError']);
-            } else {
-              // create a node the temporary line can look at
-              var targetNode = this._getNewTargetNode(node.x, node.y);
-              this.body.nodes[targetNode.id] = targetNode;
-              this.body.nodeIndices.push(targetNode.id);
-
-              // create a temporary edge
-              var connectionEdge = this.body.functions.createEdge({
-                id: 'connectionEdge' + util.randomUUID(),
-                from: node.id,
-                to: targetNode.id,
-                physics: false,
-                smooth: {
-                  enabled: true,
-                  type: 'continuous',
-                  roundness: 0.5
-                }
-              });
-              this.body.edges[connectionEdge.id] = connectionEdge;
-              this.body.edgeIndices.push(connectionEdge.id);
-
-              this.temporaryIds.nodes.push(targetNode.id);
-              this.temporaryIds.edges.push(connectionEdge.id);
-            }
-          }
-          this.touchTime = new Date().valueOf();
-        }
-      }
-    }, {
-      key: '_dragControlNode',
-      value: function _dragControlNode(event) {
-        var pointer = this.body.functions.getPointer(event.center);
-        if (this.temporaryIds.nodes[0] !== undefined) {
-          var targetNode = this.body.nodes[this.temporaryIds.nodes[0]]; // there is only one temp node in the add edge mode.
-          targetNode.x = this.canvas._XconvertDOMtoCanvas(pointer.x);
-          targetNode.y = this.canvas._YconvertDOMtoCanvas(pointer.y);
-          this.body.emitter.emit('_redraw');
-        } else {
-          var diffX = pointer.x - this.lastTouch.x;
-          var diffY = pointer.y - this.lastTouch.y;
-          this.body.view.translation = { x: this.lastTouch.translation.x + diffX, y: this.lastTouch.translation.y + diffY };
-        }
-      }
-    }, {
-      key: '_finishConnect',
-
-      /**
-       * Connect the new edge to the target if one exists, otherwise remove temp line
-       * @param event
-       * @private
-       */
-      value: function _finishConnect(event) {
-        var pointer = this.body.functions.getPointer(event.center);
-        var pointerObj = this.selectionHandler._pointerToPositionObject(pointer);
-
-        // remember the edge id
-        var connectFromId = undefined;
-        if (this.temporaryIds.edges[0] !== undefined) {
-          connectFromId = this.body.edges[this.temporaryIds.edges[0]].fromId;
-        }
-
-        // get the overlapping node but NOT the temporary node;
-        var overlappingNodeIds = this.selectionHandler._getAllNodesOverlappingWith(pointerObj);
-        var node = undefined;
-        for (var i = overlappingNodeIds.length - 1; i >= 0; i--) {
-          // if the node id is NOT a temporary node, accept the node.
-          if (this.temporaryIds.nodes.indexOf(overlappingNodeIds[i]) === -1) {
-            node = this.body.nodes[overlappingNodeIds[i]];
-            break;
-          }
-        }
-
-        // clean temporary nodes and edges.
-        this._cleanupTemporaryNodesAndEdges();
-
-        // perform the connection
-        if (node !== undefined) {
-          if (node.isCluster === true) {
-            alert(this.options.locales[this.options.locale]['createEdgeError'] || this.options.locales['en']['createEdgeError']);
-          } else {
-            if (this.body.nodes[connectFromId] !== undefined && this.body.nodes[node.id] !== undefined) {
-              this._performAddEdge(connectFromId, node.id);
-            }
-          }
-        }
-        this.body.emitter.emit('_redraw');
-      }
-    }, {
-      key: '_performAddNode',
-
-      // --------------------------------------- END OF ADD EDGE FUNCTIONS -------------------------------------//
-
-      // ------------------------------ Performing all the actual data manipulation ------------------------//
-
-      /**
-       * Adds a node on the specified location
-       */
-      value: function _performAddNode(clickData) {
-        var _this5 = this;
-
-        var defaultData = {
-          id: util.randomUUID(),
-          x: clickData.pointer.canvas.x,
-          y: clickData.pointer.canvas.y,
-          label: 'new'
-        };
-
-        if (typeof this.options.addNode === 'function') {
-          if (this.options.addNode.length === 2) {
-            this.options.addNode(defaultData, function (finalizedData) {
-              if (finalizedData !== null && finalizedData !== undefined && _this5.inMode === 'addNode') {
-                // if for whatever reason the mode has changes (due to dataset change) disregard the callback
-                _this5.body.data.nodes.getDataSet().add(finalizedData);
-                _this5.showManipulatorToolbar();
-              }
-            });
-          } else {
-            throw new Error('The function for add does not support two arguments (data,callback)');
-            this.showManipulatorToolbar();
-          }
-        } else {
-          this.body.data.nodes.getDataSet().add(defaultData);
-          this.showManipulatorToolbar();
-        }
-      }
-    }, {
-      key: '_performAddEdge',
-
-      /**
-       * connect two nodes with a new edge.
-       *
-       * @private
-       */
-      value: function _performAddEdge(sourceNodeId, targetNodeId) {
-        var _this6 = this;
-
-        var defaultData = { from: sourceNodeId, to: targetNodeId };
-        if (typeof this.options.addEdge === 'function') {
-          if (this.options.addEdge.length === 2) {
-            this.options.addEdge(defaultData, function (finalizedData) {
-              if (finalizedData !== null && finalizedData !== undefined && _this6.inMode === 'addEdge') {
-                // if for whatever reason the mode has changes (due to dataset change) disregard the callback
-                _this6.body.data.edges.add(finalizedData);
-                _this6.selectionHandler.unselectAll();
-                _this6.showManipulatorToolbar();
-              }
-            });
-          } else {
-            throw new Error('The function for connect does not support two arguments (data,callback)');
-          }
-        } else {
-          this.body.data.edges.add(defaultData);
-          this.selectionHandler.unselectAll();
-          this.showManipulatorToolbar();
-        }
-      }
-    }, {
-      key: '_performEditEdge',
-
-      /**
-       * connect two nodes with a new edge.
-       *
-       * @private
-       */
-      value: function _performEditEdge(sourceNodeId, targetNodeId) {
-        var _this7 = this;
-
-        var defaultData = { id: this.edgeBeingEditedId, from: sourceNodeId, to: targetNodeId };
-        if (typeof this.options.editEdge === 'function') {
-          if (this.options.editEdge.length === 2) {
-            this.options.editEdge(defaultData, function (finalizedData) {
-              if (finalizedData === null || finalizedData === undefined || _this7.inMode !== 'editEdge') {
-                // if for whatever reason the mode has changes (due to dataset change) disregard the callback) {
-                _this7.body.edges[defaultData.id].updateEdgeType();
-                _this7.body.emitter.emit('_redraw');
-              } else {
-                _this7.body.data.edges.update(finalizedData);
-                _this7.selectionHandler.unselectAll();
-                _this7.showManipulatorToolbar();
-              }
-            });
-          } else {
-            throw new Error('The function for edit does not support two arguments (data, callback)');
-          }
-        } else {
-          this.body.data.edges.update(defaultData);
-          this.selectionHandler.unselectAll();
-          this.showManipulatorToolbar();
-        }
-      }
-    }]);
-
-    return ManipulationSystem;
-  })();
-
-  exports['default'] = ManipulationSystem;
-  module.exports = exports['default'];
-
-/***/ },
-/* 108 */
-/***/ function(module, exports, __webpack_require__) {
-
-  /**
-   * This object contains all possible options. It will check if the types are correct, if required if the option is one
-   * of the allowed values.
-   *
-   * __any__ means that the name of the property does not matter.
-   * __type__ is a required field for all objects and contains the allowed types of all objects
-   */
-  'use strict';
-
-  Object.defineProperty(exports, '__esModule', {
-    value: true
-  });
-  var string = 'string';
-  var boolean = 'boolean';
-  var number = 'number';
-  var array = 'array';
-  var object = 'object'; // should only be in a __type__ property
-  var dom = 'dom';
-  var any = 'any';
-
-  var allOptions = {
-    configure: {
-      enabled: { boolean: boolean },
-      filter: { boolean: boolean, string: string, array: array, 'function': 'function' },
-      container: { dom: dom },
-      showButton: { boolean: boolean },
-      __type__: { object: object, boolean: boolean, string: string, array: array, 'function': 'function' }
-    },
-    edges: {
-      arrows: {
-        to: { enabled: { boolean: boolean }, scaleFactor: { number: number }, __type__: { object: object, boolean: boolean } },
-        middle: { enabled: { boolean: boolean }, scaleFactor: { number: number }, __type__: { object: object, boolean: boolean } },
-        from: { enabled: { boolean: boolean }, scaleFactor: { number: number }, __type__: { object: object, boolean: boolean } },
-        __type__: { string: ['from', 'to', 'middle'], object: object }
-      },
-      color: {
-        color: { string: string },
-        highlight: { string: string },
-        hover: { string: string },
-        inherit: { string: ['from', 'to', 'both'], boolean: boolean },
-        opacity: { number: number },
-        __type__: { object: object, string: string }
-      },
-      dashes: { boolean: boolean, array: array },
-      font: {
-        color: { string: string },
-        size: { number: number }, // px
-        face: { string: string },
-        background: { string: string },
-        strokeWidth: { number: number }, // px
-        strokeColor: { string: string },
-        align: { string: ['horizontal', 'top', 'middle', 'bottom'] },
-        __type__: { object: object, string: string }
-      },
-      hidden: { boolean: boolean },
-      hoverWidth: { 'function': 'function', number: number },
-      label: { string: string, 'undefined': 'undefined' },
-      length: { number: number, 'undefined': 'undefined' },
-      physics: { boolean: boolean },
-      scaling: {
-        min: { number: number },
-        max: { number: number },
-        label: {
-          enabled: { boolean: boolean },
-          min: { number: number },
-          max: { number: number },
-          maxVisible: { number: number },
-          drawThreshold: { number: number },
-          __type__: { object: object, boolean: boolean }
-        },
-        customScalingFunction: { 'function': 'function' },
-        __type__: { object: object }
-      },
-      selectionWidth: { 'function': 'function', number: number },
-      selfReferenceSize: { number: number },
-      shadow: {
-        enabled: { boolean: boolean },
-        size: { number: number },
-        x: { number: number },
-        y: { number: number },
-        __type__: { object: object, boolean: boolean }
-      },
-      smooth: {
-        enabled: { boolean: boolean },
-        type: { string: ['dynamic', 'continuous', 'discrete', 'diagonalCross', 'straightCross', 'horizontal', 'vertical', 'curvedCW', 'curvedCCW'] },
-        roundness: { number: number },
-        __type__: { object: object, boolean: boolean }
-      },
-      title: { string: string, 'undefined': 'undefined' },
-      width: { number: number },
-      value: { number: number, 'undefined': 'undefined' },
-      __type__: { object: object }
-    },
-    groups: {
-      useDefaultGroups: { boolean: boolean },
-      __any__: 'get from nodes, will be overwritten below',
-      __type__: { object: object }
-    },
-    interaction: {
-      dragNodes: { boolean: boolean },
-      dragView: { boolean: boolean },
-      hideEdgesOnDrag: { boolean: boolean },
-      hideNodesOnDrag: { boolean: boolean },
-      hover: { boolean: boolean },
-      keyboard: {
-        enabled: { boolean: boolean },
-        speed: { x: { number: number }, y: { number: number }, zoom: { number: number }, __type__: { object: object } },
-        bindToWindow: { boolean: boolean },
-        __type__: { object: object, boolean: boolean }
-      },
-      multiselect: { boolean: boolean },
-      navigationButtons: { boolean: boolean },
-      selectable: { boolean: boolean },
-      selectConnectedEdges: { boolean: boolean },
-      hoverConnectedEdges: { boolean: boolean },
-      tooltipDelay: { number: number },
-      zoomView: { boolean: boolean },
-      __type__: { object: object }
-    },
-    layout: {
-      randomSeed: { 'undefined': 'undefined', number: number },
-      hierarchical: {
-        enabled: { boolean: boolean },
-        levelSeparation: { number: number },
-        direction: { string: ['UD', 'DU', 'LR', 'RL'] }, // UD, DU, LR, RL
-        sortMethod: { string: ['hubsize', 'directed'] }, // hubsize, directed
-        __type__: { object: object, boolean: boolean }
-      },
-      __type__: { object: object }
-    },
-    manipulation: {
-      enabled: { boolean: boolean },
-      initiallyActive: { boolean: boolean },
-      addNode: { boolean: boolean, 'function': 'function' },
-      addEdge: { boolean: boolean, 'function': 'function' },
-      editNode: { 'function': 'function' },
-      editEdge: { boolean: boolean, 'function': 'function' },
-      deleteNode: { boolean: boolean, 'function': 'function' },
-      deleteEdge: { boolean: boolean, 'function': 'function' },
-      controlNodeStyle: 'get from nodes, will be overwritten below',
-      __type__: { object: object, boolean: boolean }
-    },
-    nodes: {
-      borderWidth: { number: number },
-      borderWidthSelected: { number: number, 'undefined': 'undefined' },
-      brokenImage: { string: string, 'undefined': 'undefined' },
-      color: {
-        border: { string: string },
-        background: { string: string },
-        highlight: {
-          border: { string: string },
-          background: { string: string },
-          __type__: { object: object, string: string }
-        },
-        hover: {
-          border: { string: string },
-          background: { string: string },
-          __type__: { object: object, string: string }
-        },
-        __type__: { object: object, string: string }
-      },
-      fixed: {
-        x: { boolean: boolean },
-        y: { boolean: boolean },
-        __type__: { object: object, boolean: boolean }
-      },
-      font: {
-        color: { string: string },
-        size: { number: number }, // px
-        face: { string: string },
-        background: { string: string },
-        strokeWidth: { number: number }, // px
-        strokeColor: { string: string },
-        __type__: { object: object, string: string }
-      },
-      group: { string: string, number: number, 'undefined': 'undefined' },
-      hidden: { boolean: boolean },
-      icon: {
-        face: { string: string },
-        code: { string: string }, //'\uf007',
-        size: { number: number }, //50,
-        color: { string: string },
-        __type__: { object: object }
-      },
-      id: { string: string, number: number },
-      image: { string: string, 'undefined': 'undefined' }, // --> URL
-      label: { string: string, 'undefined': 'undefined' },
-      level: { number: number, 'undefined': 'undefined' },
-      mass: { number: number },
-      physics: { boolean: boolean },
-      scaling: {
-        min: { number: number },
-        max: { number: number },
-        label: {
-          enabled: { boolean: boolean },
-          min: { number: number },
-          max: { number: number },
-          maxVisible: { number: number },
-          drawThreshold: { number: number },
-          __type__: { object: object, boolean: boolean }
-        },
-        customScalingFunction: { 'function': 'function' },
-        __type__: { object: object }
-      },
-      shadow: {
-        enabled: { boolean: boolean },
-        size: { number: number },
-        x: { number: number },
-        y: { number: number },
-        __type__: { object: object, boolean: boolean }
-      },
-      shape: { string: ['ellipse', 'circle', 'database', 'box', 'text', 'image', 'circularImage', 'diamond', 'dot', 'star', 'triangle', 'triangleDown', 'square', 'icon'] },
-      size: { number: number },
-      title: { string: string, 'undefined': 'undefined' },
-      value: { number: number, 'undefined': 'undefined' },
-      x: { number: number },
-      y: { number: number },
-      __type__: { object: object }
-    },
-    physics: {
-      barnesHut: {
-        gravitationalConstant: { number: number },
-        centralGravity: { number: number },
-        springLength: { number: number },
-        springConstant: { number: number },
-        damping: { number: number },
-        avoidOverlap: { number: number },
-        __type__: { object: object }
-      },
-      forceAtlas2Based: {
-        gravitationalConstant: { number: number },
-        centralGravity: { number: number },
-        springLength: { number: number },
-        springConstant: { number: number },
-        damping: { number: number },
-        avoidOverlap: { number: number },
-        __type__: { object: object }
-      },
-      repulsion: {
-        centralGravity: { number: number },
-        springLength: { number: number },
-        springConstant: { number: number },
-        nodeDistance: { number: number },
-        damping: { number: number },
-        __type__: { object: object }
-      },
-      hierarchicalRepulsion: {
-        centralGravity: { number: number },
-        springLength: { number: number },
-        springConstant: { number: number },
-        nodeDistance: { number: number },
-        damping: { number: number },
-        __type__: { object: object }
-      },
-      maxVelocity: { number: number },
-      minVelocity: { number: number }, // px/s
-      solver: { string: ['barnesHut', 'repulsion', 'hierarchicalRepulsion', 'forceAtlas2Based'] },
-      stabilization: {
-        enabled: { boolean: boolean },
-        iterations: { number: number }, // maximum number of iteration to stabilize
-        updateInterval: { number: number },
-        onlyDynamicEdges: { boolean: boolean },
-        fit: { boolean: boolean },
-        __type__: { object: object, boolean: boolean }
-      },
-      timestep: { number: number },
-      __type__: { object: object, boolean: boolean }
-    },
-
-    //globals :
-    autoResize: { boolean: boolean },
-    clickToUse: { boolean: boolean },
-    locale: { string: string },
-    locales: {
-      __any__: { object: object },
-      __type__: { object: object }
-    },
-    height: { string: string },
-    width: { string: string },
-    __type__: { object: object }
-  };
-
-  allOptions.groups.__any__ = allOptions.nodes;
-  allOptions.manipulation.controlNodeStyle = allOptions.nodes;
-
-  var configureOptions = {
-    nodes: {
-      borderWidth: [1, 0, 10, 1],
-      borderWidthSelected: [2, 0, 10, 1],
-      color: {
-        border: ['color', '#2B7CE9'],
-        background: ['color', '#97C2FC'],
-        highlight: {
-          border: ['color', '#2B7CE9'],
-          background: ['color', '#D2E5FF']
-        },
-        hover: {
-          border: ['color', '#2B7CE9'],
-          background: ['color', '#D2E5FF']
-        }
-      },
-      fixed: {
-        x: false,
-        y: false
-      },
-      font: {
-        color: ['color', '#343434'],
-        size: [14, 0, 100, 1], // px
-        face: ['arial', 'verdana', 'tahoma'],
-        background: ['color', 'none'],
-        strokeWidth: [0, 0, 50, 1], // px
-        strokeColor: ['color', '#ffffff']
-      },
-      //group: 'string',
-      hidden: false,
-      //icon: {
-      //  face: 'string',  //'FontAwesome',
-      //  code: 'string',  //'\uf007',
-      //  size: [50, 0, 200, 1],  //50,
-      //  color: ['color','#2B7CE9']   //'#aa00ff'
-      //},
-      //image: 'string', // --> URL
-      physics: true,
-      scaling: {
-        min: [10, 0, 200, 1],
-        max: [30, 0, 200, 1],
-        label: {
-          enabled: false,
-          min: [14, 0, 200, 1],
-          max: [30, 0, 200, 1],
-          maxVisible: [30, 0, 200, 1],
-          drawThreshold: [5, 0, 20, 1]
-        }
-      },
-      shadow: {
-        enabled: false,
-        size: [10, 0, 20, 1],
-        x: [5, -30, 30, 1],
-        y: [5, -30, 30, 1]
-      },
-      shape: ['ellipse', 'box', 'circle', 'database', 'diamond', 'dot', 'square', 'star', 'text', 'triangle', 'triangleDown'],
-      size: [25, 0, 200, 1]
-    },
-    edges: {
-      arrows: {
-        to: { enabled: false, scaleFactor: [1, 0, 3, 0.05] }, // boolean / {arrowScaleFactor:1} / {enabled: false, arrowScaleFactor:1}
-        middle: { enabled: false, scaleFactor: [1, 0, 3, 0.05] },
-        from: { enabled: false, scaleFactor: [1, 0, 3, 0.05] }
-      },
-      color: {
-        color: ['color', '#848484'],
-        highlight: ['color', '#848484'],
-        hover: ['color', '#848484'],
-        inherit: ['from', 'to', 'both', true, false],
-        opacity: [1, 0, 1, 0.05]
-      },
-      dashes: false,
-      font: {
-        color: ['color', '#343434'],
-        size: [14, 0, 100, 1], // px
-        face: ['arial', 'verdana', 'tahoma'],
-        background: ['color', 'none'],
-        strokeWidth: [2, 0, 50, 1], // px
-        strokeColor: ['color', '#ffffff'],
-        align: ['horizontal', 'top', 'middle', 'bottom']
-      },
-      hidden: false,
-      hoverWidth: [1.5, 0, 5, 0.1],
-      physics: true,
-      scaling: {
-        min: [1, 0, 100, 1],
-        max: [15, 0, 100, 1],
-        label: {
-          enabled: true,
-          min: [14, 0, 200, 1],
-          max: [30, 0, 200, 1],
-          maxVisible: [30, 0, 200, 1],
-          drawThreshold: [5, 0, 20, 1]
-        }
-      },
-      selectionWidth: [1.5, 0, 5, 0.1],
-      selfReferenceSize: [20, 0, 200, 1],
-      shadow: {
-        enabled: false,
-        size: [10, 0, 20, 1],
-        x: [5, -30, 30, 1],
-        y: [5, -30, 30, 1]
-      },
-      smooth: {
-        enabled: true,
-        type: ['dynamic', 'continuous', 'discrete', 'diagonalCross', 'straightCross', 'horizontal', 'vertical', 'curvedCW', 'curvedCCW'],
-        roundness: [0.5, 0, 1, 0.05]
-      },
-      width: [1, 0, 30, 1]
-    },
-    layout: {
-      //randomSeed: [0, 0, 500, 1],
-      hierarchical: {
-        enabled: false,
-        levelSeparation: [150, 20, 500, 5],
-        direction: ['UD', 'DU', 'LR', 'RL'], // UD, DU, LR, RL
-        sortMethod: ['hubsize', 'directed'] // hubsize, directed
-      }
-    },
-    interaction: {
-      dragNodes: true,
-      dragView: true,
-      hideEdgesOnDrag: false,
-      hideNodesOnDrag: false,
-      hover: false,
-      keyboard: {
-        enabled: false,
-        speed: { x: [10, 0, 40, 1], y: [10, 0, 40, 1], zoom: [0.02, 0, 0.1, 0.005] },
-        bindToWindow: true
-      },
-      multiselect: false,
-      navigationButtons: false,
-      selectable: true,
-      selectConnectedEdges: true,
-      hoverConnectedEdges: true,
-      tooltipDelay: [300, 0, 1000, 25],
-      zoomView: true
-    },
-    manipulation: {
-      enabled: false,
-      initiallyActive: false
-    },
-    physics: {
-      barnesHut: {
-        //theta: [0.5, 0.1, 1, 0.05],
-        gravitationalConstant: [-2000, -30000, 0, 50],
-        centralGravity: [0.3, 0, 10, 0.05],
-        springLength: [95, 0, 500, 5],
-        springConstant: [0.04, 0, 1.2, 0.005],
-        damping: [0.09, 0, 1, 0.01],
-        avoidOverlap: [0, 0, 1, 0.01]
-      },
-      forceAtlas2Based: {
-        //theta: [0.5, 0.1, 1, 0.05],
-        gravitationalConstant: [-50, -500, 0, 1],
-        centralGravity: [0.01, 0, 1, 0.005],
-        springLength: [95, 0, 500, 5],
-        springConstant: [0.08, 0, 1.2, 0.005],
-        damping: [0.4, 0, 1, 0.01],
-        avoidOverlap: [0, 0, 1, 0.01]
-      },
-      repulsion: {
-        centralGravity: [0.2, 0, 10, 0.05],
-        springLength: [200, 0, 500, 5],
-        springConstant: [0.05, 0, 1.2, 0.005],
-        nodeDistance: [100, 0, 500, 5],
-        damping: [0.09, 0, 1, 0.01]
-      },
-      hierarchicalRepulsion: {
-        centralGravity: [0.2, 0, 10, 0.05],
-        springLength: [100, 0, 500, 5],
-        springConstant: [0.01, 0, 1.2, 0.005],
-        nodeDistance: [120, 0, 500, 5],
-        damping: [0.09, 0, 1, 0.01]
-      },
-      maxVelocity: [50, 0, 150, 1],
-      minVelocity: [0.1, 0.01, 0.5, 0.01],
-      solver: ['barnesHut', 'forceAtlas2Based', 'repulsion', 'hierarchicalRepulsion'],
-      timestep: [0.5, 0.01, 1, 0.01]
-    },
-    global: {
-      locale: ['en', 'nl']
-    }
-  };
-
-  exports.allOptions = allOptions;
-  exports.configureOptions = configureOptions;
 
 /***/ },
 /* 109 */

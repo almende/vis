@@ -108,14 +108,14 @@ network.setOptions(options);
 </pre>
     <table class="options" id="optionTable">
         <tr><th>Name</th><th>Type</th><th>Default</th><td>Description</td></tr>
-        <tr><td>enabled</td>                    <td>Boolean</td>                <td><code>false</code></td>     <td>Toggle the manipulation system on or off. This property is optional. If you define any of the options below and enabled is undefined, this will be set to true.</td></tr>
+        <tr><td>enabled</td>                    <td>Boolean</td>                <td><code>false</code></td>     <td>Toggle the manipulation system on or off. Even when false, the manipulation API through the methods will still work. This property is optional. If you define any of the options below and enabled is undefined, this will be set to true.</td></tr>
         <tr><td>initiallyActive</td>            <td>Boolean</td>                <td><code>true</code></td>      <td>Toggle whether the toolbar is visible initially or if only the edit button is visible initially.</td></tr>
         <tr><td>addNode</td>                    <td>Boolean or Function</td>    <td><code>true</code></td>      <td>You can use these options to switch certain functionalities on or off of attach
             a handler function to them. These functions are called before the action is performed. If a node is going to be added through the manipulation system,
             the addNode function will be called first. With this, you can provide a gui for your users, abort the process or anything else you want to do. For all except the editNode functionality, these handler functions are optional.
             <br><br>
 
-            When you supply a boolean, you only toggle the adding of nodes.
+            When you supply a boolean, you only toggle the 'add node' button on the GUI of the manipulation system. The lack of handling function could effect the API when using the methods.
             When a function is supplied, it will be called when the user clicks the canvas in 'addNode' mode. This function will receive two variables: the properties of the node that can be created and a callback function. If you call the callback function with the properties of the new node, the node will be added. <br><br> Example:
 <pre class="code">
 var options = {
@@ -128,7 +128,7 @@ var options = {
 }
 </pre>
             This function changes the label of the new node into 'hello world'. If you do not want the node created, do not call the callback function or call the callback function <code>null</code> or no argument.</td></tr>
-        <tr><td>addEdge</td>                    <td>Boolean or Function</td>    <td><code>true</code></td>      <td>If boolean, toggle the adding of edges.
+        <tr><td>addEdge</td>                    <td>Boolean or Function</td>    <td><code>true</code></td>      <td>If boolean, toggle the availability of the 'addEdge' button in the GUI, the API through the methods will still work except (obviously) there will be no handler function.
              When a function is supplied, it will be called when the user drags the new edge from one node to the next in 'addEdge' mode. This function will receive two variables: the properties of the edge that can be created and a callback function. If you call the callback function with the properties of the new edge, the edge will be added. <br><br> Example:
 <pre class="code">
 var options = {
@@ -149,9 +149,9 @@ var options = {
 </pre>
             This example code will show a popup if you connect a node to itself to ask you if that was what you wanted. If you do not want the edge created, do not call the callback function or call the callback function <code>null</code> or no argument.</td></tr></td></tr>
         <tr><td>editNode</td>                   <td>Function</td>               <td><code>undefined</code></td> <td>Editing of nodes is only possible when a handling function is supplied. If this is not the case, editing of nodes will be disabled. The function will be called when a node is selected and the 'Edit Node' button on the toolbar is pressed. This function will be called like the <code>addNode</code> function with the node's data and a callback function.</td></tr>
-        <tr><td>editEdge</td>                   <td>Boolean or Function</td>    <td><code>true</code></td>      <td>If boolean, toggle the editing of edges. When a function is supplied, it will be called when an edge is selcted and the 'Edit Edge' button on the toolbar is pressed. This function will be called in the same way the <code>addEdge</code> function was called. If the callback is not performed, the edge will remain hanging where it was released. <b>To cancel, call the callback function with <code>null</code> as argument or without arguments</b>.</td></tr>
-        <tr><td>deleteNode</td>                 <td>Boolean or Function</td>    <td><code>true</code></td>      <td>If boolean, toggle the deletion of nodes. If function, it will be called when a node is selected and the 'Delete selected' button is pressed.</td></tr>
-        <tr><td>deleteEdge</td>                 <td>Boolean or Function</td>    <td><code>true</code></td>      <td>If boolean, toggle the deletion of edges. If function, it will be called when an edge is selected and the 'Delete selected' button is pressed.</td></tr>
+        <tr><td>editEdge</td>                   <td>Boolean or Function</td>    <td><code>true</code></td>      <td>If boolean, toggle the editing of edges in the GUI. When a function is supplied, it will be called when an edge is selcted and the 'Edit Edge' button on the toolbar is pressed. This function will be called in the same way the <code>addEdge</code> function was called. If the callback is not performed, the edge will remain hanging where it was released. <b>To cancel, call the callback function with <code>null</code> as argument or without arguments</b>.</td></tr>
+        <tr><td>deleteNode</td>                 <td>Boolean or Function</td>    <td><code>true</code></td>      <td>If boolean, toggle the deletion of nodes in the GUI. If function, it will be called when a node is selected and the 'Delete selected' button is pressed. When using a function, it will receive a callback and an object with an array of selected nodeIds and an array of selected edges Ids. These are the items that will be deleted if the callback is performed.</td></tr>
+        <tr><td>deleteEdge</td>                 <td>Boolean or Function</td>    <td><code>true</code></td>      <td>If boolean, toggle the deletion of edges in the GUI. If function, it will be called when an edge is selected and the 'Delete selected' button is pressed. When using a function, it will receive a callback and an object with an array of selected nodeIds (empty) and an array of selected edges Ids. These are the items that will be deleted if the callback is performed.</td></tr>
         <tr><td>controlNodeStyle</td>           <td>Object</td>     <td>Object</td><td>You can supply any styling information you'd like here. All fields described in <a href="./nodes.html">the nodes module</a> are allowed except obviously for id, x, y and fixed. <br><br>Default:
 <pre class="code">
 {

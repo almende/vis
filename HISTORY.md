@@ -29,6 +29,7 @@ http://visjs.org
 - Second click on node is no longer unselect.
 - Added releaseFunction to openCluster.
 - Fixed bug where the network could flicker when the pixelRatio is not integer.
+- Added enabled property to physics.
 
 
 ## 2015-05-28, version 4.1.0
