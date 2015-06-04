@@ -14,6 +14,8 @@ http://visjs.org
 - Added a property `event` to the properties emitted with the `select` event (see #923).
 - Improved function `fit()` to take into account the actual width of items.
 - Fixed #897: Timeline option `{snap: null}` did give a validation error.
+- Fixed #925: Event `timechanged` did not fire when mouse has been moved outside
+  the timeline.
 
 ### Graph2D
 
