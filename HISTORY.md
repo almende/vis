@@ -11,6 +11,7 @@ http://visjs.org
 ### Timeline
 
 - Added axis orientation option `'none'`.
+- Added a property `event` to the properties emitted with the `select` event (see #923).
 - Improved function `fit()` to take into account the actual width of items.
 - Fixed #897: Timeline option `{snap: null}` did give a validation error.
 
