@@ -4,7 +4,7 @@
  *
  * A dynamic, browser-based visualization library.
  *
- * @version 4.1.1-SNAPSHOT
+ * @version 4.2.0
  * @date    2015-06-05
  *
  * @license
@@ -84,32 +84,32 @@ return /******/ (function(modules) { // webpackBootstrap
   // utils
   'use strict';
 
-  exports.util = __webpack_require__(2);
-  exports.DOMutil = __webpack_require__(8);
+  exports.util = __webpack_require__(1);
+  exports.DOMutil = __webpack_require__(7);
 
   // data
-  exports.DataSet = __webpack_require__(9);
-  exports.DataView = __webpack_require__(11);
-  exports.Queue = __webpack_require__(10);
+  exports.DataSet = __webpack_require__(8);
+  exports.DataView = __webpack_require__(10);
+  exports.Queue = __webpack_require__(9);
 
   // Graph3d
-  exports.Graph3d = __webpack_require__(12);
+  exports.Graph3d = __webpack_require__(11);
   exports.graph3d = {
-    Camera: __webpack_require__(16),
-    Filter: __webpack_require__(17),
-    Point2d: __webpack_require__(13),
-    Point3d: __webpack_require__(15),
-    Slider: __webpack_require__(18),
-    StepNumber: __webpack_require__(19)
+    Camera: __webpack_require__(15),
+    Filter: __webpack_require__(16),
+    Point2d: __webpack_require__(12),
+    Point3d: __webpack_require__(14),
+    Slider: __webpack_require__(17),
+    StepNumber: __webpack_require__(18)
   };
 
   // Timeline
-  exports.Timeline = __webpack_require__(20);
+  exports.Timeline = __webpack_require__(19);
   exports.Graph2d = __webpack_require__(49);
   exports.timeline = {
-    DateUtil: __webpack_require__(30),
+    DateUtil: __webpack_require__(29),
     DataStep: __webpack_require__(52),
-    Range: __webpack_require__(28),
+    Range: __webpack_require__(27),
     stack: __webpack_require__(33),
     TimeStep: __webpack_require__(36),
 
@@ -122,14 +122,14 @@ return /******/ (function(modules) { // webpackBootstrap
         RangeItem: __webpack_require__(34)
       },
 
-      Component: __webpack_require__(22),
-      CurrentTime: __webpack_require__(21),
+      Component: __webpack_require__(21),
+      CurrentTime: __webpack_require__(20),
       CustomTime: __webpack_require__(44),
       DataAxis: __webpack_require__(51),
       GraphGroup: __webpack_require__(53),
       Group: __webpack_require__(32),
       BackgroundGroup: __webpack_require__(37),
-      ItemSet: __webpack_require__(3),
+      ItemSet: __webpack_require__(31),
       Legend: __webpack_require__(57),
       LineGraph: __webpack_require__(50),
       TimeAxis: __webpack_require__(41)
@@ -157,25 +157,12 @@ return /******/ (function(modules) { // webpackBootstrap
   };
 
   // bundled external libraries
-  exports.moment = __webpack_require__(4);
-  exports.hammer = __webpack_require__(24); // TODO: deprecate exports.hammer some day
-  exports.Hammer = __webpack_require__(24);
+  exports.moment = __webpack_require__(2);
+  exports.hammer = __webpack_require__(23); // TODO: deprecate exports.hammer some day
+  exports.Hammer = __webpack_require__(23);
 
 /***/ },
 /* 1 */
-/***/ function(module, exports, __webpack_require__) {
-
-  function webpackContext(req) {
-  	throw new Error("Cannot find module '" + req + "'.");
-  }
-  webpackContext.keys = function() { return []; };
-  webpackContext.resolve = webpackContext;
-  module.exports = webpackContext;
-  webpackContext.id = 1;
-
-
-/***/ },
-/* 2 */
 /***/ function(module, exports, __webpack_require__) {
 
   // utility functions
@@ -185,8 +172,8 @@ return /******/ (function(modules) { // webpackBootstrap
 
   'use strict';
 
-  var moment = __webpack_require__(4);
-  var uuid = __webpack_require__(7);
+  var moment = __webpack_require__(2);
+  var uuid = __webpack_require__(6);
 
   /**
    * Test whether given object is a number
@@ -1521,1630 +1508,17 @@ return /******/ (function(modules) { // webpackBootstrap
   };
 
 /***/ },
-/* 3 */
-/***/ function(module, exports, __webpack_require__) {
-
-  'use strict';
-
-  var Hammer = __webpack_require__(24);
-  var util = __webpack_require__(2);
-  var DataSet = __webpack_require__(9);
-  var DataView = __webpack_require__(11);
-  var TimeStep = __webpack_require__(36);
-  var Component = __webpack_require__(22);
-  var Group = __webpack_require__(32);
-  var BackgroundGroup = __webpack_require__(37);
-  var BoxItem = __webpack_require__(38);
-  var PointItem = __webpack_require__(39);
-  var RangeItem = __webpack_require__(34);
-  var BackgroundItem = __webpack_require__(40);
-
-  var UNGROUPED = '__ungrouped__'; // reserved group id for ungrouped items
-  var BACKGROUND = '__background__'; // reserved group id for background items without group
-
-  /**
-   * An ItemSet holds a set of items and ranges which can be displayed in a
-   * range. The width is determined by the parent of the ItemSet, and the height
-   * is determined by the size of the items.
-   * @param {{dom: Object, domProps: Object, emitter: Emitter, range: Range}} body
-   * @param {Object} [options]      See ItemSet.setOptions for the available options.
-   * @constructor ItemSet
-   * @extends Component
-   */
-  function ItemSet(body, options) {
-    this.body = body;
-
-    this.defaultOptions = {
-      type: null, // 'box', 'point', 'range', 'background'
-      orientation: {
-        item: 'bottom' // item orientation: 'top' or 'bottom'
-      },
-      align: 'auto', // alignment of box items
-      stack: true,
-      groupOrder: null,
-
-      selectable: true,
-      multiselect: false,
-
-      editable: {
-        updateTime: false,
-        updateGroup: false,
-        add: false,
-        remove: false
-      },
-
-      snap: TimeStep.snap,
-
-      onAdd: function onAdd(item, callback) {
-        callback(item);
-      },
-      onUpdate: function onUpdate(item, callback) {
-        callback(item);
-      },
-      onMove: function onMove(item, callback) {
-        callback(item);
-      },
-      onRemove: function onRemove(item, callback) {
-        callback(item);
-      },
-      onMoving: function onMoving(item, callback) {
-        callback(item);
-      },
-
-      margin: {
-        item: {
-          horizontal: 10,
-          vertical: 10
-        },
-        axis: 20
-      }
-    };
-
-    // options is shared by this ItemSet and all its items
-    this.options = util.extend({}, this.defaultOptions);
-
-    // options for getting items from the DataSet with the correct type
-    this.itemOptions = {
-      type: { start: 'Date', end: 'Date' }
-    };
-
-    this.conversion = {
-      toScreen: body.util.toScreen,
-      toTime: body.util.toTime
-    };
-    this.dom = {};
-    this.props = {};
-    this.hammer = null;
-
-    var me = this;
-    this.itemsData = null; // DataSet
-    this.groupsData = null; // DataSet
-
-    // listeners for the DataSet of the items
-    this.itemListeners = {
-      'add': function add(event, params, senderId) {
-        me._onAdd(params.items);
-      },
-      'update': function update(event, params, senderId) {
-        me._onUpdate(params.items);
-      },
-      'remove': function remove(event, params, senderId) {
-        me._onRemove(params.items);
-      }
-    };
-
-    // listeners for the DataSet of the groups
-    this.groupListeners = {
-      'add': function add(event, params, senderId) {
-        me._onAddGroups(params.items);
-      },
-      'update': function update(event, params, senderId) {
-        me._onUpdateGroups(params.items);
-      },
-      'remove': function remove(event, params, senderId) {
-        me._onRemoveGroups(params.items);
-      }
-    };
-
-    this.items = {}; // object with an Item for every data item
-    this.groups = {}; // Group object for every group
-    this.groupIds = [];
-
-    this.selection = []; // list with the ids of all selected nodes
-    this.stackDirty = true; // if true, all items will be restacked on next redraw
-
-    this.touchParams = {}; // stores properties while dragging
-    // create the HTML DOM
-
-    this._create();
-
-    this.setOptions(options);
-  }
-
-  ItemSet.prototype = new Component();
-
-  // available item types will be registered here
-  ItemSet.types = {
-    background: BackgroundItem,
-    box: BoxItem,
-    range: RangeItem,
-    point: PointItem
-  };
-
-  /**
-   * Create the HTML DOM for the ItemSet
-   */
-  ItemSet.prototype._create = function () {
-    var frame = document.createElement('div');
-    frame.className = 'vis-itemset';
-    frame['timeline-itemset'] = this;
-    this.dom.frame = frame;
-
-    // create background panel
-    var background = document.createElement('div');
-    background.className = 'vis-background';
-    frame.appendChild(background);
-    this.dom.background = background;
-
-    // create foreground panel
-    var foreground = document.createElement('div');
-    foreground.className = 'vis-foreground';
-    frame.appendChild(foreground);
-    this.dom.foreground = foreground;
-
-    // create axis panel
-    var axis = document.createElement('div');
-    axis.className = 'vis-axis';
-    this.dom.axis = axis;
-
-    // create labelset
-    var labelSet = document.createElement('div');
-    labelSet.className = 'vis-labelset';
-    this.dom.labelSet = labelSet;
-
-    // create ungrouped Group
-    this._updateUngrouped();
-
-    // create background Group
-    var backgroundGroup = new BackgroundGroup(BACKGROUND, null, this);
-    backgroundGroup.show();
-    this.groups[BACKGROUND] = backgroundGroup;
-
-    // attach event listeners
-    // Note: we bind to the centerContainer for the case where the height
-    //       of the center container is larger than of the ItemSet, so we
-    //       can click in the empty area to create a new item or deselect an item.
-    this.hammer = new Hammer(this.body.dom.centerContainer);
-
-    // drag items when selected
-    this.hammer.on('hammer.input', (function (event) {
-      if (event.isFirst) {
-        this._onTouch(event);
-      }
-    }).bind(this));
-    this.hammer.on('panstart', this._onDragStart.bind(this));
-    this.hammer.on('panmove', this._onDrag.bind(this));
-    this.hammer.on('panend', this._onDragEnd.bind(this));
-
-    // single select (or unselect) when tapping an item
-    this.hammer.on('tap', this._onSelectItem.bind(this));
-
-    // multi select when holding mouse/touch, or on ctrl+click
-    this.hammer.on('press', this._onMultiSelectItem.bind(this));
-
-    // add item on doubletap
-    this.hammer.on('doubletap', this._onAddItem.bind(this));
-
-    // attach to the DOM
-    this.show();
-  };
-
-  /**
-   * Set options for the ItemSet. Existing options will be extended/overwritten.
-   * @param {Object} [options] The following options are available:
-   *                           {String} type
-   *                              Default type for the items. Choose from 'box'
-   *                              (default), 'point', 'range', or 'background'.
-   *                              The default style can be overwritten by
-   *                              individual items.
-   *                           {String} align
-   *                              Alignment for the items, only applicable for
-   *                              BoxItem. Choose 'center' (default), 'left', or
-   *                              'right'.
-   *                           {String} orientation.item
-   *                              Orientation of the item set. Choose 'top' or
-   *                              'bottom' (default).
-   *                           {Function} groupOrder
-   *                              A sorting function for ordering groups
-   *                           {Boolean} stack
-   *                              If true (default), items will be stacked on
-   *                              top of each other.
-   *                           {Number} margin.axis
-   *                              Margin between the axis and the items in pixels.
-   *                              Default is 20.
-   *                           {Number} margin.item.horizontal
-   *                              Horizontal margin between items in pixels.
-   *                              Default is 10.
-   *                           {Number} margin.item.vertical
-   *                              Vertical Margin between items in pixels.
-   *                              Default is 10.
-   *                           {Number} margin.item
-   *                              Margin between items in pixels in both horizontal
-   *                              and vertical direction. Default is 10.
-   *                           {Number} margin
-   *                              Set margin for both axis and items in pixels.
-   *                           {Boolean} selectable
-   *                              If true (default), items can be selected.
-   *                           {Boolean} multiselect
-   *                              If true, multiple items can be selected.
-   *                              False by default.
-   *                           {Boolean} editable
-   *                              Set all editable options to true or false
-   *                           {Boolean} editable.updateTime
-   *                              Allow dragging an item to an other moment in time
-   *                           {Boolean} editable.updateGroup
-   *                              Allow dragging an item to an other group
-   *                           {Boolean} editable.add
-   *                              Allow creating new items on double tap
-   *                           {Boolean} editable.remove
-   *                              Allow removing items by clicking the delete button
-   *                              top right of a selected item.
-   *                           {Function(item: Item, callback: Function)} onAdd
-   *                              Callback function triggered when an item is about to be added:
-   *                              when the user double taps an empty space in the Timeline.
-   *                           {Function(item: Item, callback: Function)} onUpdate
-   *                              Callback function fired when an item is about to be updated.
-   *                              This function typically has to show a dialog where the user
-   *                              change the item. If not implemented, nothing happens.
-   *                           {Function(item: Item, callback: Function)} onMove
-   *                              Fired when an item has been moved. If not implemented,
-   *                              the move action will be accepted.
-   *                           {Function(item: Item, callback: Function)} onRemove
-   *                              Fired when an item is about to be deleted.
-   *                              If not implemented, the item will be always removed.
-   */
-  ItemSet.prototype.setOptions = function (options) {
-    if (options) {
-      // copy all options that we know
-      var fields = ['type', 'align', 'order', 'stack', 'selectable', 'multiselect', 'groupOrder', 'dataAttributes', 'template', 'hide', 'snap'];
-      util.selectiveExtend(fields, this.options, options);
-
-      if ('orientation' in options) {
-        if (typeof options.orientation === 'string') {
-          this.options.orientation.item = options.orientation === 'top' ? 'top' : 'bottom';
-        } else if (typeof options.orientation === 'object' && 'item' in options.orientation) {
-          this.options.orientation.item = options.orientation.item;
-        }
-      }
-
-      if ('margin' in options) {
-        if (typeof options.margin === 'number') {
-          this.options.margin.axis = options.margin;
-          this.options.margin.item.horizontal = options.margin;
-          this.options.margin.item.vertical = options.margin;
-        } else if (typeof options.margin === 'object') {
-          util.selectiveExtend(['axis'], this.options.margin, options.margin);
-          if ('item' in options.margin) {
-            if (typeof options.margin.item === 'number') {
-              this.options.margin.item.horizontal = options.margin.item;
-              this.options.margin.item.vertical = options.margin.item;
-            } else if (typeof options.margin.item === 'object') {
-              util.selectiveExtend(['horizontal', 'vertical'], this.options.margin.item, options.margin.item);
-            }
-          }
-        }
-      }
-
-      if ('editable' in options) {
-        if (typeof options.editable === 'boolean') {
-          this.options.editable.updateTime = options.editable;
-          this.options.editable.updateGroup = options.editable;
-          this.options.editable.add = options.editable;
-          this.options.editable.remove = options.editable;
-        } else if (typeof options.editable === 'object') {
-          util.selectiveExtend(['updateTime', 'updateGroup', 'add', 'remove'], this.options.editable, options.editable);
-        }
-      }
-
-      // callback functions
-      var addCallback = (function (name) {
-        var fn = options[name];
-        if (fn) {
-          if (!(fn instanceof Function)) {
-            throw new Error('option ' + name + ' must be a function ' + name + '(item, callback)');
-          }
-          this.options[name] = fn;
-        }
-      }).bind(this);
-      ['onAdd', 'onUpdate', 'onRemove', 'onMove', 'onMoving'].forEach(addCallback);
-
-      // force the itemSet to refresh: options like orientation and margins may be changed
-      this.markDirty();
-    }
-  };
-
-  /**
-   * Mark the ItemSet dirty so it will refresh everything with next redraw.
-   * Optionally, all items can be marked as dirty and be refreshed.
-   * @param {{refreshItems: boolean}} [options]
-   */
-  ItemSet.prototype.markDirty = function (options) {
-    this.groupIds = [];
-    this.stackDirty = true;
-
-    if (options && options.refreshItems) {
-      util.forEach(this.items, function (item) {
-        item.dirty = true;
-        if (item.displayed) item.redraw();
-      });
-    }
-  };
-
-  /**
-   * Destroy the ItemSet
-   */
-  ItemSet.prototype.destroy = function () {
-    this.hide();
-    this.setItems(null);
-    this.setGroups(null);
-
-    this.hammer = null;
-
-    this.body = null;
-    this.conversion = null;
-  };
-
-  /**
-   * Hide the component from the DOM
-   */
-  ItemSet.prototype.hide = function () {
-    // remove the frame containing the items
-    if (this.dom.frame.parentNode) {
-      this.dom.frame.parentNode.removeChild(this.dom.frame);
-    }
-
-    // remove the axis with dots
-    if (this.dom.axis.parentNode) {
-      this.dom.axis.parentNode.removeChild(this.dom.axis);
-    }
-
-    // remove the labelset containing all group labels
-    if (this.dom.labelSet.parentNode) {
-      this.dom.labelSet.parentNode.removeChild(this.dom.labelSet);
-    }
-  };
-
-  /**
-   * Show the component in the DOM (when not already visible).
-   * @return {Boolean} changed
-   */
-  ItemSet.prototype.show = function () {
-    // show frame containing the items
-    if (!this.dom.frame.parentNode) {
-      this.body.dom.center.appendChild(this.dom.frame);
-    }
-
-    // show axis with dots
-    if (!this.dom.axis.parentNode) {
-      this.body.dom.backgroundVertical.appendChild(this.dom.axis);
-    }
-
-    // show labelset containing labels
-    if (!this.dom.labelSet.parentNode) {
-      this.body.dom.left.appendChild(this.dom.labelSet);
-    }
-  };
-
-  /**
-   * Set selected items by their id. Replaces the current selection
-   * Unknown id's are silently ignored.
-   * @param {string[] | string} [ids] An array with zero or more id's of the items to be
-   *                                  selected, or a single item id. If ids is undefined
-   *                                  or an empty array, all items will be unselected.
-   */
-  ItemSet.prototype.setSelection = function (ids) {
-    var i, ii, id, item;
-
-    if (ids == undefined) ids = [];
-    if (!Array.isArray(ids)) ids = [ids];
-
-    // unselect currently selected items
-    for (i = 0, ii = this.selection.length; i < ii; i++) {
-      id = this.selection[i];
-      item = this.items[id];
-      if (item) item.unselect();
-    }
-
-    // select items
-    this.selection = [];
-    for (i = 0, ii = ids.length; i < ii; i++) {
-      id = ids[i];
-      item = this.items[id];
-      if (item) {
-        this.selection.push(id);
-        item.select();
-      }
-    }
-  };
-
-  /**
-   * Get the selected items by their id
-   * @return {Array} ids  The ids of the selected items
-   */
-  ItemSet.prototype.getSelection = function () {
-    return this.selection.concat([]);
-  };
-
-  /**
-   * Get the id's of the currently visible items.
-   * @returns {Array} The ids of the visible items
-   */
-  ItemSet.prototype.getVisibleItems = function () {
-    var range = this.body.range.getRange();
-    var left = this.body.util.toScreen(range.start);
-    var right = this.body.util.toScreen(range.end);
-
-    var ids = [];
-    for (var groupId in this.groups) {
-      if (this.groups.hasOwnProperty(groupId)) {
-        var group = this.groups[groupId];
-        var rawVisibleItems = group.visibleItems;
-
-        // filter the "raw" set with visibleItems into a set which is really
-        // visible by pixels
-        for (var i = 0; i < rawVisibleItems.length; i++) {
-          var item = rawVisibleItems[i];
-          // TODO: also check whether visible vertically
-          if (item.left < right && item.left + item.width > left) {
-            ids.push(item.id);
-          }
-        }
-      }
-    }
-
-    return ids;
-  };
-
-  /**
-   * Deselect a selected item
-   * @param {String | Number} id
-   * @private
-   */
-  ItemSet.prototype._deselect = function (id) {
-    var selection = this.selection;
-    for (var i = 0, ii = selection.length; i < ii; i++) {
-      if (selection[i] == id) {
-        // non-strict comparison!
-        selection.splice(i, 1);
-        break;
-      }
-    }
-  };
-
-  /**
-   * Repaint the component
-   * @return {boolean} Returns true if the component is resized
-   */
-  ItemSet.prototype.redraw = function () {
-    var margin = this.options.margin,
-        range = this.body.range,
-        asSize = util.option.asSize,
-        options = this.options,
-        orientation = options.orientation.item,
-        resized = false,
-        frame = this.dom.frame,
-        editable = options.editable.updateTime || options.editable.updateGroup;
-
-    // recalculate absolute position (before redrawing groups)
-    this.props.top = this.body.domProps.top.height + this.body.domProps.border.top;
-    this.props.left = this.body.domProps.left.width + this.body.domProps.border.left;
-
-    // update class name
-    frame.className = 'vis-itemset' + (editable ? ' vis-editable' : '');
-
-    // reorder the groups (if needed)
-    resized = this._orderGroups() || resized;
-
-    // check whether zoomed (in that case we need to re-stack everything)
-    // TODO: would be nicer to get this as a trigger from Range
-    var visibleInterval = range.end - range.start;
-    var zoomed = visibleInterval != this.lastVisibleInterval || this.props.width != this.props.lastWidth;
-    if (zoomed) this.stackDirty = true;
-    this.lastVisibleInterval = visibleInterval;
-    this.props.lastWidth = this.props.width;
-
-    var restack = this.stackDirty;
-    var firstGroup = this._firstGroup();
-    var firstMargin = {
-      item: margin.item,
-      axis: margin.axis
-    };
-    var nonFirstMargin = {
-      item: margin.item,
-      axis: margin.item.vertical / 2
-    };
-    var height = 0;
-    var minHeight = margin.axis + margin.item.vertical;
-
-    // redraw the background group
-    this.groups[BACKGROUND].redraw(range, nonFirstMargin, restack);
-
-    // redraw all regular groups
-    util.forEach(this.groups, function (group) {
-      var groupMargin = group == firstGroup ? firstMargin : nonFirstMargin;
-      var groupResized = group.redraw(range, groupMargin, restack);
-      resized = groupResized || resized;
-      height += group.height;
-    });
-    height = Math.max(height, minHeight);
-    this.stackDirty = false;
-
-    // update frame height
-    frame.style.height = asSize(height);
-
-    // calculate actual size
-    this.props.width = frame.offsetWidth;
-    this.props.height = height;
-
-    // reposition axis
-    this.dom.axis.style.top = asSize(orientation == 'top' ? this.body.domProps.top.height + this.body.domProps.border.top : this.body.domProps.top.height + this.body.domProps.centerContainer.height);
-    this.dom.axis.style.left = '0';
-
-    // check if this component is resized
-    resized = this._isResized() || resized;
-
-    return resized;
-  };
-
-  /**
-   * Get the first group, aligned with the axis
-   * @return {Group | null} firstGroup
-   * @private
-   */
-  ItemSet.prototype._firstGroup = function () {
-    var firstGroupIndex = this.options.orientation.item == 'top' ? 0 : this.groupIds.length - 1;
-    var firstGroupId = this.groupIds[firstGroupIndex];
-    var firstGroup = this.groups[firstGroupId] || this.groups[UNGROUPED];
-
-    return firstGroup || null;
-  };
-
-  /**
-   * Create or delete the group holding all ungrouped items. This group is used when
-   * there are no groups specified.
-   * @protected
-   */
-  ItemSet.prototype._updateUngrouped = function () {
-    var ungrouped = this.groups[UNGROUPED];
-    var background = this.groups[BACKGROUND];
-    var item, itemId;
-
-    if (this.groupsData) {
-      // remove the group holding all ungrouped items
-      if (ungrouped) {
-        ungrouped.hide();
-        delete this.groups[UNGROUPED];
-
-        for (itemId in this.items) {
-          if (this.items.hasOwnProperty(itemId)) {
-            item = this.items[itemId];
-            item.parent && item.parent.remove(item);
-            var groupId = this._getGroupId(item.data);
-            var group = this.groups[groupId];
-            group && group.add(item) || item.hide();
-          }
-        }
-      }
-    } else {
-      // create a group holding all (unfiltered) items
-      if (!ungrouped) {
-        var id = null;
-        var data = null;
-        ungrouped = new Group(id, data, this);
-        this.groups[UNGROUPED] = ungrouped;
-
-        for (itemId in this.items) {
-          if (this.items.hasOwnProperty(itemId)) {
-            item = this.items[itemId];
-            ungrouped.add(item);
-          }
-        }
-
-        ungrouped.show();
-      }
-    }
-  };
-
-  /**
-   * Get the element for the labelset
-   * @return {HTMLElement} labelSet
-   */
-  ItemSet.prototype.getLabelSet = function () {
-    return this.dom.labelSet;
-  };
-
-  /**
-   * Set items
-   * @param {vis.DataSet | null} items
-   */
-  ItemSet.prototype.setItems = function (items) {
-    var me = this,
-        ids,
-        oldItemsData = this.itemsData;
-
-    // replace the dataset
-    if (!items) {
-      this.itemsData = null;
-    } else if (items instanceof DataSet || items instanceof DataView) {
-      this.itemsData = items;
-    } else {
-      throw new TypeError('Data must be an instance of DataSet or DataView');
-    }
-
-    if (oldItemsData) {
-      // unsubscribe from old dataset
-      util.forEach(this.itemListeners, function (callback, event) {
-        oldItemsData.off(event, callback);
-      });
-
-      // remove all drawn items
-      ids = oldItemsData.getIds();
-      this._onRemove(ids);
-    }
-
-    if (this.itemsData) {
-      // subscribe to new dataset
-      var id = this.id;
-      util.forEach(this.itemListeners, function (callback, event) {
-        me.itemsData.on(event, callback, id);
-      });
-
-      // add all new items
-      ids = this.itemsData.getIds();
-      this._onAdd(ids);
-
-      // update the group holding all ungrouped items
-      this._updateUngrouped();
-    }
-  };
-
-  /**
-   * Get the current items
-   * @returns {vis.DataSet | null}
-   */
-  ItemSet.prototype.getItems = function () {
-    return this.itemsData;
-  };
-
-  /**
-   * Set groups
-   * @param {vis.DataSet} groups
-   */
-  ItemSet.prototype.setGroups = function (groups) {
-    var me = this,
-        ids;
-
-    // unsubscribe from current dataset
-    if (this.groupsData) {
-      util.forEach(this.groupListeners, function (callback, event) {
-        me.groupsData.off(event, callback);
-      });
-
-      // remove all drawn groups
-      ids = this.groupsData.getIds();
-      this.groupsData = null;
-      this._onRemoveGroups(ids); // note: this will cause a redraw
-    }
-
-    // replace the dataset
-    if (!groups) {
-      this.groupsData = null;
-    } else if (groups instanceof DataSet || groups instanceof DataView) {
-      this.groupsData = groups;
-    } else {
-      throw new TypeError('Data must be an instance of DataSet or DataView');
-    }
-
-    if (this.groupsData) {
-      // subscribe to new dataset
-      var id = this.id;
-      util.forEach(this.groupListeners, function (callback, event) {
-        me.groupsData.on(event, callback, id);
-      });
-
-      // draw all ms
-      ids = this.groupsData.getIds();
-      this._onAddGroups(ids);
-    }
-
-    // update the group holding all ungrouped items
-    this._updateUngrouped();
-
-    // update the order of all items in each group
-    this._order();
-
-    this.body.emitter.emit('change', { queue: true });
-  };
-
-  /**
-   * Get the current groups
-   * @returns {vis.DataSet | null} groups
-   */
-  ItemSet.prototype.getGroups = function () {
-    return this.groupsData;
-  };
-
-  /**
-   * Remove an item by its id
-   * @param {String | Number} id
-   */
-  ItemSet.prototype.removeItem = function (id) {
-    var item = this.itemsData.get(id),
-        dataset = this.itemsData.getDataSet();
-
-    if (item) {
-      // confirm deletion
-      this.options.onRemove(item, function (item) {
-        if (item) {
-          // remove by id here, it is possible that an item has no id defined
-          // itself, so better not delete by the item itself
-          dataset.remove(id);
-        }
-      });
-    }
-  };
-
-  /**
-   * Get the time of an item based on it's data and options.type
-   * @param {Object} itemData
-   * @returns {string} Returns the type
-   * @private
-   */
-  ItemSet.prototype._getType = function (itemData) {
-    return itemData.type || this.options.type || (itemData.end ? 'range' : 'box');
-  };
-
-  /**
-   * Get the group id for an item
-   * @param {Object} itemData
-   * @returns {string} Returns the groupId
-   * @private
-   */
-  ItemSet.prototype._getGroupId = function (itemData) {
-    var type = this._getType(itemData);
-    if (type == 'background' && itemData.group == undefined) {
-      return BACKGROUND;
-    } else {
-      return this.groupsData ? itemData.group : UNGROUPED;
-    }
-  };
-
-  /**
-   * Handle updated items
-   * @param {Number[]} ids
-   * @protected
-   */
-  ItemSet.prototype._onUpdate = function (ids) {
-    var me = this;
-
-    ids.forEach((function (id) {
-      var itemData = me.itemsData.get(id, me.itemOptions);
-      var item = me.items[id];
-      var type = me._getType(itemData);
-
-      var constructor = ItemSet.types[type];
-      var selected;
-
-      if (item) {
-        // update item
-        if (!constructor || !(item instanceof constructor)) {
-          // item type has changed, delete the item and recreate it
-          selected = item.selected; // preserve selection of this item
-          me._removeItem(item);
-          item = null;
-        } else {
-          me._updateItem(item, itemData);
-        }
-      }
-
-      if (!item) {
-        // create item
-        if (constructor) {
-          item = new constructor(itemData, me.conversion, me.options);
-          item.id = id; // TODO: not so nice setting id afterwards
-          me._addItem(item);
-          if (selected) {
-            this.selection.push(id);
-            item.select();
-          }
-        } else if (type == 'rangeoverflow') {
-          // TODO: deprecated since version 2.1.0 (or 3.0.0?). cleanup some day
-          throw new TypeError('Item type "rangeoverflow" is deprecated. Use css styling instead: ' + '.vis-item.vis-range .vis-item-content {overflow: visible;}');
-        } else {
-          throw new TypeError('Unknown item type "' + type + '"');
-        }
-      }
-    }).bind(this));
-
-    this._order();
-    this.stackDirty = true; // force re-stacking of all items next redraw
-    this.body.emitter.emit('change', { queue: true });
-  };
-
-  /**
-   * Handle added items
-   * @param {Number[]} ids
-   * @protected
-   */
-  ItemSet.prototype._onAdd = ItemSet.prototype._onUpdate;
-
-  /**
-   * Handle removed items
-   * @param {Number[]} ids
-   * @protected
-   */
-  ItemSet.prototype._onRemove = function (ids) {
-    var count = 0;
-    var me = this;
-    ids.forEach(function (id) {
-      var item = me.items[id];
-      if (item) {
-        count++;
-        me._removeItem(item);
-      }
-    });
-
-    if (count) {
-      // update order
-      this._order();
-      this.stackDirty = true; // force re-stacking of all items next redraw
-      this.body.emitter.emit('change', { queue: true });
-    }
-  };
-
-  /**
-   * Update the order of item in all groups
-   * @private
-   */
-  ItemSet.prototype._order = function () {
-    // reorder the items in all groups
-    // TODO: optimization: only reorder groups affected by the changed items
-    util.forEach(this.groups, function (group) {
-      group.order();
-    });
-  };
-
-  /**
-   * Handle updated groups
-   * @param {Number[]} ids
-   * @private
-   */
-  ItemSet.prototype._onUpdateGroups = function (ids) {
-    this._onAddGroups(ids);
-  };
-
-  /**
-   * Handle changed groups (added or updated)
-   * @param {Number[]} ids
-   * @private
-   */
-  ItemSet.prototype._onAddGroups = function (ids) {
-    var me = this;
-
-    ids.forEach(function (id) {
-      var groupData = me.groupsData.get(id);
-      var group = me.groups[id];
-
-      if (!group) {
-        // check for reserved ids
-        if (id == UNGROUPED || id == BACKGROUND) {
-          throw new Error('Illegal group id. ' + id + ' is a reserved id.');
-        }
-
-        var groupOptions = Object.create(me.options);
-        util.extend(groupOptions, {
-          height: null
-        });
-
-        group = new Group(id, groupData, me);
-        me.groups[id] = group;
-
-        // add items with this groupId to the new group
-        for (var itemId in me.items) {
-          if (me.items.hasOwnProperty(itemId)) {
-            var item = me.items[itemId];
-            if (item.data.group == id) {
-              group.add(item);
-            }
-          }
-        }
-
-        group.order();
-        group.show();
-      } else {
-        // update group
-        group.setData(groupData);
-      }
-    });
-
-    this.body.emitter.emit('change', { queue: true });
-  };
-
-  /**
-   * Handle removed groups
-   * @param {Number[]} ids
-   * @private
-   */
-  ItemSet.prototype._onRemoveGroups = function (ids) {
-    var groups = this.groups;
-    ids.forEach(function (id) {
-      var group = groups[id];
-
-      if (group) {
-        group.hide();
-        delete groups[id];
-      }
-    });
-
-    this.markDirty();
-
-    this.body.emitter.emit('change', { queue: true });
-  };
-
-  /**
-   * Reorder the groups if needed
-   * @return {boolean} changed
-   * @private
-   */
-  ItemSet.prototype._orderGroups = function () {
-    if (this.groupsData) {
-      // reorder the groups
-      var groupIds = this.groupsData.getIds({
-        order: this.options.groupOrder
-      });
-
-      var changed = !util.equalArray(groupIds, this.groupIds);
-      if (changed) {
-        // hide all groups, removes them from the DOM
-        var groups = this.groups;
-        groupIds.forEach(function (groupId) {
-          groups[groupId].hide();
-        });
-
-        // show the groups again, attach them to the DOM in correct order
-        groupIds.forEach(function (groupId) {
-          groups[groupId].show();
-        });
-
-        this.groupIds = groupIds;
-      }
-
-      return changed;
-    } else {
-      return false;
-    }
-  };
-
-  /**
-   * Add a new item
-   * @param {Item} item
-   * @private
-   */
-  ItemSet.prototype._addItem = function (item) {
-    this.items[item.id] = item;
-
-    // add to group
-    var groupId = this._getGroupId(item.data);
-    var group = this.groups[groupId];
-    if (group) group.add(item);
-  };
-
-  /**
-   * Update an existing item
-   * @param {Item} item
-   * @param {Object} itemData
-   * @private
-   */
-  ItemSet.prototype._updateItem = function (item, itemData) {
-    var oldGroupId = item.data.group;
-    var oldSubGroupId = item.data.subgroup;
-
-    // update the items data (will redraw the item when displayed)
-    item.setData(itemData);
-
-    // update group
-    if (oldGroupId != item.data.group || oldSubGroupId != item.data.subgroup) {
-      var oldGroup = this.groups[oldGroupId];
-      if (oldGroup) oldGroup.remove(item);
-
-      var groupId = this._getGroupId(item.data);
-      var group = this.groups[groupId];
-      if (group) group.add(item);
-    }
-  };
-
-  /**
-   * Delete an item from the ItemSet: remove it from the DOM, from the map
-   * with items, and from the map with visible items, and from the selection
-   * @param {Item} item
-   * @private
-   */
-  ItemSet.prototype._removeItem = function (item) {
-    // remove from DOM
-    item.hide();
-
-    // remove from items
-    delete this.items[item.id];
-
-    // remove from selection
-    var index = this.selection.indexOf(item.id);
-    if (index != -1) this.selection.splice(index, 1);
-
-    // remove from group
-    item.parent && item.parent.remove(item);
-  };
-
-  /**
-   * Create an array containing all items being a range (having an end date)
-   * @param array
-   * @returns {Array}
-   * @private
-   */
-  ItemSet.prototype._constructByEndArray = function (array) {
-    var endArray = [];
-
-    for (var i = 0; i < array.length; i++) {
-      if (array[i] instanceof RangeItem) {
-        endArray.push(array[i]);
-      }
-    }
-    return endArray;
-  };
-
-  /**
-   * Register the clicked item on touch, before dragStart is initiated.
-   *
-   * dragStart is initiated from a mousemove event, AFTER the mouse/touch is
-   * already moving. Therefore, the mouse/touch can sometimes be above an other
-   * DOM element than the item itself.
-   *
-   * @param {Event} event
-   * @private
-   */
-  ItemSet.prototype._onTouch = function (event) {
-    // store the touched item, used in _onDragStart
-    this.touchParams.item = this.itemFromTarget(event);
-    this.touchParams.dragLeftItem = event.target.dragLeftItem || false;
-    this.touchParams.dragRightItem = event.target.dragRightItem || false;
-    this.touchParams.itemProps = null;
-  };
-
-  /**
-   * Start dragging the selected events
-   * @param {Event} event
-   * @private
-   */
-  ItemSet.prototype._onDragStart = function (event) {
-    if (!this.options.editable.updateTime && !this.options.editable.updateGroup) {
-      return;
-    }
-
-    var item = this.touchParams.item || null;
-    var me = this;
-    var props;
-
-    if (item && item.selected) {
-      var dragLeftItem = this.touchParams.dragLeftItem;
-      var dragRightItem = this.touchParams.dragRightItem;
-
-      if (dragLeftItem) {
-        props = {
-          item: dragLeftItem,
-          initialX: event.center.x,
-          dragLeft: true,
-          data: util.extend({}, item.data) // clone the items data
-        };
-
-        this.touchParams.itemProps = [props];
-      } else if (dragRightItem) {
-        props = {
-          item: dragRightItem,
-          initialX: event.center.x,
-          dragRight: true,
-          data: util.extend({}, item.data) // clone the items data
-        };
-
-        this.touchParams.itemProps = [props];
-      } else {
-        this.touchParams.itemProps = this.getSelection().map(function (id) {
-          var item = me.items[id];
-          var props = {
-            item: item,
-            initialX: event.center.x,
-            data: util.extend({}, item.data) // clone the items data
-          };
-
-          return props;
-        });
-      }
-
-      event.stopPropagation();
-    } else if (this.options.editable.add && (event.srcEvent.ctrlKey || event.srcEvent.metaKey)) {
-      // create a new range item when dragging with ctrl key down
-      this._onDragStartAddItem(event);
-    }
-  };
-
-  /**
-   * Start creating a new range item by dragging.
-   * @param {Event} event
-   * @private
-   */
-  ItemSet.prototype._onDragStartAddItem = function (event) {
-    var snap = this.options.snap || null;
-    var xAbs = util.getAbsoluteLeft(this.dom.frame);
-    var x = event.center.x - xAbs - 10; // minus 10 to compensate for the drag starting as soon as you've moved 10px
-    var time = this.body.util.toTime(x);
-    var scale = this.body.util.getScale();
-    var step = this.body.util.getStep();
-    var start = snap ? snap(time, scale, step) : start;
-    var end = start;
-
-    var itemData = {
-      type: 'range',
-      start: start,
-      end: end,
-      content: 'new item'
-    };
-
-    var id = util.randomUUID();
-    itemData[this.itemsData._fieldId] = id;
-
-    var group = this.groupFromTarget(event);
-    if (group) {
-      itemData.group = group.groupId;
-    }
-
-    var newItem = new RangeItem(itemData, this.conversion, this.options);
-    newItem.id = id; // TODO: not so nice setting id afterwards
-    newItem.data = itemData;
-    this._addItem(newItem);
-
-    var props = {
-      item: newItem,
-      dragRight: true,
-      initialX: event.center.x,
-      data: util.extend({}, itemData)
-    };
-    this.touchParams.itemProps = [props];
-
-    event.stopPropagation();
-  };
-
-  /**
-   * Drag selected items
-   * @param {Event} event
-   * @private
-   */
-  ItemSet.prototype._onDrag = function (event) {
-    if (this.touchParams.itemProps) {
-      event.stopPropagation();
-
-      var me = this;
-      var snap = this.options.snap || null;
-      var xOffset = this.body.dom.root.offsetLeft + this.body.domProps.left.width;
-      var scale = this.body.util.getScale();
-      var step = this.body.util.getStep();
-
-      // move
-      this.touchParams.itemProps.forEach(function (props) {
-        var newProps = {};
-        var current = me.body.util.toTime(event.center.x - xOffset);
-        var initial = me.body.util.toTime(props.initialX - xOffset);
-        var offset = current - initial;
-
-        var itemData = util.extend({}, props.item.data); // clone the data
-
-        if (me.options.editable.updateTime) {
-          if (props.dragLeft) {
-            // drag left side of a range item
-            if (itemData.start != undefined) {
-              var initialStart = util.convert(props.data.start, 'Date');
-              var start = new Date(initialStart.valueOf() + offset);
-              itemData.start = snap ? snap(start, scale, step) : start;
-            }
-          } else if (props.dragRight) {
-            // drag right side of a range item
-            if (itemData.end != undefined) {
-              var initialEnd = util.convert(props.data.end, 'Date');
-              var end = new Date(initialEnd.valueOf() + offset);
-              itemData.end = snap ? snap(end, scale, step) : end;
-            }
-          } else {
-            // drag both start and end
-            if (itemData.start != undefined) {
-              var initialStart = util.convert(props.data.start, 'Date').valueOf();
-              var start = new Date(initialStart + offset);
-
-              if (itemData.end != undefined) {
-                var initialEnd = util.convert(props.data.end, 'Date');
-                var duration = initialEnd.valueOf() - initialStart.valueOf();
-
-                itemData.start = snap ? snap(start, scale, step) : start;
-                itemData.end = new Date(itemData.start.valueOf() + duration);
-              } else {
-                itemData.start = snap ? snap(start, scale, step) : start;
-              }
-            }
-          }
-        }
-
-        if (me.options.editable.updateGroup && (!props.dragLeft && !props.dragRight)) {
-          if (itemData.group != undefined) {
-            // drag from one group to another
-            var group = me.groupFromTarget(event);
-            if (group) {
-              itemData.group = group.groupId;
-            }
-          }
-        }
-
-        // confirm moving the item
-        me.options.onMoving(itemData, function (itemData) {
-          if (itemData) {
-            props.item.setData(itemData);
-          }
-        });
-      });
-
-      this.stackDirty = true; // force re-stacking of all items next redraw
-      this.body.emitter.emit('change');
-    }
-  };
-
-  /**
-   * Move an item to another group
-   * @param {Item} item
-   * @param {String | Number} groupId
-   * @private
-   */
-  ItemSet.prototype._moveToGroup = function (item, groupId) {
-    var group = this.groups[groupId];
-    if (group && group.groupId != item.data.group) {
-      var oldGroup = item.parent;
-      oldGroup.remove(item);
-      oldGroup.order();
-      group.add(item);
-      group.order();
-
-      item.data.group = group.groupId;
-    }
-  };
-
-  /**
-   * End of dragging selected items
-   * @param {Event} event
-   * @private
-   */
-  ItemSet.prototype._onDragEnd = function (event) {
-    if (this.touchParams.itemProps) {
-      event.stopPropagation();
-
-      // prepare a change set for the changed items
-      var changes = [];
-      var me = this;
-      var dataset = this.itemsData.getDataSet();
-
-      var itemProps = this.touchParams.itemProps;
-      this.touchParams.itemProps = null;
-      itemProps.forEach(function (props) {
-        var id = props.item.id;
-        var exists = me.itemsData.get(id, me.itemOptions) != null;
-
-        if (!exists) {
-          // add a new item
-          me.options.onAdd(props.item.data, function (itemData) {
-            me._removeItem(props.item); // remove temporary item
-            if (itemData) {
-              me.itemsData.getDataSet().add(itemData);
-            }
-
-            // force re-stacking of all items next redraw
-            me.stackDirty = true;
-            me.body.emitter.emit('change');
-          });
-        } else {
-          // update existing item
-          var itemData = util.extend({}, props.item.data); // clone the data
-          me.options.onMove(itemData, function (itemData) {
-            if (itemData) {
-              // apply changes
-              itemData[dataset._fieldId] = id; // ensure the item contains its id (can be undefined)
-              changes.push(itemData);
-            } else {
-              // restore original values
-              props.item.setData(props.data);
-
-              me.stackDirty = true; // force re-stacking of all items next redraw
-              me.body.emitter.emit('change');
-            }
-          });
-        }
-      });
-
-      // apply the changes to the data (if there are changes)
-      if (changes.length) {
-        dataset.update(changes);
-      }
-    }
-  };
-
-  /**
-   * Handle selecting/deselecting an item when tapping it
-   * @param {Event} event
-   * @private
-   */
-  ItemSet.prototype._onSelectItem = function (event) {
-    if (!this.options.selectable) return;
-
-    var ctrlKey = event.srcEvent && (event.srcEvent.ctrlKey || event.srcEvent.metaKey);
-    var shiftKey = event.srcEvent && event.srcEvent.shiftKey;
-    if (ctrlKey || shiftKey) {
-      this._onMultiSelectItem(event);
-      return;
-    }
-
-    var oldSelection = this.getSelection();
-
-    var item = this.itemFromTarget(event);
-    var selection = item ? [item.id] : [];
-    this.setSelection(selection);
-
-    var newSelection = this.getSelection();
-
-    // emit a select event,
-    // except when old selection is empty and new selection is still empty
-    if (newSelection.length > 0 || oldSelection.length > 0) {
-      this.body.emitter.emit('select', {
-        items: newSelection,
-        event: event
-      });
-    }
-  };
-
-  /**
-   * Handle creation and updates of an item on double tap
-   * @param event
-   * @private
-   */
-  ItemSet.prototype._onAddItem = function (event) {
-    if (!this.options.selectable) return;
-    if (!this.options.editable.add) return;
-
-    var me = this;
-    var snap = this.options.snap || null;
-    var item = this.itemFromTarget(event);
-
-    event.stopPropagation();
-
-    if (item) {
-      // update item
-
-      // execute async handler to update the item (or cancel it)
-      var itemData = me.itemsData.get(item.id); // get a clone of the data from the dataset
-      this.options.onUpdate(itemData, function (itemData) {
-        if (itemData) {
-          me.itemsData.getDataSet().update(itemData);
-        }
-      });
-    } else {
-      // add item
-      var xAbs = util.getAbsoluteLeft(this.dom.frame);
-      var x = event.center.x - xAbs;
-      var start = this.body.util.toTime(x);
-      var scale = this.body.util.getScale();
-      var step = this.body.util.getStep();
-
-      var newItem = {
-        start: snap ? snap(start, scale, step) : start,
-        content: 'new item'
-      };
-
-      // when default type is a range, add a default end date to the new item
-      if (this.options.type === 'range') {
-        var end = this.body.util.toTime(x + this.props.width / 5);
-        newItem.end = snap ? snap(end, scale, step) : end;
-      }
-
-      newItem[this.itemsData._fieldId] = util.randomUUID();
-
-      var group = this.groupFromTarget(event);
-      if (group) {
-        newItem.group = group.groupId;
-      }
-
-      // execute async handler to customize (or cancel) adding an item
-      this.options.onAdd(newItem, function (item) {
-        if (item) {
-          me.itemsData.getDataSet().add(item);
-          // TODO: need to trigger a redraw?
-        }
-      });
-    }
-  };
-
-  /**
-   * Handle selecting/deselecting multiple items when holding an item
-   * @param {Event} event
-   * @private
-   */
-  ItemSet.prototype._onMultiSelectItem = function (event) {
-    if (!this.options.selectable) return;
-
-    var item = this.itemFromTarget(event);
-
-    if (item) {
-      // multi select items (if allowed)
-
-      var selection = this.options.multiselect ? this.getSelection() // take current selection
-      : []; // deselect current selection
-
-      var shiftKey = event.srcEvent && event.srcEvent.shiftKey || false;
-
-      if (shiftKey && this.options.multiselect) {
-        // select all items between the old selection and the tapped item
-
-        // determine the selection range
-        selection.push(item.id);
-        var range = ItemSet._getItemRange(this.itemsData.get(selection, this.itemOptions));
-
-        // select all items within the selection range
-        selection = [];
-        for (var id in this.items) {
-          if (this.items.hasOwnProperty(id)) {
-            var _item = this.items[id];
-            var start = _item.data.start;
-            var end = _item.data.end !== undefined ? _item.data.end : start;
-
-            if (start >= range.min && end <= range.max && !(_item instanceof BackgroundItem)) {
-              selection.push(_item.id); // do not use id but item.id, id itself is stringified
-            }
-          }
-        }
-      } else {
-        // add/remove this item from the current selection
-        var index = selection.indexOf(item.id);
-        if (index == -1) {
-          // item is not yet selected -> select it
-          selection.push(item.id);
-        } else {
-          // item is already selected -> deselect it
-          selection.splice(index, 1);
-        }
-      }
-
-      this.setSelection(selection);
-
-      this.body.emitter.emit('select', {
-        items: this.getSelection(),
-        event: event
-      });
-    }
-  };
-
-  /**
-   * Calculate the time range of a list of items
-   * @param {Array.<Object>} itemsData
-   * @return {{min: Date, max: Date}} Returns the range of the provided items
-   * @private
-   */
-  ItemSet._getItemRange = function (itemsData) {
-    var max = null;
-    var min = null;
-
-    itemsData.forEach(function (data) {
-      if (min == null || data.start < min) {
-        min = data.start;
-      }
-
-      if (data.end != undefined) {
-        if (max == null || data.end > max) {
-          max = data.end;
-        }
-      } else {
-        if (max == null || data.start > max) {
-          max = data.start;
-        }
-      }
-    });
-
-    return {
-      min: min,
-      max: max
-    };
-  };
-
-  /**
-   * Find an item from an event target:
-   * searches for the attribute 'timeline-item' in the event target's element tree
-   * @param {Event} event
-   * @return {Item | null} item
-   */
-  ItemSet.prototype.itemFromTarget = function (event) {
-    var target = event.target;
-    while (target) {
-      if (target.hasOwnProperty('timeline-item')) {
-        return target['timeline-item'];
-      }
-      target = target.parentNode;
-    }
-
-    return null;
-  };
-
-  /**
-   * Find the Group from an event target:
-   * searches for the attribute 'timeline-group' in the event target's element tree
-   * @param {Event} event
-   * @return {Group | null} group
-   */
-  ItemSet.prototype.groupFromTarget = function (event) {
-    var clientY = event.center ? event.center.y : event.clientY;
-    for (var i = 0; i < this.groupIds.length; i++) {
-      var groupId = this.groupIds[i];
-      var group = this.groups[groupId];
-      var foreground = group.dom.foreground;
-      var top = util.getAbsoluteTop(foreground);
-      if (clientY > top && clientY < top + foreground.offsetHeight) {
-        return group;
-      }
-
-      if (this.options.orientation.item === 'top') {
-        if (i === this.groupIds.length - 1 && clientY > top) {
-          return group;
-        }
-      } else {
-        if (i === 0 && clientY < top + foreground.offset) {
-          return group;
-        }
-      }
-    }
-
-    return null;
-  };
-
-  /**
-   * Find the ItemSet from an event target:
-   * searches for the attribute 'timeline-itemset' in the event target's element tree
-   * @param {Event} event
-   * @return {ItemSet | null} item
-   */
-  ItemSet.itemSetFromTarget = function (event) {
-    var target = event.target;
-    while (target) {
-      if (target.hasOwnProperty('timeline-itemset')) {
-        return target['timeline-itemset'];
-      }
-      target = target.parentNode;
-    }
-
-    return null;
-  };
-
-  module.exports = ItemSet;
-
-/***/ },
-/* 4 */
+/* 2 */
 /***/ function(module, exports, __webpack_require__) {
 
   // first check if moment.js is already loaded in the browser window, if so,
   // use this instance. Else, load via commonjs.
   'use strict';
 
-  module.exports = typeof window !== 'undefined' && window['moment'] || __webpack_require__(5);
+  module.exports = typeof window !== 'undefined' && window['moment'] || __webpack_require__(3);
 
 /***/ },
-/* 5 */
+/* 3 */
 /***/ function(module, exports, __webpack_require__) {
 
   /* WEBPACK VAR INJECTION */(function(module) {//! moment.js
@@ -6258,10 +4632,10 @@ return /******/ (function(modules) { // webpackBootstrap
       return _moment;
 
   }));
-  /* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(6)(module)))
+  /* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(4)(module)))
 
 /***/ },
-/* 6 */
+/* 4 */
 /***/ function(module, exports, __webpack_require__) {
 
   module.exports = function(module) {
@@ -6277,7 +4651,20 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 7 */
+/* 5 */
+/***/ function(module, exports, __webpack_require__) {
+
+  function webpackContext(req) {
+  	throw new Error("Cannot find module '" + req + "'.");
+  }
+  webpackContext.keys = function() { return []; };
+  webpackContext.resolve = webpackContext;
+  module.exports = webpackContext;
+  webpackContext.id = 5;
+
+
+/***/ },
+/* 6 */
 /***/ function(module, exports, __webpack_require__) {
 
   /* WEBPACK VAR INJECTION */(function(global) {'use strict';
@@ -6493,7 +4880,7 @@ return /******/ (function(modules) { // webpackBootstrap
   /* WEBPACK VAR INJECTION */}.call(exports, (function() { return this; }())))
 
 /***/ },
-/* 8 */
+/* 7 */
 /***/ function(module, exports, __webpack_require__) {
 
   // DOM utility methods
@@ -6695,13 +5082,13 @@ return /******/ (function(modules) { // webpackBootstrap
   };
 
 /***/ },
-/* 9 */
+/* 8 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
 
-  var util = __webpack_require__(2);
-  var Queue = __webpack_require__(10);
+  var util = __webpack_require__(1);
+  var Queue = __webpack_require__(9);
 
   /**
    * DataSet
@@ -7590,7 +5977,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = DataSet;
 
 /***/ },
-/* 10 */
+/* 9 */
 /***/ function(module, exports, __webpack_require__) {
 
   /**
@@ -7795,13 +6182,13 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = Queue;
 
 /***/ },
-/* 11 */
+/* 10 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
 
-  var util = __webpack_require__(2);
-  var DataSet = __webpack_require__(9);
+  var util = __webpack_require__(1);
+  var DataSet = __webpack_require__(8);
 
   /**
    * DataView
@@ -8143,21 +6530,21 @@ return /******/ (function(modules) { // webpackBootstrap
   // nothing interesting for me :-(
 
 /***/ },
-/* 12 */
+/* 11 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
 
-  var Emitter = __webpack_require__(14);
-  var DataSet = __webpack_require__(9);
-  var DataView = __webpack_require__(11);
-  var util = __webpack_require__(2);
-  var Point3d = __webpack_require__(15);
-  var Point2d = __webpack_require__(13);
-  var Camera = __webpack_require__(16);
-  var Filter = __webpack_require__(17);
-  var Slider = __webpack_require__(18);
-  var StepNumber = __webpack_require__(19);
+  var Emitter = __webpack_require__(13);
+  var DataSet = __webpack_require__(8);
+  var DataView = __webpack_require__(10);
+  var util = __webpack_require__(1);
+  var Point3d = __webpack_require__(14);
+  var Point2d = __webpack_require__(12);
+  var Camera = __webpack_require__(15);
+  var Filter = __webpack_require__(16);
+  var Slider = __webpack_require__(17);
+  var StepNumber = __webpack_require__(18);
 
   /**
    * @constructor Graph3d
@@ -10361,7 +8748,7 @@ return /******/ (function(modules) { // webpackBootstrap
   // use use defaults
 
 /***/ },
-/* 13 */
+/* 12 */
 /***/ function(module, exports, __webpack_require__) {
 
   /**
@@ -10379,7 +8766,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = Point2d;
 
 /***/ },
-/* 14 */
+/* 13 */
 /***/ function(module, exports, __webpack_require__) {
 
   
@@ -10549,7 +8936,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 15 */
+/* 14 */
 /***/ function(module, exports, __webpack_require__) {
 
   /**
@@ -10632,12 +9019,12 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = Point3d;
 
 /***/ },
-/* 16 */
+/* 15 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
 
-  var Point3d = __webpack_require__(15);
+  var Point3d = __webpack_require__(14);
 
   /**
    * @class Camera
@@ -10773,12 +9160,12 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = Camera;
 
 /***/ },
-/* 17 */
+/* 16 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
 
-  var DataView = __webpack_require__(11);
+  var DataView = __webpack_require__(10);
 
   /**
    * @class Filter
@@ -10984,12 +9371,12 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = Filter;
 
 /***/ },
-/* 18 */
+/* 17 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
 
-  var util = __webpack_require__(2);
+  var util = __webpack_require__(1);
 
   /**
    * @constructor Slider
@@ -11332,7 +9719,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = Slider;
 
 /***/ },
-/* 19 */
+/* 18 */
 /***/ function(module, exports, __webpack_require__) {
 
   /**
@@ -11476,22 +9863,22 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = StepNumber;
 
 /***/ },
-/* 20 */
+/* 19 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
 
-  var Emitter = __webpack_require__(14);
-  var Hammer = __webpack_require__(24);
-  var util = __webpack_require__(2);
-  var DataSet = __webpack_require__(9);
-  var DataView = __webpack_require__(11);
-  var Range = __webpack_require__(28);
-  var Core = __webpack_require__(31);
+  var Emitter = __webpack_require__(13);
+  var Hammer = __webpack_require__(23);
+  var util = __webpack_require__(1);
+  var DataSet = __webpack_require__(8);
+  var DataView = __webpack_require__(10);
+  var Range = __webpack_require__(27);
+  var Core = __webpack_require__(30);
   var TimeAxis = __webpack_require__(41);
-  var CurrentTime = __webpack_require__(21);
+  var CurrentTime = __webpack_require__(20);
   var CustomTime = __webpack_require__(44);
-  var ItemSet = __webpack_require__(3);
+  var ItemSet = __webpack_require__(31);
 
   var Configurator = __webpack_require__(45);
   var Validator = __webpack_require__(47)['default'];
@@ -12000,15 +10387,15 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = Timeline;
 
 /***/ },
-/* 21 */
+/* 20 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
 
-  var util = __webpack_require__(2);
-  var Component = __webpack_require__(22);
-  var moment = __webpack_require__(4);
-  var locales = __webpack_require__(23);
+  var util = __webpack_require__(1);
+  var Component = __webpack_require__(21);
+  var moment = __webpack_require__(2);
+  var locales = __webpack_require__(22);
 
   /**
    * A current time bar
@@ -12176,7 +10563,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = CurrentTime;
 
 /***/ },
-/* 22 */
+/* 21 */
 /***/ function(module, exports, __webpack_require__) {
 
   /**
@@ -12236,7 +10623,7 @@ return /******/ (function(modules) { // webpackBootstrap
   // should be implemented by the component
 
 /***/ },
-/* 23 */
+/* 22 */
 /***/ function(module, exports, __webpack_require__) {
 
   // English
@@ -12258,7 +10645,7 @@ return /******/ (function(modules) { // webpackBootstrap
   exports['nl_BE'] = exports['nl'];
 
 /***/ },
-/* 24 */
+/* 23 */
 /***/ function(module, exports, __webpack_require__) {
 
   // Only load hammer.js when in a browser environment
@@ -12266,8 +10653,8 @@ return /******/ (function(modules) { // webpackBootstrap
   'use strict';
 
   if (typeof window !== 'undefined') {
-    var propagating = __webpack_require__(25);
-    var Hammer = window['Hammer'] || __webpack_require__(26);
+    var propagating = __webpack_require__(24);
+    var Hammer = window['Hammer'] || __webpack_require__(25);
     module.exports = propagating(Hammer, {
       preventDefault: 'mouse'
     });
@@ -12278,7 +10665,7 @@ return /******/ (function(modules) { // webpackBootstrap
   }
 
 /***/ },
-/* 25 */
+/* 24 */
 /***/ function(module, exports, __webpack_require__) {
 
   var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;'use strict';
@@ -12323,9 +10710,6 @@ return /******/ (function(modules) { // webpackBootstrap
      *                          functionality
      */
     return function propagating(hammer, options) {
-      if (options && options.preventDefault === false) {
-        throw new Error('Only supports preventDefault == true');
-      }
       var _options = options || {
         preventDefault: false
       };
@@ -12336,43 +10720,42 @@ return /******/ (function(modules) { // webpackBootstrap
         var Hammer = hammer;
 
         var PropagatingHammer = function(element, options) {
-          return propagating(new Hammer(element, options), _options);
+          var o = Object.create(_options);
+          if (options) Hammer.extend(o, options);
+          return propagating(new Hammer(element, o), o);
         };
         Hammer.extend(PropagatingHammer, Hammer);
+
         PropagatingHammer.Manager = function (element, options) {
-          return propagating(new Hammer.Manager(element, options), _options);
+          var o = Object.create(_options);
+          if (options) Hammer.extend(o, options);
+          return propagating(new Hammer.Manager(element, o), o);
         };
 
         return PropagatingHammer;
       }
 
+      // create a wrapper object which will override the functions
+      // `on`, `off`, `destroy`, and `emit` of the hammer instance
+      var wrapper = Object.create(hammer);
+
       // attach to DOM element
       var element = hammer.element;
-      element.hammer = hammer;
-
-      // move the original functions that we will wrap
-      hammer._on = hammer.on;
-      hammer._off = hammer.off;
-      hammer._emit = hammer.emit;
-      hammer._destroy = hammer.destroy;
-
-      /** @type {Object.<String, Array.<function>>} */
-      hammer._handlers = {};
+      element.hammer = wrapper;
 
       // register an event to catch the start of a gesture and store the
       // target in a singleton
-      hammer._on('hammer.input', function (event) {
+      hammer.on('hammer.input', function (event) {
         if (_options.preventDefault === true || (_options.preventDefault === event.pointerType)) {
           event.preventDefault();
         }
         if (event.isFirst) {
           _firstTarget = event.target;
-          _processing = true;
-        }
-        if (event.isFinal) {
-          _processing = false;
         }
       });
+
+      /** @type {Object.<String, Array.<function>>} */
+      wrapper._handlers = {};
 
       /**
        * Register a handler for one or multiple events
@@ -12380,20 +10763,20 @@ return /******/ (function(modules) { // webpackBootstrap
        * @param {function} handler A callback function, called as handler(event)
        * @returns {Hammer.Manager} Returns the hammer instance
        */
-      hammer.on = function (events, handler) {
+      wrapper.on = function (events, handler) {
         // register the handler
         split(events).forEach(function (event) {
-          var _handlers = hammer._handlers[event];
+          var _handlers = wrapper._handlers[event];
           if (!_handlers) {
-            hammer._handlers[event] = _handlers = [];
+            wrapper._handlers[event] = _handlers = [];
 
             // register the static, propagated handler
-            hammer._on(event, propagatedHandler);
+            hammer.on(event, propagatedHandler);
           }
           _handlers.push(handler);
         });
 
-        return hammer;
+        return wrapper;
       };
 
       /**
@@ -12404,27 +10787,27 @@ return /******/ (function(modules) { // webpackBootstrap
        *                             are removed.
        * @returns {Hammer.Manager}   Returns the hammer instance
        */
-      hammer.off = function (events, handler) {
+      wrapper.off = function (events, handler) {
         // unregister the handler
         split(events).forEach(function (event) {
-          var _handlers = hammer._handlers[event];
+          var _handlers = wrapper._handlers[event];
           if (_handlers) {
             _handlers = handler ? _handlers.filter(function (h) {
               return h !== handler;
             }) : [];
 
             if (_handlers.length > 0) {
-              hammer._handlers[event] = _handlers;
+              wrapper._handlers[event] = _handlers;
             }
             else {
               // remove static, propagated handler
-              hammer._off(event, propagatedHandler);
-              delete hammer._handlers[event];
+              hammer.off(event, propagatedHandler);
+              delete wrapper._handlers[event];
             }
           }
         });
 
-        return hammer;
+        return wrapper;
       };
 
       /**
@@ -12432,23 +10815,20 @@ return /******/ (function(modules) { // webpackBootstrap
        * @param {string} eventType
        * @param {Event} event
        */
-      hammer.emit = function(eventType, event) {
-        if (!_processing) {
-          _firstTarget = event.target;
-        }
-        hammer._emit(eventType, event);
+      wrapper.emit = function(eventType, event) {
+        _firstTarget = event.target;
+        hammer.emit(eventType, event);
       };
 
-      hammer.destroy = function () {
+      wrapper.destroy = function () {
         // Detach from DOM element
-        var element = hammer.element;
-        delete element.hammer;
+        delete hammer.element.hammer;
 
         // clear all handlers
-        hammer._handlers = {};
+        wrapper._handlers = {};
 
         // call original hammer destroy
-        hammer._destroy();
+        hammer.destroy();
       };
 
       // split a string with space separated words
@@ -12500,13 +10880,13 @@ return /******/ (function(modules) { // webpackBootstrap
         }
       }
 
-      return hammer;
+      return wrapper;
     };
   }));
 
 
 /***/ },
-/* 26 */
+/* 25 */
 /***/ function(module, exports, __webpack_require__) {
 
   var __WEBPACK_AMD_DEFINE_RESULT__;/*! Hammer.JS - v2.0.4 - 2014-09-28
@@ -14961,7 +13341,7 @@ return /******/ (function(modules) { // webpackBootstrap
       prefixed: prefixed
   });
 
-  if ("function" == TYPE_FUNCTION && __webpack_require__(27)) {
+  if ("function" == TYPE_FUNCTION && __webpack_require__(26)) {
       !(__WEBPACK_AMD_DEFINE_RESULT__ = function() {
           return Hammer;
       }.call(exports, __webpack_require__, exports, module), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__));
@@ -14975,7 +13355,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 27 */
+/* 26 */
 /***/ function(module, exports, __webpack_require__) {
 
   /* WEBPACK VAR INJECTION */(function(__webpack_amd_options__) {module.exports = __webpack_amd_options__;
@@ -14983,16 +13363,16 @@ return /******/ (function(modules) { // webpackBootstrap
   /* WEBPACK VAR INJECTION */}.call(exports, {}))
 
 /***/ },
-/* 28 */
+/* 27 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
 
-  var util = __webpack_require__(2);
-  var hammerUtil = __webpack_require__(29);
-  var moment = __webpack_require__(4);
-  var Component = __webpack_require__(22);
-  var DateUtil = __webpack_require__(30);
+  var util = __webpack_require__(1);
+  var hammerUtil = __webpack_require__(28);
+  var moment = __webpack_require__(2);
+  var Component = __webpack_require__(21);
+  var DateUtil = __webpack_require__(29);
 
   /**
    * @constructor Range
@@ -15659,12 +14039,12 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = Range;
 
 /***/ },
-/* 29 */
+/* 28 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
 
-  var Hammer = __webpack_require__(24);
+  var Hammer = __webpack_require__(23);
 
   /**
    * Register a touch event, taking place before a gesture
@@ -15731,12 +14111,12 @@ return /******/ (function(modules) { // webpackBootstrap
   exports.offRelease = exports.offTouch;
 
 /***/ },
-/* 30 */
+/* 29 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
 
-  var moment = __webpack_require__(4);
+  var moment = __webpack_require__(2);
 
   /**
    * used in Core to convert the options into a volatile variable
@@ -16191,22 +14571,22 @@ return /******/ (function(modules) { // webpackBootstrap
   };
 
 /***/ },
-/* 31 */
+/* 30 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
 
-  var Emitter = __webpack_require__(14);
-  var Hammer = __webpack_require__(24);
-  var hammerUtil = __webpack_require__(29);
-  var util = __webpack_require__(2);
-  var DataSet = __webpack_require__(9);
-  var DataView = __webpack_require__(11);
-  var Range = __webpack_require__(28);
-  var ItemSet = __webpack_require__(3);
+  var Emitter = __webpack_require__(13);
+  var Hammer = __webpack_require__(23);
+  var hammerUtil = __webpack_require__(28);
+  var util = __webpack_require__(1);
+  var DataSet = __webpack_require__(8);
+  var DataView = __webpack_require__(10);
+  var Range = __webpack_require__(27);
+  var ItemSet = __webpack_require__(31);
   var TimeAxis = __webpack_require__(41);
   var Activator = __webpack_require__(42);
-  var DateUtil = __webpack_require__(30);
+  var DateUtil = __webpack_require__(29);
   var CustomTime = __webpack_require__(44);
 
   /**
@@ -17162,12 +15542,1625 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = Core;
 
 /***/ },
+/* 31 */
+/***/ function(module, exports, __webpack_require__) {
+
+  'use strict';
+
+  var Hammer = __webpack_require__(23);
+  var util = __webpack_require__(1);
+  var DataSet = __webpack_require__(8);
+  var DataView = __webpack_require__(10);
+  var TimeStep = __webpack_require__(36);
+  var Component = __webpack_require__(21);
+  var Group = __webpack_require__(32);
+  var BackgroundGroup = __webpack_require__(37);
+  var BoxItem = __webpack_require__(38);
+  var PointItem = __webpack_require__(39);
+  var RangeItem = __webpack_require__(34);
+  var BackgroundItem = __webpack_require__(40);
+
+  var UNGROUPED = '__ungrouped__'; // reserved group id for ungrouped items
+  var BACKGROUND = '__background__'; // reserved group id for background items without group
+
+  /**
+   * An ItemSet holds a set of items and ranges which can be displayed in a
+   * range. The width is determined by the parent of the ItemSet, and the height
+   * is determined by the size of the items.
+   * @param {{dom: Object, domProps: Object, emitter: Emitter, range: Range}} body
+   * @param {Object} [options]      See ItemSet.setOptions for the available options.
+   * @constructor ItemSet
+   * @extends Component
+   */
+  function ItemSet(body, options) {
+    this.body = body;
+
+    this.defaultOptions = {
+      type: null, // 'box', 'point', 'range', 'background'
+      orientation: {
+        item: 'bottom' // item orientation: 'top' or 'bottom'
+      },
+      align: 'auto', // alignment of box items
+      stack: true,
+      groupOrder: null,
+
+      selectable: true,
+      multiselect: false,
+
+      editable: {
+        updateTime: false,
+        updateGroup: false,
+        add: false,
+        remove: false
+      },
+
+      snap: TimeStep.snap,
+
+      onAdd: function onAdd(item, callback) {
+        callback(item);
+      },
+      onUpdate: function onUpdate(item, callback) {
+        callback(item);
+      },
+      onMove: function onMove(item, callback) {
+        callback(item);
+      },
+      onRemove: function onRemove(item, callback) {
+        callback(item);
+      },
+      onMoving: function onMoving(item, callback) {
+        callback(item);
+      },
+
+      margin: {
+        item: {
+          horizontal: 10,
+          vertical: 10
+        },
+        axis: 20
+      }
+    };
+
+    // options is shared by this ItemSet and all its items
+    this.options = util.extend({}, this.defaultOptions);
+
+    // options for getting items from the DataSet with the correct type
+    this.itemOptions = {
+      type: { start: 'Date', end: 'Date' }
+    };
+
+    this.conversion = {
+      toScreen: body.util.toScreen,
+      toTime: body.util.toTime
+    };
+    this.dom = {};
+    this.props = {};
+    this.hammer = null;
+
+    var me = this;
+    this.itemsData = null; // DataSet
+    this.groupsData = null; // DataSet
+
+    // listeners for the DataSet of the items
+    this.itemListeners = {
+      'add': function add(event, params, senderId) {
+        me._onAdd(params.items);
+      },
+      'update': function update(event, params, senderId) {
+        me._onUpdate(params.items);
+      },
+      'remove': function remove(event, params, senderId) {
+        me._onRemove(params.items);
+      }
+    };
+
+    // listeners for the DataSet of the groups
+    this.groupListeners = {
+      'add': function add(event, params, senderId) {
+        me._onAddGroups(params.items);
+      },
+      'update': function update(event, params, senderId) {
+        me._onUpdateGroups(params.items);
+      },
+      'remove': function remove(event, params, senderId) {
+        me._onRemoveGroups(params.items);
+      }
+    };
+
+    this.items = {}; // object with an Item for every data item
+    this.groups = {}; // Group object for every group
+    this.groupIds = [];
+
+    this.selection = []; // list with the ids of all selected nodes
+    this.stackDirty = true; // if true, all items will be restacked on next redraw
+
+    this.touchParams = {}; // stores properties while dragging
+    // create the HTML DOM
+
+    this._create();
+
+    this.setOptions(options);
+  }
+
+  ItemSet.prototype = new Component();
+
+  // available item types will be registered here
+  ItemSet.types = {
+    background: BackgroundItem,
+    box: BoxItem,
+    range: RangeItem,
+    point: PointItem
+  };
+
+  /**
+   * Create the HTML DOM for the ItemSet
+   */
+  ItemSet.prototype._create = function () {
+    var frame = document.createElement('div');
+    frame.className = 'vis-itemset';
+    frame['timeline-itemset'] = this;
+    this.dom.frame = frame;
+
+    // create background panel
+    var background = document.createElement('div');
+    background.className = 'vis-background';
+    frame.appendChild(background);
+    this.dom.background = background;
+
+    // create foreground panel
+    var foreground = document.createElement('div');
+    foreground.className = 'vis-foreground';
+    frame.appendChild(foreground);
+    this.dom.foreground = foreground;
+
+    // create axis panel
+    var axis = document.createElement('div');
+    axis.className = 'vis-axis';
+    this.dom.axis = axis;
+
+    // create labelset
+    var labelSet = document.createElement('div');
+    labelSet.className = 'vis-labelset';
+    this.dom.labelSet = labelSet;
+
+    // create ungrouped Group
+    this._updateUngrouped();
+
+    // create background Group
+    var backgroundGroup = new BackgroundGroup(BACKGROUND, null, this);
+    backgroundGroup.show();
+    this.groups[BACKGROUND] = backgroundGroup;
+
+    // attach event listeners
+    // Note: we bind to the centerContainer for the case where the height
+    //       of the center container is larger than of the ItemSet, so we
+    //       can click in the empty area to create a new item or deselect an item.
+    this.hammer = new Hammer(this.body.dom.centerContainer);
+
+    // drag items when selected
+    this.hammer.on('hammer.input', (function (event) {
+      if (event.isFirst) {
+        this._onTouch(event);
+      }
+    }).bind(this));
+    this.hammer.on('panstart', this._onDragStart.bind(this));
+    this.hammer.on('panmove', this._onDrag.bind(this));
+    this.hammer.on('panend', this._onDragEnd.bind(this));
+
+    // single select (or unselect) when tapping an item
+    this.hammer.on('tap', this._onSelectItem.bind(this));
+
+    // multi select when holding mouse/touch, or on ctrl+click
+    this.hammer.on('press', this._onMultiSelectItem.bind(this));
+
+    // add item on doubletap
+    this.hammer.on('doubletap', this._onAddItem.bind(this));
+
+    // attach to the DOM
+    this.show();
+  };
+
+  /**
+   * Set options for the ItemSet. Existing options will be extended/overwritten.
+   * @param {Object} [options] The following options are available:
+   *                           {String} type
+   *                              Default type for the items. Choose from 'box'
+   *                              (default), 'point', 'range', or 'background'.
+   *                              The default style can be overwritten by
+   *                              individual items.
+   *                           {String} align
+   *                              Alignment for the items, only applicable for
+   *                              BoxItem. Choose 'center' (default), 'left', or
+   *                              'right'.
+   *                           {String} orientation.item
+   *                              Orientation of the item set. Choose 'top' or
+   *                              'bottom' (default).
+   *                           {Function} groupOrder
+   *                              A sorting function for ordering groups
+   *                           {Boolean} stack
+   *                              If true (default), items will be stacked on
+   *                              top of each other.
+   *                           {Number} margin.axis
+   *                              Margin between the axis and the items in pixels.
+   *                              Default is 20.
+   *                           {Number} margin.item.horizontal
+   *                              Horizontal margin between items in pixels.
+   *                              Default is 10.
+   *                           {Number} margin.item.vertical
+   *                              Vertical Margin between items in pixels.
+   *                              Default is 10.
+   *                           {Number} margin.item
+   *                              Margin between items in pixels in both horizontal
+   *                              and vertical direction. Default is 10.
+   *                           {Number} margin
+   *                              Set margin for both axis and items in pixels.
+   *                           {Boolean} selectable
+   *                              If true (default), items can be selected.
+   *                           {Boolean} multiselect
+   *                              If true, multiple items can be selected.
+   *                              False by default.
+   *                           {Boolean} editable
+   *                              Set all editable options to true or false
+   *                           {Boolean} editable.updateTime
+   *                              Allow dragging an item to an other moment in time
+   *                           {Boolean} editable.updateGroup
+   *                              Allow dragging an item to an other group
+   *                           {Boolean} editable.add
+   *                              Allow creating new items on double tap
+   *                           {Boolean} editable.remove
+   *                              Allow removing items by clicking the delete button
+   *                              top right of a selected item.
+   *                           {Function(item: Item, callback: Function)} onAdd
+   *                              Callback function triggered when an item is about to be added:
+   *                              when the user double taps an empty space in the Timeline.
+   *                           {Function(item: Item, callback: Function)} onUpdate
+   *                              Callback function fired when an item is about to be updated.
+   *                              This function typically has to show a dialog where the user
+   *                              change the item. If not implemented, nothing happens.
+   *                           {Function(item: Item, callback: Function)} onMove
+   *                              Fired when an item has been moved. If not implemented,
+   *                              the move action will be accepted.
+   *                           {Function(item: Item, callback: Function)} onRemove
+   *                              Fired when an item is about to be deleted.
+   *                              If not implemented, the item will be always removed.
+   */
+  ItemSet.prototype.setOptions = function (options) {
+    if (options) {
+      // copy all options that we know
+      var fields = ['type', 'align', 'order', 'stack', 'selectable', 'multiselect', 'groupOrder', 'dataAttributes', 'template', 'hide', 'snap'];
+      util.selectiveExtend(fields, this.options, options);
+
+      if ('orientation' in options) {
+        if (typeof options.orientation === 'string') {
+          this.options.orientation.item = options.orientation === 'top' ? 'top' : 'bottom';
+        } else if (typeof options.orientation === 'object' && 'item' in options.orientation) {
+          this.options.orientation.item = options.orientation.item;
+        }
+      }
+
+      if ('margin' in options) {
+        if (typeof options.margin === 'number') {
+          this.options.margin.axis = options.margin;
+          this.options.margin.item.horizontal = options.margin;
+          this.options.margin.item.vertical = options.margin;
+        } else if (typeof options.margin === 'object') {
+          util.selectiveExtend(['axis'], this.options.margin, options.margin);
+          if ('item' in options.margin) {
+            if (typeof options.margin.item === 'number') {
+              this.options.margin.item.horizontal = options.margin.item;
+              this.options.margin.item.vertical = options.margin.item;
+            } else if (typeof options.margin.item === 'object') {
+              util.selectiveExtend(['horizontal', 'vertical'], this.options.margin.item, options.margin.item);
+            }
+          }
+        }
+      }
+
+      if ('editable' in options) {
+        if (typeof options.editable === 'boolean') {
+          this.options.editable.updateTime = options.editable;
+          this.options.editable.updateGroup = options.editable;
+          this.options.editable.add = options.editable;
+          this.options.editable.remove = options.editable;
+        } else if (typeof options.editable === 'object') {
+          util.selectiveExtend(['updateTime', 'updateGroup', 'add', 'remove'], this.options.editable, options.editable);
+        }
+      }
+
+      // callback functions
+      var addCallback = (function (name) {
+        var fn = options[name];
+        if (fn) {
+          if (!(fn instanceof Function)) {
+            throw new Error('option ' + name + ' must be a function ' + name + '(item, callback)');
+          }
+          this.options[name] = fn;
+        }
+      }).bind(this);
+      ['onAdd', 'onUpdate', 'onRemove', 'onMove', 'onMoving'].forEach(addCallback);
+
+      // force the itemSet to refresh: options like orientation and margins may be changed
+      this.markDirty();
+    }
+  };
+
+  /**
+   * Mark the ItemSet dirty so it will refresh everything with next redraw.
+   * Optionally, all items can be marked as dirty and be refreshed.
+   * @param {{refreshItems: boolean}} [options]
+   */
+  ItemSet.prototype.markDirty = function (options) {
+    this.groupIds = [];
+    this.stackDirty = true;
+
+    if (options && options.refreshItems) {
+      util.forEach(this.items, function (item) {
+        item.dirty = true;
+        if (item.displayed) item.redraw();
+      });
+    }
+  };
+
+  /**
+   * Destroy the ItemSet
+   */
+  ItemSet.prototype.destroy = function () {
+    this.hide();
+    this.setItems(null);
+    this.setGroups(null);
+
+    this.hammer = null;
+
+    this.body = null;
+    this.conversion = null;
+  };
+
+  /**
+   * Hide the component from the DOM
+   */
+  ItemSet.prototype.hide = function () {
+    // remove the frame containing the items
+    if (this.dom.frame.parentNode) {
+      this.dom.frame.parentNode.removeChild(this.dom.frame);
+    }
+
+    // remove the axis with dots
+    if (this.dom.axis.parentNode) {
+      this.dom.axis.parentNode.removeChild(this.dom.axis);
+    }
+
+    // remove the labelset containing all group labels
+    if (this.dom.labelSet.parentNode) {
+      this.dom.labelSet.parentNode.removeChild(this.dom.labelSet);
+    }
+  };
+
+  /**
+   * Show the component in the DOM (when not already visible).
+   * @return {Boolean} changed
+   */
+  ItemSet.prototype.show = function () {
+    // show frame containing the items
+    if (!this.dom.frame.parentNode) {
+      this.body.dom.center.appendChild(this.dom.frame);
+    }
+
+    // show axis with dots
+    if (!this.dom.axis.parentNode) {
+      this.body.dom.backgroundVertical.appendChild(this.dom.axis);
+    }
+
+    // show labelset containing labels
+    if (!this.dom.labelSet.parentNode) {
+      this.body.dom.left.appendChild(this.dom.labelSet);
+    }
+  };
+
+  /**
+   * Set selected items by their id. Replaces the current selection
+   * Unknown id's are silently ignored.
+   * @param {string[] | string} [ids] An array with zero or more id's of the items to be
+   *                                  selected, or a single item id. If ids is undefined
+   *                                  or an empty array, all items will be unselected.
+   */
+  ItemSet.prototype.setSelection = function (ids) {
+    var i, ii, id, item;
+
+    if (ids == undefined) ids = [];
+    if (!Array.isArray(ids)) ids = [ids];
+
+    // unselect currently selected items
+    for (i = 0, ii = this.selection.length; i < ii; i++) {
+      id = this.selection[i];
+      item = this.items[id];
+      if (item) item.unselect();
+    }
+
+    // select items
+    this.selection = [];
+    for (i = 0, ii = ids.length; i < ii; i++) {
+      id = ids[i];
+      item = this.items[id];
+      if (item) {
+        this.selection.push(id);
+        item.select();
+      }
+    }
+  };
+
+  /**
+   * Get the selected items by their id
+   * @return {Array} ids  The ids of the selected items
+   */
+  ItemSet.prototype.getSelection = function () {
+    return this.selection.concat([]);
+  };
+
+  /**
+   * Get the id's of the currently visible items.
+   * @returns {Array} The ids of the visible items
+   */
+  ItemSet.prototype.getVisibleItems = function () {
+    var range = this.body.range.getRange();
+    var left = this.body.util.toScreen(range.start);
+    var right = this.body.util.toScreen(range.end);
+
+    var ids = [];
+    for (var groupId in this.groups) {
+      if (this.groups.hasOwnProperty(groupId)) {
+        var group = this.groups[groupId];
+        var rawVisibleItems = group.visibleItems;
+
+        // filter the "raw" set with visibleItems into a set which is really
+        // visible by pixels
+        for (var i = 0; i < rawVisibleItems.length; i++) {
+          var item = rawVisibleItems[i];
+          // TODO: also check whether visible vertically
+          if (item.left < right && item.left + item.width > left) {
+            ids.push(item.id);
+          }
+        }
+      }
+    }
+
+    return ids;
+  };
+
+  /**
+   * Deselect a selected item
+   * @param {String | Number} id
+   * @private
+   */
+  ItemSet.prototype._deselect = function (id) {
+    var selection = this.selection;
+    for (var i = 0, ii = selection.length; i < ii; i++) {
+      if (selection[i] == id) {
+        // non-strict comparison!
+        selection.splice(i, 1);
+        break;
+      }
+    }
+  };
+
+  /**
+   * Repaint the component
+   * @return {boolean} Returns true if the component is resized
+   */
+  ItemSet.prototype.redraw = function () {
+    var margin = this.options.margin,
+        range = this.body.range,
+        asSize = util.option.asSize,
+        options = this.options,
+        orientation = options.orientation.item,
+        resized = false,
+        frame = this.dom.frame,
+        editable = options.editable.updateTime || options.editable.updateGroup;
+
+    // recalculate absolute position (before redrawing groups)
+    this.props.top = this.body.domProps.top.height + this.body.domProps.border.top;
+    this.props.left = this.body.domProps.left.width + this.body.domProps.border.left;
+
+    // update class name
+    frame.className = 'vis-itemset' + (editable ? ' vis-editable' : '');
+
+    // reorder the groups (if needed)
+    resized = this._orderGroups() || resized;
+
+    // check whether zoomed (in that case we need to re-stack everything)
+    // TODO: would be nicer to get this as a trigger from Range
+    var visibleInterval = range.end - range.start;
+    var zoomed = visibleInterval != this.lastVisibleInterval || this.props.width != this.props.lastWidth;
+    if (zoomed) this.stackDirty = true;
+    this.lastVisibleInterval = visibleInterval;
+    this.props.lastWidth = this.props.width;
+
+    var restack = this.stackDirty;
+    var firstGroup = this._firstGroup();
+    var firstMargin = {
+      item: margin.item,
+      axis: margin.axis
+    };
+    var nonFirstMargin = {
+      item: margin.item,
+      axis: margin.item.vertical / 2
+    };
+    var height = 0;
+    var minHeight = margin.axis + margin.item.vertical;
+
+    // redraw the background group
+    this.groups[BACKGROUND].redraw(range, nonFirstMargin, restack);
+
+    // redraw all regular groups
+    util.forEach(this.groups, function (group) {
+      var groupMargin = group == firstGroup ? firstMargin : nonFirstMargin;
+      var groupResized = group.redraw(range, groupMargin, restack);
+      resized = groupResized || resized;
+      height += group.height;
+    });
+    height = Math.max(height, minHeight);
+    this.stackDirty = false;
+
+    // update frame height
+    frame.style.height = asSize(height);
+
+    // calculate actual size
+    this.props.width = frame.offsetWidth;
+    this.props.height = height;
+
+    // reposition axis
+    this.dom.axis.style.top = asSize(orientation == 'top' ? this.body.domProps.top.height + this.body.domProps.border.top : this.body.domProps.top.height + this.body.domProps.centerContainer.height);
+    this.dom.axis.style.left = '0';
+
+    // check if this component is resized
+    resized = this._isResized() || resized;
+
+    return resized;
+  };
+
+  /**
+   * Get the first group, aligned with the axis
+   * @return {Group | null} firstGroup
+   * @private
+   */
+  ItemSet.prototype._firstGroup = function () {
+    var firstGroupIndex = this.options.orientation.item == 'top' ? 0 : this.groupIds.length - 1;
+    var firstGroupId = this.groupIds[firstGroupIndex];
+    var firstGroup = this.groups[firstGroupId] || this.groups[UNGROUPED];
+
+    return firstGroup || null;
+  };
+
+  /**
+   * Create or delete the group holding all ungrouped items. This group is used when
+   * there are no groups specified.
+   * @protected
+   */
+  ItemSet.prototype._updateUngrouped = function () {
+    var ungrouped = this.groups[UNGROUPED];
+    var background = this.groups[BACKGROUND];
+    var item, itemId;
+
+    if (this.groupsData) {
+      // remove the group holding all ungrouped items
+      if (ungrouped) {
+        ungrouped.hide();
+        delete this.groups[UNGROUPED];
+
+        for (itemId in this.items) {
+          if (this.items.hasOwnProperty(itemId)) {
+            item = this.items[itemId];
+            item.parent && item.parent.remove(item);
+            var groupId = this._getGroupId(item.data);
+            var group = this.groups[groupId];
+            group && group.add(item) || item.hide();
+          }
+        }
+      }
+    } else {
+      // create a group holding all (unfiltered) items
+      if (!ungrouped) {
+        var id = null;
+        var data = null;
+        ungrouped = new Group(id, data, this);
+        this.groups[UNGROUPED] = ungrouped;
+
+        for (itemId in this.items) {
+          if (this.items.hasOwnProperty(itemId)) {
+            item = this.items[itemId];
+            ungrouped.add(item);
+          }
+        }
+
+        ungrouped.show();
+      }
+    }
+  };
+
+  /**
+   * Get the element for the labelset
+   * @return {HTMLElement} labelSet
+   */
+  ItemSet.prototype.getLabelSet = function () {
+    return this.dom.labelSet;
+  };
+
+  /**
+   * Set items
+   * @param {vis.DataSet | null} items
+   */
+  ItemSet.prototype.setItems = function (items) {
+    var me = this,
+        ids,
+        oldItemsData = this.itemsData;
+
+    // replace the dataset
+    if (!items) {
+      this.itemsData = null;
+    } else if (items instanceof DataSet || items instanceof DataView) {
+      this.itemsData = items;
+    } else {
+      throw new TypeError('Data must be an instance of DataSet or DataView');
+    }
+
+    if (oldItemsData) {
+      // unsubscribe from old dataset
+      util.forEach(this.itemListeners, function (callback, event) {
+        oldItemsData.off(event, callback);
+      });
+
+      // remove all drawn items
+      ids = oldItemsData.getIds();
+      this._onRemove(ids);
+    }
+
+    if (this.itemsData) {
+      // subscribe to new dataset
+      var id = this.id;
+      util.forEach(this.itemListeners, function (callback, event) {
+        me.itemsData.on(event, callback, id);
+      });
+
+      // add all new items
+      ids = this.itemsData.getIds();
+      this._onAdd(ids);
+
+      // update the group holding all ungrouped items
+      this._updateUngrouped();
+    }
+  };
+
+  /**
+   * Get the current items
+   * @returns {vis.DataSet | null}
+   */
+  ItemSet.prototype.getItems = function () {
+    return this.itemsData;
+  };
+
+  /**
+   * Set groups
+   * @param {vis.DataSet} groups
+   */
+  ItemSet.prototype.setGroups = function (groups) {
+    var me = this,
+        ids;
+
+    // unsubscribe from current dataset
+    if (this.groupsData) {
+      util.forEach(this.groupListeners, function (callback, event) {
+        me.groupsData.off(event, callback);
+      });
+
+      // remove all drawn groups
+      ids = this.groupsData.getIds();
+      this.groupsData = null;
+      this._onRemoveGroups(ids); // note: this will cause a redraw
+    }
+
+    // replace the dataset
+    if (!groups) {
+      this.groupsData = null;
+    } else if (groups instanceof DataSet || groups instanceof DataView) {
+      this.groupsData = groups;
+    } else {
+      throw new TypeError('Data must be an instance of DataSet or DataView');
+    }
+
+    if (this.groupsData) {
+      // subscribe to new dataset
+      var id = this.id;
+      util.forEach(this.groupListeners, function (callback, event) {
+        me.groupsData.on(event, callback, id);
+      });
+
+      // draw all ms
+      ids = this.groupsData.getIds();
+      this._onAddGroups(ids);
+    }
+
+    // update the group holding all ungrouped items
+    this._updateUngrouped();
+
+    // update the order of all items in each group
+    this._order();
+
+    this.body.emitter.emit('change', { queue: true });
+  };
+
+  /**
+   * Get the current groups
+   * @returns {vis.DataSet | null} groups
+   */
+  ItemSet.prototype.getGroups = function () {
+    return this.groupsData;
+  };
+
+  /**
+   * Remove an item by its id
+   * @param {String | Number} id
+   */
+  ItemSet.prototype.removeItem = function (id) {
+    var item = this.itemsData.get(id),
+        dataset = this.itemsData.getDataSet();
+
+    if (item) {
+      // confirm deletion
+      this.options.onRemove(item, function (item) {
+        if (item) {
+          // remove by id here, it is possible that an item has no id defined
+          // itself, so better not delete by the item itself
+          dataset.remove(id);
+        }
+      });
+    }
+  };
+
+  /**
+   * Get the time of an item based on it's data and options.type
+   * @param {Object} itemData
+   * @returns {string} Returns the type
+   * @private
+   */
+  ItemSet.prototype._getType = function (itemData) {
+    return itemData.type || this.options.type || (itemData.end ? 'range' : 'box');
+  };
+
+  /**
+   * Get the group id for an item
+   * @param {Object} itemData
+   * @returns {string} Returns the groupId
+   * @private
+   */
+  ItemSet.prototype._getGroupId = function (itemData) {
+    var type = this._getType(itemData);
+    if (type == 'background' && itemData.group == undefined) {
+      return BACKGROUND;
+    } else {
+      return this.groupsData ? itemData.group : UNGROUPED;
+    }
+  };
+
+  /**
+   * Handle updated items
+   * @param {Number[]} ids
+   * @protected
+   */
+  ItemSet.prototype._onUpdate = function (ids) {
+    var me = this;
+
+    ids.forEach((function (id) {
+      var itemData = me.itemsData.get(id, me.itemOptions);
+      var item = me.items[id];
+      var type = me._getType(itemData);
+
+      var constructor = ItemSet.types[type];
+      var selected;
+
+      if (item) {
+        // update item
+        if (!constructor || !(item instanceof constructor)) {
+          // item type has changed, delete the item and recreate it
+          selected = item.selected; // preserve selection of this item
+          me._removeItem(item);
+          item = null;
+        } else {
+          me._updateItem(item, itemData);
+        }
+      }
+
+      if (!item) {
+        // create item
+        if (constructor) {
+          item = new constructor(itemData, me.conversion, me.options);
+          item.id = id; // TODO: not so nice setting id afterwards
+          me._addItem(item);
+          if (selected) {
+            this.selection.push(id);
+            item.select();
+          }
+        } else if (type == 'rangeoverflow') {
+          // TODO: deprecated since version 2.1.0 (or 3.0.0?). cleanup some day
+          throw new TypeError('Item type "rangeoverflow" is deprecated. Use css styling instead: ' + '.vis-item.vis-range .vis-item-content {overflow: visible;}');
+        } else {
+          throw new TypeError('Unknown item type "' + type + '"');
+        }
+      }
+    }).bind(this));
+
+    this._order();
+    this.stackDirty = true; // force re-stacking of all items next redraw
+    this.body.emitter.emit('change', { queue: true });
+  };
+
+  /**
+   * Handle added items
+   * @param {Number[]} ids
+   * @protected
+   */
+  ItemSet.prototype._onAdd = ItemSet.prototype._onUpdate;
+
+  /**
+   * Handle removed items
+   * @param {Number[]} ids
+   * @protected
+   */
+  ItemSet.prototype._onRemove = function (ids) {
+    var count = 0;
+    var me = this;
+    ids.forEach(function (id) {
+      var item = me.items[id];
+      if (item) {
+        count++;
+        me._removeItem(item);
+      }
+    });
+
+    if (count) {
+      // update order
+      this._order();
+      this.stackDirty = true; // force re-stacking of all items next redraw
+      this.body.emitter.emit('change', { queue: true });
+    }
+  };
+
+  /**
+   * Update the order of item in all groups
+   * @private
+   */
+  ItemSet.prototype._order = function () {
+    // reorder the items in all groups
+    // TODO: optimization: only reorder groups affected by the changed items
+    util.forEach(this.groups, function (group) {
+      group.order();
+    });
+  };
+
+  /**
+   * Handle updated groups
+   * @param {Number[]} ids
+   * @private
+   */
+  ItemSet.prototype._onUpdateGroups = function (ids) {
+    this._onAddGroups(ids);
+  };
+
+  /**
+   * Handle changed groups (added or updated)
+   * @param {Number[]} ids
+   * @private
+   */
+  ItemSet.prototype._onAddGroups = function (ids) {
+    var me = this;
+
+    ids.forEach(function (id) {
+      var groupData = me.groupsData.get(id);
+      var group = me.groups[id];
+
+      if (!group) {
+        // check for reserved ids
+        if (id == UNGROUPED || id == BACKGROUND) {
+          throw new Error('Illegal group id. ' + id + ' is a reserved id.');
+        }
+
+        var groupOptions = Object.create(me.options);
+        util.extend(groupOptions, {
+          height: null
+        });
+
+        group = new Group(id, groupData, me);
+        me.groups[id] = group;
+
+        // add items with this groupId to the new group
+        for (var itemId in me.items) {
+          if (me.items.hasOwnProperty(itemId)) {
+            var item = me.items[itemId];
+            if (item.data.group == id) {
+              group.add(item);
+            }
+          }
+        }
+
+        group.order();
+        group.show();
+      } else {
+        // update group
+        group.setData(groupData);
+      }
+    });
+
+    this.body.emitter.emit('change', { queue: true });
+  };
+
+  /**
+   * Handle removed groups
+   * @param {Number[]} ids
+   * @private
+   */
+  ItemSet.prototype._onRemoveGroups = function (ids) {
+    var groups = this.groups;
+    ids.forEach(function (id) {
+      var group = groups[id];
+
+      if (group) {
+        group.hide();
+        delete groups[id];
+      }
+    });
+
+    this.markDirty();
+
+    this.body.emitter.emit('change', { queue: true });
+  };
+
+  /**
+   * Reorder the groups if needed
+   * @return {boolean} changed
+   * @private
+   */
+  ItemSet.prototype._orderGroups = function () {
+    if (this.groupsData) {
+      // reorder the groups
+      var groupIds = this.groupsData.getIds({
+        order: this.options.groupOrder
+      });
+
+      var changed = !util.equalArray(groupIds, this.groupIds);
+      if (changed) {
+        // hide all groups, removes them from the DOM
+        var groups = this.groups;
+        groupIds.forEach(function (groupId) {
+          groups[groupId].hide();
+        });
+
+        // show the groups again, attach them to the DOM in correct order
+        groupIds.forEach(function (groupId) {
+          groups[groupId].show();
+        });
+
+        this.groupIds = groupIds;
+      }
+
+      return changed;
+    } else {
+      return false;
+    }
+  };
+
+  /**
+   * Add a new item
+   * @param {Item} item
+   * @private
+   */
+  ItemSet.prototype._addItem = function (item) {
+    this.items[item.id] = item;
+
+    // add to group
+    var groupId = this._getGroupId(item.data);
+    var group = this.groups[groupId];
+    if (group) group.add(item);
+  };
+
+  /**
+   * Update an existing item
+   * @param {Item} item
+   * @param {Object} itemData
+   * @private
+   */
+  ItemSet.prototype._updateItem = function (item, itemData) {
+    var oldGroupId = item.data.group;
+    var oldSubGroupId = item.data.subgroup;
+
+    // update the items data (will redraw the item when displayed)
+    item.setData(itemData);
+
+    // update group
+    if (oldGroupId != item.data.group || oldSubGroupId != item.data.subgroup) {
+      var oldGroup = this.groups[oldGroupId];
+      if (oldGroup) oldGroup.remove(item);
+
+      var groupId = this._getGroupId(item.data);
+      var group = this.groups[groupId];
+      if (group) group.add(item);
+    }
+  };
+
+  /**
+   * Delete an item from the ItemSet: remove it from the DOM, from the map
+   * with items, and from the map with visible items, and from the selection
+   * @param {Item} item
+   * @private
+   */
+  ItemSet.prototype._removeItem = function (item) {
+    // remove from DOM
+    item.hide();
+
+    // remove from items
+    delete this.items[item.id];
+
+    // remove from selection
+    var index = this.selection.indexOf(item.id);
+    if (index != -1) this.selection.splice(index, 1);
+
+    // remove from group
+    item.parent && item.parent.remove(item);
+  };
+
+  /**
+   * Create an array containing all items being a range (having an end date)
+   * @param array
+   * @returns {Array}
+   * @private
+   */
+  ItemSet.prototype._constructByEndArray = function (array) {
+    var endArray = [];
+
+    for (var i = 0; i < array.length; i++) {
+      if (array[i] instanceof RangeItem) {
+        endArray.push(array[i]);
+      }
+    }
+    return endArray;
+  };
+
+  /**
+   * Register the clicked item on touch, before dragStart is initiated.
+   *
+   * dragStart is initiated from a mousemove event, AFTER the mouse/touch is
+   * already moving. Therefore, the mouse/touch can sometimes be above an other
+   * DOM element than the item itself.
+   *
+   * @param {Event} event
+   * @private
+   */
+  ItemSet.prototype._onTouch = function (event) {
+    // store the touched item, used in _onDragStart
+    this.touchParams.item = this.itemFromTarget(event);
+    this.touchParams.dragLeftItem = event.target.dragLeftItem || false;
+    this.touchParams.dragRightItem = event.target.dragRightItem || false;
+    this.touchParams.itemProps = null;
+  };
+
+  /**
+   * Start dragging the selected events
+   * @param {Event} event
+   * @private
+   */
+  ItemSet.prototype._onDragStart = function (event) {
+    if (!this.options.editable.updateTime && !this.options.editable.updateGroup) {
+      return;
+    }
+
+    var item = this.touchParams.item || null;
+    var me = this;
+    var props;
+
+    if (item && item.selected) {
+      var dragLeftItem = this.touchParams.dragLeftItem;
+      var dragRightItem = this.touchParams.dragRightItem;
+
+      if (dragLeftItem) {
+        props = {
+          item: dragLeftItem,
+          initialX: event.center.x,
+          dragLeft: true,
+          data: util.extend({}, item.data) // clone the items data
+        };
+
+        this.touchParams.itemProps = [props];
+      } else if (dragRightItem) {
+        props = {
+          item: dragRightItem,
+          initialX: event.center.x,
+          dragRight: true,
+          data: util.extend({}, item.data) // clone the items data
+        };
+
+        this.touchParams.itemProps = [props];
+      } else {
+        this.touchParams.itemProps = this.getSelection().map(function (id) {
+          var item = me.items[id];
+          var props = {
+            item: item,
+            initialX: event.center.x,
+            data: util.extend({}, item.data) // clone the items data
+          };
+
+          return props;
+        });
+      }
+
+      event.stopPropagation();
+    } else if (this.options.editable.add && (event.srcEvent.ctrlKey || event.srcEvent.metaKey)) {
+      // create a new range item when dragging with ctrl key down
+      this._onDragStartAddItem(event);
+    }
+  };
+
+  /**
+   * Start creating a new range item by dragging.
+   * @param {Event} event
+   * @private
+   */
+  ItemSet.prototype._onDragStartAddItem = function (event) {
+    var snap = this.options.snap || null;
+    var xAbs = util.getAbsoluteLeft(this.dom.frame);
+    var x = event.center.x - xAbs - 10; // minus 10 to compensate for the drag starting as soon as you've moved 10px
+    var time = this.body.util.toTime(x);
+    var scale = this.body.util.getScale();
+    var step = this.body.util.getStep();
+    var start = snap ? snap(time, scale, step) : start;
+    var end = start;
+
+    var itemData = {
+      type: 'range',
+      start: start,
+      end: end,
+      content: 'new item'
+    };
+
+    var id = util.randomUUID();
+    itemData[this.itemsData._fieldId] = id;
+
+    var group = this.groupFromTarget(event);
+    if (group) {
+      itemData.group = group.groupId;
+    }
+
+    var newItem = new RangeItem(itemData, this.conversion, this.options);
+    newItem.id = id; // TODO: not so nice setting id afterwards
+    newItem.data = itemData;
+    this._addItem(newItem);
+
+    var props = {
+      item: newItem,
+      dragRight: true,
+      initialX: event.center.x,
+      data: util.extend({}, itemData)
+    };
+    this.touchParams.itemProps = [props];
+
+    event.stopPropagation();
+  };
+
+  /**
+   * Drag selected items
+   * @param {Event} event
+   * @private
+   */
+  ItemSet.prototype._onDrag = function (event) {
+    if (this.touchParams.itemProps) {
+      event.stopPropagation();
+
+      var me = this;
+      var snap = this.options.snap || null;
+      var xOffset = this.body.dom.root.offsetLeft + this.body.domProps.left.width;
+      var scale = this.body.util.getScale();
+      var step = this.body.util.getStep();
+
+      // move
+      this.touchParams.itemProps.forEach(function (props) {
+        var newProps = {};
+        var current = me.body.util.toTime(event.center.x - xOffset);
+        var initial = me.body.util.toTime(props.initialX - xOffset);
+        var offset = current - initial;
+
+        var itemData = util.extend({}, props.item.data); // clone the data
+
+        if (me.options.editable.updateTime) {
+          if (props.dragLeft) {
+            // drag left side of a range item
+            if (itemData.start != undefined) {
+              var initialStart = util.convert(props.data.start, 'Date');
+              var start = new Date(initialStart.valueOf() + offset);
+              itemData.start = snap ? snap(start, scale, step) : start;
+            }
+          } else if (props.dragRight) {
+            // drag right side of a range item
+            if (itemData.end != undefined) {
+              var initialEnd = util.convert(props.data.end, 'Date');
+              var end = new Date(initialEnd.valueOf() + offset);
+              itemData.end = snap ? snap(end, scale, step) : end;
+            }
+          } else {
+            // drag both start and end
+            if (itemData.start != undefined) {
+              var initialStart = util.convert(props.data.start, 'Date').valueOf();
+              var start = new Date(initialStart + offset);
+
+              if (itemData.end != undefined) {
+                var initialEnd = util.convert(props.data.end, 'Date');
+                var duration = initialEnd.valueOf() - initialStart.valueOf();
+
+                itemData.start = snap ? snap(start, scale, step) : start;
+                itemData.end = new Date(itemData.start.valueOf() + duration);
+              } else {
+                itemData.start = snap ? snap(start, scale, step) : start;
+              }
+            }
+          }
+        }
+
+        if (me.options.editable.updateGroup && (!props.dragLeft && !props.dragRight)) {
+          if (itemData.group != undefined) {
+            // drag from one group to another
+            var group = me.groupFromTarget(event);
+            if (group) {
+              itemData.group = group.groupId;
+            }
+          }
+        }
+
+        // confirm moving the item
+        me.options.onMoving(itemData, function (itemData) {
+          if (itemData) {
+            props.item.setData(itemData);
+          }
+        });
+      });
+
+      this.stackDirty = true; // force re-stacking of all items next redraw
+      this.body.emitter.emit('change');
+    }
+  };
+
+  /**
+   * Move an item to another group
+   * @param {Item} item
+   * @param {String | Number} groupId
+   * @private
+   */
+  ItemSet.prototype._moveToGroup = function (item, groupId) {
+    var group = this.groups[groupId];
+    if (group && group.groupId != item.data.group) {
+      var oldGroup = item.parent;
+      oldGroup.remove(item);
+      oldGroup.order();
+      group.add(item);
+      group.order();
+
+      item.data.group = group.groupId;
+    }
+  };
+
+  /**
+   * End of dragging selected items
+   * @param {Event} event
+   * @private
+   */
+  ItemSet.prototype._onDragEnd = function (event) {
+    if (this.touchParams.itemProps) {
+      event.stopPropagation();
+
+      // prepare a change set for the changed items
+      var changes = [];
+      var me = this;
+      var dataset = this.itemsData.getDataSet();
+
+      var itemProps = this.touchParams.itemProps;
+      this.touchParams.itemProps = null;
+      itemProps.forEach(function (props) {
+        var id = props.item.id;
+        var exists = me.itemsData.get(id, me.itemOptions) != null;
+
+        if (!exists) {
+          // add a new item
+          me.options.onAdd(props.item.data, function (itemData) {
+            me._removeItem(props.item); // remove temporary item
+            if (itemData) {
+              me.itemsData.getDataSet().add(itemData);
+            }
+
+            // force re-stacking of all items next redraw
+            me.stackDirty = true;
+            me.body.emitter.emit('change');
+          });
+        } else {
+          // update existing item
+          var itemData = util.extend({}, props.item.data); // clone the data
+          me.options.onMove(itemData, function (itemData) {
+            if (itemData) {
+              // apply changes
+              itemData[dataset._fieldId] = id; // ensure the item contains its id (can be undefined)
+              changes.push(itemData);
+            } else {
+              // restore original values
+              props.item.setData(props.data);
+
+              me.stackDirty = true; // force re-stacking of all items next redraw
+              me.body.emitter.emit('change');
+            }
+          });
+        }
+      });
+
+      // apply the changes to the data (if there are changes)
+      if (changes.length) {
+        dataset.update(changes);
+      }
+    }
+  };
+
+  /**
+   * Handle selecting/deselecting an item when tapping it
+   * @param {Event} event
+   * @private
+   */
+  ItemSet.prototype._onSelectItem = function (event) {
+    if (!this.options.selectable) return;
+
+    var ctrlKey = event.srcEvent && (event.srcEvent.ctrlKey || event.srcEvent.metaKey);
+    var shiftKey = event.srcEvent && event.srcEvent.shiftKey;
+    if (ctrlKey || shiftKey) {
+      this._onMultiSelectItem(event);
+      return;
+    }
+
+    var oldSelection = this.getSelection();
+
+    var item = this.itemFromTarget(event);
+    var selection = item ? [item.id] : [];
+    this.setSelection(selection);
+
+    var newSelection = this.getSelection();
+
+    // emit a select event,
+    // except when old selection is empty and new selection is still empty
+    if (newSelection.length > 0 || oldSelection.length > 0) {
+      this.body.emitter.emit('select', {
+        items: newSelection,
+        event: event
+      });
+    }
+  };
+
+  /**
+   * Handle creation and updates of an item on double tap
+   * @param event
+   * @private
+   */
+  ItemSet.prototype._onAddItem = function (event) {
+    if (!this.options.selectable) return;
+    if (!this.options.editable.add) return;
+
+    var me = this;
+    var snap = this.options.snap || null;
+    var item = this.itemFromTarget(event);
+
+    event.stopPropagation();
+
+    if (item) {
+      // update item
+
+      // execute async handler to update the item (or cancel it)
+      var itemData = me.itemsData.get(item.id); // get a clone of the data from the dataset
+      this.options.onUpdate(itemData, function (itemData) {
+        if (itemData) {
+          me.itemsData.getDataSet().update(itemData);
+        }
+      });
+    } else {
+      // add item
+      var xAbs = util.getAbsoluteLeft(this.dom.frame);
+      var x = event.center.x - xAbs;
+      var start = this.body.util.toTime(x);
+      var scale = this.body.util.getScale();
+      var step = this.body.util.getStep();
+
+      var newItem = {
+        start: snap ? snap(start, scale, step) : start,
+        content: 'new item'
+      };
+
+      // when default type is a range, add a default end date to the new item
+      if (this.options.type === 'range') {
+        var end = this.body.util.toTime(x + this.props.width / 5);
+        newItem.end = snap ? snap(end, scale, step) : end;
+      }
+
+      newItem[this.itemsData._fieldId] = util.randomUUID();
+
+      var group = this.groupFromTarget(event);
+      if (group) {
+        newItem.group = group.groupId;
+      }
+
+      // execute async handler to customize (or cancel) adding an item
+      this.options.onAdd(newItem, function (item) {
+        if (item) {
+          me.itemsData.getDataSet().add(item);
+          // TODO: need to trigger a redraw?
+        }
+      });
+    }
+  };
+
+  /**
+   * Handle selecting/deselecting multiple items when holding an item
+   * @param {Event} event
+   * @private
+   */
+  ItemSet.prototype._onMultiSelectItem = function (event) {
+    if (!this.options.selectable) return;
+
+    var item = this.itemFromTarget(event);
+
+    if (item) {
+      // multi select items (if allowed)
+
+      var selection = this.options.multiselect ? this.getSelection() // take current selection
+      : []; // deselect current selection
+
+      var shiftKey = event.srcEvent && event.srcEvent.shiftKey || false;
+
+      if (shiftKey && this.options.multiselect) {
+        // select all items between the old selection and the tapped item
+
+        // determine the selection range
+        selection.push(item.id);
+        var range = ItemSet._getItemRange(this.itemsData.get(selection, this.itemOptions));
+
+        // select all items within the selection range
+        selection = [];
+        for (var id in this.items) {
+          if (this.items.hasOwnProperty(id)) {
+            var _item = this.items[id];
+            var start = _item.data.start;
+            var end = _item.data.end !== undefined ? _item.data.end : start;
+
+            if (start >= range.min && end <= range.max && !(_item instanceof BackgroundItem)) {
+              selection.push(_item.id); // do not use id but item.id, id itself is stringified
+            }
+          }
+        }
+      } else {
+        // add/remove this item from the current selection
+        var index = selection.indexOf(item.id);
+        if (index == -1) {
+          // item is not yet selected -> select it
+          selection.push(item.id);
+        } else {
+          // item is already selected -> deselect it
+          selection.splice(index, 1);
+        }
+      }
+
+      this.setSelection(selection);
+
+      this.body.emitter.emit('select', {
+        items: this.getSelection(),
+        event: event
+      });
+    }
+  };
+
+  /**
+   * Calculate the time range of a list of items
+   * @param {Array.<Object>} itemsData
+   * @return {{min: Date, max: Date}} Returns the range of the provided items
+   * @private
+   */
+  ItemSet._getItemRange = function (itemsData) {
+    var max = null;
+    var min = null;
+
+    itemsData.forEach(function (data) {
+      if (min == null || data.start < min) {
+        min = data.start;
+      }
+
+      if (data.end != undefined) {
+        if (max == null || data.end > max) {
+          max = data.end;
+        }
+      } else {
+        if (max == null || data.start > max) {
+          max = data.start;
+        }
+      }
+    });
+
+    return {
+      min: min,
+      max: max
+    };
+  };
+
+  /**
+   * Find an item from an event target:
+   * searches for the attribute 'timeline-item' in the event target's element tree
+   * @param {Event} event
+   * @return {Item | null} item
+   */
+  ItemSet.prototype.itemFromTarget = function (event) {
+    var target = event.target;
+    while (target) {
+      if (target.hasOwnProperty('timeline-item')) {
+        return target['timeline-item'];
+      }
+      target = target.parentNode;
+    }
+
+    return null;
+  };
+
+  /**
+   * Find the Group from an event target:
+   * searches for the attribute 'timeline-group' in the event target's element tree
+   * @param {Event} event
+   * @return {Group | null} group
+   */
+  ItemSet.prototype.groupFromTarget = function (event) {
+    var clientY = event.center ? event.center.y : event.clientY;
+    for (var i = 0; i < this.groupIds.length; i++) {
+      var groupId = this.groupIds[i];
+      var group = this.groups[groupId];
+      var foreground = group.dom.foreground;
+      var top = util.getAbsoluteTop(foreground);
+      if (clientY > top && clientY < top + foreground.offsetHeight) {
+        return group;
+      }
+
+      if (this.options.orientation.item === 'top') {
+        if (i === this.groupIds.length - 1 && clientY > top) {
+          return group;
+        }
+      } else {
+        if (i === 0 && clientY < top + foreground.offset) {
+          return group;
+        }
+      }
+    }
+
+    return null;
+  };
+
+  /**
+   * Find the ItemSet from an event target:
+   * searches for the attribute 'timeline-itemset' in the event target's element tree
+   * @param {Event} event
+   * @return {ItemSet | null} item
+   */
+  ItemSet.itemSetFromTarget = function (event) {
+    var target = event.target;
+    while (target) {
+      if (target.hasOwnProperty('timeline-itemset')) {
+        return target['timeline-itemset'];
+      }
+      target = target.parentNode;
+    }
+
+    return null;
+  };
+
+  module.exports = ItemSet;
+
+/***/ },
 /* 32 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
 
-  var util = __webpack_require__(2);
+  var util = __webpack_require__(1);
   var stack = __webpack_require__(33);
   var RangeItem = __webpack_require__(34);
 
@@ -17877,7 +17870,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   'use strict';
 
-  var Hammer = __webpack_require__(24);
+  var Hammer = __webpack_require__(23);
   var Item = __webpack_require__(35);
 
   /**
@@ -18171,8 +18164,8 @@ return /******/ (function(modules) { // webpackBootstrap
 
   'use strict';
 
-  var Hammer = __webpack_require__(24);
-  var util = __webpack_require__(2);
+  var Hammer = __webpack_require__(23);
+  var util = __webpack_require__(1);
 
   /**
    * @constructor Item
@@ -18461,9 +18454,9 @@ return /******/ (function(modules) { // webpackBootstrap
 
   'use strict';
 
-  var moment = __webpack_require__(4);
-  var DateUtil = __webpack_require__(30);
-  var util = __webpack_require__(2);
+  var moment = __webpack_require__(2);
+  var DateUtil = __webpack_require__(29);
+  var util = __webpack_require__(1);
 
   /**
    * @constructor  TimeStep
@@ -19151,7 +19144,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   'use strict';
 
-  var util = __webpack_require__(2);
+  var util = __webpack_require__(1);
   var Group = __webpack_require__(32);
 
   /**
@@ -19216,7 +19209,7 @@ return /******/ (function(modules) { // webpackBootstrap
   'use strict';
 
   var Item = __webpack_require__(35);
-  var util = __webpack_require__(2);
+  var util = __webpack_require__(1);
 
   /**
    * @constructor BoxItem
@@ -19656,7 +19649,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   'use strict';
 
-  var Hammer = __webpack_require__(24);
+  var Hammer = __webpack_require__(23);
   var Item = __webpack_require__(35);
   var BackgroundGroup = __webpack_require__(37);
   var RangeItem = __webpack_require__(34);
@@ -19877,11 +19870,11 @@ return /******/ (function(modules) { // webpackBootstrap
 
   'use strict';
 
-  var util = __webpack_require__(2);
-  var Component = __webpack_require__(22);
+  var util = __webpack_require__(1);
+  var Component = __webpack_require__(21);
   var TimeStep = __webpack_require__(36);
-  var DateUtil = __webpack_require__(30);
-  var moment = __webpack_require__(4);
+  var DateUtil = __webpack_require__(29);
+  var moment = __webpack_require__(2);
 
   /**
    * A horizontal time axis
@@ -20317,9 +20310,9 @@ return /******/ (function(modules) { // webpackBootstrap
   'use strict';
 
   var keycharm = __webpack_require__(43);
-  var Emitter = __webpack_require__(14);
-  var Hammer = __webpack_require__(24);
-  var util = __webpack_require__(2);
+  var Emitter = __webpack_require__(13);
+  var Hammer = __webpack_require__(23);
+  var util = __webpack_require__(1);
 
   /**
    * Turn an element into an clickToUse element.
@@ -20674,11 +20667,11 @@ return /******/ (function(modules) { // webpackBootstrap
 
   'use strict';
 
-  var Hammer = __webpack_require__(24);
-  var util = __webpack_require__(2);
-  var Component = __webpack_require__(22);
-  var moment = __webpack_require__(4);
-  var locales = __webpack_require__(23);
+  var Hammer = __webpack_require__(23);
+  var util = __webpack_require__(1);
+  var Component = __webpack_require__(21);
+  var moment = __webpack_require__(2);
+  var locales = __webpack_require__(22);
 
   /**
    * A custom time bar
@@ -20927,7 +20920,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   var _ColorPicker2 = _interopRequireDefault(_ColorPicker);
 
-  var util = __webpack_require__(2);
+  var util = __webpack_require__(1);
 
   /**
    * The way this works is for all properties of this.possible options, you can supply the property name in any form to list the options.
@@ -21602,9 +21595,9 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
 
-  var Hammer = __webpack_require__(24);
-  var hammerUtil = __webpack_require__(29);
-  var util = __webpack_require__(2);
+  var Hammer = __webpack_require__(23);
+  var hammerUtil = __webpack_require__(28);
+  var util = __webpack_require__(1);
 
   var ColorPicker = (function () {
     function ColorPicker() {
@@ -22182,7 +22175,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
 
-  var util = __webpack_require__(2);
+  var util = __webpack_require__(1);
 
   var errorFound = false;
   var allOptions = undefined;
@@ -22701,15 +22694,15 @@ return /******/ (function(modules) { // webpackBootstrap
 
   'use strict';
 
-  var Emitter = __webpack_require__(14);
-  var Hammer = __webpack_require__(24);
-  var util = __webpack_require__(2);
-  var DataSet = __webpack_require__(9);
-  var DataView = __webpack_require__(11);
-  var Range = __webpack_require__(28);
-  var Core = __webpack_require__(31);
+  var Emitter = __webpack_require__(13);
+  var Hammer = __webpack_require__(23);
+  var util = __webpack_require__(1);
+  var DataSet = __webpack_require__(8);
+  var DataView = __webpack_require__(10);
+  var Range = __webpack_require__(27);
+  var Core = __webpack_require__(30);
   var TimeAxis = __webpack_require__(41);
-  var CurrentTime = __webpack_require__(21);
+  var CurrentTime = __webpack_require__(20);
   var CustomTime = __webpack_require__(44);
   var LineGraph = __webpack_require__(50);
 
@@ -23031,11 +23024,11 @@ return /******/ (function(modules) { // webpackBootstrap
 
   'use strict';
 
-  var util = __webpack_require__(2);
-  var DOMutil = __webpack_require__(8);
-  var DataSet = __webpack_require__(9);
-  var DataView = __webpack_require__(11);
-  var Component = __webpack_require__(22);
+  var util = __webpack_require__(1);
+  var DOMutil = __webpack_require__(7);
+  var DataSet = __webpack_require__(8);
+  var DataView = __webpack_require__(10);
+  var Component = __webpack_require__(21);
   var DataAxis = __webpack_require__(51);
   var GraphGroup = __webpack_require__(53);
   var Legend = __webpack_require__(57);
@@ -24007,9 +24000,9 @@ return /******/ (function(modules) { // webpackBootstrap
 
   'use strict';
 
-  var util = __webpack_require__(2);
-  var DOMutil = __webpack_require__(8);
-  var Component = __webpack_require__(22);
+  var util = __webpack_require__(1);
+  var DOMutil = __webpack_require__(7);
+  var Component = __webpack_require__(21);
   var DataStep = __webpack_require__(52);
 
   /**
@@ -24838,8 +24831,8 @@ return /******/ (function(modules) { // webpackBootstrap
 
   'use strict';
 
-  var util = __webpack_require__(2);
-  var DOMutil = __webpack_require__(8);
+  var util = __webpack_require__(1);
+  var DOMutil = __webpack_require__(7);
   var Line = __webpack_require__(54);
   var Bar = __webpack_require__(56);
   var Points = __webpack_require__(55);
@@ -25032,7 +25025,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   'use strict';
 
-  var DOMutil = __webpack_require__(8);
+  var DOMutil = __webpack_require__(7);
   var Points = __webpack_require__(55);
 
   function Line(groupId, options) {
@@ -25327,7 +25320,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   'use strict';
 
-  var DOMutil = __webpack_require__(8);
+  var DOMutil = __webpack_require__(7);
 
   function Points(groupId, options) {
     this.groupId = groupId;
@@ -25374,7 +25367,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   'use strict';
 
-  var DOMutil = __webpack_require__(8);
+  var DOMutil = __webpack_require__(7);
   var Points = __webpack_require__(55);
 
   function Bargraph(groupId, options) {
@@ -25622,9 +25615,9 @@ return /******/ (function(modules) { // webpackBootstrap
 
   'use strict';
 
-  var util = __webpack_require__(2);
-  var DOMutil = __webpack_require__(8);
-  var Component = __webpack_require__(22);
+  var util = __webpack_require__(1);
+  var DOMutil = __webpack_require__(7);
+  var Component = __webpack_require__(21);
 
   /**
    * Legend for Graph2d
@@ -26167,11 +26160,11 @@ return /******/ (function(modules) { // webpackBootstrap
 
   __webpack_require__(109);
 
-  var Emitter = __webpack_require__(14);
-  var Hammer = __webpack_require__(24);
-  var util = __webpack_require__(2);
-  var DataSet = __webpack_require__(9);
-  var DataView = __webpack_require__(11);
+  var Emitter = __webpack_require__(13);
+  var Hammer = __webpack_require__(23);
+  var util = __webpack_require__(1);
+  var DataSet = __webpack_require__(8);
+  var DataView = __webpack_require__(10);
   var dotparser = __webpack_require__(110);
   var gephiParser = __webpack_require__(111);
   var Images = __webpack_require__(112);
@@ -26718,7 +26711,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
-  var util = __webpack_require__(2);
+  var util = __webpack_require__(1);
 
   /**
    * @class Groups
@@ -26870,9 +26863,9 @@ return /******/ (function(modules) { // webpackBootstrap
 
   var _componentsSharedLabel2 = _interopRequireDefault(_componentsSharedLabel);
 
-  var util = __webpack_require__(2);
-  var DataSet = __webpack_require__(9);
-  var DataView = __webpack_require__(11);
+  var util = __webpack_require__(1);
+  var DataSet = __webpack_require__(8);
+  var DataView = __webpack_require__(10);
 
   var NodesHandler = (function () {
     function NodesHandler(body, images, groups, layoutEngine) {
@@ -27404,7 +27397,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   var _sharedValidator2 = _interopRequireDefault(_sharedValidator);
 
-  var util = __webpack_require__(2);
+  var util = __webpack_require__(1);
 
   /**
    * @class Node
@@ -27860,7 +27853,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
 
-  var util = __webpack_require__(2);
+  var util = __webpack_require__(1);
 
   var Label = (function () {
     function Label(body, options) {
@@ -27977,19 +27970,19 @@ return /******/ (function(modules) { // webpackBootstrap
 
         var yLine = this.size.yLine;
 
-        var _getColor = this._getColor(viewFontSize);
+        var _getColor2 = this._getColor(viewFontSize);
 
-        var _getColor2 = _slicedToArray(_getColor, 2);
+        var _getColor22 = _slicedToArray(_getColor2, 2);
 
-        var fontColor = _getColor2[0];
-        var strokeColor = _getColor2[1];
+        var fontColor = _getColor22[0];
+        var strokeColor = _getColor22[1];
 
-        var _setAlignment = this._setAlignment(ctx, x, yLine, baseline);
+        var _setAlignment2 = this._setAlignment(ctx, x, yLine, baseline);
 
-        var _setAlignment2 = _slicedToArray(_setAlignment, 2);
+        var _setAlignment22 = _slicedToArray(_setAlignment2, 2);
 
-        x = _setAlignment2[0];
-        yLine = _setAlignment2[1];
+        x = _setAlignment22[0];
+        yLine = _setAlignment22[1];
 
         // configure context for drawing the text
         ctx.font = (selected ? 'bold ' : '') + fontSize + 'px ' + this.options.font.face;
@@ -29637,9 +29630,9 @@ return /******/ (function(modules) { // webpackBootstrap
 
   var _componentsSharedLabel2 = _interopRequireDefault(_componentsSharedLabel);
 
-  var util = __webpack_require__(2);
-  var DataSet = __webpack_require__(9);
-  var DataView = __webpack_require__(11);
+  var util = __webpack_require__(1);
+  var DataSet = __webpack_require__(8);
+  var DataView = __webpack_require__(10);
 
   var EdgesHandler = (function () {
     function EdgesHandler(body, images, groups) {
@@ -30082,7 +30075,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   var _edgesStraightEdge2 = _interopRequireDefault(_edgesStraightEdge);
 
-  var util = __webpack_require__(2);
+  var util = __webpack_require__(1);
 
   /**
    * @class Edge
@@ -30942,7 +30935,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
 
-  var util = __webpack_require__(2);
+  var util = __webpack_require__(1);
 
   var EdgeBase = (function () {
     function EdgeBase(options, body, labelModule) {
@@ -31011,13 +31004,13 @@ return /******/ (function(modules) { // webpackBootstrap
           // draw line
           via = this._line(ctx);
         } else {
-          var _getCircleData = this._getCircleData(ctx);
+          var _getCircleData2 = this._getCircleData(ctx);
 
-          var _getCircleData2 = _slicedToArray(_getCircleData, 3);
+          var _getCircleData22 = _slicedToArray(_getCircleData2, 3);
 
-          var x = _getCircleData2[0];
-          var y = _getCircleData2[1];
-          var radius = _getCircleData2[2];
+          var x = _getCircleData22[0];
+          var y = _getCircleData22[1];
+          var radius = _getCircleData22[2];
 
           this._circle(ctx, x, y, radius);
         }
@@ -31932,7 +31925,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   var _componentsPhysicsFA2BasedCentralGravitySolver2 = _interopRequireDefault(_componentsPhysicsFA2BasedCentralGravitySolver);
 
-  var util = __webpack_require__(2);
+  var util = __webpack_require__(1);
 
   var PhysicsEngine = (function () {
     function PhysicsEngine(body) {
@@ -33662,7 +33655,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   var _componentsNodesCluster2 = _interopRequireDefault(_componentsNodesCluster);
 
-  var util = __webpack_require__(2);
+  var util = __webpack_require__(1);
 
   var ClusterEngine = (function () {
     function ClusterEngine(body) {
@@ -34460,7 +34453,7 @@ return /******/ (function(modules) { // webpackBootstrap
     window.requestAnimationFrame = window.requestAnimationFrame || window.mozRequestAnimationFrame || window.webkitRequestAnimationFrame || window.msRequestAnimationFrame;
   }
 
-  var util = __webpack_require__(2);
+  var util = __webpack_require__(1);
 
   var CanvasRenderer = (function () {
     function CanvasRenderer(body, canvas) {
@@ -34842,10 +34835,10 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
 
-  var Hammer = __webpack_require__(24);
-  var hammerUtil = __webpack_require__(29);
+  var Hammer = __webpack_require__(23);
+  var hammerUtil = __webpack_require__(28);
 
-  var util = __webpack_require__(2);
+  var util = __webpack_require__(1);
 
   /**
    * Create the main frame for the Network.
@@ -35220,7 +35213,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
-  var util = __webpack_require__(2);
+  var util = __webpack_require__(1);
 
   var View = (function () {
     function View(body, canvas) {
@@ -35633,7 +35626,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   var _componentsPopup2 = _interopRequireDefault(_componentsPopup);
 
-  var util = __webpack_require__(2);
+  var util = __webpack_require__(1);
 
   var InteractionHandler = (function () {
     function InteractionHandler(body, canvas, selectionHandler) {
@@ -35836,10 +35829,10 @@ return /******/ (function(modules) { // webpackBootstrap
         var selectedNodesCount = this.selectionHandler._getSelectedNodeCount();
         var currentSelection = this.selectionHandler.getSelection();
 
-        var _determineIfDifferent = this._determineIfDifferent(previousSelection, currentSelection);
+        var _determineIfDifferent2 = this._determineIfDifferent(previousSelection, currentSelection);
 
-        var nodesChanges = _determineIfDifferent.nodesChanges;
-        var edgesChanges = _determineIfDifferent.edgesChanges;
+        var nodesChanges = _determineIfDifferent2.nodesChanges;
+        var edgesChanges = _determineIfDifferent2.edgesChanges;
 
         if (selectedNodesCount - previouslySelectedNodeCount > 0) {
           // node was selected
@@ -36384,9 +36377,9 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
 
-  var util = __webpack_require__(2);
-  var Hammer = __webpack_require__(24);
-  var hammerUtil = __webpack_require__(29);
+  var util = __webpack_require__(1);
+  var Hammer = __webpack_require__(23);
+  var hammerUtil = __webpack_require__(28);
   var keycharm = __webpack_require__(43);
 
   var NavigationHandler = (function () {
@@ -36829,7 +36822,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   var Node = __webpack_require__(62);
   var Edge = __webpack_require__(82);
-  var util = __webpack_require__(2);
+  var util = __webpack_require__(1);
 
   var SelectionHandler = (function () {
     function SelectionHandler(body, canvas) {
@@ -37551,7 +37544,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
 
-  var util = __webpack_require__(2);
+  var util = __webpack_require__(1);
 
   var LayoutEngine = (function () {
     function LayoutEngine(body) {
@@ -38061,9 +38054,9 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
 
-  var util = __webpack_require__(2);
-  var Hammer = __webpack_require__(24);
-  var hammerUtil = __webpack_require__(29);
+  var util = __webpack_require__(1);
+  var Hammer = __webpack_require__(23);
+  var hammerUtil = __webpack_require__(28);
 
   /**
    * clears the toolbar div element of children
