@@ -30,7 +30,7 @@ http://visjs.org
 - Added releaseFunction to openCluster.
 - Fixed bug where the network could flicker when the pixelRatio is not integer.
 - Added enabled property to physics.
-
+- Fixed #927, dragStart event didnt contain node that was being dragged
 
 ## 2015-05-28, version 4.1.0
 
