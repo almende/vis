@@ -758,7 +758,7 @@ function (option, path) {
       <td><span parent="orientation" class="right-caret"></span> orientation</td>
       <td>String or Object</td>
       <td><code>'bottom'</code></td>
-      <td>Orientation of the timelines axis and items. When orientation is a string, the value is applied to both items and axis. Can be 'top', 'bottom' (default), or 'both'.</td>
+      <td>Orientation of the timelines axis and items. When orientation is a string, the value is applied to both items and axis. Can be 'top', 'bottom' (default), 'both', or 'none'.</td>
     </tr>
     <tr parent="orientation" class="hidden">
       <td class="indent">orientation.axis</td>
@@ -1001,6 +1001,12 @@ function (option, path) {
           <li><code>what</code> (String or null): name of the clicked thing: <code>item</code>, <code>background</code>, <code>axis</code>, <code>group-label</code>, <code>custom-time</code>, or <code>current-time</code>.</li>
           <li><code>event</code> (Object): the original click event.</li>
         </ul>
+        Example usage:
+        <pre class="prettyprint lang-js">
+document.getElementById('myTimeline').onclick = function (event) {
+  var props = timeline.getEventProperties(event)
+  console.log(props);
+}</pre>
       </td>
     </tr>
 
@@ -1250,6 +1256,7 @@ timeline.off('select', onSelect);
       <td>
         <ul>
           <li><code>items</code>: an array with the ids of the selected items</li>
+          <li><code>event</code>: the original click event</li>
         </ul>
       </td>
       <td>Fired after the user selects or deselects items by tapping or holding them.
