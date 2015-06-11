@@ -1,7 +1,14 @@
 # vis.js history
 http://visjs.org
 
-## not-yet-released, version 4.1.1-SNAPSHOT
+## not-yet released, version 4.2.1-SNAPSHOT
+
+### Graph2d
+
+- Fixed #942: bug when data is empty.
+
+
+## 2015-06-05, version 4.2.0
 
 ### General
 
