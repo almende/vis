@@ -4,6 +4,10 @@ http://visjs.org
 
 ## NOT YET RELEASED, verions 4.2.1--SNAPSHOT
 
+### General
+
+- Fixed #950: option `locales` broken in `Timeline`, `Graph2d`, and `Network`.
+
 ### Graph2d
 
 - Fixed #942: bug when data is empty.
