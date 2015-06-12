@@ -6,7 +6,7 @@
     <meta name="description" content="">
     <meta name="author" content="">
     <link rel="icon" HREF="favicon.ico">
-    <title>vis.js - A dynamic, browser based visualization library.</title>
+    <title>vis.js - Physics documentation.</title>
 
     <!-- Bootstrap core CSS -->
     <link href="../css/bootstrap.css" rel="stylesheet">
@@ -68,7 +68,7 @@
 <div class="container full">
     <h1>Network - physics</h1>
     <p>Handles the physics simulation, moving the nodes and edges to show them clearly.</p>
-
+    <a class="btn btn-primary" role="button" onclick="history.back()">Back to overview.</a>
     <h3>Options</h3>
     <p>The options for the physics have to be contained in an object titled 'physics'.</p>
     <p>Click on the full options or shorthand options to show how these options are supposed to be used.</p>
@@ -82,6 +82,7 @@
 // these are all options in full.
 var options = {
   physics:{
+    enabled: true,
     barnesHut: {
       gravitationalConstant: -2000,
       centralGravity: 0.3,
@@ -141,6 +142,7 @@ network.setOptions(options);
     <p>All of the individual options are explained here:</p>
     <table class="options" id="optionTable">
         <tr><th>Name</th><th>Type</th><th>Default</th><th>Description</th></tr>
+        <tr><td>enabled</td>                    <td>Boolean</td>                <td><code>true</code></td>     <td>Toggle the physics system on or off. This property is optional. If you define any of the options below and enabled is undefined, this will be set to true.</td></tr>
         <tr class='toggle collapsible' onclick="toggleTable('optionTable','barnesHut', this);"><td><span parent="barnesHut" class="right-caret"></span> barnesHut</td>                       <td>Object</td>         <td><code>Object</code></td>    <td>BarnesHut is a quadtree based gravity model. This is the fastest, default and recommended solver for non-hierarchical layouts.</td></tr>
         <tr parent="barnesHut" class="hidden"><td class="indent">barnesHut.gravitationalConstant</td>        <td>Number</td>         <td><code>-2000</code></td>     <td>Gravity attracts. We like repulsion. So the value is negative. If you want the repulsion to be stronger, decrease the value (so -10000, -50000).</td></tr>
         <tr parent="barnesHut" class="hidden"><td class="indent">barnesHut.centralGravity</td>               <td>Number</td>         <td><code>0.3</code></td>       <td>There is a central gravity attractor to pull the entire network back to the center.</td></tr>
