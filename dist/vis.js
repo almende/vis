@@ -5,7 +5,7 @@
  * A dynamic, browser-based visualization library.
  *
  * @version 4.2.0--SNAPSHOT
- * @date    2015-06-14
+ * @date    2015-06-15
  *
  * @license
  * Copyright (C) 2011-2014 Almende B.V, http://almende.com
@@ -15030,7 +15030,7 @@ return /******/ (function(modules) { // webpackBootstrap
   Core.prototype.fit = function (options) {
     var range = this.getDataRange();
 
-    // skip range set if there is no start and end date
+    // skip range set if there is no min and max date
     if (range.min === null && range.max === null) {
       return;
     }
@@ -15050,25 +15050,11 @@ return /******/ (function(modules) { // webpackBootstrap
    * @protected
    */
   Core.prototype.getDataRange = function () {
-    // apply the data range as range
-    var dataRange = this.getItemRange();
-
-    // add 1% space on both sides
-    var start = dataRange.min;
-    var end = dataRange.max;
-    if (start != null && end != null) {
-      var interval = end.valueOf() - start.valueOf();
-      if (interval <= 0) {
-        // prevent an empty interval
-        interval = 24 * 60 * 60 * 1000; // 1 day
-      }
-      start = new Date(start.valueOf() - interval * 0.01);
-      end = new Date(end.valueOf() + interval * 0.01);
-    }
+    // must be implemented by Timeline and Graph2d
 
     return {
-      start: null,
-      end: null
+      min: null,
+      max: null
     };
   };
 
@@ -22432,9 +22418,9 @@ return /******/ (function(modules) { // webpackBootstrap
       // http://en.wikibooks.org/wiki/Algorithm_Implementation/Strings/Levenshtein_distance#JavaScript
       /*
        Copyright (c) 2011 Andrei Mackenzie
-         Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
-         The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
-         THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+        Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+        The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+        THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
        */
       value: function levenshteinDistance(a, b) {
         if (a.length === 0) return b.length;
@@ -27974,19 +27960,19 @@ return /******/ (function(modules) { // webpackBootstrap
 
         var yLine = this.size.yLine;
 
-        var _getColor2 = this._getColor(viewFontSize);
+        var _getColor = this._getColor(viewFontSize);
 
-        var _getColor22 = _slicedToArray(_getColor2, 2);
+        var _getColor2 = _slicedToArray(_getColor, 2);
 
-        var fontColor = _getColor22[0];
-        var strokeColor = _getColor22[1];
+        var fontColor = _getColor2[0];
+        var strokeColor = _getColor2[1];
 
-        var _setAlignment2 = this._setAlignment(ctx, x, yLine, baseline);
+        var _setAlignment = this._setAlignment(ctx, x, yLine, baseline);
 
-        var _setAlignment22 = _slicedToArray(_setAlignment2, 2);
+        var _setAlignment2 = _slicedToArray(_setAlignment, 2);
 
-        x = _setAlignment22[0];
-        yLine = _setAlignment22[1];
+        x = _setAlignment2[0];
+        yLine = _setAlignment2[1];
 
         // configure context for drawing the text
         ctx.font = (selected ? 'bold ' : '') + fontSize + 'px ' + this.options.font.face;
@@ -31008,13 +30994,13 @@ return /******/ (function(modules) { // webpackBootstrap
           // draw line
           via = this._line(ctx);
         } else {
-          var _getCircleData2 = this._getCircleData(ctx);
+          var _getCircleData = this._getCircleData(ctx);
 
-          var _getCircleData22 = _slicedToArray(_getCircleData2, 3);
+          var _getCircleData2 = _slicedToArray(_getCircleData, 3);
 
-          var x = _getCircleData22[0];
-          var y = _getCircleData22[1];
-          var radius = _getCircleData22[2];
+          var x = _getCircleData2[0];
+          var y = _getCircleData2[1];
+          var radius = _getCircleData2[2];
 
           this._circle(ctx, x, y, radius);
         }
@@ -35833,10 +35819,10 @@ return /******/ (function(modules) { // webpackBootstrap
         var selectedNodesCount = this.selectionHandler._getSelectedNodeCount();
         var currentSelection = this.selectionHandler.getSelection();
 
-        var _determineIfDifferent2 = this._determineIfDifferent(previousSelection, currentSelection);
+        var _determineIfDifferent = this._determineIfDifferent(previousSelection, currentSelection);
 
-        var nodesChanges = _determineIfDifferent2.nodesChanges;
-        var edgesChanges = _determineIfDifferent2.edgesChanges;
+        var nodesChanges = _determineIfDifferent.nodesChanges;
+        var edgesChanges = _determineIfDifferent.edgesChanges;
 
         if (selectedNodesCount - previouslySelectedNodeCount > 0) {
           // node was selected

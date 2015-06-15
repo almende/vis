@@ -10,7 +10,7 @@ http://visjs.org
 
 ### Graph2d
 
-- Fixed #942: bug when data is empty.
+- Fixed #942, #966: bug when data is empty.
 
 
 ## 2015-06-05, version 4.2.0
