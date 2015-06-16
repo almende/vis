@@ -4,8 +4,8 @@
  *
  * A dynamic, browser-based visualization library.
  *
- * @version 4.2.0--SNAPSHOT
- * @date    2015-06-15
+ * @version 4.3.0
+ * @date    2015-06-16
  *
  * @license
  * Copyright (C) 2011-2014 Almende B.V, http://almende.com
@@ -4636,7 +4636,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 /***/ },
 /* 4 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ function(module, exports) {
 
   module.exports = function(module) {
   	if(!module.webpackPolyfill) {
@@ -4652,7 +4652,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 /***/ },
 /* 5 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ function(module, exports) {
 
   function webpackContext(req) {
   	throw new Error("Cannot find module '" + req + "'.");
@@ -4665,7 +4665,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 /***/ },
 /* 6 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ function(module, exports) {
 
   /* WEBPACK VAR INJECTION */(function(global) {'use strict';
 
@@ -4881,7 +4881,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 /***/ },
 /* 7 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ function(module, exports) {
 
   // DOM utility methods
 
@@ -5978,7 +5978,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 /***/ },
 /* 9 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ function(module, exports) {
 
   /**
    * A queue
@@ -8749,7 +8749,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 /***/ },
 /* 12 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ function(module, exports) {
 
   /**
    * @prototype Point2d
@@ -8767,7 +8767,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 /***/ },
 /* 13 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ function(module, exports) {
 
   
   /**
@@ -8937,7 +8937,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 /***/ },
 /* 14 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ function(module, exports) {
 
   /**
    * @prototype Point3d
@@ -9720,7 +9720,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 /***/ },
 /* 18 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ function(module, exports) {
 
   /**
    * @prototype StepNumber
@@ -9987,9 +9987,6 @@ return /******/ (function(modules) { // webpackBootstrap
       me.emit('contextmenu', me.getEventProperties(event));
     };
 
-    // setup configuration system
-    this.configurator = new Configurator(this, container, configureOptions);
-
     // apply options
     if (options) {
       this.setOptions(options);
@@ -10010,6 +10007,15 @@ return /******/ (function(modules) { // webpackBootstrap
 
   // Extend the functionality from Core
   Timeline.prototype = new Core();
+
+  /**
+   * Load a configurator
+   * @return {Object}
+   * @private
+   */
+  Timeline.prototype._createConfigurator = function () {
+    return new Configurator(this, this.dom.container, configureOptions);
+  };
 
   /**
    * Force a redraw. The size of all items will be recalculated.
@@ -10564,7 +10570,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 /***/ },
 /* 21 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ function(module, exports) {
 
   /**
    * Prototype for visual components
@@ -10624,7 +10630,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 /***/ },
 /* 22 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ function(module, exports) {
 
   // English
   'use strict';
@@ -13356,7 +13362,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 /***/ },
 /* 26 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ function(module, exports) {
 
   /* WEBPACK VAR INJECTION */(function(__webpack_amd_options__) {module.exports = __webpack_amd_options__;
 
@@ -14608,6 +14614,8 @@ return /******/ (function(modules) { // webpackBootstrap
   Core.prototype._create = function (container) {
     this.dom = {};
 
+    this.dom.container = container;
+
     this.dom.root = document.createElement('div');
     this.dom.background = document.createElement('div');
     this.dom.backgroundVertical = document.createElement('div');
@@ -14855,7 +14863,11 @@ return /******/ (function(modules) { // webpackBootstrap
     });
 
     // enable/disable configure
-    if (this.configurator) {
+    if ('configure' in options) {
+      if (!this.configurator) {
+        this.configurator = this._createConfigurator();
+      }
+
       this.configurator.setOptions(options.configure);
 
       // collect the settings of all components, and pass them to the configuration system
@@ -15051,11 +15063,7 @@ return /******/ (function(modules) { // webpackBootstrap
    */
   Core.prototype.getDataRange = function () {
     // must be implemented by Timeline and Graph2d
-
-    return {
-      min: null,
-      max: null
-    };
+    throw new Error('Cannot invoke abstract method getDataRange');
   };
 
   /**
@@ -15523,6 +15531,15 @@ return /******/ (function(modules) { // webpackBootstrap
    */
   Core.prototype._getScrollTop = function () {
     return this.props.scrollTop;
+  };
+
+  /**
+   * Load a configurator
+   * @return {Object}
+   * @private
+   */
+  Core.prototype._createConfigurator = function () {
+    throw new Error('Cannot invoke abstract method _createConfigurator');
   };
 
   module.exports = Core;
@@ -16039,15 +16056,14 @@ return /******/ (function(modules) { // webpackBootstrap
         options = this.options,
         orientation = options.orientation.item,
         resized = false,
-        frame = this.dom.frame,
-        editable = options.editable.updateTime || options.editable.updateGroup;
+        frame = this.dom.frame;
 
     // recalculate absolute position (before redrawing groups)
     this.props.top = this.body.domProps.top.height + this.body.domProps.border.top;
     this.props.left = this.body.domProps.left.width + this.body.domProps.border.left;
 
     // update class name
-    frame.className = 'vis-itemset' + (editable ? ' vis-editable' : '');
+    frame.className = 'vis-itemset';
 
     // reorder the groups (if needed)
     resized = this._orderGroups() || resized;
@@ -16632,15 +16648,21 @@ return /******/ (function(modules) { // webpackBootstrap
    * @private
    */
   ItemSet.prototype._onDragStart = function (event) {
-    if (!this.options.editable.updateTime && !this.options.editable.updateGroup) {
-      return;
-    }
-
     var item = this.touchParams.item || null;
     var me = this;
     var props;
 
     if (item && item.selected) {
+
+      if (!this.options.editable.updateTime && !this.options.editable.updateGroup && !item.editable) {
+        return;
+      }
+
+      // override options.editable
+      if (item.editable === false) {
+        return;
+      }
+
       var dragLeftItem = this.touchParams.dragLeftItem;
       var dragRightItem = this.touchParams.dragRightItem;
 
@@ -16752,7 +16774,13 @@ return /******/ (function(modules) { // webpackBootstrap
 
         var itemData = util.extend({}, props.item.data); // clone the data
 
-        if (me.options.editable.updateTime) {
+        if (props.item.editable === false) {
+          return;
+        }
+
+        var updateTimeAllowed = me.options.editable.updateTime || props.item.editable === true;
+
+        if (updateTimeAllowed) {
           if (props.dragLeft) {
             // drag left side of a range item
             if (itemData.start != undefined) {
@@ -16786,7 +16814,9 @@ return /******/ (function(modules) { // webpackBootstrap
           }
         }
 
-        if (me.options.editable.updateGroup && (!props.dragLeft && !props.dragRight)) {
+        var updateGroupAllowed = me.options.editable.updateGroup || props.item.editable === true;
+
+        if (updateGroupAllowed && (!props.dragLeft && !props.dragRight)) {
           if (itemData.group != undefined) {
             // drag from one group to another
             var group = me.groupFromTarget(event);
@@ -17728,7 +17758,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 /***/ },
 /* 33 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ function(module, exports) {
 
   // Utility functions for ordering and stacking of items
   'use strict';
@@ -17957,8 +17987,10 @@ return /******/ (function(modules) { // webpackBootstrap
       this._updateDataAttributes(this.dom.box);
       this._updateStyle(this.dom.box);
 
+      var editable = (this.options.editable.updateTime || this.options.editable.updateGroup || this.editable === true) && this.editable !== false;
+
       // update class
-      var className = (this.data.className ? ' ' + this.data.className : '') + (this.selected ? ' vis-selected' : '');
+      var className = (this.data.className ? ' ' + this.data.className : '') + (this.selected ? ' vis-selected' : '') + (editable ? ' vis-editable' : ' vis-readonly');
       dom.box.className = this.baseClassName + className;
 
       // determine from css whether this box has overflow
@@ -18178,6 +18210,11 @@ return /******/ (function(modules) { // webpackBootstrap
     this.left = null;
     this.width = null;
     this.height = null;
+
+    this.editable = null;
+    if (this.data && this.data.hasOwnProperty('editable') && typeof this.data.editable === 'boolean') {
+      this.editable = data.editable;
+    }
   }
 
   Item.prototype.stack = true;
@@ -18209,6 +18246,10 @@ return /******/ (function(modules) { // webpackBootstrap
     var groupChanged = data.group != undefined && this.data.group != data.group;
     if (groupChanged) {
       this.parent.itemSet._moveToGroup(this, data.group);
+    }
+
+    if (data.hasOwnProperty('editable') && typeof data.editable === 'boolean') {
+      this.editable = data.editable;
     }
 
     this.data = data;
@@ -18279,7 +18320,9 @@ return /******/ (function(modules) { // webpackBootstrap
    * @protected
    */
   Item.prototype._repaintDeleteButton = function (anchor) {
-    if (this.selected && this.options.editable.remove && !this.dom.deleteButton) {
+    var editable = (this.options.editable.remove || this.data.editable === true) && this.data.editable !== false;
+
+    if (this.selected && editable && !this.dom.deleteButton) {
       // create and show button
       var me = this;
 
@@ -19306,8 +19349,10 @@ return /******/ (function(modules) { // webpackBootstrap
       this._updateDataAttributes(this.dom.box);
       this._updateStyle(this.dom.box);
 
+      var editable = (this.options.editable.updateTime || this.options.editable.updateGroup || this.editable === true) && this.editable !== false;
+
       // update class
-      var className = (this.data.className ? ' ' + this.data.className : '') + (this.selected ? ' vis-selected' : '');
+      var className = (this.data.className ? ' ' + this.data.className : '') + (this.selected ? ' vis-selected' : '') + (editable ? ' vis-editable' : ' vis-readonly');
       dom.box.className = 'vis-item vis-box' + className;
       dom.line.className = 'vis-item vis-line' + className;
       dom.dot.className = 'vis-item vis-dot' + className;
@@ -19533,8 +19578,10 @@ return /******/ (function(modules) { // webpackBootstrap
       this._updateDataAttributes(this.dom.point);
       this._updateStyle(this.dom.point);
 
+      var editable = (this.options.editable.updateTime || this.options.editable.updateGroup || this.editable === true) && this.editable !== false;
+
       // update class
-      var className = (this.data.className ? ' ' + this.data.className : '') + (this.selected ? ' vis-selected' : '');
+      var className = (this.data.className ? ' ' + this.data.className : '') + (this.selected ? ' vis-selected' : '') + (editable ? ' vis-editable' : ' vis-readonly');
       dom.point.className = 'vis-item vis-point' + className;
       dom.dot.className = 'vis-item vis-dot' + className;
 
@@ -21248,10 +21295,12 @@ return /******/ (function(modules) { // webpackBootstrap
         var max = arr[2];
         var step = arr[3];
         var range = document.createElement('input');
-        range.type = 'range';
         range.className = 'vis-network-configuration range';
-        range.min = min;
-        range.max = max;
+        try {
+          range.type = 'range'; // not supported on IE9
+          range.min = min;
+          range.max = max;
+        } catch (err) {}
         range.step = step;
 
         if (value !== undefined) {
@@ -21936,16 +21985,20 @@ return /******/ (function(modules) { // webpackBootstrap
         this.arrowDiv.className = 'vis-arrow';
 
         this.opacityRange = document.createElement('input');
-        this.opacityRange.type = 'range';
-        this.opacityRange.min = '0';
-        this.opacityRange.max = '100';
+        try {
+          this.opacityRange.type = 'range'; // Not supported on IE9
+          this.opacityRange.min = '0';
+          this.opacityRange.max = '100';
+        } catch (err) {}
         this.opacityRange.value = '100';
         this.opacityRange.className = 'vis-range';
 
         this.brightnessRange = document.createElement('input');
-        this.brightnessRange.type = 'range';
-        this.brightnessRange.min = '0';
-        this.brightnessRange.max = '100';
+        try {
+          this.brightnessRange.type = 'range'; // Not supported on IE9
+          this.brightnessRange.min = '0';
+          this.brightnessRange.max = '100';
+        } catch (err) {}
         this.brightnessRange.value = '100';
         this.brightnessRange.className = 'vis-range';
 
@@ -22465,7 +22518,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 /***/ },
 /* 48 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ function(module, exports) {
 
   /**
    * This object contains all possible options. It will check if the types are correct, if required if the option is one
@@ -22790,9 +22843,6 @@ return /******/ (function(modules) { // webpackBootstrap
       me.emit('contextmenu', me.getEventProperties(event));
     };
 
-    // setup configuration system
-    this.configurator = new Configurator(this, container, configureOptions);
-
     // apply options
     if (options) {
       this.setOptions(options);
@@ -23003,6 +23053,15 @@ return /******/ (function(modules) { // webpackBootstrap
       time: time,
       value: value
     };
+  };
+
+  /**
+   * Load a configurator
+   * @return {Object}
+   * @private
+   */
+  Graph2d.prototype._createConfigurator = function () {
+    return new Configurator(this, this.dom.container, configureOptions);
   };
 
   module.exports = Graph2d;
@@ -24589,7 +24648,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 /***/ },
 /* 52 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ function(module, exports) {
 
   /**
    * @constructor  DataStep
@@ -25814,7 +25873,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 /***/ },
 /* 58 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ function(module, exports) {
 
   /**
    * This object contains all possible options. It will check if the types are correct, if required if the option is one
@@ -26253,9 +26312,6 @@ return /******/ (function(modules) { // webpackBootstrap
     // create the DOM elements
     this.canvas._create();
 
-    // setup configuration system
-    this.configurator = new _sharedConfigurator2['default'](this, this.body.container, _optionsJs.configureOptions, this.canvas.pixelRatio);
-
     // apply options
     this.setOptions(options);
 
@@ -26308,15 +26364,21 @@ return /******/ (function(modules) { // webpackBootstrap
       //this.view.setOptions(options.view);
       //this.clustering.setOptions(options.clustering);
 
-      this.configurator.setOptions(options.configure);
+      if ('configure' in options) {
+        if (!this.configurator) {
+          this.configurator = new _sharedConfigurator2['default'](this, this.body.container, _optionsJs.configureOptions, this.canvas.pixelRatio);
+        }
+
+        this.configurator.setOptions(options.configure);
+      }
 
       // if the configuration system is enabled, copy all options and put them into the config system
-      if (this.configurator.options.enabled === true) {
+      if (this.configurator && this.configurator.options.enabled === true) {
         var networkOptions = { nodes: {}, edges: {}, layout: {}, interaction: {}, manipulation: {}, physics: {}, global: {} };
         util.deepExtend(networkOptions.nodes, this.nodesHandler.options);
         util.deepExtend(networkOptions.edges, this.edgesHandler.options);
         util.deepExtend(networkOptions.layout, this.layoutEngine.options);
-        // load the selectionHandler and rendere default options in to the interaction group
+        // load the selectionHandler and render default options in to the interaction group
         util.deepExtend(networkOptions.interaction, this.selectionHandler.options);
         util.deepExtend(networkOptions.interaction, this.renderer.options);
 
@@ -27960,19 +28022,19 @@ return /******/ (function(modules) { // webpackBootstrap
 
         var yLine = this.size.yLine;
 
-        var _getColor = this._getColor(viewFontSize);
+        var _getColor2 = this._getColor(viewFontSize);
 
-        var _getColor2 = _slicedToArray(_getColor, 2);
+        var _getColor22 = _slicedToArray(_getColor2, 2);
 
-        var fontColor = _getColor2[0];
-        var strokeColor = _getColor2[1];
+        var fontColor = _getColor22[0];
+        var strokeColor = _getColor22[1];
 
-        var _setAlignment = this._setAlignment(ctx, x, yLine, baseline);
+        var _setAlignment2 = this._setAlignment(ctx, x, yLine, baseline);
 
-        var _setAlignment2 = _slicedToArray(_setAlignment, 2);
+        var _setAlignment22 = _slicedToArray(_setAlignment2, 2);
 
-        x = _setAlignment2[0];
-        yLine = _setAlignment2[1];
+        x = _setAlignment22[0];
+        yLine = _setAlignment22[1];
 
         // configure context for drawing the text
         ctx.font = (selected ? 'bold ' : '') + fontSize + 'px ' + this.options.font.face;
@@ -28250,7 +28312,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 /***/ },
 /* 65 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ function(module, exports) {
 
   'use strict';
 
@@ -30994,13 +31056,13 @@ return /******/ (function(modules) { // webpackBootstrap
           // draw line
           via = this._line(ctx);
         } else {
-          var _getCircleData = this._getCircleData(ctx);
+          var _getCircleData2 = this._getCircleData(ctx);
 
-          var _getCircleData2 = _slicedToArray(_getCircleData, 3);
+          var _getCircleData22 = _slicedToArray(_getCircleData2, 3);
 
-          var x = _getCircleData2[0];
-          var y = _getCircleData2[1];
-          var radius = _getCircleData2[2];
+          var x = _getCircleData22[0];
+          var y = _getCircleData22[1];
+          var radius = _getCircleData22[2];
 
           this._circle(ctx, x, y, radius);
         }
@@ -32504,7 +32566,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 /***/ },
 /* 89 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ function(module, exports) {
 
   "use strict";
 
@@ -33003,7 +33065,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 /***/ },
 /* 90 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ function(module, exports) {
 
   "use strict";
 
@@ -33098,7 +33160,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 /***/ },
 /* 91 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ function(module, exports) {
 
   "use strict";
 
@@ -33189,7 +33251,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 /***/ },
 /* 92 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ function(module, exports) {
 
   "use strict";
 
@@ -33299,7 +33361,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 /***/ },
 /* 93 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ function(module, exports) {
 
   "use strict";
 
@@ -33428,7 +33490,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 /***/ },
 /* 94 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ function(module, exports) {
 
   "use strict";
 
@@ -35819,10 +35881,10 @@ return /******/ (function(modules) { // webpackBootstrap
         var selectedNodesCount = this.selectionHandler._getSelectedNodeCount();
         var currentSelection = this.selectionHandler.getSelection();
 
-        var _determineIfDifferent = this._determineIfDifferent(previousSelection, currentSelection);
+        var _determineIfDifferent2 = this._determineIfDifferent(previousSelection, currentSelection);
 
-        var nodesChanges = _determineIfDifferent.nodesChanges;
-        var edgesChanges = _determineIfDifferent.edgesChanges;
+        var nodesChanges = _determineIfDifferent2.nodesChanges;
+        var edgesChanges = _determineIfDifferent2.edgesChanges;
 
         if (selectedNodesCount - previouslySelectedNodeCount > 0) {
           // node was selected
@@ -36675,7 +36737,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 /***/ },
 /* 104 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ function(module, exports) {
 
   /**
    * Popup is a class to create a popup window with some text
@@ -39253,7 +39315,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 /***/ },
 /* 108 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ function(module, exports) {
 
   /**
    * This object contains all possible options. It will check if the types are correct, if required if the option is one
@@ -39732,7 +39794,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 /***/ },
 /* 109 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ function(module, exports) {
 
   /**
    * Canvas shapes used by Network
@@ -40019,7 +40081,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 /***/ },
 /* 110 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ function(module, exports) {
 
   /**
    * Parse a text source containing data in DOT language into a JSON object.
@@ -40917,7 +40979,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 /***/ },
 /* 111 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ function(module, exports) {
 
   'use strict';
 
@@ -40989,7 +41051,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 /***/ },
 /* 112 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ function(module, exports) {
 
   /**
    * @class Images
@@ -41065,7 +41127,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 /***/ },
 /* 113 */
-/***/ function(module, exports, __webpack_require__) {
+/***/ function(module, exports) {
 
   // English
   'use strict';
