@@ -190,7 +190,7 @@
   z-index: 2;
 }
 
-.vis-editable .vis-item.vis-selected {
+.vis-editable.vis-selected {
   cursor: move;
 }
 

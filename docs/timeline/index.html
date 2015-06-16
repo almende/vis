@@ -203,8 +203,8 @@
     The Timeline uses regular Arrays and Objects as data format.
     Data items can contain the properties <code>start</code>,
     <code>end</code> (optional), <code>content</code>,
-    <code>group</code> (optional), <code>className</code> (optional),
-    and <code>style</code> (optional).
+    <code>group</code> (optional), <code>className</code> (optional), 
+    <code>editable</code> (optional), and <code>style</code> (optional).
   </p>
 
   <p>
@@ -325,6 +325,11 @@ var items = [
         Types 'box' and 'point' need a start date, the types 'range' and 'background' needs both a start and end date.
       </td>
     </tr>
+    <tr>
+      <td>editable</td>
+      <td>Boolean</td>
+      <td>no</td>
+      <td>Override the editable option of the timeline for a specific item.</td>
   </table>
 
   <h3 id="groups">Groups</h3>
@@ -764,7 +769,7 @@ function (option, path) {
       <td class="indent">orientation.axis</td>
       <td>String</td>
       <td><code>'bottom'</code></td>
-      <td>Orientation of the timeline axis: 'top', 'bottom' (default), or 'both'. If orientation is 'bottom', the time axis is drawn at the bottom. When 'top', the axis is drawn on top. When 'both', two axes are drawn, both on top and at the bottom.</td>
+      <td>Orientation of the timeline axis: 'top', 'bottom' (default), 'both', or 'none'. If orientation is 'bottom', the time axis is drawn at the bottom. When 'top', the axis is drawn on top. When 'both', two axes are drawn, both on top and at the bottom. In case of 'none', no axis is drawn at all.</td>
     </tr>
     <tr parent="orientation" class="hidden">
       <td class="indent">orientation.item</td>
@@ -1323,6 +1328,16 @@ var options = {
   }
 };</pre>
 
+  <p>
+    Editing can be enabled/disabled for specific items. Setting the property <code>editable</code> to <code>true</code> or <code>false</code> on a data item will override the timeline option.
+  </p>
+
+<pre class="prettyprint lang-js">
+var items = new vis.DataSet([
+  {id: 1, content: 'read-only item', start: '2013-04-20', editable: false},
+  {id: 2, content: 'editable item', start: '2013-04-14'}
+]);
+</pre>
 
   <p>
     One can specify callback functions to validate changes made by the user. There are a number of callback functions for this purpose:
