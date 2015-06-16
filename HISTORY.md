@@ -2,7 +2,7 @@
 http://visjs.org
 
 
-## NOT YET RELEASED, version 4.2.1--SNAPSHOT
+## NOT YET RELEASED, version 4.2.1-SNAPSHOT
 
 ### General
 
@@ -12,6 +12,10 @@ http://visjs.org
 ### Graph2d
 
 - Fixed #942, #966: bug when data is empty.
+
+### Timeline
+
+- Implemented `editable` option for individual items. Thanks @danbertolini.
 
 
 ## 2015-06-05, version 4.2.0
