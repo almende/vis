@@ -4,6 +4,10 @@ http://visjs.org
 
 ## not-yet-released, version 4.3.1-SNAPSHOT
 
+### Graph3d
+
+- Fixed #970: Implemented options `dataColor`, `axisColor`, and `gridColor`.
+
 
 ## 2015-06-16, version 4.3.0
 

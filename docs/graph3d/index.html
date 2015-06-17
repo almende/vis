@@ -297,6 +297,12 @@ var options = {
         or an object with the following properties.</td>
     </tr>
     <tr>
+      <td>backgroundColor.fill</td>
+      <td>string</td>
+      <td>'white'</td>
+      <td>The chart fill color, as an HTML color string.</td>
+    </tr>
+    <tr>
       <td>backgroundColor.stroke</td>
       <td>string</td>
       <td>'gray'</td>
@@ -307,12 +313,6 @@ var options = {
       <td>number</td>
       <td>1</td>
       <td>The border width, in pixels.</td>
-    </tr>
-    <tr>
-      <td>backgroundColor.fill</td>
-      <td>string</td>
-      <td>'white'</td>
-      <td>The chart fill color, as an HTML color string.</td>
     </tr>
 
     <tr>
@@ -329,6 +329,43 @@ var options = {
         camera to the center of the graph, in the range of 0.71 to 5.0. A
         larger distance puts the graph further away, making it smaller.
         All parameters are optional.
+    </tr>
+
+    <tr>
+      <td>axisColor</td>
+      <td>string</td>
+      <td>'#4D4D4D'</td>
+      <td>The color of the axis lines and the text along the axis.</td>
+    </tr>
+    <tr>
+      <td>dataColor</td>
+      <td>string or object</td>
+      <td>{fill:&nbsp;'#7DC1FF', stroke:&nbsp;'#3267D2', strokeWidth:&nbsp;1}</td>
+      <td>When <code>dataColor</code> is a string, it will set the color for both border and fill color of dots and bars. Applicable for styles <code>dot-size</code>, <code>bar-size</code>, and <code>line</code>. When an object, it can contain the properties descibed below.</td>
+    </tr>
+    <tr>
+      <td>dataColor.fill</td>
+      <td>string</td>
+      <td>'#7DC1FF'</td>
+      <td>The border color of the dots or bars. Applicable when using styles <code>dot-size</code> or <code>bar-size</code>.</td>
+    </tr>
+    <tr>
+      <td>dataColor.stroke</td>
+      <td>string</td>
+      <td>'#3267D2'</td>
+      <td>The fill color of the dots or bars. Applicable when using styles <code>dot-size</code>, <code>bar-size</code>, or <code>line</code>.</td>
+    </tr>
+    <tr>
+      <td>dataColor.strokeWidth</td>
+      <td>number</td>
+      <td>1</td>
+      <td>The line width of dots, bars and lines. Applicable for all styles.</td>
+    </tr>
+    <tr>
+      <td>gridColor</td>
+      <td>string</td>
+      <td>'#D3D3D3'</td>
+      <td>The color of the grid lines.</td>
     </tr>
 
     <tr>

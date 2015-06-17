@@ -5,7 +5,7 @@
  * A dynamic, browser-based visualization library.
  *
  * @version 4.3.1-SNAPSHOT
- * @date    2015-06-16
+ * @date    2015-06-17
  *
  * @license
  * Copyright (C) 2011-2014 Almende B.V, http://almende.com
@@ -6597,6 +6597,8 @@ return /******/ (function(modules) { // webpackBootstrap
     this.animationPreload = false;
 
     this.camera = new Camera();
+    this.camera.setArmRotation(1, 0.5);
+    this.camera.setArmLength(1.7);
     this.eye = new Point3d(0, 0, -1); // TODO: set eye.z about 3/4 of the width of the window?
 
     this.dataTable = null; // The original data table
@@ -6624,11 +6626,14 @@ return /******/ (function(modules) { // webpackBootstrap
     this.yBarWidth = 1;
     // TODO: customize axis range
 
-    // constants
-    this.colorAxis = '#4D4D4D';
-    this.colorGrid = '#D3D3D3';
-    this.colorDot = '#7DC1FF';
-    this.colorDotBorder = '#3267D2';
+    // colors
+    this.axisColor = '#4D4D4D';
+    this.gridColor = '#D3D3D3';
+    this.dataColor = {
+      fill: '#7DC1FF',
+      stroke: '#3267D2',
+      strokeWidth: 1 // px
+    };
 
     // create a frame and canvas
     this.create();
@@ -7384,13 +7389,29 @@ return /******/ (function(modules) { // webpackBootstrap
       if (cameraPosition !== undefined) {
         this.camera.setArmRotation(cameraPosition.horizontal, cameraPosition.vertical);
         this.camera.setArmLength(cameraPosition.distance);
-      } else {
-        this.camera.setArmRotation(1, 0.5);
-        this.camera.setArmLength(1.7);
       }
-    }
 
-    this._setBackgroundColor(options && options.backgroundColor);
+      // colors
+      if (options.axisColor !== undefined) this.axisColor = options.axisColor;
+      if (options.gridColor !== undefined) this.gridColor = options.gridColor;
+      if (options.dataColor) {
+        if (typeof options.dataColor === 'string') {
+          this.dataColor.fill = options.dataColor;
+          this.dataColor.stroke = options.dataColor;
+        } else {
+          if (options.dataColor.fill) {
+            this.dataColor.fill = options.dataColor.fill;
+          }
+          if (options.dataColor.stroke) {
+            this.dataColor.stroke = options.dataColor.stroke;
+          }
+          if (options.dataColor.strokeWidth !== undefined) {
+            this.dataColor.strokeWidth = options.dataColor.strokeWidth;
+          }
+        }
+      }
+      this._setBackgroundColor(options.backgroundColor);
+    }
 
     this.setSize(this.width, this.height);
 
@@ -7493,14 +7514,14 @@ return /******/ (function(modules) { // webpackBootstrap
         ctx.stroke();
       }
 
-      ctx.strokeStyle = this.colorAxis;
+      ctx.strokeStyle = this.axisColor;
       ctx.strokeRect(left, top, widthMax, height);
     }
 
     if (this.style === Graph3d.STYLE.DOTSIZE) {
       // draw border around color bar
-      ctx.strokeStyle = this.colorAxis;
-      ctx.fillStyle = this.colorDot;
+      ctx.strokeStyle = this.axisColor;
+      ctx.fillStyle = this.dataColor.fill;
       ctx.beginPath();
       ctx.moveTo(left, top);
       ctx.lineTo(right, top);
@@ -7529,7 +7550,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
         ctx.textAlign = 'right';
         ctx.textBaseline = 'middle';
-        ctx.fillStyle = this.colorAxis;
+        ctx.fillStyle = this.axisColor;
         ctx.fillText(step.getCurrent(), left - 2 * gridLineLen, y);
 
         step.next();
@@ -7651,7 +7672,7 @@ return /******/ (function(modules) { // webpackBootstrap
       if (this.showGrid) {
         from = this._convert3Dto2D(new Point3d(x, this.yMin, this.zMin));
         to = this._convert3Dto2D(new Point3d(x, this.yMax, this.zMin));
-        ctx.strokeStyle = this.colorGrid;
+        ctx.strokeStyle = this.gridColor;
         ctx.beginPath();
         ctx.moveTo(from.x, from.y);
         ctx.lineTo(to.x, to.y);
@@ -7659,7 +7680,7 @@ return /******/ (function(modules) { // webpackBootstrap
       } else {
         from = this._convert3Dto2D(new Point3d(x, this.yMin, this.zMin));
         to = this._convert3Dto2D(new Point3d(x, this.yMin + gridLenX, this.zMin));
-        ctx.strokeStyle = this.colorAxis;
+        ctx.strokeStyle = this.axisColor;
         ctx.beginPath();
         ctx.moveTo(from.x, from.y);
         ctx.lineTo(to.x, to.y);
@@ -7667,7 +7688,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
         from = this._convert3Dto2D(new Point3d(x, this.yMax, this.zMin));
         to = this._convert3Dto2D(new Point3d(x, this.yMax - gridLenX, this.zMin));
-        ctx.strokeStyle = this.colorAxis;
+        ctx.strokeStyle = this.axisColor;
         ctx.beginPath();
         ctx.moveTo(from.x, from.y);
         ctx.lineTo(to.x, to.y);
@@ -7687,7 +7708,7 @@ return /******/ (function(modules) { // webpackBootstrap
         ctx.textAlign = 'left';
         ctx.textBaseline = 'middle';
       }
-      ctx.fillStyle = this.colorAxis;
+      ctx.fillStyle = this.axisColor;
       ctx.fillText('  ' + this.xValueLabel(step.getCurrent()) + '  ', text.x, text.y);
 
       step.next();
@@ -7705,7 +7726,7 @@ return /******/ (function(modules) { // webpackBootstrap
       if (this.showGrid) {
         from = this._convert3Dto2D(new Point3d(this.xMin, step.getCurrent(), this.zMin));
         to = this._convert3Dto2D(new Point3d(this.xMax, step.getCurrent(), this.zMin));
-        ctx.strokeStyle = this.colorGrid;
+        ctx.strokeStyle = this.gridColor;
         ctx.beginPath();
         ctx.moveTo(from.x, from.y);
         ctx.lineTo(to.x, to.y);
@@ -7713,7 +7734,7 @@ return /******/ (function(modules) { // webpackBootstrap
       } else {
         from = this._convert3Dto2D(new Point3d(this.xMin, step.getCurrent(), this.zMin));
         to = this._convert3Dto2D(new Point3d(this.xMin + gridLenY, step.getCurrent(), this.zMin));
-        ctx.strokeStyle = this.colorAxis;
+        ctx.strokeStyle = this.axisColor;
         ctx.beginPath();
         ctx.moveTo(from.x, from.y);
         ctx.lineTo(to.x, to.y);
@@ -7721,7 +7742,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
         from = this._convert3Dto2D(new Point3d(this.xMax, step.getCurrent(), this.zMin));
         to = this._convert3Dto2D(new Point3d(this.xMax - gridLenY, step.getCurrent(), this.zMin));
-        ctx.strokeStyle = this.colorAxis;
+        ctx.strokeStyle = this.axisColor;
         ctx.beginPath();
         ctx.moveTo(from.x, from.y);
         ctx.lineTo(to.x, to.y);
@@ -7741,7 +7762,7 @@ return /******/ (function(modules) { // webpackBootstrap
         ctx.textAlign = 'left';
         ctx.textBaseline = 'middle';
       }
-      ctx.fillStyle = this.colorAxis;
+      ctx.fillStyle = this.axisColor;
       ctx.fillText('  ' + this.yValueLabel(step.getCurrent()) + '  ', text.x, text.y);
 
       step.next();
@@ -7760,7 +7781,7 @@ return /******/ (function(modules) { // webpackBootstrap
     while (!step.end()) {
       // TODO: make z-grid lines really 3d?
       from = this._convert3Dto2D(new Point3d(xText, yText, step.getCurrent()));
-      ctx.strokeStyle = this.colorAxis;
+      ctx.strokeStyle = this.axisColor;
       ctx.beginPath();
       ctx.moveTo(from.x, from.y);
       ctx.lineTo(from.x - textMargin, from.y);
@@ -7768,7 +7789,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
       ctx.textAlign = 'right';
       ctx.textBaseline = 'middle';
-      ctx.fillStyle = this.colorAxis;
+      ctx.fillStyle = this.axisColor;
       ctx.fillText(this.zValueLabel(step.getCurrent()) + ' ', from.x - 5, from.y);
 
       step.next();
@@ -7776,7 +7797,7 @@ return /******/ (function(modules) { // webpackBootstrap
     ctx.lineWidth = 1;
     from = this._convert3Dto2D(new Point3d(xText, yText, this.zMin));
     to = this._convert3Dto2D(new Point3d(xText, yText, this.zMax));
-    ctx.strokeStyle = this.colorAxis;
+    ctx.strokeStyle = this.axisColor;
     ctx.beginPath();
     ctx.moveTo(from.x, from.y);
     ctx.lineTo(to.x, to.y);
@@ -7787,7 +7808,7 @@ return /******/ (function(modules) { // webpackBootstrap
     // line at yMin
     xMin2d = this._convert3Dto2D(new Point3d(this.xMin, this.yMin, this.zMin));
     xMax2d = this._convert3Dto2D(new Point3d(this.xMax, this.yMin, this.zMin));
-    ctx.strokeStyle = this.colorAxis;
+    ctx.strokeStyle = this.axisColor;
     ctx.beginPath();
     ctx.moveTo(xMin2d.x, xMin2d.y);
     ctx.lineTo(xMax2d.x, xMax2d.y);
@@ -7795,7 +7816,7 @@ return /******/ (function(modules) { // webpackBootstrap
     // line at ymax
     xMin2d = this._convert3Dto2D(new Point3d(this.xMin, this.yMax, this.zMin));
     xMax2d = this._convert3Dto2D(new Point3d(this.xMax, this.yMax, this.zMin));
-    ctx.strokeStyle = this.colorAxis;
+    ctx.strokeStyle = this.axisColor;
     ctx.beginPath();
     ctx.moveTo(xMin2d.x, xMin2d.y);
     ctx.lineTo(xMax2d.x, xMax2d.y);
@@ -7806,7 +7827,7 @@ return /******/ (function(modules) { // webpackBootstrap
     // line at xMin
     from = this._convert3Dto2D(new Point3d(this.xMin, this.yMin, this.zMin));
     to = this._convert3Dto2D(new Point3d(this.xMin, this.yMax, this.zMin));
-    ctx.strokeStyle = this.colorAxis;
+    ctx.strokeStyle = this.axisColor;
     ctx.beginPath();
     ctx.moveTo(from.x, from.y);
     ctx.lineTo(to.x, to.y);
@@ -7814,7 +7835,7 @@ return /******/ (function(modules) { // webpackBootstrap
     // line at xMax
     from = this._convert3Dto2D(new Point3d(this.xMax, this.yMin, this.zMin));
     to = this._convert3Dto2D(new Point3d(this.xMax, this.yMax, this.zMin));
-    ctx.strokeStyle = this.colorAxis;
+    ctx.strokeStyle = this.axisColor;
     ctx.beginPath();
     ctx.moveTo(from.x, from.y);
     ctx.lineTo(to.x, to.y);
@@ -7837,7 +7858,7 @@ return /******/ (function(modules) { // webpackBootstrap
         ctx.textAlign = 'left';
         ctx.textBaseline = 'middle';
       }
-      ctx.fillStyle = this.colorAxis;
+      ctx.fillStyle = this.axisColor;
       ctx.fillText(xLabel, text.x, text.y);
     }
 
@@ -7858,7 +7879,7 @@ return /******/ (function(modules) { // webpackBootstrap
         ctx.textAlign = 'left';
         ctx.textBaseline = 'middle';
       }
-      ctx.fillStyle = this.colorAxis;
+      ctx.fillStyle = this.axisColor;
       ctx.fillText(yLabel, text.x, text.y);
     }
 
@@ -7872,7 +7893,7 @@ return /******/ (function(modules) { // webpackBootstrap
       text = this._convert3Dto2D(new Point3d(xText, yText, zText));
       ctx.textAlign = 'right';
       ctx.textBaseline = 'middle';
-      ctx.fillStyle = this.colorAxis;
+      ctx.fillStyle = this.axisColor;
       ctx.fillText(zLabel, text.x - offset, text.y);
     }
   };
@@ -7931,6 +7952,9 @@ return /******/ (function(modules) { // webpackBootstrap
         s,
         v,
         zAvg;
+
+    ctx.lineJoin = 'round';
+    ctx.lineCap = 'round';
 
     if (this.dataPoints === undefined || this.dataPoints.length <= 0) return; // TODO: throw exception?
 
@@ -7991,15 +8015,14 @@ return /******/ (function(modules) { // webpackBootstrap
             } else {
               v = 1;
               fillStyle = this._hsv2rgb(h, s, v);
-              strokeStyle = this.colorAxis;
+              strokeStyle = this.axisColor;
             }
           } else {
             fillStyle = 'gray';
-            strokeStyle = this.colorAxis;
+            strokeStyle = this.axisColor;
           }
-          lineWidth = 0.5;
 
-          ctx.lineWidth = lineWidth;
+          ctx.lineWidth = this._getStrokeWidth(point);
           ctx.fillStyle = fillStyle;
           ctx.strokeStyle = strokeStyle;
           ctx.beginPath();
@@ -8019,20 +8042,12 @@ return /******/ (function(modules) { // webpackBootstrap
         right = this.dataPoints[i].pointRight;
         top = this.dataPoints[i].pointTop;
 
-        if (point !== undefined) {
-          if (this.showPerspective) {
-            lineWidth = 2 / -point.trans.z;
-          } else {
-            lineWidth = 2 * -(this.eye.z / this.camera.getArmLength());
-          }
-        }
-
         if (point !== undefined && right !== undefined) {
           // calculate Hue from the current value. At zMin the hue is 240, at zMax the hue is 0
           zAvg = (point.point.z + right.point.z) / 2;
           h = (1 - (zAvg - this.zMin) * this.scale.z / this.verticalRatio) * 240;
 
-          ctx.lineWidth = lineWidth;
+          ctx.lineWidth = this._getStrokeWidth(point) * 2;
           ctx.strokeStyle = this._hsv2rgb(h, 1, 1);
           ctx.beginPath();
           ctx.moveTo(point.screen.x, point.screen.y);
@@ -8045,7 +8060,7 @@ return /******/ (function(modules) { // webpackBootstrap
           zAvg = (point.point.z + top.point.z) / 2;
           h = (1 - (zAvg - this.zMin) * this.scale.z / this.verticalRatio) * 240;
 
-          ctx.lineWidth = lineWidth;
+          ctx.lineWidth = this._getStrokeWidth(point) * 2;
           ctx.strokeStyle = this._hsv2rgb(h, 1, 1);
           ctx.beginPath();
           ctx.moveTo(point.screen.x, point.screen.y);
@@ -8054,6 +8069,18 @@ return /******/ (function(modules) { // webpackBootstrap
         }
       }
     }
+  };
+
+  Graph3d.prototype._getStrokeWidth = function (point) {
+    if (point !== undefined) {
+      if (this.showPerspective) {
+        return 1 / -point.trans.z * this.dataColor.strokeWidth;
+      } else {
+        return -(this.eye.z / this.camera.getArmLength()) * this.dataColor.strokeWidth;
+      }
+    }
+
+    return this.dataColor.strokeWidth;
   };
 
   /**
@@ -8095,7 +8122,7 @@ return /******/ (function(modules) { // webpackBootstrap
         //var from = this._convert3Dto2D(new Point3d(point.point.x, point.point.y, this.zMin));
         var from = this._convert3Dto2D(point.bottom);
         ctx.lineWidth = 1;
-        ctx.strokeStyle = this.colorGrid;
+        ctx.strokeStyle = this.gridColor;
         ctx.beginPath();
         ctx.moveTo(from.x, from.y);
         ctx.lineTo(point.screen.x, point.screen.y);
@@ -8127,8 +8154,8 @@ return /******/ (function(modules) { // webpackBootstrap
         color = this._hsv2rgb(hue, 1, 1);
         borderColor = this._hsv2rgb(hue, 1, 0.8);
       } else if (this.style === Graph3d.STYLE.DOTSIZE) {
-        color = this.colorDot;
-        borderColor = this.colorDotBorder;
+        color = this.dataColor.fill;
+        borderColor = this.dataColor.stroke;
       } else {
         // calculate Hue from the current value. At zMin the hue is 240, at zMax the hue is 0
         hue = (1 - (point.point.z - this.zMin) * this.scale.z / this.verticalRatio) * 240;
@@ -8137,7 +8164,7 @@ return /******/ (function(modules) { // webpackBootstrap
       }
 
       // draw the circle
-      ctx.lineWidth = 1;
+      ctx.lineWidth = this._getStrokeWidth(point);
       ctx.strokeStyle = borderColor;
       ctx.fillStyle = color;
       ctx.beginPath();
@@ -8176,6 +8203,9 @@ return /******/ (function(modules) { // webpackBootstrap
     };
     this.dataPoints.sort(sortDepth);
 
+    ctx.lineJoin = 'round';
+    ctx.lineCap = 'round';
+
     // draw the datapoints as bars
     var xWidth = this.xBarWidth / 2;
     var yWidth = this.yBarWidth / 2;
@@ -8190,8 +8220,8 @@ return /******/ (function(modules) { // webpackBootstrap
         color = this._hsv2rgb(hue, 1, 1);
         borderColor = this._hsv2rgb(hue, 1, 0.8);
       } else if (this.style === Graph3d.STYLE.BARSIZE) {
-        color = this.colorDot;
-        borderColor = this.colorDotBorder;
+        color = this.dataColor.fill;
+        borderColor = this.dataColor.stroke;
       } else {
         // calculate Hue from the current value. At zMin the hue is 240, at zMax the hue is 0
         hue = (1 - (point.point.z - this.zMin) * this.scale.z / this.verticalRatio) * 240;
@@ -8247,7 +8277,7 @@ return /******/ (function(modules) { // webpackBootstrap
       });
 
       // draw the ordered surfaces
-      ctx.lineWidth = 1;
+      ctx.lineWidth = this._getStrokeWidth(point);
       ctx.strokeStyle = borderColor;
       ctx.fillStyle = color;
       // NOTE: we start at j=2 instead of j=0 as we don't need to draw the two surfaces at the backside
@@ -8291,20 +8321,20 @@ return /******/ (function(modules) { // webpackBootstrap
     if (this.dataPoints.length > 0) {
       point = this.dataPoints[0];
 
-      ctx.lineWidth = 1; // TODO: make customizable
-      ctx.strokeStyle = 'blue'; // TODO: make customizable
+      ctx.lineWidth = this._getStrokeWidth(point);
+      ctx.lineJoin = 'round';
+      ctx.lineCap = 'round';
+      ctx.strokeStyle = this.dataColor.stroke;
       ctx.beginPath();
       ctx.moveTo(point.screen.x, point.screen.y);
-    }
 
-    // draw the datapoints as colored circles
-    for (i = 1; i < this.dataPoints.length; i++) {
-      point = this.dataPoints[i];
-      ctx.lineTo(point.screen.x, point.screen.y);
-    }
+      // draw the datapoints as colored circles
+      for (i = 1; i < this.dataPoints.length; i++) {
+        point = this.dataPoints[i];
+        ctx.lineTo(point.screen.x, point.screen.y);
+      }
 
-    // finish the line
-    if (this.dataPoints.length > 0) {
+      // finish the line
       ctx.stroke();
     }
   };
