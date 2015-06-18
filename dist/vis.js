@@ -84,65 +84,65 @@ return /******/ (function(modules) { // webpackBootstrap
   // utils
   'use strict';
 
-  exports.util = __webpack_require__(9);
-  exports.DOMutil = __webpack_require__(17);
+  exports.util = __webpack_require__(10);
+  exports.DOMutil = __webpack_require__(19);
 
   // data
-  exports.DataSet = __webpack_require__(18);
-  exports.DataView = __webpack_require__(20);
-  exports.Queue = __webpack_require__(19);
+  exports.DataSet = __webpack_require__(20);
+  exports.DataView = __webpack_require__(22);
+  exports.Queue = __webpack_require__(21);
 
   // Graph3d
-  exports.Graph3d = __webpack_require__(21);
+  exports.Graph3d = __webpack_require__(23);
   exports.graph3d = {
-    Camera: __webpack_require__(25),
-    Filter: __webpack_require__(26),
-    Point2d: __webpack_require__(22),
-    Point3d: __webpack_require__(24),
-    Slider: __webpack_require__(27),
-    StepNumber: __webpack_require__(28)
+    Camera: __webpack_require__(27),
+    Filter: __webpack_require__(28),
+    Point2d: __webpack_require__(24),
+    Point3d: __webpack_require__(26),
+    Slider: __webpack_require__(29),
+    StepNumber: __webpack_require__(30)
   };
 
   // Timeline
-  exports.Timeline = __webpack_require__(29);
-  exports.Graph2d = __webpack_require__(57);
+  exports.Timeline = __webpack_require__(31);
+  exports.Graph2d = __webpack_require__(59);
   exports.timeline = {
-    DateUtil: __webpack_require__(37),
-    DataStep: __webpack_require__(60),
-    Range: __webpack_require__(35),
-    stack: __webpack_require__(41),
-    TimeStep: __webpack_require__(44),
+    DateUtil: __webpack_require__(39),
+    DataStep: __webpack_require__(62),
+    Range: __webpack_require__(37),
+    stack: __webpack_require__(43),
+    TimeStep: __webpack_require__(46),
 
     components: {
       items: {
-        Item: __webpack_require__(43),
-        BackgroundItem: __webpack_require__(48),
-        BoxItem: __webpack_require__(46),
-        PointItem: __webpack_require__(47),
-        RangeItem: __webpack_require__(42)
+        Item: __webpack_require__(45),
+        BackgroundItem: __webpack_require__(50),
+        BoxItem: __webpack_require__(48),
+        PointItem: __webpack_require__(49),
+        RangeItem: __webpack_require__(44)
       },
 
-      Component: __webpack_require__(31),
-      CurrentTime: __webpack_require__(30),
-      CustomTime: __webpack_require__(52),
-      DataAxis: __webpack_require__(59),
-      GraphGroup: __webpack_require__(61),
-      Group: __webpack_require__(40),
-      BackgroundGroup: __webpack_require__(45),
-      ItemSet: __webpack_require__(39),
-      Legend: __webpack_require__(65),
-      LineGraph: __webpack_require__(58),
-      TimeAxis: __webpack_require__(49)
+      Component: __webpack_require__(33),
+      CurrentTime: __webpack_require__(32),
+      CustomTime: __webpack_require__(54),
+      DataAxis: __webpack_require__(61),
+      GraphGroup: __webpack_require__(63),
+      Group: __webpack_require__(42),
+      BackgroundGroup: __webpack_require__(47),
+      ItemSet: __webpack_require__(41),
+      Legend: __webpack_require__(67),
+      LineGraph: __webpack_require__(60),
+      TimeAxis: __webpack_require__(51)
     }
   };
 
   // Network
-  exports.Network = __webpack_require__(67);
+  exports.Network = __webpack_require__(69);
   exports.network = {
-    Images: __webpack_require__(112),
-    dotparser: __webpack_require__(110),
-    gephiParser: __webpack_require__(111),
-    allOptions: __webpack_require__(108)
+    Images: __webpack_require__(11),
+    dotparser: __webpack_require__(111),
+    gephiParser: __webpack_require__(112),
+    allOptions: __webpack_require__(109)
   };
   exports.network.convertDot = function (input) {
     return exports.network.dotparser.DOTToGraph(input);
@@ -157,9 +157,9 @@ return /******/ (function(modules) { // webpackBootstrap
   };
 
   // bundled external libraries
-  exports.moment = __webpack_require__(11);
-  exports.hammer = __webpack_require__(33); // TODO: deprecate exports.hammer some day
-  exports.Hammer = __webpack_require__(33);
+  exports.moment = __webpack_require__(12);
+  exports.hammer = __webpack_require__(35); // TODO: deprecate exports.hammer some day
+  exports.Hammer = __webpack_require__(35);
 
 /***/ },
 /* 1 */
@@ -186,774 +186,12 @@ return /******/ (function(modules) { // webpackBootstrap
 
   var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
 
-  var _get = function get(_x, _x2, _x3) { var _again = true; _function: while (_again) { var object = _x, property = _x2, receiver = _x3; desc = parent = getter = undefined; _again = false; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { _x = parent; _x2 = property; _x3 = receiver; _again = true; continue _function; } } else if ('value' in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } } };
-
-  function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
-
   function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
 
-  function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; }
-
-  var _utilBezierEdgeBase = __webpack_require__(91);
-
-  var _utilBezierEdgeBase2 = _interopRequireDefault(_utilBezierEdgeBase);
-
-  var BezierEdgeDynamic = (function (_BezierEdgeBase) {
-    function BezierEdgeDynamic(options, body, labelModule) {
-      _classCallCheck(this, BezierEdgeDynamic);
-
-      //this.via = undefined; // Here for completeness but not allowed to defined before super() is invoked.
-      _get(Object.getPrototypeOf(BezierEdgeDynamic.prototype), 'constructor', this).call(this, options, body, labelModule); // --> this calls the setOptions below
-    }
-
-    _inherits(BezierEdgeDynamic, _BezierEdgeBase);
-
-    _createClass(BezierEdgeDynamic, [{
-      key: 'setOptions',
-      value: function setOptions(options) {
-        this.options = options;
-        this.id = this.options.id;
-        this.setupSupportNode();
-        this.connect();
-      }
-    }, {
-      key: 'connect',
-      value: function connect() {
-        this.from = this.body.nodes[this.options.from];
-        this.to = this.body.nodes[this.options.to];
-        if (this.from === undefined || this.to === undefined || this.options.physics === false) {
-          this.via.setOptions({ physics: false });
-        } else {
-          // fix weird behaviour where a selfreferencing node has physics enabled
-          if (this.from.id === this.to.id) {
-            this.via.setOptions({ physics: false });
-          } else {
-            this.via.setOptions({ physics: true });
-          }
-        }
-      }
-    }, {
-      key: 'cleanup',
-      value: function cleanup() {
-        if (this.via !== undefined) {
-          delete this.body.nodes[this.via.id];
-          this.via = undefined;
-          return true;
-        }
-        return false;
-      }
-    }, {
-      key: 'togglePhysics',
-      value: function togglePhysics(status) {
-        this.via.setOptions({ physics: status });
-        this.positionBezierNode();
-      }
-    }, {
-      key: 'setupSupportNode',
-
-      /**
-       * Bezier curves require an anchor point to calculate the smooth flow. These points are nodes. These nodes are invisible but
-       * are used for the force calculation.
-       *
-       * The changed data is not called, if needed, it is returned by the main edge constructor.
-       * @private
-       */
-      value: function setupSupportNode() {
-        if (this.via === undefined) {
-          var nodeId = 'edgeId:' + this.id;
-          var node = this.body.functions.createNode({
-            id: nodeId,
-            shape: 'circle',
-            physics: true,
-            hidden: true
-          });
-          this.body.nodes[nodeId] = node;
-          this.via = node;
-          this.via.parentEdgeId = this.id;
-          this.positionBezierNode();
-        }
-      }
-    }, {
-      key: 'positionBezierNode',
-      value: function positionBezierNode() {
-        if (this.via !== undefined && this.from !== undefined && this.to !== undefined) {
-          this.via.x = 0.5 * (this.from.x + this.to.x);
-          this.via.y = 0.5 * (this.from.y + this.to.y);
-        } else if (this.via !== undefined) {
-          this.via.x = 0;
-          this.via.y = 0;
-        }
-      }
-    }, {
-      key: '_line',
-
-      /**
-       * Draw a line between two nodes
-       * @param {CanvasRenderingContext2D} ctx
-       * @private
-       */
-      value: function _line(ctx) {
-        // draw a straight line
-        ctx.beginPath();
-        ctx.moveTo(this.from.x, this.from.y);
-        ctx.quadraticCurveTo(this.via.x, this.via.y, this.to.x, this.to.y);
-        // draw shadow if enabled
-        this.enableShadow(ctx);
-        ctx.stroke();
-        this.disableShadow(ctx);
-        return this.via;
-      }
-    }, {
-      key: 'getPoint',
-
-      /**
-       * Combined function of pointOnLine and pointOnBezier. This gives the coordinates of a point on the line at a certain percentage of the way
-       * @param percentage
-       * @param via
-       * @returns {{x: number, y: number}}
-       * @private
-       */
-      value: function getPoint(percentage) {
-        var t = percentage;
-        var x = Math.pow(1 - t, 2) * this.from.x + 2 * t * (1 - t) * this.via.x + Math.pow(t, 2) * this.to.x;
-        var y = Math.pow(1 - t, 2) * this.from.y + 2 * t * (1 - t) * this.via.y + Math.pow(t, 2) * this.to.y;
-
-        return { x: x, y: y };
-      }
-    }, {
-      key: '_findBorderPosition',
-      value: function _findBorderPosition(nearNode, ctx) {
-        return this._findBorderPositionBezier(nearNode, ctx, this.via);
-      }
-    }, {
-      key: '_getDistanceToEdge',
-      value: function _getDistanceToEdge(x1, y1, x2, y2, x3, y3) {
-        // x3,y3 is the point
-        return this._getDistanceToBezierEdge(x1, y1, x2, y2, x3, y3, this.via);
-      }
-    }]);
-
-    return BezierEdgeDynamic;
-  })(_utilBezierEdgeBase2['default']);
-
-  exports['default'] = BezierEdgeDynamic;
-  module.exports = exports['default'];
-
-/***/ },
-/* 3 */
-/***/ function(module, exports, __webpack_require__) {
-
-  'use strict';
-
-  Object.defineProperty(exports, '__esModule', {
-    value: true
-  });
-
-  var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
-
-  function _slicedToArray(arr, i) { if (Array.isArray(arr)) { return arr; } else if (Symbol.iterator in Object(arr)) { var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i['return']) _i['return'](); } finally { if (_d) throw _e; } } return _arr; } else { throw new TypeError('Invalid attempt to destructure non-iterable instance'); } }
-
-  function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
-
-  var util = __webpack_require__(9);
-
-  var EdgeBase = (function () {
-    function EdgeBase(options, body, labelModule) {
-      _classCallCheck(this, EdgeBase);
-
-      this.body = body;
-      this.labelModule = labelModule;
-      this.setOptions(options);
-      this.colorDirty = true;
-      this.color = {};
-      this.selectionWidth = 2;
-      this.hoverWidth = 1.5;
-    }
-
-    _createClass(EdgeBase, [{
-      key: 'connect',
-      value: function connect() {
-        this.from = this.body.nodes[this.options.from];
-        this.to = this.body.nodes[this.options.to];
-      }
-    }, {
-      key: 'cleanup',
-      value: function cleanup() {
-        return false;
-      }
-    }, {
-      key: 'setOptions',
-      value: function setOptions(options) {
-        this.options = options;
-        this.from = this.body.nodes[this.options.from];
-        this.to = this.body.nodes[this.options.to];
-        this.id = this.options.id;
-      }
-    }, {
-      key: 'togglePhysics',
-
-      /**
-       * overloadable if the shape has to toggle the via node to disabled
-       * @param status
-       */
-      value: function togglePhysics(status) {}
-    }, {
-      key: 'drawLine',
-
-      /**
-       * Redraw a edge as a line
-       * Draw this edge in the given canvas
-       * The 2d context of a HTML canvas can be retrieved by canvas.getContext("2d");
-       * @param {CanvasRenderingContext2D}   ctx
-       * @private
-       */
-      value: function drawLine(ctx, selected, hover) {
-        // set style
-        ctx.strokeStyle = this.getColor(ctx, selected, hover);
-        ctx.lineWidth = this.getLineWidth(selected, hover);
-        var via = undefined;
-        if (this.options.dashes !== false) {
-          via = this._drawDashedLine(ctx);
-        } else {
-          via = this._drawLine(ctx);
-        }
-        return via;
-      }
-    }, {
-      key: '_drawLine',
-      value: function _drawLine(ctx) {
-        var via = undefined;
-        if (this.from != this.to) {
-          // draw line
-          via = this._line(ctx);
-        } else {
-          var _getCircleData2 = this._getCircleData(ctx);
-
-          var _getCircleData22 = _slicedToArray(_getCircleData2, 3);
-
-          var x = _getCircleData22[0];
-          var y = _getCircleData22[1];
-          var radius = _getCircleData22[2];
-
-          this._circle(ctx, x, y, radius);
-        }
-        return via;
-      }
-    }, {
-      key: '_drawDashedLine',
-      value: function _drawDashedLine(ctx) {
-        var via = undefined;
-        ctx.lineCap = 'round';
-        var pattern = [5, 5];
-        if (Array.isArray(this.options.dashes) === true) {
-          pattern = this.options.dashes;
-        }
-
-        // only firefox and chrome support this method, else we use the legacy one.
-        if (ctx.setLineDash !== undefined) {
-          ctx.save();
-
-          // set dash settings for chrome or firefox
-          ctx.setLineDash(pattern);
-          ctx.lineDashOffset = 0;
-
-          // draw the line
-          if (this.from != this.to) {
-            // draw line
-            via = this._line(ctx);
-          } else {
-            var _getCircleData3 = this._getCircleData(ctx);
-
-            var _getCircleData32 = _slicedToArray(_getCircleData3, 3);
-
-            var x = _getCircleData32[0];
-            var y = _getCircleData32[1];
-            var radius = _getCircleData32[2];
-
-            this._circle(ctx, x, y, radius);
-          }
-
-          // restore the dash settings.
-          ctx.setLineDash([0]);
-          ctx.lineDashOffset = 0;
-          ctx.restore();
-        } else {
-          // unsupporting smooth lines
-
-          if (this.from != this.to) {
-            // draw line
-            ctx.dashedLine(this.from.x, this.from.y, this.to.x, this.to.y, pattern);
-          } else {
-            var _getCircleData4 = this._getCircleData(ctx);
-
-            var _getCircleData42 = _slicedToArray(_getCircleData4, 3);
-
-            var x = _getCircleData42[0];
-            var y = _getCircleData42[1];
-            var radius = _getCircleData42[2];
-
-            this._circle(ctx, x, y, radius);
-          }
-          // draw shadow if enabled
-          this.enableShadow(ctx);
-
-          ctx.stroke();
-
-          // disable shadows for other elements.
-          this.disableShadow(ctx);
-        }
-        return via;
-      }
-    }, {
-      key: 'findBorderPosition',
-      value: function findBorderPosition(nearNode, ctx, options) {
-        if (this.from != this.to) {
-          return this._findBorderPosition(nearNode, ctx, options);
-        } else {
-          return this._findBorderPositionCircle(nearNode, ctx, options);
-        }
-      }
-    }, {
-      key: 'findBorderPositions',
-      value: function findBorderPositions(ctx) {
-        var from = {};
-        var to = {};
-        if (this.from != this.to) {
-          from = this._findBorderPosition(this.from, ctx);
-          to = this._findBorderPosition(this.to, ctx);
-        } else {
-          var _getCircleData5 = this._getCircleData(ctx);
-
-          var _getCircleData52 = _slicedToArray(_getCircleData5, 3);
-
-          var x = _getCircleData52[0];
-          var y = _getCircleData52[1];
-          var radius = _getCircleData52[2];
-
-          from = this._findBorderPositionCircle(this.from, ctx, { x: x, y: y, low: 0.25, high: 0.6, direction: -1 });
-          to = this._findBorderPositionCircle(this.from, ctx, { x: x, y: y, low: 0.6, high: 0.8, direction: 1 });
-        }
-        return { from: from, to: to };
-      }
-    }, {
-      key: '_getCircleData',
-      value: function _getCircleData(ctx) {
-        var x = undefined,
-            y = undefined;
-        var node = this.from;
-        var radius = this.options.selfReferenceSize;
-
-        if (ctx !== undefined) {
-          if (node.shape.width === undefined) {
-            node.shape.resize(ctx);
-          }
-        }
-
-        // get circle coordinates
-        if (node.shape.width > node.shape.height) {
-          x = node.x + node.shape.width * 0.5;
-          y = node.y - radius;
-        } else {
-          x = node.x + radius;
-          y = node.y - node.shape.height * 0.5;
-        }
-        return [x, y, radius];
-      }
-    }, {
-      key: '_pointOnCircle',
-
-      /**
-       * Get a point on a circle
-       * @param {Number} x
-       * @param {Number} y
-       * @param {Number} radius
-       * @param {Number} percentage. Value between 0 (line start) and 1 (line end)
-       * @return {Object} point
-       * @private
-       */
-      value: function _pointOnCircle(x, y, radius, percentage) {
-        var angle = percentage * 2 * Math.PI;
-        return {
-          x: x + radius * Math.cos(angle),
-          y: y - radius * Math.sin(angle)
-        };
-      }
-    }, {
-      key: '_findBorderPositionCircle',
-
-      /**
-       * This function uses binary search to look for the point where the circle crosses the border of the node.
-       * @param node
-       * @param ctx
-       * @param options
-       * @returns {*}
-       * @private
-       */
-      value: function _findBorderPositionCircle(node, ctx, options) {
-        var x = options.x;
-        var y = options.y;
-        var low = options.low;
-        var high = options.high;
-        var direction = options.direction;
-
-        var maxIterations = 10;
-        var iteration = 0;
-        var radius = this.options.selfReferenceSize;
-        var pos = undefined,
-            angle = undefined,
-            distanceToBorder = undefined,
-            distanceToPoint = undefined,
-            difference = undefined;
-        var threshold = 0.05;
-        var middle = (low + high) * 0.5;
-
-        while (low <= high && iteration < maxIterations) {
-          middle = (low + high) * 0.5;
-
-          pos = this._pointOnCircle(x, y, radius, middle);
-          angle = Math.atan2(node.y - pos.y, node.x - pos.x);
-          distanceToBorder = node.distanceToBorder(ctx, angle);
-          distanceToPoint = Math.sqrt(Math.pow(pos.x - node.x, 2) + Math.pow(pos.y - node.y, 2));
-          difference = distanceToBorder - distanceToPoint;
-          if (Math.abs(difference) < threshold) {
-            break; // found
-          } else if (difference > 0) {
-            // distance to nodes is larger than distance to border --> t needs to be bigger if we're looking at the to node.
-            if (direction > 0) {
-              low = middle;
-            } else {
-              high = middle;
-            }
-          } else {
-            if (direction > 0) {
-              high = middle;
-            } else {
-              low = middle;
-            }
-          }
-          iteration++;
-        }
-        pos.t = middle;
-
-        return pos;
-      }
-    }, {
-      key: 'getLineWidth',
-
-      /**
-       * Get the line width of the edge. Depends on width and whether one of the
-       * connected nodes is selected.
-       * @return {Number} width
-       * @private
-       */
-      value: function getLineWidth(selected, hover) {
-        if (selected === true) {
-          return Math.max(this.selectionWidth, 0.3 / this.body.view.scale);
-        } else {
-          if (hover === true) {
-            return Math.max(this.hoverWidth, 0.3 / this.body.view.scale);
-          } else {
-            return Math.max(this.options.width, 0.3 / this.body.view.scale);
-          }
-        }
-      }
-    }, {
-      key: 'getColor',
-      value: function getColor(ctx, selected, hover) {
-        var colorOptions = this.options.color;
-        if (colorOptions.inherit !== false) {
-          // when this is a loop edge, just use the 'from' method
-          if (colorOptions.inherit === 'both' && this.from.id !== this.to.id) {
-            var grd = ctx.createLinearGradient(this.from.x, this.from.y, this.to.x, this.to.y);
-            var fromColor = undefined,
-                toColor = undefined;
-            fromColor = this.from.options.color.highlight.border;
-            toColor = this.to.options.color.highlight.border;
-
-            if (this.from.selected === false && this.to.selected === false) {
-              fromColor = util.overrideOpacity(this.from.options.color.border, this.options.color.opacity);
-              toColor = util.overrideOpacity(this.to.options.color.border, this.options.color.opacity);
-            } else if (this.from.selected === true && this.to.selected === false) {
-              toColor = this.to.options.color.border;
-            } else if (this.from.selected === false && this.to.selected === true) {
-              fromColor = this.from.options.color.border;
-            }
-            grd.addColorStop(0, fromColor);
-            grd.addColorStop(1, toColor);
-
-            // -------------------- this returns -------------------- //
-            return grd;
-          }
-
-          if (this.colorDirty === true) {
-            if (colorOptions.inherit === 'to') {
-              this.color.highlight = this.to.options.color.highlight.border;
-              this.color.hover = this.to.options.color.hover.border;
-              this.color.color = util.overrideOpacity(this.to.options.color.border, colorOptions.opacity);
-            } else {
-              // (this.options.color.inherit.source === "from") {
-              this.color.highlight = this.from.options.color.highlight.border;
-              this.color.hover = this.from.options.color.hover.border;
-              this.color.color = util.overrideOpacity(this.from.options.color.border, colorOptions.opacity);
-            }
-          }
-        } else if (this.colorDirty === true) {
-          this.color.highlight = colorOptions.highlight;
-          this.color.hover = colorOptions.hover;
-          this.color.color = util.overrideOpacity(colorOptions.color, colorOptions.opacity);
-        }
-
-        // if color inherit is on and gradients are used, the function has already returned by now.
-        this.colorDirty = false;
-
-        if (selected === true) {
-          return this.color.highlight;
-        } else if (hover === true) {
-          return this.color.hover;
-        } else {
-          return this.color.color;
-        }
-      }
-    }, {
-      key: '_circle',
-
-      /**
-       * Draw a line from a node to itself, a circle
-       * @param {CanvasRenderingContext2D} ctx
-       * @param {Number} x
-       * @param {Number} y
-       * @param {Number} radius
-       * @private
-       */
-      value: function _circle(ctx, x, y, radius) {
-        // draw shadow if enabled
-        this.enableShadow(ctx);
-
-        // draw a circle
-        ctx.beginPath();
-        ctx.arc(x, y, radius, 0, 2 * Math.PI, false);
-        ctx.stroke();
-
-        // disable shadows for other elements.
-        this.disableShadow(ctx);
-      }
-    }, {
-      key: 'getDistanceToEdge',
-
-      /**
-       * Calculate the distance between a point (x3,y3) and a line segment from
-       * (x1,y1) to (x2,y2).
-       * http://stackoverflow.com/questions/849211/shortest-distancae-between-a-point-and-a-line-segment
-       * @param {number} x1
-       * @param {number} y1
-       * @param {number} x2
-       * @param {number} y2
-       * @param {number} x3
-       * @param {number} y3
-       * @private
-       */
-      value: function getDistanceToEdge(x1, y1, x2, y2, x3, y3, via) {
-        // x3,y3 is the point
-        var returnValue = 0;
-        if (this.from != this.to) {
-          returnValue = this._getDistanceToEdge(x1, y1, x2, y2, x3, y3, via);
-        } else {
-          var _getCircleData6 = this._getCircleData();
-
-          var _getCircleData62 = _slicedToArray(_getCircleData6, 3);
-
-          var x = _getCircleData62[0];
-          var y = _getCircleData62[1];
-          var radius = _getCircleData62[2];
-
-          var dx = x - x3;
-          var dy = y - y3;
-          returnValue = Math.abs(Math.sqrt(dx * dx + dy * dy) - radius);
-        }
-
-        if (this.labelModule.size.left < x3 && this.labelModule.size.left + this.labelModule.size.width > x3 && this.labelModule.size.top < y3 && this.labelModule.size.top + this.labelModule.size.height > y3) {
-          return 0;
-        } else {
-          return returnValue;
-        }
-      }
-    }, {
-      key: '_getDistanceToLine',
-      value: function _getDistanceToLine(x1, y1, x2, y2, x3, y3) {
-        var px = x2 - x1;
-        var py = y2 - y1;
-        var something = px * px + py * py;
-        var u = ((x3 - x1) * px + (y3 - y1) * py) / something;
-
-        if (u > 1) {
-          u = 1;
-        } else if (u < 0) {
-          u = 0;
-        }
-
-        var x = x1 + u * px;
-        var y = y1 + u * py;
-        var dx = x - x3;
-        var dy = y - y3;
-
-        //# Note: If the actual distance does not matter,
-        //# if you only want to compare what this function
-        //# returns to other results of this function, you
-        //# can just return the squared distance instead
-        //# (i.e. remove the sqrt) to gain a little performance
-
-        return Math.sqrt(dx * dx + dy * dy);
-      }
-    }, {
-      key: 'drawArrowHead',
-
-      /**
-       *
-       * @param ctx
-       * @param position
-       * @param viaNode
-       */
-      value: function drawArrowHead(ctx, position, viaNode, selected, hover) {
-        // set style
-        ctx.strokeStyle = this.getColor(ctx, selected, hover);
-        ctx.fillStyle = ctx.strokeStyle;
-        ctx.lineWidth = this.getLineWidth(selected, hover);
-
-        // set lets
-        var angle = undefined;
-        var length = undefined;
-        var arrowPos = undefined;
-        var node1 = undefined;
-        var node2 = undefined;
-        var guideOffset = undefined;
-        var scaleFactor = undefined;
-
-        if (position === 'from') {
-          node1 = this.from;
-          node2 = this.to;
-          guideOffset = 0.1;
-          scaleFactor = this.options.arrows.from.scaleFactor;
-        } else if (position === 'to') {
-          node1 = this.to;
-          node2 = this.from;
-          guideOffset = -0.1;
-          scaleFactor = this.options.arrows.to.scaleFactor;
-        } else {
-          node1 = this.to;
-          node2 = this.from;
-          scaleFactor = this.options.arrows.middle.scaleFactor;
-        }
-
-        // if not connected to itself
-        if (node1 != node2) {
-          if (position !== 'middle') {
-            // draw arrow head
-            if (this.options.smooth.enabled === true) {
-              arrowPos = this.findBorderPosition(node1, ctx, { via: viaNode });
-              var guidePos = this.getPoint(Math.max(0, Math.min(1, arrowPos.t + guideOffset)), viaNode);
-              angle = Math.atan2(arrowPos.y - guidePos.y, arrowPos.x - guidePos.x);
-            } else {
-              angle = Math.atan2(node1.y - node2.y, node1.x - node2.x);
-              arrowPos = this.findBorderPosition(node1, ctx);
-            }
-          } else {
-            angle = Math.atan2(node1.y - node2.y, node1.x - node2.x);
-            arrowPos = this.getPoint(0.6, viaNode); // this is 0.6 to account for the size of the arrow.
-          }
-          // draw arrow at the end of the line
-          length = (10 + 5 * this.options.width) * scaleFactor;
-          ctx.arrow(arrowPos.x, arrowPos.y, angle, length);
-
-          // draw shadow if enabled
-          this.enableShadow(ctx);
-          ctx.fill();
-
-          // disable shadows for other elements.
-          this.disableShadow(ctx);
-          ctx.stroke();
-        } else {
-          // draw circle
-          var _angle = undefined,
-              point = undefined;
-
-          var _getCircleData7 = this._getCircleData(ctx);
-
-          var _getCircleData72 = _slicedToArray(_getCircleData7, 3);
-
-          var x = _getCircleData72[0];
-          var y = _getCircleData72[1];
-          var radius = _getCircleData72[2];
-
-          if (position === 'from') {
-            point = this.findBorderPosition(this.from, ctx, { x: x, y: y, low: 0.25, high: 0.6, direction: -1 });
-            _angle = point.t * -2 * Math.PI + 1.5 * Math.PI + 0.1 * Math.PI;
-          } else if (position === 'to') {
-            point = this.findBorderPosition(this.from, ctx, { x: x, y: y, low: 0.6, high: 1, direction: 1 });
-            _angle = point.t * -2 * Math.PI + 1.5 * Math.PI - 1.1 * Math.PI;
-          } else {
-            point = this._pointOnCircle(x, y, radius, 0.175);
-            _angle = 3.9269908169872414; // === 0.175 * -2 * Math.PI + 1.5 * Math.PI + 0.1 * Math.PI;
-          }
-
-          // draw the arrowhead
-          var _length = (10 + 5 * this.options.width) * scaleFactor;
-          ctx.arrow(point.x, point.y, _angle, _length);
-
-          // draw shadow if enabled
-          this.enableShadow(ctx);
-          ctx.fill();
-
-          // disable shadows for other elements.
-          this.disableShadow(ctx);
-          ctx.stroke();
-        }
-      }
-    }, {
-      key: 'enableShadow',
-      value: function enableShadow(ctx) {
-        if (this.options.shadow.enabled === true) {
-          ctx.shadowColor = 'rgba(0,0,0,0.5)';
-          ctx.shadowBlur = this.options.shadow.size;
-          ctx.shadowOffsetX = this.options.shadow.x;
-          ctx.shadowOffsetY = this.options.shadow.y;
-        }
-      }
-    }, {
-      key: 'disableShadow',
-      value: function disableShadow(ctx) {
-        if (this.options.shadow.enabled === true) {
-          ctx.shadowColor = 'rgba(0,0,0,0)';
-          ctx.shadowBlur = 0;
-          ctx.shadowOffsetX = 0;
-          ctx.shadowOffsetY = 0;
-        }
-      }
-    }]);
-
-    return EdgeBase;
-  })();
-
-  exports['default'] = EdgeBase;
-  module.exports = exports['default'];
-
-/***/ },
-/* 4 */
-/***/ function(module, exports, __webpack_require__) {
-
-  'use strict';
-
-  Object.defineProperty(exports, '__esModule', {
-    value: true
-  });
-
-  var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
-
-  function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
-
-  var util = __webpack_require__(9);
-  var Hammer = __webpack_require__(33);
-  var hammerUtil = __webpack_require__(36);
-  var keycharm = __webpack_require__(51);
+  var util = __webpack_require__(10);
+  var Hammer = __webpack_require__(35);
+  var hammerUtil = __webpack_require__(38);
+  var keycharm = __webpack_require__(53);
 
   var NavigationHandler = (function () {
     function NavigationHandler(body, canvas) {
@@ -1256,7 +494,527 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 5 */
+/* 3 */
+/***/ function(module, exports, __webpack_require__) {
+
+  'use strict';
+
+  Object.defineProperty(exports, '__esModule', {
+    value: true
+  });
+
+  var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
+
+  function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
+
+  function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
+
+  var _sharedLabel = __webpack_require__(72);
+
+  var _sharedLabel2 = _interopRequireDefault(_sharedLabel);
+
+  var _nodesShapesBox = __webpack_require__(73);
+
+  var _nodesShapesBox2 = _interopRequireDefault(_nodesShapesBox);
+
+  var _nodesShapesCircle = __webpack_require__(75);
+
+  var _nodesShapesCircle2 = _interopRequireDefault(_nodesShapesCircle);
+
+  var _nodesShapesCircularImage = __webpack_require__(77);
+
+  var _nodesShapesCircularImage2 = _interopRequireDefault(_nodesShapesCircularImage);
+
+  var _nodesShapesDatabase = __webpack_require__(78);
+
+  var _nodesShapesDatabase2 = _interopRequireDefault(_nodesShapesDatabase);
+
+  var _nodesShapesDiamond = __webpack_require__(79);
+
+  var _nodesShapesDiamond2 = _interopRequireDefault(_nodesShapesDiamond);
+
+  var _nodesShapesDot = __webpack_require__(81);
+
+  var _nodesShapesDot2 = _interopRequireDefault(_nodesShapesDot);
+
+  var _nodesShapesEllipse = __webpack_require__(82);
+
+  var _nodesShapesEllipse2 = _interopRequireDefault(_nodesShapesEllipse);
+
+  var _nodesShapesIcon = __webpack_require__(83);
+
+  var _nodesShapesIcon2 = _interopRequireDefault(_nodesShapesIcon);
+
+  var _nodesShapesImage = __webpack_require__(84);
+
+  var _nodesShapesImage2 = _interopRequireDefault(_nodesShapesImage);
+
+  var _nodesShapesSquare = __webpack_require__(85);
+
+  var _nodesShapesSquare2 = _interopRequireDefault(_nodesShapesSquare);
+
+  var _nodesShapesStar = __webpack_require__(86);
+
+  var _nodesShapesStar2 = _interopRequireDefault(_nodesShapesStar);
+
+  var _nodesShapesText = __webpack_require__(87);
+
+  var _nodesShapesText2 = _interopRequireDefault(_nodesShapesText);
+
+  var _nodesShapesTriangle = __webpack_require__(88);
+
+  var _nodesShapesTriangle2 = _interopRequireDefault(_nodesShapesTriangle);
+
+  var _nodesShapesTriangleDown = __webpack_require__(89);
+
+  var _nodesShapesTriangleDown2 = _interopRequireDefault(_nodesShapesTriangleDown);
+
+  var _sharedValidator = __webpack_require__(57);
+
+  var _sharedValidator2 = _interopRequireDefault(_sharedValidator);
+
+  var util = __webpack_require__(10);
+
+  /**
+   * @class Node
+   * A node. A node can be connected to other nodes via one or multiple edges.
+   * @param {object} options An object containing options for the node. All
+   *                            options are optional, except for the id.
+   *                              {number} id     Id of the node. Required
+   *                              {string} label  Text label for the node
+   *                              {number} x      Horizontal position of the node
+   *                              {number} y      Vertical position of the node
+   *                              {string} shape  Node shape, available:
+   *                                              "database", "circle", "ellipse",
+   *                                              "box", "image", "text", "dot",
+   *                                              "star", "triangle", "triangleDown",
+   *                                              "square", "icon"
+   *                              {string} image  An image url
+   *                              {string} title  An title text, can be HTML
+   *                              {anytype} group A group name or number
+   * @param {Network.Images} imagelist    A list with images. Only needed
+   *                                            when the node has an image
+   * @param {Network.Groups} grouplist    A list with groups. Needed for
+   *                                            retrieving group options
+   * @param {Object}               constants    An object with default values for
+   *                                            example for the color
+   *
+   */
+
+  var Node = (function () {
+    function Node(options, body, imagelist, grouplist, globalOptions) {
+      _classCallCheck(this, Node);
+
+      this.options = util.bridgeObject(globalOptions);
+      this.body = body;
+
+      this.edges = []; // all edges connected to this node
+
+      // set defaults for the options
+      this.id = undefined;
+      this.imagelist = imagelist;
+      this.grouplist = grouplist;
+
+      // state options
+      this.x = undefined;
+      this.y = undefined;
+      this.baseSize = this.options.size;
+      this.baseFontSize = this.options.font.size;
+      this.predefinedPosition = false; // used to check if initial fit should just take the range or approximate
+      this.selected = false;
+      this.hover = false;
+
+      this.labelModule = new _sharedLabel2['default'](this.body, this.options);
+      this.setOptions(options);
+    }
+
+    _createClass(Node, [{
+      key: 'attachEdge',
+
+      /**
+       * Attach a edge to the node
+       * @param {Edge} edge
+       */
+      value: function attachEdge(edge) {
+        if (this.edges.indexOf(edge) === -1) {
+          this.edges.push(edge);
+        }
+      }
+    }, {
+      key: 'detachEdge',
+
+      /**
+       * Detach a edge from the node
+       * @param {Edge} edge
+       */
+      value: function detachEdge(edge) {
+        var index = this.edges.indexOf(edge);
+        if (index != -1) {
+          this.edges.splice(index, 1);
+        }
+      }
+    }, {
+      key: 'togglePhysics',
+
+      /**
+       * Enable or disable the physics.
+       * @param status
+       */
+      value: function togglePhysics(status) {
+        this.options.physics = status;
+      }
+    }, {
+      key: 'setOptions',
+
+      /**
+       * Set or overwrite options for the node
+       * @param {Object} options an object with options
+       * @param {Object} constants  and object with default, global options
+       */
+      value: function setOptions(options) {
+        if (!options) {
+          return;
+        }
+        // basic options
+        if (options.id !== undefined) {
+          this.id = options.id;
+        }
+
+        if (this.id === undefined) {
+          throw 'Node must have an id';
+        }
+
+        // set these options locally
+        if (options.x !== undefined) {
+          this.x = parseInt(options.x);this.predefinedPosition = true;
+        }
+        if (options.y !== undefined) {
+          this.y = parseInt(options.y);this.predefinedPosition = true;
+        }
+        if (options.size !== undefined) {
+          this.baseSize = options.size;
+        }
+        if (options.value !== undefined) {
+          options.value = parseFloat(options.value);
+        }
+
+        // copy group options
+        if (typeof options.group === 'number' || typeof options.group === 'string' && options.group != '') {
+          var groupObj = this.grouplist.get(options.group);
+          util.deepExtend(this.options, groupObj);
+          // the color object needs to be completely defined. Since groups can partially overwrite the colors, we parse it again, just in case.
+          this.options.color = util.parseColor(this.options.color);
+        }
+
+        // this transforms all shorthands into fully defined options
+        Node.parseOptions(this.options, options, true);
+
+        // load the images
+        if (this.options.image !== undefined) {
+          if (this.imagelist) {
+            this.imageObj = this.imagelist.load(this.options.image, this.options.brokenImage, this.id);
+          } else {
+            throw 'No imagelist provided';
+          }
+        }
+
+        this.updateShape();
+        this.updateLabelModule();
+
+        // reset the size of the node, this can be changed
+        this._reset();
+
+        if (options.hidden !== undefined || options.physics !== undefined) {
+          return true;
+        }
+        return false;
+      }
+    }, {
+      key: 'updateLabelModule',
+      value: function updateLabelModule() {
+        if (this.options.label === undefined || this.options.label === null) {
+          this.options.label = '';
+        }
+        this.labelModule.setOptions(this.options, true);
+        if (this.labelModule.baseSize !== undefined) {
+          this.baseFontSize = this.labelModule.baseSize;
+        }
+      }
+    }, {
+      key: 'updateShape',
+      value: function updateShape() {
+        // choose draw method depending on the shape
+        switch (this.options.shape) {
+          case 'box':
+            this.shape = new _nodesShapesBox2['default'](this.options, this.body, this.labelModule);
+            break;
+          case 'circle':
+            this.shape = new _nodesShapesCircle2['default'](this.options, this.body, this.labelModule);
+            break;
+          case 'circularImage':
+            this.shape = new _nodesShapesCircularImage2['default'](this.options, this.body, this.labelModule, this.imageObj);
+            break;
+          case 'database':
+            this.shape = new _nodesShapesDatabase2['default'](this.options, this.body, this.labelModule);
+            break;
+          case 'diamond':
+            this.shape = new _nodesShapesDiamond2['default'](this.options, this.body, this.labelModule);
+            break;
+          case 'dot':
+            this.shape = new _nodesShapesDot2['default'](this.options, this.body, this.labelModule);
+            break;
+          case 'ellipse':
+            this.shape = new _nodesShapesEllipse2['default'](this.options, this.body, this.labelModule);
+            break;
+          case 'icon':
+            this.shape = new _nodesShapesIcon2['default'](this.options, this.body, this.labelModule);
+            break;
+          case 'image':
+            this.shape = new _nodesShapesImage2['default'](this.options, this.body, this.labelModule, this.imageObj);
+            break;
+          case 'square':
+            this.shape = new _nodesShapesSquare2['default'](this.options, this.body, this.labelModule);
+            break;
+          case 'star':
+            this.shape = new _nodesShapesStar2['default'](this.options, this.body, this.labelModule);
+            break;
+          case 'text':
+            this.shape = new _nodesShapesText2['default'](this.options, this.body, this.labelModule);
+            break;
+          case 'triangle':
+            this.shape = new _nodesShapesTriangle2['default'](this.options, this.body, this.labelModule);
+            break;
+          case 'triangleDown':
+            this.shape = new _nodesShapesTriangleDown2['default'](this.options, this.body, this.labelModule);
+            break;
+          default:
+            this.shape = new _nodesShapesEllipse2['default'](this.options, this.body, this.labelModule);
+            break;
+        }
+        this._reset();
+      }
+    }, {
+      key: 'select',
+
+      /**
+       * select this node
+       */
+      value: function select() {
+        this.selected = true;
+        this._reset();
+      }
+    }, {
+      key: 'unselect',
+
+      /**
+       * unselect this node
+       */
+      value: function unselect() {
+        this.selected = false;
+        this._reset();
+      }
+    }, {
+      key: '_reset',
+
+      /**
+       * Reset the calculated size of the node, forces it to recalculate its size
+       * @private
+       */
+      value: function _reset() {
+        this.shape.width = undefined;
+        this.shape.height = undefined;
+      }
+    }, {
+      key: 'getTitle',
+
+      /**
+       * get the title of this node.
+       * @return {string} title    The title of the node, or undefined when no title
+       *                           has been set.
+       */
+      value: function getTitle() {
+        return this.options.title;
+      }
+    }, {
+      key: 'distanceToBorder',
+
+      /**
+       * Calculate the distance to the border of the Node
+       * @param {CanvasRenderingContext2D}   ctx
+       * @param {Number} angle        Angle in radians
+       * @returns {number} distance   Distance to the border in pixels
+       */
+      value: function distanceToBorder(ctx, angle) {
+        return this.shape.distanceToBorder(ctx, angle);
+      }
+    }, {
+      key: 'isFixed',
+
+      /**
+       * Check if this node has a fixed x and y position
+       * @return {boolean}      true if fixed, false if not
+       */
+      value: function isFixed() {
+        return this.options.fixed.x && this.options.fixed.y;
+      }
+    }, {
+      key: 'isSelected',
+
+      /**
+       * check if this node is selecte
+       * @return {boolean} selected   True if node is selected, else false
+       */
+      value: function isSelected() {
+        return this.selected;
+      }
+    }, {
+      key: 'getValue',
+
+      /**
+       * Retrieve the value of the node. Can be undefined
+       * @return {Number} value
+       */
+      value: function getValue() {
+        return this.options.value;
+      }
+    }, {
+      key: 'setValueRange',
+
+      /**
+       * Adjust the value range of the node. The node will adjust it's size
+       * based on its value.
+       * @param {Number} min
+       * @param {Number} max
+       */
+      value: function setValueRange(min, max, total) {
+        if (this.options.value !== undefined) {
+          var scale = this.options.scaling.customScalingFunction(min, max, total, this.options.value);
+          var sizeDiff = this.options.scaling.max - this.options.scaling.min;
+          if (this.options.scaling.label.enabled === true) {
+            var fontDiff = this.options.scaling.label.max - this.options.scaling.label.min;
+            this.options.font.size = this.options.scaling.label.min + scale * fontDiff;
+          }
+          this.options.size = this.options.scaling.min + scale * sizeDiff;
+        } else {
+          this.options.size = this.baseSize;
+          this.options.font.size = this.baseFontSize;
+        }
+      }
+    }, {
+      key: 'draw',
+
+      /**
+       * Draw this node in the given canvas
+       * The 2d context of a HTML canvas can be retrieved by canvas.getContext("2d");
+       * @param {CanvasRenderingContext2D}   ctx
+       */
+      value: function draw(ctx) {
+        this.shape.draw(ctx, this.x, this.y, this.selected, this.hover);
+      }
+    }, {
+      key: 'updateBoundingBox',
+
+      /**
+       * Update the bounding box of the shape
+       */
+      value: function updateBoundingBox() {
+        this.shape.updateBoundingBox(this.x, this.y);
+      }
+    }, {
+      key: 'resize',
+
+      /**
+       * Recalculate the size of this node in the given canvas
+       * The 2d context of a HTML canvas can be retrieved by canvas.getContext("2d");
+       * @param {CanvasRenderingContext2D}   ctx
+       */
+      value: function resize(ctx) {
+        this.shape.resize(ctx);
+      }
+    }, {
+      key: 'isOverlappingWith',
+
+      /**
+       * Check if this object is overlapping with the provided object
+       * @param {Object} obj   an object with parameters left, top, right, bottom
+       * @return {boolean}     True if location is located on node
+       */
+      value: function isOverlappingWith(obj) {
+        return this.shape.left < obj.right && this.shape.left + this.shape.width > obj.left && this.shape.top < obj.bottom && this.shape.top + this.shape.height > obj.top;
+      }
+    }, {
+      key: 'isBoundingBoxOverlappingWith',
+
+      /**
+       * Check if this object is overlapping with the provided object
+       * @param {Object} obj   an object with parameters left, top, right, bottom
+       * @return {boolean}     True if location is located on node
+       */
+      value: function isBoundingBoxOverlappingWith(obj) {
+        return this.shape.boundingBox.left < obj.right && this.shape.boundingBox.right > obj.left && this.shape.boundingBox.top < obj.bottom && this.shape.boundingBox.bottom > obj.top;
+      }
+    }], [{
+      key: 'parseOptions',
+
+      /**
+       * This process all possible shorthands in the new options and makes sure that the parentOptions are fully defined.
+       * Static so it can also be used by the handler.
+       * @param parentOptions
+       * @param newOptions
+       */
+      value: function parseOptions(parentOptions, newOptions) {
+        var allowDeletion = arguments[2] === undefined ? false : arguments[2];
+
+        var fields = ['color', 'font', 'fixed', 'shadow'];
+        util.selectiveNotDeepExtend(fields, parentOptions, newOptions, allowDeletion);
+
+        // merge the shadow options into the parent.
+        util.mergeOptions(parentOptions, newOptions, 'shadow');
+
+        // individual shape newOptions
+        if (newOptions.color !== undefined && newOptions.color !== null) {
+          var parsedColor = util.parseColor(newOptions.color);
+          util.fillIfDefined(parentOptions.color, parsedColor);
+        } else if (allowDeletion === true && newOptions.color === null) {
+          parentOptions.color = undefined;
+          delete parentOptions.color;
+        }
+
+        // handle the fixed options
+        if (newOptions.fixed !== undefined && newOptions.fixed !== null) {
+          if (typeof newOptions.fixed === 'boolean') {
+            parentOptions.fixed.x = newOptions.fixed;
+            parentOptions.fixed.y = newOptions.fixed;
+          } else {
+            if (newOptions.fixed.x !== undefined && typeof newOptions.fixed.x === 'boolean') {
+              parentOptions.fixed.x = newOptions.fixed.x;
+            }
+            if (newOptions.fixed.y !== undefined && typeof newOptions.fixed.y === 'boolean') {
+              parentOptions.fixed.y = newOptions.fixed.y;
+            }
+          }
+        }
+
+        // handle the font options
+        if (newOptions.font !== undefined) {
+          _sharedLabel2['default'].parseOptions(parentOptions.font, newOptions);
+        }
+
+        // handle the scaling options, specifically the label part
+        if (newOptions.scaling !== undefined) {
+          util.mergeOptions(parentOptions.scaling, newOptions.scaling, 'label');
+        }
+      }
+    }]);
+
+    return Node;
+  })();
+
+  exports['default'] = Node;
+  module.exports = exports['default'];
+
+/***/ },
+/* 4 */
 /***/ function(module, exports, __webpack_require__) {
 
   var __WEBPACK_AMD_DEFINE_RESULT__;/*! Hammer.JS - v2.0.4 - 2014-09-28
@@ -3712,7 +3470,7 @@ return /******/ (function(modules) { // webpackBootstrap
       prefixed: prefixed
   });
 
-  if ("function" == TYPE_FUNCTION && __webpack_require__(12)) {
+  if ("function" == TYPE_FUNCTION && __webpack_require__(13)) {
       !(__WEBPACK_AMD_DEFINE_RESULT__ = function() {
           return Hammer;
       }.call(exports, __webpack_require__, exports, module), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__));
@@ -3726,7 +3484,769 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
+/* 5 */
+/***/ function(module, exports, __webpack_require__) {
+
+  'use strict';
+
+  Object.defineProperty(exports, '__esModule', {
+    value: true
+  });
+
+  var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
+
+  var _get = function get(_x, _x2, _x3) { var _again = true; _function: while (_again) { var object = _x, property = _x2, receiver = _x3; desc = parent = getter = undefined; _again = false; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { _x = parent; _x2 = property; _x3 = receiver; _again = true; continue _function; } } else if ('value' in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } } };
+
+  function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
+
+  function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
+
+  function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; }
+
+  var _utilBezierEdgeBase = __webpack_require__(92);
+
+  var _utilBezierEdgeBase2 = _interopRequireDefault(_utilBezierEdgeBase);
+
+  var BezierEdgeDynamic = (function (_BezierEdgeBase) {
+    function BezierEdgeDynamic(options, body, labelModule) {
+      _classCallCheck(this, BezierEdgeDynamic);
+
+      //this.via = undefined; // Here for completeness but not allowed to defined before super() is invoked.
+      _get(Object.getPrototypeOf(BezierEdgeDynamic.prototype), 'constructor', this).call(this, options, body, labelModule); // --> this calls the setOptions below
+    }
+
+    _inherits(BezierEdgeDynamic, _BezierEdgeBase);
+
+    _createClass(BezierEdgeDynamic, [{
+      key: 'setOptions',
+      value: function setOptions(options) {
+        this.options = options;
+        this.id = this.options.id;
+        this.setupSupportNode();
+        this.connect();
+      }
+    }, {
+      key: 'connect',
+      value: function connect() {
+        this.from = this.body.nodes[this.options.from];
+        this.to = this.body.nodes[this.options.to];
+        if (this.from === undefined || this.to === undefined || this.options.physics === false) {
+          this.via.setOptions({ physics: false });
+        } else {
+          // fix weird behaviour where a selfreferencing node has physics enabled
+          if (this.from.id === this.to.id) {
+            this.via.setOptions({ physics: false });
+          } else {
+            this.via.setOptions({ physics: true });
+          }
+        }
+      }
+    }, {
+      key: 'cleanup',
+      value: function cleanup() {
+        if (this.via !== undefined) {
+          delete this.body.nodes[this.via.id];
+          this.via = undefined;
+          return true;
+        }
+        return false;
+      }
+    }, {
+      key: 'togglePhysics',
+      value: function togglePhysics(status) {
+        this.via.setOptions({ physics: status });
+        this.positionBezierNode();
+      }
+    }, {
+      key: 'setupSupportNode',
+
+      /**
+       * Bezier curves require an anchor point to calculate the smooth flow. These points are nodes. These nodes are invisible but
+       * are used for the force calculation.
+       *
+       * The changed data is not called, if needed, it is returned by the main edge constructor.
+       * @private
+       */
+      value: function setupSupportNode() {
+        if (this.via === undefined) {
+          var nodeId = 'edgeId:' + this.id;
+          var node = this.body.functions.createNode({
+            id: nodeId,
+            shape: 'circle',
+            physics: true,
+            hidden: true
+          });
+          this.body.nodes[nodeId] = node;
+          this.via = node;
+          this.via.parentEdgeId = this.id;
+          this.positionBezierNode();
+        }
+      }
+    }, {
+      key: 'positionBezierNode',
+      value: function positionBezierNode() {
+        if (this.via !== undefined && this.from !== undefined && this.to !== undefined) {
+          this.via.x = 0.5 * (this.from.x + this.to.x);
+          this.via.y = 0.5 * (this.from.y + this.to.y);
+        } else if (this.via !== undefined) {
+          this.via.x = 0;
+          this.via.y = 0;
+        }
+      }
+    }, {
+      key: '_line',
+
+      /**
+       * Draw a line between two nodes
+       * @param {CanvasRenderingContext2D} ctx
+       * @private
+       */
+      value: function _line(ctx) {
+        // draw a straight line
+        ctx.beginPath();
+        ctx.moveTo(this.from.x, this.from.y);
+        ctx.quadraticCurveTo(this.via.x, this.via.y, this.to.x, this.to.y);
+        // draw shadow if enabled
+        this.enableShadow(ctx);
+        ctx.stroke();
+        this.disableShadow(ctx);
+        return this.via;
+      }
+    }, {
+      key: 'getPoint',
+
+      /**
+       * Combined function of pointOnLine and pointOnBezier. This gives the coordinates of a point on the line at a certain percentage of the way
+       * @param percentage
+       * @param via
+       * @returns {{x: number, y: number}}
+       * @private
+       */
+      value: function getPoint(percentage) {
+        var t = percentage;
+        var x = Math.pow(1 - t, 2) * this.from.x + 2 * t * (1 - t) * this.via.x + Math.pow(t, 2) * this.to.x;
+        var y = Math.pow(1 - t, 2) * this.from.y + 2 * t * (1 - t) * this.via.y + Math.pow(t, 2) * this.to.y;
+
+        return { x: x, y: y };
+      }
+    }, {
+      key: '_findBorderPosition',
+      value: function _findBorderPosition(nearNode, ctx) {
+        return this._findBorderPositionBezier(nearNode, ctx, this.via);
+      }
+    }, {
+      key: '_getDistanceToEdge',
+      value: function _getDistanceToEdge(x1, y1, x2, y2, x3, y3) {
+        // x3,y3 is the point
+        return this._getDistanceToBezierEdge(x1, y1, x2, y2, x3, y3, this.via);
+      }
+    }]);
+
+    return BezierEdgeDynamic;
+  })(_utilBezierEdgeBase2['default']);
+
+  exports['default'] = BezierEdgeDynamic;
+  module.exports = exports['default'];
+
+/***/ },
 /* 6 */
+/***/ function(module, exports, __webpack_require__) {
+
+  'use strict';
+
+  Object.defineProperty(exports, '__esModule', {
+    value: true
+  });
+
+  var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
+
+  function _slicedToArray(arr, i) { if (Array.isArray(arr)) { return arr; } else if (Symbol.iterator in Object(arr)) { var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i['return']) _i['return'](); } finally { if (_d) throw _e; } } return _arr; } else { throw new TypeError('Invalid attempt to destructure non-iterable instance'); } }
+
+  function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
+
+  var util = __webpack_require__(10);
+
+  var EdgeBase = (function () {
+    function EdgeBase(options, body, labelModule) {
+      _classCallCheck(this, EdgeBase);
+
+      this.body = body;
+      this.labelModule = labelModule;
+      this.setOptions(options);
+      this.colorDirty = true;
+      this.color = {};
+      this.selectionWidth = 2;
+      this.hoverWidth = 1.5;
+    }
+
+    _createClass(EdgeBase, [{
+      key: 'connect',
+      value: function connect() {
+        this.from = this.body.nodes[this.options.from];
+        this.to = this.body.nodes[this.options.to];
+      }
+    }, {
+      key: 'cleanup',
+      value: function cleanup() {
+        return false;
+      }
+    }, {
+      key: 'setOptions',
+      value: function setOptions(options) {
+        this.options = options;
+        this.from = this.body.nodes[this.options.from];
+        this.to = this.body.nodes[this.options.to];
+        this.id = this.options.id;
+      }
+    }, {
+      key: 'togglePhysics',
+
+      /**
+       * overloadable if the shape has to toggle the via node to disabled
+       * @param status
+       */
+      value: function togglePhysics(status) {}
+    }, {
+      key: 'drawLine',
+
+      /**
+       * Redraw a edge as a line
+       * Draw this edge in the given canvas
+       * The 2d context of a HTML canvas can be retrieved by canvas.getContext("2d");
+       * @param {CanvasRenderingContext2D}   ctx
+       * @private
+       */
+      value: function drawLine(ctx, selected, hover) {
+        // set style
+        ctx.strokeStyle = this.getColor(ctx, selected, hover);
+        ctx.lineWidth = this.getLineWidth(selected, hover);
+        var via = undefined;
+        if (this.options.dashes !== false) {
+          via = this._drawDashedLine(ctx);
+        } else {
+          via = this._drawLine(ctx);
+        }
+        return via;
+      }
+    }, {
+      key: '_drawLine',
+      value: function _drawLine(ctx) {
+        var via = undefined;
+        if (this.from != this.to) {
+          // draw line
+          via = this._line(ctx);
+        } else {
+          var _getCircleData2 = this._getCircleData(ctx);
+
+          var _getCircleData22 = _slicedToArray(_getCircleData2, 3);
+
+          var x = _getCircleData22[0];
+          var y = _getCircleData22[1];
+          var radius = _getCircleData22[2];
+
+          this._circle(ctx, x, y, radius);
+        }
+        return via;
+      }
+    }, {
+      key: '_drawDashedLine',
+      value: function _drawDashedLine(ctx) {
+        var via = undefined;
+        ctx.lineCap = 'round';
+        var pattern = [5, 5];
+        if (Array.isArray(this.options.dashes) === true) {
+          pattern = this.options.dashes;
+        }
+
+        // only firefox and chrome support this method, else we use the legacy one.
+        if (ctx.setLineDash !== undefined) {
+          ctx.save();
+
+          // set dash settings for chrome or firefox
+          ctx.setLineDash(pattern);
+          ctx.lineDashOffset = 0;
+
+          // draw the line
+          if (this.from != this.to) {
+            // draw line
+            via = this._line(ctx);
+          } else {
+            var _getCircleData3 = this._getCircleData(ctx);
+
+            var _getCircleData32 = _slicedToArray(_getCircleData3, 3);
+
+            var x = _getCircleData32[0];
+            var y = _getCircleData32[1];
+            var radius = _getCircleData32[2];
+
+            this._circle(ctx, x, y, radius);
+          }
+
+          // restore the dash settings.
+          ctx.setLineDash([0]);
+          ctx.lineDashOffset = 0;
+          ctx.restore();
+        } else {
+          // unsupporting smooth lines
+
+          if (this.from != this.to) {
+            // draw line
+            ctx.dashedLine(this.from.x, this.from.y, this.to.x, this.to.y, pattern);
+          } else {
+            var _getCircleData4 = this._getCircleData(ctx);
+
+            var _getCircleData42 = _slicedToArray(_getCircleData4, 3);
+
+            var x = _getCircleData42[0];
+            var y = _getCircleData42[1];
+            var radius = _getCircleData42[2];
+
+            this._circle(ctx, x, y, radius);
+          }
+          // draw shadow if enabled
+          this.enableShadow(ctx);
+
+          ctx.stroke();
+
+          // disable shadows for other elements.
+          this.disableShadow(ctx);
+        }
+        return via;
+      }
+    }, {
+      key: 'findBorderPosition',
+      value: function findBorderPosition(nearNode, ctx, options) {
+        if (this.from != this.to) {
+          return this._findBorderPosition(nearNode, ctx, options);
+        } else {
+          return this._findBorderPositionCircle(nearNode, ctx, options);
+        }
+      }
+    }, {
+      key: 'findBorderPositions',
+      value: function findBorderPositions(ctx) {
+        var from = {};
+        var to = {};
+        if (this.from != this.to) {
+          from = this._findBorderPosition(this.from, ctx);
+          to = this._findBorderPosition(this.to, ctx);
+        } else {
+          var _getCircleData5 = this._getCircleData(ctx);
+
+          var _getCircleData52 = _slicedToArray(_getCircleData5, 3);
+
+          var x = _getCircleData52[0];
+          var y = _getCircleData52[1];
+          var radius = _getCircleData52[2];
+
+          from = this._findBorderPositionCircle(this.from, ctx, { x: x, y: y, low: 0.25, high: 0.6, direction: -1 });
+          to = this._findBorderPositionCircle(this.from, ctx, { x: x, y: y, low: 0.6, high: 0.8, direction: 1 });
+        }
+        return { from: from, to: to };
+      }
+    }, {
+      key: '_getCircleData',
+      value: function _getCircleData(ctx) {
+        var x = undefined,
+            y = undefined;
+        var node = this.from;
+        var radius = this.options.selfReferenceSize;
+
+        if (ctx !== undefined) {
+          if (node.shape.width === undefined) {
+            node.shape.resize(ctx);
+          }
+        }
+
+        // get circle coordinates
+        if (node.shape.width > node.shape.height) {
+          x = node.x + node.shape.width * 0.5;
+          y = node.y - radius;
+        } else {
+          x = node.x + radius;
+          y = node.y - node.shape.height * 0.5;
+        }
+        return [x, y, radius];
+      }
+    }, {
+      key: '_pointOnCircle',
+
+      /**
+       * Get a point on a circle
+       * @param {Number} x
+       * @param {Number} y
+       * @param {Number} radius
+       * @param {Number} percentage. Value between 0 (line start) and 1 (line end)
+       * @return {Object} point
+       * @private
+       */
+      value: function _pointOnCircle(x, y, radius, percentage) {
+        var angle = percentage * 2 * Math.PI;
+        return {
+          x: x + radius * Math.cos(angle),
+          y: y - radius * Math.sin(angle)
+        };
+      }
+    }, {
+      key: '_findBorderPositionCircle',
+
+      /**
+       * This function uses binary search to look for the point where the circle crosses the border of the node.
+       * @param node
+       * @param ctx
+       * @param options
+       * @returns {*}
+       * @private
+       */
+      value: function _findBorderPositionCircle(node, ctx, options) {
+        var x = options.x;
+        var y = options.y;
+        var low = options.low;
+        var high = options.high;
+        var direction = options.direction;
+
+        var maxIterations = 10;
+        var iteration = 0;
+        var radius = this.options.selfReferenceSize;
+        var pos = undefined,
+            angle = undefined,
+            distanceToBorder = undefined,
+            distanceToPoint = undefined,
+            difference = undefined;
+        var threshold = 0.05;
+        var middle = (low + high) * 0.5;
+
+        while (low <= high && iteration < maxIterations) {
+          middle = (low + high) * 0.5;
+
+          pos = this._pointOnCircle(x, y, radius, middle);
+          angle = Math.atan2(node.y - pos.y, node.x - pos.x);
+          distanceToBorder = node.distanceToBorder(ctx, angle);
+          distanceToPoint = Math.sqrt(Math.pow(pos.x - node.x, 2) + Math.pow(pos.y - node.y, 2));
+          difference = distanceToBorder - distanceToPoint;
+          if (Math.abs(difference) < threshold) {
+            break; // found
+          } else if (difference > 0) {
+            // distance to nodes is larger than distance to border --> t needs to be bigger if we're looking at the to node.
+            if (direction > 0) {
+              low = middle;
+            } else {
+              high = middle;
+            }
+          } else {
+            if (direction > 0) {
+              high = middle;
+            } else {
+              low = middle;
+            }
+          }
+          iteration++;
+        }
+        pos.t = middle;
+
+        return pos;
+      }
+    }, {
+      key: 'getLineWidth',
+
+      /**
+       * Get the line width of the edge. Depends on width and whether one of the
+       * connected nodes is selected.
+       * @return {Number} width
+       * @private
+       */
+      value: function getLineWidth(selected, hover) {
+        if (selected === true) {
+          return Math.max(this.selectionWidth, 0.3 / this.body.view.scale);
+        } else {
+          if (hover === true) {
+            return Math.max(this.hoverWidth, 0.3 / this.body.view.scale);
+          } else {
+            return Math.max(this.options.width, 0.3 / this.body.view.scale);
+          }
+        }
+      }
+    }, {
+      key: 'getColor',
+      value: function getColor(ctx, selected, hover) {
+        var colorOptions = this.options.color;
+        if (colorOptions.inherit !== false) {
+          // when this is a loop edge, just use the 'from' method
+          if (colorOptions.inherit === 'both' && this.from.id !== this.to.id) {
+            var grd = ctx.createLinearGradient(this.from.x, this.from.y, this.to.x, this.to.y);
+            var fromColor = undefined,
+                toColor = undefined;
+            fromColor = this.from.options.color.highlight.border;
+            toColor = this.to.options.color.highlight.border;
+
+            if (this.from.selected === false && this.to.selected === false) {
+              fromColor = util.overrideOpacity(this.from.options.color.border, this.options.color.opacity);
+              toColor = util.overrideOpacity(this.to.options.color.border, this.options.color.opacity);
+            } else if (this.from.selected === true && this.to.selected === false) {
+              toColor = this.to.options.color.border;
+            } else if (this.from.selected === false && this.to.selected === true) {
+              fromColor = this.from.options.color.border;
+            }
+            grd.addColorStop(0, fromColor);
+            grd.addColorStop(1, toColor);
+
+            // -------------------- this returns -------------------- //
+            return grd;
+          }
+
+          if (this.colorDirty === true) {
+            if (colorOptions.inherit === 'to') {
+              this.color.highlight = this.to.options.color.highlight.border;
+              this.color.hover = this.to.options.color.hover.border;
+              this.color.color = util.overrideOpacity(this.to.options.color.border, colorOptions.opacity);
+            } else {
+              // (this.options.color.inherit.source === "from") {
+              this.color.highlight = this.from.options.color.highlight.border;
+              this.color.hover = this.from.options.color.hover.border;
+              this.color.color = util.overrideOpacity(this.from.options.color.border, colorOptions.opacity);
+            }
+          }
+        } else if (this.colorDirty === true) {
+          this.color.highlight = colorOptions.highlight;
+          this.color.hover = colorOptions.hover;
+          this.color.color = util.overrideOpacity(colorOptions.color, colorOptions.opacity);
+        }
+
+        // if color inherit is on and gradients are used, the function has already returned by now.
+        this.colorDirty = false;
+
+        if (selected === true) {
+          return this.color.highlight;
+        } else if (hover === true) {
+          return this.color.hover;
+        } else {
+          return this.color.color;
+        }
+      }
+    }, {
+      key: '_circle',
+
+      /**
+       * Draw a line from a node to itself, a circle
+       * @param {CanvasRenderingContext2D} ctx
+       * @param {Number} x
+       * @param {Number} y
+       * @param {Number} radius
+       * @private
+       */
+      value: function _circle(ctx, x, y, radius) {
+        // draw shadow if enabled
+        this.enableShadow(ctx);
+
+        // draw a circle
+        ctx.beginPath();
+        ctx.arc(x, y, radius, 0, 2 * Math.PI, false);
+        ctx.stroke();
+
+        // disable shadows for other elements.
+        this.disableShadow(ctx);
+      }
+    }, {
+      key: 'getDistanceToEdge',
+
+      /**
+       * Calculate the distance between a point (x3,y3) and a line segment from
+       * (x1,y1) to (x2,y2).
+       * http://stackoverflow.com/questions/849211/shortest-distancae-between-a-point-and-a-line-segment
+       * @param {number} x1
+       * @param {number} y1
+       * @param {number} x2
+       * @param {number} y2
+       * @param {number} x3
+       * @param {number} y3
+       * @private
+       */
+      value: function getDistanceToEdge(x1, y1, x2, y2, x3, y3, via) {
+        // x3,y3 is the point
+        var returnValue = 0;
+        if (this.from != this.to) {
+          returnValue = this._getDistanceToEdge(x1, y1, x2, y2, x3, y3, via);
+        } else {
+          var _getCircleData6 = this._getCircleData();
+
+          var _getCircleData62 = _slicedToArray(_getCircleData6, 3);
+
+          var x = _getCircleData62[0];
+          var y = _getCircleData62[1];
+          var radius = _getCircleData62[2];
+
+          var dx = x - x3;
+          var dy = y - y3;
+          returnValue = Math.abs(Math.sqrt(dx * dx + dy * dy) - radius);
+        }
+
+        if (this.labelModule.size.left < x3 && this.labelModule.size.left + this.labelModule.size.width > x3 && this.labelModule.size.top < y3 && this.labelModule.size.top + this.labelModule.size.height > y3) {
+          return 0;
+        } else {
+          return returnValue;
+        }
+      }
+    }, {
+      key: '_getDistanceToLine',
+      value: function _getDistanceToLine(x1, y1, x2, y2, x3, y3) {
+        var px = x2 - x1;
+        var py = y2 - y1;
+        var something = px * px + py * py;
+        var u = ((x3 - x1) * px + (y3 - y1) * py) / something;
+
+        if (u > 1) {
+          u = 1;
+        } else if (u < 0) {
+          u = 0;
+        }
+
+        var x = x1 + u * px;
+        var y = y1 + u * py;
+        var dx = x - x3;
+        var dy = y - y3;
+
+        //# Note: If the actual distance does not matter,
+        //# if you only want to compare what this function
+        //# returns to other results of this function, you
+        //# can just return the squared distance instead
+        //# (i.e. remove the sqrt) to gain a little performance
+
+        return Math.sqrt(dx * dx + dy * dy);
+      }
+    }, {
+      key: 'drawArrowHead',
+
+      /**
+       *
+       * @param ctx
+       * @param position
+       * @param viaNode
+       */
+      value: function drawArrowHead(ctx, position, viaNode, selected, hover) {
+        // set style
+        ctx.strokeStyle = this.getColor(ctx, selected, hover);
+        ctx.fillStyle = ctx.strokeStyle;
+        ctx.lineWidth = this.getLineWidth(selected, hover);
+
+        // set lets
+        var angle = undefined;
+        var length = undefined;
+        var arrowPos = undefined;
+        var node1 = undefined;
+        var node2 = undefined;
+        var guideOffset = undefined;
+        var scaleFactor = undefined;
+
+        if (position === 'from') {
+          node1 = this.from;
+          node2 = this.to;
+          guideOffset = 0.1;
+          scaleFactor = this.options.arrows.from.scaleFactor;
+        } else if (position === 'to') {
+          node1 = this.to;
+          node2 = this.from;
+          guideOffset = -0.1;
+          scaleFactor = this.options.arrows.to.scaleFactor;
+        } else {
+          node1 = this.to;
+          node2 = this.from;
+          scaleFactor = this.options.arrows.middle.scaleFactor;
+        }
+
+        // if not connected to itself
+        if (node1 != node2) {
+          if (position !== 'middle') {
+            // draw arrow head
+            if (this.options.smooth.enabled === true) {
+              arrowPos = this.findBorderPosition(node1, ctx, { via: viaNode });
+              var guidePos = this.getPoint(Math.max(0, Math.min(1, arrowPos.t + guideOffset)), viaNode);
+              angle = Math.atan2(arrowPos.y - guidePos.y, arrowPos.x - guidePos.x);
+            } else {
+              angle = Math.atan2(node1.y - node2.y, node1.x - node2.x);
+              arrowPos = this.findBorderPosition(node1, ctx);
+            }
+          } else {
+            angle = Math.atan2(node1.y - node2.y, node1.x - node2.x);
+            arrowPos = this.getPoint(0.6, viaNode); // this is 0.6 to account for the size of the arrow.
+          }
+          // draw arrow at the end of the line
+          length = (10 + 5 * this.options.width) * scaleFactor;
+          ctx.arrow(arrowPos.x, arrowPos.y, angle, length);
+
+          // draw shadow if enabled
+          this.enableShadow(ctx);
+          ctx.fill();
+
+          // disable shadows for other elements.
+          this.disableShadow(ctx);
+          ctx.stroke();
+        } else {
+          // draw circle
+          var _angle = undefined,
+              point = undefined;
+
+          var _getCircleData7 = this._getCircleData(ctx);
+
+          var _getCircleData72 = _slicedToArray(_getCircleData7, 3);
+
+          var x = _getCircleData72[0];
+          var y = _getCircleData72[1];
+          var radius = _getCircleData72[2];
+
+          if (position === 'from') {
+            point = this.findBorderPosition(this.from, ctx, { x: x, y: y, low: 0.25, high: 0.6, direction: -1 });
+            _angle = point.t * -2 * Math.PI + 1.5 * Math.PI + 0.1 * Math.PI;
+          } else if (position === 'to') {
+            point = this.findBorderPosition(this.from, ctx, { x: x, y: y, low: 0.6, high: 1, direction: 1 });
+            _angle = point.t * -2 * Math.PI + 1.5 * Math.PI - 1.1 * Math.PI;
+          } else {
+            point = this._pointOnCircle(x, y, radius, 0.175);
+            _angle = 3.9269908169872414; // === 0.175 * -2 * Math.PI + 1.5 * Math.PI + 0.1 * Math.PI;
+          }
+
+          // draw the arrowhead
+          var _length = (10 + 5 * this.options.width) * scaleFactor;
+          ctx.arrow(point.x, point.y, _angle, _length);
+
+          // draw shadow if enabled
+          this.enableShadow(ctx);
+          ctx.fill();
+
+          // disable shadows for other elements.
+          this.disableShadow(ctx);
+          ctx.stroke();
+        }
+      }
+    }, {
+      key: 'enableShadow',
+      value: function enableShadow(ctx) {
+        if (this.options.shadow.enabled === true) {
+          ctx.shadowColor = 'rgba(0,0,0,0.5)';
+          ctx.shadowBlur = this.options.shadow.size;
+          ctx.shadowOffsetX = this.options.shadow.x;
+          ctx.shadowOffsetY = this.options.shadow.y;
+        }
+      }
+    }, {
+      key: 'disableShadow',
+      value: function disableShadow(ctx) {
+        if (this.options.shadow.enabled === true) {
+          ctx.shadowColor = 'rgba(0,0,0,0)';
+          ctx.shadowBlur = 0;
+          ctx.shadowOffsetX = 0;
+          ctx.shadowOffsetY = 0;
+        }
+      }
+    }]);
+
+    return EdgeBase;
+  })();
+
+  exports['default'] = EdgeBase;
+  module.exports = exports['default'];
+
+/***/ },
+/* 7 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -3739,9 +4259,9 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
 
-  var util = __webpack_require__(9);
-  var Hammer = __webpack_require__(33);
-  var hammerUtil = __webpack_require__(36);
+  var util = __webpack_require__(10);
+  var Hammer = __webpack_require__(35);
+  var hammerUtil = __webpack_require__(38);
 
   /**
    * clears the toolbar div element of children
@@ -4940,7 +5460,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 7 */
+/* 8 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -4953,7 +5473,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
 
-  var util = __webpack_require__(9);
+  var util = __webpack_require__(10);
 
   var LayoutEngine = (function () {
     function LayoutEngine(body) {
@@ -5448,7 +5968,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 8 */
+/* 9 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -5463,39 +5983,39 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
 
-  var _componentsPhysicsBarnesHutSolver = __webpack_require__(94);
+  var _componentsPhysicsBarnesHutSolver = __webpack_require__(95);
 
   var _componentsPhysicsBarnesHutSolver2 = _interopRequireDefault(_componentsPhysicsBarnesHutSolver);
 
-  var _componentsPhysicsRepulsionSolver = __webpack_require__(95);
+  var _componentsPhysicsRepulsionSolver = __webpack_require__(96);
 
   var _componentsPhysicsRepulsionSolver2 = _interopRequireDefault(_componentsPhysicsRepulsionSolver);
 
-  var _componentsPhysicsHierarchicalRepulsionSolver = __webpack_require__(96);
+  var _componentsPhysicsHierarchicalRepulsionSolver = __webpack_require__(97);
 
   var _componentsPhysicsHierarchicalRepulsionSolver2 = _interopRequireDefault(_componentsPhysicsHierarchicalRepulsionSolver);
 
-  var _componentsPhysicsSpringSolver = __webpack_require__(97);
+  var _componentsPhysicsSpringSolver = __webpack_require__(98);
 
   var _componentsPhysicsSpringSolver2 = _interopRequireDefault(_componentsPhysicsSpringSolver);
 
-  var _componentsPhysicsHierarchicalSpringSolver = __webpack_require__(98);
+  var _componentsPhysicsHierarchicalSpringSolver = __webpack_require__(99);
 
   var _componentsPhysicsHierarchicalSpringSolver2 = _interopRequireDefault(_componentsPhysicsHierarchicalSpringSolver);
 
-  var _componentsPhysicsCentralGravitySolver = __webpack_require__(99);
+  var _componentsPhysicsCentralGravitySolver = __webpack_require__(100);
 
   var _componentsPhysicsCentralGravitySolver2 = _interopRequireDefault(_componentsPhysicsCentralGravitySolver);
 
-  var _componentsPhysicsFA2BasedRepulsionSolver = __webpack_require__(100);
+  var _componentsPhysicsFA2BasedRepulsionSolver = __webpack_require__(101);
 
   var _componentsPhysicsFA2BasedRepulsionSolver2 = _interopRequireDefault(_componentsPhysicsFA2BasedRepulsionSolver);
 
-  var _componentsPhysicsFA2BasedCentralGravitySolver = __webpack_require__(101);
+  var _componentsPhysicsFA2BasedCentralGravitySolver = __webpack_require__(102);
 
   var _componentsPhysicsFA2BasedCentralGravitySolver2 = _interopRequireDefault(_componentsPhysicsFA2BasedCentralGravitySolver);
 
-  var util = __webpack_require__(9);
+  var util = __webpack_require__(10);
 
   var PhysicsEngine = (function () {
     function PhysicsEngine(body) {
@@ -6087,7 +6607,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 9 */
+/* 10 */
 /***/ function(module, exports, __webpack_require__) {
 
   // utility functions
@@ -6097,8 +6617,8 @@ return /******/ (function(modules) { // webpackBootstrap
 
   'use strict';
 
-  var moment = __webpack_require__(11);
-  var uuid = __webpack_require__(16);
+  var moment = __webpack_require__(12);
+  var uuid = __webpack_require__(18);
 
   /**
    * Test whether given object is a number
@@ -7433,395 +7953,93 @@ return /******/ (function(modules) { // webpackBootstrap
   };
 
 /***/ },
-/* 10 */
+/* 11 */
 /***/ function(module, exports, __webpack_require__) {
 
-  'use strict';
+  /**
+   * @class Images
+   * This class loads images and keeps them stored.
+   */
+  "use strict";
 
-  Object.defineProperty(exports, '__esModule', {
-    value: true
-  });
-
-  var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
-
-  function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
-
-  var Hammer = __webpack_require__(33);
-  var hammerUtil = __webpack_require__(36);
-
-  var util = __webpack_require__(9);
+  function Images(callback) {
+    this.images = {};
+    this.imageBroken = {};
+    this.callback = callback;
+  }
 
   /**
-   * Create the main frame for the Network.
-   * This function is executed once when a Network object is created. The frame
-   * contains a canvas, and this canvas contains all objects like the axis and
-   * nodes.
-   * @private
+   *
+   * @param {string} url          Url of the image
+   * @param {string} url          Url of an image to use if the url image is not found
+   * @return {Image} img          The image object
    */
+  Images.prototype.load = function (url, brokenUrl, id) {
+    var img = this.images[url]; // make a pointer
+    if (img === undefined) {
+      // create the image
+      var me = this;
+      img = new Image();
+      img.onload = function () {
+        // IE11 fix -- thanks dponch!
+        if (this.width === 0) {
+          document.body.appendChild(this);
+          this.width = this.offsetWidth;
+          this.height = this.offsetHeight;
+          document.body.removeChild(this);
+        }
 
-  var Canvas = (function () {
-    function Canvas(body) {
-      _classCallCheck(this, Canvas);
-
-      this.body = body;
-      this.pixelRatio = 1;
-      this.resizeTimer = undefined;
-      this.resizeFunction = this._onResize.bind(this);
-
-      this.options = {};
-      this.defaultOptions = {
-        autoResize: true,
-        height: '100%',
-        width: '100%'
+        if (me.callback) {
+          me.images[url] = img;
+          me.callback(this);
+        }
       };
-      util.extend(this.options, this.defaultOptions);
 
-      this.bindEventListeners();
+      img.onerror = function () {
+        if (brokenUrl === undefined) {
+          console.error("Could not load image:", url);
+          delete this.src;
+          if (me.callback) {
+            me.callback(this);
+          }
+        } else {
+          if (me.imageBroken[id] && me.imageBroken[id][url] === true) {
+            console.error("Could not load brokenImage:", brokenUrl);
+            delete this.src;
+            if (me.callback) {
+              me.callback(this);
+            }
+          } else {
+            console.error("Could not load image:", url);
+            this.src = brokenUrl;
+            if (me.imageBroken[id] === undefined) {
+              me.imageBroken[id] = {};
+            }
+            me.imageBroken[id][url] = true;
+          }
+        }
+      };
+
+      img.src = url;
     }
 
-    _createClass(Canvas, [{
-      key: 'bindEventListeners',
-      value: function bindEventListeners() {
-        var _this = this;
+    return img;
+  };
 
-        // bind the events
-        this.body.emitter.once('resize', function (obj) {
-          if (obj.width !== 0) {
-            _this.body.view.translation.x = obj.width * 0.5;
-          }
-          if (obj.height !== 0) {
-            _this.body.view.translation.y = obj.height * 0.5;
-          }
-        });
-        this.body.emitter.on('setSize', this.setSize.bind(this));
-        this.body.emitter.on('destroy', function () {
-          _this.hammerFrame.destroy();
-          _this.hammer.destroy();
-          _this._cleanUp();
-        });
-      }
-    }, {
-      key: 'setOptions',
-      value: function setOptions(options) {
-        var _this2 = this;
-
-        if (options !== undefined) {
-          var fields = ['width', 'height', 'autoResize'];
-          util.selectiveDeepExtend(fields, this.options, options);
-        }
-
-        if (this.options.autoResize === true) {
-          // automatically adapt to a changing size of the browser.
-          this._cleanUp();
-          this.resizeTimer = setInterval(function () {
-            var changed = _this2.setSize();
-            if (changed === true) {
-              _this2.body.emitter.emit('_requestRedraw');
-            }
-          }, 1000);
-          this.resizeFunction = this._onResize.bind(this);
-          util.addEventListener(window, 'resize', this.resizeFunction);
-        }
-      }
-    }, {
-      key: '_cleanUp',
-      value: function _cleanUp() {
-        // automatically adapt to a changing size of the browser.
-        if (this.resizeTimer !== undefined) {
-          clearInterval(this.resizeTimer);
-        }
-        util.removeEventListener(window, 'resize', this.resizeFunction);
-        this.resizeFunction = undefined;
-      }
-    }, {
-      key: '_onResize',
-      value: function _onResize() {
-        this.setSize();
-        this.body.emitter.emit('_redraw');
-      }
-    }, {
-      key: '_prepareValue',
-      value: function _prepareValue(value) {
-        if (typeof value === 'number') {
-          return value + 'px';
-        } else if (typeof value === 'string') {
-          if (value.indexOf('%') !== -1 || value.indexOf('px') !== -1) {
-            return value;
-          } else if (value.indexOf('%') === -1) {
-            return value + 'px';
-          }
-        }
-        throw new Error('Could not use the value supplie for width or height:' + value);
-      }
-    }, {
-      key: '_create',
-
-      /**
-       * Create the HTML
-       */
-      value: function _create() {
-        // remove all elements from the container element.
-        while (this.body.container.hasChildNodes()) {
-          this.body.container.removeChild(this.body.container.firstChild);
-        }
-
-        this.frame = document.createElement('div');
-        this.frame.className = 'vis-network';
-        this.frame.style.position = 'relative';
-        this.frame.style.overflow = 'hidden';
-        this.frame.tabIndex = 900; // tab index is required for keycharm to bind keystrokes to the div instead of the window
-
-        //////////////////////////////////////////////////////////////////
-
-        this.frame.canvas = document.createElement('canvas');
-        this.frame.canvas.style.position = 'relative';
-        this.frame.appendChild(this.frame.canvas);
-
-        if (!this.frame.canvas.getContext) {
-          var noCanvas = document.createElement('DIV');
-          noCanvas.style.color = 'red';
-          noCanvas.style.fontWeight = 'bold';
-          noCanvas.style.padding = '10px';
-          noCanvas.innerHTML = 'Error: your browser does not support HTML canvas';
-          this.frame.canvas.appendChild(noCanvas);
-        } else {
-          var ctx = this.frame.canvas.getContext('2d');
-          this.pixelRatio = (window.devicePixelRatio || 1) / (ctx.webkitBackingStorePixelRatio || ctx.mozBackingStorePixelRatio || ctx.msBackingStorePixelRatio || ctx.oBackingStorePixelRatio || ctx.backingStorePixelRatio || 1);
-
-          this.frame.canvas.getContext('2d').setTransform(this.pixelRatio, 0, 0, this.pixelRatio, 0, 0);
-        }
-
-        // add the frame to the container element
-        this.body.container.appendChild(this.frame);
-
-        this.body.view.scale = 1;
-        this.body.view.translation = { x: 0.5 * this.frame.canvas.clientWidth, y: 0.5 * this.frame.canvas.clientHeight };
-
-        this._bindHammer();
-      }
-    }, {
-      key: '_bindHammer',
-
-      /**
-       * This function binds hammer, it can be repeated over and over due to the uniqueness check.
-       * @private
-       */
-      value: function _bindHammer() {
-        var _this3 = this;
-
-        if (this.hammer !== undefined) {
-          this.hammer.destroy();
-        }
-        this.drag = {};
-        this.pinch = {};
-
-        // init hammer
-        this.hammer = new Hammer(this.frame.canvas);
-        this.hammer.get('pinch').set({ enable: true });
-        // enable to get better response, todo: test on mobile.
-        this.hammer.get('pan').set({ threshold: 5, direction: 30 });
-
-        hammerUtil.onTouch(this.hammer, function (event) {
-          _this3.body.eventListeners.onTouch(event);
-        });
-        this.hammer.on('tap', function (event) {
-          _this3.body.eventListeners.onTap(event);
-        });
-        this.hammer.on('doubletap', function (event) {
-          _this3.body.eventListeners.onDoubleTap(event);
-        });
-        this.hammer.on('press', function (event) {
-          _this3.body.eventListeners.onHold(event);
-        });
-        this.hammer.on('panstart', function (event) {
-          _this3.body.eventListeners.onDragStart(event);
-        });
-        this.hammer.on('panmove', function (event) {
-          _this3.body.eventListeners.onDrag(event);
-        });
-        this.hammer.on('panend', function (event) {
-          _this3.body.eventListeners.onDragEnd(event);
-        });
-        this.hammer.on('pinch', function (event) {
-          _this3.body.eventListeners.onPinch(event);
-        });
-
-        // TODO: neatly cleanup these handlers when re-creating the Canvas, IF these are done with hammer, event.stopPropagation will not work?
-        this.frame.canvas.addEventListener('mousewheel', function (event) {
-          _this3.body.eventListeners.onMouseWheel(event);
-        });
-        this.frame.canvas.addEventListener('DOMMouseScroll', function (event) {
-          _this3.body.eventListeners.onMouseWheel(event);
-        });
-
-        this.frame.canvas.addEventListener('mousemove', function (event) {
-          _this3.body.eventListeners.onMouseMove(event);
-        });
-        this.frame.canvas.addEventListener('contextmenu', function (event) {
-          _this3.body.eventListeners.onContext(event);
-        });
-
-        this.hammerFrame = new Hammer(this.frame);
-        hammerUtil.onRelease(this.hammerFrame, function (event) {
-          _this3.body.eventListeners.onRelease(event);
-        });
-      }
-    }, {
-      key: 'setSize',
-
-      /**
-       * Set a new size for the network
-       * @param {string} width   Width in pixels or percentage (for example '800px'
-       *                         or '50%')
-       * @param {string} height  Height in pixels or percentage  (for example '400px'
-       *                         or '30%')
-       */
-      value: function setSize() {
-        var width = arguments[0] === undefined ? this.options.width : arguments[0];
-        var height = arguments[1] === undefined ? this.options.height : arguments[1];
-
-        width = this._prepareValue(width);
-        height = this._prepareValue(height);
-
-        var emitEvent = false;
-        var oldWidth = this.frame.canvas.width;
-        var oldHeight = this.frame.canvas.height;
-
-        if (width != this.options.width || height != this.options.height || this.frame.style.width != width || this.frame.style.height != height) {
-          this.frame.style.width = width;
-          this.frame.style.height = height;
-
-          this.frame.canvas.style.width = '100%';
-          this.frame.canvas.style.height = '100%';
-
-          this.frame.canvas.width = Math.round(this.frame.canvas.clientWidth * this.pixelRatio);
-          this.frame.canvas.height = Math.round(this.frame.canvas.clientHeight * this.pixelRatio);
-
-          this.options.width = width;
-          this.options.height = height;
-
-          emitEvent = true;
-        } else {
-          // this would adapt the width of the canvas to the width from 100% if and only if
-          // there is a change.
-
-          if (this.frame.canvas.width != Math.round(this.frame.canvas.clientWidth * this.pixelRatio)) {
-            this.frame.canvas.width = Math.round(this.frame.canvas.clientWidth * this.pixelRatio);
-            emitEvent = true;
-          }
-          if (this.frame.canvas.height != Math.round(this.frame.canvas.clientHeight * this.pixelRatio)) {
-            this.frame.canvas.height = Math.round(this.frame.canvas.clientHeight * this.pixelRatio);
-            emitEvent = true;
-          }
-        }
-
-        if (emitEvent === true) {
-          this.body.emitter.emit('resize', {
-            width: Math.round(this.frame.canvas.width / this.pixelRatio),
-            height: Math.round(this.frame.canvas.height / this.pixelRatio),
-            oldWidth: Math.round(oldWidth / this.pixelRatio),
-            oldHeight: Math.round(oldHeight / this.pixelRatio)
-          });
-        }
-
-        return emitEvent;
-      }
-    }, {
-      key: '_XconvertDOMtoCanvas',
-
-      /**
-       * Convert the X coordinate in DOM-space (coordinate point in browser relative to the container div) to
-       * the X coordinate in canvas-space (the simulation sandbox, which the camera looks upon)
-       * @param {number} x
-       * @returns {number}
-       * @private
-       */
-      value: function _XconvertDOMtoCanvas(x) {
-        return (x - this.body.view.translation.x) / this.body.view.scale;
-      }
-    }, {
-      key: '_XconvertCanvasToDOM',
-
-      /**
-       * Convert the X coordinate in canvas-space (the simulation sandbox, which the camera looks upon) to
-       * the X coordinate in DOM-space (coordinate point in browser relative to the container div)
-       * @param {number} x
-       * @returns {number}
-       * @private
-       */
-      value: function _XconvertCanvasToDOM(x) {
-        return x * this.body.view.scale + this.body.view.translation.x;
-      }
-    }, {
-      key: '_YconvertDOMtoCanvas',
-
-      /**
-       * Convert the Y coordinate in DOM-space (coordinate point in browser relative to the container div) to
-       * the Y coordinate in canvas-space (the simulation sandbox, which the camera looks upon)
-       * @param {number} y
-       * @returns {number}
-       * @private
-       */
-      value: function _YconvertDOMtoCanvas(y) {
-        return (y - this.body.view.translation.y) / this.body.view.scale;
-      }
-    }, {
-      key: '_YconvertCanvasToDOM',
-
-      /**
-       * Convert the Y coordinate in canvas-space (the simulation sandbox, which the camera looks upon) to
-       * the Y coordinate in DOM-space (coordinate point in browser relative to the container div)
-       * @param {number} y
-       * @returns {number}
-       * @private
-       */
-      value: function _YconvertCanvasToDOM(y) {
-        return y * this.body.view.scale + this.body.view.translation.y;
-      }
-    }, {
-      key: 'canvasToDOM',
-
-      /**
-       *
-       * @param {object} pos   = {x: number, y: number}
-       * @returns {{x: number, y: number}}
-       * @constructor
-       */
-      value: function canvasToDOM(pos) {
-        return { x: this._XconvertCanvasToDOM(pos.x), y: this._YconvertCanvasToDOM(pos.y) };
-      }
-    }, {
-      key: 'DOMtoCanvas',
-
-      /**
-       *
-       * @param {object} pos   = {x: number, y: number}
-       * @returns {{x: number, y: number}}
-       * @constructor
-       */
-      value: function DOMtoCanvas(pos) {
-        return { x: this._XconvertDOMtoCanvas(pos.x), y: this._YconvertDOMtoCanvas(pos.y) };
-      }
-    }]);
-
-    return Canvas;
-  })();
-
-  exports['default'] = Canvas;
-  module.exports = exports['default'];
+  module.exports = Images;
 
 /***/ },
-/* 11 */
+/* 12 */
 /***/ function(module, exports, __webpack_require__) {
 
   // first check if moment.js is already loaded in the browser window, if so,
   // use this instance. Else, load via commonjs.
   'use strict';
 
-  module.exports = typeof window !== 'undefined' && window['moment'] || __webpack_require__(14);
+  module.exports = typeof window !== 'undefined' && window['moment'] || __webpack_require__(16);
 
 /***/ },
-/* 12 */
+/* 13 */
 /***/ function(module, exports, __webpack_require__) {
 
   /* WEBPACK VAR INJECTION */(function(__webpack_amd_options__) {module.exports = __webpack_amd_options__;
@@ -7829,7 +8047,7 @@ return /******/ (function(modules) { // webpackBootstrap
   /* WEBPACK VAR INJECTION */}.call(exports, {}))
 
 /***/ },
-/* 13 */
+/* 14 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -7846,7 +8064,7 @@ return /******/ (function(modules) { // webpackBootstrap
     window.requestAnimationFrame = window.requestAnimationFrame || window.mozRequestAnimationFrame || window.webkitRequestAnimationFrame || window.msRequestAnimationFrame;
   }
 
-  var util = __webpack_require__(9);
+  var util = __webpack_require__(10);
 
   var CanvasRenderer = (function () {
     function CanvasRenderer(body, canvas) {
@@ -8217,7 +8435,385 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 14 */
+/* 15 */
+/***/ function(module, exports, __webpack_require__) {
+
+  'use strict';
+
+  Object.defineProperty(exports, '__esModule', {
+    value: true
+  });
+
+  var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
+
+  function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
+
+  var Hammer = __webpack_require__(35);
+  var hammerUtil = __webpack_require__(38);
+
+  var util = __webpack_require__(10);
+
+  /**
+   * Create the main frame for the Network.
+   * This function is executed once when a Network object is created. The frame
+   * contains a canvas, and this canvas contains all objects like the axis and
+   * nodes.
+   * @private
+   */
+
+  var Canvas = (function () {
+    function Canvas(body) {
+      _classCallCheck(this, Canvas);
+
+      this.body = body;
+      this.pixelRatio = 1;
+      this.resizeTimer = undefined;
+      this.resizeFunction = this._onResize.bind(this);
+
+      this.options = {};
+      this.defaultOptions = {
+        autoResize: true,
+        height: '100%',
+        width: '100%'
+      };
+      util.extend(this.options, this.defaultOptions);
+
+      this.bindEventListeners();
+    }
+
+    _createClass(Canvas, [{
+      key: 'bindEventListeners',
+      value: function bindEventListeners() {
+        var _this = this;
+
+        // bind the events
+        this.body.emitter.once('resize', function (obj) {
+          if (obj.width !== 0) {
+            _this.body.view.translation.x = obj.width * 0.5;
+          }
+          if (obj.height !== 0) {
+            _this.body.view.translation.y = obj.height * 0.5;
+          }
+        });
+        this.body.emitter.on('setSize', this.setSize.bind(this));
+        this.body.emitter.on('destroy', function () {
+          _this.hammerFrame.destroy();
+          _this.hammer.destroy();
+          _this._cleanUp();
+        });
+      }
+    }, {
+      key: 'setOptions',
+      value: function setOptions(options) {
+        var _this2 = this;
+
+        if (options !== undefined) {
+          var fields = ['width', 'height', 'autoResize'];
+          util.selectiveDeepExtend(fields, this.options, options);
+        }
+
+        if (this.options.autoResize === true) {
+          // automatically adapt to a changing size of the browser.
+          this._cleanUp();
+          this.resizeTimer = setInterval(function () {
+            var changed = _this2.setSize();
+            if (changed === true) {
+              _this2.body.emitter.emit('_requestRedraw');
+            }
+          }, 1000);
+          this.resizeFunction = this._onResize.bind(this);
+          util.addEventListener(window, 'resize', this.resizeFunction);
+        }
+      }
+    }, {
+      key: '_cleanUp',
+      value: function _cleanUp() {
+        // automatically adapt to a changing size of the browser.
+        if (this.resizeTimer !== undefined) {
+          clearInterval(this.resizeTimer);
+        }
+        util.removeEventListener(window, 'resize', this.resizeFunction);
+        this.resizeFunction = undefined;
+      }
+    }, {
+      key: '_onResize',
+      value: function _onResize() {
+        this.setSize();
+        this.body.emitter.emit('_redraw');
+      }
+    }, {
+      key: '_prepareValue',
+      value: function _prepareValue(value) {
+        if (typeof value === 'number') {
+          return value + 'px';
+        } else if (typeof value === 'string') {
+          if (value.indexOf('%') !== -1 || value.indexOf('px') !== -1) {
+            return value;
+          } else if (value.indexOf('%') === -1) {
+            return value + 'px';
+          }
+        }
+        throw new Error('Could not use the value supplie for width or height:' + value);
+      }
+    }, {
+      key: '_create',
+
+      /**
+       * Create the HTML
+       */
+      value: function _create() {
+        // remove all elements from the container element.
+        while (this.body.container.hasChildNodes()) {
+          this.body.container.removeChild(this.body.container.firstChild);
+        }
+
+        this.frame = document.createElement('div');
+        this.frame.className = 'vis-network';
+        this.frame.style.position = 'relative';
+        this.frame.style.overflow = 'hidden';
+        this.frame.tabIndex = 900; // tab index is required for keycharm to bind keystrokes to the div instead of the window
+
+        //////////////////////////////////////////////////////////////////
+
+        this.frame.canvas = document.createElement('canvas');
+        this.frame.canvas.style.position = 'relative';
+        this.frame.appendChild(this.frame.canvas);
+
+        if (!this.frame.canvas.getContext) {
+          var noCanvas = document.createElement('DIV');
+          noCanvas.style.color = 'red';
+          noCanvas.style.fontWeight = 'bold';
+          noCanvas.style.padding = '10px';
+          noCanvas.innerHTML = 'Error: your browser does not support HTML canvas';
+          this.frame.canvas.appendChild(noCanvas);
+        } else {
+          var ctx = this.frame.canvas.getContext('2d');
+          this.pixelRatio = (window.devicePixelRatio || 1) / (ctx.webkitBackingStorePixelRatio || ctx.mozBackingStorePixelRatio || ctx.msBackingStorePixelRatio || ctx.oBackingStorePixelRatio || ctx.backingStorePixelRatio || 1);
+
+          this.frame.canvas.getContext('2d').setTransform(this.pixelRatio, 0, 0, this.pixelRatio, 0, 0);
+        }
+
+        // add the frame to the container element
+        this.body.container.appendChild(this.frame);
+
+        this.body.view.scale = 1;
+        this.body.view.translation = { x: 0.5 * this.frame.canvas.clientWidth, y: 0.5 * this.frame.canvas.clientHeight };
+
+        this._bindHammer();
+      }
+    }, {
+      key: '_bindHammer',
+
+      /**
+       * This function binds hammer, it can be repeated over and over due to the uniqueness check.
+       * @private
+       */
+      value: function _bindHammer() {
+        var _this3 = this;
+
+        if (this.hammer !== undefined) {
+          this.hammer.destroy();
+        }
+        this.drag = {};
+        this.pinch = {};
+
+        // init hammer
+        this.hammer = new Hammer(this.frame.canvas);
+        this.hammer.get('pinch').set({ enable: true });
+        // enable to get better response, todo: test on mobile.
+        this.hammer.get('pan').set({ threshold: 5, direction: 30 });
+
+        hammerUtil.onTouch(this.hammer, function (event) {
+          _this3.body.eventListeners.onTouch(event);
+        });
+        this.hammer.on('tap', function (event) {
+          _this3.body.eventListeners.onTap(event);
+        });
+        this.hammer.on('doubletap', function (event) {
+          _this3.body.eventListeners.onDoubleTap(event);
+        });
+        this.hammer.on('press', function (event) {
+          _this3.body.eventListeners.onHold(event);
+        });
+        this.hammer.on('panstart', function (event) {
+          _this3.body.eventListeners.onDragStart(event);
+        });
+        this.hammer.on('panmove', function (event) {
+          _this3.body.eventListeners.onDrag(event);
+        });
+        this.hammer.on('panend', function (event) {
+          _this3.body.eventListeners.onDragEnd(event);
+        });
+        this.hammer.on('pinch', function (event) {
+          _this3.body.eventListeners.onPinch(event);
+        });
+
+        // TODO: neatly cleanup these handlers when re-creating the Canvas, IF these are done with hammer, event.stopPropagation will not work?
+        this.frame.canvas.addEventListener('mousewheel', function (event) {
+          _this3.body.eventListeners.onMouseWheel(event);
+        });
+        this.frame.canvas.addEventListener('DOMMouseScroll', function (event) {
+          _this3.body.eventListeners.onMouseWheel(event);
+        });
+
+        this.frame.canvas.addEventListener('mousemove', function (event) {
+          _this3.body.eventListeners.onMouseMove(event);
+        });
+        this.frame.canvas.addEventListener('contextmenu', function (event) {
+          _this3.body.eventListeners.onContext(event);
+        });
+
+        this.hammerFrame = new Hammer(this.frame);
+        hammerUtil.onRelease(this.hammerFrame, function (event) {
+          _this3.body.eventListeners.onRelease(event);
+        });
+      }
+    }, {
+      key: 'setSize',
+
+      /**
+       * Set a new size for the network
+       * @param {string} width   Width in pixels or percentage (for example '800px'
+       *                         or '50%')
+       * @param {string} height  Height in pixels or percentage  (for example '400px'
+       *                         or '30%')
+       */
+      value: function setSize() {
+        var width = arguments[0] === undefined ? this.options.width : arguments[0];
+        var height = arguments[1] === undefined ? this.options.height : arguments[1];
+
+        width = this._prepareValue(width);
+        height = this._prepareValue(height);
+
+        var emitEvent = false;
+        var oldWidth = this.frame.canvas.width;
+        var oldHeight = this.frame.canvas.height;
+
+        if (width != this.options.width || height != this.options.height || this.frame.style.width != width || this.frame.style.height != height) {
+          this.frame.style.width = width;
+          this.frame.style.height = height;
+
+          this.frame.canvas.style.width = '100%';
+          this.frame.canvas.style.height = '100%';
+
+          this.frame.canvas.width = Math.round(this.frame.canvas.clientWidth * this.pixelRatio);
+          this.frame.canvas.height = Math.round(this.frame.canvas.clientHeight * this.pixelRatio);
+
+          this.options.width = width;
+          this.options.height = height;
+
+          emitEvent = true;
+        } else {
+          // this would adapt the width of the canvas to the width from 100% if and only if
+          // there is a change.
+
+          if (this.frame.canvas.width != Math.round(this.frame.canvas.clientWidth * this.pixelRatio)) {
+            this.frame.canvas.width = Math.round(this.frame.canvas.clientWidth * this.pixelRatio);
+            emitEvent = true;
+          }
+          if (this.frame.canvas.height != Math.round(this.frame.canvas.clientHeight * this.pixelRatio)) {
+            this.frame.canvas.height = Math.round(this.frame.canvas.clientHeight * this.pixelRatio);
+            emitEvent = true;
+          }
+        }
+
+        if (emitEvent === true) {
+          this.body.emitter.emit('resize', {
+            width: Math.round(this.frame.canvas.width / this.pixelRatio),
+            height: Math.round(this.frame.canvas.height / this.pixelRatio),
+            oldWidth: Math.round(oldWidth / this.pixelRatio),
+            oldHeight: Math.round(oldHeight / this.pixelRatio)
+          });
+        }
+
+        return emitEvent;
+      }
+    }, {
+      key: '_XconvertDOMtoCanvas',
+
+      /**
+       * Convert the X coordinate in DOM-space (coordinate point in browser relative to the container div) to
+       * the X coordinate in canvas-space (the simulation sandbox, which the camera looks upon)
+       * @param {number} x
+       * @returns {number}
+       * @private
+       */
+      value: function _XconvertDOMtoCanvas(x) {
+        return (x - this.body.view.translation.x) / this.body.view.scale;
+      }
+    }, {
+      key: '_XconvertCanvasToDOM',
+
+      /**
+       * Convert the X coordinate in canvas-space (the simulation sandbox, which the camera looks upon) to
+       * the X coordinate in DOM-space (coordinate point in browser relative to the container div)
+       * @param {number} x
+       * @returns {number}
+       * @private
+       */
+      value: function _XconvertCanvasToDOM(x) {
+        return x * this.body.view.scale + this.body.view.translation.x;
+      }
+    }, {
+      key: '_YconvertDOMtoCanvas',
+
+      /**
+       * Convert the Y coordinate in DOM-space (coordinate point in browser relative to the container div) to
+       * the Y coordinate in canvas-space (the simulation sandbox, which the camera looks upon)
+       * @param {number} y
+       * @returns {number}
+       * @private
+       */
+      value: function _YconvertDOMtoCanvas(y) {
+        return (y - this.body.view.translation.y) / this.body.view.scale;
+      }
+    }, {
+      key: '_YconvertCanvasToDOM',
+
+      /**
+       * Convert the Y coordinate in canvas-space (the simulation sandbox, which the camera looks upon) to
+       * the Y coordinate in DOM-space (coordinate point in browser relative to the container div)
+       * @param {number} y
+       * @returns {number}
+       * @private
+       */
+      value: function _YconvertCanvasToDOM(y) {
+        return y * this.body.view.scale + this.body.view.translation.y;
+      }
+    }, {
+      key: 'canvasToDOM',
+
+      /**
+       *
+       * @param {object} pos   = {x: number, y: number}
+       * @returns {{x: number, y: number}}
+       * @constructor
+       */
+      value: function canvasToDOM(pos) {
+        return { x: this._XconvertCanvasToDOM(pos.x), y: this._YconvertCanvasToDOM(pos.y) };
+      }
+    }, {
+      key: 'DOMtoCanvas',
+
+      /**
+       *
+       * @param {object} pos   = {x: number, y: number}
+       * @returns {{x: number, y: number}}
+       * @constructor
+       */
+      value: function DOMtoCanvas(pos) {
+        return { x: this._XconvertDOMtoCanvas(pos.x), y: this._YconvertDOMtoCanvas(pos.y) };
+      }
+    }]);
+
+    return Canvas;
+  })();
+
+  exports['default'] = Canvas;
+  module.exports = exports['default'];
+
+/***/ },
+/* 16 */
 /***/ function(module, exports, __webpack_require__) {
 
   /* WEBPACK VAR INJECTION */(function(module) {//! moment.js
@@ -11331,10 +11927,10 @@ return /******/ (function(modules) { // webpackBootstrap
       return _moment;
 
   }));
-  /* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(15)(module)))
+  /* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(17)(module)))
 
 /***/ },
-/* 15 */
+/* 17 */
 /***/ function(module, exports, __webpack_require__) {
 
   module.exports = function(module) {
@@ -11350,7 +11946,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 16 */
+/* 18 */
 /***/ function(module, exports, __webpack_require__) {
 
   /* WEBPACK VAR INJECTION */(function(global) {'use strict';
@@ -11566,7 +12162,7 @@ return /******/ (function(modules) { // webpackBootstrap
   /* WEBPACK VAR INJECTION */}.call(exports, (function() { return this; }())))
 
 /***/ },
-/* 17 */
+/* 19 */
 /***/ function(module, exports, __webpack_require__) {
 
   // DOM utility methods
@@ -11768,13 +12364,13 @@ return /******/ (function(modules) { // webpackBootstrap
   };
 
 /***/ },
-/* 18 */
+/* 20 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
 
-  var util = __webpack_require__(9);
-  var Queue = __webpack_require__(19);
+  var util = __webpack_require__(10);
+  var Queue = __webpack_require__(21);
 
   /**
    * DataSet
@@ -12663,7 +13259,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = DataSet;
 
 /***/ },
-/* 19 */
+/* 21 */
 /***/ function(module, exports, __webpack_require__) {
 
   /**
@@ -12868,13 +13464,13 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = Queue;
 
 /***/ },
-/* 20 */
+/* 22 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
 
-  var util = __webpack_require__(9);
-  var DataSet = __webpack_require__(18);
+  var util = __webpack_require__(10);
+  var DataSet = __webpack_require__(20);
 
   /**
    * DataView
@@ -13216,21 +13812,21 @@ return /******/ (function(modules) { // webpackBootstrap
   // nothing interesting for me :-(
 
 /***/ },
-/* 21 */
+/* 23 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
 
-  var Emitter = __webpack_require__(23);
-  var DataSet = __webpack_require__(18);
-  var DataView = __webpack_require__(20);
-  var util = __webpack_require__(9);
-  var Point3d = __webpack_require__(24);
-  var Point2d = __webpack_require__(22);
-  var Camera = __webpack_require__(25);
-  var Filter = __webpack_require__(26);
-  var Slider = __webpack_require__(27);
-  var StepNumber = __webpack_require__(28);
+  var Emitter = __webpack_require__(25);
+  var DataSet = __webpack_require__(20);
+  var DataView = __webpack_require__(22);
+  var util = __webpack_require__(10);
+  var Point3d = __webpack_require__(26);
+  var Point2d = __webpack_require__(24);
+  var Camera = __webpack_require__(27);
+  var Filter = __webpack_require__(28);
+  var Slider = __webpack_require__(29);
+  var StepNumber = __webpack_require__(30);
 
   /**
    * @constructor Graph3d
@@ -15464,7 +16060,7 @@ return /******/ (function(modules) { // webpackBootstrap
   // use use defaults
 
 /***/ },
-/* 22 */
+/* 24 */
 /***/ function(module, exports, __webpack_require__) {
 
   /**
@@ -15482,7 +16078,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = Point2d;
 
 /***/ },
-/* 23 */
+/* 25 */
 /***/ function(module, exports, __webpack_require__) {
 
   
@@ -15652,7 +16248,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 24 */
+/* 26 */
 /***/ function(module, exports, __webpack_require__) {
 
   /**
@@ -15735,12 +16331,12 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = Point3d;
 
 /***/ },
-/* 25 */
+/* 27 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
 
-  var Point3d = __webpack_require__(24);
+  var Point3d = __webpack_require__(26);
 
   /**
    * @class Camera
@@ -15876,12 +16472,12 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = Camera;
 
 /***/ },
-/* 26 */
+/* 28 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
 
-  var DataView = __webpack_require__(20);
+  var DataView = __webpack_require__(22);
 
   /**
    * @class Filter
@@ -16087,12 +16683,12 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = Filter;
 
 /***/ },
-/* 27 */
+/* 29 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
 
-  var util = __webpack_require__(9);
+  var util = __webpack_require__(10);
 
   /**
    * @constructor Slider
@@ -16435,7 +17031,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = Slider;
 
 /***/ },
-/* 28 */
+/* 30 */
 /***/ function(module, exports, __webpack_require__) {
 
   /**
@@ -16579,28 +17175,28 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = StepNumber;
 
 /***/ },
-/* 29 */
+/* 31 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
 
-  var Emitter = __webpack_require__(23);
-  var Hammer = __webpack_require__(33);
-  var util = __webpack_require__(9);
-  var DataSet = __webpack_require__(18);
-  var DataView = __webpack_require__(20);
-  var Range = __webpack_require__(35);
-  var Core = __webpack_require__(38);
-  var TimeAxis = __webpack_require__(49);
-  var CurrentTime = __webpack_require__(30);
-  var CustomTime = __webpack_require__(52);
-  var ItemSet = __webpack_require__(39);
+  var Emitter = __webpack_require__(25);
+  var Hammer = __webpack_require__(35);
+  var util = __webpack_require__(10);
+  var DataSet = __webpack_require__(20);
+  var DataView = __webpack_require__(22);
+  var Range = __webpack_require__(37);
+  var Core = __webpack_require__(40);
+  var TimeAxis = __webpack_require__(51);
+  var CurrentTime = __webpack_require__(32);
+  var CustomTime = __webpack_require__(54);
+  var ItemSet = __webpack_require__(41);
 
-  var Configurator = __webpack_require__(53);
-  var Validator = __webpack_require__(55)['default'];
-  var printStyle = __webpack_require__(55).printStyle;
-  var allOptions = __webpack_require__(56).allOptions;
-  var configureOptions = __webpack_require__(56).configureOptions;
+  var Configurator = __webpack_require__(55);
+  var Validator = __webpack_require__(57)['default'];
+  var printStyle = __webpack_require__(57).printStyle;
+  var allOptions = __webpack_require__(58).allOptions;
+  var configureOptions = __webpack_require__(58).configureOptions;
 
   /**
    * Create a timeline visualization
@@ -17109,15 +17705,15 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = Timeline;
 
 /***/ },
-/* 30 */
+/* 32 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
 
-  var util = __webpack_require__(9);
-  var Component = __webpack_require__(31);
-  var moment = __webpack_require__(11);
-  var locales = __webpack_require__(32);
+  var util = __webpack_require__(10);
+  var Component = __webpack_require__(33);
+  var moment = __webpack_require__(12);
+  var locales = __webpack_require__(34);
 
   /**
    * A current time bar
@@ -17285,7 +17881,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = CurrentTime;
 
 /***/ },
-/* 31 */
+/* 33 */
 /***/ function(module, exports, __webpack_require__) {
 
   /**
@@ -17345,7 +17941,7 @@ return /******/ (function(modules) { // webpackBootstrap
   // should be implemented by the component
 
 /***/ },
-/* 32 */
+/* 34 */
 /***/ function(module, exports, __webpack_require__) {
 
   // English
@@ -17367,7 +17963,7 @@ return /******/ (function(modules) { // webpackBootstrap
   exports['nl_BE'] = exports['nl'];
 
 /***/ },
-/* 33 */
+/* 35 */
 /***/ function(module, exports, __webpack_require__) {
 
   // Only load hammer.js when in a browser environment
@@ -17375,8 +17971,8 @@ return /******/ (function(modules) { // webpackBootstrap
   'use strict';
 
   if (typeof window !== 'undefined') {
-    var propagating = __webpack_require__(34);
-    var Hammer = window['Hammer'] || __webpack_require__(5);
+    var propagating = __webpack_require__(36);
+    var Hammer = window['Hammer'] || __webpack_require__(4);
     module.exports = propagating(Hammer, {
       preventDefault: 'mouse'
     });
@@ -17387,7 +17983,7 @@ return /******/ (function(modules) { // webpackBootstrap
   }
 
 /***/ },
-/* 34 */
+/* 36 */
 /***/ function(module, exports, __webpack_require__) {
 
   var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;'use strict';
@@ -17608,16 +18204,16 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 35 */
+/* 37 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
 
-  var util = __webpack_require__(9);
-  var hammerUtil = __webpack_require__(36);
-  var moment = __webpack_require__(11);
-  var Component = __webpack_require__(31);
-  var DateUtil = __webpack_require__(37);
+  var util = __webpack_require__(10);
+  var hammerUtil = __webpack_require__(38);
+  var moment = __webpack_require__(12);
+  var Component = __webpack_require__(33);
+  var DateUtil = __webpack_require__(39);
 
   /**
    * @constructor Range
@@ -18284,12 +18880,12 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = Range;
 
 /***/ },
-/* 36 */
+/* 38 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
 
-  var Hammer = __webpack_require__(33);
+  var Hammer = __webpack_require__(35);
 
   /**
    * Register a touch event, taking place before a gesture
@@ -18356,12 +18952,12 @@ return /******/ (function(modules) { // webpackBootstrap
   exports.offRelease = exports.offTouch;
 
 /***/ },
-/* 37 */
+/* 39 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
 
-  var moment = __webpack_require__(11);
+  var moment = __webpack_require__(12);
 
   /**
    * used in Core to convert the options into a volatile variable
@@ -18816,23 +19412,23 @@ return /******/ (function(modules) { // webpackBootstrap
   };
 
 /***/ },
-/* 38 */
+/* 40 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
 
-  var Emitter = __webpack_require__(23);
-  var Hammer = __webpack_require__(33);
-  var hammerUtil = __webpack_require__(36);
-  var util = __webpack_require__(9);
-  var DataSet = __webpack_require__(18);
-  var DataView = __webpack_require__(20);
-  var Range = __webpack_require__(35);
-  var ItemSet = __webpack_require__(39);
-  var TimeAxis = __webpack_require__(49);
-  var Activator = __webpack_require__(50);
-  var DateUtil = __webpack_require__(37);
-  var CustomTime = __webpack_require__(52);
+  var Emitter = __webpack_require__(25);
+  var Hammer = __webpack_require__(35);
+  var hammerUtil = __webpack_require__(38);
+  var util = __webpack_require__(10);
+  var DataSet = __webpack_require__(20);
+  var DataView = __webpack_require__(22);
+  var Range = __webpack_require__(37);
+  var ItemSet = __webpack_require__(41);
+  var TimeAxis = __webpack_require__(51);
+  var Activator = __webpack_require__(52);
+  var DateUtil = __webpack_require__(39);
+  var CustomTime = __webpack_require__(54);
 
   /**
    * Create a timeline visualization
@@ -19784,23 +20380,23 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = Core;
 
 /***/ },
-/* 39 */
+/* 41 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
 
-  var Hammer = __webpack_require__(33);
-  var util = __webpack_require__(9);
-  var DataSet = __webpack_require__(18);
-  var DataView = __webpack_require__(20);
-  var TimeStep = __webpack_require__(44);
-  var Component = __webpack_require__(31);
-  var Group = __webpack_require__(40);
-  var BackgroundGroup = __webpack_require__(45);
-  var BoxItem = __webpack_require__(46);
-  var PointItem = __webpack_require__(47);
-  var RangeItem = __webpack_require__(42);
-  var BackgroundItem = __webpack_require__(48);
+  var Hammer = __webpack_require__(35);
+  var util = __webpack_require__(10);
+  var DataSet = __webpack_require__(20);
+  var DataView = __webpack_require__(22);
+  var TimeStep = __webpack_require__(46);
+  var Component = __webpack_require__(33);
+  var Group = __webpack_require__(42);
+  var BackgroundGroup = __webpack_require__(47);
+  var BoxItem = __webpack_require__(48);
+  var PointItem = __webpack_require__(49);
+  var RangeItem = __webpack_require__(44);
+  var BackgroundItem = __webpack_require__(50);
 
   var UNGROUPED = '__ungrouped__'; // reserved group id for ungrouped items
   var BACKGROUND = '__background__'; // reserved group id for background items without group
@@ -21410,14 +22006,14 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = ItemSet;
 
 /***/ },
-/* 40 */
+/* 42 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
 
-  var util = __webpack_require__(9);
-  var stack = __webpack_require__(41);
-  var RangeItem = __webpack_require__(42);
+  var util = __webpack_require__(10);
+  var stack = __webpack_require__(43);
+  var RangeItem = __webpack_require__(44);
 
   /**
    * @constructor Group
@@ -21996,7 +22592,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = Group;
 
 /***/ },
-/* 41 */
+/* 43 */
 /***/ function(module, exports, __webpack_require__) {
 
   // Utility functions for ordering and stacking of items
@@ -22120,13 +22716,13 @@ return /******/ (function(modules) { // webpackBootstrap
   };
 
 /***/ },
-/* 42 */
+/* 44 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
 
-  var Hammer = __webpack_require__(33);
-  var Item = __webpack_require__(43);
+  var Hammer = __webpack_require__(35);
+  var Item = __webpack_require__(45);
 
   /**
    * @constructor RangeItem
@@ -22416,13 +23012,13 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = RangeItem;
 
 /***/ },
-/* 43 */
+/* 45 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
 
-  var Hammer = __webpack_require__(33);
-  var util = __webpack_require__(9);
+  var Hammer = __webpack_require__(35);
+  var util = __webpack_require__(10);
 
   /**
    * @constructor Item
@@ -22717,14 +23313,14 @@ return /******/ (function(modules) { // webpackBootstrap
   // should be implemented by the item
 
 /***/ },
-/* 44 */
+/* 46 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
 
-  var moment = __webpack_require__(11);
-  var DateUtil = __webpack_require__(37);
-  var util = __webpack_require__(9);
+  var moment = __webpack_require__(12);
+  var DateUtil = __webpack_require__(39);
+  var util = __webpack_require__(10);
 
   /**
    * @constructor  TimeStep
@@ -23407,13 +24003,13 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = TimeStep;
 
 /***/ },
-/* 45 */
+/* 47 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
 
-  var util = __webpack_require__(9);
-  var Group = __webpack_require__(40);
+  var util = __webpack_require__(10);
+  var Group = __webpack_require__(42);
 
   /**
    * @constructor BackgroundGroup
@@ -23471,13 +24067,13 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = BackgroundGroup;
 
 /***/ },
-/* 46 */
+/* 48 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
 
-  var Item = __webpack_require__(43);
-  var util = __webpack_require__(9);
+  var Item = __webpack_require__(45);
+  var util = __webpack_require__(10);
 
   /**
    * @constructor BoxItem
@@ -23711,12 +24307,12 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = BoxItem;
 
 /***/ },
-/* 47 */
+/* 49 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
 
-  var Item = __webpack_require__(43);
+  var Item = __webpack_require__(45);
 
   /**
    * @constructor PointItem
@@ -23916,15 +24512,15 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = PointItem;
 
 /***/ },
-/* 48 */
+/* 50 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
 
-  var Hammer = __webpack_require__(33);
-  var Item = __webpack_require__(43);
-  var BackgroundGroup = __webpack_require__(45);
-  var RangeItem = __webpack_require__(42);
+  var Hammer = __webpack_require__(35);
+  var Item = __webpack_require__(45);
+  var BackgroundGroup = __webpack_require__(47);
+  var RangeItem = __webpack_require__(44);
 
   /**
    * @constructor BackgroundItem
@@ -24137,16 +24733,16 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = BackgroundItem;
 
 /***/ },
-/* 49 */
+/* 51 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
 
-  var util = __webpack_require__(9);
-  var Component = __webpack_require__(31);
-  var TimeStep = __webpack_require__(44);
-  var DateUtil = __webpack_require__(37);
-  var moment = __webpack_require__(11);
+  var util = __webpack_require__(10);
+  var Component = __webpack_require__(33);
+  var TimeStep = __webpack_require__(46);
+  var DateUtil = __webpack_require__(39);
+  var moment = __webpack_require__(12);
 
   /**
    * A horizontal time axis
@@ -24576,15 +25172,15 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = TimeAxis;
 
 /***/ },
-/* 50 */
+/* 52 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
 
-  var keycharm = __webpack_require__(51);
-  var Emitter = __webpack_require__(23);
-  var Hammer = __webpack_require__(33);
-  var util = __webpack_require__(9);
+  var keycharm = __webpack_require__(53);
+  var Emitter = __webpack_require__(25);
+  var Hammer = __webpack_require__(35);
+  var util = __webpack_require__(10);
 
   /**
    * Turn an element into an clickToUse element.
@@ -24735,7 +25331,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = Activator;
 
 /***/ },
-/* 51 */
+/* 53 */
 /***/ function(module, exports, __webpack_require__) {
 
   var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;"use strict";
@@ -24934,16 +25530,16 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 52 */
+/* 54 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
 
-  var Hammer = __webpack_require__(33);
-  var util = __webpack_require__(9);
-  var Component = __webpack_require__(31);
-  var moment = __webpack_require__(11);
-  var locales = __webpack_require__(32);
+  var Hammer = __webpack_require__(35);
+  var util = __webpack_require__(10);
+  var Component = __webpack_require__(33);
+  var moment = __webpack_require__(12);
+  var locales = __webpack_require__(34);
 
   /**
    * A custom time bar
@@ -25173,7 +25769,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = CustomTime;
 
 /***/ },
-/* 53 */
+/* 55 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -25188,11 +25784,11 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
 
-  var _ColorPicker = __webpack_require__(54);
+  var _ColorPicker = __webpack_require__(56);
 
   var _ColorPicker2 = _interopRequireDefault(_ColorPicker);
 
-  var util = __webpack_require__(9);
+  var util = __webpack_require__(10);
 
   /**
    * The way this works is for all properties of this.possible options, you can supply the property name in any form to list the options.
@@ -25856,7 +26452,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 54 */
+/* 56 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -25869,9 +26465,9 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
 
-  var Hammer = __webpack_require__(33);
-  var hammerUtil = __webpack_require__(36);
-  var util = __webpack_require__(9);
+  var Hammer = __webpack_require__(35);
+  var hammerUtil = __webpack_require__(38);
+  var util = __webpack_require__(10);
 
   var ColorPicker = (function () {
     function ColorPicker() {
@@ -26440,7 +27036,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 55 */
+/* 57 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -26453,7 +27049,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
 
-  var util = __webpack_require__(9);
+  var util = __webpack_require__(10);
 
   var errorFound = false;
   var allOptions = undefined;
@@ -26756,7 +27352,7 @@ return /******/ (function(modules) { // webpackBootstrap
   exports.printStyle = printStyle;
 
 /***/ },
-/* 56 */
+/* 58 */
 /***/ function(module, exports, __webpack_require__) {
 
   /**
@@ -26970,28 +27566,28 @@ return /******/ (function(modules) { // webpackBootstrap
   exports.configureOptions = configureOptions;
 
 /***/ },
-/* 57 */
+/* 59 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
 
-  var Emitter = __webpack_require__(23);
-  var Hammer = __webpack_require__(33);
-  var util = __webpack_require__(9);
-  var DataSet = __webpack_require__(18);
-  var DataView = __webpack_require__(20);
-  var Range = __webpack_require__(35);
-  var Core = __webpack_require__(38);
-  var TimeAxis = __webpack_require__(49);
-  var CurrentTime = __webpack_require__(30);
-  var CustomTime = __webpack_require__(52);
-  var LineGraph = __webpack_require__(58);
+  var Emitter = __webpack_require__(25);
+  var Hammer = __webpack_require__(35);
+  var util = __webpack_require__(10);
+  var DataSet = __webpack_require__(20);
+  var DataView = __webpack_require__(22);
+  var Range = __webpack_require__(37);
+  var Core = __webpack_require__(40);
+  var TimeAxis = __webpack_require__(51);
+  var CurrentTime = __webpack_require__(32);
+  var CustomTime = __webpack_require__(54);
+  var LineGraph = __webpack_require__(60);
 
-  var Configurator = __webpack_require__(53);
-  var Validator = __webpack_require__(55)['default'];
-  var printStyle = __webpack_require__(55).printStyle;
-  var allOptions = __webpack_require__(66).allOptions;
-  var configureOptions = __webpack_require__(66).configureOptions;
+  var Configurator = __webpack_require__(55);
+  var Validator = __webpack_require__(57)['default'];
+  var printStyle = __webpack_require__(57).printStyle;
+  var allOptions = __webpack_require__(68).allOptions;
+  var configureOptions = __webpack_require__(68).configureOptions;
 
   /**
    * Create a timeline visualization
@@ -27306,21 +27902,21 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = Graph2d;
 
 /***/ },
-/* 58 */
+/* 60 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
 
-  var util = __webpack_require__(9);
-  var DOMutil = __webpack_require__(17);
-  var DataSet = __webpack_require__(18);
-  var DataView = __webpack_require__(20);
-  var Component = __webpack_require__(31);
-  var DataAxis = __webpack_require__(59);
-  var GraphGroup = __webpack_require__(61);
-  var Legend = __webpack_require__(65);
-  var BarFunctions = __webpack_require__(64);
-  var LineFunctions = __webpack_require__(62);
+  var util = __webpack_require__(10);
+  var DOMutil = __webpack_require__(19);
+  var DataSet = __webpack_require__(20);
+  var DataView = __webpack_require__(22);
+  var Component = __webpack_require__(33);
+  var DataAxis = __webpack_require__(61);
+  var GraphGroup = __webpack_require__(63);
+  var Legend = __webpack_require__(67);
+  var BarFunctions = __webpack_require__(66);
+  var LineFunctions = __webpack_require__(64);
 
   var UNGROUPED = '__ungrouped__'; // reserved group id for ungrouped items
 
@@ -28282,15 +28878,15 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = LineGraph;
 
 /***/ },
-/* 59 */
+/* 61 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
 
-  var util = __webpack_require__(9);
-  var DOMutil = __webpack_require__(17);
-  var Component = __webpack_require__(31);
-  var DataStep = __webpack_require__(60);
+  var util = __webpack_require__(10);
+  var DOMutil = __webpack_require__(19);
+  var Component = __webpack_require__(33);
+  var DataStep = __webpack_require__(62);
 
   /**
    * A horizontal time axis
@@ -28886,7 +29482,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = DataAxis;
 
 /***/ },
-/* 60 */
+/* 62 */
 /***/ function(module, exports, __webpack_require__) {
 
   /**
@@ -29113,16 +29709,16 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = DataStep;
 
 /***/ },
-/* 61 */
+/* 63 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
 
-  var util = __webpack_require__(9);
-  var DOMutil = __webpack_require__(17);
-  var Line = __webpack_require__(62);
-  var Bar = __webpack_require__(64);
-  var Points = __webpack_require__(63);
+  var util = __webpack_require__(10);
+  var DOMutil = __webpack_require__(19);
+  var Line = __webpack_require__(64);
+  var Bar = __webpack_require__(66);
+  var Points = __webpack_require__(65);
 
   /**
    * /**
@@ -29307,13 +29903,13 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = GraphGroup;
 
 /***/ },
-/* 62 */
+/* 64 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
 
-  var DOMutil = __webpack_require__(17);
-  var Points = __webpack_require__(63);
+  var DOMutil = __webpack_require__(19);
+  var Points = __webpack_require__(65);
 
   function Line(groupId, options) {
     this.groupId = groupId;
@@ -29602,12 +30198,12 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = Line;
 
 /***/ },
-/* 63 */
+/* 65 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
 
-  var DOMutil = __webpack_require__(17);
+  var DOMutil = __webpack_require__(19);
 
   function Points(groupId, options) {
     this.groupId = groupId;
@@ -29649,13 +30245,13 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = Points;
 
 /***/ },
-/* 64 */
+/* 66 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
 
-  var DOMutil = __webpack_require__(17);
-  var Points = __webpack_require__(63);
+  var DOMutil = __webpack_require__(19);
+  var Points = __webpack_require__(65);
 
   function Bargraph(groupId, options) {
     this.groupId = groupId;
@@ -29897,14 +30493,14 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = Bargraph;
 
 /***/ },
-/* 65 */
+/* 67 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
 
-  var util = __webpack_require__(9);
-  var DOMutil = __webpack_require__(17);
-  var Component = __webpack_require__(31);
+  var util = __webpack_require__(10);
+  var DOMutil = __webpack_require__(19);
+  var Component = __webpack_require__(33);
 
   /**
    * Legend for Graph2d
@@ -30111,7 +30707,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = Legend;
 
 /***/ },
-/* 66 */
+/* 68 */
 /***/ function(module, exports, __webpack_require__) {
 
   /**
@@ -30379,7 +30975,7 @@ return /******/ (function(modules) { // webpackBootstrap
   exports.configureOptions = configureOptions;
 
 /***/ },
-/* 67 */
+/* 69 */
 /***/ function(module, exports, __webpack_require__) {
 
   // Load custom shapes into CanvasRenderingContext2D
@@ -30387,75 +30983,75 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
 
-  var _modulesGroups = __webpack_require__(68);
+  var _modulesGroups = __webpack_require__(70);
 
   var _modulesGroups2 = _interopRequireDefault(_modulesGroups);
 
-  var _modulesNodesHandler = __webpack_require__(69);
+  var _modulesNodesHandler = __webpack_require__(71);
 
   var _modulesNodesHandler2 = _interopRequireDefault(_modulesNodesHandler);
 
-  var _modulesEdgesHandler = __webpack_require__(89);
+  var _modulesEdgesHandler = __webpack_require__(90);
 
   var _modulesEdgesHandler2 = _interopRequireDefault(_modulesEdgesHandler);
 
-  var _modulesPhysicsEngine = __webpack_require__(8);
+  var _modulesPhysicsEngine = __webpack_require__(9);
 
   var _modulesPhysicsEngine2 = _interopRequireDefault(_modulesPhysicsEngine);
 
-  var _modulesClustering = __webpack_require__(102);
+  var _modulesClustering = __webpack_require__(103);
 
   var _modulesClustering2 = _interopRequireDefault(_modulesClustering);
 
-  var _modulesCanvasRenderer = __webpack_require__(13);
+  var _modulesCanvasRenderer = __webpack_require__(14);
 
   var _modulesCanvasRenderer2 = _interopRequireDefault(_modulesCanvasRenderer);
 
-  var _modulesCanvas = __webpack_require__(10);
+  var _modulesCanvas = __webpack_require__(15);
 
   var _modulesCanvas2 = _interopRequireDefault(_modulesCanvas);
 
-  var _modulesView = __webpack_require__(104);
+  var _modulesView = __webpack_require__(105);
 
   var _modulesView2 = _interopRequireDefault(_modulesView);
 
-  var _modulesInteractionHandler = __webpack_require__(105);
+  var _modulesInteractionHandler = __webpack_require__(106);
 
   var _modulesInteractionHandler2 = _interopRequireDefault(_modulesInteractionHandler);
 
-  var _modulesSelectionHandler = __webpack_require__(107);
+  var _modulesSelectionHandler = __webpack_require__(108);
 
   var _modulesSelectionHandler2 = _interopRequireDefault(_modulesSelectionHandler);
 
-  var _modulesLayoutEngine = __webpack_require__(7);
+  var _modulesLayoutEngine = __webpack_require__(8);
 
   var _modulesLayoutEngine2 = _interopRequireDefault(_modulesLayoutEngine);
 
-  var _modulesManipulationSystem = __webpack_require__(6);
+  var _modulesManipulationSystem = __webpack_require__(7);
 
   var _modulesManipulationSystem2 = _interopRequireDefault(_modulesManipulationSystem);
 
-  var _sharedConfigurator = __webpack_require__(53);
+  var _sharedConfigurator = __webpack_require__(55);
 
   var _sharedConfigurator2 = _interopRequireDefault(_sharedConfigurator);
 
-  var _sharedValidator = __webpack_require__(55);
+  var _sharedValidator = __webpack_require__(57);
 
   var _sharedValidator2 = _interopRequireDefault(_sharedValidator);
 
-  var _optionsJs = __webpack_require__(108);
+  var _optionsJs = __webpack_require__(109);
 
-  __webpack_require__(109);
+  __webpack_require__(110);
 
-  var Emitter = __webpack_require__(23);
-  var Hammer = __webpack_require__(33);
-  var util = __webpack_require__(9);
-  var DataSet = __webpack_require__(18);
-  var DataView = __webpack_require__(20);
-  var dotparser = __webpack_require__(110);
-  var gephiParser = __webpack_require__(111);
-  var Images = __webpack_require__(112);
-  var Activator = __webpack_require__(50);
+  var Emitter = __webpack_require__(25);
+  var Hammer = __webpack_require__(35);
+  var util = __webpack_require__(10);
+  var DataSet = __webpack_require__(20);
+  var DataView = __webpack_require__(22);
+  var dotparser = __webpack_require__(111);
+  var gephiParser = __webpack_require__(112);
+  var Images = __webpack_require__(11);
+  var Activator = __webpack_require__(52);
   var locales = __webpack_require__(113);
 
   /**
@@ -30989,7 +31585,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = Network;
 
 /***/ },
-/* 68 */
+/* 70 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
@@ -31002,7 +31598,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
-  var util = __webpack_require__(9);
+  var util = __webpack_require__(10);
 
   /**
    * @class Groups
@@ -31131,7 +31727,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports["default"];
 
 /***/ },
-/* 69 */
+/* 71 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -31146,17 +31742,17 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
 
-  var _componentsNode = __webpack_require__(70);
+  var _componentsNode = __webpack_require__(3);
 
   var _componentsNode2 = _interopRequireDefault(_componentsNode);
 
-  var _componentsSharedLabel = __webpack_require__(71);
+  var _componentsSharedLabel = __webpack_require__(72);
 
   var _componentsSharedLabel2 = _interopRequireDefault(_componentsSharedLabel);
 
-  var util = __webpack_require__(9);
-  var DataSet = __webpack_require__(18);
-  var DataView = __webpack_require__(20);
+  var util = __webpack_require__(10);
+  var DataSet = __webpack_require__(20);
+  var DataView = __webpack_require__(22);
 
   var NodesHandler = (function () {
     function NodesHandler(body, images, groups, layoutEngine) {
@@ -31609,527 +32205,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 70 */
-/***/ function(module, exports, __webpack_require__) {
-
-  'use strict';
-
-  Object.defineProperty(exports, '__esModule', {
-    value: true
-  });
-
-  var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
-
-  function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
-
-  function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
-
-  var _sharedLabel = __webpack_require__(71);
-
-  var _sharedLabel2 = _interopRequireDefault(_sharedLabel);
-
-  var _nodesShapesBox = __webpack_require__(72);
-
-  var _nodesShapesBox2 = _interopRequireDefault(_nodesShapesBox);
-
-  var _nodesShapesCircle = __webpack_require__(74);
-
-  var _nodesShapesCircle2 = _interopRequireDefault(_nodesShapesCircle);
-
-  var _nodesShapesCircularImage = __webpack_require__(76);
-
-  var _nodesShapesCircularImage2 = _interopRequireDefault(_nodesShapesCircularImage);
-
-  var _nodesShapesDatabase = __webpack_require__(77);
-
-  var _nodesShapesDatabase2 = _interopRequireDefault(_nodesShapesDatabase);
-
-  var _nodesShapesDiamond = __webpack_require__(78);
-
-  var _nodesShapesDiamond2 = _interopRequireDefault(_nodesShapesDiamond);
-
-  var _nodesShapesDot = __webpack_require__(80);
-
-  var _nodesShapesDot2 = _interopRequireDefault(_nodesShapesDot);
-
-  var _nodesShapesEllipse = __webpack_require__(81);
-
-  var _nodesShapesEllipse2 = _interopRequireDefault(_nodesShapesEllipse);
-
-  var _nodesShapesIcon = __webpack_require__(82);
-
-  var _nodesShapesIcon2 = _interopRequireDefault(_nodesShapesIcon);
-
-  var _nodesShapesImage = __webpack_require__(83);
-
-  var _nodesShapesImage2 = _interopRequireDefault(_nodesShapesImage);
-
-  var _nodesShapesSquare = __webpack_require__(84);
-
-  var _nodesShapesSquare2 = _interopRequireDefault(_nodesShapesSquare);
-
-  var _nodesShapesStar = __webpack_require__(85);
-
-  var _nodesShapesStar2 = _interopRequireDefault(_nodesShapesStar);
-
-  var _nodesShapesText = __webpack_require__(86);
-
-  var _nodesShapesText2 = _interopRequireDefault(_nodesShapesText);
-
-  var _nodesShapesTriangle = __webpack_require__(87);
-
-  var _nodesShapesTriangle2 = _interopRequireDefault(_nodesShapesTriangle);
-
-  var _nodesShapesTriangleDown = __webpack_require__(88);
-
-  var _nodesShapesTriangleDown2 = _interopRequireDefault(_nodesShapesTriangleDown);
-
-  var _sharedValidator = __webpack_require__(55);
-
-  var _sharedValidator2 = _interopRequireDefault(_sharedValidator);
-
-  var util = __webpack_require__(9);
-
-  /**
-   * @class Node
-   * A node. A node can be connected to other nodes via one or multiple edges.
-   * @param {object} options An object containing options for the node. All
-   *                            options are optional, except for the id.
-   *                              {number} id     Id of the node. Required
-   *                              {string} label  Text label for the node
-   *                              {number} x      Horizontal position of the node
-   *                              {number} y      Vertical position of the node
-   *                              {string} shape  Node shape, available:
-   *                                              "database", "circle", "ellipse",
-   *                                              "box", "image", "text", "dot",
-   *                                              "star", "triangle", "triangleDown",
-   *                                              "square", "icon"
-   *                              {string} image  An image url
-   *                              {string} title  An title text, can be HTML
-   *                              {anytype} group A group name or number
-   * @param {Network.Images} imagelist    A list with images. Only needed
-   *                                            when the node has an image
-   * @param {Network.Groups} grouplist    A list with groups. Needed for
-   *                                            retrieving group options
-   * @param {Object}               constants    An object with default values for
-   *                                            example for the color
-   *
-   */
-
-  var Node = (function () {
-    function Node(options, body, imagelist, grouplist, globalOptions) {
-      _classCallCheck(this, Node);
-
-      this.options = util.bridgeObject(globalOptions);
-      this.body = body;
-
-      this.edges = []; // all edges connected to this node
-
-      // set defaults for the options
-      this.id = undefined;
-      this.imagelist = imagelist;
-      this.grouplist = grouplist;
-
-      // state options
-      this.x = undefined;
-      this.y = undefined;
-      this.baseSize = this.options.size;
-      this.baseFontSize = this.options.font.size;
-      this.predefinedPosition = false; // used to check if initial fit should just take the range or approximate
-      this.selected = false;
-      this.hover = false;
-
-      this.labelModule = new _sharedLabel2['default'](this.body, this.options);
-      this.setOptions(options);
-    }
-
-    _createClass(Node, [{
-      key: 'attachEdge',
-
-      /**
-       * Attach a edge to the node
-       * @param {Edge} edge
-       */
-      value: function attachEdge(edge) {
-        if (this.edges.indexOf(edge) === -1) {
-          this.edges.push(edge);
-        }
-      }
-    }, {
-      key: 'detachEdge',
-
-      /**
-       * Detach a edge from the node
-       * @param {Edge} edge
-       */
-      value: function detachEdge(edge) {
-        var index = this.edges.indexOf(edge);
-        if (index != -1) {
-          this.edges.splice(index, 1);
-        }
-      }
-    }, {
-      key: 'togglePhysics',
-
-      /**
-       * Enable or disable the physics.
-       * @param status
-       */
-      value: function togglePhysics(status) {
-        this.options.physics = status;
-      }
-    }, {
-      key: 'setOptions',
-
-      /**
-       * Set or overwrite options for the node
-       * @param {Object} options an object with options
-       * @param {Object} constants  and object with default, global options
-       */
-      value: function setOptions(options) {
-        if (!options) {
-          return;
-        }
-        // basic options
-        if (options.id !== undefined) {
-          this.id = options.id;
-        }
-
-        if (this.id === undefined) {
-          throw 'Node must have an id';
-        }
-
-        // set these options locally
-        if (options.x !== undefined) {
-          this.x = parseInt(options.x);this.predefinedPosition = true;
-        }
-        if (options.y !== undefined) {
-          this.y = parseInt(options.y);this.predefinedPosition = true;
-        }
-        if (options.size !== undefined) {
-          this.baseSize = options.size;
-        }
-        if (options.value !== undefined) {
-          options.value = parseFloat(options.value);
-        }
-
-        // copy group options
-        if (typeof options.group === 'number' || typeof options.group === 'string' && options.group != '') {
-          var groupObj = this.grouplist.get(options.group);
-          util.deepExtend(this.options, groupObj);
-          // the color object needs to be completely defined. Since groups can partially overwrite the colors, we parse it again, just in case.
-          this.options.color = util.parseColor(this.options.color);
-        }
-
-        // this transforms all shorthands into fully defined options
-        Node.parseOptions(this.options, options, true);
-
-        // load the images
-        if (this.options.image !== undefined && this.options.image != '') {
-          if (this.imagelist) {
-            this.imageObj = this.imagelist.load(this.options.image, this.options.brokenImage, this.id);
-          } else {
-            throw 'No imagelist provided';
-          }
-        }
-
-        this.updateShape();
-        this.updateLabelModule();
-
-        // reset the size of the node, this can be changed
-        this._reset();
-
-        if (options.hidden !== undefined || options.physics !== undefined) {
-          return true;
-        }
-        return false;
-      }
-    }, {
-      key: 'updateLabelModule',
-      value: function updateLabelModule() {
-        if (this.options.label === undefined || this.options.label === null) {
-          this.options.label = '';
-        }
-        this.labelModule.setOptions(this.options, true);
-        if (this.labelModule.baseSize !== undefined) {
-          this.baseFontSize = this.labelModule.baseSize;
-        }
-      }
-    }, {
-      key: 'updateShape',
-      value: function updateShape() {
-        // choose draw method depending on the shape
-        switch (this.options.shape) {
-          case 'box':
-            this.shape = new _nodesShapesBox2['default'](this.options, this.body, this.labelModule);
-            break;
-          case 'circle':
-            this.shape = new _nodesShapesCircle2['default'](this.options, this.body, this.labelModule);
-            break;
-          case 'circularImage':
-            this.shape = new _nodesShapesCircularImage2['default'](this.options, this.body, this.labelModule, this.imageObj);
-            break;
-          case 'database':
-            this.shape = new _nodesShapesDatabase2['default'](this.options, this.body, this.labelModule);
-            break;
-          case 'diamond':
-            this.shape = new _nodesShapesDiamond2['default'](this.options, this.body, this.labelModule);
-            break;
-          case 'dot':
-            this.shape = new _nodesShapesDot2['default'](this.options, this.body, this.labelModule);
-            break;
-          case 'ellipse':
-            this.shape = new _nodesShapesEllipse2['default'](this.options, this.body, this.labelModule);
-            break;
-          case 'icon':
-            this.shape = new _nodesShapesIcon2['default'](this.options, this.body, this.labelModule);
-            break;
-          case 'image':
-            this.shape = new _nodesShapesImage2['default'](this.options, this.body, this.labelModule, this.imageObj);
-            break;
-          case 'square':
-            this.shape = new _nodesShapesSquare2['default'](this.options, this.body, this.labelModule);
-            break;
-          case 'star':
-            this.shape = new _nodesShapesStar2['default'](this.options, this.body, this.labelModule);
-            break;
-          case 'text':
-            this.shape = new _nodesShapesText2['default'](this.options, this.body, this.labelModule);
-            break;
-          case 'triangle':
-            this.shape = new _nodesShapesTriangle2['default'](this.options, this.body, this.labelModule);
-            break;
-          case 'triangleDown':
-            this.shape = new _nodesShapesTriangleDown2['default'](this.options, this.body, this.labelModule);
-            break;
-          default:
-            this.shape = new _nodesShapesEllipse2['default'](this.options, this.body, this.labelModule);
-            break;
-        }
-        this._reset();
-      }
-    }, {
-      key: 'select',
-
-      /**
-       * select this node
-       */
-      value: function select() {
-        this.selected = true;
-        this._reset();
-      }
-    }, {
-      key: 'unselect',
-
-      /**
-       * unselect this node
-       */
-      value: function unselect() {
-        this.selected = false;
-        this._reset();
-      }
-    }, {
-      key: '_reset',
-
-      /**
-       * Reset the calculated size of the node, forces it to recalculate its size
-       * @private
-       */
-      value: function _reset() {
-        this.shape.width = undefined;
-        this.shape.height = undefined;
-      }
-    }, {
-      key: 'getTitle',
-
-      /**
-       * get the title of this node.
-       * @return {string} title    The title of the node, or undefined when no title
-       *                           has been set.
-       */
-      value: function getTitle() {
-        return this.options.title;
-      }
-    }, {
-      key: 'distanceToBorder',
-
-      /**
-       * Calculate the distance to the border of the Node
-       * @param {CanvasRenderingContext2D}   ctx
-       * @param {Number} angle        Angle in radians
-       * @returns {number} distance   Distance to the border in pixels
-       */
-      value: function distanceToBorder(ctx, angle) {
-        return this.shape.distanceToBorder(ctx, angle);
-      }
-    }, {
-      key: 'isFixed',
-
-      /**
-       * Check if this node has a fixed x and y position
-       * @return {boolean}      true if fixed, false if not
-       */
-      value: function isFixed() {
-        return this.options.fixed.x && this.options.fixed.y;
-      }
-    }, {
-      key: 'isSelected',
-
-      /**
-       * check if this node is selecte
-       * @return {boolean} selected   True if node is selected, else false
-       */
-      value: function isSelected() {
-        return this.selected;
-      }
-    }, {
-      key: 'getValue',
-
-      /**
-       * Retrieve the value of the node. Can be undefined
-       * @return {Number} value
-       */
-      value: function getValue() {
-        return this.options.value;
-      }
-    }, {
-      key: 'setValueRange',
-
-      /**
-       * Adjust the value range of the node. The node will adjust it's size
-       * based on its value.
-       * @param {Number} min
-       * @param {Number} max
-       */
-      value: function setValueRange(min, max, total) {
-        if (this.options.value !== undefined) {
-          var scale = this.options.scaling.customScalingFunction(min, max, total, this.options.value);
-          var sizeDiff = this.options.scaling.max - this.options.scaling.min;
-          if (this.options.scaling.label.enabled === true) {
-            var fontDiff = this.options.scaling.label.max - this.options.scaling.label.min;
-            this.options.font.size = this.options.scaling.label.min + scale * fontDiff;
-          }
-          this.options.size = this.options.scaling.min + scale * sizeDiff;
-        } else {
-          this.options.size = this.baseSize;
-          this.options.font.size = this.baseFontSize;
-        }
-      }
-    }, {
-      key: 'draw',
-
-      /**
-       * Draw this node in the given canvas
-       * The 2d context of a HTML canvas can be retrieved by canvas.getContext("2d");
-       * @param {CanvasRenderingContext2D}   ctx
-       */
-      value: function draw(ctx) {
-        this.shape.draw(ctx, this.x, this.y, this.selected, this.hover);
-      }
-    }, {
-      key: 'updateBoundingBox',
-
-      /**
-       * Update the bounding box of the shape
-       */
-      value: function updateBoundingBox() {
-        this.shape.updateBoundingBox(this.x, this.y);
-      }
-    }, {
-      key: 'resize',
-
-      /**
-       * Recalculate the size of this node in the given canvas
-       * The 2d context of a HTML canvas can be retrieved by canvas.getContext("2d");
-       * @param {CanvasRenderingContext2D}   ctx
-       */
-      value: function resize(ctx) {
-        this.shape.resize(ctx);
-      }
-    }, {
-      key: 'isOverlappingWith',
-
-      /**
-       * Check if this object is overlapping with the provided object
-       * @param {Object} obj   an object with parameters left, top, right, bottom
-       * @return {boolean}     True if location is located on node
-       */
-      value: function isOverlappingWith(obj) {
-        return this.shape.left < obj.right && this.shape.left + this.shape.width > obj.left && this.shape.top < obj.bottom && this.shape.top + this.shape.height > obj.top;
-      }
-    }, {
-      key: 'isBoundingBoxOverlappingWith',
-
-      /**
-       * Check if this object is overlapping with the provided object
-       * @param {Object} obj   an object with parameters left, top, right, bottom
-       * @return {boolean}     True if location is located on node
-       */
-      value: function isBoundingBoxOverlappingWith(obj) {
-        return this.shape.boundingBox.left < obj.right && this.shape.boundingBox.right > obj.left && this.shape.boundingBox.top < obj.bottom && this.shape.boundingBox.bottom > obj.top;
-      }
-    }], [{
-      key: 'parseOptions',
-
-      /**
-       * This process all possible shorthands in the new options and makes sure that the parentOptions are fully defined.
-       * Static so it can also be used by the handler.
-       * @param parentOptions
-       * @param newOptions
-       */
-      value: function parseOptions(parentOptions, newOptions) {
-        var allowDeletion = arguments[2] === undefined ? false : arguments[2];
-
-        var fields = ['color', 'font', 'fixed', 'shadow'];
-        util.selectiveNotDeepExtend(fields, parentOptions, newOptions, allowDeletion);
-
-        // merge the shadow options into the parent.
-        util.mergeOptions(parentOptions, newOptions, 'shadow');
-
-        // individual shape newOptions
-        if (newOptions.color !== undefined && newOptions.color !== null) {
-          var parsedColor = util.parseColor(newOptions.color);
-          util.fillIfDefined(parentOptions.color, parsedColor);
-        } else if (allowDeletion === true && newOptions.color === null) {
-          parentOptions.color = undefined;
-          delete parentOptions.color;
-        }
-
-        // handle the fixed options
-        if (newOptions.fixed !== undefined && newOptions.fixed !== null) {
-          if (typeof newOptions.fixed === 'boolean') {
-            parentOptions.fixed.x = newOptions.fixed;
-            parentOptions.fixed.y = newOptions.fixed;
-          } else {
-            if (newOptions.fixed.x !== undefined && typeof newOptions.fixed.x === 'boolean') {
-              parentOptions.fixed.x = newOptions.fixed.x;
-            }
-            if (newOptions.fixed.y !== undefined && typeof newOptions.fixed.y === 'boolean') {
-              parentOptions.fixed.y = newOptions.fixed.y;
-            }
-          }
-        }
-
-        // handle the font options
-        if (newOptions.font !== undefined) {
-          _sharedLabel2['default'].parseOptions(parentOptions.font, newOptions);
-        }
-
-        // handle the scaling options, specifically the label part
-        if (newOptions.scaling !== undefined) {
-          util.mergeOptions(parentOptions.scaling, newOptions.scaling, 'label');
-        }
-      }
-    }]);
-
-    return Node;
-  })();
-
-  exports['default'] = Node;
-  module.exports = exports['default'];
-
-/***/ },
-/* 71 */
+/* 72 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -32144,7 +32220,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
 
-  var util = __webpack_require__(9);
+  var util = __webpack_require__(10);
 
   var Label = (function () {
     function Label(body, options) {
@@ -32445,7 +32521,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 72 */
+/* 73 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -32464,7 +32540,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; }
 
-  var _utilNodeBase = __webpack_require__(73);
+  var _utilNodeBase = __webpack_require__(74);
 
   var _utilNodeBase2 = _interopRequireDefault(_utilNodeBase);
 
@@ -32550,7 +32626,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 73 */
+/* 74 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -32618,7 +32694,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 74 */
+/* 75 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -32637,7 +32713,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; }
 
-  var _utilCircleImageBase = __webpack_require__(75);
+  var _utilCircleImageBase = __webpack_require__(76);
 
   var _utilCircleImageBase2 = _interopRequireDefault(_utilCircleImageBase);
 
@@ -32708,7 +32784,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 75 */
+/* 76 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -32727,7 +32803,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; }
 
-  var _utilNodeBase = __webpack_require__(73);
+  var _utilNodeBase = __webpack_require__(74);
 
   var _utilNodeBase2 = _interopRequireDefault(_utilNodeBase);
 
@@ -32857,7 +32933,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 76 */
+/* 77 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -32876,7 +32952,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; }
 
-  var _utilCircleImageBase = __webpack_require__(75);
+  var _utilCircleImageBase = __webpack_require__(76);
 
   var _utilCircleImageBase2 = _interopRequireDefault(_utilCircleImageBase);
 
@@ -32962,7 +33038,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 77 */
+/* 78 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -32981,7 +33057,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; }
 
-  var _utilNodeBase = __webpack_require__(73);
+  var _utilNodeBase = __webpack_require__(74);
 
   var _utilNodeBase2 = _interopRequireDefault(_utilNodeBase);
 
@@ -33067,7 +33143,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 78 */
+/* 79 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -33086,7 +33162,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; }
 
-  var _utilShapeBase = __webpack_require__(79);
+  var _utilShapeBase = __webpack_require__(80);
 
   var _utilShapeBase2 = _interopRequireDefault(_utilShapeBase);
 
@@ -33123,7 +33199,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 79 */
+/* 80 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -33142,7 +33218,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; }
 
-  var _utilNodeBase = __webpack_require__(73);
+  var _utilNodeBase = __webpack_require__(74);
 
   var _utilNodeBase2 = _interopRequireDefault(_utilNodeBase);
 
@@ -33222,7 +33298,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 80 */
+/* 81 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -33241,7 +33317,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; }
 
-  var _utilShapeBase = __webpack_require__(79);
+  var _utilShapeBase = __webpack_require__(80);
 
   var _utilShapeBase2 = _interopRequireDefault(_utilShapeBase);
 
@@ -33278,7 +33354,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 81 */
+/* 82 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -33297,7 +33373,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; }
 
-  var _utilNodeBase = __webpack_require__(73);
+  var _utilNodeBase = __webpack_require__(74);
 
   var _utilNodeBase2 = _interopRequireDefault(_utilNodeBase);
 
@@ -33385,7 +33461,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 82 */
+/* 83 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -33404,7 +33480,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; }
 
-  var _utilNodeBase = __webpack_require__(73);
+  var _utilNodeBase = __webpack_require__(74);
 
   var _utilNodeBase2 = _interopRequireDefault(_utilNodeBase);
 
@@ -33501,7 +33577,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 83 */
+/* 84 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -33520,7 +33596,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; }
 
-  var _utilCircleImageBase = __webpack_require__(75);
+  var _utilCircleImageBase = __webpack_require__(76);
 
   var _utilCircleImageBase2 = _interopRequireDefault(_utilCircleImageBase);
 
@@ -33588,7 +33664,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 84 */
+/* 85 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -33607,7 +33683,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; }
 
-  var _utilShapeBase = __webpack_require__(79);
+  var _utilShapeBase = __webpack_require__(80);
 
   var _utilShapeBase2 = _interopRequireDefault(_utilShapeBase);
 
@@ -33645,7 +33721,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 85 */
+/* 86 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -33664,7 +33740,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; }
 
-  var _utilShapeBase = __webpack_require__(79);
+  var _utilShapeBase = __webpack_require__(80);
 
   var _utilShapeBase2 = _interopRequireDefault(_utilShapeBase);
 
@@ -33701,7 +33777,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 86 */
+/* 87 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -33720,7 +33796,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; }
 
-  var _utilNodeBase = __webpack_require__(73);
+  var _utilNodeBase = __webpack_require__(74);
 
   var _utilNodeBase2 = _interopRequireDefault(_utilNodeBase);
 
@@ -33786,7 +33862,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 87 */
+/* 88 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -33805,7 +33881,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; }
 
-  var _utilShapeBase = __webpack_require__(79);
+  var _utilShapeBase = __webpack_require__(80);
 
   var _utilShapeBase2 = _interopRequireDefault(_utilShapeBase);
 
@@ -33842,7 +33918,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 88 */
+/* 89 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -33861,7 +33937,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; }
 
-  var _utilShapeBase = __webpack_require__(79);
+  var _utilShapeBase = __webpack_require__(80);
 
   var _utilShapeBase2 = _interopRequireDefault(_utilShapeBase);
 
@@ -33898,7 +33974,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 89 */
+/* 90 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -33913,17 +33989,17 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
 
-  var _componentsEdge = __webpack_require__(90);
+  var _componentsEdge = __webpack_require__(91);
 
   var _componentsEdge2 = _interopRequireDefault(_componentsEdge);
 
-  var _componentsSharedLabel = __webpack_require__(71);
+  var _componentsSharedLabel = __webpack_require__(72);
 
   var _componentsSharedLabel2 = _interopRequireDefault(_componentsSharedLabel);
 
-  var util = __webpack_require__(9);
-  var DataSet = __webpack_require__(18);
-  var DataView = __webpack_require__(20);
+  var util = __webpack_require__(10);
+  var DataSet = __webpack_require__(20);
+  var DataView = __webpack_require__(22);
 
   var EdgesHandler = (function () {
     function EdgesHandler(body, images, groups) {
@@ -34335,7 +34411,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 90 */
+/* 91 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -34350,23 +34426,23 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
 
-  var _sharedLabel = __webpack_require__(71);
+  var _sharedLabel = __webpack_require__(72);
 
   var _sharedLabel2 = _interopRequireDefault(_sharedLabel);
 
-  var _edgesBezierEdgeDynamic = __webpack_require__(2);
+  var _edgesBezierEdgeDynamic = __webpack_require__(5);
 
   var _edgesBezierEdgeDynamic2 = _interopRequireDefault(_edgesBezierEdgeDynamic);
 
-  var _edgesBezierEdgeStatic = __webpack_require__(92);
+  var _edgesBezierEdgeStatic = __webpack_require__(93);
 
   var _edgesBezierEdgeStatic2 = _interopRequireDefault(_edgesBezierEdgeStatic);
 
-  var _edgesStraightEdge = __webpack_require__(93);
+  var _edgesStraightEdge = __webpack_require__(94);
 
   var _edgesStraightEdge2 = _interopRequireDefault(_edgesStraightEdge);
 
-  var util = __webpack_require__(9);
+  var util = __webpack_require__(10);
 
   /**
    * @class Edge
@@ -34899,7 +34975,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 91 */
+/* 92 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -34918,7 +34994,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; }
 
-  var _EdgeBase2 = __webpack_require__(3);
+  var _EdgeBase2 = __webpack_require__(6);
 
   var _EdgeBase3 = _interopRequireDefault(_EdgeBase2);
 
@@ -35046,7 +35122,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 92 */
+/* 93 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -35065,7 +35141,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; }
 
-  var _utilBezierEdgeBase = __webpack_require__(91);
+  var _utilBezierEdgeBase = __webpack_require__(92);
 
   var _utilBezierEdgeBase2 = _interopRequireDefault(_utilBezierEdgeBase);
 
@@ -35305,7 +35381,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 93 */
+/* 94 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -35324,7 +35400,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; }
 
-  var _utilEdgeBase = __webpack_require__(3);
+  var _utilEdgeBase = __webpack_require__(6);
 
   var _utilEdgeBase2 = _interopRequireDefault(_utilEdgeBase);
 
@@ -35410,7 +35486,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 94 */
+/* 95 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
@@ -35909,7 +35985,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports["default"];
 
 /***/ },
-/* 95 */
+/* 96 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
@@ -36004,7 +36080,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports["default"];
 
 /***/ },
-/* 96 */
+/* 97 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
@@ -36095,7 +36171,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports["default"];
 
 /***/ },
-/* 97 */
+/* 98 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
@@ -36205,7 +36281,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports["default"];
 
 /***/ },
-/* 98 */
+/* 99 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
@@ -36334,7 +36410,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports["default"];
 
 /***/ },
-/* 99 */
+/* 100 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
@@ -36403,7 +36479,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports["default"];
 
 /***/ },
-/* 100 */
+/* 101 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
@@ -36422,7 +36498,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; }
 
-  var _BarnesHutSolver2 = __webpack_require__(94);
+  var _BarnesHutSolver2 = __webpack_require__(95);
 
   var _BarnesHutSolver3 = _interopRequireDefault(_BarnesHutSolver2);
 
@@ -36477,7 +36553,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports["default"];
 
 /***/ },
-/* 101 */
+/* 102 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
@@ -36496,7 +36572,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; }
 
-  var _CentralGravitySolver2 = __webpack_require__(99);
+  var _CentralGravitySolver2 = __webpack_require__(100);
 
   var _CentralGravitySolver3 = _interopRequireDefault(_CentralGravitySolver2);
 
@@ -36533,7 +36609,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports["default"];
 
 /***/ },
-/* 102 */
+/* 103 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -36548,11 +36624,11 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
 
-  var _componentsNodesCluster = __webpack_require__(103);
+  var _componentsNodesCluster = __webpack_require__(104);
 
   var _componentsNodesCluster2 = _interopRequireDefault(_componentsNodesCluster);
 
-  var util = __webpack_require__(9);
+  var util = __webpack_require__(10);
 
   var ClusterEngine = (function () {
     function ClusterEngine(body) {
@@ -37288,7 +37364,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 103 */
+/* 104 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -37305,7 +37381,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; }
 
-  var _Node2 = __webpack_require__(70);
+  var _Node2 = __webpack_require__(3);
 
   var _Node3 = _interopRequireDefault(_Node2);
 
@@ -37333,7 +37409,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 104 */
+/* 105 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
@@ -37346,7 +37422,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
-  var util = __webpack_require__(9);
+  var util = __webpack_require__(10);
 
   var View = (function () {
     function View(body, canvas) {
@@ -37736,7 +37812,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports["default"];
 
 /***/ },
-/* 105 */
+/* 106 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -37751,15 +37827,15 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
 
-  var _componentsNavigationHandler = __webpack_require__(4);
+  var _componentsNavigationHandler = __webpack_require__(2);
 
   var _componentsNavigationHandler2 = _interopRequireDefault(_componentsNavigationHandler);
 
-  var _componentsPopup = __webpack_require__(106);
+  var _componentsPopup = __webpack_require__(107);
 
   var _componentsPopup2 = _interopRequireDefault(_componentsPopup);
 
-  var util = __webpack_require__(9);
+  var util = __webpack_require__(10);
 
   var InteractionHandler = (function () {
     function InteractionHandler(body, canvas, selectionHandler) {
@@ -38500,7 +38576,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 106 */
+/* 107 */
 /***/ function(module, exports, __webpack_require__) {
 
   /**
@@ -38626,7 +38702,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 107 */
+/* 108 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
@@ -38639,9 +38715,9 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
-  var Node = __webpack_require__(70);
-  var Edge = __webpack_require__(90);
-  var util = __webpack_require__(9);
+  var Node = __webpack_require__(3);
+  var Edge = __webpack_require__(91);
+  var util = __webpack_require__(10);
 
   var SelectionHandler = (function () {
     function SelectionHandler(body, canvas) {
@@ -39357,7 +39433,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports["default"];
 
 /***/ },
-/* 108 */
+/* 109 */
 /***/ function(module, exports, __webpack_require__) {
 
   /**
@@ -39836,7 +39912,7 @@ return /******/ (function(modules) { // webpackBootstrap
   exports.configureOptions = configureOptions;
 
 /***/ },
-/* 109 */
+/* 110 */
 /***/ function(module, exports, __webpack_require__) {
 
   /**
@@ -40123,7 +40199,7 @@ return /******/ (function(modules) { // webpackBootstrap
   }
 
 /***/ },
-/* 110 */
+/* 111 */
 /***/ function(module, exports, __webpack_require__) {
 
   /**
@@ -41021,7 +41097,7 @@ return /******/ (function(modules) { // webpackBootstrap
   exports.DOTToGraph = DOTToGraph;
 
 /***/ },
-/* 111 */
+/* 112 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -41091,82 +41167,6 @@ return /******/ (function(modules) { // webpackBootstrap
   }
 
   exports.parseGephi = parseGephi;
-
-/***/ },
-/* 112 */
-/***/ function(module, exports, __webpack_require__) {
-
-  /**
-   * @class Images
-   * This class loads images and keeps them stored.
-   */
-  "use strict";
-
-  function Images(callback) {
-    this.images = {};
-    this.imageBroken = {};
-    this.callback = callback;
-  }
-
-  /**
-   *
-   * @param {string} url          Url of the image
-   * @param {string} url          Url of an image to use if the url image is not found
-   * @return {Image} img          The image object
-   */
-  Images.prototype.load = function (url, brokenUrl, id) {
-    var img = this.images[url]; // make a pointer
-    if (img === undefined) {
-      // create the image
-      var me = this;
-      img = new Image();
-      img.onload = function () {
-        // IE11 fix -- thanks dponch!
-        if (this.width === 0) {
-          document.body.appendChild(this);
-          this.width = this.offsetWidth;
-          this.height = this.offsetHeight;
-          document.body.removeChild(this);
-        }
-
-        if (me.callback) {
-          me.images[url] = img;
-          me.callback(this);
-        }
-      };
-
-      img.onerror = function () {
-        if (brokenUrl === undefined) {
-          console.error("Could not load image:", url);
-          delete this.src;
-          if (me.callback) {
-            me.callback(this);
-          }
-        } else {
-          if (me.imageBroken[id] && me.imageBroken[id][url] === true) {
-            console.error("Could not load brokenImage:", brokenUrl);
-            delete this.src;
-            if (me.callback) {
-              me.callback(this);
-            }
-          } else {
-            console.error("Could not load image:", url);
-            this.src = brokenUrl;
-            if (me.imageBroken[id] === undefined) {
-              me.imageBroken[id] = {};
-            }
-            me.imageBroken[id][url] = true;
-          }
-        }
-      };
-
-      img.src = url;
-    }
-
-    return img;
-  };
-
-  module.exports = Images;
 
 /***/ },
 /* 113 */
