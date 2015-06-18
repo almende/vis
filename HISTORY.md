@@ -9,6 +9,10 @@ http://visjs.org
 - Fixed #970: Implemented options `dataColor`, `axisColor`, and `gridColor`.
 
 
+### Network
+
+- Fixed Hammerjs direction issue.
+
 ## 2015-06-16, version 4.3.0
 
 ### General
@@ -24,6 +28,9 @@ http://visjs.org
 
 - Implemented `editable` option for individual items. Thanks @danbertolini.
 
+### Network
+
+- Fixed dragStart event to give the correct node information.
 
 ## 2015-06-05, version 4.2.0
 

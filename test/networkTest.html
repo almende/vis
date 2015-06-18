@@ -1,140 +1,270 @@
-<!doctype html>
+<!DOCTYPE HTML>
 <html>
 <head>
-    <title>Network | Basic usage</title>
-
-    <script type="text/javascript" src="../dist/vis.js"></script>
-    <link href="../dist/vis.css" rel="stylesheet" type="text/css"/>
-
+    <script src="../dist/vis.js"></script>
+    <link href="../dist/vis.css" rel="stylesheet" type="text/css" />
     <style type="text/css">
-        #mynetwork {
-            width: 1400px;
-            height: 1000px;
-            border: 1px solid lightgray;
-        }
-    </style>
-    <script type="text/javascript">
-    </script>
+        .graph {
+            width: 600px;
+            height: 500px;
+        }  </style>
 </head>
-
 <body>
-<my-toolbar>
-    <button id="toggleAddNode">add Nodes</button>
-    <button id="btnDelete">delete</button>
-    <!-- other Vis manipulation buttons -->
-    <button id="togglePhysics">pause Physics</button>
-    <button id="togglePin">toggle pin</button>
-</my-toolbar>
-<div id="mynetwork"></div>
-<script>
-    document.getElementById("toggleAddNode").onclick = addNode;
-    document.getElementById("btnDelete").onclick = visDelete;
-    document.getElementById("togglePhysics").onclick = togglePhysics;
-    document.getElementById("togglePin").onclick = togglePin;
 
-    function storePositions() {
-        network.storePositions();
+STATIC GRAPH EXAMPLE
+
+<pre>
+
+Issue 1:
+  
+1) Bring your cursor over a node, e.g. "Kill the Dragon" without clicking!
+2) Now try to drag it straight downwards (fast and straight!). It seems that nodes only(!) move when they are at one point also moved on the x axis, otherwise when trying to move them up or down initially they keep standing still. I tested this in chrome and ff on linux. If you cannot reproduce it on the first drag, please go to another node and try dragging it straight downwards (or alternatively upwards)
+
+Issue 2:
+
+After dragging a node far to the outside, move the canvas (viewport). The node you just moved will start swirling around again even though it is "fixed".
+
+Issue 3:
+
+1) Please go to a node in the jsbin (the actual code).
+2) Remove x and y specification from one of the json node objects (JSON). But leave (!) the "fixed" property.
+3) Reload the bin and you'll get a "too much recursion" error (console).
+
+</pre>
+
+<div class="graph" id="visualization1"></div>
+<button onclick="javascript:action()">Click me</button>
+
+<script type="text/javascript">
+
+    var action = function() {
+        var container = document.getElementById("visualization");
+        container.parentNode.removeChild(container);
     }
 
-    var inAddNodeMode = false;
-
-    function addNode() {
-        if (inAddNodeMode) {
-            network.disableEditMode();
-            inAddNodeMode = false;
-        } else {
-            network.addNodeMode();
-            inAddNodeMode = true;
+    var nodes = new vis.DataSet([
+        {
+            "color": {
+                "background": "#c79df1"
+            },
+            "label": "Compose ballad",
+            "group": "matches",
+            "id": "7BEF6C80-B285-48B3-9736-F0845E612A4F",
+            "x": -100,
+            "y": 0,
+        },
+        {
+            "color": {
+                "background": "#e2e3ab"
+            },
+            "label": "Get the Ring",
+            "group": "matches",
+            "id": "E255F767-A447-46D7-865C-494C782FC034",
+            "x": -317,
+            "y": 8,
+        },
+        {
+            "color": {
+                "background": "#7fedb3"
+            },
+            "label": "Go to Mordor",
+            "group": "matches",
+            "id": "7E692850-2846-41ED-8E7D-F58E7F39680D",
+            "x": -190,
+            "y": -101,
+        },
+        {
+            "color": {
+                "background": "#dd9c9c"
+            },
+            "label": "Kill the Dragon",
+            "group": "matches",
+            "id": "51CB2809-A6E9-46A7-AFEA-42DEF2228C59",
+            "x": 316,
+            "y": -233,
+        },
+        {
+            "color": {
+                "background": "#a6b8e3"
+            },
+            "label": "Make the beds",
+            "fontColor": "#000000",
+            "group": "matches",
+            "id": "2",
+            "x": 214,
+            "y": 160,
         }
-    }
+    ]);
 
-    function visDelete() {
-        network.deleteSelected();
-    }
+    var edges = new vis.DataSet([
+        {
+            "id": "6A5795CA-2B17-4133-AB83-E63563935A7B",
+            "from": "7BEF6C80-B285-48B3-9736-F0845E612A4F",
+            "to": "E255F767-A447-46D7-865C-494C782FC034",
+            "type": "maybe also",
+            "label": "maybe also",
+            "color": "red",
+            "style": "dash-line"
+        },
+        {
+            "id": "91DD50F4-BA3A-43CD-A27C-5FE3C8C676A3",
+            "from": "7BEF6C80-B285-48B3-9736-F0845E612A4F",
+            "to": "2",
+            "type": "then",
+            "label": "then",
+            "color": "slateGray",
+            "labelAlignment": "line-above"
+        },
+        {
+            "id": "3128CD68-781A-4942-A2EB-FB6AFF0BBEC1",
+            "from": "7E692850-2846-41ED-8E7D-F58E7F39680D",
+            "to": "51CB2809-A6E9-46A7-AFEA-42DEF2228C59",
+            "type": "then",
+            "label": "then",
+            "color": "slateGray",
+            "labelAlignment": "line-above"
+        },
+        {
+            "id": "3C620D0A-3A27-41EF-AE3B-A66F5833F63F",
+            "from": "51CB2809-A6E9-46A7-AFEA-42DEF2228C59",
+            "to": "7BEF6C80-B285-48B3-9736-F0845E612A4F",
+            "type": "then",
+            "label": "then",
+            "color": "slateGray",
+            "labelAlignment": "line-above"
+        }
 
-    function togglePhysics() {
-        isPhysicsEnabled = !isPhysicsEnabled;
-        network.setOptions({
-            physics: isPhysicsEnabled
-        });
-    }
-    var isPhysicsEnabled = true;
+    ]);
 
-    function togglePin() {
-        network.storePositions();
-        // update node.fixed
-    }
-
-    // create an array with nodes
-    var nodes = new vis.DataSet([{
-        id: 1,
-        label: 'Node 1'
-    }, {
-        id: 2,
-        label: 'Node 2'
-    }, {
-        id: 3,
-        label: 'Node 3'
-    }, {
-        id: 4,
-        label: 'Node 4'
-    }, {
-        id: 5,
-        label: 'Node 5'
-    }]);
-
-    // create an array with edges
-    var edges = new vis.DataSet([{
-        from: 1,
-        to: 3
-    }, {
-        from: 1,
-        to: 2
-    }, {
-        from: 2,
-        to: 4
-    }, {
-        from: 2,
-        to: 5
-    }]);
-
-    // create a network
-    var container = document.getElementById('mynetwork');
     var data = {
         nodes: nodes,
         edges: edges
     };
+
     var options = {
-        manipulation: {
-            enabled: false,
-            initiallyActive: false,
-            addNode: false,
-            //addEdge: onConnectEdge,
-            //editNode: onEditNode,
-            //editEdge: true,
-            deleteNode: onDelete,
-            // this is false, but the manipulation api can still delete edges
-            deleteEdge: false
-        }
-    };
+                "autoResize": true,
+                "height": "100%",
+                "width": "100%",
+                "interaction": {
+                    "dragNodes":true,
+                    "dragView": true,
+                    "hideEdgesOnDrag": false,
+                    "hideNodesOnDrag": false,
+                    "hover": false,
+                    "navigationButtons": true,
+                    "selectable": true,
+                    "selectConnectedEdges": true,
+                    "tooltipDelay": 300,
+                    "zoomView": true,
+                    "keyboard": {
+                        "enabled": false,
+                        "speed": {
+                            "x": 10,
+                            "y": 10,
+                            "zoom": 0.02
+                        },
+                        "bindToWindow": true
+                    }
+                },
+                "nodes": {
+                    "shape": "box",
+                    "color": {
+                        "border" : "#2B7CE9",
+                        "background" : "#97C2FC",
+                        "highlight": {
+                            "border": "#2B7CE9",
+                            "background": "#D2E5FF"
+                        },
+                        "hover": {
+                            "border": "white",
+                            "background": "white"
+                        }
+                    }
+                },
+                "physics": {
+                    "barnesHut": {
+                        "centralGravity": 0,
+                        "springLength": 240
+                    }
+                },
+                "groups": {
+                    "neighbours": {
+                        "color": "#E6E6E6"
+                    },
+                    "matches": {
+                        "color": "#97C2FC"
+                    }
+                },
 
-    function onAddNode(nodeToBeAdded, callback) {
-        //$log.debug('onAdd', nodeToBeAdded);
-        console.log('onAdd');
-        // do stuff to the new node
-        inAddNodeMode = false;
-        callback(nodeToBeAdded);
-    }
+                "locale": "en_EN"
+            }
+            ;
 
-    function onDelete(toBeDeletedData, callback) {
-        console.log('deleting data', toBeDeletedData);
-        // toBeDeletedData is object with nodes: [] and edges: []
-
-        callback(toBeDeletedData);
-    }
-
+    var container = document.getElementById("visualization1");
 
     var network = new vis.Network(container, data, options);
+
+    var hasNetworkStabilized = false;
+    network.on("stabilized", function(properties) {
+
+        if(!hasNetworkStabilized) {
+            hasNetworkStabilized = true;
+
+            network.storePositions();
+            setNodesMoveable(data.nodes.get(), false);
+
+            network.fit();
+        }
+
+    });
+
+//    network.on("dragStart", function(properties) {
+//        console.log("here",properties)
+//        if(properties.nodes.length) {
+//            var node = data.nodes.get(properties.nodes[0]);
+//            setNodesMoveable([ node ], true);
+//        }
+//    });
+//
+//    network.on("dragEnd", function(properties) {
+//        console.log('end',properties)
+//        if(properties.nodes.length) {
+//            var node = data.nodes.get(properties.nodes[0]);
+//            setNodesMoveable([ node ], false);
+//        }
+//    });
+
+    setNodesMoveable = function(nodes, isMoveable) {
+
+        // first store positions
+//        network.storePositions();
+
+        var updates = [];
+        var keys = Object.keys(nodes);
+
+        for(var i = 0; i < keys.length; i++) {
+
+            var id = nodes[keys[i]].id;
+
+            var update = {
+                id: id,
+                physics:false
+            };
+
+            updates.push(update);
+
+        }
+
+        data.nodes.update(updates);
+
+        console.log(updates);
+
+    };
+
+
+
+
+
 </script>
 </body>
 </html>
