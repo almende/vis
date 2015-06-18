@@ -17,6 +17,8 @@ http://visjs.org
 - Fixed delete callbacks with null argument not showing toolbar afterwards.
 - Added zoom events from keyboard and navigation buttons.
 - No longer start stabilization with an empty node set.
+- Fixed #974 connecting static smooth and straight edges.
+
 
 ## 2015-06-16, version 4.3.0
 
