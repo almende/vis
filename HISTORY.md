@@ -15,6 +15,7 @@ http://visjs.org
 - Fixed recursion error when node is fixed but has no position.
 - Fixed accidental redrawing during stabilization.
 - Fixed delete callbacks with null argument not showing toolbar afterwards.
+- Added zoom events from keyboard and navigation buttons.
 
 ## 2015-06-16, version 4.3.0
 
