@@ -19,6 +19,7 @@ http://visjs.org
 - No longer start stabilization with an empty node set.
 - Fixed #974 connecting static smooth and straight edges.
 - Improved handling of empty image field.
+- Fixed #987 proper cleaning of support nodes.
 
 
 ## 2015-06-16, version 4.3.0
