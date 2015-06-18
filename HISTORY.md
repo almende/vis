@@ -12,6 +12,9 @@ http://visjs.org
 ### Network
 
 - Fixed Hammerjs direction issue.
+- Fixed recursion error when node is fixed but has no position.
+- Fixed accidental redrawing during stabilization.
+- Fixed delete callbacks with null argument not showing toolbar afterwards.
 
 ## 2015-06-16, version 4.3.0
 
