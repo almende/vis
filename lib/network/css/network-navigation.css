@@ -59,3 +59,13 @@ div.vis-network div.vis-navigation div.vis-button.vis-zoomExtends {
     bottom:50px;
     right:15px;
 }
+div.vis-network div.vis-navigation div.vis-button.vis-freezeAnimation {
+    background-image: url("img/network/freezeAnimation.png");
+    bottom:50px;
+    right:55px;
+}
+div.vis-network div.vis-navigation div.vis-button.vis-unfreezeAnimation {
+    background-image: url("img/network/unfreezeAnimation.png");
+    bottom:50px;
+    right:55px;
+}
