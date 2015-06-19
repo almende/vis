@@ -581,6 +581,13 @@ function (option, path) {
     </tr>
 
     <tr>
+      <td>groupTemplate</td>
+      <td>function</td>
+      <td>none</td>
+      <td>A template function used to generate the contents of the groups. The function is called by the Timeline with a groups data as argument, and must return HTML code as result. When the option groupTemplate is specified, the groups do not need to have a field <code>content</code>. See section <a href="#Templates">Templates</a> for a detailed explanation.</td>
+    </tr>
+
+    <tr>
       <td>height</td>
       <td>number or String</td>
       <td>none</td>
