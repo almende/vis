@@ -2,6 +2,26 @@
 http://visjs.org
 
 
+## not-yet-released, version 4.3.1-SNAPSHOT
+
+### Graph3d
+
+- Fixed #970: Implemented options `dataColor`, `axisColor`, and `gridColor`.
+
+
+### Network
+
+- Fixed Hammerjs direction issue.
+- Fixed recursion error when node is fixed but has no position.
+- Fixed accidental redrawing during stabilization.
+- Fixed delete callbacks with null argument not showing toolbar afterwards.
+- Added zoom events from keyboard and navigation buttons.
+- No longer start stabilization with an empty node set.
+- Fixed #974 connecting static smooth and straight edges.
+- Improved handling of empty image field.
+- Fixed #987 proper cleaning of support nodes.
+
+
 ## 2015-06-16, version 4.3.0
 
 ### General
@@ -17,6 +37,9 @@ http://visjs.org
 
 - Implemented `editable` option for individual items. Thanks @danbertolini.
 
+### Network
+
+- Fixed dragStart event to give the correct node information.
 
 ## 2015-06-05, version 4.2.0
 
