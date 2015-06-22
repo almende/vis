@@ -20,6 +20,12 @@ http://visjs.org
 - Fixed #974 connecting static smooth and straight edges.
 - Improved handling of empty image field.
 - Fixed #987 proper cleaning of support nodes.
+- Fixed static smooth edges not fully working from every angle.
+
+### Graph2d
+
+- Made graph2d more robust against string values in the y position.
+
 
 
 ## 2015-06-16, version 4.3.0
