@@ -71,3 +71,4 @@ exports.Graph = function () {
 exports.moment = require('./lib/module/moment');
 exports.hammer = require('./lib/module/hammer'); // TODO: deprecate exports.hammer some day
 exports.Hammer = require('./lib/module/hammer');
+exports.keycharm = require('keycharm');
