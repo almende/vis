@@ -1,557 +1,547 @@
-<!DOCTYPE HTML>
-<html>
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
 <head>
-    <script src="../dist/vis.js"></script>
-    <link href="../dist/vis.css" rel="stylesheet" type="text/css" />
+    <title>Test</title>
+    <meta http-equiv="x-ua-compatible" content="IE=Edge" />
     <style type="text/css">
-        .graph {
-            width: 100%;
-            height: 600px;
-        }  </style>
+
+    </style>
+
+    <script type="text/javascript" src="../dist/vis.js"></script>
+    <link type="text/css" rel="stylesheet" href="../dist/vis.css">
+    <script type="text/javascript" src="http://code.jquery.com/jquery-1.7.2.js"></script>
+
+
+
 </head>
 <body>
-
-VIEWPORT ISSUES WHEN REPLACING NODES
-
-<pre>
-
-Once the first graph is displayed
-
-1. move the viewport (not the nodes)
-2. zoom out
-3. press the "fit" button (which used to be zoomExtent) - works fine!
-
-Now 
-
-1. click the "click me" button (at the very bottom below navigation buttons)
-2. the datasets will be cleared and a second graph will be displayed
-3. Maybe wait a few seconds before the stabilization event is fired and the graph is fit again (actually this step is not necessary)
-4. press the "click me button again to switch to the first graph
-5. try to fit the graph by pressing the "fit" button (which used to be zoomExtent)
-6. Neither does it correctly centerize nor is it zoomed (streched) correctly!
+<input type="button" id="changeVis" value="ChangeVis"/>
+<div id="kl" style="position:absolute;height:700px; width:1200px;float:left;border: 2px solid #0094ff;overflow:auto">
+</div>
 
 
-</pre>
+<script>
+    var graph = null;
+    var chartVisual = null;
 
-<div class="graph" id="visualization1"></div>
-<button onclick="javascript:action()">Click me</button>
+    window.onload = function () {
+        chartVisual = new weve.cg.view.ChartVisual();
+        chartVisual.LoadChart();
+        chartVisual.refreshUILayout(200);
+        $("#changeVis").click(function () {
+            chartVisual.update();
+        });
+    }
 
-<script type="text/javascript">
+    //
+    //     Copyright © 2011-2015 Cambridge Intelligence Limited.
+    //     All rights reserved.
+    //
+    //     Sample Code
+    //     Click here to see the code in action: Combos 1
+    var weve = weve || {};
+    weve.cg = weve.cg || {};
+    weve.cg.view = weve.cg.view || {};
 
 
-    // @Alex @Jos THIS IS ONLY DATA - SCCCCCCCCCCCRRROOLLLLLLLLLLLL DOWN
+    // Javascript Constructor - The Main Graph object
+    weve.cg.view.ChartVisual = function () {
+        this.network = {};
 
-    var graph1 = {
-        "nodes": [
-            {
-                "color": "#c79df1",
-                "label": "Compose ballad",
-                "title": "Compose ballad",
-                "font": {
-                    "color": "#000000"
-                },
-                "group": "matches",
-                "id": "7BEF6C80-B285-48B3-9736-F0845E612A4F",
-                "x": -346,
-                "y": 26,
-                "fixed": {
-                    "x": true,
-                    "y": true
+        this.nodes = new vis.DataSet();
+        this.edges = new vis.DataSet();
+
+
+        this.nodes1 = [
+            { id: 1, label: 'Node 1' },
+            { id: 2, label: 'Node 2' },
+            { id: 3, label: 'Node 3' },
+            { id: 4, label: 'Node 4' },
+            { id: 5, label: 'Node 5' }
+        ];
+
+        // create an array with edges
+        this.edges1 = [
+            { from: 1, to: 3 },
+            { from: 1, to: 2 },
+            { from: 2, to: 4 },
+            { from: 2, to: 5 }
+        ];
+
+        this.nodes2 = new vis.DataSet([
+            { label: "0", id: "d0" },
+            { label: "1", id: "d1" },
+            { label: "2", id: "d2" },
+            { label: "3", id: "d3" },
+            { label: "4", id: "d4" },
+            { label: "5", id: "d5" },
+            { label: "6", id: "d6" },
+            { label: "7", id: "d7" },
+            { label: "8", id: "d8" },
+            { label: "9", id: "d9" },
+            { label: "10", id: "d10" },
+            { label: "11", id: "d11" },
+            { label: "12", id: "d12" },
+            { label: "13", id: "d13" },
+            { label: "14", id: "d14" },
+            { label: "15", id: "d15" },
+            { label: "16", id: "d16" },
+            { label: "17", id: "d17" },
+            { label: "18", id: "d18" },
+            { label: "19", id: "d19" },
+            { label: "20", id: "d20" },
+            { label: "21", id: "d21" },
+            { label: "22", id: "d22" },
+            { label: "23", id: "d23" },
+            { label: "24", id: "d24" },
+            { label: "25", id: "d25" },
+            { label: "26", id: "d26" },
+            { label: "27", id: "d27" },
+            { label: "28", id: "d28" },
+            { label: "29", id: "d29" },
+            { label: "30", id: "d30" },
+            { label: "31", id: "d31" },
+            { label: "32", id: "d32" },
+            { label: "33", id: "d33" },
+            { label: "34", id: "d34" },
+            { label: "35", id: "d35" },
+            { label: "36", id: "d36" },
+            { label: "37", id: "d37" },
+            { label: "38", id: "d38" },
+            { label: "39", id: "d39" },
+            { label: "40", id: "d40" },
+            { label: "41", id: "d41" },
+            { label: "42", id: "d42" },
+            { label: "43", id: "d43" },
+            { label: "44", id: "d44" },
+            { label: "45", id: "d45" },
+            { label: "46", id: "d46" },
+            { label: "47", id: "d47" },
+            { label: "48", id: "d48" },
+            { label: "49", id: "d49" },
+            { label: "50", id: "d50" },
+            { label: "51", id: "d51" },
+            { label: "52", id: "d52" },
+            { label: "53", id: "d53" },
+            { label: "54", id: "d54" },
+            { label: "55", id: "d55" },
+            { label: "56", id: "d56" },
+            { label: "57", id: "d57" },
+            { label: "58", id: "d58" },
+            { label: "59", id: "d59" },
+            { label: "60", id: "d60" },
+            { label: "61", id: "d61" },
+            { label: "62", id: "d62" },
+            { label: "63", id: "d63" },
+            { label: "64", id: "d64" },
+            { label: "65", id: "d65" },
+            { label: "66", id: "d66" },
+            { label: "67", id: "d67" },
+            { label: "68", id: "d68" },
+            { label: "69", id: "d69" },
+            { label: "70", id: "d70" },
+            { label: "71", id: "d71" },
+            { label: "72", id: "d72" },
+            { label: "73", id: "d73" },
+            { label: "74", id: "d74" },
+            { label: "75", id: "d75" },
+            { label: "76", id: "d76" },
+            { label: "77", id: "d77" },
+            { label: "78", id: "d78" },
+            { label: "79", id: "d79" },
+            { label: "80", id: "d80" },
+            { label: "81", id: "d81" },
+            { label: "82", id: "d82" },
+            { label: "83", id: "d83" },
+            { label: "84", id: "d84" },
+            { label: "85", id: "d85" },
+            { label: "86", id: "d86" },
+            { label: "87", id: "d87" },
+            { label: "88", id: "d88" },
+            { label: "89", id: "d89" },
+            { label: "90", id: "d90" },
+            { label: "91", id: "d91" },
+            { label: "92", id: "d92" },
+            { label: "93", id: "d93" },
+            { label: "94", id: "d94" },
+            { label: "95", id: "d95" },
+            { label: "96", id: "d96" },
+            { label: "97", id: "d97" },
+            { label: "98", id: "d98" },
+            { label: "99", id: "d99" },
+            { label: "100", id: "d100" },
+            { label: "101", id: "d101" },
+            { label: "102", id: "d102" },
+            { label: "103", id: "d103" },
+            { label: "104", id: "d104" },
+            { label: "105", id: "d105" },
+            { label: "106", id: "d106" },
+            { label: "107", id: "d107" },
+            { label: "108", id: "d108" },
+            { label: "109", id: "d109" },
+            { label: "110", id: "d110" },
+            { label: "111", id: "d111" },
+            { label: "112", id: "d112" },
+            { label: "113", id: "d113" },
+            { label: "114", id: "d114" },
+            { label: "115", id: "d115" },
+            { label: "116", id: "d116" },
+            { label: "117", id: "d117" },
+            { label: "118", id: "d118" },
+            { label: "119", id: "d119" },
+            { label: "120", id: "d120" },
+            { label: "121", id: "d121" },
+            { label: "122", id: "d122" },
+            { label: "123", id: "d123" },
+            { label: "124", id: "d124" },
+            { label: "125", id: "d125" },
+            { label: "126", id: "d126" },
+            { label: "127", id: "d127" },
+            { label: "128", id: "d128" },
+            { label: "129", id: "d129" },
+            { label: "130", id: "d130" },
+            { label: "131", id: "d131" },
+            { label: "132", id: "d132" },
+            { label: "133", id: "d133" },
+            { label: "134", id: "d134" },
+            { label: "135", id: "d135" },
+            { label: "136", id: "d136" },
+            { label: "137", id: "d137" },
+            { label: "138", id: "d138" },
+            { label: "139", id: "d139" },
+            { label: "140", id: "d140" },
+            { label: "141", id: "d141" },
+            { label: "142", id: "d142" },
+            { label: "143", id: "d143" },
+            { label: "144", id: "d144" },
+            { label: "145", id: "d145" },
+            { label: "146", id: "d146" },
+            { label: "147", id: "d147" },
+            { label: "148", id: "d148" },
+            { label: "149", id: "d149" },
+            { label: "150", id: "d150" },
+            { label: "151", id: "d151" },
+            { label: "152", id: "d152" },
+            { label: "153", id: "d153" },
+            { label: "154", id: "d154" },
+            { label: "155", id: "d155" },
+            { label: "156", id: "d156" },
+            { label: "157", id: "d157" },
+            { label: "158", id: "d158" },
+            { label: "159", id: "d159" },
+            { label: "160", id: "d160" },
+            { label: "161", id: "d161" },
+            { label: "162", id: "d162" },
+            { label: "163", id: "d163" }
+
+        ]);
+
+        this.edges2 = new vis.DataSet([
+
+            { from: "d0", to: "d2" },
+            { from: "d1", to: "d0" },
+            { from: "d2", to: "d1" },
+            { from: "d3", to: "d2" },
+            { from: "d4", to: "d3" },
+            { from: "d5", to: "d4" },
+            { from: "d6", to: "d5" },
+            { from: "d7", to: "d6" },
+            { from: "d8", to: "d7" },
+            { from: "d9", to: "d8" },
+            { from: "d10", to: "d9" },
+            { from: "d11", to: "d10" },
+            { from: "d12", to: "d11" },
+            { from: "d13", to: "d12" },
+            { from: "d14", to: "d13" },
+            { from: "d15", to: "d14" },
+            { from: "d16", to: "d15" },
+            { from: "d17", to: "d16" },
+            { from: "d18", to: "d17" },
+            { from: "d19", to: "d18" },
+            { from: "d20", to: "d19" },
+            { from: "d21", to: "d20" },
+            { from: "d22", to: "d21" },
+            { from: "d23", to: "d22" },
+            { from: "d24", to: "d23" },
+            { from: "d25", to: "d24" },
+            { from: "d26", to: "d25" },
+            { from: "d27", to: "d26" },
+            { from: "d28", to: "d27" },
+            { from: "d29", to: "d28" },
+            { from: "d30", to: "d29" },
+            { from: "d31", to: "d30" },
+            { from: "d32", to: "d31" },
+            { from: "d33", to: "d32" },
+            { from: "d34", to: "d33" },
+            { from: "d35", to: "d34" },
+            { from: "d36", to: "d35" },
+            { from: "d37", to: "d36" },
+            { from: "d38", to: "d37" },
+            { from: "d39", to: "d38" },
+            { from: "d40", to: "d39" },
+            { from: "d41", to: "d40" },
+            { from: "d42", to: "d41" },
+            { from: "d43", to: "d42" },
+            { from: "d44", to: "d43" },
+            { from: "d45", to: "d44" },
+            { from: "d46", to: "d45" },
+            { from: "d47", to: "d46" },
+            { from: "d48", to: "d47" },
+            { from: "d49", to: "d48" },
+            { from: "d50", to: "d49" },
+            { from: "d51", to: "d50" },
+            { from: "d52", to: "d51" },
+            { from: "d53", to: "d52" },
+            { from: "d54", to: "d53" },
+            { from: "d55", to: "d54" },
+            { from: "d56", to: "d55" },
+            { from: "d57", to: "d56" },
+            { from: "d58", to: "d57" },
+            { from: "d59", to: "d58" },
+            { from: "d60", to: "d59" },
+            { from: "d61", to: "d60" },
+            { from: "d62", to: "d61" },
+            { from: "d63", to: "d62" },
+            { from: "d64", to: "d63" },
+            { from: "d65", to: "d64" },
+            { from: "d66", to: "d65" },
+            { from: "d67", to: "d66" },
+            { from: "d68", to: "d67" },
+            { from: "d69", to: "d68" },
+            { from: "d70", to: "d69" },
+            { from: "d71", to: "d70" },
+            { from: "d72", to: "d71" },
+            { from: "d73", to: "d72" },
+            { from: "d74", to: "d73" },
+            { from: "d75", to: "d74" },
+            { from: "d76", to: "d75" },
+            { from: "d77", to: "d76" },
+            { from: "d78", to: "d77" },
+            { from: "d79", to: "d78" },
+            { from: "d80", to: "d79" },
+            { from: "d81", to: "d80" },
+            { from: "d82", to: "d81" },
+            { from: "d83", to: "d82" },
+            { from: "d84", to: "d83" },
+            { from: "d85", to: "d84" },
+            { from: "d86", to: "d85" },
+            { from: "d87", to: "d86" },
+            { from: "d88", to: "d87" },
+            { from: "d89", to: "d88" },
+            { from: "d90", to: "d89" },
+            { from: "d91", to: "d90" },
+            { from: "d92", to: "d91" },
+            { from: "d93", to: "d92" },
+            { from: "d94", to: "d93" },
+            { from: "d95", to: "d94" },
+            { from: "d96", to: "d95" },
+            { from: "d97", to: "d96" },
+            { from: "d98", to: "d97" },
+            { from: "d99", to: "d98" },
+            { from: "d100", to: "d99" },
+            { from: "d101", to: "d100" },
+            { from: "d102", to: "d101" },
+            { from: "d103", to: "d102" },
+            { from: "d104", to: "d103" },
+            { from: "d105", to: "d104" },
+            { from: "d106", to: "d105" },
+            { from: "d107", to: "d106" },
+            { from: "d108", to: "d107" },
+            { from: "d109", to: "d108" },
+            { from: "d110", to: "d109" },
+            { from: "d111", to: "d110" },
+            { from: "d112", to: "d111" },
+            { from: "d113", to: "d112" },
+            { from: "d114", to: "d113" },
+            { from: "d115", to: "d114" },
+            { from: "d116", to: "d115" },
+            { from: "d117", to: "d116" },
+            { from: "d118", to: "d117" },
+            { from: "d119", to: "d118" },
+            { from: "d120", to: "d119" },
+            { from: "d121", to: "d120" },
+            { from: "d122", to: "d121" },
+            { from: "d123", to: "d122" },
+            { from: "d124", to: "d123" },
+            { from: "d125", to: "d124" },
+            { from: "d126", to: "d125" },
+            { from: "d127", to: "d126" },
+            { from: "d128", to: "d127" },
+            { from: "d129", to: "d128" },
+            { from: "d130", to: "d129" },
+            { from: "d131", to: "d130" },
+            { from: "d132", to: "d131" },
+            { from: "d133", to: "d132" },
+            { from: "d134", to: "d133" },
+            { from: "d135", to: "d134" },
+            { from: "d136", to: "d135" },
+            { from: "d137", to: "d136" },
+            { from: "d138", to: "d137" },
+            { from: "d139", to: "d138" },
+            { from: "d140", to: "d139" },
+            { from: "d141", to: "d140" },
+            { from: "d142", to: "d141" },
+            { from: "d143", to: "d142" },
+            { from: "d144", to: "d143" },
+            { from: "d145", to: "d144" },
+            { from: "d146", to: "d145" },
+            { from: "d147", to: "d146" },
+            { from: "d148", to: "d147" },
+            { from: "d149", to: "d148" },
+            { from: "d150", to: "d149" },
+            { from: "d151", to: "d150" },
+            { from: "d152", to: "d151" },
+            { from: "d153", to: "d152" },
+            { from: "d154", to: "d153" },
+            { from: "d155", to: "d154" },
+            { from: "d156", to: "d155" },
+            { from: "d157", to: "d156" },
+            { from: "d158", to: "d157" }
+        ]);
+
+        this.nodes =this.nodes2;
+        this.edges = this.edges2;
+
+
+        this.totalEdgesAdded = 0;
+
+        this.fitOnDone = false;
+        this.fitOnDoneIterations = 0;
+
+        this.options = {
+            nodes: {
+                shape: 'dot',
+                scaling: {
+                    label: {
+                        min: weve.cg.view.ChartVisual.minFont_largeGroup,
+                        max: weve.cg.view.ChartVisual.maxFont_largeGroup
+                    },
                 }
             },
-            {
-                "color": "#e2e3ab",
-                "label": "Get the Ring",
-                "title": "Get the Ring",
-                "font": {
-                    "color": "#000000"
+
+            edges: {
+                smooth: {
+                    enabled: true,
+                    type: "dynamic",
+                    //   roundness: 0.5
                 },
-                "group": "matches",
-                "id": "E255F767-A447-46D7-865C-494C782FC034",
-                "x": -120,
-                "y": -31,
-                "fixed": {
-                    "x": true,
-                    "y": true
-                }
             },
-            {
-                "color": "#7fedb3",
-                "label": "Go to Mordor",
-                "title": "Go to Mordor",
-                "font": {
-                    "color": "#000000"
-                },
-                "group": "matches",
-                "id": "7E692850-2846-41ED-8E7D-F58E7F39680D",
-                "x": -776,
-                "y": -32,
-                "fixed": {
-                    "x": true,
-                    "y": true
-                }
+
+            interaction: {
+
+                multiselect: false,
+                navigationButtons: true,
+                selectable: true,
+                selectConnectedEdges: true,
+                tooltipDelay: 100,
+                zoomView: true
             },
-            {
-                "color": "#dd9c9c",
-                "label": "Kill the Dragon",
-                "title": "Kill the Dragon",
-                "font": {
-                    "color": "#000000"
-                },
-                "group": "matches",
-                "id": "51CB2809-A6E9-46A7-AFEA-42DEF2228C59",
-                "x": -559,
-                "y": 102,
-                "fixed": {
-                    "x": true,
-                    "y": true
-                }
-            },
-            {
-                "color": "#a6b8e3",
-                "label": "Make the beds",
-                "title": "Make the beds",
-                "font": {
-                    "color": "#000000"
-                },
-                "group": "matches",
-                "id": "F37FE14F-DBCB-40A5-8055-F4020FFB37BB",
-                "x": -130,
-                "y": 156,
-                "fixed": {
-                    "x": true,
-                    "y": true
+            physics: {
+                stabilization: {
+                    enabled: true,
+                    iterations: 250, // maximum number of iteration to stabilize
+                    updateInterval: 5,
+                    onlyDynamicEdges: false,
+                    fit: true
                 }
             }
-        ],
-        "edges": [
-            {
-                "id": "6A5795CA-2B17-4133-AB83-E63563935A7B",
-                "from": "7BEF6C80-B285-48B3-9736-F0845E612A4F",
-                "to": "E255F767-A447-46D7-865C-494C782FC034",
-                "type": "maybe also",
-                "label": "maybe also",
-                "color": "red",
-                "style": "dash-line"
-            },
-            {
-                "id": "91DD50F4-BA3A-43CD-A27C-5FE3C8C676A3",
-                "from": "7BEF6C80-B285-48B3-9736-F0845E612A4F",
-                "to": "F37FE14F-DBCB-40A5-8055-F4020FFB37BB",
-                "type": "then",
-                "label": "then",
-                "color": "slateGray",
-                "labelAlignment": "line-above"
-            },
-            {
-                "id": "3128CD68-781A-4942-A2EB-FB6AFF0BBEC1",
-                "from": "7E692850-2846-41ED-8E7D-F58E7F39680D",
-                "to": "51CB2809-A6E9-46A7-AFEA-42DEF2228C59",
-                "type": "then",
-                "label": "then",
-                "color": "slateGray",
-                "labelAlignment": "line-above"
-            },
-            {
-                "id": "3C620D0A-3A27-41EF-AE3B-A66F5833F63F",
-                "from": "51CB2809-A6E9-46A7-AFEA-42DEF2228C59",
-                "to": "7BEF6C80-B285-48B3-9736-F0845E612A4F",
-                "type": "then",
-                "label": "then",
-                "color": "slateGray",
-                "labelAlignment": "line-above"
-            }
-        ]
+        };
+
     };
 
-    graph2 = {
-        "nodes": [
-            {
-                "color": "#97C2FC",
-                "label": "Adam",
-                "title": "Adam",
-                "group": "matches",
-                "id": "35b99ac8-aa07-4834-b508-6e9435f573cb",
-                "x": -100,
-                "y": -380,
-                "fixed": {
-                    "x": true,
-                    "y": true
-                }
-            },
-            {
-                "color": "#97C2FC",
-                "label": "Betsy",
-                "title": "Betsy",
-                "group": "matches",
-                "id": "38d37e10-3c8b-487c-9757-1061d2bbbd07",
-                "x": -100,
-                "y": -540,
-                "fixed": {
-                    "x": true,
-                    "y": true
-                }
-            },
-            {
-                "color": "#97C2FC",
-                "label": "Carol",
-                "title": "Carol",
-                "group": "matches",
-                "id": "4762501a-6bcb-4d35-acfd-f2e9d6310389",
-                "x": -230,
-                "y": -380,
-                "fixed": {
-                    "x": true,
-                    "y": true
-                }
-            },
-            {
-                "color": "#97C2FC",
-                "label": "Catherine",
-                "title": "Catherine",
-                "group": "matches",
-                "id": "7e17b617-b7a4-4f70-937b-f45ec8dc0a9d",
-                "x": -520,
-                "y": -210,
-                "fixed": {
-                    "x": true,
-                    "y": true
-                }
-            },
-            {
-                "color": "#97C2FC",
-                "label": "Craig",
-                "title": "Craig",
-                "group": "matches",
-                "id": "e017a09b-4526-4b4d-b097-f70e56f20ab4",
-                "x": 130,
-                "y": -380,
-                "fixed": {
-                    "x": true,
-                    "y": true
-                }
-            },
-            {
-                "color": "#97C2FC",
-                "label": "George",
-                "title": "George",
-                "group": "matches",
-                "id": "8ec7f3ee-35f9-4c56-a57b-12d91c0c372e",
-                "x": -360,
-                "y": -540,
-                "fixed": {
-                    "x": true,
-                    "y": true
-                }
-            },
-            {
-                "color": "#97C2FC",
-                "label": "Jessica",
-                "title": "Jessica",
-                "group": "matches",
-                "id": "8d2a0469-bb6a-4e40-ab1f-3d5edc620415",
-                "x": 20,
-                "y": -380,
-                "fixed": {
-                    "x": true,
-                    "y": true
-                }
-            },
-            {
-                "color": "#97C2FC",
-                "label": "John",
-                "title": "John",
-                "group": "matches",
-                "id": "afd75e95-e45a-4dea-848a-e16ca735bc57",
-                "x": -490,
-                "y": -540,
-                "fixed": {
-                    "x": true,
-                    "y": true
-                }
-            },
-            {
-                "color": "#97C2FC",
-                "label": "Mary",
-                "title": "Mary",
-                "group": "matches",
-                "id": "9c050064-d805-48b3-80a6-181d3599daff",
-                "x": -280,
-                "y": -210,
-                "fixed": {
-                    "x": true,
-                    "y": true
-                }
-            },
-            {
-                "color": "#97C2FC",
-                "label": "Michael",
-                "title": "Michael",
-                "group": "matches",
-                "id": "f24ab062-62a1-4555-a57f-dfcd597c3515",
-                "x": -30,
-                "y": -210,
-                "fixed": {
-                    "x": true,
-                    "y": true
-                }
-            },
-            {
-                "color": "#97C2FC",
-                "label": "Michelle",
-                "title": "Michelle",
-                "group": "matches",
-                "id": "59d10b18-1c9e-4dcb-ba4f-988ebd7a3efb",
-                "x": -610,
-                "y": -380,
-                "fixed": {
-                    "x": true,
-                    "y": true
-                }
-            },
-            {
-                "color": "#97C2FC",
-                "label": "Robert",
-                "title": "Robert",
-                "group": "matches",
-                "id": "b11149a2-9050-4632-b095-d9d233319b91",
-                "x": -360,
-                "y": -380,
-                "fixed": {
-                    "x": true,
-                    "y": true
-                }
-            },
-            {
-                "color": "#97C2FC",
-                "label": "Sharon",
-                "title": "Sharon",
-                "group": "matches",
-                "id": "a1485262-99fe-4b1e-a246-cc70fbb1859a",
-                "x": -490,
-                "y": -380,
-                "fixed": {
-                    "x": true,
-                    "y": true
-                }
+    weve.cg.view.ChartVisual.minFont_smallGroup = 7;
+    weve.cg.view.ChartVisual.maxFont_smallGroup = 10;
+
+    weve.cg.view.ChartVisual.minFont_largeGroup = 20;
+    weve.cg.view.ChartVisual.maxFont_largeGroup = 25;
+
+
+    weve.cg.view.ChartVisual.prototype.update = function () {
+        var g = this;
+        this.clearChart();
+
+        this.nodes1.forEach(function (item) {
+            g.nodes.add(item);
+        });
+
+        this.edges.update(this.edges1);
+
+        this.refreshUILayout(2);
+    }
+    weve.cg.view.ChartVisual.prototype.LoadChart = function (viewModel, callBack) {
+        var g = this;
+        var container = document.getElementById('kl');
+
+        var data = {
+            nodes: this.nodes,
+            edges: this.edges
+        };
+
+
+        this.viewModel = viewModel;
+        this.network = new vis.Network(container, data, this.options);
+        this.startpercentage = 60;
+
+        this.network.on("startStabilizing", function (params) {
+
+            console.log("started")
+        });
+        this.network.on("stabilizationProgress", function (params) {
+            var percentStabilizationComplete = params.iterations / params.total;
+            var totalPercent = g.startpercentage + percentStabilizationComplete * 40;
+
+
+        });
+        this.network.on("stabilizationIterationsDone", function (params) {
+            g.fitOnDone = false;
+
+            console.log("100% Complete...");
+            //viewModel.hideLoading();
+        });
+
+
+        this.network.on("initRedraw", function (params) {
+            console.log('here',g.fitOnDone);
+            g.network.fit();
+            if (g.fitOnDone) {
+                g.network.fit();
             }
-        ],
-        "edges": [
-            {
-                "id": "62b28c2f-c6dc-4b6b-b108-722eb47d5972",
-                "from": "35b99ac8-aa07-4834-b508-6e9435f573cb",
-                "to": "f24ab062-62a1-4555-a57f-dfcd597c3515",
-                "type": "family:father of",
-                "label": "father of",
-                "color": "#bc960d",
-                "labelAlignment": "line-above"
-            },
-            {
-                "id": "4ae8de41-ef1a-400a-b51b-05662ce24597",
-                "from": "38d37e10-3c8b-487c-9757-1061d2bbbd07",
-                "to": "e017a09b-4526-4b4d-b097-f70e56f20ab4",
-                "type": "family:mother of",
-                "label": "mother of",
-                "color": "#eec75b",
-                "labelAlignment": "line-above"
-            },
-            {
-                "id": "70f6e36a-ce9a-47b4-97e1-14b2df17d204",
-                "from": "38d37e10-3c8b-487c-9757-1061d2bbbd07",
-                "to": "8d2a0469-bb6a-4e40-ab1f-3d5edc620415",
-                "type": "family:mother of",
-                "label": "mother of",
-                "color": "#eec75b",
-                "labelAlignment": "line-above"
-            },
-            {
-                "id": "c32a86ce-ab9a-49b6-a202-e93a37265fda",
-                "from": "38d37e10-3c8b-487c-9757-1061d2bbbd07",
-                "to": "b11149a2-9050-4632-b095-d9d233319b91",
-                "type": "family:mother of",
-                "label": "mother of",
-                "color": "#eec75b",
-                "labelAlignment": "line-above"
-            },
-            {
-                "id": "bbce9cc0-0353-45cd-bfa6-a13834ff7218",
-                "from": "4762501a-6bcb-4d35-acfd-f2e9d6310389",
-                "to": "f24ab062-62a1-4555-a57f-dfcd597c3515",
-                "type": "family:mother of",
-                "label": "mother of",
-                "color": "#eec75b",
-                "labelAlignment": "line-above"
-            },
-            {
-                "id": "deb7eb05-f667-496b-aeda-205c37b2484b",
-                "from": "8ec7f3ee-35f9-4c56-a57b-12d91c0c372e",
-                "to": "afd75e95-e45a-4dea-848a-e16ca735bc57",
-                "type": "family:brother of",
-                "label": "brother of",
-                "color": "green",
-                "labelAlignment": "line-above"
-            },
-            {
-                "id": "3c8c7947-6c82-4f98-978a-26bbb372bfbb",
-                "from": "afd75e95-e45a-4dea-848a-e16ca735bc57",
-                "to": "a1485262-99fe-4b1e-a246-cc70fbb1859a",
-                "type": "family:father of",
-                "label": "father of",
-                "color": "#bc960d",
-                "labelAlignment": "line-above"
-            },
-            {
-                "id": "cd4e71e7-9735-4a42-8632-e88cc01ab64f",
-                "from": "f24ab062-62a1-4555-a57f-dfcd597c3515",
-                "to": "9c050064-d805-48b3-80a6-181d3599daff",
-                "type": "family:brother of",
-                "label": "brother of",
-                "color": "green",
-                "labelAlignment": "line-above"
-            },
-            {
-                "id": "b4499f60-04f9-4306-9c57-3d73b72f37c0",
-                "from": "59d10b18-1c9e-4dcb-ba4f-988ebd7a3efb",
-                "to": "7e17b617-b7a4-4f70-937b-f45ec8dc0a9d",
-                "type": "family:mother of",
-                "label": "mother of",
-                "color": "#eec75b",
-                "labelAlignment": "line-above"
-            },
-            {
-                "id": "16562853-b597-44f6-9c55-2ce8a1fe4f83",
-                "from": "b11149a2-9050-4632-b095-d9d233319b91",
-                "to": "7e17b617-b7a4-4f70-937b-f45ec8dc0a9d",
-                "type": "family:father of",
-                "label": "father of",
-                "color": "#bc960d",
-                "labelAlignment": "line-above"
-            },
-            {
-                "id": "599dd644-e61f-401e-8b17-dfdd340c125e",
-                "from": "b11149a2-9050-4632-b095-d9d233319b91",
-                "to": "9c050064-d805-48b3-80a6-181d3599daff",
-                "type": "family:father of",
-                "label": "father of",
-                "color": "#bc960d",
-                "labelAlignment": "line-above"
-            },
-            {
-                "id": "961f7f2b-5abe-4036-a155-aa9b30ae1260",
-                "from": "b11149a2-9050-4632-b095-d9d233319b91",
-                "to": "a1485262-99fe-4b1e-a246-cc70fbb1859a",
-                "type": "family:married to",
-                "label": "married to",
-                "color": "#17bba3",
-                "labelAlignment": "line-above"
-            }
-        ]
-    };
+        });
 
-
-
-
-
-
-    // OK, OK ENOUGH SCROLLING
-
-
-
-
-
-
-
-
-    // HERE IS THE ACTUAL CODE
-
-    var isGraph1Active = true;
-    var action = function() {
-
-        // switch graphs
-
-        var graph = isGraph1Active ? graph2 : graph1;
-        isGraph1Active = !isGraph1Active;
-
-        updateGraph(graph.nodes, graph.edges, options);
 
     }
 
-    var data = {
-        nodes: new vis.DataSet(),
-        edges: new vis.DataSet()
-    };
-
-    var options = {
-        "autoResize": true,
-        "height": "100%",
-        "width": "100%",
-        "interaction": {
-            "dragNodes":true,
-            "dragView": true,
-            "hideEdgesOnDrag": false,
-            "hideNodesOnDrag": false,
-            "hover": false,
-            "navigationButtons": true,
-            "selectable": true,
-            "selectConnectedEdges": true,
-            "tooltipDelay": 300,
-            "zoomView": true
-
-        },
-        "nodes": {
-            "shape": "box",
-            "color": {
-                "border" : "#2B7CE9",
-                "background" : "#97C2FC",
-                "highlight": {
-                    "border": "#2B7CE9",
-                    "background": "#D2E5FF"
-                },
-                "hover": {
-                    "border": "white",
-                    "background": "white"
-                }
-            }
-        },
-        "physics": {
-            "barnesHut": {
-                "centralGravity": 0,
-                "springLength": 240
-            }
-        },
-
-    };
-
-    var container = document.getElementById("visualization1");
-
-    var network = new vis.Network(container, data, options);
-
-    var hasNetworkStabilized = false;
-
-
-    var updateGraph = function(nodes, edges, options) {
-
-        // clear before redrawing a completely different graph
-        data.nodes.clear();
-        data.edges.clear();
-
-        // update options for new graph
-        this.network.setOptions(options);
-
-        // allow stabilization again
-        hasNetworkStabilized = false;
-
-        // update data
-        data.nodes.update(nodes);
-        data.edges.update(edges);
-        network.fit()
+    weve.cg.view.ChartVisual.prototype.clearChart = function () {
+        this.nodes.clear();
+        this.edges.clear();
     }
 
 
-    // RUNTIME
 
-    updateGraph(graph1.nodes, graph1.edges, options);
+    weve.cg.view.ChartVisual.prototype.refreshUILayout = function (viewModel, nodeLength) {
 
+        var g = this;
+
+        g.fitOnDone = true;
+
+        // Get total node size here.
+        var stabilizationFactor = 400;
+
+        if (nodeLength <= 25) {
+            this.options.nodes.scaling.label.min = weve.cg.view.ChartVisual.minFont_smallGroup;
+            this.options.nodes.scaling.label.max = weve.cg.view.ChartVisual.maxFont_smallGroup;
+            console.log("font small");
+        }
+        else {
+            this.options.nodes.scaling.label.min = weve.cg.view.ChartVisual.minFont_largeGroup;
+            this.options.nodes.scaling.label.max = weve.cg.view.ChartVisual.maxFont_largeGroup;
+            console.log("font large");
+        }
+        g.network.setOptions(this.options);
+        g.network.stabilize(stabilizationFactor);
+
+
+    }
 
 </script>
 </body>
