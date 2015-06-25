@@ -21,6 +21,7 @@ http://visjs.org
 - Improved handling of empty image field.
 - Fixed #987 proper cleaning of support nodes.
 - Fixed static smooth edges not fully working from every angle.
+- Fixed updating bounding box of nodes without drawing.
 
 ### Graph2d
 
