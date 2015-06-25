@@ -22,7 +22,7 @@
 <body>
 <h2>Graph2d | Label Example</h2>
 <div style="width:700px; font-size:14px; text-align: justify;">
-  This example shows the how to add a label to each point in Graph2d. Each item can have a label object which contains the content and CSS class.In addition, xOffset and yOffset will adjust the location of the label relative to the point being labelled. 
+  This example shows the how to add a label to each point in Graph2d. Each item can have a label object which contains the content and CSS class.In addition, xOffset and yOffset will adjust the location of the label relative to the point being labelled. The label from the first item's group will only be drawn if a label exists. The label from the second item's group will always be drawn even if no label exists.
 
   
   <br /><br />
@@ -45,21 +45,54 @@
     className: "red"
   }
   var items = [
-    {x: '2014-06-11', y: 10,label:label1},
-    {x: '2014-06-12', y: 25,label:label2},
-    {x: '2014-06-13', y: 30},
-    {x: '2014-06-14', y: 10},
-    {x: '2014-06-15', y: 15},
-    {x: '2014-06-16', y: 30}
+    {group: 1, x: '2014-06-11', y: 10, label: label1},
+    {group: 1, x: '2014-06-12', y: 25, label: label2},
+    {group: 1, x: '2014-06-13', y: 30},
+    {group: 1, x: '2014-06-14', y: 10},
+    {group: 1, x: '2014-06-15', y: 15},
+    {group: 1, x: '2014-06-16', y: 30},
+    
+    {group: 2, x: '2014-06-17', y: 10, label: label1},
+    {group: 2, x: '2014-06-18', y: 28, label: label2},
+    {group: 2, x: '2014-06-19', y: 15},
+    {group: 2, x: '2014-06-20', y: 12},
+    {group: 2, x: '2014-06-21', y: 25},
+    {group: 2, x: '2014-06-22', y: 11}
   ];
 
+  var groups = new vis.DataSet();
+  groups.add(
+    {
+      id: 1,
+      content: "Labels will only be drawn if one exists.",
+      options: {
+          style:'bar'
+      }
+    }
+  );
+  groups.add(
+    {
+      id: 2,
+      content: "Labels are always drawn even if no label exists.",
+      options: {
+          style:'bar',
+          drawPoints: {
+            onlyIfLabelExists: false
+          }
+      }
+    }
+  );
   var dataset = new vis.DataSet(items);
   var options = {
     start: '2014-06-10',
-    end: '2014-06-18',
-      style:'bar'
+    end: '2014-06-23',
+    drawPoints: {
+      enabled: true,
+      onlyIfLabelExists: true
+    },
+    style: 'bar'
   };
-  var graph2d = new vis.Graph2d(container, dataset, options);
+  var graph2d = new vis.Graph2d(container, dataset, groups, options);
 </script>
 </body>
 </html>
