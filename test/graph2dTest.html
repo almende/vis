@@ -1,0 +1,74 @@
+<!DOCTYPE HTML>
+<html>
+
+<head>
+    <meta content="text/html;charset=utf-8" http-equiv="Content-Type">
+    <meta content="utf-8" http-equiv="encoding">
+    <title>Graph2d | Basic Example</title>
+
+    <style type="text/css">
+        body, html {
+            font-family: sans-serif;
+        }
+    </style>
+
+    <script src="../dist/vis.js"></script>
+    <script src="./graph2dTestData.js"></script>
+    <script src="./graph2dTestData2.js"></script>
+    <link href="../dist/vis.css" rel="stylesheet" type="text/css" />
+
+<body>
+<h2>Graph2d | Basic Example</h2>
+<div style="width:700px; font-size:14px; text-align: justify;">
+
+</div>
+<br />
+<div id="visualization"></div>
+<div id="visualization2"></div>
+
+<script type="text/javascript">
+    var groups = new vis.DataSet();
+    groups.add({
+        id: 'accuracy',
+        content: 'accuracy'
+        });
+//
+    groups.add({
+        id: 'latitude',
+        content: 'latitude'
+    })
+
+    groups.add({
+        id: 'longitude',
+        content: 'longitude'
+    })
+    groups.add({
+        id: 'timeTraveled',
+        content: 'timeTraveled'
+    })
+
+
+    var items = [];
+    var items2 = [];
+    for (var i = 0; i < data.length; i++) {
+        items.push({x:Number(data[i].date+'000'), y:data[i].value.accuracy, group:'accuracy'});
+        items.push({x:Number(data[i].date+'000'), y:data[i].value.latitude, group:'latitude'});
+        items.push({x:Number(data[i].date+'000'), y:data[i].value.longitude, group:'longitude'});
+    }
+    for (var i = 0; i < timeTraveledData.length; i++) {
+        items2.push({x:Number(timeTraveledData[i].date+'000'), y:timeTraveledData[i].value, group:'timeTraveled'});
+    }
+    var container = document.getElementById('visualization');
+    var container2 = document.getElementById('visualization2');
+
+    var dataset = new vis.DataSet(items);
+    var options = {
+        interpolation:false
+    };
+    var graph2d = new vis.Graph2d(container, dataset,groups, options);
+
+    var dataset2 = new vis.DataSet(items2);
+    var graph2d2 = new vis.Graph2d(container2, dataset2,groups, options);
+</script>
+</body>
+</html>

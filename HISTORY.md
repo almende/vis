@@ -26,7 +26,7 @@ http://visjs.org
 ### Graph2d
 
 - Made graph2d more robust against string values in the y position.
-
+- Fixed bug where 0 axis was always in the automatically fitted range.
 
 
 ## 2015-06-16, version 4.3.0
