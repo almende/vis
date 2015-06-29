@@ -546,15 +546,73 @@ function (value) {
         </tr>
         <tr class='toggle collapsible' onclick="toggleTable('g2dOptions','drawPoints', this);">
             <td class="greenField"><span parent="drawPoints" class="right-caret"></span> drawPoints</td>
-            <td>Boolean or Object</td>
+            <td>Boolean, Object or Function</td>
             <td>true</td>
-            <td>Toggle the drawing of the datapoints with the default settings.</td>
+            <td>Defines rendering options for the datapoints.
+            Three different types of objects can be assigned to this property. See <a href="../../examples/graph2d/19_labels.html">Example 19</a> for an illustration.<br />
+            1. <code>Boolean</code>: When true is provided every datapoint will be drawn, false otherwise.<br />
+            <pre class="prettyprint lang-js">
+drawPoints: true // or false
+            </pre>
+            
+            2. <code>Object</code> (the 'rendering' options): If an object is provided it may contain following properties which all can be optional: <code>onRender</code>, <code>className</code><code>size</code> and/or <code>style</code>. For more information check the property's documentation.<br />
+            <pre class="prettyprint lang-js">
+drawPoints: {
+  size: 3,
+  style: 'square'
+}
+            </pre>
+            
+            3. <code>Function</code>: If a function is provided it will be used as a callback. The function may return values from listing 1 or 2.<br />
+            <pre class="prettyprint lang-js">
+drawPoints: function(item, group, graph2d) {
+  ...
+}
+            </pre>
+            If a rendering property from the rendering option object is missing, the missing property will be fetched from the group's option.
+            <br />
+            All of these three options can be defined within the drawPoints properties separately as well.
+            </td>
         </tr>
         <tr parent="drawPoints" class="hidden">
             <td class="greenField indent">drawPoints.enabled</td>
             <td>Boolean</td>
             <td>true</td>
-            <td>Toggle the drawing of the datapoints.</td>
+            <td>Toggles the drawing of the datapoints.</td>
+        </tr>
+        <tr parent="drawPoints" class="hidden">
+            <td class="greenField indent">drawPoints.onRender</td>
+            <td>function</td>
+            <td>none</td>
+            <td>Defines a render function for every datapoint.
+            If a group has no <code>drawPoints.onRender</code> callback, the graph2d <code>drawPoints.onRender</code> callback will be used.
+            If neither is defined, the datapoint will be rendered according to the group setting of <code>drawPoints.enabled</code>.
+            This callback must return <code>true</code> if the datapoint should be rendered, otherwise <code>false</code>.
+              <pre class="prettyprint lang-js">
+drawPoints: {
+  enabled: true,
+  onRender: function(item, group, graph2d) {
+    // only renders items with labels
+    return item.label != null;
+  }
+}
+              </pre>
+              This callback may also return an object containing a <code>size</code> and <code>style</code> property, both are optional, e.g.:
+              <pre class="prettyprint lang-js">
+onRender: function(item, group, graph2d) {
+  if (item.label == null) {
+    return false;
+  }
+
+  return {
+    style: 'circle',
+    size: 30
+  };
+}
+              </pre>
+          The properties <code>className</code>, <code>style</code> and <code>size</code> returned from the callback will be used for rendering the datapoint.
+          If a property is missing in the rendering option object, the missing property will be fetched from the group's option.
+          </td>
         </tr>
         <tr parent="drawPoints" class="hidden">
             <td class="greenField indent">drawPoints.size</td>
