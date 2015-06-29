@@ -22,6 +22,7 @@ http://visjs.org
 - Fixed #987 proper cleaning of support nodes.
 - Fixed static smooth edges not fully working from every angle.
 - Fixed updating bounding box of nodes without drawing.
+- Fixed #1036, bug in lockedRedraw. Thanks @vges!
 
 ### Graph2d
 

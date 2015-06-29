@@ -5,7 +5,7 @@
  * A dynamic, browser-based visualization library.
  *
  * @version 4.3.1-SNAPSHOT
- * @date    2015-06-26
+ * @date    2015-06-29
  *
  * @license
  * Copyright (C) 2011-2014 Almende B.V, http://almende.com
@@ -84,60 +84,60 @@ return /******/ (function(modules) { // webpackBootstrap
   // utils
   'use strict';
 
-  exports.util = __webpack_require__(10);
-  exports.DOMutil = __webpack_require__(15);
+  exports.util = __webpack_require__(9);
+  exports.DOMutil = __webpack_require__(14);
 
   // data
-  exports.DataSet = __webpack_require__(16);
-  exports.DataView = __webpack_require__(18);
-  exports.Queue = __webpack_require__(17);
+  exports.DataSet = __webpack_require__(15);
+  exports.DataView = __webpack_require__(17);
+  exports.Queue = __webpack_require__(16);
 
   // Graph3d
-  exports.Graph3d = __webpack_require__(19);
+  exports.Graph3d = __webpack_require__(18);
   exports.graph3d = {
-    Camera: __webpack_require__(23),
-    Filter: __webpack_require__(24),
-    Point2d: __webpack_require__(20),
-    Point3d: __webpack_require__(22),
-    Slider: __webpack_require__(25),
-    StepNumber: __webpack_require__(26)
+    Camera: __webpack_require__(22),
+    Filter: __webpack_require__(23),
+    Point2d: __webpack_require__(19),
+    Point3d: __webpack_require__(21),
+    Slider: __webpack_require__(24),
+    StepNumber: __webpack_require__(25)
   };
 
   // Timeline
-  exports.Timeline = __webpack_require__(27);
-  exports.Graph2d = __webpack_require__(51);
+  exports.Timeline = __webpack_require__(26);
+  exports.Graph2d = __webpack_require__(50);
   exports.timeline = {
-    DateUtil: __webpack_require__(33),
-    DataStep: __webpack_require__(52),
-    Range: __webpack_require__(31),
-    stack: __webpack_require__(37),
-    TimeStep: __webpack_require__(39),
+    DateUtil: __webpack_require__(32),
+    DataStep: __webpack_require__(53),
+    Range: __webpack_require__(30),
+    stack: __webpack_require__(36),
+    TimeStep: __webpack_require__(38),
 
     components: {
       items: {
-        Item: __webpack_require__(5),
-        BackgroundItem: __webpack_require__(42),
-        BoxItem: __webpack_require__(41),
-        PointItem: __webpack_require__(4),
-        RangeItem: __webpack_require__(38)
+        Item: __webpack_require__(4),
+        BackgroundItem: __webpack_require__(41),
+        BoxItem: __webpack_require__(40),
+        PointItem: __webpack_require__(2),
+        RangeItem: __webpack_require__(37)
       },
 
-      Component: __webpack_require__(29),
-      CurrentTime: __webpack_require__(28),
-      CustomTime: __webpack_require__(46),
-      DataAxis: __webpack_require__(3),
-      GraphGroup: __webpack_require__(53),
-      Group: __webpack_require__(36),
-      BackgroundGroup: __webpack_require__(40),
-      ItemSet: __webpack_require__(35),
-      Legend: __webpack_require__(57),
-      LineGraph: __webpack_require__(2),
-      TimeAxis: __webpack_require__(43)
+      Component: __webpack_require__(28),
+      CurrentTime: __webpack_require__(27),
+      CustomTime: __webpack_require__(45),
+      DataAxis: __webpack_require__(52),
+      GraphGroup: __webpack_require__(54),
+      Group: __webpack_require__(35),
+      BackgroundGroup: __webpack_require__(39),
+      ItemSet: __webpack_require__(34),
+      Legend: __webpack_require__(58),
+      LineGraph: __webpack_require__(51),
+      TimeAxis: __webpack_require__(42)
     }
   };
 
   // Network
-  exports.Network = __webpack_require__(59);
+  exports.Network = __webpack_require__(60);
   exports.network = {
     Images: __webpack_require__(112),
     dotparser: __webpack_require__(110),
@@ -157,10 +157,10 @@ return /******/ (function(modules) { // webpackBootstrap
   };
 
   // bundled external libraries
-  exports.moment = __webpack_require__(11);
-  exports.hammer = __webpack_require__(6); // TODO: deprecate exports.hammer some day
-  exports.Hammer = __webpack_require__(6);
-  exports.keycharm = __webpack_require__(45);
+  exports.moment = __webpack_require__(10);
+  exports.hammer = __webpack_require__(5); // TODO: deprecate exports.hammer some day
+  exports.Hammer = __webpack_require__(5);
+  exports.keycharm = __webpack_require__(44);
 
 /***/ },
 /* 1 */
@@ -181,1587 +181,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   'use strict';
 
-  var util = __webpack_require__(10);
-  var DOMutil = __webpack_require__(15);
-  var DataSet = __webpack_require__(16);
-  var DataView = __webpack_require__(18);
-  var Component = __webpack_require__(29);
-  var DataAxis = __webpack_require__(3);
-  var GraphGroup = __webpack_require__(53);
-  var Legend = __webpack_require__(57);
-  var BarFunctions = __webpack_require__(56);
-  var LineFunctions = __webpack_require__(54);
-
-  var UNGROUPED = '__ungrouped__'; // reserved group id for ungrouped items
-
-  /**
-   * This is the constructor of the LineGraph. It requires a Timeline body and options.
-   *
-   * @param body
-   * @param options
-   * @constructor
-   */
-  function LineGraph(body, options) {
-    this.id = util.randomUUID();
-    this.body = body;
-
-    this.defaultOptions = {
-      yAxisOrientation: 'left',
-      defaultGroup: 'default',
-      sort: true,
-      sampling: true,
-      stack: false,
-      graphHeight: '400px',
-      shaded: {
-        enabled: false,
-        orientation: 'bottom' // top, bottom
-      },
-      style: 'line', // line, bar
-      barChart: {
-        width: 50,
-        sideBySide: false,
-        align: 'center' // left, center, right
-      },
-      interpolation: {
-        enabled: true,
-        parametrization: 'centripetal', // uniform (alpha = 0.0), chordal (alpha = 1.0), centripetal (alpha = 0.5)
-        alpha: 0.5
-      },
-      drawPoints: {
-        enabled: true,
-        size: 6,
-        style: 'square' // square, circle
-      },
-      dataAxis: {
-        showMinorLabels: true,
-        showMajorLabels: true,
-        icons: false,
-        width: '40px',
-        visible: true,
-        alignZeros: true,
-        left: {
-          range: { min: undefined, max: undefined },
-          format: function format(value) {
-            return value;
-          },
-          title: { text: undefined, style: undefined }
-        },
-        right: {
-          range: { min: undefined, max: undefined },
-          format: function format(value) {
-            return value;
-          },
-          title: { text: undefined, style: undefined }
-        }
-      },
-      legend: {
-        enabled: false,
-        icons: true,
-        left: {
-          visible: true,
-          position: 'top-left' // top/bottom - left,right
-        },
-        right: {
-          visible: true,
-          position: 'top-right' // top/bottom - left,right
-        }
-      },
-      groups: {
-        visibility: {}
-      }
-    };
-
-    // options is shared by this ItemSet and all its items
-    this.options = util.extend({}, this.defaultOptions);
-    this.dom = {};
-    this.props = {};
-    this.hammer = null;
-    this.groups = {};
-    this.abortedGraphUpdate = false;
-    this.updateSVGheight = false;
-    this.updateSVGheightOnResize = false;
-
-    var me = this;
-    this.itemsData = null; // DataSet
-    this.groupsData = null; // DataSet
-
-    // listeners for the DataSet of the items
-    this.itemListeners = {
-      'add': function add(event, params, senderId) {
-        me._onAdd(params.items);
-      },
-      'update': function update(event, params, senderId) {
-        me._onUpdate(params.items);
-      },
-      'remove': function remove(event, params, senderId) {
-        me._onRemove(params.items);
-      }
-    };
-
-    // listeners for the DataSet of the groups
-    this.groupListeners = {
-      'add': function add(event, params, senderId) {
-        me._onAddGroups(params.items);
-      },
-      'update': function update(event, params, senderId) {
-        me._onUpdateGroups(params.items);
-      },
-      'remove': function remove(event, params, senderId) {
-        me._onRemoveGroups(params.items);
-      }
-    };
-
-    this.items = {}; // object with an Item for every data item
-    this.selection = []; // list with the ids of all selected nodes
-    this.lastStart = this.body.range.start;
-    this.touchParams = {}; // stores properties while dragging
-
-    this.svgElements = {};
-    this.setOptions(options);
-    this.groupsUsingDefaultStyles = [0];
-    this.COUNTER = 0;
-    this.body.emitter.on('rangechanged', function () {
-      me.lastStart = me.body.range.start;
-      me.svg.style.left = util.option.asSize(-me.props.width);
-      me.redraw.call(me, true);
-    });
-
-    // create the HTML DOM
-    this._create();
-    this.framework = { svg: this.svg, svgElements: this.svgElements, options: this.options, groups: this.groups };
-    this.body.emitter.emit('change');
-  }
-
-  LineGraph.prototype = new Component();
-
-  /**
-   * Create the HTML DOM for the ItemSet
-   */
-  LineGraph.prototype._create = function () {
-    var frame = document.createElement('div');
-    frame.className = 'vis-line-graph';
-    this.dom.frame = frame;
-
-    // create svg element for graph drawing.
-    this.svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-    this.svg.style.position = 'relative';
-    this.svg.style.height = ('' + this.options.graphHeight).replace('px', '') + 'px';
-    this.svg.style.display = 'block';
-    frame.appendChild(this.svg);
-
-    // data axis
-    this.options.dataAxis.orientation = 'left';
-    this.yAxisLeft = new DataAxis(this.body, this.options.dataAxis, this.svg, this.options.groups);
-
-    this.options.dataAxis.orientation = 'right';
-    this.yAxisRight = new DataAxis(this.body, this.options.dataAxis, this.svg, this.options.groups);
-    delete this.options.dataAxis.orientation;
-
-    // legends
-    this.legendLeft = new Legend(this.body, this.options.legend, 'left', this.options.groups);
-    this.legendRight = new Legend(this.body, this.options.legend, 'right', this.options.groups);
-
-    this.show();
-  };
-
-  /**
-   * set the options of the LineGraph. the mergeOptions is used for subObjects that have an enabled element.
-   * @param {object} options
-   */
-  LineGraph.prototype.setOptions = function (options) {
-    if (options) {
-      var fields = ['sampling', 'defaultGroup', 'stack', 'height', 'graphHeight', 'yAxisOrientation', 'style', 'barChart', 'dataAxis', 'sort', 'groups'];
-      if (options.graphHeight === undefined && options.height !== undefined && this.body.domProps.centerContainer.height !== undefined) {
-        this.updateSVGheight = true;
-        this.updateSVGheightOnResize = true;
-      } else if (this.body.domProps.centerContainer.height !== undefined && options.graphHeight !== undefined) {
-        if (parseInt((options.graphHeight + '').replace('px', '')) < this.body.domProps.centerContainer.height) {
-          this.updateSVGheight = true;
-        }
-      }
-      util.selectiveDeepExtend(fields, this.options, options);
-      util.mergeOptions(this.options, options, 'interpolation');
-      util.mergeOptions(this.options, options, 'drawPoints');
-      util.mergeOptions(this.options, options, 'shaded');
-      util.mergeOptions(this.options, options, 'legend');
-
-      if (options.interpolation) {
-        if (typeof options.interpolation == 'object') {
-          if (options.interpolation.parametrization) {
-            if (options.interpolation.parametrization == 'uniform') {
-              this.options.interpolation.alpha = 0;
-            } else if (options.interpolation.parametrization == 'chordal') {
-              this.options.interpolation.alpha = 1;
-            } else {
-              this.options.interpolation.parametrization = 'centripetal';
-              this.options.interpolation.alpha = 0.5;
-            }
-          }
-        }
-      }
-
-      if (this.yAxisLeft) {
-        if (options.dataAxis !== undefined) {
-          this.yAxisLeft.setOptions(this.options.dataAxis);
-          this.yAxisRight.setOptions(this.options.dataAxis);
-        }
-      }
-
-      if (this.legendLeft) {
-        if (options.legend !== undefined) {
-          this.legendLeft.setOptions(this.options.legend);
-          this.legendRight.setOptions(this.options.legend);
-        }
-      }
-
-      if (this.groups.hasOwnProperty(UNGROUPED)) {
-        this.groups[UNGROUPED].setOptions(options);
-      }
-    }
-
-    // this is used to redraw the graph if the visibility of the groups is changed.
-    if (this.dom.frame) {
-      this.redraw(true);
-    }
-  };
-
-  /**
-   * Hide the component from the DOM
-   */
-  LineGraph.prototype.hide = function () {
-    // remove the frame containing the items
-    if (this.dom.frame.parentNode) {
-      this.dom.frame.parentNode.removeChild(this.dom.frame);
-    }
-  };
-
-  /**
-   * Show the component in the DOM (when not already visible).
-   * @return {Boolean} changed
-   */
-  LineGraph.prototype.show = function () {
-    // show frame containing the items
-    if (!this.dom.frame.parentNode) {
-      this.body.dom.center.appendChild(this.dom.frame);
-    }
-  };
-
-  /**
-   * Set items
-   * @param {vis.DataSet | null} items
-   */
-  LineGraph.prototype.setItems = function (items) {
-    var me = this,
-        ids,
-        oldItemsData = this.itemsData;
-
-    // replace the dataset
-    if (!items) {
-      this.itemsData = null;
-    } else if (items instanceof DataSet || items instanceof DataView) {
-      this.itemsData = items;
-    } else {
-      throw new TypeError('Data must be an instance of DataSet or DataView');
-    }
-
-    if (oldItemsData) {
-      // unsubscribe from old dataset
-      util.forEach(this.itemListeners, function (callback, event) {
-        oldItemsData.off(event, callback);
-      });
-
-      // remove all drawn items
-      ids = oldItemsData.getIds();
-      this._onRemove(ids);
-    }
-
-    if (this.itemsData) {
-      // subscribe to new dataset
-      var id = this.id;
-      util.forEach(this.itemListeners, function (callback, event) {
-        me.itemsData.on(event, callback, id);
-      });
-
-      // add all new items
-      ids = this.itemsData.getIds();
-      this._onAdd(ids);
-    }
-    this._updateUngrouped();
-    //this._updateGraph();
-    this.redraw(true);
-  };
-
-  /**
-   * Set groups
-   * @param {vis.DataSet} groups
-   */
-  LineGraph.prototype.setGroups = function (groups) {
-    var me = this;
-    var ids;
-
-    // unsubscribe from current dataset
-    if (this.groupsData) {
-      util.forEach(this.groupListeners, function (callback, event) {
-        me.groupsData.off(event, callback);
-      });
-
-      // remove all drawn groups
-      ids = this.groupsData.getIds();
-      this.groupsData = null;
-      this._onRemoveGroups(ids); // note: this will cause a redraw
-    }
-
-    // replace the dataset
-    if (!groups) {
-      this.groupsData = null;
-    } else if (groups instanceof DataSet || groups instanceof DataView) {
-      this.groupsData = groups;
-    } else {
-      throw new TypeError('Data must be an instance of DataSet or DataView');
-    }
-
-    if (this.groupsData) {
-      // subscribe to new dataset
-      var id = this.id;
-      util.forEach(this.groupListeners, function (callback, event) {
-        me.groupsData.on(event, callback, id);
-      });
-
-      // draw all ms
-      ids = this.groupsData.getIds();
-      this._onAddGroups(ids);
-    }
-    this._onUpdate();
-  };
-
-  /**
-   * Update the data
-   * @param [ids]
-   * @private
-   */
-  LineGraph.prototype._onUpdate = function (ids) {
-    this._updateUngrouped();
-    this._updateAllGroupData();
-    //this._updateGraph();
-    this.redraw(true);
-  };
-  LineGraph.prototype._onAdd = function (ids) {
-    this._onUpdate(ids);
-  };
-  LineGraph.prototype._onRemove = function (ids) {
-    this._onUpdate(ids);
-  };
-  LineGraph.prototype._onUpdateGroups = function (groupIds) {
-    for (var i = 0; i < groupIds.length; i++) {
-      var group = this.groupsData.get(groupIds[i]);
-      this._updateGroup(group, groupIds[i]);
-    }
-
-    //this._updateGraph();
-    this.redraw(true);
-  };
-  LineGraph.prototype._onAddGroups = function (groupIds) {
-    this._onUpdateGroups(groupIds);
-  };
-
-  /**
-   * this cleans the group out off the legends and the dataaxis, updates the ungrouped and updates the graph
-   * @param {Array} groupIds
-   * @private
-   */
-  LineGraph.prototype._onRemoveGroups = function (groupIds) {
-    for (var i = 0; i < groupIds.length; i++) {
-      if (this.groups.hasOwnProperty(groupIds[i])) {
-        if (this.groups[groupIds[i]].options.yAxisOrientation == 'right') {
-          this.yAxisRight.removeGroup(groupIds[i]);
-          this.legendRight.removeGroup(groupIds[i]);
-          this.legendRight.redraw();
-        } else {
-          this.yAxisLeft.removeGroup(groupIds[i]);
-          this.legendLeft.removeGroup(groupIds[i]);
-          this.legendLeft.redraw();
-        }
-        delete this.groups[groupIds[i]];
-      }
-    }
-    this._updateUngrouped();
-    //this._updateGraph();
-    this.redraw(true);
-  };
-
-  /**
-   * update a group object with the group dataset entree
-   *
-   * @param group
-   * @param groupId
-   * @private
-   */
-  LineGraph.prototype._updateGroup = function (group, groupId) {
-    if (!this.groups.hasOwnProperty(groupId)) {
-      this.groups[groupId] = new GraphGroup(group, groupId, this.options, this.groupsUsingDefaultStyles);
-      if (this.groups[groupId].options.yAxisOrientation == 'right') {
-        this.yAxisRight.addGroup(groupId, this.groups[groupId]);
-        this.legendRight.addGroup(groupId, this.groups[groupId]);
-      } else {
-        this.yAxisLeft.addGroup(groupId, this.groups[groupId]);
-        this.legendLeft.addGroup(groupId, this.groups[groupId]);
-      }
-    } else {
-      this.groups[groupId].update(group);
-      if (this.groups[groupId].options.yAxisOrientation == 'right') {
-        this.yAxisRight.updateGroup(groupId, this.groups[groupId]);
-        this.legendRight.updateGroup(groupId, this.groups[groupId]);
-      } else {
-        this.yAxisLeft.updateGroup(groupId, this.groups[groupId]);
-        this.legendLeft.updateGroup(groupId, this.groups[groupId]);
-      }
-    }
-    this.legendLeft.redraw();
-    this.legendRight.redraw();
-  };
-
-  /**
-   * this updates all groups, it is used when there is an update the the itemset.
-   *
-   * @private
-   */
-  LineGraph.prototype._updateAllGroupData = function () {
-    if (this.itemsData != null) {
-      var groupsContent = {};
-      var groupId;
-      for (groupId in this.groups) {
-        if (this.groups.hasOwnProperty(groupId)) {
-          groupsContent[groupId] = [];
-        }
-      }
-      for (var itemId in this.itemsData._data) {
-        if (this.itemsData._data.hasOwnProperty(itemId)) {
-          var item = this.itemsData._data[itemId];
-          if (groupsContent[item.group] === undefined) {
-            throw new Error('Cannot find referenced group. Possible reason: items added before groups? Groups need to be added before items, as items refer to groups.');
-          }
-          item.x = util.convert(item.x, 'Date');
-          groupsContent[item.group].push(item);
-        }
-      }
-      for (groupId in this.groups) {
-        if (this.groups.hasOwnProperty(groupId)) {
-          this.groups[groupId].setItems(groupsContent[groupId]);
-        }
-      }
-    }
-  };
-
-  /**
-   * Create or delete the group holding all ungrouped items. This group is used when
-   * there are no groups specified. This anonymous group is called 'graph'.
-   * @protected
-   */
-  LineGraph.prototype._updateUngrouped = function () {
-    if (this.itemsData && this.itemsData != null) {
-      var ungroupedCounter = 0;
-      for (var itemId in this.itemsData._data) {
-        if (this.itemsData._data.hasOwnProperty(itemId)) {
-          var item = this.itemsData._data[itemId];
-          if (item != undefined) {
-            if (item.hasOwnProperty('group')) {
-              if (item.group === undefined) {
-                item.group = UNGROUPED;
-              }
-            } else {
-              item.group = UNGROUPED;
-            }
-            ungroupedCounter = item.group == UNGROUPED ? ungroupedCounter + 1 : ungroupedCounter;
-          }
-        }
-      }
-
-      if (ungroupedCounter == 0) {
-        delete this.groups[UNGROUPED];
-        this.legendLeft.removeGroup(UNGROUPED);
-        this.legendRight.removeGroup(UNGROUPED);
-        this.yAxisLeft.removeGroup(UNGROUPED);
-        this.yAxisRight.removeGroup(UNGROUPED);
-      } else {
-        var group = { id: UNGROUPED, content: this.options.defaultGroup };
-        this._updateGroup(group, UNGROUPED);
-      }
-    } else {
-      delete this.groups[UNGROUPED];
-      this.legendLeft.removeGroup(UNGROUPED);
-      this.legendRight.removeGroup(UNGROUPED);
-      this.yAxisLeft.removeGroup(UNGROUPED);
-      this.yAxisRight.removeGroup(UNGROUPED);
-    }
-
-    this.legendLeft.redraw();
-    this.legendRight.redraw();
-  };
-
-  /**
-   * Redraw the component, mandatory function
-   * @return {boolean} Returns true if the component is resized
-   */
-  LineGraph.prototype.redraw = function (forceGraphUpdate) {
-    var resized = false;
-
-    // calculate actual size and position
-    this.props.width = this.dom.frame.offsetWidth;
-    this.props.height = this.body.domProps.centerContainer.height - this.body.domProps.border.top - this.body.domProps.border.bottom;
-
-    // update the graph if there is no lastWidth or with, used for the initial draw
-    if (this.lastWidth === undefined && this.props.width) {
-      forceGraphUpdate = true;
-    }
-
-    // check if this component is resized
-    resized = this._isResized() || resized;
-
-    // check whether zoomed (in that case we need to re-stack everything)
-    var visibleInterval = this.body.range.end - this.body.range.start;
-    var zoomed = visibleInterval != this.lastVisibleInterval;
-    this.lastVisibleInterval = visibleInterval;
-
-    // the svg element is three times as big as the width, this allows for fully dragging left and right
-    // without reloading the graph. the controls for this are bound to events in the constructor
-    if (resized == true) {
-      this.svg.style.width = util.option.asSize(3 * this.props.width);
-      this.svg.style.left = util.option.asSize(-this.props.width);
-
-      // if the height of the graph is set as proportional, change the height of the svg
-      if ((this.options.height + '').indexOf('%') != -1 || this.updateSVGheightOnResize == true) {
-        this.updateSVGheight = true;
-      }
-    }
-
-    // update the height of the graph on each redraw of the graph.
-    if (this.updateSVGheight == true) {
-      if (this.options.graphHeight != this.props.height + 'px') {
-        this.options.graphHeight = this.props.height + 'px';
-        this.svg.style.height = this.props.height + 'px';
-      }
-      this.updateSVGheight = false;
-    } else {
-      this.svg.style.height = ('' + this.options.graphHeight).replace('px', '') + 'px';
-    }
-
-    // zoomed is here to ensure that animations are shown correctly.
-    if (resized == true || zoomed == true || this.abortedGraphUpdate == true || forceGraphUpdate == true) {
-      resized = this._updateGraph() || resized;
-    } else {
-      // move the whole svg while dragging
-      if (this.lastStart != 0) {
-        var offset = this.body.range.start - this.lastStart;
-        var range = this.body.range.end - this.body.range.start;
-        if (this.props.width != 0) {
-          var rangePerPixelInv = this.props.width / range;
-          var xOffset = offset * rangePerPixelInv;
-          this.svg.style.left = -this.props.width - xOffset + 'px';
-        }
-      }
-    }
-
-    this.legendLeft.redraw();
-    this.legendRight.redraw();
-    return resized;
-  };
-
-  /**
-   * Update and redraw the graph.
-   *
-   */
-  LineGraph.prototype._updateGraph = function () {
-    // reset the svg elements
-    DOMutil.prepareElements(this.svgElements);
-    if (this.props.width != 0 && this.itemsData != null) {
-      var group, i;
-      var preprocessedGroupData = {};
-      var processedGroupData = {};
-      var groupRanges = {};
-      var changeCalled = false;
-
-      // getting group Ids
-      var groupIds = [];
-      for (var groupId in this.groups) {
-        if (this.groups.hasOwnProperty(groupId)) {
-          group = this.groups[groupId];
-          if (group.visible == true && (this.options.groups.visibility[groupId] === undefined || this.options.groups.visibility[groupId] == true)) {
-            groupIds.push(groupId);
-          }
-        }
-      }
-      if (groupIds.length > 0) {
-        // this is the range of the SVG canvas
-        var minDate = this.body.util.toGlobalTime(-this.body.domProps.root.width);
-        var maxDate = this.body.util.toGlobalTime(2 * this.body.domProps.root.width);
-        var groupsData = {};
-        // fill groups data, this only loads the data we require based on the timewindow
-        this._getRelevantData(groupIds, groupsData, minDate, maxDate);
-
-        // apply sampling, if disabled, it will pass through this function.
-        this._applySampling(groupIds, groupsData);
-
-        // we transform the X coordinates to detect collisions
-        for (i = 0; i < groupIds.length; i++) {
-          preprocessedGroupData[groupIds[i]] = this._convertXcoordinates(groupsData[groupIds[i]]);
-        }
-
-        // now all needed data has been collected we start the processing.
-        this._getYRanges(groupIds, preprocessedGroupData, groupRanges);
-
-        // update the Y axis first, we use this data to draw at the correct Y points
-        // changeCalled is required to clean the SVG on a change emit.
-        changeCalled = this._updateYAxis(groupIds, groupRanges);
-        var MAX_CYCLES = 5;
-        if (changeCalled == true && this.COUNTER < MAX_CYCLES) {
-          DOMutil.cleanupElements(this.svgElements);
-          this.abortedGraphUpdate = true;
-          this.COUNTER++;
-          this.body.emitter.emit('change');
-          return true;
-        } else {
-          if (this.COUNTER > MAX_CYCLES) {
-            console.log('WARNING: there may be an infinite loop in the _updateGraph emitter cycle.');
-          }
-          this.COUNTER = 0;
-          this.abortedGraphUpdate = false;
-
-          // With the yAxis scaled correctly, use this to get the Y values of the points.
-          for (i = 0; i < groupIds.length; i++) {
-            group = this.groups[groupIds[i]];
-            processedGroupData[groupIds[i]] = this._convertYcoordinates(groupsData[groupIds[i]], group);
-          }
-
-          // draw the groups
-          for (i = 0; i < groupIds.length; i++) {
-            group = this.groups[groupIds[i]];
-            if (group.options.style != 'bar') {
-              // bar needs to be drawn enmasse
-              group.draw(processedGroupData[groupIds[i]], group, this.framework);
-            }
-          }
-          BarFunctions.draw(groupIds, processedGroupData, this.framework);
-        }
-      }
-    }
-
-    // cleanup unused svg elements
-    DOMutil.cleanupElements(this.svgElements);
-    return false;
-  };
-
-  /**
-   * first select and preprocess the data from the datasets.
-   * the groups have their preselection of data, we now loop over this data to see
-   * what data we need to draw. Sorted data is much faster.
-   * more optimization is possible by doing the sampling before and using the binary search
-   * to find the end date to determine the increment.
-   *
-   * @param {array}  groupIds
-   * @param {object} groupsData
-   * @param {date}   minDate
-   * @param {date}   maxDate
-   * @private
-   */
-  LineGraph.prototype._getRelevantData = function (groupIds, groupsData, minDate, maxDate) {
-    var group, i, j, item;
-    if (groupIds.length > 0) {
-      for (i = 0; i < groupIds.length; i++) {
-        group = this.groups[groupIds[i]];
-        groupsData[groupIds[i]] = [];
-        var dataContainer = groupsData[groupIds[i]];
-        // optimization for sorted data
-        if (group.options.sort == true) {
-          var guess = Math.max(0, util.binarySearchValue(group.itemsData, minDate, 'x', 'before'));
-          for (j = guess; j < group.itemsData.length; j++) {
-            item = group.itemsData[j];
-            if (item !== undefined) {
-              if (item.x > maxDate) {
-                dataContainer.push(item);
-                break;
-              } else {
-                dataContainer.push(item);
-              }
-            }
-          }
-        } else {
-          for (j = 0; j < group.itemsData.length; j++) {
-            item = group.itemsData[j];
-            if (item !== undefined) {
-              if (item.x > minDate && item.x < maxDate) {
-                dataContainer.push(item);
-              }
-            }
-          }
-        }
-      }
-    }
-  };
-
-  /**
-   *
-   * @param groupIds
-   * @param groupsData
-   * @private
-   */
-  LineGraph.prototype._applySampling = function (groupIds, groupsData) {
-    var group;
-    if (groupIds.length > 0) {
-      for (var i = 0; i < groupIds.length; i++) {
-        group = this.groups[groupIds[i]];
-        if (group.options.sampling == true) {
-          var dataContainer = groupsData[groupIds[i]];
-          if (dataContainer.length > 0) {
-            var increment = 1;
-            var amountOfPoints = dataContainer.length;
-
-            // the global screen is used because changing the width of the yAxis may affect the increment, resulting in an endless loop
-            // of width changing of the yAxis.
-            var xDistance = this.body.util.toGlobalScreen(dataContainer[dataContainer.length - 1].x) - this.body.util.toGlobalScreen(dataContainer[0].x);
-            var pointsPerPixel = amountOfPoints / xDistance;
-            increment = Math.min(Math.ceil(0.2 * amountOfPoints), Math.max(1, Math.round(pointsPerPixel)));
-
-            var sampledData = [];
-            for (var j = 0; j < amountOfPoints; j += increment) {
-              sampledData.push(dataContainer[j]);
-            }
-            groupsData[groupIds[i]] = sampledData;
-          }
-        }
-      }
-    }
-  };
-
-  /**
-   *
-   *
-   * @param {array}  groupIds
-   * @param {object} groupsData
-   * @param {object} groupRanges  | this is being filled here
-   * @private
-   */
-  LineGraph.prototype._getYRanges = function (groupIds, groupsData, groupRanges) {
-    var groupData, group, i;
-    var combinedDataLeft = [];
-    var combinedDataRight = [];
-    var options;
-    if (groupIds.length > 0) {
-      for (i = 0; i < groupIds.length; i++) {
-        groupData = groupsData[groupIds[i]];
-        options = this.groups[groupIds[i]].options;
-        if (groupData.length > 0) {
-          group = this.groups[groupIds[i]];
-          // if bar graphs are stacked, their range need to be handled differently and accumulated over all groups.
-          if (options.stack === true && options.style === 'bar') {
-            if (options.yAxisOrientation === 'left') {
-              combinedDataLeft = combinedDataLeft.concat(group.getData(groupData));
-            } else {
-              combinedDataRight = combinedDataRight.concat(group.getData(groupData));
-            }
-          } else {
-            groupRanges[groupIds[i]] = group.getYRange(groupData, groupIds[i]);
-          }
-        }
-      }
-
-      // if bar graphs are stacked, their range need to be handled differently and accumulated over all groups.
-      BarFunctions.getStackedYRange(combinedDataLeft, groupRanges, groupIds, '__barStackLeft', 'left');
-      BarFunctions.getStackedYRange(combinedDataRight, groupRanges, groupIds, '__barStackRight', 'right');
-      // if line graphs are stacked, their range need to be handled differently and accumulated over all groups.
-      //LineFunctions.getStackedYRange(combinedDataLeft , groupRanges, groupIds, '__lineStackLeft' , 'left' );
-      //LineFunctions.getStackedYRange(combinedDataRight, groupRanges, groupIds, '__lineStackRight', 'right');
-    }
-  };
-
-  /**
-   * this sets the Y ranges for the Y axis. It also determines which of the axis should be shown or hidden.
-   * @param {Array} groupIds
-   * @param {Object} groupRanges
-   * @private
-   */
-  LineGraph.prototype._updateYAxis = function (groupIds, groupRanges) {
-    var resized = false;
-    var yAxisLeftUsed = false;
-    var yAxisRightUsed = false;
-    var minLeft = 1000000000,
-        minRight = 1000000000,
-        maxLeft = -1000000000,
-        maxRight = -1000000000,
-        minVal,
-        maxVal;
-    // if groups are present
-    if (groupIds.length > 0) {
-      // this is here to make sure that if there are no items in the axis but there are groups, that there is no infinite draw/redraw loop.
-      for (var i = 0; i < groupIds.length; i++) {
-        var group = this.groups[groupIds[i]];
-        if (group && group.options.yAxisOrientation != 'right') {
-          yAxisLeftUsed = true;
-          minLeft = 1000000000;
-          maxLeft = -1000000000;
-        } else if (group && group.options.yAxisOrientation) {
-          yAxisRightUsed = true;
-          minRight = 1000000000;
-          maxRight = -1000000000;
-        }
-      }
-
-      // if there are items:
-      for (var i = 0; i < groupIds.length; i++) {
-        if (groupRanges.hasOwnProperty(groupIds[i])) {
-          if (groupRanges[groupIds[i]].ignore !== true) {
-            minVal = groupRanges[groupIds[i]].min;
-            maxVal = groupRanges[groupIds[i]].max;
-
-            if (groupRanges[groupIds[i]].yAxisOrientation != 'right') {
-              yAxisLeftUsed = true;
-              minLeft = minLeft > minVal ? minVal : minLeft;
-              maxLeft = maxLeft < maxVal ? maxVal : maxLeft;
-            } else {
-              yAxisRightUsed = true;
-              minRight = minRight > minVal ? minVal : minRight;
-              maxRight = maxRight < maxVal ? maxVal : maxRight;
-            }
-          }
-        }
-      }
-
-      if (yAxisLeftUsed == true) {
-        this.yAxisLeft.setRange(minLeft, maxLeft);
-      }
-      if (yAxisRightUsed == true) {
-        this.yAxisRight.setRange(minRight, maxRight);
-      }
-    }
-    resized = this._toggleAxisVisiblity(yAxisLeftUsed, this.yAxisLeft) || resized;
-    resized = this._toggleAxisVisiblity(yAxisRightUsed, this.yAxisRight) || resized;
-
-    if (yAxisRightUsed == true && yAxisLeftUsed == true) {
-      this.yAxisLeft.drawIcons = true;
-      this.yAxisRight.drawIcons = true;
-    } else {
-      this.yAxisLeft.drawIcons = false;
-      this.yAxisRight.drawIcons = false;
-    }
-    this.yAxisRight.master = !yAxisLeftUsed;
-    if (this.yAxisRight.master == false) {
-      if (yAxisRightUsed == true) {
-        this.yAxisLeft.lineOffset = this.yAxisRight.width;
-      } else {
-        this.yAxisLeft.lineOffset = 0;
-      }
-
-      resized = this.yAxisLeft.redraw() || resized;
-      this.yAxisRight.stepPixels = this.yAxisLeft.stepPixels;
-      this.yAxisRight.zeroCrossing = this.yAxisLeft.zeroCrossing;
-      this.yAxisRight.amountOfSteps = this.yAxisLeft.amountOfSteps;
-      resized = this.yAxisRight.redraw() || resized;
-    } else {
-      resized = this.yAxisRight.redraw() || resized;
-    }
-
-    // clean the accumulated lists
-    var tempGroups = ['__barStackLeft', '__barStackRight', '__lineStackLeft', '__lineStackRight'];
-    for (var i = 0; i < tempGroups.length; i++) {
-      if (groupIds.indexOf(tempGroups[i]) != -1) {
-        groupIds.splice(groupIds.indexOf(tempGroups[i]), 1);
-      }
-    }
-
-    return resized;
-  };
-
-  /**
-   * This shows or hides the Y axis if needed. If there is a change, the changed event is emitted by the updateYAxis function
-   *
-   * @param {boolean} axisUsed
-   * @returns {boolean}
-   * @private
-   * @param axis
-   */
-  LineGraph.prototype._toggleAxisVisiblity = function (axisUsed, axis) {
-    var changed = false;
-    if (axisUsed == false) {
-      if (axis.dom.frame.parentNode && axis.hidden == false) {
-        axis.hide();
-        changed = true;
-      }
-    } else {
-      if (!axis.dom.frame.parentNode && axis.hidden == true) {
-        axis.show();
-        changed = true;
-      }
-    }
-    return changed;
-  };
-
-  /**
-   * This uses the DataAxis object to generate the correct X coordinate on the SVG window. It uses the
-   * util function toScreen to get the x coordinate from the timestamp. It also pre-filters the data and get the minMax ranges for
-   * the yAxis.
-   *
-   * @param datapoints
-   * @returns {Array}
-   * @private
-   */
-  LineGraph.prototype._convertXcoordinates = function (datapoints) {
-    var extractedData = [];
-    var xValue, yValue;
-    var toScreen = this.body.util.toScreen;
-
-    for (var i = 0; i < datapoints.length; i++) {
-      xValue = toScreen(datapoints[i].x) + this.props.width;
-      yValue = datapoints[i].y;
-      extractedData.push({ x: xValue, y: yValue });
-    }
-
-    return extractedData;
-  };
-
-  /**
-   * This uses the DataAxis object to generate the correct X coordinate on the SVG window. It uses the
-   * util function toScreen to get the x coordinate from the timestamp. It also pre-filters the data and get the minMax ranges for
-   * the yAxis.
-   *
-   * @param datapoints
-   * @param group
-   * @returns {Array}
-   * @private
-   */
-  LineGraph.prototype._convertYcoordinates = function (datapoints, group) {
-    var extractedData = [];
-    var xValue, yValue;
-    var toScreen = this.body.util.toScreen;
-    var axis = this.yAxisLeft;
-    var svgHeight = Number(this.svg.style.height.replace('px', ''));
-    if (group.options.yAxisOrientation == 'right') {
-      axis = this.yAxisRight;
-    }
-
-    for (var i = 0; i < datapoints.length; i++) {
-      var labelValue = datapoints[i].label ? datapoints[i].label : null;
-      xValue = toScreen(datapoints[i].x) + this.props.width;
-      yValue = Math.round(axis.convertValue(datapoints[i].y));
-      extractedData.push({ x: xValue, y: yValue, label: labelValue });
-    }
-
-    group.setZeroPosition(Math.min(svgHeight, axis.convertValue(0)));
-
-    return extractedData;
-  };
-
-  module.exports = LineGraph;
-
-/***/ },
-/* 3 */
-/***/ function(module, exports, __webpack_require__) {
-
-  'use strict';
-
-  var util = __webpack_require__(10);
-  var DOMutil = __webpack_require__(15);
-  var Component = __webpack_require__(29);
-  var DataStep = __webpack_require__(52);
-
-  /**
-   * A horizontal time axis
-   * @param {Object} [options]        See DataAxis.setOptions for the available
-   *                                  options.
-   * @constructor DataAxis
-   * @extends Component
-   * @param body
-   */
-  function DataAxis(body, options, svg, linegraphOptions) {
-    this.id = util.randomUUID();
-    this.body = body;
-
-    this.defaultOptions = {
-      orientation: 'left', // supported: 'left', 'right'
-      showMinorLabels: true,
-      showMajorLabels: true,
-      icons: true,
-      majorLinesOffset: 7,
-      minorLinesOffset: 4,
-      labelOffsetX: 10,
-      labelOffsetY: 2,
-      iconWidth: 20,
-      width: '40px',
-      visible: true,
-      alignZeros: true,
-      left: {
-        range: { min: undefined, max: undefined },
-        format: function format(value) {
-          return value;
-        },
-        title: { text: undefined, style: undefined }
-      },
-      right: {
-        range: { min: undefined, max: undefined },
-        format: function format(value) {
-          return value;
-        },
-        title: { text: undefined, style: undefined }
-      }
-    };
-
-    this.linegraphOptions = linegraphOptions;
-    this.linegraphSVG = svg;
-    this.props = {};
-    this.DOMelements = { // dynamic elements
-      lines: {},
-      labels: {},
-      title: {}
-    };
-
-    this.dom = {};
-
-    this.range = { start: 0, end: 0 };
-
-    this.options = util.extend({}, this.defaultOptions);
-    this.conversionFactor = 1;
-
-    this.setOptions(options);
-    this.width = Number(('' + this.options.width).replace('px', ''));
-    this.minWidth = this.width;
-    this.height = this.linegraphSVG.offsetHeight;
-    this.hidden = false;
-
-    this.stepPixels = 25;
-    this.zeroCrossing = -1;
-    this.amountOfSteps = -1;
-
-    this.lineOffset = 0;
-    this.master = true;
-    this.svgElements = {};
-    this.iconsRemoved = false;
-
-    this.groups = {};
-    this.amountOfGroups = 0;
-
-    // create the HTML DOM
-    this._create();
-
-    var me = this;
-    this.body.emitter.on('verticalDrag', function () {
-      me.dom.lineContainer.style.top = me.body.domProps.scrollTop + 'px';
-    });
-  }
-
-  DataAxis.prototype = new Component();
-
-  DataAxis.prototype.addGroup = function (label, graphOptions) {
-    if (!this.groups.hasOwnProperty(label)) {
-      this.groups[label] = graphOptions;
-    }
-    this.amountOfGroups += 1;
-  };
-
-  DataAxis.prototype.updateGroup = function (label, graphOptions) {
-    this.groups[label] = graphOptions;
-  };
-
-  DataAxis.prototype.removeGroup = function (label) {
-    if (this.groups.hasOwnProperty(label)) {
-      delete this.groups[label];
-      this.amountOfGroups -= 1;
-    }
-  };
-
-  DataAxis.prototype.setOptions = function (options) {
-    if (options) {
-      var redraw = false;
-      if (this.options.orientation != options.orientation && options.orientation !== undefined) {
-        redraw = true;
-      }
-      var fields = ['orientation', 'showMinorLabels', 'showMajorLabels', 'icons', 'majorLinesOffset', 'minorLinesOffset', 'labelOffsetX', 'labelOffsetY', 'iconWidth', 'width', 'visible', 'left', 'right', 'alignZeros'];
-      util.selectiveExtend(fields, this.options, options);
-
-      this.minWidth = Number(('' + this.options.width).replace('px', ''));
-
-      if (redraw === true && this.dom.frame) {
-        this.hide();
-        this.show();
-      }
-    }
-  };
-
-  /**
-   * Create the HTML DOM for the DataAxis
-   */
-  DataAxis.prototype._create = function () {
-    this.dom.frame = document.createElement('div');
-    this.dom.frame.style.width = this.options.width;
-    this.dom.frame.style.height = this.height;
-
-    this.dom.lineContainer = document.createElement('div');
-    this.dom.lineContainer.style.width = '100%';
-    this.dom.lineContainer.style.height = this.height;
-    this.dom.lineContainer.style.position = 'relative';
-
-    // create svg element for graph drawing.
-    this.svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-    this.svg.style.position = 'absolute';
-    this.svg.style.top = '0px';
-    this.svg.style.height = '100%';
-    this.svg.style.width = '100%';
-    this.svg.style.display = 'block';
-    this.dom.frame.appendChild(this.svg);
-  };
-
-  DataAxis.prototype._redrawGroupIcons = function () {
-    DOMutil.prepareElements(this.svgElements);
-
-    var x;
-    var iconWidth = this.options.iconWidth;
-    var iconHeight = 15;
-    var iconOffset = 4;
-    var y = iconOffset + 0.5 * iconHeight;
-
-    if (this.options.orientation === 'left') {
-      x = iconOffset;
-    } else {
-      x = this.width - iconWidth - iconOffset;
-    }
-
-    var groupArray = Object.keys(this.groups);
-    groupArray.sort(function (a, b) {
-      return a < b ? -1 : 1;
-    });
-
-    for (var i = 0; i < groupArray.length; i++) {
-      var groupId = groupArray[i];
-      if (this.groups[groupId].visible === true && (this.linegraphOptions.visibility[groupId] === undefined || this.linegraphOptions.visibility[groupId] === true)) {
-        this.groups[groupId].drawIcon(x, y, this.svgElements, this.svg, iconWidth, iconHeight);
-        y += iconHeight + iconOffset;
-      }
-    }
-
-    DOMutil.cleanupElements(this.svgElements);
-    this.iconsRemoved = false;
-  };
-
-  DataAxis.prototype._cleanupIcons = function () {
-    if (this.iconsRemoved === false) {
-      DOMutil.prepareElements(this.svgElements);
-      DOMutil.cleanupElements(this.svgElements);
-      this.iconsRemoved = true;
-    }
-  };
-
-  /**
-   * Create the HTML DOM for the DataAxis
-   */
-  DataAxis.prototype.show = function () {
-    this.hidden = false;
-    if (!this.dom.frame.parentNode) {
-      if (this.options.orientation === 'left') {
-        this.body.dom.left.appendChild(this.dom.frame);
-      } else {
-        this.body.dom.right.appendChild(this.dom.frame);
-      }
-    }
-
-    if (!this.dom.lineContainer.parentNode) {
-      this.body.dom.backgroundHorizontal.appendChild(this.dom.lineContainer);
-    }
-  };
-
-  /**
-   * Create the HTML DOM for the DataAxis
-   */
-  DataAxis.prototype.hide = function () {
-    this.hidden = true;
-    if (this.dom.frame.parentNode) {
-      this.dom.frame.parentNode.removeChild(this.dom.frame);
-    }
-
-    if (this.dom.lineContainer.parentNode) {
-      this.dom.lineContainer.parentNode.removeChild(this.dom.lineContainer);
-    }
-  };
-
-  /**
-   * Set a range (start and end)
-   * @param end
-   * @param start
-   * @param end
-   */
-  DataAxis.prototype.setRange = function (start, end) {
-    if (this.master === false && this.options.alignZeros === true && this.zeroCrossing != -1) {
-      if (start > 0) {
-        start = 0;
-      }
-    }
-    this.range.start = start;
-    this.range.end = end;
-  };
-
-  /**
-   * Repaint the component
-   * @return {boolean} Returns true if the component is resized
-   */
-  DataAxis.prototype.redraw = function () {
-    var resized = false;
-    var activeGroups = 0;
-
-    // Make sure the line container adheres to the vertical scrolling.
-    this.dom.lineContainer.style.top = this.body.domProps.scrollTop + 'px';
-
-    for (var groupId in this.groups) {
-      if (this.groups.hasOwnProperty(groupId)) {
-        if (this.groups[groupId].visible === true && (this.linegraphOptions.visibility[groupId] === undefined || this.linegraphOptions.visibility[groupId] === true)) {
-          activeGroups++;
-        }
-      }
-    }
-    if (this.amountOfGroups === 0 || activeGroups === 0) {
-      this.hide();
-    } else {
-      this.show();
-      this.height = Number(this.linegraphSVG.style.height.replace('px', ''));
-
-      // svg offsetheight did not work in firefox and explorer...
-      this.dom.lineContainer.style.height = this.height + 'px';
-      this.width = this.options.visible === true ? Number(('' + this.options.width).replace('px', '')) : 0;
-
-      var props = this.props;
-      var frame = this.dom.frame;
-
-      // update classname
-      frame.className = 'vis-data-axis';
-
-      // calculate character width and height
-      this._calculateCharSize();
-
-      var orientation = this.options.orientation;
-      var showMinorLabels = this.options.showMinorLabels;
-      var showMajorLabels = this.options.showMajorLabels;
-
-      // determine the width and height of the elements for the axis
-      props.minorLabelHeight = showMinorLabels ? props.minorCharHeight : 0;
-      props.majorLabelHeight = showMajorLabels ? props.majorCharHeight : 0;
-
-      props.minorLineWidth = this.body.dom.backgroundHorizontal.offsetWidth - this.lineOffset - this.width + 2 * this.options.minorLinesOffset;
-      props.minorLineHeight = 1;
-      props.majorLineWidth = this.body.dom.backgroundHorizontal.offsetWidth - this.lineOffset - this.width + 2 * this.options.majorLinesOffset;
-      props.majorLineHeight = 1;
-
-      //  take frame offline while updating (is almost twice as fast)
-      if (orientation === 'left') {
-        frame.style.top = '0';
-        frame.style.left = '0';
-        frame.style.bottom = '';
-        frame.style.width = this.width + 'px';
-        frame.style.height = this.height + 'px';
-        this.props.width = this.body.domProps.left.width;
-        this.props.height = this.body.domProps.left.height;
-      } else {
-        // right
-        frame.style.top = '';
-        frame.style.bottom = '0';
-        frame.style.left = '0';
-        frame.style.width = this.width + 'px';
-        frame.style.height = this.height + 'px';
-        this.props.width = this.body.domProps.right.width;
-        this.props.height = this.body.domProps.right.height;
-      }
-
-      resized = this._redrawLabels();
-      resized = this._isResized() || resized;
-
-      if (this.options.icons === true) {
-        this._redrawGroupIcons();
-      } else {
-        this._cleanupIcons();
-      }
-
-      this._redrawTitle(orientation);
-    }
-    return resized;
-  };
-
-  /**
-   * Repaint major and minor text labels and vertical grid lines
-   * @private
-   */
-  DataAxis.prototype._redrawLabels = function () {
-    var resized = false;
-    DOMutil.prepareElements(this.DOMelements.lines);
-    DOMutil.prepareElements(this.DOMelements.labels);
-    var orientation = this.options['orientation'];
-
-    // get the range for the slaved axis
-    var step;
-    if (this.master === false) {
-      var stepSize, rangeStart, rangeEnd, minimumStep;
-      if (this.zeroCrossing !== -1 && this.options.alignZeros === true) {
-        if (this.range.end > 0) {
-          stepSize = this.range.end / this.zeroCrossing; // size of one step
-          rangeStart = this.range.end - this.amountOfSteps * stepSize;
-          rangeEnd = this.range.end;
-        } else {
-          // all of the range (including start) has to be done before the zero crossing.
-          stepSize = -1 * this.range.start / (this.amountOfSteps - this.zeroCrossing); // absolute size of a step
-          rangeStart = this.range.start;
-          rangeEnd = this.range.start + stepSize * this.amountOfSteps;
-        }
-      } else {
-        rangeStart = this.range.start;
-        rangeEnd = this.range.end;
-      }
-      minimumStep = this.stepPixels;
-    } else {
-      // calculate range and step (step such that we have space for 7 characters per label)
-      minimumStep = this.props.majorCharHeight;
-      rangeStart = this.range.start;
-      rangeEnd = this.range.end;
-    }
-
-    this.step = step = new DataStep(rangeStart, rangeEnd, minimumStep, this.dom.frame.offsetHeight, this.options[this.options.orientation].range, this.options[this.options.orientation].format, this.master === false && this.options.alignZeros // does the step have to align zeros? only if not master and the options is on
-    );
-
-    // the slave axis needs to use the same horizontal lines as the master axis.
-    if (this.master === true) {
-      this.stepPixels = this.dom.frame.offsetHeight / step.marginRange * step.step;
-      this.amountOfSteps = Math.ceil(this.dom.frame.offsetHeight / this.stepPixels);
-    } else {
-      // align with zero
-      if (this.options.alignZeros === true && this.zeroCrossing !== -1) {
-        // distance is the amount of steps away from the zero crossing we are.
-        var distance = (step.current - this.zeroCrossing * step.step) / step.step;
-        this.step.shift(distance);
-      }
-    }
-
-    // value at the bottom of the SVG
-    this.valueAtBottom = step.marginEnd;
-
-    this.maxLabelSize = 0;
-    var y = 0; // init value
-    var stepIndex = 0; // init value
-    var isMajor = false; // init value
-    while (stepIndex < this.amountOfSteps) {
-      y = Math.round(stepIndex * this.stepPixels);
-      isMajor = step.isMajor();
-
-      if (stepIndex > 0 && stepIndex !== this.amountOfSteps) {
-        if (this.options['showMinorLabels'] && isMajor === false || this.master === false && this.options['showMinorLabels'] === true) {
-          this._redrawLabel(y - 2, step.getCurrent(), orientation, 'vis-y-axis vis-minor', this.props.minorCharHeight);
-        }
-
-        if (isMajor && this.options['showMajorLabels'] && this.master === true || this.options['showMinorLabels'] === false && this.master === false && isMajor === true) {
-          if (y >= 0) {
-            this._redrawLabel(y - 2, step.getCurrent(), orientation, 'vis-y-axis vis-major', this.props.majorCharHeight);
-          }
-          this._redrawLine(y, orientation, 'vis-grid vis-horizontal vis-major', this.options.majorLinesOffset, this.props.majorLineWidth);
-        } else {
-          this._redrawLine(y, orientation, 'vis-grid vis-horizontal vis-minor', this.options.minorLinesOffset, this.props.minorLineWidth);
-        }
-      }
-
-      // get zero crossing
-      if (this.master === true && step.current === 0) {
-        this.zeroCrossing = stepIndex;
-      }
-
-      step.next();
-      stepIndex += 1;
-    }
-
-    // get zero crossing if it's the last step
-    if (this.master === true && step.current === 0) {
-      this.zeroCrossing = stepIndex;
-    }
-
-    this.conversionFactor = this.stepPixels / step.step;
-
-    // Note that title is rotated, so we're using the height, not width!
-    var titleWidth = 0;
-    if (this.options[orientation].title !== undefined && this.options[orientation].title.text !== undefined) {
-      titleWidth = this.props.titleCharHeight;
-    }
-    var offset = this.options.icons === true ? Math.max(this.options.iconWidth, titleWidth) + this.options.labelOffsetX + 15 : titleWidth + this.options.labelOffsetX + 15;
-
-    // this will resize the yAxis to accommodate the labels.
-    if (this.maxLabelSize > this.width - offset && this.options.visible === true) {
-      this.width = this.maxLabelSize + offset;
-      this.options.width = this.width + 'px';
-      DOMutil.cleanupElements(this.DOMelements.lines);
-      DOMutil.cleanupElements(this.DOMelements.labels);
-      this.redraw();
-      resized = true;
-    }
-    // this will resize the yAxis if it is too big for the labels.
-    else if (this.maxLabelSize < this.width - offset && this.options.visible === true && this.width > this.minWidth) {
-      this.width = Math.max(this.minWidth, this.maxLabelSize + offset);
-      this.options.width = this.width + 'px';
-      DOMutil.cleanupElements(this.DOMelements.lines);
-      DOMutil.cleanupElements(this.DOMelements.labels);
-      this.redraw();
-      resized = true;
-    } else {
-      DOMutil.cleanupElements(this.DOMelements.lines);
-      DOMutil.cleanupElements(this.DOMelements.labels);
-      resized = false;
-    }
-
-    return resized;
-  };
-
-  DataAxis.prototype.convertValue = function (value) {
-    var invertedValue = this.valueAtBottom - value;
-    var convertedValue = invertedValue * this.conversionFactor;
-    return convertedValue;
-  };
-
-  DataAxis.prototype.screenToValue = function (x) {
-    return this.valueAtBottom - x / this.conversionFactor;
-  };
-
-  /**
-   * Create a label for the axis at position x
-   * @private
-   * @param y
-   * @param text
-   * @param orientation
-   * @param className
-   * @param characterHeight
-   */
-  DataAxis.prototype._redrawLabel = function (y, text, orientation, className, characterHeight) {
-    // reuse redundant label
-    var label = DOMutil.getDOMElement('div', this.DOMelements.labels, this.dom.frame); //this.dom.redundant.labels.shift();
-    label.className = className;
-    label.innerHTML = text;
-    if (orientation === 'left') {
-      label.style.left = '-' + this.options.labelOffsetX + 'px';
-      label.style.textAlign = 'right';
-    } else {
-      label.style.right = '-' + this.options.labelOffsetX + 'px';
-      label.style.textAlign = 'left';
-    }
-
-    label.style.top = y - 0.5 * characterHeight + this.options.labelOffsetY + 'px';
-
-    text += '';
-
-    var largestWidth = Math.max(this.props.majorCharWidth, this.props.minorCharWidth);
-    if (this.maxLabelSize < text.length * largestWidth) {
-      this.maxLabelSize = text.length * largestWidth;
-    }
-  };
-
-  /**
-   * Create a minor line for the axis at position y
-   * @param y
-   * @param orientation
-   * @param className
-   * @param offset
-   * @param width
-   */
-  DataAxis.prototype._redrawLine = function (y, orientation, className, offset, width) {
-    if (this.master === true) {
-      var line = DOMutil.getDOMElement('div', this.DOMelements.lines, this.dom.lineContainer); //this.dom.redundant.lines.shift();
-      line.className = className;
-      line.innerHTML = '';
-
-      if (orientation === 'left') {
-        line.style.left = this.width - offset + 'px';
-      } else {
-        line.style.right = this.width - offset + 'px';
-      }
-
-      line.style.width = width + 'px';
-      line.style.top = y + 'px';
-    }
-  };
-
-  /**
-   * Create a title for the axis
-   * @private
-   * @param orientation
-   */
-  DataAxis.prototype._redrawTitle = function (orientation) {
-    DOMutil.prepareElements(this.DOMelements.title);
-
-    // Check if the title is defined for this axes
-    if (this.options[orientation].title !== undefined && this.options[orientation].title.text !== undefined) {
-      var title = DOMutil.getDOMElement('div', this.DOMelements.title, this.dom.frame);
-      title.className = 'vis-y-axis vis-title vis-' + orientation;
-      title.innerHTML = this.options[orientation].title.text;
-
-      // Add style - if provided
-      if (this.options[orientation].title.style !== undefined) {
-        util.addCssText(title, this.options[orientation].title.style);
-      }
-
-      if (orientation === 'left') {
-        title.style.left = this.props.titleCharHeight + 'px';
-      } else {
-        title.style.right = this.props.titleCharHeight + 'px';
-      }
-
-      title.style.width = this.height + 'px';
-    }
-
-    // we need to clean up in case we did not use all elements.
-    DOMutil.cleanupElements(this.DOMelements.title);
-  };
-
-  /**
-   * Determine the size of text on the axis (both major and minor axis).
-   * The size is calculated only once and then cached in this.props.
-   * @private
-   */
-  DataAxis.prototype._calculateCharSize = function () {
-    // determine the char width and height on the minor axis
-    if (!('minorCharHeight' in this.props)) {
-      var textMinor = document.createTextNode('0');
-      var measureCharMinor = document.createElement('div');
-      measureCharMinor.className = 'vis-y-axis vis-minor vis-measure';
-      measureCharMinor.appendChild(textMinor);
-      this.dom.frame.appendChild(measureCharMinor);
-
-      this.props.minorCharHeight = measureCharMinor.clientHeight;
-      this.props.minorCharWidth = measureCharMinor.clientWidth;
-
-      this.dom.frame.removeChild(measureCharMinor);
-    }
-
-    if (!('majorCharHeight' in this.props)) {
-      var textMajor = document.createTextNode('0');
-      var measureCharMajor = document.createElement('div');
-      measureCharMajor.className = 'vis-y-axis vis-major vis-measure';
-      measureCharMajor.appendChild(textMajor);
-      this.dom.frame.appendChild(measureCharMajor);
-
-      this.props.majorCharHeight = measureCharMajor.clientHeight;
-      this.props.majorCharWidth = measureCharMajor.clientWidth;
-
-      this.dom.frame.removeChild(measureCharMajor);
-    }
-
-    if (!('titleCharHeight' in this.props)) {
-      var textTitle = document.createTextNode('0');
-      var measureCharTitle = document.createElement('div');
-      measureCharTitle.className = 'vis-y-axis vis-title vis-measure';
-      measureCharTitle.appendChild(textTitle);
-      this.dom.frame.appendChild(measureCharTitle);
-
-      this.props.titleCharHeight = measureCharTitle.clientHeight;
-      this.props.titleCharWidth = measureCharTitle.clientWidth;
-
-      this.dom.frame.removeChild(measureCharTitle);
-    }
-  };
-
-  module.exports = DataAxis;
-
-/***/ },
-/* 4 */
-/***/ function(module, exports, __webpack_require__) {
-
-  'use strict';
-
-  var Item = __webpack_require__(5);
+  var Item = __webpack_require__(4);
 
   /**
    * @constructor PointItem
@@ -1961,13 +381,418 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = PointItem;
 
 /***/ },
-/* 5 */
+/* 3 */
+/***/ function(module, exports, __webpack_require__) {
+
+  "use strict";
+
+  Object.defineProperty(exports, "__esModule", {
+    value: true
+  });
+
+  var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
+
+  function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+  var util = __webpack_require__(9);
+
+  var View = (function () {
+    function View(body, canvas) {
+      var _this = this;
+
+      _classCallCheck(this, View);
+
+      this.body = body;
+      this.canvas = canvas;
+
+      this.animationSpeed = 1 / this.renderRefreshRate;
+      this.animationEasingFunction = "easeInOutQuint";
+      this.easingTime = 0;
+      this.sourceScale = 0;
+      this.targetScale = 0;
+      this.sourceTranslation = 0;
+      this.targetTranslation = 0;
+      this.lockedOnNodeId = undefined;
+      this.lockedOnNodeOffset = undefined;
+      this.touchTime = 0;
+
+      this.viewFunction = undefined;
+
+      this.body.emitter.on("fit", this.fit.bind(this));
+      this.body.emitter.on("animationFinished", function () {
+        _this.body.emitter.emit("_stopRendering");
+      });
+      this.body.emitter.on("unlockNode", this.releaseNode.bind(this));
+    }
+
+    _createClass(View, [{
+      key: "setOptions",
+      value: function setOptions() {
+        var options = arguments[0] === undefined ? {} : arguments[0];
+
+        this.options = options;
+      }
+    }, {
+      key: "_getRange",
+
+      /**
+       * Find the center position of the network
+       * @private
+       */
+      value: function _getRange() {
+        var specificNodes = arguments[0] === undefined ? [] : arguments[0];
+
+        var minY = 1000000000,
+            maxY = -1000000000,
+            minX = 1000000000,
+            maxX = -1000000000,
+            node;
+        if (specificNodes.length > 0) {
+          for (var i = 0; i < specificNodes.length; i++) {
+            node = this.body.nodes[specificNodes[i]];
+            if (minX > node.shape.boundingBox.left) {
+              minX = node.shape.boundingBox.left;
+            }
+            if (maxX < node.shape.boundingBox.right) {
+              maxX = node.shape.boundingBox.right;
+            }
+            if (minY > node.shape.boundingBox.top) {
+              minY = node.shape.boundingBox.top;
+            } // top is negative, bottom is positive
+            if (maxY < node.shape.boundingBox.bottom) {
+              maxY = node.shape.boundingBox.bottom;
+            } // top is negative, bottom is positive
+          }
+        } else {
+          for (var nodeId in this.body.nodes) {
+
+            if (this.body.nodes.hasOwnProperty(nodeId)) {
+              node = this.body.nodes[nodeId];
+              if (minX > node.shape.boundingBox.left) {
+                minX = node.shape.boundingBox.left;
+              }
+              if (maxX < node.shape.boundingBox.right) {
+                maxX = node.shape.boundingBox.right;
+              }
+              if (minY > node.shape.boundingBox.top) {
+                minY = node.shape.boundingBox.top;
+              } // top is negative, bottom is positive
+              if (maxY < node.shape.boundingBox.bottom) {
+                maxY = node.shape.boundingBox.bottom;
+              } // top is negative, bottom is positive
+            }
+          }
+        }
+
+        if (minX === 1000000000 && maxX === -1000000000 && minY === 1000000000 && maxY === -1000000000) {
+          minY = 0, maxY = 0, minX = 0, maxX = 0;
+        }
+        return { minX: minX, maxX: maxX, minY: minY, maxY: maxY };
+      }
+    }, {
+      key: "_findCenter",
+
+      /**
+       * @param {object} range = {minX: minX, maxX: maxX, minY: minY, maxY: maxY};
+       * @returns {{x: number, y: number}}
+       * @private
+       */
+      value: function _findCenter(range) {
+        return { x: 0.5 * (range.maxX + range.minX),
+          y: 0.5 * (range.maxY + range.minY) };
+      }
+    }, {
+      key: "fit",
+
+      /**
+       * This function zooms out to fit all data on screen based on amount of nodes
+       * @param {Object} Options
+       * @param {Boolean} [initialZoom]  | zoom based on fitted formula or range, true = fitted, default = false;
+       */
+      value: function fit() {
+        var options = arguments[0] === undefined ? { nodes: [] } : arguments[0];
+        var initialZoom = arguments[1] === undefined ? false : arguments[1];
+
+        var range;
+        var zoomLevel;
+
+        if (initialZoom === true) {
+          // check if more than half of the nodes have a predefined position. If so, we use the range, not the approximation.
+          var positionDefined = 0;
+          for (var nodeId in this.body.nodes) {
+            if (this.body.nodes.hasOwnProperty(nodeId)) {
+              var node = this.body.nodes[nodeId];
+              if (node.predefinedPosition === true) {
+                positionDefined += 1;
+              }
+            }
+          }
+          if (positionDefined > 0.5 * this.body.nodeIndices.length) {
+            this.fit(options, false);
+            return;
+          }
+
+          range = this._getRange(options.nodes);
+
+          var numberOfNodes = this.body.nodeIndices.length;
+          zoomLevel = 12.662 / (numberOfNodes + 7.4147) + 0.0964822; // this is obtained from fitting a dataset from 5 points with scale levels that looked good.
+
+          // correct for larger canvasses.
+          var factor = Math.min(this.canvas.frame.canvas.clientWidth / 600, this.canvas.frame.canvas.clientHeight / 600);
+          zoomLevel *= factor;
+        } else {
+          this.body.emitter.emit("_resizeNodes");
+          range = this._getRange(options.nodes);
+
+          var xDistance = Math.abs(range.maxX - range.minX) * 1.1;
+          var yDistance = Math.abs(range.maxY - range.minY) * 1.1;
+
+          var xZoomLevel = this.canvas.frame.canvas.clientWidth / xDistance;
+          var yZoomLevel = this.canvas.frame.canvas.clientHeight / yDistance;
+
+          zoomLevel = xZoomLevel <= yZoomLevel ? xZoomLevel : yZoomLevel;
+        }
+
+        if (zoomLevel > 1) {
+          zoomLevel = 1;
+        } else if (zoomLevel === 0) {
+          zoomLevel = 1;
+        }
+
+        var center = this._findCenter(range);
+        var animationOptions = { position: center, scale: zoomLevel, animation: options.animation };
+        this.moveTo(animationOptions);
+      }
+    }, {
+      key: "focus",
+
+      // animation
+
+      /**
+       * Center a node in view.
+       *
+       * @param {Number} nodeId
+       * @param {Number} [options]
+       */
+      value: function focus(nodeId) {
+        var options = arguments[1] === undefined ? {} : arguments[1];
+
+        if (this.body.nodes[nodeId] !== undefined) {
+          var nodePosition = { x: this.body.nodes[nodeId].x, y: this.body.nodes[nodeId].y };
+          options.position = nodePosition;
+          options.lockedOnNode = nodeId;
+
+          this.moveTo(options);
+        } else {
+          console.log("Node: " + nodeId + " cannot be found.");
+        }
+      }
+    }, {
+      key: "moveTo",
+
+      /**
+       *
+       * @param {Object} options  |  options.offset   = {x:Number, y:Number}   // offset from the center in DOM pixels
+       *                          |  options.scale    = Number                 // scale to move to
+       *                          |  options.position = {x:Number, y:Number}   // position to move to
+       *                          |  options.animation = {duration:Number, easingFunction:String} || Boolean   // position to move to
+       */
+      value: function moveTo(options) {
+        if (options === undefined) {
+          options = {};
+          return;
+        }
+        if (options.offset === undefined) {
+          options.offset = { x: 0, y: 0 };
+        }
+        if (options.offset.x === undefined) {
+          options.offset.x = 0;
+        }
+        if (options.offset.y === undefined) {
+          options.offset.y = 0;
+        }
+        if (options.scale === undefined) {
+          options.scale = this.body.view.scale;
+        }
+        if (options.position === undefined) {
+          options.position = this.getViewPosition();
+        }
+        if (options.animation === undefined) {
+          options.animation = { duration: 0 };
+        }
+        if (options.animation === false) {
+          options.animation = { duration: 0 };
+        }
+        if (options.animation === true) {
+          options.animation = {};
+        }
+        if (options.animation.duration === undefined) {
+          options.animation.duration = 1000;
+        } // default duration
+        if (options.animation.easingFunction === undefined) {
+          options.animation.easingFunction = "easeInOutQuad";
+        } // default easing function
+
+        this.animateView(options);
+      }
+    }, {
+      key: "animateView",
+
+      /**
+       *
+       * @param {Object} options  |  options.offset   = {x:Number, y:Number}   // offset from the center in DOM pixels
+       *                          |  options.time     = Number                 // animation time in milliseconds
+       *                          |  options.scale    = Number                 // scale to animate to
+       *                          |  options.position = {x:Number, y:Number}   // position to animate to
+       *                          |  options.easingFunction = String           // linear, easeInQuad, easeOutQuad, easeInOutQuad,
+       *                                                                       // easeInCubic, easeOutCubic, easeInOutCubic,
+       *                                                                       // easeInQuart, easeOutQuart, easeInOutQuart,
+       *                                                                       // easeInQuint, easeOutQuint, easeInOutQuint
+       */
+      value: function animateView(options) {
+        if (options === undefined) {
+          return;
+        }
+        this.animationEasingFunction = options.animation.easingFunction;
+        // release if something focussed on the node
+        this.releaseNode();
+        if (options.locked === true) {
+          this.lockedOnNodeId = options.lockedOnNode;
+          this.lockedOnNodeOffset = options.offset;
+        }
+
+        // forcefully complete the old animation if it was still running
+        if (this.easingTime != 0) {
+          this._transitionRedraw(true); // by setting easingtime to 1, we finish the animation.
+        }
+
+        this.sourceScale = this.body.view.scale;
+        this.sourceTranslation = this.body.view.translation;
+        this.targetScale = options.scale;
+
+        // set the scale so the viewCenter is based on the correct zoom level. This is overridden in the transitionRedraw
+        // but at least then we'll have the target transition
+        this.body.view.scale = this.targetScale;
+        var viewCenter = this.canvas.DOMtoCanvas({ x: 0.5 * this.canvas.frame.canvas.clientWidth, y: 0.5 * this.canvas.frame.canvas.clientHeight });
+
+        var distanceFromCenter = { // offset from view, distance view has to change by these x and y to center the node
+          x: viewCenter.x - options.position.x,
+          y: viewCenter.y - options.position.y
+        };
+        this.targetTranslation = {
+          x: this.sourceTranslation.x + distanceFromCenter.x * this.targetScale + options.offset.x,
+          y: this.sourceTranslation.y + distanceFromCenter.y * this.targetScale + options.offset.y
+        };
+
+        // if the time is set to 0, don't do an animation
+        if (options.animation.duration === 0) {
+          if (this.lockedOnNodeId != undefined) {
+            this.viewFunction = this._lockedRedraw.bind(this);
+            this.body.emitter.on("initRedraw", this.viewFunction);
+          } else {
+            this.body.view.scale = this.targetScale;
+            this.body.view.translation = this.targetTranslation;
+            this.body.emitter.emit("_requestRedraw");
+          }
+        } else {
+          this.animationSpeed = 1 / (60 * options.animation.duration * 0.001) || 1 / 60; // 60 for 60 seconds, 0.001 for milli's
+          this.animationEasingFunction = options.animation.easingFunction;
+
+          this.viewFunction = this._transitionRedraw.bind(this);
+          this.body.emitter.on("initRedraw", this.viewFunction);
+          this.body.emitter.emit("_startRendering");
+        }
+      }
+    }, {
+      key: "_lockedRedraw",
+
+      /**
+       * used to animate smoothly by hijacking the redraw function.
+       * @private
+       */
+      value: function _lockedRedraw() {
+        var nodePosition = { x: this.body.nodes[this.lockedOnNodeId].x, y: this.body.nodes[this.lockedOnNodeId].y };
+        var viewCenter = this.canvas.DOMtoCanvas({ x: 0.5 * this.frame.canvas.clientWidth, y: 0.5 * this.frame.canvas.clientHeight });
+        var distanceFromCenter = { // offset from view, distance view has to change by these x and y to center the node
+          x: viewCenter.x - nodePosition.x,
+          y: viewCenter.y - nodePosition.y
+        };
+        var sourceTranslation = this.body.view.translation;
+        var targetTranslation = {
+          x: sourceTranslation.x + distanceFromCenter.x * this.body.view.scale + this.lockedOnNodeOffset.x,
+          y: sourceTranslation.y + distanceFromCenter.y * this.body.view.scale + this.lockedOnNodeOffset.y
+        };
+
+        this.body.view.translation = targetTranslation;
+      }
+    }, {
+      key: "releaseNode",
+      value: function releaseNode() {
+        if (this.lockedOnNodeId !== undefined && this.viewFunction !== undefined) {
+          this.body.emitter.off("initRedraw", this.viewFunction);
+          this.lockedOnNodeId = undefined;
+          this.lockedOnNodeOffset = undefined;
+        }
+      }
+    }, {
+      key: "_transitionRedraw",
+
+      /**
+       *
+       * @param easingTime
+       * @private
+       */
+      value: function _transitionRedraw() {
+        var finished = arguments[0] === undefined ? false : arguments[0];
+
+        this.easingTime += this.animationSpeed;
+        this.easingTime = finished === true ? 1 : this.easingTime;
+
+        var progress = util.easingFunctions[this.animationEasingFunction](this.easingTime);
+
+        this.body.view.scale = this.sourceScale + (this.targetScale - this.sourceScale) * progress;
+        this.body.view.translation = {
+          x: this.sourceTranslation.x + (this.targetTranslation.x - this.sourceTranslation.x) * progress,
+          y: this.sourceTranslation.y + (this.targetTranslation.y - this.sourceTranslation.y) * progress
+        };
+
+        // cleanup
+        if (this.easingTime >= 1) {
+          this.body.emitter.off("initRedraw", this.viewFunction);
+          this.easingTime = 0;
+          if (this.lockedOnNodeId != undefined) {
+            this.viewFunction = this._lockedRedraw.bind(this);
+            this.body.emitter.on("initRedraw", this.viewFunction);
+          }
+          this.body.emitter.emit("animationFinished");
+        }
+      }
+    }, {
+      key: "getScale",
+      value: function getScale() {
+        return this.body.view.scale;
+      }
+    }, {
+      key: "getViewPosition",
+      value: function getViewPosition() {
+        return this.canvas.DOMtoCanvas({ x: 0.5 * this.canvas.frame.canvas.clientWidth, y: 0.5 * this.canvas.frame.canvas.clientHeight });
+      }
+    }]);
+
+    return View;
+  })();
+
+  exports["default"] = View;
+  module.exports = exports["default"];
+
+/***/ },
+/* 4 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
 
-  var Hammer = __webpack_require__(6);
-  var util = __webpack_require__(10);
+  var Hammer = __webpack_require__(5);
+  var util = __webpack_require__(9);
 
   /**
    * @constructor Item
@@ -2262,7 +1087,7 @@ return /******/ (function(modules) { // webpackBootstrap
   // should be implemented by the item
 
 /***/ },
-/* 6 */
+/* 5 */
 /***/ function(module, exports, __webpack_require__) {
 
   // Only load hammer.js when in a browser environment
@@ -2270,8 +1095,8 @@ return /******/ (function(modules) { // webpackBootstrap
   'use strict';
 
   if (typeof window !== 'undefined') {
-    var propagating = __webpack_require__(7);
-    var Hammer = window['Hammer'] || __webpack_require__(8);
+    var propagating = __webpack_require__(6);
+    var Hammer = window['Hammer'] || __webpack_require__(7);
     module.exports = propagating(Hammer, {
       preventDefault: 'mouse'
     });
@@ -2282,7 +1107,7 @@ return /******/ (function(modules) { // webpackBootstrap
   }
 
 /***/ },
-/* 7 */
+/* 6 */
 /***/ function(module, exports, __webpack_require__) {
 
   var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;'use strict';
@@ -2503,7 +1328,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 8 */
+/* 7 */
 /***/ function(module, exports, __webpack_require__) {
 
   var __WEBPACK_AMD_DEFINE_RESULT__;/*! Hammer.JS - v2.0.4 - 2014-09-28
@@ -4959,7 +3784,7 @@ return /******/ (function(modules) { // webpackBootstrap
       prefixed: prefixed
   });
 
-  if ("function" == TYPE_FUNCTION && __webpack_require__(9)) {
+  if ("function" == TYPE_FUNCTION && __webpack_require__(8)) {
       !(__WEBPACK_AMD_DEFINE_RESULT__ = function() {
           return Hammer;
       }.call(exports, __webpack_require__, exports, module), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__));
@@ -4973,7 +3798,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 9 */
+/* 8 */
 /***/ function(module, exports, __webpack_require__) {
 
   /* WEBPACK VAR INJECTION */(function(__webpack_amd_options__) {module.exports = __webpack_amd_options__;
@@ -4981,7 +3806,7 @@ return /******/ (function(modules) { // webpackBootstrap
   /* WEBPACK VAR INJECTION */}.call(exports, {}))
 
 /***/ },
-/* 10 */
+/* 9 */
 /***/ function(module, exports, __webpack_require__) {
 
   // utility functions
@@ -4991,8 +3816,8 @@ return /******/ (function(modules) { // webpackBootstrap
 
   'use strict';
 
-  var moment = __webpack_require__(11);
-  var uuid = __webpack_require__(14);
+  var moment = __webpack_require__(10);
+  var uuid = __webpack_require__(13);
 
   /**
    * Test whether given object is a number
@@ -6327,17 +5152,17 @@ return /******/ (function(modules) { // webpackBootstrap
   };
 
 /***/ },
-/* 11 */
+/* 10 */
 /***/ function(module, exports, __webpack_require__) {
 
   // first check if moment.js is already loaded in the browser window, if so,
   // use this instance. Else, load via commonjs.
   'use strict';
 
-  module.exports = typeof window !== 'undefined' && window['moment'] || __webpack_require__(12);
+  module.exports = typeof window !== 'undefined' && window['moment'] || __webpack_require__(11);
 
 /***/ },
-/* 12 */
+/* 11 */
 /***/ function(module, exports, __webpack_require__) {
 
   /* WEBPACK VAR INJECTION */(function(module) {//! moment.js
@@ -9451,10 +8276,10 @@ return /******/ (function(modules) { // webpackBootstrap
       return _moment;
 
   }));
-  /* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(13)(module)))
+  /* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(12)(module)))
 
 /***/ },
-/* 13 */
+/* 12 */
 /***/ function(module, exports, __webpack_require__) {
 
   module.exports = function(module) {
@@ -9470,7 +8295,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 14 */
+/* 13 */
 /***/ function(module, exports, __webpack_require__) {
 
   /* WEBPACK VAR INJECTION */(function(global) {'use strict';
@@ -9686,7 +8511,7 @@ return /******/ (function(modules) { // webpackBootstrap
   /* WEBPACK VAR INJECTION */}.call(exports, (function() { return this; }())))
 
 /***/ },
-/* 15 */
+/* 14 */
 /***/ function(module, exports, __webpack_require__) {
 
   // DOM utility methods
@@ -9888,13 +8713,13 @@ return /******/ (function(modules) { // webpackBootstrap
   };
 
 /***/ },
-/* 16 */
+/* 15 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
 
-  var util = __webpack_require__(10);
-  var Queue = __webpack_require__(17);
+  var util = __webpack_require__(9);
+  var Queue = __webpack_require__(16);
 
   /**
    * DataSet
@@ -10783,7 +9608,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = DataSet;
 
 /***/ },
-/* 17 */
+/* 16 */
 /***/ function(module, exports, __webpack_require__) {
 
   /**
@@ -10988,13 +9813,13 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = Queue;
 
 /***/ },
-/* 18 */
+/* 17 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
 
-  var util = __webpack_require__(10);
-  var DataSet = __webpack_require__(16);
+  var util = __webpack_require__(9);
+  var DataSet = __webpack_require__(15);
 
   /**
    * DataView
@@ -11336,21 +10161,21 @@ return /******/ (function(modules) { // webpackBootstrap
   // nothing interesting for me :-(
 
 /***/ },
-/* 19 */
+/* 18 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
 
-  var Emitter = __webpack_require__(21);
-  var DataSet = __webpack_require__(16);
-  var DataView = __webpack_require__(18);
-  var util = __webpack_require__(10);
-  var Point3d = __webpack_require__(22);
-  var Point2d = __webpack_require__(20);
-  var Camera = __webpack_require__(23);
-  var Filter = __webpack_require__(24);
-  var Slider = __webpack_require__(25);
-  var StepNumber = __webpack_require__(26);
+  var Emitter = __webpack_require__(20);
+  var DataSet = __webpack_require__(15);
+  var DataView = __webpack_require__(17);
+  var util = __webpack_require__(9);
+  var Point3d = __webpack_require__(21);
+  var Point2d = __webpack_require__(19);
+  var Camera = __webpack_require__(22);
+  var Filter = __webpack_require__(23);
+  var Slider = __webpack_require__(24);
+  var StepNumber = __webpack_require__(25);
 
   /**
    * @constructor Graph3d
@@ -13584,7 +12409,7 @@ return /******/ (function(modules) { // webpackBootstrap
   // use use defaults
 
 /***/ },
-/* 20 */
+/* 19 */
 /***/ function(module, exports, __webpack_require__) {
 
   /**
@@ -13602,7 +12427,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = Point2d;
 
 /***/ },
-/* 21 */
+/* 20 */
 /***/ function(module, exports, __webpack_require__) {
 
   
@@ -13772,7 +12597,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 22 */
+/* 21 */
 /***/ function(module, exports, __webpack_require__) {
 
   /**
@@ -13855,12 +12680,12 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = Point3d;
 
 /***/ },
-/* 23 */
+/* 22 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
 
-  var Point3d = __webpack_require__(22);
+  var Point3d = __webpack_require__(21);
 
   /**
    * @class Camera
@@ -13996,12 +12821,12 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = Camera;
 
 /***/ },
-/* 24 */
+/* 23 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
 
-  var DataView = __webpack_require__(18);
+  var DataView = __webpack_require__(17);
 
   /**
    * @class Filter
@@ -14207,12 +13032,12 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = Filter;
 
 /***/ },
-/* 25 */
+/* 24 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
 
-  var util = __webpack_require__(10);
+  var util = __webpack_require__(9);
 
   /**
    * @constructor Slider
@@ -14555,7 +13380,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = Slider;
 
 /***/ },
-/* 26 */
+/* 25 */
 /***/ function(module, exports, __webpack_require__) {
 
   /**
@@ -14699,28 +13524,28 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = StepNumber;
 
 /***/ },
-/* 27 */
+/* 26 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
 
-  var Emitter = __webpack_require__(21);
-  var Hammer = __webpack_require__(6);
-  var util = __webpack_require__(10);
-  var DataSet = __webpack_require__(16);
-  var DataView = __webpack_require__(18);
-  var Range = __webpack_require__(31);
-  var Core = __webpack_require__(34);
-  var TimeAxis = __webpack_require__(43);
-  var CurrentTime = __webpack_require__(28);
-  var CustomTime = __webpack_require__(46);
-  var ItemSet = __webpack_require__(35);
+  var Emitter = __webpack_require__(20);
+  var Hammer = __webpack_require__(5);
+  var util = __webpack_require__(9);
+  var DataSet = __webpack_require__(15);
+  var DataView = __webpack_require__(17);
+  var Range = __webpack_require__(30);
+  var Core = __webpack_require__(33);
+  var TimeAxis = __webpack_require__(42);
+  var CurrentTime = __webpack_require__(27);
+  var CustomTime = __webpack_require__(45);
+  var ItemSet = __webpack_require__(34);
 
-  var Configurator = __webpack_require__(47);
-  var Validator = __webpack_require__(49)['default'];
-  var printStyle = __webpack_require__(49).printStyle;
-  var allOptions = __webpack_require__(50).allOptions;
-  var configureOptions = __webpack_require__(50).configureOptions;
+  var Configurator = __webpack_require__(46);
+  var Validator = __webpack_require__(48)['default'];
+  var printStyle = __webpack_require__(48).printStyle;
+  var allOptions = __webpack_require__(49).allOptions;
+  var configureOptions = __webpack_require__(49).configureOptions;
 
   /**
    * Create a timeline visualization
@@ -15229,15 +14054,15 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = Timeline;
 
 /***/ },
-/* 28 */
+/* 27 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
 
-  var util = __webpack_require__(10);
-  var Component = __webpack_require__(29);
-  var moment = __webpack_require__(11);
-  var locales = __webpack_require__(30);
+  var util = __webpack_require__(9);
+  var Component = __webpack_require__(28);
+  var moment = __webpack_require__(10);
+  var locales = __webpack_require__(29);
 
   /**
    * A current time bar
@@ -15405,7 +14230,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = CurrentTime;
 
 /***/ },
-/* 29 */
+/* 28 */
 /***/ function(module, exports, __webpack_require__) {
 
   /**
@@ -15465,7 +14290,7 @@ return /******/ (function(modules) { // webpackBootstrap
   // should be implemented by the component
 
 /***/ },
-/* 30 */
+/* 29 */
 /***/ function(module, exports, __webpack_require__) {
 
   // English
@@ -15487,16 +14312,16 @@ return /******/ (function(modules) { // webpackBootstrap
   exports['nl_BE'] = exports['nl'];
 
 /***/ },
-/* 31 */
+/* 30 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
 
-  var util = __webpack_require__(10);
-  var hammerUtil = __webpack_require__(32);
-  var moment = __webpack_require__(11);
-  var Component = __webpack_require__(29);
-  var DateUtil = __webpack_require__(33);
+  var util = __webpack_require__(9);
+  var hammerUtil = __webpack_require__(31);
+  var moment = __webpack_require__(10);
+  var Component = __webpack_require__(28);
+  var DateUtil = __webpack_require__(32);
 
   /**
    * @constructor Range
@@ -16163,12 +14988,12 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = Range;
 
 /***/ },
-/* 32 */
+/* 31 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
 
-  var Hammer = __webpack_require__(6);
+  var Hammer = __webpack_require__(5);
 
   /**
    * Register a touch event, taking place before a gesture
@@ -16235,12 +15060,12 @@ return /******/ (function(modules) { // webpackBootstrap
   exports.offRelease = exports.offTouch;
 
 /***/ },
-/* 33 */
+/* 32 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
 
-  var moment = __webpack_require__(11);
+  var moment = __webpack_require__(10);
 
   /**
    * used in Core to convert the options into a volatile variable
@@ -16695,23 +15520,23 @@ return /******/ (function(modules) { // webpackBootstrap
   };
 
 /***/ },
-/* 34 */
+/* 33 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
 
-  var Emitter = __webpack_require__(21);
-  var Hammer = __webpack_require__(6);
-  var hammerUtil = __webpack_require__(32);
-  var util = __webpack_require__(10);
-  var DataSet = __webpack_require__(16);
-  var DataView = __webpack_require__(18);
-  var Range = __webpack_require__(31);
-  var ItemSet = __webpack_require__(35);
-  var TimeAxis = __webpack_require__(43);
-  var Activator = __webpack_require__(44);
-  var DateUtil = __webpack_require__(33);
-  var CustomTime = __webpack_require__(46);
+  var Emitter = __webpack_require__(20);
+  var Hammer = __webpack_require__(5);
+  var hammerUtil = __webpack_require__(31);
+  var util = __webpack_require__(9);
+  var DataSet = __webpack_require__(15);
+  var DataView = __webpack_require__(17);
+  var Range = __webpack_require__(30);
+  var ItemSet = __webpack_require__(34);
+  var TimeAxis = __webpack_require__(42);
+  var Activator = __webpack_require__(43);
+  var DateUtil = __webpack_require__(32);
+  var CustomTime = __webpack_require__(45);
 
   /**
    * Create a timeline visualization
@@ -17663,23 +16488,23 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = Core;
 
 /***/ },
-/* 35 */
+/* 34 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
 
-  var Hammer = __webpack_require__(6);
-  var util = __webpack_require__(10);
-  var DataSet = __webpack_require__(16);
-  var DataView = __webpack_require__(18);
-  var TimeStep = __webpack_require__(39);
-  var Component = __webpack_require__(29);
-  var Group = __webpack_require__(36);
-  var BackgroundGroup = __webpack_require__(40);
-  var BoxItem = __webpack_require__(41);
-  var PointItem = __webpack_require__(4);
-  var RangeItem = __webpack_require__(38);
-  var BackgroundItem = __webpack_require__(42);
+  var Hammer = __webpack_require__(5);
+  var util = __webpack_require__(9);
+  var DataSet = __webpack_require__(15);
+  var DataView = __webpack_require__(17);
+  var TimeStep = __webpack_require__(38);
+  var Component = __webpack_require__(28);
+  var Group = __webpack_require__(35);
+  var BackgroundGroup = __webpack_require__(39);
+  var BoxItem = __webpack_require__(40);
+  var PointItem = __webpack_require__(2);
+  var RangeItem = __webpack_require__(37);
+  var BackgroundItem = __webpack_require__(41);
 
   var UNGROUPED = '__ungrouped__'; // reserved group id for ungrouped items
   var BACKGROUND = '__background__'; // reserved group id for background items without group
@@ -19289,14 +18114,14 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = ItemSet;
 
 /***/ },
-/* 36 */
+/* 35 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
 
-  var util = __webpack_require__(10);
-  var stack = __webpack_require__(37);
-  var RangeItem = __webpack_require__(38);
+  var util = __webpack_require__(9);
+  var stack = __webpack_require__(36);
+  var RangeItem = __webpack_require__(37);
 
   /**
    * @constructor Group
@@ -19875,7 +18700,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = Group;
 
 /***/ },
-/* 37 */
+/* 36 */
 /***/ function(module, exports, __webpack_require__) {
 
   // Utility functions for ordering and stacking of items
@@ -19999,13 +18824,13 @@ return /******/ (function(modules) { // webpackBootstrap
   };
 
 /***/ },
-/* 38 */
+/* 37 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
 
-  var Hammer = __webpack_require__(6);
-  var Item = __webpack_require__(5);
+  var Hammer = __webpack_require__(5);
+  var Item = __webpack_require__(4);
 
   /**
    * @constructor RangeItem
@@ -20295,14 +19120,14 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = RangeItem;
 
 /***/ },
-/* 39 */
+/* 38 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
 
-  var moment = __webpack_require__(11);
-  var DateUtil = __webpack_require__(33);
-  var util = __webpack_require__(10);
+  var moment = __webpack_require__(10);
+  var DateUtil = __webpack_require__(32);
+  var util = __webpack_require__(9);
 
   /**
    * @constructor  TimeStep
@@ -20985,13 +19810,13 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = TimeStep;
 
 /***/ },
-/* 40 */
+/* 39 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
 
-  var util = __webpack_require__(10);
-  var Group = __webpack_require__(36);
+  var util = __webpack_require__(9);
+  var Group = __webpack_require__(35);
 
   /**
    * @constructor BackgroundGroup
@@ -21049,13 +19874,13 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = BackgroundGroup;
 
 /***/ },
-/* 41 */
+/* 40 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
 
-  var Item = __webpack_require__(5);
-  var util = __webpack_require__(10);
+  var Item = __webpack_require__(4);
+  var util = __webpack_require__(9);
 
   /**
    * @constructor BoxItem
@@ -21289,15 +20114,15 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = BoxItem;
 
 /***/ },
-/* 42 */
+/* 41 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
 
-  var Hammer = __webpack_require__(6);
-  var Item = __webpack_require__(5);
-  var BackgroundGroup = __webpack_require__(40);
-  var RangeItem = __webpack_require__(38);
+  var Hammer = __webpack_require__(5);
+  var Item = __webpack_require__(4);
+  var BackgroundGroup = __webpack_require__(39);
+  var RangeItem = __webpack_require__(37);
 
   /**
    * @constructor BackgroundItem
@@ -21510,16 +20335,16 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = BackgroundItem;
 
 /***/ },
-/* 43 */
+/* 42 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
 
-  var util = __webpack_require__(10);
-  var Component = __webpack_require__(29);
-  var TimeStep = __webpack_require__(39);
-  var DateUtil = __webpack_require__(33);
-  var moment = __webpack_require__(11);
+  var util = __webpack_require__(9);
+  var Component = __webpack_require__(28);
+  var TimeStep = __webpack_require__(38);
+  var DateUtil = __webpack_require__(32);
+  var moment = __webpack_require__(10);
 
   /**
    * A horizontal time axis
@@ -21949,15 +20774,15 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = TimeAxis;
 
 /***/ },
-/* 44 */
+/* 43 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
 
-  var keycharm = __webpack_require__(45);
-  var Emitter = __webpack_require__(21);
-  var Hammer = __webpack_require__(6);
-  var util = __webpack_require__(10);
+  var keycharm = __webpack_require__(44);
+  var Emitter = __webpack_require__(20);
+  var Hammer = __webpack_require__(5);
+  var util = __webpack_require__(9);
 
   /**
    * Turn an element into an clickToUse element.
@@ -22108,7 +20933,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = Activator;
 
 /***/ },
-/* 45 */
+/* 44 */
 /***/ function(module, exports, __webpack_require__) {
 
   var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;"use strict";
@@ -22307,16 +21132,16 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 46 */
+/* 45 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
 
-  var Hammer = __webpack_require__(6);
-  var util = __webpack_require__(10);
-  var Component = __webpack_require__(29);
-  var moment = __webpack_require__(11);
-  var locales = __webpack_require__(30);
+  var Hammer = __webpack_require__(5);
+  var util = __webpack_require__(9);
+  var Component = __webpack_require__(28);
+  var moment = __webpack_require__(10);
+  var locales = __webpack_require__(29);
 
   /**
    * A custom time bar
@@ -22546,7 +21371,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = CustomTime;
 
 /***/ },
-/* 47 */
+/* 46 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -22561,11 +21386,11 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
 
-  var _ColorPicker = __webpack_require__(48);
+  var _ColorPicker = __webpack_require__(47);
 
   var _ColorPicker2 = _interopRequireDefault(_ColorPicker);
 
-  var util = __webpack_require__(10);
+  var util = __webpack_require__(9);
 
   /**
    * The way this works is for all properties of this.possible options, you can supply the property name in any form to list the options.
@@ -23229,7 +22054,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 48 */
+/* 47 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -23242,9 +22067,9 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
 
-  var Hammer = __webpack_require__(6);
-  var hammerUtil = __webpack_require__(32);
-  var util = __webpack_require__(10);
+  var Hammer = __webpack_require__(5);
+  var hammerUtil = __webpack_require__(31);
+  var util = __webpack_require__(9);
 
   var ColorPicker = (function () {
     function ColorPicker() {
@@ -23813,7 +22638,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 49 */
+/* 48 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -23826,7 +22651,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
 
-  var util = __webpack_require__(10);
+  var util = __webpack_require__(9);
 
   var errorFound = false;
   var allOptions = undefined;
@@ -24129,7 +22954,7 @@ return /******/ (function(modules) { // webpackBootstrap
   exports.printStyle = printStyle;
 
 /***/ },
-/* 50 */
+/* 49 */
 /***/ function(module, exports, __webpack_require__) {
 
   /**
@@ -24343,28 +23168,28 @@ return /******/ (function(modules) { // webpackBootstrap
   exports.configureOptions = configureOptions;
 
 /***/ },
-/* 51 */
+/* 50 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
 
-  var Emitter = __webpack_require__(21);
-  var Hammer = __webpack_require__(6);
-  var util = __webpack_require__(10);
-  var DataSet = __webpack_require__(16);
-  var DataView = __webpack_require__(18);
-  var Range = __webpack_require__(31);
-  var Core = __webpack_require__(34);
-  var TimeAxis = __webpack_require__(43);
-  var CurrentTime = __webpack_require__(28);
-  var CustomTime = __webpack_require__(46);
-  var LineGraph = __webpack_require__(2);
+  var Emitter = __webpack_require__(20);
+  var Hammer = __webpack_require__(5);
+  var util = __webpack_require__(9);
+  var DataSet = __webpack_require__(15);
+  var DataView = __webpack_require__(17);
+  var Range = __webpack_require__(30);
+  var Core = __webpack_require__(33);
+  var TimeAxis = __webpack_require__(42);
+  var CurrentTime = __webpack_require__(27);
+  var CustomTime = __webpack_require__(45);
+  var LineGraph = __webpack_require__(51);
 
-  var Configurator = __webpack_require__(47);
-  var Validator = __webpack_require__(49)['default'];
-  var printStyle = __webpack_require__(49).printStyle;
-  var allOptions = __webpack_require__(58).allOptions;
-  var configureOptions = __webpack_require__(58).configureOptions;
+  var Configurator = __webpack_require__(46);
+  var Validator = __webpack_require__(48)['default'];
+  var printStyle = __webpack_require__(48).printStyle;
+  var allOptions = __webpack_require__(59).allOptions;
+  var configureOptions = __webpack_require__(59).configureOptions;
 
   /**
    * Create a timeline visualization
@@ -24679,7 +23504,1587 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = Graph2d;
 
 /***/ },
+/* 51 */
+/***/ function(module, exports, __webpack_require__) {
+
+  'use strict';
+
+  var util = __webpack_require__(9);
+  var DOMutil = __webpack_require__(14);
+  var DataSet = __webpack_require__(15);
+  var DataView = __webpack_require__(17);
+  var Component = __webpack_require__(28);
+  var DataAxis = __webpack_require__(52);
+  var GraphGroup = __webpack_require__(54);
+  var Legend = __webpack_require__(58);
+  var BarFunctions = __webpack_require__(57);
+  var LineFunctions = __webpack_require__(55);
+
+  var UNGROUPED = '__ungrouped__'; // reserved group id for ungrouped items
+
+  /**
+   * This is the constructor of the LineGraph. It requires a Timeline body and options.
+   *
+   * @param body
+   * @param options
+   * @constructor
+   */
+  function LineGraph(body, options) {
+    this.id = util.randomUUID();
+    this.body = body;
+
+    this.defaultOptions = {
+      yAxisOrientation: 'left',
+      defaultGroup: 'default',
+      sort: true,
+      sampling: true,
+      stack: false,
+      graphHeight: '400px',
+      shaded: {
+        enabled: false,
+        orientation: 'bottom' // top, bottom
+      },
+      style: 'line', // line, bar
+      barChart: {
+        width: 50,
+        sideBySide: false,
+        align: 'center' // left, center, right
+      },
+      interpolation: {
+        enabled: true,
+        parametrization: 'centripetal', // uniform (alpha = 0.0), chordal (alpha = 1.0), centripetal (alpha = 0.5)
+        alpha: 0.5
+      },
+      drawPoints: {
+        enabled: true,
+        size: 6,
+        style: 'square' // square, circle
+      },
+      dataAxis: {
+        showMinorLabels: true,
+        showMajorLabels: true,
+        icons: false,
+        width: '40px',
+        visible: true,
+        alignZeros: true,
+        left: {
+          range: { min: undefined, max: undefined },
+          format: function format(value) {
+            return value;
+          },
+          title: { text: undefined, style: undefined }
+        },
+        right: {
+          range: { min: undefined, max: undefined },
+          format: function format(value) {
+            return value;
+          },
+          title: { text: undefined, style: undefined }
+        }
+      },
+      legend: {
+        enabled: false,
+        icons: true,
+        left: {
+          visible: true,
+          position: 'top-left' // top/bottom - left,right
+        },
+        right: {
+          visible: true,
+          position: 'top-right' // top/bottom - left,right
+        }
+      },
+      groups: {
+        visibility: {}
+      }
+    };
+
+    // options is shared by this ItemSet and all its items
+    this.options = util.extend({}, this.defaultOptions);
+    this.dom = {};
+    this.props = {};
+    this.hammer = null;
+    this.groups = {};
+    this.abortedGraphUpdate = false;
+    this.updateSVGheight = false;
+    this.updateSVGheightOnResize = false;
+
+    var me = this;
+    this.itemsData = null; // DataSet
+    this.groupsData = null; // DataSet
+
+    // listeners for the DataSet of the items
+    this.itemListeners = {
+      'add': function add(event, params, senderId) {
+        me._onAdd(params.items);
+      },
+      'update': function update(event, params, senderId) {
+        me._onUpdate(params.items);
+      },
+      'remove': function remove(event, params, senderId) {
+        me._onRemove(params.items);
+      }
+    };
+
+    // listeners for the DataSet of the groups
+    this.groupListeners = {
+      'add': function add(event, params, senderId) {
+        me._onAddGroups(params.items);
+      },
+      'update': function update(event, params, senderId) {
+        me._onUpdateGroups(params.items);
+      },
+      'remove': function remove(event, params, senderId) {
+        me._onRemoveGroups(params.items);
+      }
+    };
+
+    this.items = {}; // object with an Item for every data item
+    this.selection = []; // list with the ids of all selected nodes
+    this.lastStart = this.body.range.start;
+    this.touchParams = {}; // stores properties while dragging
+
+    this.svgElements = {};
+    this.setOptions(options);
+    this.groupsUsingDefaultStyles = [0];
+    this.COUNTER = 0;
+    this.body.emitter.on('rangechanged', function () {
+      me.lastStart = me.body.range.start;
+      me.svg.style.left = util.option.asSize(-me.props.width);
+      me.redraw.call(me, true);
+    });
+
+    // create the HTML DOM
+    this._create();
+    this.framework = { svg: this.svg, svgElements: this.svgElements, options: this.options, groups: this.groups };
+    this.body.emitter.emit('change');
+  }
+
+  LineGraph.prototype = new Component();
+
+  /**
+   * Create the HTML DOM for the ItemSet
+   */
+  LineGraph.prototype._create = function () {
+    var frame = document.createElement('div');
+    frame.className = 'vis-line-graph';
+    this.dom.frame = frame;
+
+    // create svg element for graph drawing.
+    this.svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+    this.svg.style.position = 'relative';
+    this.svg.style.height = ('' + this.options.graphHeight).replace('px', '') + 'px';
+    this.svg.style.display = 'block';
+    frame.appendChild(this.svg);
+
+    // data axis
+    this.options.dataAxis.orientation = 'left';
+    this.yAxisLeft = new DataAxis(this.body, this.options.dataAxis, this.svg, this.options.groups);
+
+    this.options.dataAxis.orientation = 'right';
+    this.yAxisRight = new DataAxis(this.body, this.options.dataAxis, this.svg, this.options.groups);
+    delete this.options.dataAxis.orientation;
+
+    // legends
+    this.legendLeft = new Legend(this.body, this.options.legend, 'left', this.options.groups);
+    this.legendRight = new Legend(this.body, this.options.legend, 'right', this.options.groups);
+
+    this.show();
+  };
+
+  /**
+   * set the options of the LineGraph. the mergeOptions is used for subObjects that have an enabled element.
+   * @param {object} options
+   */
+  LineGraph.prototype.setOptions = function (options) {
+    if (options) {
+      var fields = ['sampling', 'defaultGroup', 'stack', 'height', 'graphHeight', 'yAxisOrientation', 'style', 'barChart', 'dataAxis', 'sort', 'groups'];
+      if (options.graphHeight === undefined && options.height !== undefined && this.body.domProps.centerContainer.height !== undefined) {
+        this.updateSVGheight = true;
+        this.updateSVGheightOnResize = true;
+      } else if (this.body.domProps.centerContainer.height !== undefined && options.graphHeight !== undefined) {
+        if (parseInt((options.graphHeight + '').replace('px', '')) < this.body.domProps.centerContainer.height) {
+          this.updateSVGheight = true;
+        }
+      }
+      util.selectiveDeepExtend(fields, this.options, options);
+      util.mergeOptions(this.options, options, 'interpolation');
+      util.mergeOptions(this.options, options, 'drawPoints');
+      util.mergeOptions(this.options, options, 'shaded');
+      util.mergeOptions(this.options, options, 'legend');
+
+      if (options.interpolation) {
+        if (typeof options.interpolation == 'object') {
+          if (options.interpolation.parametrization) {
+            if (options.interpolation.parametrization == 'uniform') {
+              this.options.interpolation.alpha = 0;
+            } else if (options.interpolation.parametrization == 'chordal') {
+              this.options.interpolation.alpha = 1;
+            } else {
+              this.options.interpolation.parametrization = 'centripetal';
+              this.options.interpolation.alpha = 0.5;
+            }
+          }
+        }
+      }
+
+      if (this.yAxisLeft) {
+        if (options.dataAxis !== undefined) {
+          this.yAxisLeft.setOptions(this.options.dataAxis);
+          this.yAxisRight.setOptions(this.options.dataAxis);
+        }
+      }
+
+      if (this.legendLeft) {
+        if (options.legend !== undefined) {
+          this.legendLeft.setOptions(this.options.legend);
+          this.legendRight.setOptions(this.options.legend);
+        }
+      }
+
+      if (this.groups.hasOwnProperty(UNGROUPED)) {
+        this.groups[UNGROUPED].setOptions(options);
+      }
+    }
+
+    // this is used to redraw the graph if the visibility of the groups is changed.
+    if (this.dom.frame) {
+      this.redraw(true);
+    }
+  };
+
+  /**
+   * Hide the component from the DOM
+   */
+  LineGraph.prototype.hide = function () {
+    // remove the frame containing the items
+    if (this.dom.frame.parentNode) {
+      this.dom.frame.parentNode.removeChild(this.dom.frame);
+    }
+  };
+
+  /**
+   * Show the component in the DOM (when not already visible).
+   * @return {Boolean} changed
+   */
+  LineGraph.prototype.show = function () {
+    // show frame containing the items
+    if (!this.dom.frame.parentNode) {
+      this.body.dom.center.appendChild(this.dom.frame);
+    }
+  };
+
+  /**
+   * Set items
+   * @param {vis.DataSet | null} items
+   */
+  LineGraph.prototype.setItems = function (items) {
+    var me = this,
+        ids,
+        oldItemsData = this.itemsData;
+
+    // replace the dataset
+    if (!items) {
+      this.itemsData = null;
+    } else if (items instanceof DataSet || items instanceof DataView) {
+      this.itemsData = items;
+    } else {
+      throw new TypeError('Data must be an instance of DataSet or DataView');
+    }
+
+    if (oldItemsData) {
+      // unsubscribe from old dataset
+      util.forEach(this.itemListeners, function (callback, event) {
+        oldItemsData.off(event, callback);
+      });
+
+      // remove all drawn items
+      ids = oldItemsData.getIds();
+      this._onRemove(ids);
+    }
+
+    if (this.itemsData) {
+      // subscribe to new dataset
+      var id = this.id;
+      util.forEach(this.itemListeners, function (callback, event) {
+        me.itemsData.on(event, callback, id);
+      });
+
+      // add all new items
+      ids = this.itemsData.getIds();
+      this._onAdd(ids);
+    }
+    this._updateUngrouped();
+    //this._updateGraph();
+    this.redraw(true);
+  };
+
+  /**
+   * Set groups
+   * @param {vis.DataSet} groups
+   */
+  LineGraph.prototype.setGroups = function (groups) {
+    var me = this;
+    var ids;
+
+    // unsubscribe from current dataset
+    if (this.groupsData) {
+      util.forEach(this.groupListeners, function (callback, event) {
+        me.groupsData.off(event, callback);
+      });
+
+      // remove all drawn groups
+      ids = this.groupsData.getIds();
+      this.groupsData = null;
+      this._onRemoveGroups(ids); // note: this will cause a redraw
+    }
+
+    // replace the dataset
+    if (!groups) {
+      this.groupsData = null;
+    } else if (groups instanceof DataSet || groups instanceof DataView) {
+      this.groupsData = groups;
+    } else {
+      throw new TypeError('Data must be an instance of DataSet or DataView');
+    }
+
+    if (this.groupsData) {
+      // subscribe to new dataset
+      var id = this.id;
+      util.forEach(this.groupListeners, function (callback, event) {
+        me.groupsData.on(event, callback, id);
+      });
+
+      // draw all ms
+      ids = this.groupsData.getIds();
+      this._onAddGroups(ids);
+    }
+    this._onUpdate();
+  };
+
+  /**
+   * Update the data
+   * @param [ids]
+   * @private
+   */
+  LineGraph.prototype._onUpdate = function (ids) {
+    this._updateUngrouped();
+    this._updateAllGroupData();
+    //this._updateGraph();
+    this.redraw(true);
+  };
+  LineGraph.prototype._onAdd = function (ids) {
+    this._onUpdate(ids);
+  };
+  LineGraph.prototype._onRemove = function (ids) {
+    this._onUpdate(ids);
+  };
+  LineGraph.prototype._onUpdateGroups = function (groupIds) {
+    for (var i = 0; i < groupIds.length; i++) {
+      var group = this.groupsData.get(groupIds[i]);
+      this._updateGroup(group, groupIds[i]);
+    }
+
+    //this._updateGraph();
+    this.redraw(true);
+  };
+  LineGraph.prototype._onAddGroups = function (groupIds) {
+    this._onUpdateGroups(groupIds);
+  };
+
+  /**
+   * this cleans the group out off the legends and the dataaxis, updates the ungrouped and updates the graph
+   * @param {Array} groupIds
+   * @private
+   */
+  LineGraph.prototype._onRemoveGroups = function (groupIds) {
+    for (var i = 0; i < groupIds.length; i++) {
+      if (this.groups.hasOwnProperty(groupIds[i])) {
+        if (this.groups[groupIds[i]].options.yAxisOrientation == 'right') {
+          this.yAxisRight.removeGroup(groupIds[i]);
+          this.legendRight.removeGroup(groupIds[i]);
+          this.legendRight.redraw();
+        } else {
+          this.yAxisLeft.removeGroup(groupIds[i]);
+          this.legendLeft.removeGroup(groupIds[i]);
+          this.legendLeft.redraw();
+        }
+        delete this.groups[groupIds[i]];
+      }
+    }
+    this._updateUngrouped();
+    //this._updateGraph();
+    this.redraw(true);
+  };
+
+  /**
+   * update a group object with the group dataset entree
+   *
+   * @param group
+   * @param groupId
+   * @private
+   */
+  LineGraph.prototype._updateGroup = function (group, groupId) {
+    if (!this.groups.hasOwnProperty(groupId)) {
+      this.groups[groupId] = new GraphGroup(group, groupId, this.options, this.groupsUsingDefaultStyles);
+      if (this.groups[groupId].options.yAxisOrientation == 'right') {
+        this.yAxisRight.addGroup(groupId, this.groups[groupId]);
+        this.legendRight.addGroup(groupId, this.groups[groupId]);
+      } else {
+        this.yAxisLeft.addGroup(groupId, this.groups[groupId]);
+        this.legendLeft.addGroup(groupId, this.groups[groupId]);
+      }
+    } else {
+      this.groups[groupId].update(group);
+      if (this.groups[groupId].options.yAxisOrientation == 'right') {
+        this.yAxisRight.updateGroup(groupId, this.groups[groupId]);
+        this.legendRight.updateGroup(groupId, this.groups[groupId]);
+      } else {
+        this.yAxisLeft.updateGroup(groupId, this.groups[groupId]);
+        this.legendLeft.updateGroup(groupId, this.groups[groupId]);
+      }
+    }
+    this.legendLeft.redraw();
+    this.legendRight.redraw();
+  };
+
+  /**
+   * this updates all groups, it is used when there is an update the the itemset.
+   *
+   * @private
+   */
+  LineGraph.prototype._updateAllGroupData = function () {
+    if (this.itemsData != null) {
+      var groupsContent = {};
+      var groupId;
+      for (groupId in this.groups) {
+        if (this.groups.hasOwnProperty(groupId)) {
+          groupsContent[groupId] = [];
+        }
+      }
+      for (var itemId in this.itemsData._data) {
+        if (this.itemsData._data.hasOwnProperty(itemId)) {
+          var item = this.itemsData._data[itemId];
+          if (groupsContent[item.group] === undefined) {
+            throw new Error('Cannot find referenced group. Possible reason: items added before groups? Groups need to be added before items, as items refer to groups.');
+          }
+          item.x = util.convert(item.x, 'Date');
+          groupsContent[item.group].push(item);
+        }
+      }
+      for (groupId in this.groups) {
+        if (this.groups.hasOwnProperty(groupId)) {
+          this.groups[groupId].setItems(groupsContent[groupId]);
+        }
+      }
+    }
+  };
+
+  /**
+   * Create or delete the group holding all ungrouped items. This group is used when
+   * there are no groups specified. This anonymous group is called 'graph'.
+   * @protected
+   */
+  LineGraph.prototype._updateUngrouped = function () {
+    if (this.itemsData && this.itemsData != null) {
+      var ungroupedCounter = 0;
+      for (var itemId in this.itemsData._data) {
+        if (this.itemsData._data.hasOwnProperty(itemId)) {
+          var item = this.itemsData._data[itemId];
+          if (item != undefined) {
+            if (item.hasOwnProperty('group')) {
+              if (item.group === undefined) {
+                item.group = UNGROUPED;
+              }
+            } else {
+              item.group = UNGROUPED;
+            }
+            ungroupedCounter = item.group == UNGROUPED ? ungroupedCounter + 1 : ungroupedCounter;
+          }
+        }
+      }
+
+      if (ungroupedCounter == 0) {
+        delete this.groups[UNGROUPED];
+        this.legendLeft.removeGroup(UNGROUPED);
+        this.legendRight.removeGroup(UNGROUPED);
+        this.yAxisLeft.removeGroup(UNGROUPED);
+        this.yAxisRight.removeGroup(UNGROUPED);
+      } else {
+        var group = { id: UNGROUPED, content: this.options.defaultGroup };
+        this._updateGroup(group, UNGROUPED);
+      }
+    } else {
+      delete this.groups[UNGROUPED];
+      this.legendLeft.removeGroup(UNGROUPED);
+      this.legendRight.removeGroup(UNGROUPED);
+      this.yAxisLeft.removeGroup(UNGROUPED);
+      this.yAxisRight.removeGroup(UNGROUPED);
+    }
+
+    this.legendLeft.redraw();
+    this.legendRight.redraw();
+  };
+
+  /**
+   * Redraw the component, mandatory function
+   * @return {boolean} Returns true if the component is resized
+   */
+  LineGraph.prototype.redraw = function (forceGraphUpdate) {
+    var resized = false;
+
+    // calculate actual size and position
+    this.props.width = this.dom.frame.offsetWidth;
+    this.props.height = this.body.domProps.centerContainer.height - this.body.domProps.border.top - this.body.domProps.border.bottom;
+
+    // update the graph if there is no lastWidth or with, used for the initial draw
+    if (this.lastWidth === undefined && this.props.width) {
+      forceGraphUpdate = true;
+    }
+
+    // check if this component is resized
+    resized = this._isResized() || resized;
+
+    // check whether zoomed (in that case we need to re-stack everything)
+    var visibleInterval = this.body.range.end - this.body.range.start;
+    var zoomed = visibleInterval != this.lastVisibleInterval;
+    this.lastVisibleInterval = visibleInterval;
+
+    // the svg element is three times as big as the width, this allows for fully dragging left and right
+    // without reloading the graph. the controls for this are bound to events in the constructor
+    if (resized == true) {
+      this.svg.style.width = util.option.asSize(3 * this.props.width);
+      this.svg.style.left = util.option.asSize(-this.props.width);
+
+      // if the height of the graph is set as proportional, change the height of the svg
+      if ((this.options.height + '').indexOf('%') != -1 || this.updateSVGheightOnResize == true) {
+        this.updateSVGheight = true;
+      }
+    }
+
+    // update the height of the graph on each redraw of the graph.
+    if (this.updateSVGheight == true) {
+      if (this.options.graphHeight != this.props.height + 'px') {
+        this.options.graphHeight = this.props.height + 'px';
+        this.svg.style.height = this.props.height + 'px';
+      }
+      this.updateSVGheight = false;
+    } else {
+      this.svg.style.height = ('' + this.options.graphHeight).replace('px', '') + 'px';
+    }
+
+    // zoomed is here to ensure that animations are shown correctly.
+    if (resized == true || zoomed == true || this.abortedGraphUpdate == true || forceGraphUpdate == true) {
+      resized = this._updateGraph() || resized;
+    } else {
+      // move the whole svg while dragging
+      if (this.lastStart != 0) {
+        var offset = this.body.range.start - this.lastStart;
+        var range = this.body.range.end - this.body.range.start;
+        if (this.props.width != 0) {
+          var rangePerPixelInv = this.props.width / range;
+          var xOffset = offset * rangePerPixelInv;
+          this.svg.style.left = -this.props.width - xOffset + 'px';
+        }
+      }
+    }
+
+    this.legendLeft.redraw();
+    this.legendRight.redraw();
+    return resized;
+  };
+
+  /**
+   * Update and redraw the graph.
+   *
+   */
+  LineGraph.prototype._updateGraph = function () {
+    // reset the svg elements
+    DOMutil.prepareElements(this.svgElements);
+    if (this.props.width != 0 && this.itemsData != null) {
+      var group, i;
+      var preprocessedGroupData = {};
+      var processedGroupData = {};
+      var groupRanges = {};
+      var changeCalled = false;
+
+      // getting group Ids
+      var groupIds = [];
+      for (var groupId in this.groups) {
+        if (this.groups.hasOwnProperty(groupId)) {
+          group = this.groups[groupId];
+          if (group.visible == true && (this.options.groups.visibility[groupId] === undefined || this.options.groups.visibility[groupId] == true)) {
+            groupIds.push(groupId);
+          }
+        }
+      }
+      if (groupIds.length > 0) {
+        // this is the range of the SVG canvas
+        var minDate = this.body.util.toGlobalTime(-this.body.domProps.root.width);
+        var maxDate = this.body.util.toGlobalTime(2 * this.body.domProps.root.width);
+        var groupsData = {};
+        // fill groups data, this only loads the data we require based on the timewindow
+        this._getRelevantData(groupIds, groupsData, minDate, maxDate);
+
+        // apply sampling, if disabled, it will pass through this function.
+        this._applySampling(groupIds, groupsData);
+
+        // we transform the X coordinates to detect collisions
+        for (i = 0; i < groupIds.length; i++) {
+          preprocessedGroupData[groupIds[i]] = this._convertXcoordinates(groupsData[groupIds[i]]);
+        }
+
+        // now all needed data has been collected we start the processing.
+        this._getYRanges(groupIds, preprocessedGroupData, groupRanges);
+
+        // update the Y axis first, we use this data to draw at the correct Y points
+        // changeCalled is required to clean the SVG on a change emit.
+        changeCalled = this._updateYAxis(groupIds, groupRanges);
+        var MAX_CYCLES = 5;
+        if (changeCalled == true && this.COUNTER < MAX_CYCLES) {
+          DOMutil.cleanupElements(this.svgElements);
+          this.abortedGraphUpdate = true;
+          this.COUNTER++;
+          this.body.emitter.emit('change');
+          return true;
+        } else {
+          if (this.COUNTER > MAX_CYCLES) {
+            console.log('WARNING: there may be an infinite loop in the _updateGraph emitter cycle.');
+          }
+          this.COUNTER = 0;
+          this.abortedGraphUpdate = false;
+
+          // With the yAxis scaled correctly, use this to get the Y values of the points.
+          for (i = 0; i < groupIds.length; i++) {
+            group = this.groups[groupIds[i]];
+            processedGroupData[groupIds[i]] = this._convertYcoordinates(groupsData[groupIds[i]], group);
+          }
+
+          // draw the groups
+          for (i = 0; i < groupIds.length; i++) {
+            group = this.groups[groupIds[i]];
+            if (group.options.style != 'bar') {
+              // bar needs to be drawn enmasse
+              group.draw(processedGroupData[groupIds[i]], group, this.framework);
+            }
+          }
+          BarFunctions.draw(groupIds, processedGroupData, this.framework);
+        }
+      }
+    }
+
+    // cleanup unused svg elements
+    DOMutil.cleanupElements(this.svgElements);
+    return false;
+  };
+
+  /**
+   * first select and preprocess the data from the datasets.
+   * the groups have their preselection of data, we now loop over this data to see
+   * what data we need to draw. Sorted data is much faster.
+   * more optimization is possible by doing the sampling before and using the binary search
+   * to find the end date to determine the increment.
+   *
+   * @param {array}  groupIds
+   * @param {object} groupsData
+   * @param {date}   minDate
+   * @param {date}   maxDate
+   * @private
+   */
+  LineGraph.prototype._getRelevantData = function (groupIds, groupsData, minDate, maxDate) {
+    var group, i, j, item;
+    if (groupIds.length > 0) {
+      for (i = 0; i < groupIds.length; i++) {
+        group = this.groups[groupIds[i]];
+        groupsData[groupIds[i]] = [];
+        var dataContainer = groupsData[groupIds[i]];
+        // optimization for sorted data
+        if (group.options.sort == true) {
+          var guess = Math.max(0, util.binarySearchValue(group.itemsData, minDate, 'x', 'before'));
+          for (j = guess; j < group.itemsData.length; j++) {
+            item = group.itemsData[j];
+            if (item !== undefined) {
+              if (item.x > maxDate) {
+                dataContainer.push(item);
+                break;
+              } else {
+                dataContainer.push(item);
+              }
+            }
+          }
+        } else {
+          for (j = 0; j < group.itemsData.length; j++) {
+            item = group.itemsData[j];
+            if (item !== undefined) {
+              if (item.x > minDate && item.x < maxDate) {
+                dataContainer.push(item);
+              }
+            }
+          }
+        }
+      }
+    }
+  };
+
+  /**
+   *
+   * @param groupIds
+   * @param groupsData
+   * @private
+   */
+  LineGraph.prototype._applySampling = function (groupIds, groupsData) {
+    var group;
+    if (groupIds.length > 0) {
+      for (var i = 0; i < groupIds.length; i++) {
+        group = this.groups[groupIds[i]];
+        if (group.options.sampling == true) {
+          var dataContainer = groupsData[groupIds[i]];
+          if (dataContainer.length > 0) {
+            var increment = 1;
+            var amountOfPoints = dataContainer.length;
+
+            // the global screen is used because changing the width of the yAxis may affect the increment, resulting in an endless loop
+            // of width changing of the yAxis.
+            var xDistance = this.body.util.toGlobalScreen(dataContainer[dataContainer.length - 1].x) - this.body.util.toGlobalScreen(dataContainer[0].x);
+            var pointsPerPixel = amountOfPoints / xDistance;
+            increment = Math.min(Math.ceil(0.2 * amountOfPoints), Math.max(1, Math.round(pointsPerPixel)));
+
+            var sampledData = [];
+            for (var j = 0; j < amountOfPoints; j += increment) {
+              sampledData.push(dataContainer[j]);
+            }
+            groupsData[groupIds[i]] = sampledData;
+          }
+        }
+      }
+    }
+  };
+
+  /**
+   *
+   *
+   * @param {array}  groupIds
+   * @param {object} groupsData
+   * @param {object} groupRanges  | this is being filled here
+   * @private
+   */
+  LineGraph.prototype._getYRanges = function (groupIds, groupsData, groupRanges) {
+    var groupData, group, i;
+    var combinedDataLeft = [];
+    var combinedDataRight = [];
+    var options;
+    if (groupIds.length > 0) {
+      for (i = 0; i < groupIds.length; i++) {
+        groupData = groupsData[groupIds[i]];
+        options = this.groups[groupIds[i]].options;
+        if (groupData.length > 0) {
+          group = this.groups[groupIds[i]];
+          // if bar graphs are stacked, their range need to be handled differently and accumulated over all groups.
+          if (options.stack === true && options.style === 'bar') {
+            if (options.yAxisOrientation === 'left') {
+              combinedDataLeft = combinedDataLeft.concat(group.getData(groupData));
+            } else {
+              combinedDataRight = combinedDataRight.concat(group.getData(groupData));
+            }
+          } else {
+            groupRanges[groupIds[i]] = group.getYRange(groupData, groupIds[i]);
+          }
+        }
+      }
+
+      // if bar graphs are stacked, their range need to be handled differently and accumulated over all groups.
+      BarFunctions.getStackedYRange(combinedDataLeft, groupRanges, groupIds, '__barStackLeft', 'left');
+      BarFunctions.getStackedYRange(combinedDataRight, groupRanges, groupIds, '__barStackRight', 'right');
+      // if line graphs are stacked, their range need to be handled differently and accumulated over all groups.
+      //LineFunctions.getStackedYRange(combinedDataLeft , groupRanges, groupIds, '__lineStackLeft' , 'left' );
+      //LineFunctions.getStackedYRange(combinedDataRight, groupRanges, groupIds, '__lineStackRight', 'right');
+    }
+  };
+
+  /**
+   * this sets the Y ranges for the Y axis. It also determines which of the axis should be shown or hidden.
+   * @param {Array} groupIds
+   * @param {Object} groupRanges
+   * @private
+   */
+  LineGraph.prototype._updateYAxis = function (groupIds, groupRanges) {
+    var resized = false;
+    var yAxisLeftUsed = false;
+    var yAxisRightUsed = false;
+    var minLeft = 1000000000,
+        minRight = 1000000000,
+        maxLeft = -1000000000,
+        maxRight = -1000000000,
+        minVal,
+        maxVal;
+    // if groups are present
+    if (groupIds.length > 0) {
+      // this is here to make sure that if there are no items in the axis but there are groups, that there is no infinite draw/redraw loop.
+      for (var i = 0; i < groupIds.length; i++) {
+        var group = this.groups[groupIds[i]];
+        if (group && group.options.yAxisOrientation != 'right') {
+          yAxisLeftUsed = true;
+          minLeft = 1000000000;
+          maxLeft = -1000000000;
+        } else if (group && group.options.yAxisOrientation) {
+          yAxisRightUsed = true;
+          minRight = 1000000000;
+          maxRight = -1000000000;
+        }
+      }
+
+      // if there are items:
+      for (var i = 0; i < groupIds.length; i++) {
+        if (groupRanges.hasOwnProperty(groupIds[i])) {
+          if (groupRanges[groupIds[i]].ignore !== true) {
+            minVal = groupRanges[groupIds[i]].min;
+            maxVal = groupRanges[groupIds[i]].max;
+
+            if (groupRanges[groupIds[i]].yAxisOrientation != 'right') {
+              yAxisLeftUsed = true;
+              minLeft = minLeft > minVal ? minVal : minLeft;
+              maxLeft = maxLeft < maxVal ? maxVal : maxLeft;
+            } else {
+              yAxisRightUsed = true;
+              minRight = minRight > minVal ? minVal : minRight;
+              maxRight = maxRight < maxVal ? maxVal : maxRight;
+            }
+          }
+        }
+      }
+
+      if (yAxisLeftUsed == true) {
+        this.yAxisLeft.setRange(minLeft, maxLeft);
+      }
+      if (yAxisRightUsed == true) {
+        this.yAxisRight.setRange(minRight, maxRight);
+      }
+    }
+    resized = this._toggleAxisVisiblity(yAxisLeftUsed, this.yAxisLeft) || resized;
+    resized = this._toggleAxisVisiblity(yAxisRightUsed, this.yAxisRight) || resized;
+
+    if (yAxisRightUsed == true && yAxisLeftUsed == true) {
+      this.yAxisLeft.drawIcons = true;
+      this.yAxisRight.drawIcons = true;
+    } else {
+      this.yAxisLeft.drawIcons = false;
+      this.yAxisRight.drawIcons = false;
+    }
+    this.yAxisRight.master = !yAxisLeftUsed;
+    if (this.yAxisRight.master == false) {
+      if (yAxisRightUsed == true) {
+        this.yAxisLeft.lineOffset = this.yAxisRight.width;
+      } else {
+        this.yAxisLeft.lineOffset = 0;
+      }
+
+      resized = this.yAxisLeft.redraw() || resized;
+      this.yAxisRight.stepPixels = this.yAxisLeft.stepPixels;
+      this.yAxisRight.zeroCrossing = this.yAxisLeft.zeroCrossing;
+      this.yAxisRight.amountOfSteps = this.yAxisLeft.amountOfSteps;
+      resized = this.yAxisRight.redraw() || resized;
+    } else {
+      resized = this.yAxisRight.redraw() || resized;
+    }
+
+    // clean the accumulated lists
+    var tempGroups = ['__barStackLeft', '__barStackRight', '__lineStackLeft', '__lineStackRight'];
+    for (var i = 0; i < tempGroups.length; i++) {
+      if (groupIds.indexOf(tempGroups[i]) != -1) {
+        groupIds.splice(groupIds.indexOf(tempGroups[i]), 1);
+      }
+    }
+
+    return resized;
+  };
+
+  /**
+   * This shows or hides the Y axis if needed. If there is a change, the changed event is emitted by the updateYAxis function
+   *
+   * @param {boolean} axisUsed
+   * @returns {boolean}
+   * @private
+   * @param axis
+   */
+  LineGraph.prototype._toggleAxisVisiblity = function (axisUsed, axis) {
+    var changed = false;
+    if (axisUsed == false) {
+      if (axis.dom.frame.parentNode && axis.hidden == false) {
+        axis.hide();
+        changed = true;
+      }
+    } else {
+      if (!axis.dom.frame.parentNode && axis.hidden == true) {
+        axis.show();
+        changed = true;
+      }
+    }
+    return changed;
+  };
+
+  /**
+   * This uses the DataAxis object to generate the correct X coordinate on the SVG window. It uses the
+   * util function toScreen to get the x coordinate from the timestamp. It also pre-filters the data and get the minMax ranges for
+   * the yAxis.
+   *
+   * @param datapoints
+   * @returns {Array}
+   * @private
+   */
+  LineGraph.prototype._convertXcoordinates = function (datapoints) {
+    var extractedData = [];
+    var xValue, yValue;
+    var toScreen = this.body.util.toScreen;
+
+    for (var i = 0; i < datapoints.length; i++) {
+      xValue = toScreen(datapoints[i].x) + this.props.width;
+      yValue = datapoints[i].y;
+      extractedData.push({ x: xValue, y: yValue });
+    }
+
+    return extractedData;
+  };
+
+  /**
+   * This uses the DataAxis object to generate the correct X coordinate on the SVG window. It uses the
+   * util function toScreen to get the x coordinate from the timestamp. It also pre-filters the data and get the minMax ranges for
+   * the yAxis.
+   *
+   * @param datapoints
+   * @param group
+   * @returns {Array}
+   * @private
+   */
+  LineGraph.prototype._convertYcoordinates = function (datapoints, group) {
+    var extractedData = [];
+    var xValue, yValue;
+    var toScreen = this.body.util.toScreen;
+    var axis = this.yAxisLeft;
+    var svgHeight = Number(this.svg.style.height.replace('px', ''));
+    if (group.options.yAxisOrientation == 'right') {
+      axis = this.yAxisRight;
+    }
+
+    for (var i = 0; i < datapoints.length; i++) {
+      var labelValue = datapoints[i].label ? datapoints[i].label : null;
+      xValue = toScreen(datapoints[i].x) + this.props.width;
+      yValue = Math.round(axis.convertValue(datapoints[i].y));
+      extractedData.push({ x: xValue, y: yValue, label: labelValue });
+    }
+
+    group.setZeroPosition(Math.min(svgHeight, axis.convertValue(0)));
+
+    return extractedData;
+  };
+
+  module.exports = LineGraph;
+
+/***/ },
 /* 52 */
+/***/ function(module, exports, __webpack_require__) {
+
+  'use strict';
+
+  var util = __webpack_require__(9);
+  var DOMutil = __webpack_require__(14);
+  var Component = __webpack_require__(28);
+  var DataStep = __webpack_require__(53);
+
+  /**
+   * A horizontal time axis
+   * @param {Object} [options]        See DataAxis.setOptions for the available
+   *                                  options.
+   * @constructor DataAxis
+   * @extends Component
+   * @param body
+   */
+  function DataAxis(body, options, svg, linegraphOptions) {
+    this.id = util.randomUUID();
+    this.body = body;
+
+    this.defaultOptions = {
+      orientation: 'left', // supported: 'left', 'right'
+      showMinorLabels: true,
+      showMajorLabels: true,
+      icons: true,
+      majorLinesOffset: 7,
+      minorLinesOffset: 4,
+      labelOffsetX: 10,
+      labelOffsetY: 2,
+      iconWidth: 20,
+      width: '40px',
+      visible: true,
+      alignZeros: true,
+      left: {
+        range: { min: undefined, max: undefined },
+        format: function format(value) {
+          return value;
+        },
+        title: { text: undefined, style: undefined }
+      },
+      right: {
+        range: { min: undefined, max: undefined },
+        format: function format(value) {
+          return value;
+        },
+        title: { text: undefined, style: undefined }
+      }
+    };
+
+    this.linegraphOptions = linegraphOptions;
+    this.linegraphSVG = svg;
+    this.props = {};
+    this.DOMelements = { // dynamic elements
+      lines: {},
+      labels: {},
+      title: {}
+    };
+
+    this.dom = {};
+
+    this.range = { start: 0, end: 0 };
+
+    this.options = util.extend({}, this.defaultOptions);
+    this.conversionFactor = 1;
+
+    this.setOptions(options);
+    this.width = Number(('' + this.options.width).replace('px', ''));
+    this.minWidth = this.width;
+    this.height = this.linegraphSVG.offsetHeight;
+    this.hidden = false;
+
+    this.stepPixels = 25;
+    this.zeroCrossing = -1;
+    this.amountOfSteps = -1;
+
+    this.lineOffset = 0;
+    this.master = true;
+    this.svgElements = {};
+    this.iconsRemoved = false;
+
+    this.groups = {};
+    this.amountOfGroups = 0;
+
+    // create the HTML DOM
+    this._create();
+
+    var me = this;
+    this.body.emitter.on('verticalDrag', function () {
+      me.dom.lineContainer.style.top = me.body.domProps.scrollTop + 'px';
+    });
+  }
+
+  DataAxis.prototype = new Component();
+
+  DataAxis.prototype.addGroup = function (label, graphOptions) {
+    if (!this.groups.hasOwnProperty(label)) {
+      this.groups[label] = graphOptions;
+    }
+    this.amountOfGroups += 1;
+  };
+
+  DataAxis.prototype.updateGroup = function (label, graphOptions) {
+    this.groups[label] = graphOptions;
+  };
+
+  DataAxis.prototype.removeGroup = function (label) {
+    if (this.groups.hasOwnProperty(label)) {
+      delete this.groups[label];
+      this.amountOfGroups -= 1;
+    }
+  };
+
+  DataAxis.prototype.setOptions = function (options) {
+    if (options) {
+      var redraw = false;
+      if (this.options.orientation != options.orientation && options.orientation !== undefined) {
+        redraw = true;
+      }
+      var fields = ['orientation', 'showMinorLabels', 'showMajorLabels', 'icons', 'majorLinesOffset', 'minorLinesOffset', 'labelOffsetX', 'labelOffsetY', 'iconWidth', 'width', 'visible', 'left', 'right', 'alignZeros'];
+      util.selectiveExtend(fields, this.options, options);
+
+      this.minWidth = Number(('' + this.options.width).replace('px', ''));
+
+      if (redraw === true && this.dom.frame) {
+        this.hide();
+        this.show();
+      }
+    }
+  };
+
+  /**
+   * Create the HTML DOM for the DataAxis
+   */
+  DataAxis.prototype._create = function () {
+    this.dom.frame = document.createElement('div');
+    this.dom.frame.style.width = this.options.width;
+    this.dom.frame.style.height = this.height;
+
+    this.dom.lineContainer = document.createElement('div');
+    this.dom.lineContainer.style.width = '100%';
+    this.dom.lineContainer.style.height = this.height;
+    this.dom.lineContainer.style.position = 'relative';
+
+    // create svg element for graph drawing.
+    this.svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+    this.svg.style.position = 'absolute';
+    this.svg.style.top = '0px';
+    this.svg.style.height = '100%';
+    this.svg.style.width = '100%';
+    this.svg.style.display = 'block';
+    this.dom.frame.appendChild(this.svg);
+  };
+
+  DataAxis.prototype._redrawGroupIcons = function () {
+    DOMutil.prepareElements(this.svgElements);
+
+    var x;
+    var iconWidth = this.options.iconWidth;
+    var iconHeight = 15;
+    var iconOffset = 4;
+    var y = iconOffset + 0.5 * iconHeight;
+
+    if (this.options.orientation === 'left') {
+      x = iconOffset;
+    } else {
+      x = this.width - iconWidth - iconOffset;
+    }
+
+    var groupArray = Object.keys(this.groups);
+    groupArray.sort(function (a, b) {
+      return a < b ? -1 : 1;
+    });
+
+    for (var i = 0; i < groupArray.length; i++) {
+      var groupId = groupArray[i];
+      if (this.groups[groupId].visible === true && (this.linegraphOptions.visibility[groupId] === undefined || this.linegraphOptions.visibility[groupId] === true)) {
+        this.groups[groupId].drawIcon(x, y, this.svgElements, this.svg, iconWidth, iconHeight);
+        y += iconHeight + iconOffset;
+      }
+    }
+
+    DOMutil.cleanupElements(this.svgElements);
+    this.iconsRemoved = false;
+  };
+
+  DataAxis.prototype._cleanupIcons = function () {
+    if (this.iconsRemoved === false) {
+      DOMutil.prepareElements(this.svgElements);
+      DOMutil.cleanupElements(this.svgElements);
+      this.iconsRemoved = true;
+    }
+  };
+
+  /**
+   * Create the HTML DOM for the DataAxis
+   */
+  DataAxis.prototype.show = function () {
+    this.hidden = false;
+    if (!this.dom.frame.parentNode) {
+      if (this.options.orientation === 'left') {
+        this.body.dom.left.appendChild(this.dom.frame);
+      } else {
+        this.body.dom.right.appendChild(this.dom.frame);
+      }
+    }
+
+    if (!this.dom.lineContainer.parentNode) {
+      this.body.dom.backgroundHorizontal.appendChild(this.dom.lineContainer);
+    }
+  };
+
+  /**
+   * Create the HTML DOM for the DataAxis
+   */
+  DataAxis.prototype.hide = function () {
+    this.hidden = true;
+    if (this.dom.frame.parentNode) {
+      this.dom.frame.parentNode.removeChild(this.dom.frame);
+    }
+
+    if (this.dom.lineContainer.parentNode) {
+      this.dom.lineContainer.parentNode.removeChild(this.dom.lineContainer);
+    }
+  };
+
+  /**
+   * Set a range (start and end)
+   * @param end
+   * @param start
+   * @param end
+   */
+  DataAxis.prototype.setRange = function (start, end) {
+    if (this.master === false && this.options.alignZeros === true && this.zeroCrossing != -1) {
+      if (start > 0) {
+        start = 0;
+      }
+    }
+    this.range.start = start;
+    this.range.end = end;
+  };
+
+  /**
+   * Repaint the component
+   * @return {boolean} Returns true if the component is resized
+   */
+  DataAxis.prototype.redraw = function () {
+    var resized = false;
+    var activeGroups = 0;
+
+    // Make sure the line container adheres to the vertical scrolling.
+    this.dom.lineContainer.style.top = this.body.domProps.scrollTop + 'px';
+
+    for (var groupId in this.groups) {
+      if (this.groups.hasOwnProperty(groupId)) {
+        if (this.groups[groupId].visible === true && (this.linegraphOptions.visibility[groupId] === undefined || this.linegraphOptions.visibility[groupId] === true)) {
+          activeGroups++;
+        }
+      }
+    }
+    if (this.amountOfGroups === 0 || activeGroups === 0) {
+      this.hide();
+    } else {
+      this.show();
+      this.height = Number(this.linegraphSVG.style.height.replace('px', ''));
+
+      // svg offsetheight did not work in firefox and explorer...
+      this.dom.lineContainer.style.height = this.height + 'px';
+      this.width = this.options.visible === true ? Number(('' + this.options.width).replace('px', '')) : 0;
+
+      var props = this.props;
+      var frame = this.dom.frame;
+
+      // update classname
+      frame.className = 'vis-data-axis';
+
+      // calculate character width and height
+      this._calculateCharSize();
+
+      var orientation = this.options.orientation;
+      var showMinorLabels = this.options.showMinorLabels;
+      var showMajorLabels = this.options.showMajorLabels;
+
+      // determine the width and height of the elements for the axis
+      props.minorLabelHeight = showMinorLabels ? props.minorCharHeight : 0;
+      props.majorLabelHeight = showMajorLabels ? props.majorCharHeight : 0;
+
+      props.minorLineWidth = this.body.dom.backgroundHorizontal.offsetWidth - this.lineOffset - this.width + 2 * this.options.minorLinesOffset;
+      props.minorLineHeight = 1;
+      props.majorLineWidth = this.body.dom.backgroundHorizontal.offsetWidth - this.lineOffset - this.width + 2 * this.options.majorLinesOffset;
+      props.majorLineHeight = 1;
+
+      //  take frame offline while updating (is almost twice as fast)
+      if (orientation === 'left') {
+        frame.style.top = '0';
+        frame.style.left = '0';
+        frame.style.bottom = '';
+        frame.style.width = this.width + 'px';
+        frame.style.height = this.height + 'px';
+        this.props.width = this.body.domProps.left.width;
+        this.props.height = this.body.domProps.left.height;
+      } else {
+        // right
+        frame.style.top = '';
+        frame.style.bottom = '0';
+        frame.style.left = '0';
+        frame.style.width = this.width + 'px';
+        frame.style.height = this.height + 'px';
+        this.props.width = this.body.domProps.right.width;
+        this.props.height = this.body.domProps.right.height;
+      }
+
+      resized = this._redrawLabels();
+      resized = this._isResized() || resized;
+
+      if (this.options.icons === true) {
+        this._redrawGroupIcons();
+      } else {
+        this._cleanupIcons();
+      }
+
+      this._redrawTitle(orientation);
+    }
+    return resized;
+  };
+
+  /**
+   * Repaint major and minor text labels and vertical grid lines
+   * @private
+   */
+  DataAxis.prototype._redrawLabels = function () {
+    var resized = false;
+    DOMutil.prepareElements(this.DOMelements.lines);
+    DOMutil.prepareElements(this.DOMelements.labels);
+    var orientation = this.options['orientation'];
+
+    // get the range for the slaved axis
+    var step;
+    if (this.master === false) {
+      var stepSize, rangeStart, rangeEnd, minimumStep;
+      if (this.zeroCrossing !== -1 && this.options.alignZeros === true) {
+        if (this.range.end > 0) {
+          stepSize = this.range.end / this.zeroCrossing; // size of one step
+          rangeStart = this.range.end - this.amountOfSteps * stepSize;
+          rangeEnd = this.range.end;
+        } else {
+          // all of the range (including start) has to be done before the zero crossing.
+          stepSize = -1 * this.range.start / (this.amountOfSteps - this.zeroCrossing); // absolute size of a step
+          rangeStart = this.range.start;
+          rangeEnd = this.range.start + stepSize * this.amountOfSteps;
+        }
+      } else {
+        rangeStart = this.range.start;
+        rangeEnd = this.range.end;
+      }
+      minimumStep = this.stepPixels;
+    } else {
+      // calculate range and step (step such that we have space for 7 characters per label)
+      minimumStep = this.props.majorCharHeight;
+      rangeStart = this.range.start;
+      rangeEnd = this.range.end;
+    }
+
+    this.step = step = new DataStep(rangeStart, rangeEnd, minimumStep, this.dom.frame.offsetHeight, this.options[this.options.orientation].range, this.options[this.options.orientation].format, this.master === false && this.options.alignZeros // does the step have to align zeros? only if not master and the options is on
+    );
+
+    // the slave axis needs to use the same horizontal lines as the master axis.
+    if (this.master === true) {
+      this.stepPixels = this.dom.frame.offsetHeight / step.marginRange * step.step;
+      this.amountOfSteps = Math.ceil(this.dom.frame.offsetHeight / this.stepPixels);
+    } else {
+      // align with zero
+      if (this.options.alignZeros === true && this.zeroCrossing !== -1) {
+        // distance is the amount of steps away from the zero crossing we are.
+        var distance = (step.current - this.zeroCrossing * step.step) / step.step;
+        this.step.shift(distance);
+      }
+    }
+
+    // value at the bottom of the SVG
+    this.valueAtBottom = step.marginEnd;
+
+    this.maxLabelSize = 0;
+    var y = 0; // init value
+    var stepIndex = 0; // init value
+    var isMajor = false; // init value
+    while (stepIndex < this.amountOfSteps) {
+      y = Math.round(stepIndex * this.stepPixels);
+      isMajor = step.isMajor();
+
+      if (stepIndex > 0 && stepIndex !== this.amountOfSteps) {
+        if (this.options['showMinorLabels'] && isMajor === false || this.master === false && this.options['showMinorLabels'] === true) {
+          this._redrawLabel(y - 2, step.getCurrent(), orientation, 'vis-y-axis vis-minor', this.props.minorCharHeight);
+        }
+
+        if (isMajor && this.options['showMajorLabels'] && this.master === true || this.options['showMinorLabels'] === false && this.master === false && isMajor === true) {
+          if (y >= 0) {
+            this._redrawLabel(y - 2, step.getCurrent(), orientation, 'vis-y-axis vis-major', this.props.majorCharHeight);
+          }
+          this._redrawLine(y, orientation, 'vis-grid vis-horizontal vis-major', this.options.majorLinesOffset, this.props.majorLineWidth);
+        } else {
+          this._redrawLine(y, orientation, 'vis-grid vis-horizontal vis-minor', this.options.minorLinesOffset, this.props.minorLineWidth);
+        }
+      }
+
+      // get zero crossing
+      if (this.master === true && step.current === 0) {
+        this.zeroCrossing = stepIndex;
+      }
+
+      step.next();
+      stepIndex += 1;
+    }
+
+    // get zero crossing if it's the last step
+    if (this.master === true && step.current === 0) {
+      this.zeroCrossing = stepIndex;
+    }
+
+    this.conversionFactor = this.stepPixels / step.step;
+
+    // Note that title is rotated, so we're using the height, not width!
+    var titleWidth = 0;
+    if (this.options[orientation].title !== undefined && this.options[orientation].title.text !== undefined) {
+      titleWidth = this.props.titleCharHeight;
+    }
+    var offset = this.options.icons === true ? Math.max(this.options.iconWidth, titleWidth) + this.options.labelOffsetX + 15 : titleWidth + this.options.labelOffsetX + 15;
+
+    // this will resize the yAxis to accommodate the labels.
+    if (this.maxLabelSize > this.width - offset && this.options.visible === true) {
+      this.width = this.maxLabelSize + offset;
+      this.options.width = this.width + 'px';
+      DOMutil.cleanupElements(this.DOMelements.lines);
+      DOMutil.cleanupElements(this.DOMelements.labels);
+      this.redraw();
+      resized = true;
+    }
+    // this will resize the yAxis if it is too big for the labels.
+    else if (this.maxLabelSize < this.width - offset && this.options.visible === true && this.width > this.minWidth) {
+      this.width = Math.max(this.minWidth, this.maxLabelSize + offset);
+      this.options.width = this.width + 'px';
+      DOMutil.cleanupElements(this.DOMelements.lines);
+      DOMutil.cleanupElements(this.DOMelements.labels);
+      this.redraw();
+      resized = true;
+    } else {
+      DOMutil.cleanupElements(this.DOMelements.lines);
+      DOMutil.cleanupElements(this.DOMelements.labels);
+      resized = false;
+    }
+
+    return resized;
+  };
+
+  DataAxis.prototype.convertValue = function (value) {
+    var invertedValue = this.valueAtBottom - value;
+    var convertedValue = invertedValue * this.conversionFactor;
+    return convertedValue;
+  };
+
+  DataAxis.prototype.screenToValue = function (x) {
+    return this.valueAtBottom - x / this.conversionFactor;
+  };
+
+  /**
+   * Create a label for the axis at position x
+   * @private
+   * @param y
+   * @param text
+   * @param orientation
+   * @param className
+   * @param characterHeight
+   */
+  DataAxis.prototype._redrawLabel = function (y, text, orientation, className, characterHeight) {
+    // reuse redundant label
+    var label = DOMutil.getDOMElement('div', this.DOMelements.labels, this.dom.frame); //this.dom.redundant.labels.shift();
+    label.className = className;
+    label.innerHTML = text;
+    if (orientation === 'left') {
+      label.style.left = '-' + this.options.labelOffsetX + 'px';
+      label.style.textAlign = 'right';
+    } else {
+      label.style.right = '-' + this.options.labelOffsetX + 'px';
+      label.style.textAlign = 'left';
+    }
+
+    label.style.top = y - 0.5 * characterHeight + this.options.labelOffsetY + 'px';
+
+    text += '';
+
+    var largestWidth = Math.max(this.props.majorCharWidth, this.props.minorCharWidth);
+    if (this.maxLabelSize < text.length * largestWidth) {
+      this.maxLabelSize = text.length * largestWidth;
+    }
+  };
+
+  /**
+   * Create a minor line for the axis at position y
+   * @param y
+   * @param orientation
+   * @param className
+   * @param offset
+   * @param width
+   */
+  DataAxis.prototype._redrawLine = function (y, orientation, className, offset, width) {
+    if (this.master === true) {
+      var line = DOMutil.getDOMElement('div', this.DOMelements.lines, this.dom.lineContainer); //this.dom.redundant.lines.shift();
+      line.className = className;
+      line.innerHTML = '';
+
+      if (orientation === 'left') {
+        line.style.left = this.width - offset + 'px';
+      } else {
+        line.style.right = this.width - offset + 'px';
+      }
+
+      line.style.width = width + 'px';
+      line.style.top = y + 'px';
+    }
+  };
+
+  /**
+   * Create a title for the axis
+   * @private
+   * @param orientation
+   */
+  DataAxis.prototype._redrawTitle = function (orientation) {
+    DOMutil.prepareElements(this.DOMelements.title);
+
+    // Check if the title is defined for this axes
+    if (this.options[orientation].title !== undefined && this.options[orientation].title.text !== undefined) {
+      var title = DOMutil.getDOMElement('div', this.DOMelements.title, this.dom.frame);
+      title.className = 'vis-y-axis vis-title vis-' + orientation;
+      title.innerHTML = this.options[orientation].title.text;
+
+      // Add style - if provided
+      if (this.options[orientation].title.style !== undefined) {
+        util.addCssText(title, this.options[orientation].title.style);
+      }
+
+      if (orientation === 'left') {
+        title.style.left = this.props.titleCharHeight + 'px';
+      } else {
+        title.style.right = this.props.titleCharHeight + 'px';
+      }
+
+      title.style.width = this.height + 'px';
+    }
+
+    // we need to clean up in case we did not use all elements.
+    DOMutil.cleanupElements(this.DOMelements.title);
+  };
+
+  /**
+   * Determine the size of text on the axis (both major and minor axis).
+   * The size is calculated only once and then cached in this.props.
+   * @private
+   */
+  DataAxis.prototype._calculateCharSize = function () {
+    // determine the char width and height on the minor axis
+    if (!('minorCharHeight' in this.props)) {
+      var textMinor = document.createTextNode('0');
+      var measureCharMinor = document.createElement('div');
+      measureCharMinor.className = 'vis-y-axis vis-minor vis-measure';
+      measureCharMinor.appendChild(textMinor);
+      this.dom.frame.appendChild(measureCharMinor);
+
+      this.props.minorCharHeight = measureCharMinor.clientHeight;
+      this.props.minorCharWidth = measureCharMinor.clientWidth;
+
+      this.dom.frame.removeChild(measureCharMinor);
+    }
+
+    if (!('majorCharHeight' in this.props)) {
+      var textMajor = document.createTextNode('0');
+      var measureCharMajor = document.createElement('div');
+      measureCharMajor.className = 'vis-y-axis vis-major vis-measure';
+      measureCharMajor.appendChild(textMajor);
+      this.dom.frame.appendChild(measureCharMajor);
+
+      this.props.majorCharHeight = measureCharMajor.clientHeight;
+      this.props.majorCharWidth = measureCharMajor.clientWidth;
+
+      this.dom.frame.removeChild(measureCharMajor);
+    }
+
+    if (!('titleCharHeight' in this.props)) {
+      var textTitle = document.createTextNode('0');
+      var measureCharTitle = document.createElement('div');
+      measureCharTitle.className = 'vis-y-axis vis-title vis-measure';
+      measureCharTitle.appendChild(textTitle);
+      this.dom.frame.appendChild(measureCharTitle);
+
+      this.props.titleCharHeight = measureCharTitle.clientHeight;
+      this.props.titleCharWidth = measureCharTitle.clientWidth;
+
+      this.dom.frame.removeChild(measureCharTitle);
+    }
+  };
+
+  module.exports = DataAxis;
+
+/***/ },
+/* 53 */
 /***/ function(module, exports, __webpack_require__) {
 
   /**
@@ -24906,16 +25311,16 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = DataStep;
 
 /***/ },
-/* 53 */
+/* 54 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
 
-  var util = __webpack_require__(10);
-  var DOMutil = __webpack_require__(15);
-  var Line = __webpack_require__(54);
-  var Bar = __webpack_require__(56);
-  var Points = __webpack_require__(55);
+  var util = __webpack_require__(9);
+  var DOMutil = __webpack_require__(14);
+  var Line = __webpack_require__(55);
+  var Bar = __webpack_require__(57);
+  var Points = __webpack_require__(56);
 
   /**
    * /**
@@ -25104,13 +25509,13 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = GraphGroup;
 
 /***/ },
-/* 54 */
+/* 55 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
 
-  var DOMutil = __webpack_require__(15);
-  var Points = __webpack_require__(55);
+  var DOMutil = __webpack_require__(14);
+  var Points = __webpack_require__(56);
 
   function Line(groupId, options) {
     this.groupId = groupId;
@@ -25399,12 +25804,12 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = Line;
 
 /***/ },
-/* 55 */
+/* 56 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
 
-  var DOMutil = __webpack_require__(15);
+  var DOMutil = __webpack_require__(14);
 
   function Points(groupId, options) {
     this.groupId = groupId;
@@ -25446,13 +25851,13 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = Points;
 
 /***/ },
-/* 56 */
+/* 57 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
 
-  var DOMutil = __webpack_require__(15);
-  var Points = __webpack_require__(55);
+  var DOMutil = __webpack_require__(14);
+  var Points = __webpack_require__(56);
 
   function Bargraph(groupId, options) {
     this.groupId = groupId;
@@ -25694,14 +26099,14 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = Bargraph;
 
 /***/ },
-/* 57 */
+/* 58 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
 
-  var util = __webpack_require__(10);
-  var DOMutil = __webpack_require__(15);
-  var Component = __webpack_require__(29);
+  var util = __webpack_require__(9);
+  var DOMutil = __webpack_require__(14);
+  var Component = __webpack_require__(28);
 
   /**
    * Legend for Graph2d
@@ -25908,7 +26313,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = Legend;
 
 /***/ },
-/* 58 */
+/* 59 */
 /***/ function(module, exports, __webpack_require__) {
 
   /**
@@ -26176,7 +26581,7 @@ return /******/ (function(modules) { // webpackBootstrap
   exports.configureOptions = configureOptions;
 
 /***/ },
-/* 59 */
+/* 60 */
 /***/ function(module, exports, __webpack_require__) {
 
   // Load custom shapes into CanvasRenderingContext2D
@@ -26184,35 +26589,35 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
 
-  var _modulesGroups = __webpack_require__(60);
+  var _modulesGroups = __webpack_require__(61);
 
   var _modulesGroups2 = _interopRequireDefault(_modulesGroups);
 
-  var _modulesNodesHandler = __webpack_require__(61);
+  var _modulesNodesHandler = __webpack_require__(62);
 
   var _modulesNodesHandler2 = _interopRequireDefault(_modulesNodesHandler);
 
-  var _modulesEdgesHandler = __webpack_require__(81);
+  var _modulesEdgesHandler = __webpack_require__(82);
 
   var _modulesEdgesHandler2 = _interopRequireDefault(_modulesEdgesHandler);
 
-  var _modulesPhysicsEngine = __webpack_require__(88);
+  var _modulesPhysicsEngine = __webpack_require__(89);
 
   var _modulesPhysicsEngine2 = _interopRequireDefault(_modulesPhysicsEngine);
 
-  var _modulesClustering = __webpack_require__(97);
+  var _modulesClustering = __webpack_require__(98);
 
   var _modulesClustering2 = _interopRequireDefault(_modulesClustering);
 
-  var _modulesCanvasRenderer = __webpack_require__(99);
+  var _modulesCanvasRenderer = __webpack_require__(100);
 
   var _modulesCanvasRenderer2 = _interopRequireDefault(_modulesCanvasRenderer);
 
-  var _modulesCanvas = __webpack_require__(100);
+  var _modulesCanvas = __webpack_require__(101);
 
   var _modulesCanvas2 = _interopRequireDefault(_modulesCanvas);
 
-  var _modulesView = __webpack_require__(101);
+  var _modulesView = __webpack_require__(3);
 
   var _modulesView2 = _interopRequireDefault(_modulesView);
 
@@ -26232,11 +26637,11 @@ return /******/ (function(modules) { // webpackBootstrap
 
   var _modulesManipulationSystem2 = _interopRequireDefault(_modulesManipulationSystem);
 
-  var _sharedConfigurator = __webpack_require__(47);
+  var _sharedConfigurator = __webpack_require__(46);
 
   var _sharedConfigurator2 = _interopRequireDefault(_sharedConfigurator);
 
-  var _sharedValidator = __webpack_require__(49);
+  var _sharedValidator = __webpack_require__(48);
 
   var _sharedValidator2 = _interopRequireDefault(_sharedValidator);
 
@@ -26244,15 +26649,15 @@ return /******/ (function(modules) { // webpackBootstrap
 
   __webpack_require__(109);
 
-  var Emitter = __webpack_require__(21);
-  var Hammer = __webpack_require__(6);
-  var util = __webpack_require__(10);
-  var DataSet = __webpack_require__(16);
-  var DataView = __webpack_require__(18);
+  var Emitter = __webpack_require__(20);
+  var Hammer = __webpack_require__(5);
+  var util = __webpack_require__(9);
+  var DataSet = __webpack_require__(15);
+  var DataView = __webpack_require__(17);
   var dotparser = __webpack_require__(110);
   var gephiParser = __webpack_require__(111);
   var Images = __webpack_require__(112);
-  var Activator = __webpack_require__(44);
+  var Activator = __webpack_require__(43);
   var locales = __webpack_require__(113);
 
   /**
@@ -26786,7 +27191,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = Network;
 
 /***/ },
-/* 60 */
+/* 61 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
@@ -26799,7 +27204,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
-  var util = __webpack_require__(10);
+  var util = __webpack_require__(9);
 
   /**
    * @class Groups
@@ -26928,7 +27333,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports["default"];
 
 /***/ },
-/* 61 */
+/* 62 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -26943,17 +27348,17 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
 
-  var _componentsNode = __webpack_require__(62);
+  var _componentsNode = __webpack_require__(63);
 
   var _componentsNode2 = _interopRequireDefault(_componentsNode);
 
-  var _componentsSharedLabel = __webpack_require__(63);
+  var _componentsSharedLabel = __webpack_require__(64);
 
   var _componentsSharedLabel2 = _interopRequireDefault(_componentsSharedLabel);
 
-  var util = __webpack_require__(10);
-  var DataSet = __webpack_require__(16);
-  var DataView = __webpack_require__(18);
+  var util = __webpack_require__(9);
+  var DataSet = __webpack_require__(15);
+  var DataView = __webpack_require__(17);
 
   var NodesHandler = (function () {
     function NodesHandler(body, images, groups, layoutEngine) {
@@ -27406,7 +27811,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 62 */
+/* 63 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -27421,71 +27826,71 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
 
-  var _sharedLabel = __webpack_require__(63);
+  var _sharedLabel = __webpack_require__(64);
 
   var _sharedLabel2 = _interopRequireDefault(_sharedLabel);
 
-  var _nodesShapesBox = __webpack_require__(64);
+  var _nodesShapesBox = __webpack_require__(65);
 
   var _nodesShapesBox2 = _interopRequireDefault(_nodesShapesBox);
 
-  var _nodesShapesCircle = __webpack_require__(66);
+  var _nodesShapesCircle = __webpack_require__(67);
 
   var _nodesShapesCircle2 = _interopRequireDefault(_nodesShapesCircle);
 
-  var _nodesShapesCircularImage = __webpack_require__(68);
+  var _nodesShapesCircularImage = __webpack_require__(69);
 
   var _nodesShapesCircularImage2 = _interopRequireDefault(_nodesShapesCircularImage);
 
-  var _nodesShapesDatabase = __webpack_require__(69);
+  var _nodesShapesDatabase = __webpack_require__(70);
 
   var _nodesShapesDatabase2 = _interopRequireDefault(_nodesShapesDatabase);
 
-  var _nodesShapesDiamond = __webpack_require__(70);
+  var _nodesShapesDiamond = __webpack_require__(71);
 
   var _nodesShapesDiamond2 = _interopRequireDefault(_nodesShapesDiamond);
 
-  var _nodesShapesDot = __webpack_require__(72);
+  var _nodesShapesDot = __webpack_require__(73);
 
   var _nodesShapesDot2 = _interopRequireDefault(_nodesShapesDot);
 
-  var _nodesShapesEllipse = __webpack_require__(73);
+  var _nodesShapesEllipse = __webpack_require__(74);
 
   var _nodesShapesEllipse2 = _interopRequireDefault(_nodesShapesEllipse);
 
-  var _nodesShapesIcon = __webpack_require__(74);
+  var _nodesShapesIcon = __webpack_require__(75);
 
   var _nodesShapesIcon2 = _interopRequireDefault(_nodesShapesIcon);
 
-  var _nodesShapesImage = __webpack_require__(75);
+  var _nodesShapesImage = __webpack_require__(76);
 
   var _nodesShapesImage2 = _interopRequireDefault(_nodesShapesImage);
 
-  var _nodesShapesSquare = __webpack_require__(76);
+  var _nodesShapesSquare = __webpack_require__(77);
 
   var _nodesShapesSquare2 = _interopRequireDefault(_nodesShapesSquare);
 
-  var _nodesShapesStar = __webpack_require__(77);
+  var _nodesShapesStar = __webpack_require__(78);
 
   var _nodesShapesStar2 = _interopRequireDefault(_nodesShapesStar);
 
-  var _nodesShapesText = __webpack_require__(78);
+  var _nodesShapesText = __webpack_require__(79);
 
   var _nodesShapesText2 = _interopRequireDefault(_nodesShapesText);
 
-  var _nodesShapesTriangle = __webpack_require__(79);
+  var _nodesShapesTriangle = __webpack_require__(80);
 
   var _nodesShapesTriangle2 = _interopRequireDefault(_nodesShapesTriangle);
 
-  var _nodesShapesTriangleDown = __webpack_require__(80);
+  var _nodesShapesTriangleDown = __webpack_require__(81);
 
   var _nodesShapesTriangleDown2 = _interopRequireDefault(_nodesShapesTriangleDown);
 
-  var _sharedValidator = __webpack_require__(49);
+  var _sharedValidator = __webpack_require__(48);
 
   var _sharedValidator2 = _interopRequireDefault(_sharedValidator);
 
-  var util = __webpack_require__(10);
+  var util = __webpack_require__(9);
 
   /**
    * @class Node
@@ -27926,7 +28331,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 63 */
+/* 64 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -27941,7 +28346,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
 
-  var util = __webpack_require__(10);
+  var util = __webpack_require__(9);
 
   var Label = (function () {
     function Label(body, options) {
@@ -28242,7 +28647,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 64 */
+/* 65 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -28261,7 +28666,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; }
 
-  var _utilNodeBase = __webpack_require__(65);
+  var _utilNodeBase = __webpack_require__(66);
 
   var _utilNodeBase2 = _interopRequireDefault(_utilNodeBase);
 
@@ -28347,7 +28752,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 65 */
+/* 66 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -28415,7 +28820,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 66 */
+/* 67 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -28434,7 +28839,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; }
 
-  var _utilCircleImageBase = __webpack_require__(67);
+  var _utilCircleImageBase = __webpack_require__(68);
 
   var _utilCircleImageBase2 = _interopRequireDefault(_utilCircleImageBase);
 
@@ -28505,7 +28910,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 67 */
+/* 68 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -28524,7 +28929,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; }
 
-  var _utilNodeBase = __webpack_require__(65);
+  var _utilNodeBase = __webpack_require__(66);
 
   var _utilNodeBase2 = _interopRequireDefault(_utilNodeBase);
 
@@ -28654,7 +29059,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 68 */
+/* 69 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -28673,7 +29078,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; }
 
-  var _utilCircleImageBase = __webpack_require__(67);
+  var _utilCircleImageBase = __webpack_require__(68);
 
   var _utilCircleImageBase2 = _interopRequireDefault(_utilCircleImageBase);
 
@@ -28759,7 +29164,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 69 */
+/* 70 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -28778,7 +29183,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; }
 
-  var _utilNodeBase = __webpack_require__(65);
+  var _utilNodeBase = __webpack_require__(66);
 
   var _utilNodeBase2 = _interopRequireDefault(_utilNodeBase);
 
@@ -28866,7 +29271,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 70 */
+/* 71 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -28885,7 +29290,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; }
 
-  var _utilShapeBase = __webpack_require__(71);
+  var _utilShapeBase = __webpack_require__(72);
 
   var _utilShapeBase2 = _interopRequireDefault(_utilShapeBase);
 
@@ -28922,7 +29327,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 71 */
+/* 72 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -28941,7 +29346,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; }
 
-  var _utilNodeBase = __webpack_require__(65);
+  var _utilNodeBase = __webpack_require__(66);
 
   var _utilNodeBase2 = _interopRequireDefault(_utilNodeBase);
 
@@ -29021,7 +29426,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 72 */
+/* 73 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -29040,7 +29445,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; }
 
-  var _utilShapeBase = __webpack_require__(71);
+  var _utilShapeBase = __webpack_require__(72);
 
   var _utilShapeBase2 = _interopRequireDefault(_utilShapeBase);
 
@@ -29077,7 +29482,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 73 */
+/* 74 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -29096,7 +29501,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; }
 
-  var _utilNodeBase = __webpack_require__(65);
+  var _utilNodeBase = __webpack_require__(66);
 
   var _utilNodeBase2 = _interopRequireDefault(_utilNodeBase);
 
@@ -29186,7 +29591,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 74 */
+/* 75 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -29205,7 +29610,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; }
 
-  var _utilNodeBase = __webpack_require__(65);
+  var _utilNodeBase = __webpack_require__(66);
 
   var _utilNodeBase2 = _interopRequireDefault(_utilNodeBase);
 
@@ -29302,7 +29707,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 75 */
+/* 76 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -29321,7 +29726,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; }
 
-  var _utilCircleImageBase = __webpack_require__(67);
+  var _utilCircleImageBase = __webpack_require__(68);
 
   var _utilCircleImageBase2 = _interopRequireDefault(_utilCircleImageBase);
 
@@ -29390,7 +29795,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 76 */
+/* 77 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -29409,7 +29814,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; }
 
-  var _utilShapeBase = __webpack_require__(71);
+  var _utilShapeBase = __webpack_require__(72);
 
   var _utilShapeBase2 = _interopRequireDefault(_utilShapeBase);
 
@@ -29447,7 +29852,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 77 */
+/* 78 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -29466,7 +29871,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; }
 
-  var _utilShapeBase = __webpack_require__(71);
+  var _utilShapeBase = __webpack_require__(72);
 
   var _utilShapeBase2 = _interopRequireDefault(_utilShapeBase);
 
@@ -29503,7 +29908,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 78 */
+/* 79 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -29522,7 +29927,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; }
 
-  var _utilNodeBase = __webpack_require__(65);
+  var _utilNodeBase = __webpack_require__(66);
 
   var _utilNodeBase2 = _interopRequireDefault(_utilNodeBase);
 
@@ -29590,7 +29995,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 79 */
+/* 80 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -29609,7 +30014,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; }
 
-  var _utilShapeBase = __webpack_require__(71);
+  var _utilShapeBase = __webpack_require__(72);
 
   var _utilShapeBase2 = _interopRequireDefault(_utilShapeBase);
 
@@ -29646,7 +30051,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 80 */
+/* 81 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -29665,7 +30070,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; }
 
-  var _utilShapeBase = __webpack_require__(71);
+  var _utilShapeBase = __webpack_require__(72);
 
   var _utilShapeBase2 = _interopRequireDefault(_utilShapeBase);
 
@@ -29702,7 +30107,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 81 */
+/* 82 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -29717,17 +30122,17 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
 
-  var _componentsEdge = __webpack_require__(82);
+  var _componentsEdge = __webpack_require__(83);
 
   var _componentsEdge2 = _interopRequireDefault(_componentsEdge);
 
-  var _componentsSharedLabel = __webpack_require__(63);
+  var _componentsSharedLabel = __webpack_require__(64);
 
   var _componentsSharedLabel2 = _interopRequireDefault(_componentsSharedLabel);
 
-  var util = __webpack_require__(10);
-  var DataSet = __webpack_require__(16);
-  var DataView = __webpack_require__(18);
+  var util = __webpack_require__(9);
+  var DataSet = __webpack_require__(15);
+  var DataView = __webpack_require__(17);
 
   var EdgesHandler = (function () {
     function EdgesHandler(body, images, groups) {
@@ -30137,7 +30542,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 82 */
+/* 83 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -30152,23 +30557,23 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
 
-  var _sharedLabel = __webpack_require__(63);
+  var _sharedLabel = __webpack_require__(64);
 
   var _sharedLabel2 = _interopRequireDefault(_sharedLabel);
 
-  var _edgesBezierEdgeDynamic = __webpack_require__(83);
+  var _edgesBezierEdgeDynamic = __webpack_require__(84);
 
   var _edgesBezierEdgeDynamic2 = _interopRequireDefault(_edgesBezierEdgeDynamic);
 
-  var _edgesBezierEdgeStatic = __webpack_require__(86);
+  var _edgesBezierEdgeStatic = __webpack_require__(87);
 
   var _edgesBezierEdgeStatic2 = _interopRequireDefault(_edgesBezierEdgeStatic);
 
-  var _edgesStraightEdge = __webpack_require__(87);
+  var _edgesStraightEdge = __webpack_require__(88);
 
   var _edgesStraightEdge2 = _interopRequireDefault(_edgesStraightEdge);
 
-  var util = __webpack_require__(10);
+  var util = __webpack_require__(9);
 
   /**
    * @class Edge
@@ -30701,7 +31106,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 83 */
+/* 84 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -30720,7 +31125,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; }
 
-  var _utilBezierEdgeBase = __webpack_require__(84);
+  var _utilBezierEdgeBase = __webpack_require__(85);
 
   var _utilBezierEdgeBase2 = _interopRequireDefault(_utilBezierEdgeBase);
 
@@ -30866,7 +31271,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 84 */
+/* 85 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -30885,7 +31290,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; }
 
-  var _EdgeBase2 = __webpack_require__(85);
+  var _EdgeBase2 = __webpack_require__(86);
 
   var _EdgeBase3 = _interopRequireDefault(_EdgeBase2);
 
@@ -31013,7 +31418,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 85 */
+/* 86 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -31028,7 +31433,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
 
-  var util = __webpack_require__(10);
+  var util = __webpack_require__(9);
 
   var EdgeBase = (function () {
     function EdgeBase(options, body, labelModule) {
@@ -31610,7 +32015,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 86 */
+/* 87 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -31629,7 +32034,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; }
 
-  var _utilBezierEdgeBase = __webpack_require__(84);
+  var _utilBezierEdgeBase = __webpack_require__(85);
 
   var _utilBezierEdgeBase2 = _interopRequireDefault(_utilBezierEdgeBase);
 
@@ -31869,7 +32274,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 87 */
+/* 88 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -31888,7 +32293,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; }
 
-  var _utilEdgeBase = __webpack_require__(85);
+  var _utilEdgeBase = __webpack_require__(86);
 
   var _utilEdgeBase2 = _interopRequireDefault(_utilEdgeBase);
 
@@ -31974,7 +32379,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 88 */
+/* 89 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -31989,39 +32394,39 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
 
-  var _componentsPhysicsBarnesHutSolver = __webpack_require__(89);
+  var _componentsPhysicsBarnesHutSolver = __webpack_require__(90);
 
   var _componentsPhysicsBarnesHutSolver2 = _interopRequireDefault(_componentsPhysicsBarnesHutSolver);
 
-  var _componentsPhysicsRepulsionSolver = __webpack_require__(90);
+  var _componentsPhysicsRepulsionSolver = __webpack_require__(91);
 
   var _componentsPhysicsRepulsionSolver2 = _interopRequireDefault(_componentsPhysicsRepulsionSolver);
 
-  var _componentsPhysicsHierarchicalRepulsionSolver = __webpack_require__(91);
+  var _componentsPhysicsHierarchicalRepulsionSolver = __webpack_require__(92);
 
   var _componentsPhysicsHierarchicalRepulsionSolver2 = _interopRequireDefault(_componentsPhysicsHierarchicalRepulsionSolver);
 
-  var _componentsPhysicsSpringSolver = __webpack_require__(92);
+  var _componentsPhysicsSpringSolver = __webpack_require__(93);
 
   var _componentsPhysicsSpringSolver2 = _interopRequireDefault(_componentsPhysicsSpringSolver);
 
-  var _componentsPhysicsHierarchicalSpringSolver = __webpack_require__(93);
+  var _componentsPhysicsHierarchicalSpringSolver = __webpack_require__(94);
 
   var _componentsPhysicsHierarchicalSpringSolver2 = _interopRequireDefault(_componentsPhysicsHierarchicalSpringSolver);
 
-  var _componentsPhysicsCentralGravitySolver = __webpack_require__(94);
+  var _componentsPhysicsCentralGravitySolver = __webpack_require__(95);
 
   var _componentsPhysicsCentralGravitySolver2 = _interopRequireDefault(_componentsPhysicsCentralGravitySolver);
 
-  var _componentsPhysicsFA2BasedRepulsionSolver = __webpack_require__(95);
+  var _componentsPhysicsFA2BasedRepulsionSolver = __webpack_require__(96);
 
   var _componentsPhysicsFA2BasedRepulsionSolver2 = _interopRequireDefault(_componentsPhysicsFA2BasedRepulsionSolver);
 
-  var _componentsPhysicsFA2BasedCentralGravitySolver = __webpack_require__(96);
+  var _componentsPhysicsFA2BasedCentralGravitySolver = __webpack_require__(97);
 
   var _componentsPhysicsFA2BasedCentralGravitySolver2 = _interopRequireDefault(_componentsPhysicsFA2BasedCentralGravitySolver);
 
-  var util = __webpack_require__(10);
+  var util = __webpack_require__(9);
 
   var PhysicsEngine = (function () {
     function PhysicsEngine(body) {
@@ -32614,7 +33019,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 89 */
+/* 90 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
@@ -33113,7 +33518,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports["default"];
 
 /***/ },
-/* 90 */
+/* 91 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
@@ -33208,7 +33613,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports["default"];
 
 /***/ },
-/* 91 */
+/* 92 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
@@ -33299,7 +33704,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports["default"];
 
 /***/ },
-/* 92 */
+/* 93 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
@@ -33409,7 +33814,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports["default"];
 
 /***/ },
-/* 93 */
+/* 94 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
@@ -33538,7 +33943,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports["default"];
 
 /***/ },
-/* 94 */
+/* 95 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
@@ -33607,7 +34012,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports["default"];
 
 /***/ },
-/* 95 */
+/* 96 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
@@ -33626,7 +34031,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; }
 
-  var _BarnesHutSolver2 = __webpack_require__(89);
+  var _BarnesHutSolver2 = __webpack_require__(90);
 
   var _BarnesHutSolver3 = _interopRequireDefault(_BarnesHutSolver2);
 
@@ -33681,7 +34086,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports["default"];
 
 /***/ },
-/* 96 */
+/* 97 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
@@ -33700,7 +34105,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; }
 
-  var _CentralGravitySolver2 = __webpack_require__(94);
+  var _CentralGravitySolver2 = __webpack_require__(95);
 
   var _CentralGravitySolver3 = _interopRequireDefault(_CentralGravitySolver2);
 
@@ -33737,7 +34142,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports["default"];
 
 /***/ },
-/* 97 */
+/* 98 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -33752,11 +34157,11 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
 
-  var _componentsNodesCluster = __webpack_require__(98);
+  var _componentsNodesCluster = __webpack_require__(99);
 
   var _componentsNodesCluster2 = _interopRequireDefault(_componentsNodesCluster);
 
-  var util = __webpack_require__(10);
+  var util = __webpack_require__(9);
 
   var ClusterEngine = (function () {
     function ClusterEngine(body) {
@@ -34492,7 +34897,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 98 */
+/* 99 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -34509,7 +34914,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; }
 
-  var _Node2 = __webpack_require__(62);
+  var _Node2 = __webpack_require__(63);
 
   var _Node3 = _interopRequireDefault(_Node2);
 
@@ -34537,7 +34942,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 99 */
+/* 100 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -34554,7 +34959,7 @@ return /******/ (function(modules) { // webpackBootstrap
     window.requestAnimationFrame = window.requestAnimationFrame || window.mozRequestAnimationFrame || window.webkitRequestAnimationFrame || window.msRequestAnimationFrame;
   }
 
-  var util = __webpack_require__(10);
+  var util = __webpack_require__(9);
 
   var CanvasRenderer = (function () {
     function CanvasRenderer(body, canvas) {
@@ -34925,7 +35330,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 100 */
+/* 101 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -34938,10 +35343,10 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
 
-  var Hammer = __webpack_require__(6);
-  var hammerUtil = __webpack_require__(32);
+  var Hammer = __webpack_require__(5);
+  var hammerUtil = __webpack_require__(31);
 
-  var util = __webpack_require__(10);
+  var util = __webpack_require__(9);
 
   /**
    * Create the main frame for the Network.
@@ -35303,411 +35708,6 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 101 */
-/***/ function(module, exports, __webpack_require__) {
-
-  "use strict";
-
-  Object.defineProperty(exports, "__esModule", {
-    value: true
-  });
-
-  var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
-
-  function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-
-  var util = __webpack_require__(10);
-
-  var View = (function () {
-    function View(body, canvas) {
-      var _this = this;
-
-      _classCallCheck(this, View);
-
-      this.body = body;
-      this.canvas = canvas;
-
-      this.animationSpeed = 1 / this.renderRefreshRate;
-      this.animationEasingFunction = "easeInOutQuint";
-      this.easingTime = 0;
-      this.sourceScale = 0;
-      this.targetScale = 0;
-      this.sourceTranslation = 0;
-      this.targetTranslation = 0;
-      this.lockedOnNodeId = undefined;
-      this.lockedOnNodeOffset = undefined;
-      this.touchTime = 0;
-
-      this.viewFunction = undefined;
-
-      this.body.emitter.on("fit", this.fit.bind(this));
-      this.body.emitter.on("animationFinished", function () {
-        _this.body.emitter.emit("_stopRendering");
-      });
-      this.body.emitter.on("unlockNode", this.releaseNode.bind(this));
-    }
-
-    _createClass(View, [{
-      key: "setOptions",
-      value: function setOptions() {
-        var options = arguments[0] === undefined ? {} : arguments[0];
-
-        this.options = options;
-      }
-    }, {
-      key: "_getRange",
-
-      /**
-       * Find the center position of the network
-       * @private
-       */
-      value: function _getRange() {
-        var specificNodes = arguments[0] === undefined ? [] : arguments[0];
-
-        var minY = 1000000000,
-            maxY = -1000000000,
-            minX = 1000000000,
-            maxX = -1000000000,
-            node;
-        if (specificNodes.length > 0) {
-          for (var i = 0; i < specificNodes.length; i++) {
-            node = this.body.nodes[specificNodes[i]];
-            if (minX > node.shape.boundingBox.left) {
-              minX = node.shape.boundingBox.left;
-            }
-            if (maxX < node.shape.boundingBox.right) {
-              maxX = node.shape.boundingBox.right;
-            }
-            if (minY > node.shape.boundingBox.top) {
-              minY = node.shape.boundingBox.top;
-            } // top is negative, bottom is positive
-            if (maxY < node.shape.boundingBox.bottom) {
-              maxY = node.shape.boundingBox.bottom;
-            } // top is negative, bottom is positive
-          }
-        } else {
-          for (var nodeId in this.body.nodes) {
-
-            if (this.body.nodes.hasOwnProperty(nodeId)) {
-              node = this.body.nodes[nodeId];
-              if (minX > node.shape.boundingBox.left) {
-                minX = node.shape.boundingBox.left;
-              }
-              if (maxX < node.shape.boundingBox.right) {
-                maxX = node.shape.boundingBox.right;
-              }
-              if (minY > node.shape.boundingBox.top) {
-                minY = node.shape.boundingBox.top;
-              } // top is negative, bottom is positive
-              if (maxY < node.shape.boundingBox.bottom) {
-                maxY = node.shape.boundingBox.bottom;
-              } // top is negative, bottom is positive
-            }
-          }
-        }
-
-        if (minX === 1000000000 && maxX === -1000000000 && minY === 1000000000 && maxY === -1000000000) {
-          minY = 0, maxY = 0, minX = 0, maxX = 0;
-        }
-        return { minX: minX, maxX: maxX, minY: minY, maxY: maxY };
-      }
-    }, {
-      key: "_findCenter",
-
-      /**
-       * @param {object} range = {minX: minX, maxX: maxX, minY: minY, maxY: maxY};
-       * @returns {{x: number, y: number}}
-       * @private
-       */
-      value: function _findCenter(range) {
-        return { x: 0.5 * (range.maxX + range.minX),
-          y: 0.5 * (range.maxY + range.minY) };
-      }
-    }, {
-      key: "fit",
-
-      /**
-       * This function zooms out to fit all data on screen based on amount of nodes
-       * @param {Object} Options
-       * @param {Boolean} [initialZoom]  | zoom based on fitted formula or range, true = fitted, default = false;
-       */
-      value: function fit() {
-        var options = arguments[0] === undefined ? { nodes: [] } : arguments[0];
-        var initialZoom = arguments[1] === undefined ? false : arguments[1];
-
-        var range;
-        var zoomLevel;
-
-        if (initialZoom === true) {
-          // check if more than half of the nodes have a predefined position. If so, we use the range, not the approximation.
-          var positionDefined = 0;
-          for (var nodeId in this.body.nodes) {
-            if (this.body.nodes.hasOwnProperty(nodeId)) {
-              var node = this.body.nodes[nodeId];
-              if (node.predefinedPosition === true) {
-                positionDefined += 1;
-              }
-            }
-          }
-          if (positionDefined > 0.5 * this.body.nodeIndices.length) {
-            this.fit(options, false);
-            return;
-          }
-
-          range = this._getRange(options.nodes);
-
-          var numberOfNodes = this.body.nodeIndices.length;
-          zoomLevel = 12.662 / (numberOfNodes + 7.4147) + 0.0964822; // this is obtained from fitting a dataset from 5 points with scale levels that looked good.
-
-          // correct for larger canvasses.
-          var factor = Math.min(this.canvas.frame.canvas.clientWidth / 600, this.canvas.frame.canvas.clientHeight / 600);
-          zoomLevel *= factor;
-        } else {
-          this.body.emitter.emit("_resizeNodes");
-          range = this._getRange(options.nodes);
-
-          var xDistance = Math.abs(range.maxX - range.minX) * 1.1;
-          var yDistance = Math.abs(range.maxY - range.minY) * 1.1;
-
-          var xZoomLevel = this.canvas.frame.canvas.clientWidth / xDistance;
-          var yZoomLevel = this.canvas.frame.canvas.clientHeight / yDistance;
-
-          zoomLevel = xZoomLevel <= yZoomLevel ? xZoomLevel : yZoomLevel;
-        }
-
-        if (zoomLevel > 1) {
-          zoomLevel = 1;
-        } else if (zoomLevel === 0) {
-          zoomLevel = 1;
-        }
-
-        var center = this._findCenter(range);
-        var animationOptions = { position: center, scale: zoomLevel, animation: options.animation };
-        this.moveTo(animationOptions);
-      }
-    }, {
-      key: "focus",
-
-      // animation
-
-      /**
-       * Center a node in view.
-       *
-       * @param {Number} nodeId
-       * @param {Number} [options]
-       */
-      value: function focus(nodeId) {
-        var options = arguments[1] === undefined ? {} : arguments[1];
-
-        if (this.body.nodes[nodeId] !== undefined) {
-          var nodePosition = { x: this.body.nodes[nodeId].x, y: this.body.nodes[nodeId].y };
-          options.position = nodePosition;
-          options.lockedOnNode = nodeId;
-
-          this.moveTo(options);
-        } else {
-          console.log("Node: " + nodeId + " cannot be found.");
-        }
-      }
-    }, {
-      key: "moveTo",
-
-      /**
-       *
-       * @param {Object} options  |  options.offset   = {x:Number, y:Number}   // offset from the center in DOM pixels
-       *                          |  options.scale    = Number                 // scale to move to
-       *                          |  options.position = {x:Number, y:Number}   // position to move to
-       *                          |  options.animation = {duration:Number, easingFunction:String} || Boolean   // position to move to
-       */
-      value: function moveTo(options) {
-        if (options === undefined) {
-          options = {};
-          return;
-        }
-        if (options.offset === undefined) {
-          options.offset = { x: 0, y: 0 };
-        }
-        if (options.offset.x === undefined) {
-          options.offset.x = 0;
-        }
-        if (options.offset.y === undefined) {
-          options.offset.y = 0;
-        }
-        if (options.scale === undefined) {
-          options.scale = this.body.view.scale;
-        }
-        if (options.position === undefined) {
-          options.position = this.getViewPosition();
-        }
-        if (options.animation === undefined) {
-          options.animation = { duration: 0 };
-        }
-        if (options.animation === false) {
-          options.animation = { duration: 0 };
-        }
-        if (options.animation === true) {
-          options.animation = {};
-        }
-        if (options.animation.duration === undefined) {
-          options.animation.duration = 1000;
-        } // default duration
-        if (options.animation.easingFunction === undefined) {
-          options.animation.easingFunction = "easeInOutQuad";
-        } // default easing function
-
-        this.animateView(options);
-      }
-    }, {
-      key: "animateView",
-
-      /**
-       *
-       * @param {Object} options  |  options.offset   = {x:Number, y:Number}   // offset from the center in DOM pixels
-       *                          |  options.time     = Number                 // animation time in milliseconds
-       *                          |  options.scale    = Number                 // scale to animate to
-       *                          |  options.position = {x:Number, y:Number}   // position to animate to
-       *                          |  options.easingFunction = String           // linear, easeInQuad, easeOutQuad, easeInOutQuad,
-       *                                                                       // easeInCubic, easeOutCubic, easeInOutCubic,
-       *                                                                       // easeInQuart, easeOutQuart, easeInOutQuart,
-       *                                                                       // easeInQuint, easeOutQuint, easeInOutQuint
-       */
-      value: function animateView(options) {
-        if (options === undefined) {
-          return;
-        }
-        this.animationEasingFunction = options.animation.easingFunction;
-        // release if something focussed on the node
-        this.releaseNode();
-        if (options.locked === true) {
-          this.lockedOnNodeId = options.lockedOnNode;
-          this.lockedOnNodeOffset = options.offset;
-        }
-
-        // forcefully complete the old animation if it was still running
-        if (this.easingTime != 0) {
-          this._transitionRedraw(true); // by setting easingtime to 1, we finish the animation.
-        }
-
-        this.sourceScale = this.body.view.scale;
-        this.sourceTranslation = this.body.view.translation;
-        this.targetScale = options.scale;
-
-        // set the scale so the viewCenter is based on the correct zoom level. This is overridden in the transitionRedraw
-        // but at least then we'll have the target transition
-        this.body.view.scale = this.targetScale;
-        var viewCenter = this.canvas.DOMtoCanvas({ x: 0.5 * this.canvas.frame.canvas.clientWidth, y: 0.5 * this.canvas.frame.canvas.clientHeight });
-
-        var distanceFromCenter = { // offset from view, distance view has to change by these x and y to center the node
-          x: viewCenter.x - options.position.x,
-          y: viewCenter.y - options.position.y
-        };
-        this.targetTranslation = {
-          x: this.sourceTranslation.x + distanceFromCenter.x * this.targetScale + options.offset.x,
-          y: this.sourceTranslation.y + distanceFromCenter.y * this.targetScale + options.offset.y
-        };
-
-        // if the time is set to 0, don't do an animation
-        if (options.animation.duration === 0) {
-          if (this.lockedOnNodeId != undefined) {
-            this.viewFunction = this._lockedRedraw.bind(this);
-            this.body.emitter.on("initRedraw", this.viewFunction);
-          } else {
-            this.body.view.scale = this.targetScale;
-            this.body.view.translation = this.targetTranslation;
-            this.body.emitter.emit("_requestRedraw");
-          }
-        } else {
-          this.animationSpeed = 1 / (60 * options.animation.duration * 0.001) || 1 / 60; // 60 for 60 seconds, 0.001 for milli's
-          this.animationEasingFunction = options.animation.easingFunction;
-
-          this.viewFunction = this._transitionRedraw.bind(this);
-          this.body.emitter.on("initRedraw", this.viewFunction);
-          this.body.emitter.emit("_startRendering");
-        }
-      }
-    }, {
-      key: "_lockedRedraw",
-
-      /**
-       * used to animate smoothly by hijacking the redraw function.
-       * @private
-       */
-      value: function _lockedRedraw() {
-        var nodePosition = { x: this.body.nodes[this.lockedOnNodeId].x, y: this.body.nodes[this.lockedOnNodeId].y };
-        var viewCenter = this.DOMtoCanvas({ x: 0.5 * this.frame.canvas.clientWidth, y: 0.5 * this.frame.canvas.clientHeight });
-        var distanceFromCenter = { // offset from view, distance view has to change by these x and y to center the node
-          x: viewCenter.x - nodePosition.x,
-          y: viewCenter.y - nodePosition.y
-        };
-        var sourceTranslation = this.body.view.translation;
-        var targetTranslation = {
-          x: sourceTranslation.x + distanceFromCenter.x * this.body.view.scale + this.lockedOnNodeOffset.x,
-          y: sourceTranslation.y + distanceFromCenter.y * this.body.view.scale + this.lockedOnNodeOffset.y
-        };
-
-        this.body.view.translation = targetTranslation;
-      }
-    }, {
-      key: "releaseNode",
-      value: function releaseNode() {
-        if (this.lockedOnNodeId !== undefined && this.viewFunction !== undefined) {
-          this.body.emitter.off("initRedraw", this.viewFunction);
-          this.lockedOnNodeId = undefined;
-          this.lockedOnNodeOffset = undefined;
-        }
-      }
-    }, {
-      key: "_transitionRedraw",
-
-      /**
-       *
-       * @param easingTime
-       * @private
-       */
-      value: function _transitionRedraw() {
-        var finished = arguments[0] === undefined ? false : arguments[0];
-
-        this.easingTime += this.animationSpeed;
-        this.easingTime = finished === true ? 1 : this.easingTime;
-
-        var progress = util.easingFunctions[this.animationEasingFunction](this.easingTime);
-
-        this.body.view.scale = this.sourceScale + (this.targetScale - this.sourceScale) * progress;
-        this.body.view.translation = {
-          x: this.sourceTranslation.x + (this.targetTranslation.x - this.sourceTranslation.x) * progress,
-          y: this.sourceTranslation.y + (this.targetTranslation.y - this.sourceTranslation.y) * progress
-        };
-
-        // cleanup
-        if (this.easingTime >= 1) {
-          this.body.emitter.off("initRedraw", this.viewFunction);
-          this.easingTime = 0;
-          if (this.lockedOnNodeId != undefined) {
-            this.viewFunction = this._lockedRedraw.bind(this);
-            this.body.emitter.on("initRedraw", this.viewFunction);
-          }
-          this.body.emitter.emit("animationFinished");
-        }
-      }
-    }, {
-      key: "getScale",
-      value: function getScale() {
-        return this.body.view.scale;
-      }
-    }, {
-      key: "getViewPosition",
-      value: function getViewPosition() {
-        return this.canvas.DOMtoCanvas({ x: 0.5 * this.canvas.frame.canvas.clientWidth, y: 0.5 * this.canvas.frame.canvas.clientHeight });
-      }
-    }]);
-
-    return View;
-  })();
-
-  exports["default"] = View;
-  module.exports = exports["default"];
-
-/***/ },
 /* 102 */
 /***/ function(module, exports, __webpack_require__) {
 
@@ -35731,7 +35731,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   var _componentsPopup2 = _interopRequireDefault(_componentsPopup);
 
-  var util = __webpack_require__(10);
+  var util = __webpack_require__(9);
 
   var InteractionHandler = (function () {
     function InteractionHandler(body, canvas, selectionHandler) {
@@ -36485,10 +36485,10 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
 
-  var util = __webpack_require__(10);
-  var Hammer = __webpack_require__(6);
-  var hammerUtil = __webpack_require__(32);
-  var keycharm = __webpack_require__(45);
+  var util = __webpack_require__(9);
+  var Hammer = __webpack_require__(5);
+  var hammerUtil = __webpack_require__(31);
+  var keycharm = __webpack_require__(44);
 
   var NavigationHandler = (function () {
     function NavigationHandler(body, canvas) {
@@ -36930,9 +36930,9 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
-  var Node = __webpack_require__(62);
-  var Edge = __webpack_require__(82);
-  var util = __webpack_require__(10);
+  var Node = __webpack_require__(63);
+  var Edge = __webpack_require__(83);
+  var util = __webpack_require__(9);
 
   var SelectionHandler = (function () {
     function SelectionHandler(body, canvas) {
@@ -37661,7 +37661,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
 
-  var util = __webpack_require__(10);
+  var util = __webpack_require__(9);
 
   var LayoutEngine = (function () {
     function LayoutEngine(body) {
@@ -38169,9 +38169,9 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
 
-  var util = __webpack_require__(10);
-  var Hammer = __webpack_require__(6);
-  var hammerUtil = __webpack_require__(32);
+  var util = __webpack_require__(9);
+  var Hammer = __webpack_require__(5);
+  var hammerUtil = __webpack_require__(31);
 
   /**
    * clears the toolbar div element of children
