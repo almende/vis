@@ -13,61 +13,53 @@
         }
     </style>
 
-    <script>
-        var network = null;
-        function destroy() {
-            if (network !== null) {
-                network.destroy();
-                network = null;
-            }
+    <style type="text/css">
+        #mynetwork {
+            width: 600px;
+            height: 400px;
+            border: 1px solid lightgray;
         }
+    </style>
 
-        function draw() {
-            destroy();
-            var container = document.getElementById('mynetwork');
-            var nodes = new vis.DataSet();
-            var edges = new vis.DataSet();
-            nodes.add({id:1})
-            data = 	{
-                nodes: nodes,
-                edges:edges
-            }
+    <link rel="stylesheet" href="http://maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css">
+    <link rel="stylesheet" href="http://code.ionicframework.com/ionicons/2.0.1/css/ionicons.min.css">
 
-            options = {
-                edges: {
-                    arrows:{
-                        to: true
-                    },
-                    smooth:{
-                        enabled: true
-                    }
-                },
-                interaction:{
-                    navigationButtons:true
-                },
-                physics:{
-                    enabled: true,
-                    stabilization: true
-                },
-                manipulation:{
-                    enabled: false,
-                    addEdge: function (data, callback) {
-                        setTimeout(function () {network.addEdgeMode();},0);
-                        callback(data);
-                    }
-                }
-            };
-
-            network = new vis.Network(container, data, options);
-            network.addEdgeMode();
-
-        }
-    </script>
 </head>
-<body onLoad="draw()">
-<button id="addNodeLayer1">Layer 1</button>
-<button id="addNodeLayer2">Layer 2</button>
-<button id="addNodeLayer3">Layer 3</button>
+<body>
+
+<p>
+    Create a simple network with some nodes and edges.
+</p>
+
 <div id="mynetwork"></div>
+
+<script type="text/javascript">
+    // create an array with nodes
+    var nodes = new vis.DataSet([
+        {id: 1, label: 'Node 1',shape: 'icon',
+            icon: {
+                face: 'FontAwesome',
+                code: '\uf0c0',
+                size: 50,
+                color: 'rgba(255,0,0,0.5)'
+            }},
+        {id: 3, label: 'Node 3', color:'rgba(0,0,0,0.5)'},
+    ]);
+
+    // create an array with edges
+    var edges = new vis.DataSet([
+        {from: 1, to: 3},
+    ]);
+
+    // create a network
+    var container = document.getElementById('mynetwork');
+    var data = {
+        nodes: nodes,
+        edges: edges
+    };
+    var options = {edges:{arrows:'from'}};
+    var network = new vis.Network(container, data, options);
+</script>
+
 </body>
 </html>
