@@ -26,6 +26,7 @@ http://visjs.org
 - Added getDataset to all manipulation functions. Thanks @ericvandever!
 - Fixed #1039, icon now returns correct distance to border
 - Added blurEdge and hoverEdge events.
+- Added labelHighlightBold option to edges and nodes.
 
 ### Graph2d
 

@@ -129,6 +129,7 @@ var options = {
     },
     image: undefined,
     label: undefined,
+    labelHighlightBold: true,
     level: undefined,
     mass: 1,
     physics: true,
@@ -413,6 +414,12 @@ network.setOptions(options);
             <td>String</td>
             <td><code>undefined</code></td>
             <td>The label is the piece of text shown in or under the node, depending on the shape.</td>
+        </tr>
+        <tr>
+            <td>labelHighlightBold</td>
+            <td>Boolean</td>
+            <td><code>true</code></td>
+            <td>Determines whether or not the label becomes bold when the node is selected.</td>
         </tr>
         <tr>
             <td>level</td>
