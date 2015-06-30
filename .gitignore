@@ -3,9 +3,9 @@
 *.iml
 node_modules
 .project
-.settings
+.settings/
 npm-debug.log
 
 # vim temporary files
 .*.sw[op]
-test
+test/
