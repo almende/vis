@@ -24,6 +24,7 @@ http://visjs.org
 - Fixed updating bounding box of nodes without drawing.
 - Fixed #1036, bug in lockedRedraw. Thanks @vges!
 - Added getDataset to all manipulation functions. Thanks @ericvandever!
+- Fixed #1039, icon now returns correct distance to border
 
 ### Graph2d
 
