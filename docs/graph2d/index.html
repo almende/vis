@@ -158,7 +158,7 @@
 
     <p>
         The following code shows how to create a Graph2d and provide it with data.
-        More examples can be found in the <a href="../examples">examples</a> directory.</p>
+        More examples can be found in the <a href="../../examples">examples</a> directory.</p>
 
         <pre class="prettyprint lang-html options">
 &lt;!DOCTYPE HTML&gt;
@@ -424,8 +424,8 @@ var options = {
             <td>Boolean</td>
             <td>false</td>
             <td>If two datapoints of a barchart overlap, they are drawn over eachother by default. If sideBySide is set to true, they will be drawn side by side.
-                See <a href="../examples/graph2d/10_barsSideBySide.html">example 10</a> for more information.
-                When using groups, see <a href="../examples/graph2d/11_barsSideBySideGroups.html">example 11</a>.
+                See <a href="../../examples/graph2d/10_barsSideBySide.html">example 10</a> for more information.
+                When using groups, see <a href="../../examples/graph2d/11_barsSideBySideGroups.html">example 11</a>.
             </td>
         </tr>
         <tr parent="barChart" class="hidden">
@@ -546,15 +546,73 @@ function (value) {
         </tr>
         <tr class='toggle collapsible' onclick="toggleTable('g2dOptions','drawPoints', this);">
             <td class="greenField"><span parent="drawPoints" class="right-caret"></span> drawPoints</td>
-            <td>Boolean or Object</td>
+            <td>Boolean, Object or Function</td>
             <td>true</td>
-            <td>Toggle the drawing of the datapoints with the default settings.</td>
+            <td>Defines rendering options for the datapoints.
+            Three different types of objects can be assigned to this property. See <a href="../../examples/graph2d/19_labels.html">Example 19</a> for an illustration.<br />
+            1. <code>Boolean</code>: When true is provided every datapoint will be drawn, false otherwise.<br />
+            <pre class="prettyprint lang-js">
+drawPoints: true // or false
+            </pre>
+            
+            2. <code>Object</code> (the 'rendering' options): If an object is provided it may contain following properties which all can be optional: <code>onRender</code>, <code>className</code><code>size</code> and/or <code>style</code>. For more information check the property's documentation.<br />
+            <pre class="prettyprint lang-js">
+drawPoints: {
+  size: 3,
+  style: 'square'
+}
+            </pre>
+            
+            3. <code>Function</code>: If a function is provided it will be used as a callback. The function may return values from listing 1 or 2.<br />
+            <pre class="prettyprint lang-js">
+drawPoints: function(item, group, graph2d) {
+  ...
+}
+            </pre>
+            If a rendering property from the rendering option object is missing, the missing property will be fetched from the group's option.
+            <br />
+            All of these three options can be defined within the drawPoints properties separately as well.
+            </td>
         </tr>
         <tr parent="drawPoints" class="hidden">
             <td class="greenField indent">drawPoints.enabled</td>
             <td>Boolean</td>
             <td>true</td>
-            <td>Toggle the drawing of the datapoints.</td>
+            <td>Toggles the drawing of the datapoints.</td>
+        </tr>
+        <tr parent="drawPoints" class="hidden">
+            <td class="greenField indent">drawPoints.onRender</td>
+            <td>function</td>
+            <td>none</td>
+            <td>Defines a render function for every datapoint.
+            If a group has no <code>drawPoints.onRender</code> callback, the graph2d <code>drawPoints.onRender</code> callback will be used.
+            If neither is defined, the datapoint will be rendered according to the group setting of <code>drawPoints.enabled</code>.
+            This callback must return <code>true</code> if the datapoint should be rendered, otherwise <code>false</code>.
+              <pre class="prettyprint lang-js">
+drawPoints: {
+  enabled: true,
+  onRender: function(item, group, graph2d) {
+    // only renders items with labels
+    return item.label != null;
+  }
+}
+              </pre>
+              This callback may also return an object containing a <code>size</code> and <code>style</code> property, both are optional, e.g.:
+              <pre class="prettyprint lang-js">
+onRender: function(item, group, graph2d) {
+  if (item.label == null) {
+    return false;
+  }
+
+  return {
+    style: 'circle',
+    size: 30
+  };
+}
+              </pre>
+          The properties <code>className</code>, <code>style</code> and <code>size</code> returned from the callback will be used for rendering the datapoint.
+          If a property is missing in the rendering option object, the missing property will be fetched from the group's option.
+          </td>
         </tr>
         <tr parent="drawPoints" class="hidden">
             <td class="greenField indent">drawPoints.size</td>
@@ -581,7 +639,7 @@ function (value) {
             <td>Object</td>
             <td></td>
             <td>You can use this to toggle the visibility of groups per graph2D instance. This is different from setting the visibility flag of the groups since
-                this is not communicated across instances of graph2d. Take a look at <a href="../examples/graph2d/14_toggleGroups.html">Example 14</a>
+                this is not communicated across instances of graph2d. Take a look at <a href="../../examples/graph2d/14_toggleGroups.html">Example 14</a>
                 for more explanation.
             </td>
         </tr>
@@ -601,7 +659,7 @@ function (value) {
             <td class="greenField indent">interpolation.parametrization</td>
             <td>String</td>
             <td>'centripetal'</td>
-            <td>Define the type of parametrizaion for the catmullRom interpolation. <a href="../examples/graph2d/07_scrollingAndSorting.html">Example 7</a> shows the different parametrizations. The options are 'centripetal' (best results), 'chordal' and 'uniform'. Uniform is the computationally cheapest variant.
+            <td>Define the type of parametrizaion for the catmullRom interpolation. <a href="../../examples/graph2d/07_scrollingAndSorting.html">Example 7</a> shows the different parametrizations. The options are 'centripetal' (best results), 'chordal' and 'uniform'. Uniform is the computationally cheapest variant.
                 If interpolation is disabled, linear interpolation is used.</td>
         </tr>
         <tr class='toggle collapsible' onclick="toggleTable('g2dOptions','legend', this);">
@@ -700,7 +758,7 @@ function (value) {
             <td class="greenField">yAxisOrientation</td>
             <td>String</td>
             <td>'left'</td>
-            <td>This defines with which axis, left or right, the graph is coupled. <a href="../examples/graph2d/05_bothAxis.html">Example 5</a> shows groups with different Y axis. If no groups are coupled
+            <td>This defines with which axis, left or right, the graph is coupled. <a href="../../examples/graph2d/05_bothAxis.html">Example 5</a> shows groups with different Y axis. If no groups are coupled
                 with an axis, it will not be shown.</td>
         </tr>
     </table>
@@ -1341,8 +1399,8 @@ Graph2d.off('rangechanged', onChange);
     </p>
     <p>
         Additionally, Graph2d has 10 preset styles for graphs, which are cycled through when loading groups. These styles can be overwritten
-        as well, along with defining your own classes to style the graphs! <a href="../examples/graph2d/04_rightAxis.html">Example 4</a> and
-        <a href="../examples/graph2d/05_bothAxis.html">example 5</a> show the usage of custom styles.
+        as well, along with defining your own classes to style the graphs! <a href="../../examples/graph2d/04_rightAxis.html">Example 4</a> and
+        <a href="../../examples/graph2d/05_bothAxis.html">example 5</a> show the usage of custom styles.
     </p>
 
 </div>
