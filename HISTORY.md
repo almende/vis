@@ -27,6 +27,7 @@ http://visjs.org
 - Fixed #1039, icon now returns correct distance to border
 - Added blurEdge and hoverEdge events.
 - Added labelHighlightBold option to edges and nodes.
+- Added getOptionsFromConfigurator method.
 
 ### Graph2d
 

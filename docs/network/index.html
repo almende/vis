@@ -834,7 +834,7 @@ function releaseFunction (clusterPosition, containedNodesPositions) {
                 <td>Start the physics simulation. This is normally done whenever needed and is only really useful if you
                     stop the simulation yourself and wish to continue it afterwards.
                 </td>
-                .</td></tr>
+            </tr>
             <tr class="collapsible toggle" onclick="toggleTable('methodTable','stopSimulation', this);">
                 <td colspan="2"><span parent="stopSimulation" class="right-caret"></span> stopSimulation()</td>
             </tr>
@@ -1059,7 +1059,18 @@ function releaseFunction (clusterPosition, containedNodesPositions) {
                 <td class="midMethods">Returns: none</td>
                 <td>Programatically release the focussed node.</td>
             </tr>
-
+            <tr class="subHeader">
+                <td colspan="2">Methods to use with the configurator module.</td>
+            </tr>
+            <tr class="collapsible toggle" onclick="toggleTable('methodTable','getOptionsFromConfigurator', this);">
+                <td colspan="2"><span parent="getOptionsFromConfigurator" class="right-caret"></span> getOptionsFromConfigurator()</td>
+            </tr>
+            <tr class="hidden" parent="getOptionsFromConfigurator">
+                <td class="midMethods">Returns: Object</td>
+                <td>If you use the configurator, you can call this method to get an options object that contains all differences from the default options
+                    caused by users interacting with the configurator.
+                </td>
+            </tr>
         </table>
 
         <br>
