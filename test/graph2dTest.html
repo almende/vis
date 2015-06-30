@@ -10,11 +10,12 @@
         body, html {
             font-family: sans-serif;
         }
+
     </style>
 
     <script src="../dist/vis.js"></script>
-    <script src="./graph2dTestData.js"></script>
-    <script src="./graph2dTestData2.js"></script>
+    <script src="./locationTrace_processed.js"></script>
+    <script src="./timeTraveled_processed.js"></script>
     <link href="../dist/vis.css" rel="stylesheet" type="text/css" />
 
 <body>
@@ -25,6 +26,7 @@
 <br />
 <div id="visualization"></div>
 <div id="visualization2"></div>
+<div id="visualization3"></div>
 
 <script type="text/javascript">
     var groups = new vis.DataSet();
@@ -44,31 +46,81 @@
     })
     groups.add({
         id: 'timeTraveled',
-        content: 'timeTraveled'
+        content: 'timeTraveled',
+        options:{
+            yAxisOrientation:'right',
+            drawPoints:{style:"square", size:10}
+        }
+    })
+    groups.add({
+        id: 'db',
+        content: 'db',
+        options:{
+            yAxisOrientation:'right',
+            drawPoints:{style:"circle"}
+        }
     })
 
 
     var items = [];
-    var items2 = [];
-    for (var i = 0; i < data.length; i++) {
-        items.push({x:Number(data[i].date+'000'), y:data[i].value.accuracy, group:'accuracy'});
-        items.push({x:Number(data[i].date+'000'), y:data[i].value.latitude, group:'latitude'});
-        items.push({x:Number(data[i].date+'000'), y:data[i].value.longitude, group:'longitude'});
+    var checkItems = [];
+
+    for (var i = 0; i < locationTraceData.length; i++) {
+        items.push({x:Number(locationTraceData[i].date+'000'), y:locationTraceData[i].value.accuracy === undefined ? 50 : locationTraceData[i].value.accuracy, group:'accuracy', label: {content:locationTraceData[i].value.event}});
+        items.push({x:Number(locationTraceData[i].date+'000'), y:locationTraceData[i].value.latitude === undefined ? -6.8 : locationTraceData[i].value.latitude, group:'latitude'});
+        items.push({x:Number(locationTraceData[i].date+'000'), y:locationTraceData[i].value.longitude === undefined ? 107.6 : locationTraceData[i].value.longitude, group:'longitude'});
     }
+
     for (var i = 0; i < timeTraveledData.length; i++) {
-        items2.push({x:Number(timeTraveledData[i].date+'000'), y:timeTraveledData[i].value, group:'timeTraveled'});
+        items.push({x:Number(timeTraveledData[i].date+'000'), y:timeTraveledData[i].value, group:'timeTraveled'});
     }
+
+    var lastValue = 0;
+    var timeTraveled = 0;
+    var dt = 0;
+    var start = Number(locationTraceData[0].date);
+    var departed = false;
+    for (var i = 0; i < locationTraceData.length; i++) {
+        var event = locationTraceData[i].value.event;
+        if (event === 'depart') {
+            dt = Number(locationTraceData[i].date);
+            departed = true;
+        }
+        else {
+            if (departed === true) {
+                timeTraveled += Number(locationTraceData[i].date) - dt;
+            }
+            departed = false;
+            dt = 0;
+        }
+        checkItems.push({x:Number(locationTraceData[i].date+'000'), y:timeTraveled, group:'db'});
+    }
+
+
+    var matchingItems = [];
+    for (var i = 0; i < checkItems.length; i++) {
+        for (var j = 0; j < items.length; j++) {
+            if (items[j].group === 'timeTraveled') {
+                if (items[j].x === checkItems[i].x) {
+                    console.log("check @ ", checkItems[i].x, items[j].y - checkItems[i].y);
+                    matchingItems.push(checkItems[i]);
+                    break;
+                }
+            }
+        }
+    }
+
+    items = items.concat(checkItems)
+
     var container = document.getElementById('visualization');
-    var container2 = document.getElementById('visualization2');
 
     var dataset = new vis.DataSet(items);
     var options = {
-        interpolation:false
+        interpolation:false,
+        height:800,
+        sort:true
     };
     var graph2d = new vis.Graph2d(container, dataset,groups, options);
-
-    var dataset2 = new vis.DataSet(items2);
-    var graph2d2 = new vis.Graph2d(container2, dataset2,groups, options);
 </script>
 </body>
 </html>

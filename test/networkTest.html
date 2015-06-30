@@ -1,88 +1,89 @@
-<!doctype html>
+<!DOCTYPE html>
 <html>
 <head>
-    <title>Network | Basic usage</title>
-
+    <meta charset="utf-8">
+    <title>JS Bin</title>
     <script type="text/javascript" src="../dist/vis.js"></script>
-
-
-    <style type="text/css">
+    <style>
         #mynetwork {
-            width: 600px;
-            height: 400px;
+            width: 700px;
+            height: 450px;
             border: 1px solid lightgray;
         }
     </style>
-</head>
-<body>
 
-<p>
-    Create a simple network with some nodes and edges.
-</p>
-<input type="button" value="asdasa" onclick="b()">
-<div id="mynetwork"></div>
+    <script>
+        var network = null;
+        function destroy() {
+            if (network !== null) {
+                network.destroy();
+                network = null;
+            }
+        }
 
-<script type="text/javascript">
-    var nodes = [
-        {"id":"28","label":"SPD","shape":"image","image":"http://commons.wikimedia.org/wiki/Special:FilePath/SPD_logo.svg?width=300","x":7146,"y":1903},
-        {"id":"148","label":"Wladimir Putin","shape":"image","image":"http://commons.wikimedia.org/wiki/Special:FilePath/Vladimir_Putin_-_2006.jpg?width=300","x":7677,"y":1885}
-    ];
+        function draw() {
+            destroy();
+            var container = document.getElementById('mynetwork');
+            var nodes = new vis.DataSet();
+            var edges = new vis.DataSet();
 
-    var edges = []
+            data = 	{
+                nodes: nodes,
+                edges:edges
+            }
 
-
-
-    var nodesDataset = new vis.DataSet(nodes);
-    var edgesDataset = new vis.DataSet(edges);
-
-
-        var options = {
-            nodes: {
-                shape: 'dot',
-                scaling: {
-                    min: 10,
-                    max: 200,
-                    label: {
-                        min: 50,
-                        max: 100,
-                        drawThreshold: 10,
-                        maxVisible: 60
+            options = {
+                edges: {
+                    arrows:{
+                        to: true
+                    },
+                    smooth:{
+                        enabled: true
                     }
                 },
-                font: {
-                    size: 100,
-                    face: 'Tahoma'
+                layout:{
+                    hierarchical: {
+                        enabled: true
+                    }
+                },
+                physics:{
+                    enabled: true,
+                    stabilization: true
+                },
+                manipulation:{
+                    enabled:false,
+                    addEdge: function (data, callback) {
+                        setTimeout(function () {network.addEdgeMode();},0);
+                        callback(data);
+                    }
                 }
-            },
-            edges: {
-                width: 0.2,
-                color: {inherit: 'from'},
-                smooth: {
-                    type: 'continuous'
-                }
-            },
-            physics: false,
-            interaction: {
-                tooltipDelay: 200,
-                hideEdgesOnDrag: true,
-                navigationButtons: true,
-                keyboard: true
+            };
+
+            network = new vis.Network(container, data, options);
+
+            var layer1Cnt = 0;
+            var layer2Cnt = 0;
+            var layer3Cnt = 0;
+            document.getElementById("addNodeLayer1").onclick = function(e){
+                nodes.add({id: "layer1_"+layer1Cnt++, label: 'Layer1-'+layer1Cnt, level: 0});
+                network.addEdgeMode();
             }
-        };
+            document.getElementById("addNodeLayer2").onclick = function(e){
+                nodes.add({id: "layer2_"+layer2Cnt++, label: 'Layer2-'+layer2Cnt, level:1});
+                network.addEdgeMode();
+            }
+            document.getElementById("addNodeLayer3").onclick = function(e){
+                nodes.add({id: "layer3_"+layer3Cnt++, label: 'Layer3-'+layer3Cnt, level:2});
+                network.addEdgeMode();
+            }
 
-        var container = document.getElementById('mynetwork');
-        network = new vis.Network(container, {nodes: nodesDataset, edges: edgesDataset}, options);
-
-
-    function b() {
-        var nodesToAdd = new vis.DataSet(nodes).get();
-        console.log(nodesToAdd);
-        nodesDataset.update(nodesToAdd);
-    }
-
-
-
-</script>
-
+        }
+    </script>
+</head>
+<body onLoad="draw()">
+<button id="addNodeLayer1">Layer 1</button>
+<button id="addNodeLayer2">Layer 2</button>
+<button id="addNodeLayer3">Layer 3</button>
+<div id="mynetwork"></div>
 </body>
 </html>

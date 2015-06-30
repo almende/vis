@@ -23,11 +23,13 @@ http://visjs.org
 - Fixed static smooth edges not fully working from every angle.
 - Fixed updating bounding box of nodes without drawing.
 - Fixed #1036, bug in lockedRedraw. Thanks @vges!
+- Added getDataset to all manipulation functions. Thanks @ericvandever!
 
 ### Graph2d
 
 - Made graph2d more robust against string values in the y position.
 - Fixed bug where 0 axis was always in the automatically fitted range.
+- Added drawPoints.onRender. Thanks @mschallar!
 
 
 ## 2015-06-16, version 4.3.0
