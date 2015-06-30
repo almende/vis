@@ -156,7 +156,7 @@ The folder `dist` contains bundled versions of vis.js for direct use in the brow
 
 The source code of vis.js consists of commonjs modules, which makes it possible to create custom bundles using tools like [Browserify](http://browserify.org/) or [Webpack](http://webpack.github.io/). This can be bundling just one visualization like the Timeline, or bundling vis.js as part of your own browserified web application. 
 
-*Note that hammer.js version 1 is required (v1.0.6-v1.1.3), version 2 is not yet supported.*
+*Note that hammer.js version 2 is required as of v4.*
 
 
 #### Prerequisites
