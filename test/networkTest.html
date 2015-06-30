@@ -4,6 +4,7 @@
     <meta charset="utf-8">
     <title>JS Bin</title>
     <script type="text/javascript" src="../dist/vis.js"></script>
+    <link href="../dist/vis.css" rel="stylesheet" type="text/css" />
     <style>
         #mynetwork {
             width: 700px;
@@ -26,7 +27,7 @@
             var container = document.getElementById('mynetwork');
             var nodes = new vis.DataSet();
             var edges = new vis.DataSet();
-
+            nodes.add({id:1})
             data = 	{
                 nodes: nodes,
                 edges:edges
@@ -41,17 +42,15 @@
                         enabled: true
                     }
                 },
-                layout:{
-                    hierarchical: {
-                        enabled: true
-                    }
+                interaction:{
+                    navigationButtons:true
                 },
                 physics:{
                     enabled: true,
                     stabilization: true
                 },
                 manipulation:{
-                    enabled:false,
+                    enabled: false,
                     addEdge: function (data, callback) {
                         setTimeout(function () {network.addEdgeMode();},0);
                         callback(data);
@@ -60,22 +59,7 @@
             };
 
             network = new vis.Network(container, data, options);
-
-            var layer1Cnt = 0;
-            var layer2Cnt = 0;
-            var layer3Cnt = 0;
-            document.getElementById("addNodeLayer1").onclick = function(e){
-                nodes.add({id: "layer1_"+layer1Cnt++, label: 'Layer1-'+layer1Cnt, level: 0});
-                network.addEdgeMode();
-            }
-            document.getElementById("addNodeLayer2").onclick = function(e){
-                nodes.add({id: "layer2_"+layer2Cnt++, label: 'Layer2-'+layer2Cnt, level:1});
-                network.addEdgeMode();
-            }
-            document.getElementById("addNodeLayer3").onclick = function(e){
-                nodes.add({id: "layer3_"+layer3Cnt++, label: 'Layer3-'+layer3Cnt, level:2});
-                network.addEdgeMode();
-            }
+            network.addEdgeMode();
 
         }
     </script>
