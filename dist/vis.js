@@ -84,60 +84,60 @@ return /******/ (function(modules) { // webpackBootstrap
   // utils
   'use strict';
 
-  exports.util = __webpack_require__(19);
-  exports.DOMutil = __webpack_require__(24);
+  exports.util = __webpack_require__(9);
+  exports.DOMutil = __webpack_require__(14);
 
   // data
-  exports.DataSet = __webpack_require__(25);
-  exports.DataView = __webpack_require__(27);
-  exports.Queue = __webpack_require__(26);
+  exports.DataSet = __webpack_require__(15);
+  exports.DataView = __webpack_require__(17);
+  exports.Queue = __webpack_require__(16);
 
   // Graph3d
-  exports.Graph3d = __webpack_require__(28);
+  exports.Graph3d = __webpack_require__(18);
   exports.graph3d = {
-    Camera: __webpack_require__(32),
-    Filter: __webpack_require__(33),
-    Point2d: __webpack_require__(29),
-    Point3d: __webpack_require__(31),
-    Slider: __webpack_require__(34),
-    StepNumber: __webpack_require__(35)
+    Camera: __webpack_require__(22),
+    Filter: __webpack_require__(23),
+    Point2d: __webpack_require__(19),
+    Point3d: __webpack_require__(21),
+    Slider: __webpack_require__(24),
+    StepNumber: __webpack_require__(25)
   };
 
   // Timeline
-  exports.Timeline = __webpack_require__(36);
-  exports.Graph2d = __webpack_require__(57);
+  exports.Timeline = __webpack_require__(26);
+  exports.Graph2d = __webpack_require__(50);
   exports.timeline = {
-    DateUtil: __webpack_require__(42),
-    DataStep: __webpack_require__(60),
-    Range: __webpack_require__(40),
-    stack: __webpack_require__(44),
-    TimeStep: __webpack_require__(46),
+    DateUtil: __webpack_require__(32),
+    DataStep: __webpack_require__(53),
+    Range: __webpack_require__(30),
+    stack: __webpack_require__(36),
+    TimeStep: __webpack_require__(38),
 
     components: {
       items: {
-        Item: __webpack_require__(14),
-        BackgroundItem: __webpack_require__(49),
-        BoxItem: __webpack_require__(48),
-        PointItem: __webpack_require__(9),
-        RangeItem: __webpack_require__(45)
+        Item: __webpack_require__(4),
+        BackgroundItem: __webpack_require__(41),
+        BoxItem: __webpack_require__(40),
+        PointItem: __webpack_require__(2),
+        RangeItem: __webpack_require__(37)
       },
 
-      Component: __webpack_require__(38),
-      CurrentTime: __webpack_require__(37),
-      CustomTime: __webpack_require__(13),
-      DataAxis: __webpack_require__(59),
-      GraphGroup: __webpack_require__(61),
-      Group: __webpack_require__(43),
-      BackgroundGroup: __webpack_require__(47),
-      ItemSet: __webpack_require__(12),
-      Legend: __webpack_require__(64),
-      LineGraph: __webpack_require__(58),
-      TimeAxis: __webpack_require__(50)
+      Component: __webpack_require__(28),
+      CurrentTime: __webpack_require__(27),
+      CustomTime: __webpack_require__(45),
+      DataAxis: __webpack_require__(52),
+      GraphGroup: __webpack_require__(54),
+      Group: __webpack_require__(35),
+      BackgroundGroup: __webpack_require__(39),
+      ItemSet: __webpack_require__(34),
+      Legend: __webpack_require__(58),
+      LineGraph: __webpack_require__(51),
+      TimeAxis: __webpack_require__(42)
     }
   };
 
   // Network
-  exports.Network = __webpack_require__(66);
+  exports.Network = __webpack_require__(60);
   exports.network = {
     Images: __webpack_require__(112),
     dotparser: __webpack_require__(110),
@@ -157,10 +157,10 @@ return /******/ (function(modules) { // webpackBootstrap
   };
 
   // bundled external libraries
-  exports.moment = __webpack_require__(20);
-  exports.hammer = __webpack_require__(15); // TODO: deprecate exports.hammer some day
-  exports.Hammer = __webpack_require__(15);
-  exports.keycharm = __webpack_require__(52);
+  exports.moment = __webpack_require__(10);
+  exports.hammer = __webpack_require__(5); // TODO: deprecate exports.hammer some day
+  exports.Hammer = __webpack_require__(5);
+  exports.keycharm = __webpack_require__(44);
 
 /***/ },
 /* 1 */
@@ -181,2640 +181,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   'use strict';
 
-  Object.defineProperty(exports, '__esModule', {
-    value: true
-  });
-
-  var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
-
-  var _get = function get(_x2, _x3, _x4) { var _again = true; _function: while (_again) { var object = _x2, property = _x3, receiver = _x4; desc = parent = getter = undefined; _again = false; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { _x2 = parent; _x3 = property; _x4 = receiver; _again = true; continue _function; } } else if ('value' in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } } };
-
-  function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
-
-  function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
-
-  function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; }
-
-  var _EdgeBase2 = __webpack_require__(6);
-
-  var _EdgeBase3 = _interopRequireDefault(_EdgeBase2);
-
-  var BezierEdgeBase = (function (_EdgeBase) {
-    function BezierEdgeBase(options, body, labelModule) {
-      _classCallCheck(this, BezierEdgeBase);
-
-      _get(Object.getPrototypeOf(BezierEdgeBase.prototype), 'constructor', this).call(this, options, body, labelModule);
-    }
-
-    _inherits(BezierEdgeBase, _EdgeBase);
-
-    _createClass(BezierEdgeBase, [{
-      key: '_findBorderPositionBezier',
-
-      /**
-       * This function uses binary search to look for the point where the bezier curve crosses the border of the node.
-       *
-       * @param nearNode
-       * @param ctx
-       * @param viaNode
-       * @param nearNode
-       * @param ctx
-       * @param viaNode
-       * @param nearNode
-       * @param ctx
-       * @param viaNode
-       */
-      value: function _findBorderPositionBezier(nearNode, ctx) {
-        var viaNode = arguments[2] === undefined ? this._getViaCoordinates() : arguments[2];
-
-        var maxIterations = 10;
-        var iteration = 0;
-        var low = 0;
-        var high = 1;
-        var pos, angle, distanceToBorder, distanceToPoint, difference;
-        var threshold = 0.2;
-        var node = this.to;
-        var from = false;
-        if (nearNode.id === this.from.id) {
-          node = this.from;
-          from = true;
-        }
-
-        while (low <= high && iteration < maxIterations) {
-          var middle = (low + high) * 0.5;
-
-          pos = this.getPoint(middle, viaNode);
-          angle = Math.atan2(node.y - pos.y, node.x - pos.x);
-          distanceToBorder = node.distanceToBorder(ctx, angle);
-          distanceToPoint = Math.sqrt(Math.pow(pos.x - node.x, 2) + Math.pow(pos.y - node.y, 2));
-          difference = distanceToBorder - distanceToPoint;
-          if (Math.abs(difference) < threshold) {
-            break; // found
-          } else if (difference < 0) {
-            // distance to nodes is larger than distance to border --> t needs to be bigger if we're looking at the to node.
-            if (from === false) {
-              low = middle;
-            } else {
-              high = middle;
-            }
-          } else {
-            if (from === false) {
-              high = middle;
-            } else {
-              low = middle;
-            }
-          }
-
-          iteration++;
-        }
-        pos.t = middle;
-
-        return pos;
-      }
-    }, {
-      key: '_getDistanceToBezierEdge',
-
-      /**
-       * Calculate the distance between a point (x3,y3) and a line segment from
-       * (x1,y1) to (x2,y2).
-       * http://stackoverflow.com/questions/849211/shortest-distancae-between-a-point-and-a-line-segment
-       * @param {number} x1
-       * @param {number} y1
-       * @param {number} x2
-       * @param {number} y2
-       * @param {number} x3
-       * @param {number} y3
-       * @private
-       */
-      value: function _getDistanceToBezierEdge(x1, y1, x2, y2, x3, y3, via) {
-        // x3,y3 is the point
-        var xVia = undefined,
-            yVia = undefined;
-        xVia = via.x;
-        yVia = via.y;
-        var minDistance = 1000000000;
-        var distance = undefined;
-        var i = undefined,
-            t = undefined,
-            x = undefined,
-            y = undefined;
-        var lastX = x1;
-        var lastY = y1;
-        for (i = 1; i < 10; i++) {
-          t = 0.1 * i;
-          x = Math.pow(1 - t, 2) * x1 + 2 * t * (1 - t) * xVia + Math.pow(t, 2) * x2;
-          y = Math.pow(1 - t, 2) * y1 + 2 * t * (1 - t) * yVia + Math.pow(t, 2) * y2;
-          if (i > 0) {
-            distance = this._getDistanceToLine(lastX, lastY, x, y, x3, y3);
-            minDistance = distance < minDistance ? distance : minDistance;
-          }
-          lastX = x;
-          lastY = y;
-        }
-
-        return minDistance;
-      }
-    }]);
-
-    return BezierEdgeBase;
-  })(_EdgeBase3['default']);
-
-  exports['default'] = BezierEdgeBase;
-  module.exports = exports['default'];
-
-/***/ },
-/* 3 */
-/***/ function(module, exports, __webpack_require__) {
-
-  'use strict';
-
-  Object.defineProperty(exports, '__esModule', {
-    value: true
-  });
-
-  var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
-
-  function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
-
-  var NodeBase = (function () {
-    function NodeBase(options, body, labelModule) {
-      _classCallCheck(this, NodeBase);
-
-      this.body = body;
-      this.labelModule = labelModule;
-      this.setOptions(options);
-      this.top = undefined;
-      this.left = undefined;
-      this.height = undefined;
-      this.width = undefined;
-      this.radius = undefined;
-      this.boundingBox = { top: 0, left: 0, right: 0, bottom: 0 };
-    }
-
-    _createClass(NodeBase, [{
-      key: 'setOptions',
-      value: function setOptions(options) {
-        this.options = options;
-      }
-    }, {
-      key: '_distanceToBorder',
-      value: function _distanceToBorder(angle) {
-        var borderWidth = 1;
-        return Math.min(Math.abs(this.width / 2 / Math.cos(angle)), Math.abs(this.height / 2 / Math.sin(angle))) + borderWidth;
-      }
-    }, {
-      key: 'enableShadow',
-      value: function enableShadow(ctx) {
-        if (this.options.shadow.enabled === true) {
-          ctx.shadowColor = 'rgba(0,0,0,0.5)';
-          ctx.shadowBlur = this.options.shadow.size;
-          ctx.shadowOffsetX = this.options.shadow.x;
-          ctx.shadowOffsetY = this.options.shadow.y;
-        }
-      }
-    }, {
-      key: 'disableShadow',
-      value: function disableShadow(ctx) {
-        if (this.options.shadow.enabled === true) {
-          ctx.shadowColor = 'rgba(0,0,0,0)';
-          ctx.shadowBlur = 0;
-          ctx.shadowOffsetX = 0;
-          ctx.shadowOffsetY = 0;
-        }
-      }
-    }]);
-
-    return NodeBase;
-  })();
-
-  exports['default'] = NodeBase;
-  module.exports = exports['default'];
-
-/***/ },
-/* 4 */
-/***/ function(module, exports, __webpack_require__) {
-
-  'use strict';
-
-  Object.defineProperty(exports, '__esModule', {
-    value: true
-  });
-
-  var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
-
-  var _get = function get(_x, _x2, _x3) { var _again = true; _function: while (_again) { var object = _x, property = _x2, receiver = _x3; desc = parent = getter = undefined; _again = false; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { _x = parent; _x2 = property; _x3 = receiver; _again = true; continue _function; } } else if ('value' in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } } };
-
-  function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
-
-  function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
-
-  function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; }
-
-  var _utilBezierEdgeBase = __webpack_require__(2);
-
-  var _utilBezierEdgeBase2 = _interopRequireDefault(_utilBezierEdgeBase);
-
-  var BezierEdgeDynamic = (function (_BezierEdgeBase) {
-    function BezierEdgeDynamic(options, body, labelModule) {
-      _classCallCheck(this, BezierEdgeDynamic);
-
-      //this.via = undefined; // Here for completeness but not allowed to defined before super() is invoked.
-      _get(Object.getPrototypeOf(BezierEdgeDynamic.prototype), 'constructor', this).call(this, options, body, labelModule); // --> this calls the setOptions below
-    }
-
-    _inherits(BezierEdgeDynamic, _BezierEdgeBase);
-
-    _createClass(BezierEdgeDynamic, [{
-      key: 'setOptions',
-      value: function setOptions(options) {
-        this.options = options;
-        this.id = this.options.id;
-        this.setupSupportNode();
-        this.connect();
-      }
-    }, {
-      key: 'connect',
-      value: function connect() {
-        this.from = this.body.nodes[this.options.from];
-        this.to = this.body.nodes[this.options.to];
-        if (this.from === undefined || this.to === undefined || this.options.physics === false) {
-          this.via.setOptions({ physics: false });
-        } else {
-          // fix weird behaviour where a selfreferencing node has physics enabled
-          if (this.from.id === this.to.id) {
-            this.via.setOptions({ physics: false });
-          } else {
-            this.via.setOptions({ physics: true });
-          }
-        }
-      }
-    }, {
-      key: 'cleanup',
-      value: function cleanup() {
-        if (this.via !== undefined) {
-          delete this.body.nodes[this.via.id];
-          this.via = undefined;
-          return true;
-        }
-        return false;
-      }
-    }, {
-      key: 'togglePhysics',
-      value: function togglePhysics(status) {
-        this.via.setOptions({ physics: status });
-        this.positionBezierNode();
-      }
-    }, {
-      key: 'setupSupportNode',
-
-      /**
-       * Bezier curves require an anchor point to calculate the smooth flow. These points are nodes. These nodes are invisible but
-       * are used for the force calculation.
-       *
-       * The changed data is not called, if needed, it is returned by the main edge constructor.
-       * @private
-       */
-      value: function setupSupportNode() {
-        if (this.via === undefined) {
-          var nodeId = 'edgeId:' + this.id;
-          var node = this.body.functions.createNode({
-            id: nodeId,
-            shape: 'circle',
-            physics: true,
-            hidden: true
-          });
-          this.body.nodes[nodeId] = node;
-          this.via = node;
-          this.via.parentEdgeId = this.id;
-          this.positionBezierNode();
-        }
-      }
-    }, {
-      key: 'positionBezierNode',
-      value: function positionBezierNode() {
-        if (this.via !== undefined && this.from !== undefined && this.to !== undefined) {
-          this.via.x = 0.5 * (this.from.x + this.to.x);
-          this.via.y = 0.5 * (this.from.y + this.to.y);
-        } else if (this.via !== undefined) {
-          this.via.x = 0;
-          this.via.y = 0;
-        }
-      }
-    }, {
-      key: '_line',
-
-      /**
-       * Draw a line between two nodes
-       * @param {CanvasRenderingContext2D} ctx
-       * @private
-       */
-      value: function _line(ctx) {
-        // draw a straight line
-        ctx.beginPath();
-        ctx.moveTo(this.from.x, this.from.y);
-        ctx.quadraticCurveTo(this.via.x, this.via.y, this.to.x, this.to.y);
-        // draw shadow if enabled
-        this.enableShadow(ctx);
-        ctx.stroke();
-        this.disableShadow(ctx);
-        return this.via;
-      }
-    }, {
-      key: 'getPoint',
-
-      /**
-       * Combined function of pointOnLine and pointOnBezier. This gives the coordinates of a point on the line at a certain percentage of the way
-       * @param percentage
-       * @param via
-       * @returns {{x: number, y: number}}
-       * @private
-       */
-      value: function getPoint(percentage) {
-        var t = percentage;
-        var x = Math.pow(1 - t, 2) * this.from.x + 2 * t * (1 - t) * this.via.x + Math.pow(t, 2) * this.to.x;
-        var y = Math.pow(1 - t, 2) * this.from.y + 2 * t * (1 - t) * this.via.y + Math.pow(t, 2) * this.to.y;
-
-        return { x: x, y: y };
-      }
-    }, {
-      key: '_findBorderPosition',
-      value: function _findBorderPosition(nearNode, ctx) {
-        return this._findBorderPositionBezier(nearNode, ctx, this.via);
-      }
-    }, {
-      key: '_getDistanceToEdge',
-      value: function _getDistanceToEdge(x1, y1, x2, y2, x3, y3) {
-        // x3,y3 is the point
-        return this._getDistanceToBezierEdge(x1, y1, x2, y2, x3, y3, this.via);
-      }
-    }]);
-
-    return BezierEdgeDynamic;
-  })(_utilBezierEdgeBase2['default']);
-
-  exports['default'] = BezierEdgeDynamic;
-  module.exports = exports['default'];
-
-/***/ },
-/* 5 */
-/***/ function(module, exports, __webpack_require__) {
-
-  'use strict';
-
-  Object.defineProperty(exports, '__esModule', {
-    value: true
-  });
-
-  var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
-
-  var _get = function get(_x, _x2, _x3) { var _again = true; _function: while (_again) { var object = _x, property = _x2, receiver = _x3; desc = parent = getter = undefined; _again = false; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { _x = parent; _x2 = property; _x3 = receiver; _again = true; continue _function; } } else if ('value' in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } } };
-
-  function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
-
-  function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
-
-  function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; }
-
-  var _utilNodeBase = __webpack_require__(3);
-
-  var _utilNodeBase2 = _interopRequireDefault(_utilNodeBase);
-
-  var Icon = (function (_NodeBase) {
-    function Icon(options, body, labelModule) {
-      _classCallCheck(this, Icon);
-
-      _get(Object.getPrototypeOf(Icon.prototype), 'constructor', this).call(this, options, body, labelModule);
-    }
-
-    _inherits(Icon, _NodeBase);
-
-    _createClass(Icon, [{
-      key: 'resize',
-      value: function resize(ctx) {
-        if (this.width === undefined) {
-          var margin = 5;
-          var iconSize = {
-            width: Number(this.options.icon.size),
-            height: Number(this.options.icon.size)
-          };
-          this.width = iconSize.width + 2 * margin;
-          this.height = iconSize.height + 2 * margin;
-          this.radius = 0.5 * this.width;
-        }
-      }
-    }, {
-      key: 'draw',
-      value: function draw(ctx, x, y, selected, hover) {
-        this.resize(ctx);
-        this.options.icon.size = this.options.icon.size || 50;
-
-        this.left = x - this.width * 0.5;
-        this.top = y - this.height * 0.5;
-        this._icon(ctx, x, y, selected);
-
-        if (this.options.label !== undefined) {
-          var iconTextSpacing = 5;
-          this.labelModule.draw(ctx, x, y + this.height * 0.5 + iconTextSpacing, selected);
-        }
-
-        this.updateBoundingBox(x, y);
-      }
-    }, {
-      key: 'updateBoundingBox',
-      value: function updateBoundingBox(x, y) {
-        this.boundingBox.top = y - this.options.icon.size * 0.5;
-        this.boundingBox.left = x - this.options.icon.size * 0.5;
-        this.boundingBox.right = x + this.options.icon.size * 0.5;
-        this.boundingBox.bottom = y + this.options.icon.size * 0.5;
-
-        if (this.options.label !== undefined && this.labelModule.size.width > 0) {
-          var iconTextSpacing = 5;
-          this.boundingBox.left = Math.min(this.boundingBox.left, this.labelModule.size.left);
-          this.boundingBox.right = Math.max(this.boundingBox.right, this.labelModule.size.left + this.labelModule.size.width);
-          this.boundingBox.bottom = Math.max(this.boundingBox.bottom, this.boundingBox.bottom + this.labelModule.size.height + iconTextSpacing);
-        }
-      }
-    }, {
-      key: '_icon',
-      value: function _icon(ctx, x, y, selected) {
-        var iconSize = Number(this.options.icon.size);
-
-        if (this.options.icon.code !== undefined) {
-          ctx.font = (selected ? 'bold ' : '') + iconSize + 'px ' + this.options.icon.face;
-
-          // draw icon
-          ctx.fillStyle = this.options.icon.color || 'black';
-          ctx.textAlign = 'center';
-          ctx.textBaseline = 'middle';
-
-          // draw shadow if enabled
-          this.enableShadow(ctx);
-          ctx.fillText(this.options.icon.code, x, y);
-
-          // disable shadows for other elements.
-          this.disableShadow(ctx);
-        } else {
-          console.error('When using the icon shape, you need to define the code in the icon options object. This can be done per node or globally.');
-        }
-      }
-    }, {
-      key: 'distanceToBorder',
-      value: function distanceToBorder(ctx, angle) {
-        this.resize(ctx);
-        return this._distanceToBorder(angle);
-      }
-    }]);
-
-    return Icon;
-  })(_utilNodeBase2['default']);
-
-  exports['default'] = Icon;
-  module.exports = exports['default'];
-
-/***/ },
-/* 6 */
-/***/ function(module, exports, __webpack_require__) {
-
-  'use strict';
-
-  Object.defineProperty(exports, '__esModule', {
-    value: true
-  });
-
-  var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
-
-  function _slicedToArray(arr, i) { if (Array.isArray(arr)) { return arr; } else if (Symbol.iterator in Object(arr)) { var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i['return']) _i['return'](); } finally { if (_d) throw _e; } } return _arr; } else { throw new TypeError('Invalid attempt to destructure non-iterable instance'); } }
-
-  function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
-
-  var util = __webpack_require__(19);
-
-  var EdgeBase = (function () {
-    function EdgeBase(options, body, labelModule) {
-      _classCallCheck(this, EdgeBase);
-
-      this.body = body;
-      this.labelModule = labelModule;
-      this.setOptions(options);
-      this.colorDirty = true;
-      this.color = {};
-      this.selectionWidth = 2;
-      this.hoverWidth = 1.5;
-    }
-
-    _createClass(EdgeBase, [{
-      key: 'connect',
-      value: function connect() {
-        this.from = this.body.nodes[this.options.from];
-        this.to = this.body.nodes[this.options.to];
-      }
-    }, {
-      key: 'cleanup',
-      value: function cleanup() {
-        return false;
-      }
-    }, {
-      key: 'setOptions',
-      value: function setOptions(options) {
-        this.options = options;
-        this.from = this.body.nodes[this.options.from];
-        this.to = this.body.nodes[this.options.to];
-        this.id = this.options.id;
-      }
-    }, {
-      key: 'togglePhysics',
-
-      /**
-       * overloadable if the shape has to toggle the via node to disabled
-       * @param status
-       */
-      value: function togglePhysics(status) {}
-    }, {
-      key: 'drawLine',
-
-      /**
-       * Redraw a edge as a line
-       * Draw this edge in the given canvas
-       * The 2d context of a HTML canvas can be retrieved by canvas.getContext("2d");
-       * @param {CanvasRenderingContext2D}   ctx
-       * @private
-       */
-      value: function drawLine(ctx, selected, hover) {
-        // set style
-        ctx.strokeStyle = this.getColor(ctx, selected, hover);
-        ctx.lineWidth = this.getLineWidth(selected, hover);
-        var via = undefined;
-        if (this.options.dashes !== false) {
-          via = this._drawDashedLine(ctx);
-        } else {
-          via = this._drawLine(ctx);
-        }
-        return via;
-      }
-    }, {
-      key: '_drawLine',
-      value: function _drawLine(ctx) {
-        var via = undefined;
-        if (this.from != this.to) {
-          // draw line
-          via = this._line(ctx);
-        } else {
-          var _getCircleData2 = this._getCircleData(ctx);
-
-          var _getCircleData22 = _slicedToArray(_getCircleData2, 3);
-
-          var x = _getCircleData22[0];
-          var y = _getCircleData22[1];
-          var radius = _getCircleData22[2];
-
-          this._circle(ctx, x, y, radius);
-        }
-        return via;
-      }
-    }, {
-      key: '_drawDashedLine',
-      value: function _drawDashedLine(ctx) {
-        var via = undefined;
-        ctx.lineCap = 'round';
-        var pattern = [5, 5];
-        if (Array.isArray(this.options.dashes) === true) {
-          pattern = this.options.dashes;
-        }
-
-        // only firefox and chrome support this method, else we use the legacy one.
-        if (ctx.setLineDash !== undefined) {
-          ctx.save();
-
-          // set dash settings for chrome or firefox
-          ctx.setLineDash(pattern);
-          ctx.lineDashOffset = 0;
-
-          // draw the line
-          if (this.from != this.to) {
-            // draw line
-            via = this._line(ctx);
-          } else {
-            var _getCircleData3 = this._getCircleData(ctx);
-
-            var _getCircleData32 = _slicedToArray(_getCircleData3, 3);
-
-            var x = _getCircleData32[0];
-            var y = _getCircleData32[1];
-            var radius = _getCircleData32[2];
-
-            this._circle(ctx, x, y, radius);
-          }
-
-          // restore the dash settings.
-          ctx.setLineDash([0]);
-          ctx.lineDashOffset = 0;
-          ctx.restore();
-        } else {
-          // unsupporting smooth lines
-
-          if (this.from != this.to) {
-            // draw line
-            ctx.dashedLine(this.from.x, this.from.y, this.to.x, this.to.y, pattern);
-          } else {
-            var _getCircleData4 = this._getCircleData(ctx);
-
-            var _getCircleData42 = _slicedToArray(_getCircleData4, 3);
-
-            var x = _getCircleData42[0];
-            var y = _getCircleData42[1];
-            var radius = _getCircleData42[2];
-
-            this._circle(ctx, x, y, radius);
-          }
-          // draw shadow if enabled
-          this.enableShadow(ctx);
-
-          ctx.stroke();
-
-          // disable shadows for other elements.
-          this.disableShadow(ctx);
-        }
-        return via;
-      }
-    }, {
-      key: 'findBorderPosition',
-      value: function findBorderPosition(nearNode, ctx, options) {
-        if (this.from != this.to) {
-          return this._findBorderPosition(nearNode, ctx, options);
-        } else {
-          return this._findBorderPositionCircle(nearNode, ctx, options);
-        }
-      }
-    }, {
-      key: 'findBorderPositions',
-      value: function findBorderPositions(ctx) {
-        var from = {};
-        var to = {};
-        if (this.from != this.to) {
-          from = this._findBorderPosition(this.from, ctx);
-          to = this._findBorderPosition(this.to, ctx);
-        } else {
-          var _getCircleData5 = this._getCircleData(ctx);
-
-          var _getCircleData52 = _slicedToArray(_getCircleData5, 3);
-
-          var x = _getCircleData52[0];
-          var y = _getCircleData52[1];
-          var radius = _getCircleData52[2];
-
-          from = this._findBorderPositionCircle(this.from, ctx, { x: x, y: y, low: 0.25, high: 0.6, direction: -1 });
-          to = this._findBorderPositionCircle(this.from, ctx, { x: x, y: y, low: 0.6, high: 0.8, direction: 1 });
-        }
-        return { from: from, to: to };
-      }
-    }, {
-      key: '_getCircleData',
-      value: function _getCircleData(ctx) {
-        var x = undefined,
-            y = undefined;
-        var node = this.from;
-        var radius = this.options.selfReferenceSize;
-
-        if (ctx !== undefined) {
-          if (node.shape.width === undefined) {
-            node.shape.resize(ctx);
-          }
-        }
-
-        // get circle coordinates
-        if (node.shape.width > node.shape.height) {
-          x = node.x + node.shape.width * 0.5;
-          y = node.y - radius;
-        } else {
-          x = node.x + radius;
-          y = node.y - node.shape.height * 0.5;
-        }
-        return [x, y, radius];
-      }
-    }, {
-      key: '_pointOnCircle',
-
-      /**
-       * Get a point on a circle
-       * @param {Number} x
-       * @param {Number} y
-       * @param {Number} radius
-       * @param {Number} percentage. Value between 0 (line start) and 1 (line end)
-       * @return {Object} point
-       * @private
-       */
-      value: function _pointOnCircle(x, y, radius, percentage) {
-        var angle = percentage * 2 * Math.PI;
-        return {
-          x: x + radius * Math.cos(angle),
-          y: y - radius * Math.sin(angle)
-        };
-      }
-    }, {
-      key: '_findBorderPositionCircle',
-
-      /**
-       * This function uses binary search to look for the point where the circle crosses the border of the node.
-       * @param node
-       * @param ctx
-       * @param options
-       * @returns {*}
-       * @private
-       */
-      value: function _findBorderPositionCircle(node, ctx, options) {
-        var x = options.x;
-        var y = options.y;
-        var low = options.low;
-        var high = options.high;
-        var direction = options.direction;
-
-        var maxIterations = 10;
-        var iteration = 0;
-        var radius = this.options.selfReferenceSize;
-        var pos = undefined,
-            angle = undefined,
-            distanceToBorder = undefined,
-            distanceToPoint = undefined,
-            difference = undefined;
-        var threshold = 0.05;
-        var middle = (low + high) * 0.5;
-
-        while (low <= high && iteration < maxIterations) {
-          middle = (low + high) * 0.5;
-
-          pos = this._pointOnCircle(x, y, radius, middle);
-          angle = Math.atan2(node.y - pos.y, node.x - pos.x);
-          distanceToBorder = node.distanceToBorder(ctx, angle);
-          distanceToPoint = Math.sqrt(Math.pow(pos.x - node.x, 2) + Math.pow(pos.y - node.y, 2));
-          difference = distanceToBorder - distanceToPoint;
-          if (Math.abs(difference) < threshold) {
-            break; // found
-          } else if (difference > 0) {
-            // distance to nodes is larger than distance to border --> t needs to be bigger if we're looking at the to node.
-            if (direction > 0) {
-              low = middle;
-            } else {
-              high = middle;
-            }
-          } else {
-            if (direction > 0) {
-              high = middle;
-            } else {
-              low = middle;
-            }
-          }
-          iteration++;
-        }
-        pos.t = middle;
-
-        return pos;
-      }
-    }, {
-      key: 'getLineWidth',
-
-      /**
-       * Get the line width of the edge. Depends on width and whether one of the
-       * connected nodes is selected.
-       * @return {Number} width
-       * @private
-       */
-      value: function getLineWidth(selected, hover) {
-        if (selected === true) {
-          return Math.max(this.selectionWidth, 0.3 / this.body.view.scale);
-        } else {
-          if (hover === true) {
-            return Math.max(this.hoverWidth, 0.3 / this.body.view.scale);
-          } else {
-            return Math.max(this.options.width, 0.3 / this.body.view.scale);
-          }
-        }
-      }
-    }, {
-      key: 'getColor',
-      value: function getColor(ctx, selected, hover) {
-        var colorOptions = this.options.color;
-        if (colorOptions.inherit !== false) {
-          // when this is a loop edge, just use the 'from' method
-          if (colorOptions.inherit === 'both' && this.from.id !== this.to.id) {
-            var grd = ctx.createLinearGradient(this.from.x, this.from.y, this.to.x, this.to.y);
-            var fromColor = undefined,
-                toColor = undefined;
-            fromColor = this.from.options.color.highlight.border;
-            toColor = this.to.options.color.highlight.border;
-
-            if (this.from.selected === false && this.to.selected === false) {
-              fromColor = util.overrideOpacity(this.from.options.color.border, this.options.color.opacity);
-              toColor = util.overrideOpacity(this.to.options.color.border, this.options.color.opacity);
-            } else if (this.from.selected === true && this.to.selected === false) {
-              toColor = this.to.options.color.border;
-            } else if (this.from.selected === false && this.to.selected === true) {
-              fromColor = this.from.options.color.border;
-            }
-            grd.addColorStop(0, fromColor);
-            grd.addColorStop(1, toColor);
-
-            // -------------------- this returns -------------------- //
-            return grd;
-          }
-
-          if (this.colorDirty === true) {
-            if (colorOptions.inherit === 'to') {
-              this.color.highlight = this.to.options.color.highlight.border;
-              this.color.hover = this.to.options.color.hover.border;
-              this.color.color = util.overrideOpacity(this.to.options.color.border, colorOptions.opacity);
-            } else {
-              // (this.options.color.inherit.source === "from") {
-              this.color.highlight = this.from.options.color.highlight.border;
-              this.color.hover = this.from.options.color.hover.border;
-              this.color.color = util.overrideOpacity(this.from.options.color.border, colorOptions.opacity);
-            }
-          }
-        } else if (this.colorDirty === true) {
-          this.color.highlight = colorOptions.highlight;
-          this.color.hover = colorOptions.hover;
-          this.color.color = util.overrideOpacity(colorOptions.color, colorOptions.opacity);
-        }
-
-        // if color inherit is on and gradients are used, the function has already returned by now.
-        this.colorDirty = false;
-
-        if (selected === true) {
-          return this.color.highlight;
-        } else if (hover === true) {
-          return this.color.hover;
-        } else {
-          return this.color.color;
-        }
-      }
-    }, {
-      key: '_circle',
-
-      /**
-       * Draw a line from a node to itself, a circle
-       * @param {CanvasRenderingContext2D} ctx
-       * @param {Number} x
-       * @param {Number} y
-       * @param {Number} radius
-       * @private
-       */
-      value: function _circle(ctx, x, y, radius) {
-        // draw shadow if enabled
-        this.enableShadow(ctx);
-
-        // draw a circle
-        ctx.beginPath();
-        ctx.arc(x, y, radius, 0, 2 * Math.PI, false);
-        ctx.stroke();
-
-        // disable shadows for other elements.
-        this.disableShadow(ctx);
-      }
-    }, {
-      key: 'getDistanceToEdge',
-
-      /**
-       * Calculate the distance between a point (x3,y3) and a line segment from
-       * (x1,y1) to (x2,y2).
-       * http://stackoverflow.com/questions/849211/shortest-distancae-between-a-point-and-a-line-segment
-       * @param {number} x1
-       * @param {number} y1
-       * @param {number} x2
-       * @param {number} y2
-       * @param {number} x3
-       * @param {number} y3
-       * @private
-       */
-      value: function getDistanceToEdge(x1, y1, x2, y2, x3, y3, via) {
-        // x3,y3 is the point
-        var returnValue = 0;
-        if (this.from != this.to) {
-          returnValue = this._getDistanceToEdge(x1, y1, x2, y2, x3, y3, via);
-        } else {
-          var _getCircleData6 = this._getCircleData();
-
-          var _getCircleData62 = _slicedToArray(_getCircleData6, 3);
-
-          var x = _getCircleData62[0];
-          var y = _getCircleData62[1];
-          var radius = _getCircleData62[2];
-
-          var dx = x - x3;
-          var dy = y - y3;
-          returnValue = Math.abs(Math.sqrt(dx * dx + dy * dy) - radius);
-        }
-
-        if (this.labelModule.size.left < x3 && this.labelModule.size.left + this.labelModule.size.width > x3 && this.labelModule.size.top < y3 && this.labelModule.size.top + this.labelModule.size.height > y3) {
-          return 0;
-        } else {
-          return returnValue;
-        }
-      }
-    }, {
-      key: '_getDistanceToLine',
-      value: function _getDistanceToLine(x1, y1, x2, y2, x3, y3) {
-        var px = x2 - x1;
-        var py = y2 - y1;
-        var something = px * px + py * py;
-        var u = ((x3 - x1) * px + (y3 - y1) * py) / something;
-
-        if (u > 1) {
-          u = 1;
-        } else if (u < 0) {
-          u = 0;
-        }
-
-        var x = x1 + u * px;
-        var y = y1 + u * py;
-        var dx = x - x3;
-        var dy = y - y3;
-
-        //# Note: If the actual distance does not matter,
-        //# if you only want to compare what this function
-        //# returns to other results of this function, you
-        //# can just return the squared distance instead
-        //# (i.e. remove the sqrt) to gain a little performance
-
-        return Math.sqrt(dx * dx + dy * dy);
-      }
-    }, {
-      key: 'drawArrowHead',
-
-      /**
-       *
-       * @param ctx
-       * @param position
-       * @param viaNode
-       */
-      value: function drawArrowHead(ctx, position, viaNode, selected, hover) {
-        // set style
-        ctx.strokeStyle = this.getColor(ctx, selected, hover);
-        ctx.fillStyle = ctx.strokeStyle;
-        ctx.lineWidth = this.getLineWidth(selected, hover);
-
-        // set lets
-        var angle = undefined;
-        var length = undefined;
-        var arrowPos = undefined;
-        var node1 = undefined;
-        var node2 = undefined;
-        var guideOffset = undefined;
-        var scaleFactor = undefined;
-
-        if (position === 'from') {
-          node1 = this.from;
-          node2 = this.to;
-          guideOffset = 0.1;
-          scaleFactor = this.options.arrows.from.scaleFactor;
-        } else if (position === 'to') {
-          node1 = this.to;
-          node2 = this.from;
-          guideOffset = -0.1;
-          scaleFactor = this.options.arrows.to.scaleFactor;
-        } else {
-          node1 = this.to;
-          node2 = this.from;
-          scaleFactor = this.options.arrows.middle.scaleFactor;
-        }
-
-        // if not connected to itself
-        if (node1 != node2) {
-          if (position !== 'middle') {
-            // draw arrow head
-            if (this.options.smooth.enabled === true) {
-              arrowPos = this.findBorderPosition(node1, ctx, { via: viaNode });
-              var guidePos = this.getPoint(Math.max(0, Math.min(1, arrowPos.t + guideOffset)), viaNode);
-              angle = Math.atan2(arrowPos.y - guidePos.y, arrowPos.x - guidePos.x);
-            } else {
-              angle = Math.atan2(node1.y - node2.y, node1.x - node2.x);
-              arrowPos = this.findBorderPosition(node1, ctx);
-            }
-          } else {
-            angle = Math.atan2(node1.y - node2.y, node1.x - node2.x);
-            arrowPos = this.getPoint(0.6, viaNode); // this is 0.6 to account for the size of the arrow.
-          }
-          // draw arrow at the end of the line
-          length = (10 + 5 * this.options.width) * scaleFactor;
-          ctx.arrow(arrowPos.x, arrowPos.y, angle, length);
-
-          // draw shadow if enabled
-          this.enableShadow(ctx);
-          ctx.fill();
-
-          // disable shadows for other elements.
-          this.disableShadow(ctx);
-          ctx.stroke();
-        } else {
-          // draw circle
-          var _angle = undefined,
-              point = undefined;
-
-          var _getCircleData7 = this._getCircleData(ctx);
-
-          var _getCircleData72 = _slicedToArray(_getCircleData7, 3);
-
-          var x = _getCircleData72[0];
-          var y = _getCircleData72[1];
-          var radius = _getCircleData72[2];
-
-          if (position === 'from') {
-            point = this.findBorderPosition(this.from, ctx, { x: x, y: y, low: 0.25, high: 0.6, direction: -1 });
-            _angle = point.t * -2 * Math.PI + 1.5 * Math.PI + 0.1 * Math.PI;
-          } else if (position === 'to') {
-            point = this.findBorderPosition(this.from, ctx, { x: x, y: y, low: 0.6, high: 1, direction: 1 });
-            _angle = point.t * -2 * Math.PI + 1.5 * Math.PI - 1.1 * Math.PI;
-          } else {
-            point = this._pointOnCircle(x, y, radius, 0.175);
-            _angle = 3.9269908169872414; // === 0.175 * -2 * Math.PI + 1.5 * Math.PI + 0.1 * Math.PI;
-          }
-
-          // draw the arrowhead
-          var _length = (10 + 5 * this.options.width) * scaleFactor;
-          ctx.arrow(point.x, point.y, _angle, _length);
-
-          // draw shadow if enabled
-          this.enableShadow(ctx);
-          ctx.fill();
-
-          // disable shadows for other elements.
-          this.disableShadow(ctx);
-          ctx.stroke();
-        }
-      }
-    }, {
-      key: 'enableShadow',
-      value: function enableShadow(ctx) {
-        if (this.options.shadow.enabled === true) {
-          ctx.shadowColor = 'rgba(0,0,0,0.5)';
-          ctx.shadowBlur = this.options.shadow.size;
-          ctx.shadowOffsetX = this.options.shadow.x;
-          ctx.shadowOffsetY = this.options.shadow.y;
-        }
-      }
-    }, {
-      key: 'disableShadow',
-      value: function disableShadow(ctx) {
-        if (this.options.shadow.enabled === true) {
-          ctx.shadowColor = 'rgba(0,0,0,0)';
-          ctx.shadowBlur = 0;
-          ctx.shadowOffsetX = 0;
-          ctx.shadowOffsetY = 0;
-        }
-      }
-    }]);
-
-    return EdgeBase;
-  })();
-
-  exports['default'] = EdgeBase;
-  module.exports = exports['default'];
-
-/***/ },
-/* 7 */
-/***/ function(module, exports, __webpack_require__) {
-
-  'use strict';
-
-  Object.defineProperty(exports, '__esModule', {
-    value: true
-  });
-
-  var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
-
-  function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
-
-  var util = __webpack_require__(19);
-  var Hammer = __webpack_require__(15);
-  var hammerUtil = __webpack_require__(41);
-  var keycharm = __webpack_require__(52);
-
-  var NavigationHandler = (function () {
-    function NavigationHandler(body, canvas) {
-      var _this = this;
-
-      _classCallCheck(this, NavigationHandler);
-
-      this.body = body;
-      this.canvas = canvas;
-
-      this.iconsCreated = false;
-      this.navigationHammers = [];
-      this.boundFunctions = {};
-      this.touchTime = 0;
-      this.activated = false;
-
-      this.body.emitter.on('activate', function () {
-        _this.activated = true;_this.configureKeyboardBindings();
-      });
-      this.body.emitter.on('deactivate', function () {
-        _this.activated = false;_this.configureKeyboardBindings();
-      });
-      this.body.emitter.on('destroy', function () {
-        if (_this.keycharm !== undefined) {
-          _this.keycharm.destroy();
-        }
-      });
-
-      this.options = {};
-    }
-
-    _createClass(NavigationHandler, [{
-      key: 'setOptions',
-      value: function setOptions(options) {
-        if (options !== undefined) {
-          this.options = options;
-          this.create();
-        }
-      }
-    }, {
-      key: 'create',
-      value: function create() {
-        if (this.options.navigationButtons === true) {
-          if (this.iconsCreated === false) {
-            this.loadNavigationElements();
-          }
-        } else if (this.iconsCreated === true) {
-          this.cleanNavigation();
-        }
-
-        this.configureKeyboardBindings();
-      }
-    }, {
-      key: 'cleanNavigation',
-      value: function cleanNavigation() {
-        // clean hammer bindings
-        if (this.navigationHammers.length != 0) {
-          for (var i = 0; i < this.navigationHammers.length; i++) {
-            this.navigationHammers[i].destroy();
-          }
-          this.navigationHammers = [];
-        }
-
-        // clean up previous navigation items
-        if (this.navigationDOM && this.navigationDOM['wrapper'] && this.navigationDOM['wrapper'].parentNode) {
-          this.navigationDOM['wrapper'].parentNode.removeChild(this.navigationDOM['wrapper']);
-        }
-
-        this.iconsCreated = false;
-      }
-    }, {
-      key: 'loadNavigationElements',
-
-      /**
-       * Creation of the navigation controls nodes. They are drawn over the rest of the nodes and are not affected by scale and translation
-       * they have a triggerFunction which is called on click. If the position of the navigation controls is dependent
-       * on this.frame.canvas.clientWidth or this.frame.canvas.clientHeight, we flag horizontalAlignLeft and verticalAlignTop false.
-       * This means that the location will be corrected by the _relocateNavigation function on a size change of the canvas.
-       *
-       * @private
-       */
-      value: function loadNavigationElements() {
-        var _this2 = this;
-
-        this.cleanNavigation();
-
-        this.navigationDOM = {};
-        var navigationDivs = ['up', 'down', 'left', 'right', 'zoomIn', 'zoomOut', 'zoomExtends'];
-        var navigationDivActions = ['_moveUp', '_moveDown', '_moveLeft', '_moveRight', '_zoomIn', '_zoomOut', '_fit'];
-
-        this.navigationDOM['wrapper'] = document.createElement('div');
-        this.navigationDOM['wrapper'].className = 'vis-navigation';
-        this.canvas.frame.appendChild(this.navigationDOM['wrapper']);
-
-        for (var i = 0; i < navigationDivs.length; i++) {
-          this.navigationDOM[navigationDivs[i]] = document.createElement('div');
-          this.navigationDOM[navigationDivs[i]].className = 'vis-button vis-' + navigationDivs[i];
-          this.navigationDOM['wrapper'].appendChild(this.navigationDOM[navigationDivs[i]]);
-
-          var hammer = new Hammer(this.navigationDOM[navigationDivs[i]]);
-          if (navigationDivActions[i] === '_fit') {
-            hammerUtil.onTouch(hammer, this._fit.bind(this));
-          } else {
-            hammerUtil.onTouch(hammer, this.bindToRedraw.bind(this, navigationDivActions[i]));
-          }
-
-          this.navigationHammers.push(hammer);
-        }
-
-        // use a hammer for the release so we do not require the one used in the rest of the network
-        // the one the rest uses can be overloaded by the manipulation system.
-        var hammerFrame = new Hammer(this.canvas.frame);
-        hammerUtil.onRelease(hammerFrame, function () {
-          _this2._stopMovement();
-        });
-        this.navigationHammers.push(hammerFrame);
-
-        this.iconsCreated = true;
-      }
-    }, {
-      key: 'bindToRedraw',
-      value: function bindToRedraw(action) {
-        if (this.boundFunctions[action] === undefined) {
-          this.boundFunctions[action] = this[action].bind(this);
-          this.body.emitter.on('initRedraw', this.boundFunctions[action]);
-          this.body.emitter.emit('_startRendering');
-        }
-      }
-    }, {
-      key: 'unbindFromRedraw',
-      value: function unbindFromRedraw(action) {
-        if (this.boundFunctions[action] !== undefined) {
-          this.body.emitter.off('initRedraw', this.boundFunctions[action]);
-          this.body.emitter.emit('_stopRendering');
-          delete this.boundFunctions[action];
-        }
-      }
-    }, {
-      key: '_fit',
-
-      /**
-       * this stops all movement induced by the navigation buttons
-       *
-       * @private
-       */
-      value: function _fit() {
-        if (new Date().valueOf() - this.touchTime > 700) {
-          // TODO: fix ugly hack to avoid hammer's double fireing of event (because we use release?)
-          this.body.emitter.emit('fit', { duration: 700 });
-          this.touchTime = new Date().valueOf();
-        }
-      }
-    }, {
-      key: '_stopMovement',
-
-      /**
-       * this stops all movement induced by the navigation buttons
-       *
-       * @private
-       */
-      value: function _stopMovement() {
-        for (var boundAction in this.boundFunctions) {
-          if (this.boundFunctions.hasOwnProperty(boundAction)) {
-            this.body.emitter.off('initRedraw', this.boundFunctions[boundAction]);
-            this.body.emitter.emit('_stopRendering');
-          }
-        }
-        this.boundFunctions = {};
-      }
-    }, {
-      key: '_moveUp',
-      value: function _moveUp() {
-        this.body.view.translation.y += this.options.keyboard.speed.y;
-      }
-    }, {
-      key: '_moveDown',
-      value: function _moveDown() {
-        this.body.view.translation.y -= this.options.keyboard.speed.y;
-      }
-    }, {
-      key: '_moveLeft',
-      value: function _moveLeft() {
-        this.body.view.translation.x += this.options.keyboard.speed.x;
-      }
-    }, {
-      key: '_moveRight',
-      value: function _moveRight() {
-        this.body.view.translation.x -= this.options.keyboard.speed.x;
-      }
-    }, {
-      key: '_zoomIn',
-      value: function _zoomIn() {
-        this.body.view.scale *= 1 + this.options.keyboard.speed.zoom;
-        this.body.emitter.emit('zoom', { direction: '+', scale: this.body.view.scale });
-      }
-    }, {
-      key: '_zoomOut',
-      value: function _zoomOut() {
-        this.body.view.scale /= 1 + this.options.keyboard.speed.zoom;
-        this.body.emitter.emit('zoom', { direction: '-', scale: this.body.view.scale });
-      }
-    }, {
-      key: 'configureKeyboardBindings',
-
-      /**
-       * bind all keys using keycharm.
-       */
-      value: function configureKeyboardBindings() {
-        var _this3 = this;
-
-        if (this.keycharm !== undefined) {
-          this.keycharm.destroy();
-        }
-
-        if (this.options.keyboard.enabled === true) {
-          if (this.options.keyboard.bindToWindow === true) {
-            this.keycharm = keycharm({ container: window, preventDefault: true });
-          } else {
-            this.keycharm = keycharm({ container: this.canvas.frame, preventDefault: true });
-          }
-
-          this.keycharm.reset();
-
-          if (this.activated === true) {
-            this.keycharm.bind('up', function () {
-              _this3.bindToRedraw('_moveUp');
-            }, 'keydown');
-            this.keycharm.bind('down', function () {
-              _this3.bindToRedraw('_moveDown');
-            }, 'keydown');
-            this.keycharm.bind('left', function () {
-              _this3.bindToRedraw('_moveLeft');
-            }, 'keydown');
-            this.keycharm.bind('right', function () {
-              _this3.bindToRedraw('_moveRight');
-            }, 'keydown');
-            this.keycharm.bind('=', function () {
-              _this3.bindToRedraw('_zoomIn');
-            }, 'keydown');
-            this.keycharm.bind('num+', function () {
-              _this3.bindToRedraw('_zoomIn');
-            }, 'keydown');
-            this.keycharm.bind('num-', function () {
-              _this3.bindToRedraw('_zoomOut');
-            }, 'keydown');
-            this.keycharm.bind('-', function () {
-              _this3.bindToRedraw('_zoomOut');
-            }, 'keydown');
-            this.keycharm.bind('[', function () {
-              _this3.bindToRedraw('_zoomOut');
-            }, 'keydown');
-            this.keycharm.bind(']', function () {
-              _this3.bindToRedraw('_zoomIn');
-            }, 'keydown');
-            this.keycharm.bind('pageup', function () {
-              _this3.bindToRedraw('_zoomIn');
-            }, 'keydown');
-            this.keycharm.bind('pagedown', function () {
-              _this3.bindToRedraw('_zoomOut');
-            }, 'keydown');
-
-            this.keycharm.bind('up', function () {
-              _this3.unbindFromRedraw('_moveUp');
-            }, 'keyup');
-            this.keycharm.bind('down', function () {
-              _this3.unbindFromRedraw('_moveDown');
-            }, 'keyup');
-            this.keycharm.bind('left', function () {
-              _this3.unbindFromRedraw('_moveLeft');
-            }, 'keyup');
-            this.keycharm.bind('right', function () {
-              _this3.unbindFromRedraw('_moveRight');
-            }, 'keyup');
-            this.keycharm.bind('=', function () {
-              _this3.unbindFromRedraw('_zoomIn');
-            }, 'keyup');
-            this.keycharm.bind('num+', function () {
-              _this3.unbindFromRedraw('_zoomIn');
-            }, 'keyup');
-            this.keycharm.bind('num-', function () {
-              _this3.unbindFromRedraw('_zoomOut');
-            }, 'keyup');
-            this.keycharm.bind('-', function () {
-              _this3.unbindFromRedraw('_zoomOut');
-            }, 'keyup');
-            this.keycharm.bind('[', function () {
-              _this3.unbindFromRedraw('_zoomOut');
-            }, 'keyup');
-            this.keycharm.bind(']', function () {
-              _this3.unbindFromRedraw('_zoomIn');
-            }, 'keyup');
-            this.keycharm.bind('pageup', function () {
-              _this3.unbindFromRedraw('_zoomIn');
-            }, 'keyup');
-            this.keycharm.bind('pagedown', function () {
-              _this3.unbindFromRedraw('_zoomOut');
-            }, 'keyup');
-          }
-        }
-      }
-    }]);
-
-    return NavigationHandler;
-  })();
-
-  exports['default'] = NavigationHandler;
-  module.exports = exports['default'];
-
-/***/ },
-/* 8 */
-/***/ function(module, exports, __webpack_require__) {
-
-  'use strict';
-
-  Object.defineProperty(exports, '__esModule', {
-    value: true
-  });
-
-  var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
-
-  function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
-
-  var util = __webpack_require__(19);
-  var Hammer = __webpack_require__(15);
-  var hammerUtil = __webpack_require__(41);
-
-  /**
-   * clears the toolbar div element of children
-   *
-   * @private
-   */
-
-  var ManipulationSystem = (function () {
-    function ManipulationSystem(body, canvas, selectionHandler) {
-      var _this = this;
-
-      _classCallCheck(this, ManipulationSystem);
-
-      this.body = body;
-      this.canvas = canvas;
-      this.selectionHandler = selectionHandler;
-
-      this.editMode = false;
-      this.manipulationDiv = undefined;
-      this.editModeDiv = undefined;
-      this.closeDiv = undefined;
-
-      this.manipulationHammers = [];
-      this.temporaryUIFunctions = {};
-      this.temporaryEventFunctions = [];
-
-      this.touchTime = 0;
-      this.temporaryIds = { nodes: [], edges: [] };
-      this.guiEnabled = false;
-      this.inMode = false;
-      this.selectedControlNode = undefined;
-
-      this.options = {};
-      this.defaultOptions = {
-        enabled: false,
-        initiallyActive: false,
-        addNode: true,
-        addEdge: true,
-        editNode: undefined,
-        editEdge: true,
-        deleteNode: true,
-        deleteEdge: true,
-        controlNodeStyle: {
-          shape: 'dot',
-          size: 6,
-          color: { background: '#ff0000', border: '#3c3c3c', highlight: { background: '#07f968', border: '#3c3c3c' } },
-          borderWidth: 2,
-          borderWidthSelected: 2
-        }
-      };
-      util.extend(this.options, this.defaultOptions);
-
-      this.body.emitter.on('destroy', function () {
-        _this._clean();
-      });
-      this.body.emitter.on('_dataChanged', this._restore.bind(this));
-      this.body.emitter.on('_resetData', this._restore.bind(this));
-    }
-
-    _createClass(ManipulationSystem, [{
-      key: '_restore',
-
-      /**
-       * If something changes in the data during editing, switch back to the initial datamanipulation state and close all edit modes.
-       * @private
-       */
-      value: function _restore() {
-        if (this.inMode !== false) {
-          if (this.options.initiallyActive === true) {
-            this.enableEditMode();
-          } else {
-            this.disableEditMode();
-          }
-        }
-      }
-    }, {
-      key: 'setOptions',
-
-      /**
-       * Set the Options
-       * @param options
-       */
-      value: function setOptions(options, allOptions, globalOptions) {
-        if (allOptions !== undefined) {
-          if (allOptions.locale !== undefined) {
-            this.options.locale = allOptions.locale;
-          } else {
-            this.options.locale = globalOptions.locale;
-          }
-          if (allOptions.locales !== undefined) {
-            this.options.locales = allOptions.locales;
-          } else {
-            this.options.locales = globalOptions.locales;
-          }
-        }
-
-        if (options !== undefined) {
-          if (typeof options === 'boolean') {
-            this.options.enabled = options;
-          } else {
-            this.options.enabled = true;
-            util.deepExtend(this.options, options);
-          }
-          if (this.options.initiallyActive === true) {
-            this.editMode = true;
-          }
-          this._setup();
-        }
-      }
-    }, {
-      key: 'toggleEditMode',
-
-      /**
-       * Enable or disable edit-mode. Draws the DOM required and cleans up after itself.
-       *
-       * @private
-       */
-      value: function toggleEditMode() {
-        if (this.editMode === true) {
-          this.disableEditMode();
-        } else {
-          this.enableEditMode();
-        }
-      }
-    }, {
-      key: 'enableEditMode',
-      value: function enableEditMode() {
-        this.editMode = true;
-
-        this._clean();
-        if (this.guiEnabled === true) {
-          this.manipulationDiv.style.display = 'block';
-          this.closeDiv.style.display = 'block';
-          this.editModeDiv.style.display = 'none';
-          this.showManipulatorToolbar();
-        }
-      }
-    }, {
-      key: 'disableEditMode',
-      value: function disableEditMode() {
-        this.editMode = false;
-
-        this._clean();
-        if (this.guiEnabled === true) {
-          this.manipulationDiv.style.display = 'none';
-          this.closeDiv.style.display = 'none';
-          this.editModeDiv.style.display = 'block';
-          this._createEditButton();
-        }
-      }
-    }, {
-      key: 'showManipulatorToolbar',
-
-      /**
-       * Creates the main toolbar. Removes functions bound to the select event. Binds all the buttons of the toolbar.
-       *
-       * @private
-       */
-      value: function showManipulatorToolbar() {
-        // restore the state of any bound functions or events, remove control nodes, restore physics
-        this._clean();
-
-        // reset global letiables
-        this.manipulationDOM = {};
-
-        // if the gui is enabled, draw all elements.
-        if (this.guiEnabled === true) {
-          // a _restore will hide these menus
-          this.editMode = true;
-          this.manipulationDiv.style.display = 'block';
-          this.closeDiv.style.display = 'block';
-
-          var selectedNodeCount = this.selectionHandler._getSelectedNodeCount();
-          var selectedEdgeCount = this.selectionHandler._getSelectedEdgeCount();
-          var selectedTotalCount = selectedNodeCount + selectedEdgeCount;
-          var locale = this.options.locales[this.options.locale];
-          var needSeperator = false;
-
-          if (this.options.addNode !== false) {
-            this._createAddNodeButton(locale);
-            needSeperator = true;
-          }
-          if (this.options.addEdge !== false) {
-            if (needSeperator === true) {
-              this._createSeperator(1);
-            } else {
-              needSeperator = true;
-            }
-            this._createAddEdgeButton(locale);
-          }
-
-          if (selectedNodeCount === 1 && typeof this.options.editNode === 'function') {
-            if (needSeperator === true) {
-              this._createSeperator(2);
-            } else {
-              needSeperator = true;
-            }
-            this._createEditNodeButton(locale);
-          } else if (selectedEdgeCount === 1 && selectedNodeCount === 0 && this.options.editEdge !== false) {
-            if (needSeperator === true) {
-              this._createSeperator(3);
-            } else {
-              needSeperator = true;
-            }
-            this._createEditEdgeButton(locale);
-          }
-
-          // remove buttons
-          if (selectedTotalCount !== 0) {
-            if (selectedNodeCount === 1 && this.options.deleteNode !== false) {
-              if (needSeperator === true) {
-                this._createSeperator(4);
-              }
-              this._createDeleteButton(locale);
-            } else if (selectedNodeCount === 0 && this.options.deleteEdge !== false) {
-              if (needSeperator === true) {
-                this._createSeperator(4);
-              }
-              this._createDeleteButton(locale);
-            }
-          }
-
-          // bind the close button
-          this._bindHammerToDiv(this.closeDiv, this.toggleEditMode.bind(this));
-
-          // refresh this bar based on what has been selected
-          this._temporaryBindEvent('select', this.showManipulatorToolbar.bind(this));
-        }
-
-        // redraw to show any possible changes
-        this.body.emitter.emit('_redraw');
-      }
-    }, {
-      key: 'addNodeMode',
-
-      /**
-       * Create the toolbar for adding Nodes
-       *
-       * @private
-       */
-      value: function addNodeMode() {
-        // when using the gui, enable edit mode if it wasnt already.
-        if (this.editMode !== true) {
-          this.enableEditMode();
-        }
-
-        // restore the state of any bound functions or events, remove control nodes, restore physics
-        this._clean();
-
-        this.inMode = 'addNode';
-        if (this.guiEnabled === true) {
-          var locale = this.options.locales[this.options.locale];
-          this.manipulationDOM = {};
-          this._createBackButton(locale);
-          this._createSeperator();
-          this._createDescription(locale['addDescription'] || this.options.locales['en']['addDescription']);
-
-          // bind the close button
-          this._bindHammerToDiv(this.closeDiv, this.toggleEditMode.bind(this));
-        }
-
-        this._temporaryBindEvent('click', this._performAddNode.bind(this));
-      }
-    }, {
-      key: 'editNode',
-
-      /**
-       * call the bound function to handle the editing of the node. The node has to be selected.
-       *
-       * @private
-       */
-      value: function editNode() {
-        var _this2 = this;
-
-        // when using the gui, enable edit mode if it wasnt already.
-        if (this.editMode !== true) {
-          this.enableEditMode();
-        }
-
-        // restore the state of any bound functions or events, remove control nodes, restore physics
-        this._clean();
-        var node = this.selectionHandler._getSelectedNode();
-        if (node !== undefined) {
-          this.inMode = 'editNode';
-          if (typeof this.options.editNode === 'function') {
-            if (node.isCluster !== true) {
-              var data = util.deepExtend({}, node.options, true);
-              data.x = node.x;
-              data.y = node.y;
-
-              if (this.options.editNode.length === 2) {
-                this.options.editNode(data, function (finalizedData) {
-                  if (finalizedData !== null && finalizedData !== undefined && _this2.inMode === 'editNode') {
-                    // if for whatever reason the mode has changes (due to dataset change) disregard the callback) {
-                    _this2.body.data.nodes.getDataSet().update(finalizedData);
-                  }
-                  _this2.showManipulatorToolbar();
-                });
-              } else {
-                throw new Error('The function for edit does not support two arguments (data, callback)');
-              }
-            } else {
-              alert(this.options.locales[this.options.locale]['editClusterError'] || this.options.locales['en']['editClusterError']);
-            }
-          } else {
-            throw new Error('No function has been configured to handle the editing of nodes.');
-          }
-        } else {
-          this.showManipulatorToolbar();
-        }
-      }
-    }, {
-      key: 'addEdgeMode',
-
-      /**
-       * create the toolbar to connect nodes
-       *
-       * @private
-       */
-      value: function addEdgeMode() {
-        // when using the gui, enable edit mode if it wasnt already.
-        if (this.editMode !== true) {
-          this.enableEditMode();
-        }
-
-        // restore the state of any bound functions or events, remove control nodes, restore physics
-        this._clean();
-
-        this.inMode = 'addEdge';
-        if (this.guiEnabled === true) {
-          var locale = this.options.locales[this.options.locale];
-          this.manipulationDOM = {};
-          this._createBackButton(locale);
-          this._createSeperator();
-          this._createDescription(locale['edgeDescription'] || this.options.locales['en']['edgeDescription']);
-
-          // bind the close button
-          this._bindHammerToDiv(this.closeDiv, this.toggleEditMode.bind(this));
-        }
-
-        // temporarily overload functions
-        this._temporaryBindUI('onTouch', this._handleConnect.bind(this));
-        this._temporaryBindUI('onDragEnd', this._finishConnect.bind(this));
-        this._temporaryBindUI('onDrag', this._dragControlNode.bind(this));
-        this._temporaryBindUI('onRelease', this._finishConnect.bind(this));
-
-        this._temporaryBindUI('onDragStart', function () {});
-        this._temporaryBindUI('onHold', function () {});
-      }
-    }, {
-      key: 'editEdgeMode',
-
-      /**
-       * create the toolbar to edit edges
-       *
-       * @private
-       */
-      value: function editEdgeMode() {
-        var _this3 = this;
-
-        // when using the gui, enable edit mode if it wasnt already.
-        if (this.editMode !== true) {
-          this.enableEditMode();
-        }
-
-        // restore the state of any bound functions or events, remove control nodes, restore physics
-        this._clean();
-
-        this.inMode = 'editEdge';
-        if (this.guiEnabled === true) {
-          var locale = this.options.locales[this.options.locale];
-          this.manipulationDOM = {};
-          this._createBackButton(locale);
-          this._createSeperator();
-          this._createDescription(locale['editEdgeDescription'] || this.options.locales['en']['editEdgeDescription']);
-
-          // bind the close button
-          this._bindHammerToDiv(this.closeDiv, this.toggleEditMode.bind(this));
-        }
-
-        this.edgeBeingEditedId = this.selectionHandler.getSelectedEdges()[0];
-        if (this.edgeBeingEditedId !== undefined) {
-          (function () {
-            var edge = _this3.body.edges[_this3.edgeBeingEditedId];
-
-            // create control nodes
-            var controlNodeFrom = _this3._getNewTargetNode(edge.from.x, edge.from.y);
-            var controlNodeTo = _this3._getNewTargetNode(edge.to.x, edge.to.y);
-
-            _this3.temporaryIds.nodes.push(controlNodeFrom.id);
-            _this3.temporaryIds.nodes.push(controlNodeTo.id);
-
-            _this3.body.nodes[controlNodeFrom.id] = controlNodeFrom;
-            _this3.body.nodeIndices.push(controlNodeFrom.id);
-            _this3.body.nodes[controlNodeTo.id] = controlNodeTo;
-            _this3.body.nodeIndices.push(controlNodeTo.id);
-
-            // temporarily overload UI functions, cleaned up automatically because of _temporaryBindUI
-            _this3._temporaryBindUI('onTouch', _this3._controlNodeTouch.bind(_this3)); // used to get the position
-            _this3._temporaryBindUI('onTap', function () {}); // disabled
-            _this3._temporaryBindUI('onHold', function () {}); // disabled
-            _this3._temporaryBindUI('onDragStart', _this3._controlNodeDragStart.bind(_this3)); // used to select control node
-            _this3._temporaryBindUI('onDrag', _this3._controlNodeDrag.bind(_this3)); // used to drag control node
-            _this3._temporaryBindUI('onDragEnd', _this3._controlNodeDragEnd.bind(_this3)); // used to connect or revert control nodes
-            _this3._temporaryBindUI('onMouseMove', function () {}); // disabled
-
-            // create function to position control nodes correctly on movement
-            // automatically cleaned up because we use the temporary bind
-            _this3._temporaryBindEvent('beforeDrawing', function (ctx) {
-              var positions = edge.edgeType.findBorderPositions(ctx);
-              if (controlNodeFrom.selected === false) {
-                controlNodeFrom.x = positions.from.x;
-                controlNodeFrom.y = positions.from.y;
-              }
-              if (controlNodeTo.selected === false) {
-                controlNodeTo.x = positions.to.x;
-                controlNodeTo.y = positions.to.y;
-              }
-            });
-
-            _this3.body.emitter.emit('_redraw');
-          })();
-        } else {
-          this.showManipulatorToolbar();
-        }
-      }
-    }, {
-      key: 'deleteSelected',
-
-      /**
-       * delete everything in the selection
-       *
-       * @private
-       */
-      value: function deleteSelected() {
-        var _this4 = this;
-
-        // when using the gui, enable edit mode if it wasnt already.
-        if (this.editMode !== true) {
-          this.enableEditMode();
-        }
-
-        // restore the state of any bound functions or events, remove control nodes, restore physics
-        this._clean();
-
-        this.inMode = 'delete';
-        var selectedNodes = this.selectionHandler.getSelectedNodes();
-        var selectedEdges = this.selectionHandler.getSelectedEdges();
-        var deleteFunction = undefined;
-        if (selectedNodes.length > 0) {
-          for (var i = 0; i < selectedNodes.length; i++) {
-            if (this.body.nodes[selectedNodes[i]].isCluster === true) {
-              alert(this.options.locales[this.options.locale]['deleteClusterError'] || this.options.locales['en']['deleteClusterError']);
-              return;
-            }
-          }
-
-          if (typeof this.options.deleteNode === 'function') {
-            deleteFunction = this.options.deleteNode;
-          }
-        } else if (selectedEdges.length > 0) {
-          if (typeof this.options.deleteEdge === 'function') {
-            deleteFunction = this.options.deleteEdge;
-          }
-        }
-
-        if (typeof deleteFunction === 'function') {
-          var data = { nodes: selectedNodes, edges: selectedEdges };
-          if (deleteFunction.length === 2) {
-            deleteFunction(data, function (finalizedData) {
-              if (finalizedData !== null && finalizedData !== undefined && _this4.inMode === 'delete') {
-                // if for whatever reason the mode has changes (due to dataset change) disregard the callback) {
-                _this4.body.data.edges.getDataSet().remove(finalizedData.edges);
-                _this4.body.data.nodes.getDataSet().remove(finalizedData.nodes);
-                _this4.body.emitter.emit('startSimulation');
-                _this4.showManipulatorToolbar();
-              } else {
-                _this4.body.emitter.emit('startSimulation');
-                _this4.showManipulatorToolbar();
-              }
-            });
-          } else {
-            throw new Error('The function for delete does not support two arguments (data, callback)');
-          }
-        } else {
-          this.body.data.edges.getDataSet().remove(selectedEdges);
-          this.body.data.nodes.getDataSet().remove(selectedNodes);
-          this.body.emitter.emit('startSimulation');
-          this.showManipulatorToolbar();
-        }
-      }
-    }, {
-      key: '_setup',
-
-      //********************************************** PRIVATE ***************************************//
-
-      /**
-       * draw or remove the DOM
-       * @private
-       */
-      value: function _setup() {
-        if (this.options.enabled === true) {
-          // Enable the GUI
-          this.guiEnabled = true;
-
-          this._createWrappers();
-          if (this.editMode === false) {
-            this._createEditButton();
-          } else {
-            this.showManipulatorToolbar();
-          }
-        } else {
-          this._removeManipulationDOM();
-
-          // disable the gui
-          this.guiEnabled = false;
-        }
-      }
-    }, {
-      key: '_createWrappers',
-
-      /**
-       * create the div overlays that contain the DOM
-       * @private
-       */
-      value: function _createWrappers() {
-        // load the manipulator HTML elements. All styling done in css.
-        if (this.manipulationDiv === undefined) {
-          this.manipulationDiv = document.createElement('div');
-          this.manipulationDiv.className = 'vis-manipulation';
-          if (this.editMode === true) {
-            this.manipulationDiv.style.display = 'block';
-          } else {
-            this.manipulationDiv.style.display = 'none';
-          }
-          this.canvas.frame.appendChild(this.manipulationDiv);
-        }
-
-        // container for the edit button.
-        if (this.editModeDiv === undefined) {
-          this.editModeDiv = document.createElement('div');
-          this.editModeDiv.className = 'vis-edit-mode';
-          if (this.editMode === true) {
-            this.editModeDiv.style.display = 'none';
-          } else {
-            this.editModeDiv.style.display = 'block';
-          }
-          this.canvas.frame.appendChild(this.editModeDiv);
-        }
-
-        // container for the close div button
-        if (this.closeDiv === undefined) {
-          this.closeDiv = document.createElement('div');
-          this.closeDiv.className = 'vis-close';
-          this.closeDiv.style.display = this.manipulationDiv.style.display;
-          this.canvas.frame.appendChild(this.closeDiv);
-        }
-      }
-    }, {
-      key: '_getNewTargetNode',
-
-      /**
-       * generate a new target node. Used for creating new edges and editing edges
-       * @param x
-       * @param y
-       * @returns {*}
-       * @private
-       */
-      value: function _getNewTargetNode(x, y) {
-        var controlNodeStyle = util.deepExtend({}, this.options.controlNodeStyle);
-
-        controlNodeStyle.id = 'targetNode' + util.randomUUID();
-        controlNodeStyle.hidden = false;
-        controlNodeStyle.physics = false;
-        controlNodeStyle.x = x;
-        controlNodeStyle.y = y;
-
-        return this.body.functions.createNode(controlNodeStyle);
-      }
-    }, {
-      key: '_createEditButton',
-
-      /**
-       * Create the edit button
-       */
-      value: function _createEditButton() {
-        // restore everything to it's original state (if applicable)
-        this._clean();
-
-        // reset the manipulationDOM
-        this.manipulationDOM = {};
-
-        // empty the editModeDiv
-        util.recursiveDOMDelete(this.editModeDiv);
-
-        // create the contents for the editMode button
-        var locale = this.options.locales[this.options.locale];
-        var button = this._createButton('editMode', 'vis-button vis-edit vis-edit-mode', locale['edit'] || this.options.locales['en']['edit']);
-        this.editModeDiv.appendChild(button);
-
-        // bind a hammer listener to the button, calling the function toggleEditMode.
-        this._bindHammerToDiv(button, this.toggleEditMode.bind(this));
-      }
-    }, {
-      key: '_clean',
-
-      /**
-       * this function cleans up after everything this module does. Temporary elements, functions and events are removed, physics restored, hammers removed.
-       * @private
-       */
-      value: function _clean() {
-        // not in mode
-        this.inMode = false;
-
-        // _clean the divs
-        if (this.guiEnabled === true) {
-          util.recursiveDOMDelete(this.editModeDiv);
-          util.recursiveDOMDelete(this.manipulationDiv);
-
-          // removes all the bindings and overloads
-          this._cleanManipulatorHammers();
-        }
-
-        // remove temporary nodes and edges
-        this._cleanupTemporaryNodesAndEdges();
-
-        // restore overloaded UI functions
-        this._unbindTemporaryUIs();
-
-        // remove the temporaryEventFunctions
-        this._unbindTemporaryEvents();
-
-        // restore the physics if required
-        this.body.emitter.emit('restorePhysics');
-      }
-    }, {
-      key: '_cleanManipulatorHammers',
-
-      /**
-       * Each dom element has it's own hammer. They are stored in this.manipulationHammers. This cleans them up.
-       * @private
-       */
-      value: function _cleanManipulatorHammers() {
-        // _clean hammer bindings
-        if (this.manipulationHammers.length != 0) {
-          for (var i = 0; i < this.manipulationHammers.length; i++) {
-            this.manipulationHammers[i].destroy();
-          }
-          this.manipulationHammers = [];
-        }
-      }
-    }, {
-      key: '_removeManipulationDOM',
-
-      /**
-       * Remove all DOM elements created by this module.
-       * @private
-       */
-      value: function _removeManipulationDOM() {
-        // removes all the bindings and overloads
-        this._clean();
-
-        // empty the manipulation divs
-        util.recursiveDOMDelete(this.manipulationDiv);
-        util.recursiveDOMDelete(this.editModeDiv);
-        util.recursiveDOMDelete(this.closeDiv);
-
-        // remove the manipulation divs
-        if (this.manipulationDiv) {
-          this.canvas.frame.removeChild(this.manipulationDiv);
-        }
-        if (this.editModeDiv) {
-          this.canvas.frame.removeChild(this.editModeDiv);
-        }
-        if (this.closeDiv) {
-          this.canvas.frame.removeChild(this.manipulationDiv);
-        }
-
-        // set the references to undefined
-        this.manipulationDiv = undefined;
-        this.editModeDiv = undefined;
-        this.closeDiv = undefined;
-      }
-    }, {
-      key: '_createSeperator',
-
-      /**
-       * create a seperator line. the index is to differentiate in the manipulation dom
-       * @param index
-       * @private
-       */
-      value: function _createSeperator() {
-        var index = arguments[0] === undefined ? 1 : arguments[0];
-
-        this.manipulationDOM['seperatorLineDiv' + index] = document.createElement('div');
-        this.manipulationDOM['seperatorLineDiv' + index].className = 'vis-separator-line';
-        this.manipulationDiv.appendChild(this.manipulationDOM['seperatorLineDiv' + index]);
-      }
-    }, {
-      key: '_createAddNodeButton',
-
-      // ----------------------    DOM functions for buttons    --------------------------//
-
-      value: function _createAddNodeButton(locale) {
-        var button = this._createButton('addNode', 'vis-button vis-add', locale['addNode'] || this.options.locales['en']['addNode']);
-        this.manipulationDiv.appendChild(button);
-        this._bindHammerToDiv(button, this.addNodeMode.bind(this));
-      }
-    }, {
-      key: '_createAddEdgeButton',
-      value: function _createAddEdgeButton(locale) {
-        var button = this._createButton('addEdge', 'vis-button vis-connect', locale['addEdge'] || this.options.locales['en']['addEdge']);
-        this.manipulationDiv.appendChild(button);
-        this._bindHammerToDiv(button, this.addEdgeMode.bind(this));
-      }
-    }, {
-      key: '_createEditNodeButton',
-      value: function _createEditNodeButton(locale) {
-        var button = this._createButton('editNode', 'vis-button vis-edit', locale['editNode'] || this.options.locales['en']['editNode']);
-        this.manipulationDiv.appendChild(button);
-        this._bindHammerToDiv(button, this.editNode.bind(this));
-      }
-    }, {
-      key: '_createEditEdgeButton',
-      value: function _createEditEdgeButton(locale) {
-        var button = this._createButton('editEdge', 'vis-button vis-edit', locale['editEdge'] || this.options.locales['en']['editEdge']);
-        this.manipulationDiv.appendChild(button);
-        this._bindHammerToDiv(button, this.editEdgeMode.bind(this));
-      }
-    }, {
-      key: '_createDeleteButton',
-      value: function _createDeleteButton(locale) {
-        var button = this._createButton('delete', 'vis-button vis-delete', locale['del'] || this.options.locales['en']['del']);
-        this.manipulationDiv.appendChild(button);
-        this._bindHammerToDiv(button, this.deleteSelected.bind(this));
-      }
-    }, {
-      key: '_createBackButton',
-      value: function _createBackButton(locale) {
-        var button = this._createButton('back', 'vis-button vis-back', locale['back'] || this.options.locales['en']['back']);
-        this.manipulationDiv.appendChild(button);
-        this._bindHammerToDiv(button, this.showManipulatorToolbar.bind(this));
-      }
-    }, {
-      key: '_createButton',
-      value: function _createButton(id, className, label) {
-        var labelClassName = arguments[3] === undefined ? 'vis-label' : arguments[3];
-
-        this.manipulationDOM[id + 'Div'] = document.createElement('div');
-        this.manipulationDOM[id + 'Div'].className = className;
-        this.manipulationDOM[id + 'Label'] = document.createElement('div');
-        this.manipulationDOM[id + 'Label'].className = labelClassName;
-        this.manipulationDOM[id + 'Label'].innerHTML = label;
-        this.manipulationDOM[id + 'Div'].appendChild(this.manipulationDOM[id + 'Label']);
-        return this.manipulationDOM[id + 'Div'];
-      }
-    }, {
-      key: '_createDescription',
-      value: function _createDescription(label) {
-        this.manipulationDiv.appendChild(this._createButton('description', 'vis-button vis-none', label));
-      }
-    }, {
-      key: '_temporaryBindEvent',
-
-      // -------------------------- End of DOM functions for buttons ------------------------------//
-
-      /**
-       * this binds an event until cleanup by the clean functions.
-       * @param event
-       * @param newFunction
-       * @private
-       */
-      value: function _temporaryBindEvent(event, newFunction) {
-        this.temporaryEventFunctions.push({ event: event, boundFunction: newFunction });
-        this.body.emitter.on(event, newFunction);
-      }
-    }, {
-      key: '_temporaryBindUI',
-
-      /**
-       * this overrides an UI function until cleanup by the clean function
-       * @param UIfunctionName
-       * @param newFunction
-       * @private
-       */
-      value: function _temporaryBindUI(UIfunctionName, newFunction) {
-        if (this.body.eventListeners[UIfunctionName] !== undefined) {
-          this.temporaryUIFunctions[UIfunctionName] = this.body.eventListeners[UIfunctionName];
-          this.body.eventListeners[UIfunctionName] = newFunction;
-        } else {
-          throw new Error('This UI function does not exist. Typo? You tried: ' + UIfunctionName + ' possible are: ' + JSON.stringify(Object.keys(this.body.eventListeners)));
-        }
-      }
-    }, {
-      key: '_unbindTemporaryUIs',
-
-      /**
-       * Restore the overridden UI functions to their original state.
-       *
-       * @private
-       */
-      value: function _unbindTemporaryUIs() {
-        for (var functionName in this.temporaryUIFunctions) {
-          if (this.temporaryUIFunctions.hasOwnProperty(functionName)) {
-            this.body.eventListeners[functionName] = this.temporaryUIFunctions[functionName];
-            delete this.temporaryUIFunctions[functionName];
-          }
-        }
-        this.temporaryUIFunctions = {};
-      }
-    }, {
-      key: '_unbindTemporaryEvents',
-
-      /**
-       * Unbind the events created by _temporaryBindEvent
-       * @private
-       */
-      value: function _unbindTemporaryEvents() {
-        for (var i = 0; i < this.temporaryEventFunctions.length; i++) {
-          var eventName = this.temporaryEventFunctions[i].event;
-          var boundFunction = this.temporaryEventFunctions[i].boundFunction;
-          this.body.emitter.off(eventName, boundFunction);
-        }
-        this.temporaryEventFunctions = [];
-      }
-    }, {
-      key: '_bindHammerToDiv',
-
-      /**
-       * Bind an hammer instance to a DOM element.
-       * @param domElement
-       * @param funct
-       */
-      value: function _bindHammerToDiv(domElement, boundFunction) {
-        var hammer = new Hammer(domElement, {});
-        hammerUtil.onTouch(hammer, boundFunction);
-        this.manipulationHammers.push(hammer);
-      }
-    }, {
-      key: '_cleanupTemporaryNodesAndEdges',
-
-      /**
-       * Neatly clean up temporary edges and nodes
-       * @private
-       */
-      value: function _cleanupTemporaryNodesAndEdges() {
-        // _clean temporary edges
-        for (var i = 0; i < this.temporaryIds.edges.length; i++) {
-          this.body.edges[this.temporaryIds.edges[i]].disconnect();
-          delete this.body.edges[this.temporaryIds.edges[i]];
-          var indexTempEdge = this.body.edgeIndices.indexOf(this.temporaryIds.edges[i]);
-          if (indexTempEdge !== -1) {
-            this.body.edgeIndices.splice(indexTempEdge, 1);
-          }
-        }
-
-        // _clean temporary nodes
-        for (var i = 0; i < this.temporaryIds.nodes.length; i++) {
-          delete this.body.nodes[this.temporaryIds.nodes[i]];
-          var indexTempNode = this.body.nodeIndices.indexOf(this.temporaryIds.nodes[i]);
-          if (indexTempNode !== -1) {
-            this.body.nodeIndices.splice(indexTempNode, 1);
-          }
-        }
-
-        this.temporaryIds = { nodes: [], edges: [] };
-      }
-    }, {
-      key: '_controlNodeTouch',
-
-      // ------------------------------------------ EDIT EDGE FUNCTIONS -----------------------------------------//
-
-      /**
-       * the touch is used to get the position of the initial click
-       * @param event
-       * @private
-       */
-      value: function _controlNodeTouch(event) {
-        this.selectionHandler.unselectAll();
-        this.lastTouch = this.body.functions.getPointer(event.center);
-        this.lastTouch.translation = util.extend({}, this.body.view.translation); // copy the object
-      }
-    }, {
-      key: '_controlNodeDragStart',
-
-      /**
-       * the drag start is used to mark one of the control nodes as selected.
-       * @param event
-       * @private
-       */
-      value: function _controlNodeDragStart(event) {
-        var pointer = this.lastTouch;
-        var pointerObj = this.selectionHandler._pointerToPositionObject(pointer);
-        var from = this.body.nodes[this.temporaryIds.nodes[0]];
-        var to = this.body.nodes[this.temporaryIds.nodes[1]];
-        var edge = this.body.edges[this.edgeBeingEditedId];
-        this.selectedControlNode = undefined;
-
-        var fromSelect = from.isOverlappingWith(pointerObj);
-        var toSelect = to.isOverlappingWith(pointerObj);
-
-        if (fromSelect === true) {
-          this.selectedControlNode = from;
-          edge.edgeType.from = from;
-        } else if (toSelect === true) {
-          this.selectedControlNode = to;
-          edge.edgeType.to = to;
-        }
-
-        this.body.emitter.emit('_redraw');
-      }
-    }, {
-      key: '_controlNodeDrag',
-
-      /**
-       * dragging the control nodes or the canvas
-       * @param event
-       * @private
-       */
-      value: function _controlNodeDrag(event) {
-        this.body.emitter.emit('disablePhysics');
-        var pointer = this.body.functions.getPointer(event.center);
-        var pos = this.canvas.DOMtoCanvas(pointer);
-
-        if (this.selectedControlNode !== undefined) {
-          this.selectedControlNode.x = pos.x;
-          this.selectedControlNode.y = pos.y;
-        } else {
-          // if the drag was not started properly because the click started outside the network div, start it now.
-          var diffX = pointer.x - this.lastTouch.x;
-          var diffY = pointer.y - this.lastTouch.y;
-          this.body.view.translation = { x: this.lastTouch.translation.x + diffX, y: this.lastTouch.translation.y + diffY };
-        }
-        this.body.emitter.emit('_redraw');
-      }
-    }, {
-      key: '_controlNodeDragEnd',
-
-      /**
-       * connecting or restoring the control nodes.
-       * @param event
-       * @private
-       */
-      value: function _controlNodeDragEnd(event) {
-        var pointer = this.body.functions.getPointer(event.center);
-        var pointerObj = this.selectionHandler._pointerToPositionObject(pointer);
-        var edge = this.body.edges[this.edgeBeingEditedId];
-
-        var overlappingNodeIds = this.selectionHandler._getAllNodesOverlappingWith(pointerObj);
-        var node = undefined;
-        for (var i = overlappingNodeIds.length - 1; i >= 0; i--) {
-          if (overlappingNodeIds[i] !== this.selectedControlNode.id) {
-            node = this.body.nodes[overlappingNodeIds[i]];
-            break;
-          }
-        }
-
-        // perform the connection
-        if (node !== undefined && this.selectedControlNode !== undefined) {
-          if (node.isCluster === true) {
-            alert(this.options.locales[this.options.locale]['createEdgeError'] || this.options.locales['en']['createEdgeError']);
-          } else {
-            var from = this.body.nodes[this.temporaryIds.nodes[0]];
-            if (this.selectedControlNode.id === from.id) {
-              this._performEditEdge(node.id, edge.to.id);
-            } else {
-              this._performEditEdge(edge.from.id, node.id);
-            }
-          }
-        } else {
-          edge.updateEdgeType();
-          this.body.emitter.emit('restorePhysics');
-        }
-        this.body.emitter.emit('_redraw');
-      }
-    }, {
-      key: '_handleConnect',
-
-      // ------------------------------------ END OF EDIT EDGE FUNCTIONS -----------------------------------------//
-
-      // ------------------------------------------- ADD EDGE FUNCTIONS -----------------------------------------//
-      /**
-       * the function bound to the selection event. It checks if you want to connect a cluster and changes the description
-       * to walk the user through the process.
-       *
-       * @private
-       */
-      value: function _handleConnect(event) {
-        // check to avoid double fireing of this function.
-        if (new Date().valueOf() - this.touchTime > 100) {
-          this.lastTouch = this.body.functions.getPointer(event.center);
-          this.lastTouch.translation = util.extend({}, this.body.view.translation); // copy the object
-
-          var pointer = this.lastTouch;
-          var node = this.selectionHandler.getNodeAt(pointer);
-
-          if (node !== undefined) {
-            if (node.isCluster === true) {
-              alert(this.options.locales[this.options.locale]['createEdgeError'] || this.options.locales['en']['createEdgeError']);
-            } else {
-              // create a node the temporary line can look at
-              var targetNode = this._getNewTargetNode(node.x, node.y);
-              this.body.nodes[targetNode.id] = targetNode;
-              this.body.nodeIndices.push(targetNode.id);
-
-              // create a temporary edge
-              var connectionEdge = this.body.functions.createEdge({
-                id: 'connectionEdge' + util.randomUUID(),
-                from: node.id,
-                to: targetNode.id,
-                physics: false,
-                smooth: {
-                  enabled: true,
-                  type: 'continuous',
-                  roundness: 0.5
-                }
-              });
-              this.body.edges[connectionEdge.id] = connectionEdge;
-              this.body.edgeIndices.push(connectionEdge.id);
-
-              this.temporaryIds.nodes.push(targetNode.id);
-              this.temporaryIds.edges.push(connectionEdge.id);
-            }
-          }
-          this.touchTime = new Date().valueOf();
-        }
-      }
-    }, {
-      key: '_dragControlNode',
-      value: function _dragControlNode(event) {
-        var pointer = this.body.functions.getPointer(event.center);
-        if (this.temporaryIds.nodes[0] !== undefined) {
-          var targetNode = this.body.nodes[this.temporaryIds.nodes[0]]; // there is only one temp node in the add edge mode.
-          targetNode.x = this.canvas._XconvertDOMtoCanvas(pointer.x);
-          targetNode.y = this.canvas._YconvertDOMtoCanvas(pointer.y);
-          this.body.emitter.emit('_redraw');
-        } else {
-          var diffX = pointer.x - this.lastTouch.x;
-          var diffY = pointer.y - this.lastTouch.y;
-          this.body.view.translation = { x: this.lastTouch.translation.x + diffX, y: this.lastTouch.translation.y + diffY };
-        }
-      }
-    }, {
-      key: '_finishConnect',
-
-      /**
-       * Connect the new edge to the target if one exists, otherwise remove temp line
-       * @param event
-       * @private
-       */
-      value: function _finishConnect(event) {
-        var pointer = this.body.functions.getPointer(event.center);
-        var pointerObj = this.selectionHandler._pointerToPositionObject(pointer);
-
-        // remember the edge id
-        var connectFromId = undefined;
-        if (this.temporaryIds.edges[0] !== undefined) {
-          connectFromId = this.body.edges[this.temporaryIds.edges[0]].fromId;
-        }
-
-        // get the overlapping node but NOT the temporary node;
-        var overlappingNodeIds = this.selectionHandler._getAllNodesOverlappingWith(pointerObj);
-        var node = undefined;
-        for (var i = overlappingNodeIds.length - 1; i >= 0; i--) {
-          // if the node id is NOT a temporary node, accept the node.
-          if (this.temporaryIds.nodes.indexOf(overlappingNodeIds[i]) === -1) {
-            node = this.body.nodes[overlappingNodeIds[i]];
-            break;
-          }
-        }
-
-        // clean temporary nodes and edges.
-        this._cleanupTemporaryNodesAndEdges();
-
-        // perform the connection
-        if (node !== undefined) {
-          if (node.isCluster === true) {
-            alert(this.options.locales[this.options.locale]['createEdgeError'] || this.options.locales['en']['createEdgeError']);
-          } else {
-            if (this.body.nodes[connectFromId] !== undefined && this.body.nodes[node.id] !== undefined) {
-              this._performAddEdge(connectFromId, node.id);
-            }
-          }
-        }
-        this.body.emitter.emit('_redraw');
-      }
-    }, {
-      key: '_performAddNode',
-
-      // --------------------------------------- END OF ADD EDGE FUNCTIONS -------------------------------------//
-
-      // ------------------------------ Performing all the actual data manipulation ------------------------//
-
-      /**
-       * Adds a node on the specified location
-       */
-      value: function _performAddNode(clickData) {
-        var _this5 = this;
-
-        var defaultData = {
-          id: util.randomUUID(),
-          x: clickData.pointer.canvas.x,
-          y: clickData.pointer.canvas.y,
-          label: 'new'
-        };
-
-        if (typeof this.options.addNode === 'function') {
-          if (this.options.addNode.length === 2) {
-            this.options.addNode(defaultData, function (finalizedData) {
-              if (finalizedData !== null && finalizedData !== undefined && _this5.inMode === 'addNode') {
-                // if for whatever reason the mode has changes (due to dataset change) disregard the callback
-                _this5.body.data.nodes.getDataSet().add(finalizedData);
-                _this5.showManipulatorToolbar();
-              }
-            });
-          } else {
-            throw new Error('The function for add does not support two arguments (data,callback)');
-            this.showManipulatorToolbar();
-          }
-        } else {
-          this.body.data.nodes.getDataSet().add(defaultData);
-          this.showManipulatorToolbar();
-        }
-      }
-    }, {
-      key: '_performAddEdge',
-
-      /**
-       * connect two nodes with a new edge.
-       *
-       * @private
-       */
-      value: function _performAddEdge(sourceNodeId, targetNodeId) {
-        var _this6 = this;
-
-        var defaultData = { from: sourceNodeId, to: targetNodeId };
-        if (typeof this.options.addEdge === 'function') {
-          if (this.options.addEdge.length === 2) {
-            this.options.addEdge(defaultData, function (finalizedData) {
-              if (finalizedData !== null && finalizedData !== undefined && _this6.inMode === 'addEdge') {
-                // if for whatever reason the mode has changes (due to dataset change) disregard the callback
-                _this6.body.data.edges.getDataSet().add(finalizedData);
-                _this6.selectionHandler.unselectAll();
-                _this6.showManipulatorToolbar();
-              }
-            });
-          } else {
-            throw new Error('The function for connect does not support two arguments (data,callback)');
-          }
-        } else {
-          this.body.data.edges.getDataSet().add(defaultData);
-          this.selectionHandler.unselectAll();
-          this.showManipulatorToolbar();
-        }
-      }
-    }, {
-      key: '_performEditEdge',
-
-      /**
-       * connect two nodes with a new edge.
-       *
-       * @private
-       */
-      value: function _performEditEdge(sourceNodeId, targetNodeId) {
-        var _this7 = this;
-
-        var defaultData = { id: this.edgeBeingEditedId, from: sourceNodeId, to: targetNodeId };
-        if (typeof this.options.editEdge === 'function') {
-          if (this.options.editEdge.length === 2) {
-            this.options.editEdge(defaultData, function (finalizedData) {
-              if (finalizedData === null || finalizedData === undefined || _this7.inMode !== 'editEdge') {
-                // if for whatever reason the mode has changes (due to dataset change) disregard the callback) {
-                _this7.body.edges[defaultData.id].updateEdgeType();
-                _this7.body.emitter.emit('_redraw');
-              } else {
-                _this7.body.data.edges.getDataSet().update(finalizedData);
-                _this7.selectionHandler.unselectAll();
-                _this7.showManipulatorToolbar();
-              }
-            });
-          } else {
-            throw new Error('The function for edit does not support two arguments (data, callback)');
-          }
-        } else {
-          this.body.data.edges.getDataSet().update(defaultData);
-          this.selectionHandler.unselectAll();
-          this.showManipulatorToolbar();
-        }
-      }
-    }]);
-
-    return ManipulationSystem;
-  })();
-
-  exports['default'] = ManipulationSystem;
-  module.exports = exports['default'];
-
-/***/ },
-/* 9 */
-/***/ function(module, exports, __webpack_require__) {
-
-  'use strict';
-
-  var Item = __webpack_require__(14);
+  var Item = __webpack_require__(4);
 
   /**
    * @constructor PointItem
@@ -3014,2935 +381,750 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = PointItem;
 
 /***/ },
-/* 10 */
+/* 3 */
 /***/ function(module, exports, __webpack_require__) {
 
-  'use strict';
+  "use strict";
 
-  var DOMutil = __webpack_require__(24);
+  Object.defineProperty(exports, "__esModule", {
+    value: true
+  });
 
-  function Points(groupId, options) {
-    this.groupId = groupId;
-    this.options = options;
-  }
+  var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
 
-  Points.prototype.getYRange = function (groupData) {
-    var yMin = groupData[0].y;
-    var yMax = groupData[0].y;
-    for (var j = 0; j < groupData.length; j++) {
-      yMin = yMin > groupData[j].y ? groupData[j].y : yMin;
-      yMax = yMax < groupData[j].y ? groupData[j].y : yMax;
-    }
-    return { min: yMin, max: yMax, yAxisOrientation: this.options.yAxisOrientation };
-  };
+  function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
-  Points.prototype.draw = function (dataset, group, framework, offset) {
-    Points.draw(dataset, group, framework, offset);
-  };
+  var Node = __webpack_require__(63);
+  var Edge = __webpack_require__(83);
+  var util = __webpack_require__(9);
 
-  /**
-   * draw the data points
-   *
-   * @param {Array} dataset
-   * @param {Object} JSONcontainer
-   * @param {Object} svg            | SVG DOM element
-   * @param {GraphGroup} group
-   * @param {Number} [offset]
-   */
-  Points.draw = function (dataset, group, framework, offset) {
-    offset = offset || 0;
-    var callback = getCallback();
+  var SelectionHandler = (function () {
+    function SelectionHandler(body, canvas) {
+      var _this = this;
 
-    for (var i = 0; i < dataset.length; i++) {
-      if (!callback) {
-        // draw the point the simple way.
-        DOMutil.drawPoint(dataset[i].x + offset, dataset[i].y, getGroupTemplate(), framework.svgElements, framework.svg, dataset[i].label);
-      } else {
-        var callbackResult = callback(dataset[i], group, framework); // result might be true, false or an object
-        if (callbackResult === true || typeof callbackResult === 'object') {
-          DOMutil.drawPoint(dataset[i].x + offset, dataset[i].y, getGroupTemplate(callbackResult), framework.svgElements, framework.svg, dataset[i].label);
-        }
-      }
-    }
+      _classCallCheck(this, SelectionHandler);
 
-    function getGroupTemplate(callbackResult) {
-      callbackResult = typeof callbackResult === 'undefined' ? {} : callbackResult;
-      return {
-        style: callbackResult.style || group.options.drawPoints.style,
-        size: callbackResult.size || group.options.drawPoints.size,
-        className: callbackResult.className || group.className
+      this.body = body;
+      this.canvas = canvas;
+      this.selectionObj = { nodes: [], edges: [] };
+      this.hoverObj = { nodes: {}, edges: {} };
+
+      this.options = {};
+      this.defaultOptions = {
+        multiselect: false,
+        selectable: true,
+        selectConnectedEdges: true,
+        hoverConnectedEdges: true
       };
-    }
+      util.extend(this.options, this.defaultOptions);
 
-    function getCallback() {
-      var callback = undefined;
-      // check for the graph2d onRender
-      if (framework.options.drawPoints.onRender && typeof framework.options.drawPoints.onRender == 'function') {
-        callback = framework.options.drawPoints.onRender;
-      }
-
-      // override it with the group onRender if defined
-      if (group.group.options && group.group.options.drawPoints && group.group.options.drawPoints.onRender && typeof group.group.options.drawPoints.onRender == 'function') {
-        callback = group.group.options.drawPoints.onRender;
-      }
-
-      return callback;
-    }
-  };
-
-  module.exports = Points;
-
-/***/ },
-/* 11 */
-/***/ function(module, exports, __webpack_require__) {
-
-  'use strict';
-
-  var Emitter = __webpack_require__(30);
-  var Hammer = __webpack_require__(15);
-  var hammerUtil = __webpack_require__(41);
-  var util = __webpack_require__(19);
-  var DataSet = __webpack_require__(25);
-  var DataView = __webpack_require__(27);
-  var Range = __webpack_require__(40);
-  var ItemSet = __webpack_require__(12);
-  var TimeAxis = __webpack_require__(50);
-  var Activator = __webpack_require__(51);
-  var DateUtil = __webpack_require__(42);
-  var CustomTime = __webpack_require__(13);
-
-  /**
-   * Create a timeline visualization
-   * @constructor
-   */
-  function Core() {}
-
-  // turn Core into an event emitter
-  Emitter(Core.prototype);
-
-  /**
-   * Create the main DOM for the Core: a root panel containing left, right,
-   * top, bottom, content, and background panel.
-   * @param {Element} container  The container element where the Core will
-   *                             be attached.
-   * @protected
-   */
-  Core.prototype._create = function (container) {
-    this.dom = {};
-
-    this.dom.container = container;
-
-    this.dom.root = document.createElement('div');
-    this.dom.background = document.createElement('div');
-    this.dom.backgroundVertical = document.createElement('div');
-    this.dom.backgroundHorizontal = document.createElement('div');
-    this.dom.centerContainer = document.createElement('div');
-    this.dom.leftContainer = document.createElement('div');
-    this.dom.rightContainer = document.createElement('div');
-    this.dom.center = document.createElement('div');
-    this.dom.left = document.createElement('div');
-    this.dom.right = document.createElement('div');
-    this.dom.top = document.createElement('div');
-    this.dom.bottom = document.createElement('div');
-    this.dom.shadowTop = document.createElement('div');
-    this.dom.shadowBottom = document.createElement('div');
-    this.dom.shadowTopLeft = document.createElement('div');
-    this.dom.shadowBottomLeft = document.createElement('div');
-    this.dom.shadowTopRight = document.createElement('div');
-    this.dom.shadowBottomRight = document.createElement('div');
-
-    this.dom.root.className = 'vis-timeline';
-    this.dom.background.className = 'vis-panel vis-background';
-    this.dom.backgroundVertical.className = 'vis-panel vis-background vis-vertical';
-    this.dom.backgroundHorizontal.className = 'vis-panel vis-background vis-horizontal';
-    this.dom.centerContainer.className = 'vis-panel vis-center';
-    this.dom.leftContainer.className = 'vis-panel vis-left';
-    this.dom.rightContainer.className = 'vis-panel vis-right';
-    this.dom.top.className = 'vis-panel vis-top';
-    this.dom.bottom.className = 'vis-panel vis-bottom';
-    this.dom.left.className = 'vis-content';
-    this.dom.center.className = 'vis-content';
-    this.dom.right.className = 'vis-content';
-    this.dom.shadowTop.className = 'vis-shadow vis-top';
-    this.dom.shadowBottom.className = 'vis-shadow vis-bottom';
-    this.dom.shadowTopLeft.className = 'vis-shadow vis-top';
-    this.dom.shadowBottomLeft.className = 'vis-shadow vis-bottom';
-    this.dom.shadowTopRight.className = 'vis-shadow vis-top';
-    this.dom.shadowBottomRight.className = 'vis-shadow vis-bottom';
-
-    this.dom.root.appendChild(this.dom.background);
-    this.dom.root.appendChild(this.dom.backgroundVertical);
-    this.dom.root.appendChild(this.dom.backgroundHorizontal);
-    this.dom.root.appendChild(this.dom.centerContainer);
-    this.dom.root.appendChild(this.dom.leftContainer);
-    this.dom.root.appendChild(this.dom.rightContainer);
-    this.dom.root.appendChild(this.dom.top);
-    this.dom.root.appendChild(this.dom.bottom);
-
-    this.dom.centerContainer.appendChild(this.dom.center);
-    this.dom.leftContainer.appendChild(this.dom.left);
-    this.dom.rightContainer.appendChild(this.dom.right);
-
-    this.dom.centerContainer.appendChild(this.dom.shadowTop);
-    this.dom.centerContainer.appendChild(this.dom.shadowBottom);
-    this.dom.leftContainer.appendChild(this.dom.shadowTopLeft);
-    this.dom.leftContainer.appendChild(this.dom.shadowBottomLeft);
-    this.dom.rightContainer.appendChild(this.dom.shadowTopRight);
-    this.dom.rightContainer.appendChild(this.dom.shadowBottomRight);
-
-    this.on('rangechange', this.redraw.bind(this));
-    this.on('touch', this._onTouch.bind(this));
-    this.on('pan', this._onDrag.bind(this));
-
-    var me = this;
-    this.on('change', function (properties) {
-      if (properties && properties.queue == true) {
-        // redraw once on next tick
-        if (!me._redrawTimer) {
-          me._redrawTimer = setTimeout(function () {
-            me._redrawTimer = null;
-            me._redraw();
-          }, 0);
-        }
-      } else {
-        // redraw immediately
-        me._redraw();
-      }
-    });
-
-    // create event listeners for all interesting events, these events will be
-    // emitted via emitter
-    this.hammer = new Hammer(this.dom.root);
-    this.hammer.get('pinch').set({ enable: true });
-    this.hammer.get('pan').set({ threshold: 5, direction: 30 }); // 30 is ALL_DIRECTIONS in hammer.
-    this.listeners = {};
-
-    var events = ['tap', 'doubletap', 'press', 'pinch', 'pan', 'panstart', 'panmove', 'panend'
-    // TODO: cleanup
-    //'touch', 'pinch',
-    //'tap', 'doubletap', 'hold',
-    //'dragstart', 'drag', 'dragend',
-    //'mousewheel', 'DOMMouseScroll' // DOMMouseScroll is needed for Firefox
-    ];
-    events.forEach(function (type) {
-      var listener = function listener(event) {
-        if (me.isActive()) {
-          me.emit(type, event);
-        }
-      };
-      me.hammer.on(type, listener);
-      me.listeners[type] = listener;
-    });
-
-    // emulate a touch event (emitted before the start of a pan, pinch, tap, or press)
-    hammerUtil.onTouch(this.hammer, (function (event) {
-      me.emit('touch', event);
-    }).bind(this));
-
-    // emulate a release event (emitted after a pan, pinch, tap, or press)
-    hammerUtil.onRelease(this.hammer, (function (event) {
-      me.emit('release', event);
-    }).bind(this));
-
-    function onMouseWheel(event) {
-      if (me.isActive()) {
-        me.emit('mousewheel', event);
-      }
-    }
-    this.dom.root.addEventListener('mousewheel', onMouseWheel);
-    this.dom.root.addEventListener('DOMMouseScroll', onMouseWheel);
-
-    // size properties of each of the panels
-    this.props = {
-      root: {},
-      background: {},
-      centerContainer: {},
-      leftContainer: {},
-      rightContainer: {},
-      center: {},
-      left: {},
-      right: {},
-      top: {},
-      bottom: {},
-      border: {},
-      scrollTop: 0,
-      scrollTopMin: 0
-    };
-
-    this.customTimes = [];
-
-    // store state information needed for touch events
-    this.touch = {};
-
-    this.redrawCount = 0;
-
-    // attach the root panel to the provided container
-    if (!container) throw new Error('No container provided');
-    container.appendChild(this.dom.root);
-  };
-
-  /**
-   * Set options. Options will be passed to all components loaded in the Timeline.
-   * @param {Object} [options]
-   *                           {String} orientation
-   *                              Vertical orientation for the Timeline,
-   *                              can be 'bottom' (default) or 'top'.
-   *                           {String | Number} width
-   *                              Width for the timeline, a number in pixels or
-   *                              a css string like '1000px' or '75%'. '100%' by default.
-   *                           {String | Number} height
-   *                              Fixed height for the Timeline, a number in pixels or
-   *                              a css string like '400px' or '75%'. If undefined,
-   *                              The Timeline will automatically size such that
-   *                              its contents fit.
-   *                           {String | Number} minHeight
-   *                              Minimum height for the Timeline, a number in pixels or
-   *                              a css string like '400px' or '75%'.
-   *                           {String | Number} maxHeight
-   *                              Maximum height for the Timeline, a number in pixels or
-   *                              a css string like '400px' or '75%'.
-   *                           {Number | Date | String} start
-   *                              Start date for the visible window
-   *                           {Number | Date | String} end
-   *                              End date for the visible window
-   */
-  Core.prototype.setOptions = function (options) {
-    if (options) {
-      // copy the known options
-      var fields = ['width', 'height', 'minHeight', 'maxHeight', 'autoResize', 'start', 'end', 'clickToUse', 'dataAttributes', 'hiddenDates'];
-      util.selectiveExtend(fields, this.options, options);
-
-      if ('orientation' in options) {
-        if (typeof options.orientation === 'string') {
-          this.options.orientation = {
-            item: options.orientation,
-            axis: options.orientation
-          };
-        } else if (typeof options.orientation === 'object') {
-          if ('item' in options.orientation) {
-            this.options.orientation.item = options.orientation.item;
-          }
-          if ('axis' in options.orientation) {
-            this.options.orientation.axis = options.orientation.axis;
-          }
-        }
-      }
-
-      if (this.options.orientation.axis === 'both') {
-        if (!this.timeAxis2) {
-          var timeAxis2 = this.timeAxis2 = new TimeAxis(this.body);
-          timeAxis2.setOptions = function (options) {
-            var _options = options ? util.extend({}, options) : {};
-            _options.orientation = 'top'; // override the orientation option, always top
-            TimeAxis.prototype.setOptions.call(timeAxis2, _options);
-          };
-          this.components.push(timeAxis2);
-        }
-      } else {
-        if (this.timeAxis2) {
-          var index = this.components.indexOf(this.timeAxis2);
-          if (index !== -1) {
-            this.components.splice(index, 1);
-          }
-          this.timeAxis2.destroy();
-          this.timeAxis2 = null;
-        }
-      }
-
-      // if the graph2d's drawPoints is a function delegate the callback to the onRender property
-      if (typeof options.drawPoints == 'function') {
-        options.drawPoints = {
-          onRender: options.drawPoints
-        };
-      }
-
-      if ('hiddenDates' in this.options) {
-        DateUtil.convertHiddenOptions(this.body, this.options.hiddenDates);
-      }
-
-      if ('clickToUse' in options) {
-        if (options.clickToUse) {
-          if (!this.activator) {
-            this.activator = new Activator(this.dom.root);
-          }
-        } else {
-          if (this.activator) {
-            this.activator.destroy();
-            delete this.activator;
-          }
-        }
-      }
-
-      if ('showCustomTime' in options) {
-        throw new Error('Option `showCustomTime` is deprecated. Create a custom time bar via timeline.addCustomTime(time [, id])');
-      }
-
-      // enable/disable autoResize
-      this._initAutoResize();
-    }
-
-    // propagate options to all components
-    this.components.forEach(function (component) {
-      return component.setOptions(options);
-    });
-
-    // enable/disable configure
-    if ('configure' in options) {
-      if (!this.configurator) {
-        this.configurator = this._createConfigurator();
-      }
-
-      this.configurator.setOptions(options.configure);
-
-      // collect the settings of all components, and pass them to the configuration system
-      var appliedOptions = util.deepExtend({}, this.options);
-      this.components.forEach(function (component) {
-        util.deepExtend(appliedOptions, component.options);
-      });
-      this.configurator.setModuleOptions({ global: appliedOptions });
-    }
-
-    // redraw everything
-    this._redraw();
-  };
-
-  /**
-   * Returns true when the Timeline is active.
-   * @returns {boolean}
-   */
-  Core.prototype.isActive = function () {
-    return !this.activator || this.activator.active;
-  };
-
-  /**
-   * Destroy the Core, clean up all DOM elements and event listeners.
-   */
-  Core.prototype.destroy = function () {
-    // unbind datasets
-    this.setItems(null);
-    this.setGroups(null);
-
-    // remove all event listeners
-    this.off();
-
-    // stop checking for changed size
-    this._stopAutoResize();
-
-    // remove from DOM
-    if (this.dom.root.parentNode) {
-      this.dom.root.parentNode.removeChild(this.dom.root);
-    }
-    this.dom = null;
-
-    // remove Activator
-    if (this.activator) {
-      this.activator.destroy();
-      delete this.activator;
-    }
-
-    // cleanup hammer touch events
-    for (var event in this.listeners) {
-      if (this.listeners.hasOwnProperty(event)) {
-        delete this.listeners[event];
-      }
-    }
-    this.listeners = null;
-    this.hammer = null;
-
-    // give all components the opportunity to cleanup
-    this.components.forEach(function (component) {
-      return component.destroy();
-    });
-
-    this.body = null;
-  };
-
-  /**
-   * Set a custom time bar
-   * @param {Date} time
-   * @param {number} [id=undefined] Optional id of the custom time bar to be adjusted.
-   */
-  Core.prototype.setCustomTime = function (time, id) {
-    var customTimes = this.customTimes.filter(function (component) {
-      return id === component.options.id;
-    });
-
-    if (customTimes.length === 0) {
-      throw new Error('No custom time bar found with id ' + JSON.stringify(id));
-    }
-
-    if (customTimes.length > 0) {
-      customTimes[0].setCustomTime(time);
-    }
-  };
-
-  /**
-   * Retrieve the current custom time.
-   * @param {number} [id=undefined]    Id of the custom time bar.
-   * @return {Date | undefined} customTime
-   */
-  Core.prototype.getCustomTime = function (id) {
-    var customTimes = this.customTimes.filter(function (component) {
-      return component.options.id === id;
-    });
-
-    if (customTimes.length === 0) {
-      throw new Error('No custom time bar found with id ' + JSON.stringify(id));
-    }
-    return customTimes[0].getCustomTime();
-  };
-
-  /**
-   * Add custom vertical bar
-   * @param {Date | String | Number} [time]  A Date, unix timestamp, or
-   *                                         ISO date string. Time point where
-   *                                         the new bar should be placed.
-   *                                         If not provided, `new Date()` will
-   *                                         be used.
-   * @param {Number | String} [id=undefined] Id of the new bar. Optional
-   * @return {Number | String}               Returns the id of the new bar
-   */
-  Core.prototype.addCustomTime = function (time, id) {
-    var timestamp = time !== undefined ? util.convert(time, 'Date').valueOf() : new Date();
-
-    var exists = this.customTimes.some(function (customTime) {
-      return customTime.options.id === id;
-    });
-    if (exists) {
-      throw new Error('A custom time with id ' + JSON.stringify(id) + ' already exists');
-    }
-
-    var customTime = new CustomTime(this.body, {
-      time: timestamp,
-      id: id
-    });
-
-    this.customTimes.push(customTime);
-    this.components.push(customTime);
-    this.redraw();
-
-    return id;
-  };
-
-  /**
-   * Remove previously added custom bar
-   * @param {int} id ID of the custom bar to be removed
-   * @return {boolean} True if the bar exists and is removed, false otherwise
-   */
-  Core.prototype.removeCustomTime = function (id) {
-    var customTimes = this.customTimes.filter(function (bar) {
-      return bar.options.id === id;
-    });
-
-    if (customTimes.length === 0) {
-      throw new Error('No custom time bar found with id ' + JSON.stringify(id));
-    }
-
-    customTimes.forEach((function (customTime) {
-      this.customTimes.splice(this.customTimes.indexOf(customTime), 1);
-      this.components.splice(this.components.indexOf(customTime), 1);
-      customTime.destroy();
-    }).bind(this));
-  };
-
-  /**
-   * Get the id's of the currently visible items.
-   * @returns {Array} The ids of the visible items
-   */
-  Core.prototype.getVisibleItems = function () {
-    return this.itemSet && this.itemSet.getVisibleItems() || [];
-  };
-
-  /**
-   * Set Core window such that it fits all items
-   * @param {Object} [options]  Available options:
-   *                                `animation: boolean | {duration: number, easingFunction: string}`
-   *                                    If true (default), the range is animated
-   *                                    smoothly to the new window. An object can be
-   *                                    provided to specify duration and easing function.
-   *                                    Default duration is 500 ms, and default easing
-   *                                    function is 'easeInOutQuad'.
-   */
-  Core.prototype.fit = function (options) {
-    var range = this.getDataRange();
-
-    // skip range set if there is no min and max date
-    if (range.min === null && range.max === null) {
-      return;
-    }
-
-    // apply a margin of 1% left and right of the data
-    var interval = range.max - range.min;
-    var min = new Date(range.min.valueOf() - interval * 0.01);
-    var max = new Date(range.max.valueOf() + interval * 0.01);
-
-    var animation = options && options.animation !== undefined ? options.animation : true;
-    this.range.setRange(min, max, animation);
-  };
-
-  /**
-   * Calculate the data range of the items start and end dates
-   * @returns {{min: Date | null, max: Date | null}}
-   * @protected
-   */
-  Core.prototype.getDataRange = function () {
-    // must be implemented by Timeline and Graph2d
-    throw new Error('Cannot invoke abstract method getDataRange');
-  };
-
-  /**
-   * Set the visible window. Both parameters are optional, you can change only
-   * start or only end. Syntax:
-   *
-   *     TimeLine.setWindow(start, end)
-   *     TimeLine.setWindow(start, end, options)
-   *     TimeLine.setWindow(range)
-   *
-   * Where start and end can be a Date, number, or string, and range is an
-   * object with properties start and end.
-   *
-   * @param {Date | Number | String | Object} [start] Start date of visible window
-   * @param {Date | Number | String} [end]            End date of visible window
-   * @param {Object} [options]  Available options:
-   *                                `animation: boolean | {duration: number, easingFunction: string}`
-   *                                    If true (default), the range is animated
-   *                                    smoothly to the new window. An object can be
-   *                                    provided to specify duration and easing function.
-   *                                    Default duration is 500 ms, and default easing
-   *                                    function is 'easeInOutQuad'.
-   */
-  Core.prototype.setWindow = function (start, end, options) {
-    var animation;
-    if (arguments.length == 1) {
-      var range = arguments[0];
-      animation = range.animation !== undefined ? range.animation : true;
-      this.range.setRange(range.start, range.end, animation);
-    } else {
-      animation = options && options.animation !== undefined ? options.animation : true;
-      this.range.setRange(start, end, animation);
-    }
-  };
-
-  /**
-   * Move the window such that given time is centered on screen.
-   * @param {Date | Number | String} time
-   * @param {Object} [options]  Available options:
-   *                                `animation: boolean | {duration: number, easingFunction: string}`
-   *                                    If true (default), the range is animated
-   *                                    smoothly to the new window. An object can be
-   *                                    provided to specify duration and easing function.
-   *                                    Default duration is 500 ms, and default easing
-   *                                    function is 'easeInOutQuad'.
-   */
-  Core.prototype.moveTo = function (time, options) {
-    var interval = this.range.end - this.range.start;
-    var t = util.convert(time, 'Date').valueOf();
-
-    var start = t - interval / 2;
-    var end = t + interval / 2;
-    var animation = options && options.animation !== undefined ? options.animation : true;
-
-    this.range.setRange(start, end, animation);
-  };
-
-  /**
-   * Get the visible window
-   * @return {{start: Date, end: Date}}   Visible range
-   */
-  Core.prototype.getWindow = function () {
-    var range = this.range.getRange();
-    return {
-      start: new Date(range.start),
-      end: new Date(range.end)
-    };
-  };
-
-  /**
-   * Force a redraw. Can be overridden by implementations of Core
-   */
-  Core.prototype.redraw = function () {
-    this._redraw();
-  };
-
-  /**
-   * Redraw for internal use. Redraws all components. See also the public
-   * method redraw.
-   * @protected
-   */
-  Core.prototype._redraw = function () {
-    var resized = false;
-    var options = this.options;
-    var props = this.props;
-    var dom = this.dom;
-
-    if (!dom) return; // when destroyed
-
-    DateUtil.updateHiddenDates(this.body, this.options.hiddenDates);
-
-    // update class names
-    if (options.orientation == 'top') {
-      util.addClassName(dom.root, 'vis-top');
-      util.removeClassName(dom.root, 'vis-bottom');
-    } else {
-      util.removeClassName(dom.root, 'vis-top');
-      util.addClassName(dom.root, 'vis-bottom');
-    }
-
-    // update root width and height options
-    dom.root.style.maxHeight = util.option.asSize(options.maxHeight, '');
-    dom.root.style.minHeight = util.option.asSize(options.minHeight, '');
-    dom.root.style.width = util.option.asSize(options.width, '');
-
-    // calculate border widths
-    props.border.left = (dom.centerContainer.offsetWidth - dom.centerContainer.clientWidth) / 2;
-    props.border.right = props.border.left;
-    props.border.top = (dom.centerContainer.offsetHeight - dom.centerContainer.clientHeight) / 2;
-    props.border.bottom = props.border.top;
-    var borderRootHeight = dom.root.offsetHeight - dom.root.clientHeight;
-    var borderRootWidth = dom.root.offsetWidth - dom.root.clientWidth;
-
-    // workaround for a bug in IE: the clientWidth of an element with
-    // a height:0px and overflow:hidden is not calculated and always has value 0
-    if (dom.centerContainer.clientHeight === 0) {
-      props.border.left = props.border.top;
-      props.border.right = props.border.left;
-    }
-    if (dom.root.clientHeight === 0) {
-      borderRootWidth = borderRootHeight;
-    }
-
-    // calculate the heights. If any of the side panels is empty, we set the height to
-    // minus the border width, such that the border will be invisible
-    props.center.height = dom.center.offsetHeight;
-    props.left.height = dom.left.offsetHeight;
-    props.right.height = dom.right.offsetHeight;
-    props.top.height = dom.top.clientHeight || -props.border.top;
-    props.bottom.height = dom.bottom.clientHeight || -props.border.bottom;
-
-    // TODO: compensate borders when any of the panels is empty.
-
-    // apply auto height
-    // TODO: only calculate autoHeight when needed (else we cause an extra reflow/repaint of the DOM)
-    var contentHeight = Math.max(props.left.height, props.center.height, props.right.height);
-    var autoHeight = props.top.height + contentHeight + props.bottom.height + borderRootHeight + props.border.top + props.border.bottom;
-    dom.root.style.height = util.option.asSize(options.height, autoHeight + 'px');
-
-    // calculate heights of the content panels
-    props.root.height = dom.root.offsetHeight;
-    props.background.height = props.root.height - borderRootHeight;
-    var containerHeight = props.root.height - props.top.height - props.bottom.height - borderRootHeight;
-    props.centerContainer.height = containerHeight;
-    props.leftContainer.height = containerHeight;
-    props.rightContainer.height = props.leftContainer.height;
-
-    // calculate the widths of the panels
-    props.root.width = dom.root.offsetWidth;
-    props.background.width = props.root.width - borderRootWidth;
-    props.left.width = dom.leftContainer.clientWidth || -props.border.left;
-    props.leftContainer.width = props.left.width;
-    props.right.width = dom.rightContainer.clientWidth || -props.border.right;
-    props.rightContainer.width = props.right.width;
-    var centerWidth = props.root.width - props.left.width - props.right.width - borderRootWidth;
-    props.center.width = centerWidth;
-    props.centerContainer.width = centerWidth;
-    props.top.width = centerWidth;
-    props.bottom.width = centerWidth;
-
-    // resize the panels
-    dom.background.style.height = props.background.height + 'px';
-    dom.backgroundVertical.style.height = props.background.height + 'px';
-    dom.backgroundHorizontal.style.height = props.centerContainer.height + 'px';
-    dom.centerContainer.style.height = props.centerContainer.height + 'px';
-    dom.leftContainer.style.height = props.leftContainer.height + 'px';
-    dom.rightContainer.style.height = props.rightContainer.height + 'px';
-
-    dom.background.style.width = props.background.width + 'px';
-    dom.backgroundVertical.style.width = props.centerContainer.width + 'px';
-    dom.backgroundHorizontal.style.width = props.background.width + 'px';
-    dom.centerContainer.style.width = props.center.width + 'px';
-    dom.top.style.width = props.top.width + 'px';
-    dom.bottom.style.width = props.bottom.width + 'px';
-
-    // reposition the panels
-    dom.background.style.left = '0';
-    dom.background.style.top = '0';
-    dom.backgroundVertical.style.left = props.left.width + props.border.left + 'px';
-    dom.backgroundVertical.style.top = '0';
-    dom.backgroundHorizontal.style.left = '0';
-    dom.backgroundHorizontal.style.top = props.top.height + 'px';
-    dom.centerContainer.style.left = props.left.width + 'px';
-    dom.centerContainer.style.top = props.top.height + 'px';
-    dom.leftContainer.style.left = '0';
-    dom.leftContainer.style.top = props.top.height + 'px';
-    dom.rightContainer.style.left = props.left.width + props.center.width + 'px';
-    dom.rightContainer.style.top = props.top.height + 'px';
-    dom.top.style.left = props.left.width + 'px';
-    dom.top.style.top = '0';
-    dom.bottom.style.left = props.left.width + 'px';
-    dom.bottom.style.top = props.top.height + props.centerContainer.height + 'px';
-
-    // update the scrollTop, feasible range for the offset can be changed
-    // when the height of the Core or of the contents of the center changed
-    this._updateScrollTop();
-
-    // reposition the scrollable contents
-    var offset = this.props.scrollTop;
-    if (options.orientation.item != 'top') {
-      offset += Math.max(this.props.centerContainer.height - this.props.center.height - this.props.border.top - this.props.border.bottom, 0);
-    }
-    dom.center.style.left = '0';
-    dom.center.style.top = offset + 'px';
-    dom.left.style.left = '0';
-    dom.left.style.top = offset + 'px';
-    dom.right.style.left = '0';
-    dom.right.style.top = offset + 'px';
-
-    // show shadows when vertical scrolling is available
-    var visibilityTop = this.props.scrollTop == 0 ? 'hidden' : '';
-    var visibilityBottom = this.props.scrollTop == this.props.scrollTopMin ? 'hidden' : '';
-    dom.shadowTop.style.visibility = visibilityTop;
-    dom.shadowBottom.style.visibility = visibilityBottom;
-    dom.shadowTopLeft.style.visibility = visibilityTop;
-    dom.shadowBottomLeft.style.visibility = visibilityBottom;
-    dom.shadowTopRight.style.visibility = visibilityTop;
-    dom.shadowBottomRight.style.visibility = visibilityBottom;
-
-    // redraw all components
-    this.components.forEach(function (component) {
-      resized = component.redraw() || resized;
-    });
-    if (resized) {
-      // keep repainting until all sizes are settled
-      var MAX_REDRAWS = 3; // maximum number of consecutive redraws
-      if (this.redrawCount < MAX_REDRAWS) {
-        this.redrawCount++;
-        this._redraw();
-      } else {
-        console.log('WARNING: infinite loop in redraw?');
-      }
-      this.redrawCount = 0;
-    }
-  };
-
-  // TODO: deprecated since version 1.1.0, remove some day
-  Core.prototype.repaint = function () {
-    throw new Error('Function repaint is deprecated. Use redraw instead.');
-  };
-
-  /**
-   * Set a current time. This can be used for example to ensure that a client's
-   * time is synchronized with a shared server time.
-   * Only applicable when option `showCurrentTime` is true.
-   * @param {Date | String | Number} time     A Date, unix timestamp, or
-   *                                          ISO date string.
-   */
-  Core.prototype.setCurrentTime = function (time) {
-    if (!this.currentTime) {
-      throw new Error('Option showCurrentTime must be true');
-    }
-
-    this.currentTime.setCurrentTime(time);
-  };
-
-  /**
-   * Get the current time.
-   * Only applicable when option `showCurrentTime` is true.
-   * @return {Date} Returns the current time.
-   */
-  Core.prototype.getCurrentTime = function () {
-    if (!this.currentTime) {
-      throw new Error('Option showCurrentTime must be true');
-    }
-
-    return this.currentTime.getCurrentTime();
-  };
-
-  /**
-   * Convert a position on screen (pixels) to a datetime
-   * @param {int}     x    Position on the screen in pixels
-   * @return {Date}   time The datetime the corresponds with given position x
-   * @protected
-   */
-  // TODO: move this function to Range
-  Core.prototype._toTime = function (x) {
-    return DateUtil.toTime(this, x, this.props.center.width);
-  };
-
-  /**
-   * Convert a position on the global screen (pixels) to a datetime
-   * @param {int}     x    Position on the screen in pixels
-   * @return {Date}   time The datetime the corresponds with given position x
-   * @protected
-   */
-  // TODO: move this function to Range
-  Core.prototype._toGlobalTime = function (x) {
-    return DateUtil.toTime(this, x, this.props.root.width);
-    //var conversion = this.range.conversion(this.props.root.width);
-    //return new Date(x / conversion.scale + conversion.offset);
-  };
-
-  /**
-   * Convert a datetime (Date object) into a position on the screen
-   * @param {Date}   time A date
-   * @return {int}   x    The position on the screen in pixels which corresponds
-   *                      with the given date.
-   * @protected
-   */
-  // TODO: move this function to Range
-  Core.prototype._toScreen = function (time) {
-    return DateUtil.toScreen(this, time, this.props.center.width);
-  };
-
-  /**
-   * Convert a datetime (Date object) into a position on the root
-   * This is used to get the pixel density estimate for the screen, not the center panel
-   * @param {Date}   time A date
-   * @return {int}   x    The position on root in pixels which corresponds
-   *                      with the given date.
-   * @protected
-   */
-  // TODO: move this function to Range
-  Core.prototype._toGlobalScreen = function (time) {
-    return DateUtil.toScreen(this, time, this.props.root.width);
-    //var conversion = this.range.conversion(this.props.root.width);
-    //return (time.valueOf() - conversion.offset) * conversion.scale;
-  };
-
-  /**
-   * Initialize watching when option autoResize is true
-   * @private
-   */
-  Core.prototype._initAutoResize = function () {
-    if (this.options.autoResize == true) {
-      this._startAutoResize();
-    } else {
-      this._stopAutoResize();
-    }
-  };
-
-  /**
-   * Watch for changes in the size of the container. On resize, the Panel will
-   * automatically redraw itself.
-   * @private
-   */
-  Core.prototype._startAutoResize = function () {
-    var me = this;
-
-    this._stopAutoResize();
-
-    this._onResize = function () {
-      if (me.options.autoResize != true) {
-        // stop watching when the option autoResize is changed to false
-        me._stopAutoResize();
-        return;
-      }
-
-      if (me.dom.root) {
-        // check whether the frame is resized
-        // Note: we compare offsetWidth here, not clientWidth. For some reason,
-        // IE does not restore the clientWidth from 0 to the actual width after
-        // changing the timeline's container display style from none to visible
-        if (me.dom.root.offsetWidth != me.props.lastWidth || me.dom.root.offsetHeight != me.props.lastHeight) {
-          me.props.lastWidth = me.dom.root.offsetWidth;
-          me.props.lastHeight = me.dom.root.offsetHeight;
-
-          me.emit('change');
-        }
-      }
-    };
-
-    // add event listener to window resize
-    util.addEventListener(window, 'resize', this._onResize);
-
-    this.watchTimer = setInterval(this._onResize, 1000);
-  };
-
-  /**
-   * Stop watching for a resize of the frame.
-   * @private
-   */
-  Core.prototype._stopAutoResize = function () {
-    if (this.watchTimer) {
-      clearInterval(this.watchTimer);
-      this.watchTimer = undefined;
-    }
-
-    // remove event listener on window.resize
-    util.removeEventListener(window, 'resize', this._onResize);
-    this._onResize = null;
-  };
-
-  /**
-   * Start moving the timeline vertically
-   * @param {Event} event
-   * @private
-   */
-  Core.prototype._onTouch = function (event) {
-    this.touch.allowDragging = true;
-    this.touch.initialScrollTop = this.props.scrollTop;
-  };
-
-  /**
-   * Start moving the timeline vertically
-   * @param {Event} event
-   * @private
-   */
-  Core.prototype._onPinch = function (event) {
-    this.touch.allowDragging = false;
-  };
-
-  /**
-   * Move the timeline vertically
-   * @param {Event} event
-   * @private
-   */
-  Core.prototype._onDrag = function (event) {
-    // refuse to drag when we where pinching to prevent the timeline make a jump
-    // when releasing the fingers in opposite order from the touch screen
-    if (!this.touch.allowDragging) return;
-
-    var delta = event.deltaY;
-
-    var oldScrollTop = this._getScrollTop();
-    var newScrollTop = this._setScrollTop(this.touch.initialScrollTop + delta);
-
-    if (newScrollTop != oldScrollTop) {
-      this._redraw(); // TODO: this causes two redraws when dragging, the other is triggered by rangechange already
-      this.emit('verticalDrag');
-    }
-  };
-
-  /**
-   * Apply a scrollTop
-   * @param {Number} scrollTop
-   * @returns {Number} scrollTop  Returns the applied scrollTop
-   * @private
-   */
-  Core.prototype._setScrollTop = function (scrollTop) {
-    this.props.scrollTop = scrollTop;
-    this._updateScrollTop();
-    return this.props.scrollTop;
-  };
-
-  /**
-   * Update the current scrollTop when the height of  the containers has been changed
-   * @returns {Number} scrollTop  Returns the applied scrollTop
-   * @private
-   */
-  Core.prototype._updateScrollTop = function () {
-    // recalculate the scrollTopMin
-    var scrollTopMin = Math.min(this.props.centerContainer.height - this.props.center.height, 0); // is negative or zero
-    if (scrollTopMin != this.props.scrollTopMin) {
-      // in case of bottom orientation, change the scrollTop such that the contents
-      // do not move relative to the time axis at the bottom
-      if (this.options.orientation.item != 'top') {
-        this.props.scrollTop += scrollTopMin - this.props.scrollTopMin;
-      }
-      this.props.scrollTopMin = scrollTopMin;
-    }
-
-    // limit the scrollTop to the feasible scroll range
-    if (this.props.scrollTop > 0) this.props.scrollTop = 0;
-    if (this.props.scrollTop < scrollTopMin) this.props.scrollTop = scrollTopMin;
-
-    return this.props.scrollTop;
-  };
-
-  /**
-   * Get the current scrollTop
-   * @returns {number} scrollTop
-   * @private
-   */
-  Core.prototype._getScrollTop = function () {
-    return this.props.scrollTop;
-  };
-
-  /**
-   * Load a configurator
-   * @return {Object}
-   * @private
-   */
-  Core.prototype._createConfigurator = function () {
-    throw new Error('Cannot invoke abstract method _createConfigurator');
-  };
-
-  module.exports = Core;
-
-/***/ },
-/* 12 */
-/***/ function(module, exports, __webpack_require__) {
-
-  'use strict';
-
-  var Hammer = __webpack_require__(15);
-  var util = __webpack_require__(19);
-  var DataSet = __webpack_require__(25);
-  var DataView = __webpack_require__(27);
-  var TimeStep = __webpack_require__(46);
-  var Component = __webpack_require__(38);
-  var Group = __webpack_require__(43);
-  var BackgroundGroup = __webpack_require__(47);
-  var BoxItem = __webpack_require__(48);
-  var PointItem = __webpack_require__(9);
-  var RangeItem = __webpack_require__(45);
-  var BackgroundItem = __webpack_require__(49);
-
-  var UNGROUPED = '__ungrouped__'; // reserved group id for ungrouped items
-  var BACKGROUND = '__background__'; // reserved group id for background items without group
-
-  /**
-   * An ItemSet holds a set of items and ranges which can be displayed in a
-   * range. The width is determined by the parent of the ItemSet, and the height
-   * is determined by the size of the items.
-   * @param {{dom: Object, domProps: Object, emitter: Emitter, range: Range}} body
-   * @param {Object} [options]      See ItemSet.setOptions for the available options.
-   * @constructor ItemSet
-   * @extends Component
-   */
-  function ItemSet(body, options) {
-    this.body = body;
-
-    this.defaultOptions = {
-      type: null, // 'box', 'point', 'range', 'background'
-      orientation: {
-        item: 'bottom' // item orientation: 'top' or 'bottom'
-      },
-      align: 'auto', // alignment of box items
-      stack: true,
-      groupOrder: null,
-
-      selectable: true,
-      multiselect: false,
-
-      editable: {
-        updateTime: false,
-        updateGroup: false,
-        add: false,
-        remove: false
-      },
-
-      snap: TimeStep.snap,
-
-      onAdd: function onAdd(item, callback) {
-        callback(item);
-      },
-      onUpdate: function onUpdate(item, callback) {
-        callback(item);
-      },
-      onMove: function onMove(item, callback) {
-        callback(item);
-      },
-      onRemove: function onRemove(item, callback) {
-        callback(item);
-      },
-      onMoving: function onMoving(item, callback) {
-        callback(item);
-      },
-
-      margin: {
-        item: {
-          horizontal: 10,
-          vertical: 10
-        },
-        axis: 20
-      }
-    };
-
-    // options is shared by this ItemSet and all its items
-    this.options = util.extend({}, this.defaultOptions);
-
-    // options for getting items from the DataSet with the correct type
-    this.itemOptions = {
-      type: { start: 'Date', end: 'Date' }
-    };
-
-    this.conversion = {
-      toScreen: body.util.toScreen,
-      toTime: body.util.toTime
-    };
-    this.dom = {};
-    this.props = {};
-    this.hammer = null;
-
-    var me = this;
-    this.itemsData = null; // DataSet
-    this.groupsData = null; // DataSet
-
-    // listeners for the DataSet of the items
-    this.itemListeners = {
-      'add': function add(event, params, senderId) {
-        me._onAdd(params.items);
-      },
-      'update': function update(event, params, senderId) {
-        me._onUpdate(params.items);
-      },
-      'remove': function remove(event, params, senderId) {
-        me._onRemove(params.items);
-      }
-    };
-
-    // listeners for the DataSet of the groups
-    this.groupListeners = {
-      'add': function add(event, params, senderId) {
-        me._onAddGroups(params.items);
-      },
-      'update': function update(event, params, senderId) {
-        me._onUpdateGroups(params.items);
-      },
-      'remove': function remove(event, params, senderId) {
-        me._onRemoveGroups(params.items);
-      }
-    };
-
-    this.items = {}; // object with an Item for every data item
-    this.groups = {}; // Group object for every group
-    this.groupIds = [];
-
-    this.selection = []; // list with the ids of all selected nodes
-    this.stackDirty = true; // if true, all items will be restacked on next redraw
-
-    this.touchParams = {}; // stores properties while dragging
-    // create the HTML DOM
-
-    this._create();
-
-    this.setOptions(options);
-  }
-
-  ItemSet.prototype = new Component();
-
-  // available item types will be registered here
-  ItemSet.types = {
-    background: BackgroundItem,
-    box: BoxItem,
-    range: RangeItem,
-    point: PointItem
-  };
-
-  /**
-   * Create the HTML DOM for the ItemSet
-   */
-  ItemSet.prototype._create = function () {
-    var frame = document.createElement('div');
-    frame.className = 'vis-itemset';
-    frame['timeline-itemset'] = this;
-    this.dom.frame = frame;
-
-    // create background panel
-    var background = document.createElement('div');
-    background.className = 'vis-background';
-    frame.appendChild(background);
-    this.dom.background = background;
-
-    // create foreground panel
-    var foreground = document.createElement('div');
-    foreground.className = 'vis-foreground';
-    frame.appendChild(foreground);
-    this.dom.foreground = foreground;
-
-    // create axis panel
-    var axis = document.createElement('div');
-    axis.className = 'vis-axis';
-    this.dom.axis = axis;
-
-    // create labelset
-    var labelSet = document.createElement('div');
-    labelSet.className = 'vis-labelset';
-    this.dom.labelSet = labelSet;
-
-    // create ungrouped Group
-    this._updateUngrouped();
-
-    // create background Group
-    var backgroundGroup = new BackgroundGroup(BACKGROUND, null, this);
-    backgroundGroup.show();
-    this.groups[BACKGROUND] = backgroundGroup;
-
-    // attach event listeners
-    // Note: we bind to the centerContainer for the case where the height
-    //       of the center container is larger than of the ItemSet, so we
-    //       can click in the empty area to create a new item or deselect an item.
-    this.hammer = new Hammer(this.body.dom.centerContainer);
-
-    // drag items when selected
-    this.hammer.on('hammer.input', (function (event) {
-      if (event.isFirst) {
-        this._onTouch(event);
-      }
-    }).bind(this));
-    this.hammer.on('panstart', this._onDragStart.bind(this));
-    this.hammer.on('panmove', this._onDrag.bind(this));
-    this.hammer.on('panend', this._onDragEnd.bind(this));
-    this.hammer.get('pan').set({ threshold: 5, direction: 30 }); // 30 is ALL_DIRECTIONS in hammer.
-
-    // single select (or unselect) when tapping an item
-    this.hammer.on('tap', this._onSelectItem.bind(this));
-
-    // multi select when holding mouse/touch, or on ctrl+click
-    this.hammer.on('press', this._onMultiSelectItem.bind(this));
-
-    // add item on doubletap
-    this.hammer.on('doubletap', this._onAddItem.bind(this));
-
-    // attach to the DOM
-    this.show();
-  };
-
-  /**
-   * Set options for the ItemSet. Existing options will be extended/overwritten.
-   * @param {Object} [options] The following options are available:
-   *                           {String} type
-   *                              Default type for the items. Choose from 'box'
-   *                              (default), 'point', 'range', or 'background'.
-   *                              The default style can be overwritten by
-   *                              individual items.
-   *                           {String} align
-   *                              Alignment for the items, only applicable for
-   *                              BoxItem. Choose 'center' (default), 'left', or
-   *                              'right'.
-   *                           {String} orientation.item
-   *                              Orientation of the item set. Choose 'top' or
-   *                              'bottom' (default).
-   *                           {Function} groupOrder
-   *                              A sorting function for ordering groups
-   *                           {Boolean} stack
-   *                              If true (default), items will be stacked on
-   *                              top of each other.
-   *                           {Number} margin.axis
-   *                              Margin between the axis and the items in pixels.
-   *                              Default is 20.
-   *                           {Number} margin.item.horizontal
-   *                              Horizontal margin between items in pixels.
-   *                              Default is 10.
-   *                           {Number} margin.item.vertical
-   *                              Vertical Margin between items in pixels.
-   *                              Default is 10.
-   *                           {Number} margin.item
-   *                              Margin between items in pixels in both horizontal
-   *                              and vertical direction. Default is 10.
-   *                           {Number} margin
-   *                              Set margin for both axis and items in pixels.
-   *                           {Boolean} selectable
-   *                              If true (default), items can be selected.
-   *                           {Boolean} multiselect
-   *                              If true, multiple items can be selected.
-   *                              False by default.
-   *                           {Boolean} editable
-   *                              Set all editable options to true or false
-   *                           {Boolean} editable.updateTime
-   *                              Allow dragging an item to an other moment in time
-   *                           {Boolean} editable.updateGroup
-   *                              Allow dragging an item to an other group
-   *                           {Boolean} editable.add
-   *                              Allow creating new items on double tap
-   *                           {Boolean} editable.remove
-   *                              Allow removing items by clicking the delete button
-   *                              top right of a selected item.
-   *                           {Function(item: Item, callback: Function)} onAdd
-   *                              Callback function triggered when an item is about to be added:
-   *                              when the user double taps an empty space in the Timeline.
-   *                           {Function(item: Item, callback: Function)} onUpdate
-   *                              Callback function fired when an item is about to be updated.
-   *                              This function typically has to show a dialog where the user
-   *                              change the item. If not implemented, nothing happens.
-   *                           {Function(item: Item, callback: Function)} onMove
-   *                              Fired when an item has been moved. If not implemented,
-   *                              the move action will be accepted.
-   *                           {Function(item: Item, callback: Function)} onRemove
-   *                              Fired when an item is about to be deleted.
-   *                              If not implemented, the item will be always removed.
-   */
-  ItemSet.prototype.setOptions = function (options) {
-    if (options) {
-      // copy all options that we know
-      var fields = ['type', 'align', 'order', 'stack', 'selectable', 'multiselect', 'groupOrder', 'dataAttributes', 'template', 'hide', 'snap'];
-      util.selectiveExtend(fields, this.options, options);
-
-      if ('orientation' in options) {
-        if (typeof options.orientation === 'string') {
-          this.options.orientation.item = options.orientation === 'top' ? 'top' : 'bottom';
-        } else if (typeof options.orientation === 'object' && 'item' in options.orientation) {
-          this.options.orientation.item = options.orientation.item;
-        }
-      }
-
-      if ('margin' in options) {
-        if (typeof options.margin === 'number') {
-          this.options.margin.axis = options.margin;
-          this.options.margin.item.horizontal = options.margin;
-          this.options.margin.item.vertical = options.margin;
-        } else if (typeof options.margin === 'object') {
-          util.selectiveExtend(['axis'], this.options.margin, options.margin);
-          if ('item' in options.margin) {
-            if (typeof options.margin.item === 'number') {
-              this.options.margin.item.horizontal = options.margin.item;
-              this.options.margin.item.vertical = options.margin.item;
-            } else if (typeof options.margin.item === 'object') {
-              util.selectiveExtend(['horizontal', 'vertical'], this.options.margin.item, options.margin.item);
-            }
-          }
-        }
-      }
-
-      if ('editable' in options) {
-        if (typeof options.editable === 'boolean') {
-          this.options.editable.updateTime = options.editable;
-          this.options.editable.updateGroup = options.editable;
-          this.options.editable.add = options.editable;
-          this.options.editable.remove = options.editable;
-        } else if (typeof options.editable === 'object') {
-          util.selectiveExtend(['updateTime', 'updateGroup', 'add', 'remove'], this.options.editable, options.editable);
-        }
-      }
-
-      // callback functions
-      var addCallback = (function (name) {
-        var fn = options[name];
-        if (fn) {
-          if (!(fn instanceof Function)) {
-            throw new Error('option ' + name + ' must be a function ' + name + '(item, callback)');
-          }
-          this.options[name] = fn;
-        }
-      }).bind(this);
-      ['onAdd', 'onUpdate', 'onRemove', 'onMove', 'onMoving'].forEach(addCallback);
-
-      // force the itemSet to refresh: options like orientation and margins may be changed
-      this.markDirty();
-    }
-  };
-
-  /**
-   * Mark the ItemSet dirty so it will refresh everything with next redraw.
-   * Optionally, all items can be marked as dirty and be refreshed.
-   * @param {{refreshItems: boolean}} [options]
-   */
-  ItemSet.prototype.markDirty = function (options) {
-    this.groupIds = [];
-    this.stackDirty = true;
-
-    if (options && options.refreshItems) {
-      util.forEach(this.items, function (item) {
-        item.dirty = true;
-        if (item.displayed) item.redraw();
+      this.body.emitter.on("_dataChanged", function () {
+        _this.updateSelection();
       });
     }
-  };
 
-  /**
-   * Destroy the ItemSet
-   */
-  ItemSet.prototype.destroy = function () {
-    this.hide();
-    this.setItems(null);
-    this.setGroups(null);
-
-    this.hammer = null;
-
-    this.body = null;
-    this.conversion = null;
-  };
-
-  /**
-   * Hide the component from the DOM
-   */
-  ItemSet.prototype.hide = function () {
-    // remove the frame containing the items
-    if (this.dom.frame.parentNode) {
-      this.dom.frame.parentNode.removeChild(this.dom.frame);
-    }
-
-    // remove the axis with dots
-    if (this.dom.axis.parentNode) {
-      this.dom.axis.parentNode.removeChild(this.dom.axis);
-    }
-
-    // remove the labelset containing all group labels
-    if (this.dom.labelSet.parentNode) {
-      this.dom.labelSet.parentNode.removeChild(this.dom.labelSet);
-    }
-  };
-
-  /**
-   * Show the component in the DOM (when not already visible).
-   * @return {Boolean} changed
-   */
-  ItemSet.prototype.show = function () {
-    // show frame containing the items
-    if (!this.dom.frame.parentNode) {
-      this.body.dom.center.appendChild(this.dom.frame);
-    }
-
-    // show axis with dots
-    if (!this.dom.axis.parentNode) {
-      this.body.dom.backgroundVertical.appendChild(this.dom.axis);
-    }
-
-    // show labelset containing labels
-    if (!this.dom.labelSet.parentNode) {
-      this.body.dom.left.appendChild(this.dom.labelSet);
-    }
-  };
-
-  /**
-   * Set selected items by their id. Replaces the current selection
-   * Unknown id's are silently ignored.
-   * @param {string[] | string} [ids] An array with zero or more id's of the items to be
-   *                                  selected, or a single item id. If ids is undefined
-   *                                  or an empty array, all items will be unselected.
-   */
-  ItemSet.prototype.setSelection = function (ids) {
-    var i, ii, id, item;
-
-    if (ids == undefined) ids = [];
-    if (!Array.isArray(ids)) ids = [ids];
-
-    // unselect currently selected items
-    for (i = 0, ii = this.selection.length; i < ii; i++) {
-      id = this.selection[i];
-      item = this.items[id];
-      if (item) item.unselect();
-    }
-
-    // select items
-    this.selection = [];
-    for (i = 0, ii = ids.length; i < ii; i++) {
-      id = ids[i];
-      item = this.items[id];
-      if (item) {
-        this.selection.push(id);
-        item.select();
+    _createClass(SelectionHandler, [{
+      key: "setOptions",
+      value: function setOptions(options) {
+        if (options !== undefined) {
+          var fields = ["multiselect", "hoverConnectedEdges", "selectable", "selectConnectedEdges"];
+          util.selectiveDeepExtend(fields, this.options, options);
+        }
       }
-    }
-  };
+    }, {
+      key: "selectOnPoint",
 
-  /**
-   * Get the selected items by their id
-   * @return {Array} ids  The ids of the selected items
-   */
-  ItemSet.prototype.getSelection = function () {
-    return this.selection.concat([]);
-  };
+      /**
+       * handles the selection part of the tap;
+       *
+       * @param {Object} pointer
+       * @private
+       */
+      value: function selectOnPoint(pointer) {
+        var selected = false;
+        if (this.options.selectable === true) {
+          var obj = this.getNodeAt(pointer) || this.getEdgeAt(pointer);
 
-  /**
-   * Get the id's of the currently visible items.
-   * @returns {Array} The ids of the visible items
-   */
-  ItemSet.prototype.getVisibleItems = function () {
-    var range = this.body.range.getRange();
-    var left = this.body.util.toScreen(range.start);
-    var right = this.body.util.toScreen(range.end);
+          // unselect after getting the objects in order to restore width and height.
+          this.unselectAll();
 
-    var ids = [];
-    for (var groupId in this.groups) {
-      if (this.groups.hasOwnProperty(groupId)) {
-        var group = this.groups[groupId];
-        var rawVisibleItems = group.visibleItems;
-
-        // filter the "raw" set with visibleItems into a set which is really
-        // visible by pixels
-        for (var i = 0; i < rawVisibleItems.length; i++) {
-          var item = rawVisibleItems[i];
-          // TODO: also check whether visible vertically
-          if (item.left < right && item.left + item.width > left) {
-            ids.push(item.id);
+          if (obj !== undefined) {
+            selected = this.selectObject(obj);
           }
+          this.body.emitter.emit("_requestRedraw");
         }
+        return selected;
       }
-    }
-
-    return ids;
-  };
-
-  /**
-   * Deselect a selected item
-   * @param {String | Number} id
-   * @private
-   */
-  ItemSet.prototype._deselect = function (id) {
-    var selection = this.selection;
-    for (var i = 0, ii = selection.length; i < ii; i++) {
-      if (selection[i] == id) {
-        // non-strict comparison!
-        selection.splice(i, 1);
-        break;
-      }
-    }
-  };
-
-  /**
-   * Repaint the component
-   * @return {boolean} Returns true if the component is resized
-   */
-  ItemSet.prototype.redraw = function () {
-    var margin = this.options.margin,
-        range = this.body.range,
-        asSize = util.option.asSize,
-        options = this.options,
-        orientation = options.orientation.item,
-        resized = false,
-        frame = this.dom.frame;
-
-    // recalculate absolute position (before redrawing groups)
-    this.props.top = this.body.domProps.top.height + this.body.domProps.border.top;
-    this.props.left = this.body.domProps.left.width + this.body.domProps.border.left;
-
-    // update class name
-    frame.className = 'vis-itemset';
-
-    // reorder the groups (if needed)
-    resized = this._orderGroups() || resized;
-
-    // check whether zoomed (in that case we need to re-stack everything)
-    // TODO: would be nicer to get this as a trigger from Range
-    var visibleInterval = range.end - range.start;
-    var zoomed = visibleInterval != this.lastVisibleInterval || this.props.width != this.props.lastWidth;
-    if (zoomed) this.stackDirty = true;
-    this.lastVisibleInterval = visibleInterval;
-    this.props.lastWidth = this.props.width;
-
-    var restack = this.stackDirty;
-    var firstGroup = this._firstGroup();
-    var firstMargin = {
-      item: margin.item,
-      axis: margin.axis
-    };
-    var nonFirstMargin = {
-      item: margin.item,
-      axis: margin.item.vertical / 2
-    };
-    var height = 0;
-    var minHeight = margin.axis + margin.item.vertical;
-
-    // redraw the background group
-    this.groups[BACKGROUND].redraw(range, nonFirstMargin, restack);
-
-    // redraw all regular groups
-    util.forEach(this.groups, function (group) {
-      var groupMargin = group == firstGroup ? firstMargin : nonFirstMargin;
-      var groupResized = group.redraw(range, groupMargin, restack);
-      resized = groupResized || resized;
-      height += group.height;
-    });
-    height = Math.max(height, minHeight);
-    this.stackDirty = false;
-
-    // update frame height
-    frame.style.height = asSize(height);
-
-    // calculate actual size
-    this.props.width = frame.offsetWidth;
-    this.props.height = height;
-
-    // reposition axis
-    this.dom.axis.style.top = asSize(orientation == 'top' ? this.body.domProps.top.height + this.body.domProps.border.top : this.body.domProps.top.height + this.body.domProps.centerContainer.height);
-    this.dom.axis.style.left = '0';
-
-    // check if this component is resized
-    resized = this._isResized() || resized;
-
-    return resized;
-  };
-
-  /**
-   * Get the first group, aligned with the axis
-   * @return {Group | null} firstGroup
-   * @private
-   */
-  ItemSet.prototype._firstGroup = function () {
-    var firstGroupIndex = this.options.orientation.item == 'top' ? 0 : this.groupIds.length - 1;
-    var firstGroupId = this.groupIds[firstGroupIndex];
-    var firstGroup = this.groups[firstGroupId] || this.groups[UNGROUPED];
-
-    return firstGroup || null;
-  };
-
-  /**
-   * Create or delete the group holding all ungrouped items. This group is used when
-   * there are no groups specified.
-   * @protected
-   */
-  ItemSet.prototype._updateUngrouped = function () {
-    var ungrouped = this.groups[UNGROUPED];
-    var background = this.groups[BACKGROUND];
-    var item, itemId;
-
-    if (this.groupsData) {
-      // remove the group holding all ungrouped items
-      if (ungrouped) {
-        ungrouped.hide();
-        delete this.groups[UNGROUPED];
-
-        for (itemId in this.items) {
-          if (this.items.hasOwnProperty(itemId)) {
-            item = this.items[itemId];
-            item.parent && item.parent.remove(item);
-            var groupId = this._getGroupId(item.data);
-            var group = this.groups[groupId];
-            group && group.add(item) || item.hide();
-          }
-        }
-      }
-    } else {
-      // create a group holding all (unfiltered) items
-      if (!ungrouped) {
-        var id = null;
-        var data = null;
-        ungrouped = new Group(id, data, this);
-        this.groups[UNGROUPED] = ungrouped;
-
-        for (itemId in this.items) {
-          if (this.items.hasOwnProperty(itemId)) {
-            item = this.items[itemId];
-            ungrouped.add(item);
-          }
-        }
-
-        ungrouped.show();
-      }
-    }
-  };
-
-  /**
-   * Get the element for the labelset
-   * @return {HTMLElement} labelSet
-   */
-  ItemSet.prototype.getLabelSet = function () {
-    return this.dom.labelSet;
-  };
-
-  /**
-   * Set items
-   * @param {vis.DataSet | null} items
-   */
-  ItemSet.prototype.setItems = function (items) {
-    var me = this,
-        ids,
-        oldItemsData = this.itemsData;
-
-    // replace the dataset
-    if (!items) {
-      this.itemsData = null;
-    } else if (items instanceof DataSet || items instanceof DataView) {
-      this.itemsData = items;
-    } else {
-      throw new TypeError('Data must be an instance of DataSet or DataView');
-    }
-
-    if (oldItemsData) {
-      // unsubscribe from old dataset
-      util.forEach(this.itemListeners, function (callback, event) {
-        oldItemsData.off(event, callback);
-      });
-
-      // remove all drawn items
-      ids = oldItemsData.getIds();
-      this._onRemove(ids);
-    }
-
-    if (this.itemsData) {
-      // subscribe to new dataset
-      var id = this.id;
-      util.forEach(this.itemListeners, function (callback, event) {
-        me.itemsData.on(event, callback, id);
-      });
-
-      // add all new items
-      ids = this.itemsData.getIds();
-      this._onAdd(ids);
-
-      // update the group holding all ungrouped items
-      this._updateUngrouped();
-    }
-  };
-
-  /**
-   * Get the current items
-   * @returns {vis.DataSet | null}
-   */
-  ItemSet.prototype.getItems = function () {
-    return this.itemsData;
-  };
-
-  /**
-   * Set groups
-   * @param {vis.DataSet} groups
-   */
-  ItemSet.prototype.setGroups = function (groups) {
-    var me = this,
-        ids;
-
-    // unsubscribe from current dataset
-    if (this.groupsData) {
-      util.forEach(this.groupListeners, function (callback, event) {
-        me.groupsData.off(event, callback);
-      });
-
-      // remove all drawn groups
-      ids = this.groupsData.getIds();
-      this.groupsData = null;
-      this._onRemoveGroups(ids); // note: this will cause a redraw
-    }
-
-    // replace the dataset
-    if (!groups) {
-      this.groupsData = null;
-    } else if (groups instanceof DataSet || groups instanceof DataView) {
-      this.groupsData = groups;
-    } else {
-      throw new TypeError('Data must be an instance of DataSet or DataView');
-    }
-
-    if (this.groupsData) {
-      // subscribe to new dataset
-      var id = this.id;
-      util.forEach(this.groupListeners, function (callback, event) {
-        me.groupsData.on(event, callback, id);
-      });
-
-      // draw all ms
-      ids = this.groupsData.getIds();
-      this._onAddGroups(ids);
-    }
-
-    // update the group holding all ungrouped items
-    this._updateUngrouped();
-
-    // update the order of all items in each group
-    this._order();
-
-    this.body.emitter.emit('change', { queue: true });
-  };
-
-  /**
-   * Get the current groups
-   * @returns {vis.DataSet | null} groups
-   */
-  ItemSet.prototype.getGroups = function () {
-    return this.groupsData;
-  };
-
-  /**
-   * Remove an item by its id
-   * @param {String | Number} id
-   */
-  ItemSet.prototype.removeItem = function (id) {
-    var item = this.itemsData.get(id),
-        dataset = this.itemsData.getDataSet();
-
-    if (item) {
-      // confirm deletion
-      this.options.onRemove(item, function (item) {
-        if (item) {
-          // remove by id here, it is possible that an item has no id defined
-          // itself, so better not delete by the item itself
-          dataset.remove(id);
-        }
-      });
-    }
-  };
-
-  /**
-   * Get the time of an item based on it's data and options.type
-   * @param {Object} itemData
-   * @returns {string} Returns the type
-   * @private
-   */
-  ItemSet.prototype._getType = function (itemData) {
-    return itemData.type || this.options.type || (itemData.end ? 'range' : 'box');
-  };
-
-  /**
-   * Get the group id for an item
-   * @param {Object} itemData
-   * @returns {string} Returns the groupId
-   * @private
-   */
-  ItemSet.prototype._getGroupId = function (itemData) {
-    var type = this._getType(itemData);
-    if (type == 'background' && itemData.group == undefined) {
-      return BACKGROUND;
-    } else {
-      return this.groupsData ? itemData.group : UNGROUPED;
-    }
-  };
-
-  /**
-   * Handle updated items
-   * @param {Number[]} ids
-   * @protected
-   */
-  ItemSet.prototype._onUpdate = function (ids) {
-    var me = this;
-
-    ids.forEach((function (id) {
-      var itemData = me.itemsData.get(id, me.itemOptions);
-      var item = me.items[id];
-      var type = me._getType(itemData);
-
-      var constructor = ItemSet.types[type];
-      var selected;
-
-      if (item) {
-        // update item
-        if (!constructor || !(item instanceof constructor)) {
-          // item type has changed, delete the item and recreate it
-          selected = item.selected; // preserve selection of this item
-          me._removeItem(item);
-          item = null;
-        } else {
-          me._updateItem(item, itemData);
-        }
-      }
-
-      if (!item) {
-        // create item
-        if (constructor) {
-          item = new constructor(itemData, me.conversion, me.options);
-          item.id = id; // TODO: not so nice setting id afterwards
-          me._addItem(item);
-          if (selected) {
-            this.selection.push(id);
-            item.select();
-          }
-        } else if (type == 'rangeoverflow') {
-          // TODO: deprecated since version 2.1.0 (or 3.0.0?). cleanup some day
-          throw new TypeError('Item type "rangeoverflow" is deprecated. Use css styling instead: ' + '.vis-item.vis-range .vis-item-content {overflow: visible;}');
-        } else {
-          throw new TypeError('Unknown item type "' + type + '"');
-        }
-      }
-    }).bind(this));
-
-    this._order();
-    this.stackDirty = true; // force re-stacking of all items next redraw
-    this.body.emitter.emit('change', { queue: true });
-  };
-
-  /**
-   * Handle added items
-   * @param {Number[]} ids
-   * @protected
-   */
-  ItemSet.prototype._onAdd = ItemSet.prototype._onUpdate;
-
-  /**
-   * Handle removed items
-   * @param {Number[]} ids
-   * @protected
-   */
-  ItemSet.prototype._onRemove = function (ids) {
-    var count = 0;
-    var me = this;
-    ids.forEach(function (id) {
-      var item = me.items[id];
-      if (item) {
-        count++;
-        me._removeItem(item);
-      }
-    });
-
-    if (count) {
-      // update order
-      this._order();
-      this.stackDirty = true; // force re-stacking of all items next redraw
-      this.body.emitter.emit('change', { queue: true });
-    }
-  };
-
-  /**
-   * Update the order of item in all groups
-   * @private
-   */
-  ItemSet.prototype._order = function () {
-    // reorder the items in all groups
-    // TODO: optimization: only reorder groups affected by the changed items
-    util.forEach(this.groups, function (group) {
-      group.order();
-    });
-  };
-
-  /**
-   * Handle updated groups
-   * @param {Number[]} ids
-   * @private
-   */
-  ItemSet.prototype._onUpdateGroups = function (ids) {
-    this._onAddGroups(ids);
-  };
-
-  /**
-   * Handle changed groups (added or updated)
-   * @param {Number[]} ids
-   * @private
-   */
-  ItemSet.prototype._onAddGroups = function (ids) {
-    var me = this;
-
-    ids.forEach(function (id) {
-      var groupData = me.groupsData.get(id);
-      var group = me.groups[id];
-
-      if (!group) {
-        // check for reserved ids
-        if (id == UNGROUPED || id == BACKGROUND) {
-          throw new Error('Illegal group id. ' + id + ' is a reserved id.');
-        }
-
-        var groupOptions = Object.create(me.options);
-        util.extend(groupOptions, {
-          height: null
-        });
-
-        group = new Group(id, groupData, me);
-        me.groups[id] = group;
-
-        // add items with this groupId to the new group
-        for (var itemId in me.items) {
-          if (me.items.hasOwnProperty(itemId)) {
-            var item = me.items[itemId];
-            if (item.data.group == id) {
-              group.add(item);
-            }
-          }
-        }
-
-        group.order();
-        group.show();
-      } else {
-        // update group
-        group.setData(groupData);
-      }
-    });
-
-    this.body.emitter.emit('change', { queue: true });
-  };
-
-  /**
-   * Handle removed groups
-   * @param {Number[]} ids
-   * @private
-   */
-  ItemSet.prototype._onRemoveGroups = function (ids) {
-    var groups = this.groups;
-    ids.forEach(function (id) {
-      var group = groups[id];
-
-      if (group) {
-        group.hide();
-        delete groups[id];
-      }
-    });
-
-    this.markDirty();
-
-    this.body.emitter.emit('change', { queue: true });
-  };
-
-  /**
-   * Reorder the groups if needed
-   * @return {boolean} changed
-   * @private
-   */
-  ItemSet.prototype._orderGroups = function () {
-    if (this.groupsData) {
-      // reorder the groups
-      var groupIds = this.groupsData.getIds({
-        order: this.options.groupOrder
-      });
-
-      var changed = !util.equalArray(groupIds, this.groupIds);
-      if (changed) {
-        // hide all groups, removes them from the DOM
-        var groups = this.groups;
-        groupIds.forEach(function (groupId) {
-          groups[groupId].hide();
-        });
-
-        // show the groups again, attach them to the DOM in correct order
-        groupIds.forEach(function (groupId) {
-          groups[groupId].show();
-        });
-
-        this.groupIds = groupIds;
-      }
-
-      return changed;
-    } else {
-      return false;
-    }
-  };
-
-  /**
-   * Add a new item
-   * @param {Item} item
-   * @private
-   */
-  ItemSet.prototype._addItem = function (item) {
-    this.items[item.id] = item;
-
-    // add to group
-    var groupId = this._getGroupId(item.data);
-    var group = this.groups[groupId];
-    if (group) group.add(item);
-  };
-
-  /**
-   * Update an existing item
-   * @param {Item} item
-   * @param {Object} itemData
-   * @private
-   */
-  ItemSet.prototype._updateItem = function (item, itemData) {
-    var oldGroupId = item.data.group;
-    var oldSubGroupId = item.data.subgroup;
-
-    // update the items data (will redraw the item when displayed)
-    item.setData(itemData);
-
-    // update group
-    if (oldGroupId != item.data.group || oldSubGroupId != item.data.subgroup) {
-      var oldGroup = this.groups[oldGroupId];
-      if (oldGroup) oldGroup.remove(item);
-
-      var groupId = this._getGroupId(item.data);
-      var group = this.groups[groupId];
-      if (group) group.add(item);
-    }
-  };
-
-  /**
-   * Delete an item from the ItemSet: remove it from the DOM, from the map
-   * with items, and from the map with visible items, and from the selection
-   * @param {Item} item
-   * @private
-   */
-  ItemSet.prototype._removeItem = function (item) {
-    // remove from DOM
-    item.hide();
-
-    // remove from items
-    delete this.items[item.id];
-
-    // remove from selection
-    var index = this.selection.indexOf(item.id);
-    if (index != -1) this.selection.splice(index, 1);
-
-    // remove from group
-    item.parent && item.parent.remove(item);
-  };
-
-  /**
-   * Create an array containing all items being a range (having an end date)
-   * @param array
-   * @returns {Array}
-   * @private
-   */
-  ItemSet.prototype._constructByEndArray = function (array) {
-    var endArray = [];
-
-    for (var i = 0; i < array.length; i++) {
-      if (array[i] instanceof RangeItem) {
-        endArray.push(array[i]);
-      }
-    }
-    return endArray;
-  };
-
-  /**
-   * Register the clicked item on touch, before dragStart is initiated.
-   *
-   * dragStart is initiated from a mousemove event, AFTER the mouse/touch is
-   * already moving. Therefore, the mouse/touch can sometimes be above an other
-   * DOM element than the item itself.
-   *
-   * @param {Event} event
-   * @private
-   */
-  ItemSet.prototype._onTouch = function (event) {
-    // store the touched item, used in _onDragStart
-    this.touchParams.item = this.itemFromTarget(event);
-    this.touchParams.dragLeftItem = event.target.dragLeftItem || false;
-    this.touchParams.dragRightItem = event.target.dragRightItem || false;
-    this.touchParams.itemProps = null;
-  };
-
-  /**
-   * Start dragging the selected events
-   * @param {Event} event
-   * @private
-   */
-  ItemSet.prototype._onDragStart = function (event) {
-    var item = this.touchParams.item || null;
-    var me = this;
-    var props;
-
-    if (item && item.selected) {
-
-      if (!this.options.editable.updateTime && !this.options.editable.updateGroup && !item.editable) {
-        return;
-      }
-
-      // override options.editable
-      if (item.editable === false) {
-        return;
-      }
-
-      var dragLeftItem = this.touchParams.dragLeftItem;
-      var dragRightItem = this.touchParams.dragRightItem;
-
-      if (dragLeftItem) {
-        props = {
-          item: dragLeftItem,
-          initialX: event.center.x,
-          dragLeft: true,
-          data: util.extend({}, item.data) // clone the items data
-        };
-
-        this.touchParams.itemProps = [props];
-      } else if (dragRightItem) {
-        props = {
-          item: dragRightItem,
-          initialX: event.center.x,
-          dragRight: true,
-          data: util.extend({}, item.data) // clone the items data
-        };
-
-        this.touchParams.itemProps = [props];
-      } else {
-        this.touchParams.itemProps = this.getSelection().map(function (id) {
-          var item = me.items[id];
-          var props = {
-            item: item,
-            initialX: event.center.x,
-            data: util.extend({}, item.data) // clone the items data
-          };
-
-          return props;
-        });
-      }
-
-      event.stopPropagation();
-    } else if (this.options.editable.add && (event.srcEvent.ctrlKey || event.srcEvent.metaKey)) {
-      // create a new range item when dragging with ctrl key down
-      this._onDragStartAddItem(event);
-    }
-  };
-
-  /**
-   * Start creating a new range item by dragging.
-   * @param {Event} event
-   * @private
-   */
-  ItemSet.prototype._onDragStartAddItem = function (event) {
-    var snap = this.options.snap || null;
-    var xAbs = util.getAbsoluteLeft(this.dom.frame);
-    var x = event.center.x - xAbs - 10; // minus 10 to compensate for the drag starting as soon as you've moved 10px
-    var time = this.body.util.toTime(x);
-    var scale = this.body.util.getScale();
-    var step = this.body.util.getStep();
-    var start = snap ? snap(time, scale, step) : start;
-    var end = start;
-
-    var itemData = {
-      type: 'range',
-      start: start,
-      end: end,
-      content: 'new item'
-    };
-
-    var id = util.randomUUID();
-    itemData[this.itemsData._fieldId] = id;
-
-    var group = this.groupFromTarget(event);
-    if (group) {
-      itemData.group = group.groupId;
-    }
-
-    var newItem = new RangeItem(itemData, this.conversion, this.options);
-    newItem.id = id; // TODO: not so nice setting id afterwards
-    newItem.data = itemData;
-    this._addItem(newItem);
-
-    var props = {
-      item: newItem,
-      dragRight: true,
-      initialX: event.center.x,
-      data: util.extend({}, itemData)
-    };
-    this.touchParams.itemProps = [props];
-
-    event.stopPropagation();
-  };
-
-  /**
-   * Drag selected items
-   * @param {Event} event
-   * @private
-   */
-  ItemSet.prototype._onDrag = function (event) {
-    if (this.touchParams.itemProps) {
-      event.stopPropagation();
-
-      var me = this;
-      var snap = this.options.snap || null;
-      var xOffset = this.body.dom.root.offsetLeft + this.body.domProps.left.width;
-      var scale = this.body.util.getScale();
-      var step = this.body.util.getStep();
-
-      // move
-      this.touchParams.itemProps.forEach(function (props) {
-        var newProps = {};
-        var current = me.body.util.toTime(event.center.x - xOffset);
-        var initial = me.body.util.toTime(props.initialX - xOffset);
-        var offset = current - initial;
-
-        var itemData = util.extend({}, props.item.data); // clone the data
-
-        if (props.item.editable === false) {
-          return;
-        }
-
-        var updateTimeAllowed = me.options.editable.updateTime || props.item.editable === true;
-
-        if (updateTimeAllowed) {
-          if (props.dragLeft) {
-            // drag left side of a range item
-            if (itemData.start != undefined) {
-              var initialStart = util.convert(props.data.start, 'Date');
-              var start = new Date(initialStart.valueOf() + offset);
-              itemData.start = snap ? snap(start, scale, step) : start;
-            }
-          } else if (props.dragRight) {
-            // drag right side of a range item
-            if (itemData.end != undefined) {
-              var initialEnd = util.convert(props.data.end, 'Date');
-              var end = new Date(initialEnd.valueOf() + offset);
-              itemData.end = snap ? snap(end, scale, step) : end;
-            }
-          } else {
-            // drag both start and end
-            if (itemData.start != undefined) {
-              var initialStart = util.convert(props.data.start, 'Date').valueOf();
-              var start = new Date(initialStart + offset);
-
-              if (itemData.end != undefined) {
-                var initialEnd = util.convert(props.data.end, 'Date');
-                var duration = initialEnd.valueOf() - initialStart.valueOf();
-
-                itemData.start = snap ? snap(start, scale, step) : start;
-                itemData.end = new Date(itemData.start.valueOf() + duration);
-              } else {
-                itemData.start = snap ? snap(start, scale, step) : start;
-              }
-            }
-          }
-        }
-
-        var updateGroupAllowed = me.options.editable.updateGroup || props.item.editable === true;
-
-        if (updateGroupAllowed && (!props.dragLeft && !props.dragRight)) {
-          if (itemData.group != undefined) {
-            // drag from one group to another
-            var group = me.groupFromTarget(event);
-            if (group) {
-              itemData.group = group.groupId;
-            }
-          }
-        }
-
-        // confirm moving the item
-        me.options.onMoving(itemData, function (itemData) {
-          if (itemData) {
-            props.item.setData(itemData);
-          }
-        });
-      });
-
-      this.stackDirty = true; // force re-stacking of all items next redraw
-      this.body.emitter.emit('change');
-    }
-  };
-
-  /**
-   * Move an item to another group
-   * @param {Item} item
-   * @param {String | Number} groupId
-   * @private
-   */
-  ItemSet.prototype._moveToGroup = function (item, groupId) {
-    var group = this.groups[groupId];
-    if (group && group.groupId != item.data.group) {
-      var oldGroup = item.parent;
-      oldGroup.remove(item);
-      oldGroup.order();
-      group.add(item);
-      group.order();
-
-      item.data.group = group.groupId;
-    }
-  };
-
-  /**
-   * End of dragging selected items
-   * @param {Event} event
-   * @private
-   */
-  ItemSet.prototype._onDragEnd = function (event) {
-    if (this.touchParams.itemProps) {
-      event.stopPropagation();
-
-      // prepare a change set for the changed items
-      var changes = [];
-      var me = this;
-      var dataset = this.itemsData.getDataSet();
-
-      var itemProps = this.touchParams.itemProps;
-      this.touchParams.itemProps = null;
-      itemProps.forEach(function (props) {
-        var id = props.item.id;
-        var exists = me.itemsData.get(id, me.itemOptions) != null;
-
-        if (!exists) {
-          // add a new item
-          me.options.onAdd(props.item.data, function (itemData) {
-            me._removeItem(props.item); // remove temporary item
-            if (itemData) {
-              me.itemsData.getDataSet().add(itemData);
-            }
-
-            // force re-stacking of all items next redraw
-            me.stackDirty = true;
-            me.body.emitter.emit('change');
-          });
-        } else {
-          // update existing item
-          var itemData = util.extend({}, props.item.data); // clone the data
-          me.options.onMove(itemData, function (itemData) {
-            if (itemData) {
-              // apply changes
-              itemData[dataset._fieldId] = id; // ensure the item contains its id (can be undefined)
-              changes.push(itemData);
+    }, {
+      key: "selectAdditionalOnPoint",
+      value: function selectAdditionalOnPoint(pointer) {
+        var selectionChanged = false;
+        if (this.options.selectable === true) {
+          var obj = this.getNodeAt(pointer) || this.getEdgeAt(pointer);
+
+          if (obj !== undefined) {
+            selectionChanged = true;
+            if (obj.isSelected() === true) {
+              this.deselectObject(obj);
             } else {
-              // restore original values
-              props.item.setData(props.data);
-
-              me.stackDirty = true; // force re-stacking of all items next redraw
-              me.body.emitter.emit('change');
+              this.selectObject(obj);
             }
-          });
+
+            this.body.emitter.emit("_requestRedraw");
+          }
         }
-      });
-
-      // apply the changes to the data (if there are changes)
-      if (changes.length) {
-        dataset.update(changes);
+        return selectionChanged;
       }
-    }
-  };
+    }, {
+      key: "_generateClickEvent",
+      value: function _generateClickEvent(eventType, event, pointer, oldSelection) {
+        var emptySelection = arguments[4] === undefined ? false : arguments[4];
 
-  /**
-   * Handle selecting/deselecting an item when tapping it
-   * @param {Event} event
-   * @private
-   */
-  ItemSet.prototype._onSelectItem = function (event) {
-    if (!this.options.selectable) return;
-
-    var ctrlKey = event.srcEvent && (event.srcEvent.ctrlKey || event.srcEvent.metaKey);
-    var shiftKey = event.srcEvent && event.srcEvent.shiftKey;
-    if (ctrlKey || shiftKey) {
-      this._onMultiSelectItem(event);
-      return;
-    }
-
-    var oldSelection = this.getSelection();
-
-    var item = this.itemFromTarget(event);
-    var selection = item ? [item.id] : [];
-    this.setSelection(selection);
-
-    var newSelection = this.getSelection();
-
-    // emit a select event,
-    // except when old selection is empty and new selection is still empty
-    if (newSelection.length > 0 || oldSelection.length > 0) {
-      this.body.emitter.emit('select', {
-        items: newSelection,
-        event: event
-      });
-    }
-  };
-
-  /**
-   * Handle creation and updates of an item on double tap
-   * @param event
-   * @private
-   */
-  ItemSet.prototype._onAddItem = function (event) {
-    if (!this.options.selectable) return;
-    if (!this.options.editable.add) return;
-
-    var me = this;
-    var snap = this.options.snap || null;
-    var item = this.itemFromTarget(event);
-
-    event.stopPropagation();
-
-    if (item) {
-      // update item
-
-      // execute async handler to update the item (or cancel it)
-      var itemData = me.itemsData.get(item.id); // get a clone of the data from the dataset
-      this.options.onUpdate(itemData, function (itemData) {
-        if (itemData) {
-          me.itemsData.getDataSet().update(itemData);
+        var properties = undefined;
+        if (emptySelection === true) {
+          properties = { nodes: [], edges: [] };
+        } else {
+          properties = this.getSelection();
         }
-      });
-    } else {
-      // add item
-      var xAbs = util.getAbsoluteLeft(this.dom.frame);
-      var x = event.center.x - xAbs;
-      var start = this.body.util.toTime(x);
-      var scale = this.body.util.getScale();
-      var step = this.body.util.getStep();
+        properties["pointer"] = {
+          DOM: { x: pointer.x, y: pointer.y },
+          canvas: this.canvas.DOMtoCanvas(pointer)
+        };
+        properties["event"] = event;
 
-      var newItem = {
-        start: snap ? snap(start, scale, step) : start,
-        content: 'new item'
-      };
-
-      // when default type is a range, add a default end date to the new item
-      if (this.options.type === 'range') {
-        var end = this.body.util.toTime(x + this.props.width / 5);
-        newItem.end = snap ? snap(end, scale, step) : end;
-      }
-
-      newItem[this.itemsData._fieldId] = util.randomUUID();
-
-      var group = this.groupFromTarget(event);
-      if (group) {
-        newItem.group = group.groupId;
-      }
-
-      // execute async handler to customize (or cancel) adding an item
-      this.options.onAdd(newItem, function (item) {
-        if (item) {
-          me.itemsData.getDataSet().add(item);
-          // TODO: need to trigger a redraw?
+        if (oldSelection !== undefined) {
+          properties["previousSelection"] = oldSelection;
         }
-      });
-    }
-  };
+        this.body.emitter.emit(eventType, properties);
+      }
+    }, {
+      key: "selectObject",
+      value: function selectObject(obj) {
+        var highlightEdges = arguments[1] === undefined ? this.options.selectConnectedEdges : arguments[1];
 
-  /**
-   * Handle selecting/deselecting multiple items when holding an item
-   * @param {Event} event
-   * @private
-   */
-  ItemSet.prototype._onMultiSelectItem = function (event) {
-    if (!this.options.selectable) return;
+        if (obj !== undefined) {
+          if (obj instanceof Node) {
+            if (highlightEdges === true) {
+              this._selectConnectedEdges(obj);
+            }
+          }
+          obj.select();
+          this._addToSelection(obj);
+          return true;
+        }
+        return false;
+      }
+    }, {
+      key: "deselectObject",
+      value: function deselectObject(obj) {
+        if (obj.isSelected() === true) {
+          obj.selected = false;
+          this._removeFromSelection(obj);
+        }
+      }
+    }, {
+      key: "_getAllNodesOverlappingWith",
 
-    var item = this.itemFromTarget(event);
+      /**
+       * retrieve all nodes overlapping with given object
+       * @param {Object} object  An object with parameters left, top, right, bottom
+       * @return {Number[]}   An array with id's of the overlapping nodes
+       * @private
+       */
+      value: function _getAllNodesOverlappingWith(object) {
+        var overlappingNodes = [];
+        var nodes = this.body.nodes;
+        for (var i = 0; i < this.body.nodeIndices.length; i++) {
+          var nodeId = this.body.nodeIndices[i];
+          if (nodes[nodeId].isOverlappingWith(object)) {
+            overlappingNodes.push(nodeId);
+          }
+        }
+        return overlappingNodes;
+      }
+    }, {
+      key: "_pointerToPositionObject",
 
-    if (item) {
-      // multi select items (if allowed)
+      /**
+       * Return a position object in canvasspace from a single point in screenspace
+       *
+       * @param pointer
+       * @returns {{left: number, top: number, right: number, bottom: number}}
+       * @private
+       */
+      value: function _pointerToPositionObject(pointer) {
+        var canvasPos = this.canvas.DOMtoCanvas(pointer);
+        return {
+          left: canvasPos.x - 1,
+          top: canvasPos.y + 1,
+          right: canvasPos.x + 1,
+          bottom: canvasPos.y - 1
+        };
+      }
+    }, {
+      key: "getNodeAt",
 
-      var selection = this.options.multiselect ? this.getSelection() // take current selection
-      : []; // deselect current selection
+      /**
+       * Get the top node at the a specific point (like a click)
+       *
+       * @param {{x: Number, y: Number}} pointer
+       * @return {Node | undefined} node
+       * @private
+       */
+      value: function getNodeAt(pointer) {
+        var returnNode = arguments[1] === undefined ? true : arguments[1];
 
-      var shiftKey = event.srcEvent && event.srcEvent.shiftKey || false;
+        // we first check if this is an navigation controls element
+        var positionObject = this._pointerToPositionObject(pointer);
+        var overlappingNodes = this._getAllNodesOverlappingWith(positionObject);
+        // if there are overlapping nodes, select the last one, this is the
+        // one which is drawn on top of the others
+        if (overlappingNodes.length > 0) {
+          if (returnNode === true) {
+            return this.body.nodes[overlappingNodes[overlappingNodes.length - 1]];
+          } else {
+            return overlappingNodes[overlappingNodes.length - 1];
+          }
+        } else {
+          return undefined;
+        }
+      }
+    }, {
+      key: "_getEdgesOverlappingWith",
 
-      if (shiftKey && this.options.multiselect) {
-        // select all items between the old selection and the tapped item
+      /**
+       * retrieve all edges overlapping with given object, selector is around center
+       * @param {Object} object  An object with parameters left, top, right, bottom
+       * @return {Number[]}   An array with id's of the overlapping nodes
+       * @private
+       */
+      value: function _getEdgesOverlappingWith(object, overlappingEdges) {
+        var edges = this.body.edges;
+        for (var i = 0; i < this.body.edgeIndices.length; i++) {
+          var edgeId = this.body.edgeIndices[i];
+          if (edges[edgeId].isOverlappingWith(object)) {
+            overlappingEdges.push(edgeId);
+          }
+        }
+      }
+    }, {
+      key: "_getAllEdgesOverlappingWith",
 
-        // determine the selection range
-        selection.push(item.id);
-        var range = ItemSet._getItemRange(this.itemsData.get(selection, this.itemOptions));
+      /**
+       * retrieve all nodes overlapping with given object
+       * @param {Object} object  An object with parameters left, top, right, bottom
+       * @return {Number[]}   An array with id's of the overlapping nodes
+       * @private
+       */
+      value: function _getAllEdgesOverlappingWith(object) {
+        var overlappingEdges = [];
+        this._getEdgesOverlappingWith(object, overlappingEdges);
+        return overlappingEdges;
+      }
+    }, {
+      key: "getEdgeAt",
 
-        // select all items within the selection range
-        selection = [];
-        for (var id in this.items) {
-          if (this.items.hasOwnProperty(id)) {
-            var _item = this.items[id];
-            var start = _item.data.start;
-            var end = _item.data.end !== undefined ? _item.data.end : start;
+      /**
+       * Place holder. To implement change the getNodeAt to a _getObjectAt. Have the _getObjectAt call
+       * getNodeAt and _getEdgesAt, then priortize the selection to user preferences.
+       *
+       * @param pointer
+       * @returns {undefined}
+       * @private
+       */
+      value: function getEdgeAt(pointer) {
+        var returnEdge = arguments[1] === undefined ? true : arguments[1];
 
-            if (start >= range.min && end <= range.max && !(_item instanceof BackgroundItem)) {
-              selection.push(_item.id); // do not use id but item.id, id itself is stringified
+        var positionObject = this._pointerToPositionObject(pointer);
+        var overlappingEdges = this._getAllEdgesOverlappingWith(positionObject);
+
+        if (overlappingEdges.length > 0) {
+          if (returnEdge === true) {
+            return this.body.edges[overlappingEdges[overlappingEdges.length - 1]];
+          } else {
+            return overlappingEdges[overlappingEdges.length - 1];
+          }
+        } else {
+          return undefined;
+        }
+      }
+    }, {
+      key: "_addToSelection",
+
+      /**
+       * Add object to the selection array.
+       *
+       * @param obj
+       * @private
+       */
+      value: function _addToSelection(obj) {
+        if (obj instanceof Node) {
+          this.selectionObj.nodes[obj.id] = obj;
+        } else {
+          this.selectionObj.edges[obj.id] = obj;
+        }
+      }
+    }, {
+      key: "_addToHover",
+
+      /**
+       * Add object to the selection array.
+       *
+       * @param obj
+       * @private
+       */
+      value: function _addToHover(obj) {
+        if (obj instanceof Node) {
+          this.hoverObj.nodes[obj.id] = obj;
+        } else {
+          this.hoverObj.edges[obj.id] = obj;
+        }
+      }
+    }, {
+      key: "_removeFromSelection",
+
+      /**
+       * Remove a single option from selection.
+       *
+       * @param {Object} obj
+       * @private
+       */
+      value: function _removeFromSelection(obj) {
+        if (obj instanceof Node) {
+          delete this.selectionObj.nodes[obj.id];
+        } else {
+          delete this.selectionObj.edges[obj.id];
+        }
+      }
+    }, {
+      key: "unselectAll",
+
+      /**
+       * Unselect all. The selectionObj is useful for this.
+       *
+       * @private
+       */
+      value: function unselectAll() {
+        for (var nodeId in this.selectionObj.nodes) {
+          if (this.selectionObj.nodes.hasOwnProperty(nodeId)) {
+            this.selectionObj.nodes[nodeId].unselect();
+          }
+        }
+        for (var edgeId in this.selectionObj.edges) {
+          if (this.selectionObj.edges.hasOwnProperty(edgeId)) {
+            this.selectionObj.edges[edgeId].unselect();
+          }
+        }
+
+        this.selectionObj = { nodes: {}, edges: {} };
+      }
+    }, {
+      key: "_getSelectedNodeCount",
+
+      /**
+       * return the number of selected nodes
+       *
+       * @returns {number}
+       * @private
+       */
+      value: function _getSelectedNodeCount() {
+        var count = 0;
+        for (var nodeId in this.selectionObj.nodes) {
+          if (this.selectionObj.nodes.hasOwnProperty(nodeId)) {
+            count += 1;
+          }
+        }
+        return count;
+      }
+    }, {
+      key: "_getSelectedNode",
+
+      /**
+       * return the selected node
+       *
+       * @returns {number}
+       * @private
+       */
+      value: function _getSelectedNode() {
+        for (var nodeId in this.selectionObj.nodes) {
+          if (this.selectionObj.nodes.hasOwnProperty(nodeId)) {
+            return this.selectionObj.nodes[nodeId];
+          }
+        }
+        return undefined;
+      }
+    }, {
+      key: "_getSelectedEdge",
+
+      /**
+       * return the selected edge
+       *
+       * @returns {number}
+       * @private
+       */
+      value: function _getSelectedEdge() {
+        for (var edgeId in this.selectionObj.edges) {
+          if (this.selectionObj.edges.hasOwnProperty(edgeId)) {
+            return this.selectionObj.edges[edgeId];
+          }
+        }
+        return undefined;
+      }
+    }, {
+      key: "_getSelectedEdgeCount",
+
+      /**
+       * return the number of selected edges
+       *
+       * @returns {number}
+       * @private
+       */
+      value: function _getSelectedEdgeCount() {
+        var count = 0;
+        for (var edgeId in this.selectionObj.edges) {
+          if (this.selectionObj.edges.hasOwnProperty(edgeId)) {
+            count += 1;
+          }
+        }
+        return count;
+      }
+    }, {
+      key: "_getSelectedObjectCount",
+
+      /**
+       * return the number of selected objects.
+       *
+       * @returns {number}
+       * @private
+       */
+      value: function _getSelectedObjectCount() {
+        var count = 0;
+        for (var nodeId in this.selectionObj.nodes) {
+          if (this.selectionObj.nodes.hasOwnProperty(nodeId)) {
+            count += 1;
+          }
+        }
+        for (var edgeId in this.selectionObj.edges) {
+          if (this.selectionObj.edges.hasOwnProperty(edgeId)) {
+            count += 1;
+          }
+        }
+        return count;
+      }
+    }, {
+      key: "_selectionIsEmpty",
+
+      /**
+       * Check if anything is selected
+       *
+       * @returns {boolean}
+       * @private
+       */
+      value: function _selectionIsEmpty() {
+        for (var nodeId in this.selectionObj.nodes) {
+          if (this.selectionObj.nodes.hasOwnProperty(nodeId)) {
+            return false;
+          }
+        }
+        for (var edgeId in this.selectionObj.edges) {
+          if (this.selectionObj.edges.hasOwnProperty(edgeId)) {
+            return false;
+          }
+        }
+        return true;
+      }
+    }, {
+      key: "_clusterInSelection",
+
+      /**
+       * check if one of the selected nodes is a cluster.
+       *
+       * @returns {boolean}
+       * @private
+       */
+      value: function _clusterInSelection() {
+        for (var nodeId in this.selectionObj.nodes) {
+          if (this.selectionObj.nodes.hasOwnProperty(nodeId)) {
+            if (this.selectionObj.nodes[nodeId].clusterSize > 1) {
+              return true;
             }
           }
         }
-      } else {
-        // add/remove this item from the current selection
-        var index = selection.indexOf(item.id);
-        if (index == -1) {
-          // item is not yet selected -> select it
-          selection.push(item.id);
-        } else {
-          // item is already selected -> deselect it
-          selection.splice(index, 1);
+        return false;
+      }
+    }, {
+      key: "_selectConnectedEdges",
+
+      /**
+       * select the edges connected to the node that is being selected
+       *
+       * @param {Node} node
+       * @private
+       */
+      value: function _selectConnectedEdges(node) {
+        for (var i = 0; i < node.edges.length; i++) {
+          var edge = node.edges[i];
+          edge.select();
+          this._addToSelection(edge);
         }
       }
+    }, {
+      key: "_hoverConnectedEdges",
 
-      this.setSelection(selection);
-
-      this.body.emitter.emit('select', {
-        items: this.getSelection(),
-        event: event
-      });
-    }
-  };
-
-  /**
-   * Calculate the time range of a list of items
-   * @param {Array.<Object>} itemsData
-   * @return {{min: Date, max: Date}} Returns the range of the provided items
-   * @private
-   */
-  ItemSet._getItemRange = function (itemsData) {
-    var max = null;
-    var min = null;
-
-    itemsData.forEach(function (data) {
-      if (min == null || data.start < min) {
-        min = data.start;
-      }
-
-      if (data.end != undefined) {
-        if (max == null || data.end > max) {
-          max = data.end;
-        }
-      } else {
-        if (max == null || data.start > max) {
-          max = data.start;
+      /**
+       * select the edges connected to the node that is being selected
+       *
+       * @param {Node} node
+       * @private
+       */
+      value: function _hoverConnectedEdges(node) {
+        for (var i = 0; i < node.edges.length; i++) {
+          var edge = node.edges[i];
+          edge.hover = true;
+          this._addToHover(edge);
         }
       }
-    });
+    }, {
+      key: "_unselectConnectedEdges",
 
-    return {
-      min: min,
-      max: max
-    };
-  };
-
-  /**
-   * Find an item from an event target:
-   * searches for the attribute 'timeline-item' in the event target's element tree
-   * @param {Event} event
-   * @return {Item | null} item
-   */
-  ItemSet.prototype.itemFromTarget = function (event) {
-    var target = event.target;
-    while (target) {
-      if (target.hasOwnProperty('timeline-item')) {
-        return target['timeline-item'];
-      }
-      target = target.parentNode;
-    }
-
-    return null;
-  };
-
-  /**
-   * Find the Group from an event target:
-   * searches for the attribute 'timeline-group' in the event target's element tree
-   * @param {Event} event
-   * @return {Group | null} group
-   */
-  ItemSet.prototype.groupFromTarget = function (event) {
-    var clientY = event.center ? event.center.y : event.clientY;
-    for (var i = 0; i < this.groupIds.length; i++) {
-      var groupId = this.groupIds[i];
-      var group = this.groups[groupId];
-      var foreground = group.dom.foreground;
-      var top = util.getAbsoluteTop(foreground);
-      if (clientY > top && clientY < top + foreground.offsetHeight) {
-        return group;
-      }
-
-      if (this.options.orientation.item === 'top') {
-        if (i === this.groupIds.length - 1 && clientY > top) {
-          return group;
-        }
-      } else {
-        if (i === 0 && clientY < top + foreground.offset) {
-          return group;
+      /**
+       * unselect the edges connected to the node that is being selected
+       *
+       * @param {Node} node
+       * @private
+       */
+      value: function _unselectConnectedEdges(node) {
+        for (var i = 0; i < node.edges.length; i++) {
+          var edge = node.edges[i];
+          edge.unselect();
+          this._removeFromSelection(edge);
         }
       }
-    }
+    }, {
+      key: "blurObject",
 
-    return null;
-  };
-
-  /**
-   * Find the ItemSet from an event target:
-   * searches for the attribute 'timeline-itemset' in the event target's element tree
-   * @param {Event} event
-   * @return {ItemSet | null} item
-   */
-  ItemSet.itemSetFromTarget = function (event) {
-    var target = event.target;
-    while (target) {
-      if (target.hasOwnProperty('timeline-itemset')) {
-        return target['timeline-itemset'];
+      /**
+       * This is called when someone clicks on a node. either select or deselect it.
+       * If there is an existing selection and we don't want to append to it, clear the existing selection
+       *
+       * @param {Node || Edge} object
+       * @private
+       */
+      value: function blurObject(object) {
+        if (object.hover === true) {
+          object.hover = false;
+          if (object instanceof Node) {
+            this.body.emitter.emit("blurNode", { node: object.id });
+          } else {
+            this.body.emitter.emit("blurEdge", { edge: object.id });
+          }
+        }
       }
-      target = target.parentNode;
-    }
+    }, {
+      key: "hoverObject",
 
-    return null;
-  };
+      /**
+       * This is called when someone clicks on a node. either select or deselect it.
+       * If there is an existing selection and we don't want to append to it, clear the existing selection
+       *
+       * @param {Node || Edge} object
+       * @private
+       */
+      value: function hoverObject(object) {
+        var hoverChanged = false;
+        // remove all node hover highlights
+        for (var nodeId in this.hoverObj.nodes) {
+          if (this.hoverObj.nodes.hasOwnProperty(nodeId)) {
+            if (object === undefined) {
+              this.blurObject(this.hoverObj.nodes[nodeId]);
+              hoverChanged = true;
+            } else if (object instanceof Node && object.id != nodeId || object instanceof Edge || object === undefined) {
+              this.blurObject(this.hoverObj.nodes[nodeId]);
+              hoverChanged = true;
+              delete this.hoverObj.nodes[nodeId];
+            }
+          }
+        }
 
-  module.exports = ItemSet;
+        // removing all edge hover highlights
+        for (var edgeId in this.hoverObj.edges) {
+          if (this.hoverObj.edges.hasOwnProperty(edgeId)) {
+            this.hoverObj.edges[edgeId].hover = false;
+            delete this.hoverObj.edges[edgeId];
+          }
+        }
+
+        if (object !== undefined) {
+          if (object.hover === false) {
+            object.hover = true;
+            this._addToHover(object);
+            hoverChanged = true;
+            if (object instanceof Node) {
+              this.body.emitter.emit("hoverNode", { node: object.id });
+            } else {
+              this.body.emitter.emit("hoverEdge", { edge: object.id });
+            }
+          }
+          if (object instanceof Node && this.options.hoverConnectedEdges === true) {
+            this._hoverConnectedEdges(object);
+          }
+        }
+
+        if (hoverChanged === true) {
+          this.body.emitter.emit("_requestRedraw");
+        }
+      }
+    }, {
+      key: "getSelection",
+
+      /**
+       *
+       * retrieve the currently selected objects
+       * @return {{nodes: Array.<String>, edges: Array.<String>}} selection
+       */
+      value: function getSelection() {
+        var nodeIds = this.getSelectedNodes();
+        var edgeIds = this.getSelectedEdges();
+        return { nodes: nodeIds, edges: edgeIds };
+      }
+    }, {
+      key: "getSelectedNodes",
+
+      /**
+       *
+       * retrieve the currently selected nodes
+       * @return {String[]} selection    An array with the ids of the
+       *                                            selected nodes.
+       */
+      value: function getSelectedNodes() {
+        var idArray = [];
+        if (this.options.selectable === true) {
+          for (var nodeId in this.selectionObj.nodes) {
+            if (this.selectionObj.nodes.hasOwnProperty(nodeId)) {
+              idArray.push(nodeId);
+            }
+          }
+        }
+        return idArray;
+      }
+    }, {
+      key: "getSelectedEdges",
+
+      /**
+       *
+       * retrieve the currently selected edges
+       * @return {Array} selection    An array with the ids of the
+       *                                            selected nodes.
+       */
+      value: function getSelectedEdges() {
+        var idArray = [];
+        if (this.options.selectable === true) {
+          for (var edgeId in this.selectionObj.edges) {
+            if (this.selectionObj.edges.hasOwnProperty(edgeId)) {
+              idArray.push(edgeId);
+            }
+          }
+        }
+        return idArray;
+      }
+    }, {
+      key: "selectNodes",
+
+      /**
+       * select zero or more nodes with the option to highlight edges
+       * @param {Number[] | String[]} selection     An array with the ids of the
+       *                                            selected nodes.
+       * @param {boolean} [highlightEdges]
+       */
+      value: function selectNodes(selection) {
+        var highlightEdges = arguments[1] === undefined ? true : arguments[1];
+
+        var i = undefined,
+            id = undefined;
+
+        if (!selection || selection.length === undefined) throw "Selection must be an array with ids";
+
+        // first unselect any selected node
+        this.unselectAll();
+
+        for (i = 0; i < selection.length; i++) {
+          id = selection[i];
+
+          var node = this.body.nodes[id];
+          if (!node) {
+            throw new RangeError("Node with id \"" + id + "\" not found");
+          }
+          this.selectObject(node, highlightEdges);
+        }
+        this.body.emitter.emit("_requestRedraw");
+      }
+    }, {
+      key: "selectEdges",
+
+      /**
+       * select zero or more edges
+       * @param {Number[] | String[]} selection     An array with the ids of the
+       *                                            selected nodes.
+       */
+      value: function selectEdges(selection) {
+        var i = undefined,
+            id = undefined;
+
+        if (!selection || selection.length === undefined) throw "Selection must be an array with ids";
+
+        // first unselect any selected objects
+        this.unselectAll();
+
+        for (i = 0; i < selection.length; i++) {
+          id = selection[i];
+
+          var edge = this.body.edges[id];
+          if (!edge) {
+            throw new RangeError("Edge with id \"" + id + "\" not found");
+          }
+          this.selectObject(edge);
+        }
+        this.body.emitter.emit("_requestRedraw");
+      }
+    }, {
+      key: "updateSelection",
+
+      /**
+       * Validate the selection: remove ids of nodes which no longer exist
+       * @private
+       */
+      value: function updateSelection() {
+        for (var nodeId in this.selectionObj.nodes) {
+          if (this.selectionObj.nodes.hasOwnProperty(nodeId)) {
+            if (!this.body.nodes.hasOwnProperty(nodeId)) {
+              delete this.selectionObj.nodes[nodeId];
+            }
+          }
+        }
+        for (var edgeId in this.selectionObj.edges) {
+          if (this.selectionObj.edges.hasOwnProperty(edgeId)) {
+            if (!this.body.edges.hasOwnProperty(edgeId)) {
+              delete this.selectionObj.edges[edgeId];
+            }
+          }
+        }
+      }
+    }]);
+
+    return SelectionHandler;
+  })();
+
+  exports["default"] = SelectionHandler;
+  module.exports = exports["default"];
 
 /***/ },
-/* 13 */
+/* 4 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
 
-  var Hammer = __webpack_require__(15);
-  var util = __webpack_require__(19);
-  var Component = __webpack_require__(38);
-  var moment = __webpack_require__(20);
-  var locales = __webpack_require__(39);
-
-  /**
-   * A custom time bar
-   * @param {{range: Range, dom: Object}} body
-   * @param {Object} [options]        Available parameters:
-   *                                  {number | string} id
-   *                                  {string} locales
-   *                                  {string} locale
-   * @constructor CustomTime
-   * @extends Component
-   */
-
-  function CustomTime(body, options) {
-    this.body = body;
-
-    // default options
-    this.defaultOptions = {
-      locales: locales,
-      locale: 'en',
-      id: undefined
-    };
-    this.options = util.extend({}, this.defaultOptions);
-
-    if (options && options.time) {
-      this.customTime = options.time;
-    } else {
-      this.customTime = new Date();
-    }
-
-    this.eventParams = {}; // stores state parameters while dragging the bar
-
-    this.setOptions(options);
-
-    // create the DOM
-    this._create();
-  }
-
-  CustomTime.prototype = new Component();
-
-  /**
-   * Set options for the component. Options will be merged in current options.
-   * @param {Object} options  Available parameters:
-   *                                  {number | string} id
-   *                                  {string} locales
-   *                                  {string} locale
-   */
-  CustomTime.prototype.setOptions = function (options) {
-    if (options) {
-      // copy all options that we know
-      util.selectiveExtend(['locale', 'locales', 'id'], this.options, options);
-    }
-  };
-
-  /**
-   * Create the DOM for the custom time
-   * @private
-   */
-  CustomTime.prototype._create = function () {
-    var bar = document.createElement('div');
-    bar['custom-time'] = this;
-    bar.className = 'vis-custom-time ' + (this.options.id || '');
-    bar.style.position = 'absolute';
-    bar.style.top = '0px';
-    bar.style.height = '100%';
-    this.bar = bar;
-
-    var drag = document.createElement('div');
-    drag.style.position = 'relative';
-    drag.style.top = '0px';
-    drag.style.left = '-10px';
-    drag.style.height = '100%';
-    drag.style.width = '20px';
-    bar.appendChild(drag);
-
-    // attach event listeners
-    this.hammer = new Hammer(drag);
-    this.hammer.on('panstart', this._onDragStart.bind(this));
-    this.hammer.on('panmove', this._onDrag.bind(this));
-    this.hammer.on('panend', this._onDragEnd.bind(this));
-    this.hammer.get('pan').set({ threshold: 5, direction: 30 }); // 30 is ALL_DIRECTIONS in hammer.
-    // TODO: cleanup
-    //this.hammer.on('pan',   function (event) {
-    //  event.preventDefault();
-    //});
-  };
-
-  /**
-   * Destroy the CustomTime bar
-   */
-  CustomTime.prototype.destroy = function () {
-    this.hide();
-
-    this.hammer.destroy();
-    this.hammer = null;
-
-    this.body = null;
-  };
-
-  /**
-   * Repaint the component
-   * @return {boolean} Returns true if the component is resized
-   */
-  CustomTime.prototype.redraw = function () {
-    var parent = this.body.dom.backgroundVertical;
-    if (this.bar.parentNode != parent) {
-      // attach to the dom
-      if (this.bar.parentNode) {
-        this.bar.parentNode.removeChild(this.bar);
-      }
-      parent.appendChild(this.bar);
-    }
-
-    var x = this.body.util.toScreen(this.customTime);
-
-    var locale = this.options.locales[this.options.locale];
-    if (!locale) {
-      if (!this.warned) {
-        console.log('WARNING: options.locales[\'' + this.options.locale + '\'] not found. See http://visjs.org/docs/timeline.html#Localization');
-        this.warned = true;
-      }
-      locale = this.options.locales['en']; // fall back on english when not available
-    }
-    var title = locale.time + ': ' + moment(this.customTime).format('dddd, MMMM Do YYYY, H:mm:ss');
-    title = title.charAt(0).toUpperCase() + title.substring(1);
-
-    this.bar.style.left = x + 'px';
-    this.bar.title = title;
-
-    return false;
-  };
-
-  /**
-   * Remove the CustomTime from the DOM
-   */
-  CustomTime.prototype.hide = function () {
-    // remove the line from the DOM
-    if (this.bar.parentNode) {
-      this.bar.parentNode.removeChild(this.bar);
-    }
-  };
-
-  /**
-   * Set custom time.
-   * @param {Date | number | string} time
-   */
-  CustomTime.prototype.setCustomTime = function (time) {
-    this.customTime = util.convert(time, 'Date');
-    this.redraw();
-  };
-
-  /**
-   * Retrieve the current custom time.
-   * @return {Date} customTime
-   */
-  CustomTime.prototype.getCustomTime = function () {
-    return new Date(this.customTime.valueOf());
-  };
-
-  /**
-   * Start moving horizontally
-   * @param {Event} event
-   * @private
-   */
-  CustomTime.prototype._onDragStart = function (event) {
-    this.eventParams.dragging = true;
-    this.eventParams.customTime = this.customTime;
-
-    event.stopPropagation();
-  };
-
-  /**
-   * Perform moving operating.
-   * @param {Event} event
-   * @private
-   */
-  CustomTime.prototype._onDrag = function (event) {
-    if (!this.eventParams.dragging) return;
-
-    var x = this.body.util.toScreen(this.eventParams.customTime) + event.deltaX;
-    var time = this.body.util.toTime(x);
-
-    this.setCustomTime(time);
-
-    // fire a timechange event
-    this.body.emitter.emit('timechange', {
-      id: this.options.id,
-      time: new Date(this.customTime.valueOf())
-    });
-
-    event.stopPropagation();
-  };
-
-  /**
-   * Stop moving operating.
-   * @param {Event} event
-   * @private
-   */
-  CustomTime.prototype._onDragEnd = function (event) {
-    if (!this.eventParams.dragging) return;
-
-    // fire a timechanged event
-    this.body.emitter.emit('timechanged', {
-      id: this.options.id,
-      time: new Date(this.customTime.valueOf())
-    });
-
-    event.stopPropagation();
-  };
-
-  /**
-   * Find a custom time from an event target:
-   * searches for the attribute 'custom-time' in the event target's element tree
-   * @param {Event} event
-   * @return {CustomTime | null} customTime
-   */
-  CustomTime.customTimeFromTarget = function (event) {
-    var target = event.target;
-    while (target) {
-      if (target.hasOwnProperty('custom-time')) {
-        return target['custom-time'];
-      }
-      target = target.parentNode;
-    }
-
-    return null;
-  };
-
-  module.exports = CustomTime;
-
-/***/ },
-/* 14 */
-/***/ function(module, exports, __webpack_require__) {
-
-  'use strict';
-
-  var Hammer = __webpack_require__(15);
-  var util = __webpack_require__(19);
+  var Hammer = __webpack_require__(5);
+  var util = __webpack_require__(9);
 
   /**
    * @constructor Item
@@ -6237,7 +1419,7 @@ return /******/ (function(modules) { // webpackBootstrap
   // should be implemented by the item
 
 /***/ },
-/* 15 */
+/* 5 */
 /***/ function(module, exports, __webpack_require__) {
 
   // Only load hammer.js when in a browser environment
@@ -6245,8 +1427,8 @@ return /******/ (function(modules) { // webpackBootstrap
   'use strict';
 
   if (typeof window !== 'undefined') {
-    var propagating = __webpack_require__(16);
-    var Hammer = window['Hammer'] || __webpack_require__(17);
+    var propagating = __webpack_require__(6);
+    var Hammer = window['Hammer'] || __webpack_require__(7);
     module.exports = propagating(Hammer, {
       preventDefault: 'mouse'
     });
@@ -6257,7 +1439,7 @@ return /******/ (function(modules) { // webpackBootstrap
   }
 
 /***/ },
-/* 16 */
+/* 6 */
 /***/ function(module, exports, __webpack_require__) {
 
   var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;'use strict';
@@ -6478,7 +1660,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 17 */
+/* 7 */
 /***/ function(module, exports, __webpack_require__) {
 
   var __WEBPACK_AMD_DEFINE_RESULT__;/*! Hammer.JS - v2.0.4 - 2014-09-28
@@ -8934,7 +4116,7 @@ return /******/ (function(modules) { // webpackBootstrap
       prefixed: prefixed
   });
 
-  if ("function" == TYPE_FUNCTION && __webpack_require__(18)) {
+  if ("function" == TYPE_FUNCTION && __webpack_require__(8)) {
       !(__WEBPACK_AMD_DEFINE_RESULT__ = function() {
           return Hammer;
       }.call(exports, __webpack_require__, exports, module), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__));
@@ -8948,7 +4130,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 18 */
+/* 8 */
 /***/ function(module, exports, __webpack_require__) {
 
   /* WEBPACK VAR INJECTION */(function(__webpack_amd_options__) {module.exports = __webpack_amd_options__;
@@ -8956,7 +4138,7 @@ return /******/ (function(modules) { // webpackBootstrap
   /* WEBPACK VAR INJECTION */}.call(exports, {}))
 
 /***/ },
-/* 19 */
+/* 9 */
 /***/ function(module, exports, __webpack_require__) {
 
   // utility functions
@@ -8966,8 +4148,8 @@ return /******/ (function(modules) { // webpackBootstrap
 
   'use strict';
 
-  var moment = __webpack_require__(20);
-  var uuid = __webpack_require__(23);
+  var moment = __webpack_require__(10);
+  var uuid = __webpack_require__(13);
 
   /**
    * Test whether given object is a number
@@ -10302,17 +5484,17 @@ return /******/ (function(modules) { // webpackBootstrap
   };
 
 /***/ },
-/* 20 */
+/* 10 */
 /***/ function(module, exports, __webpack_require__) {
 
   // first check if moment.js is already loaded in the browser window, if so,
   // use this instance. Else, load via commonjs.
   'use strict';
 
-  module.exports = typeof window !== 'undefined' && window['moment'] || __webpack_require__(21);
+  module.exports = typeof window !== 'undefined' && window['moment'] || __webpack_require__(11);
 
 /***/ },
-/* 21 */
+/* 11 */
 /***/ function(module, exports, __webpack_require__) {
 
   /* WEBPACK VAR INJECTION */(function(module) {//! moment.js
@@ -13426,10 +8608,10 @@ return /******/ (function(modules) { // webpackBootstrap
       return _moment;
 
   }));
-  /* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(22)(module)))
+  /* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(12)(module)))
 
 /***/ },
-/* 22 */
+/* 12 */
 /***/ function(module, exports, __webpack_require__) {
 
   module.exports = function(module) {
@@ -13445,7 +8627,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 23 */
+/* 13 */
 /***/ function(module, exports, __webpack_require__) {
 
   /* WEBPACK VAR INJECTION */(function(global) {'use strict';
@@ -13661,7 +8843,7 @@ return /******/ (function(modules) { // webpackBootstrap
   /* WEBPACK VAR INJECTION */}.call(exports, (function() { return this; }())))
 
 /***/ },
-/* 24 */
+/* 14 */
 /***/ function(module, exports, __webpack_require__) {
 
   // DOM utility methods
@@ -13863,13 +9045,13 @@ return /******/ (function(modules) { // webpackBootstrap
   };
 
 /***/ },
-/* 25 */
+/* 15 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
 
-  var util = __webpack_require__(19);
-  var Queue = __webpack_require__(26);
+  var util = __webpack_require__(9);
+  var Queue = __webpack_require__(16);
 
   /**
    * DataSet
@@ -14758,7 +9940,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = DataSet;
 
 /***/ },
-/* 26 */
+/* 16 */
 /***/ function(module, exports, __webpack_require__) {
 
   /**
@@ -14963,13 +10145,13 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = Queue;
 
 /***/ },
-/* 27 */
+/* 17 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
 
-  var util = __webpack_require__(19);
-  var DataSet = __webpack_require__(25);
+  var util = __webpack_require__(9);
+  var DataSet = __webpack_require__(15);
 
   /**
    * DataView
@@ -15311,21 +10493,21 @@ return /******/ (function(modules) { // webpackBootstrap
   // nothing interesting for me :-(
 
 /***/ },
-/* 28 */
+/* 18 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
 
-  var Emitter = __webpack_require__(30);
-  var DataSet = __webpack_require__(25);
-  var DataView = __webpack_require__(27);
-  var util = __webpack_require__(19);
-  var Point3d = __webpack_require__(31);
-  var Point2d = __webpack_require__(29);
-  var Camera = __webpack_require__(32);
-  var Filter = __webpack_require__(33);
-  var Slider = __webpack_require__(34);
-  var StepNumber = __webpack_require__(35);
+  var Emitter = __webpack_require__(20);
+  var DataSet = __webpack_require__(15);
+  var DataView = __webpack_require__(17);
+  var util = __webpack_require__(9);
+  var Point3d = __webpack_require__(21);
+  var Point2d = __webpack_require__(19);
+  var Camera = __webpack_require__(22);
+  var Filter = __webpack_require__(23);
+  var Slider = __webpack_require__(24);
+  var StepNumber = __webpack_require__(25);
 
   /**
    * @constructor Graph3d
@@ -17559,7 +12741,7 @@ return /******/ (function(modules) { // webpackBootstrap
   // use use defaults
 
 /***/ },
-/* 29 */
+/* 19 */
 /***/ function(module, exports, __webpack_require__) {
 
   /**
@@ -17577,7 +12759,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = Point2d;
 
 /***/ },
-/* 30 */
+/* 20 */
 /***/ function(module, exports, __webpack_require__) {
 
   
@@ -17747,7 +12929,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 31 */
+/* 21 */
 /***/ function(module, exports, __webpack_require__) {
 
   /**
@@ -17830,12 +13012,12 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = Point3d;
 
 /***/ },
-/* 32 */
+/* 22 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
 
-  var Point3d = __webpack_require__(31);
+  var Point3d = __webpack_require__(21);
 
   /**
    * @class Camera
@@ -17971,12 +13153,12 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = Camera;
 
 /***/ },
-/* 33 */
+/* 23 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
 
-  var DataView = __webpack_require__(27);
+  var DataView = __webpack_require__(17);
 
   /**
    * @class Filter
@@ -18182,12 +13364,12 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = Filter;
 
 /***/ },
-/* 34 */
+/* 24 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
 
-  var util = __webpack_require__(19);
+  var util = __webpack_require__(9);
 
   /**
    * @constructor Slider
@@ -18530,7 +13712,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = Slider;
 
 /***/ },
-/* 35 */
+/* 25 */
 /***/ function(module, exports, __webpack_require__) {
 
   /**
@@ -18674,28 +13856,28 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = StepNumber;
 
 /***/ },
-/* 36 */
+/* 26 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
 
-  var Emitter = __webpack_require__(30);
-  var Hammer = __webpack_require__(15);
-  var util = __webpack_require__(19);
-  var DataSet = __webpack_require__(25);
-  var DataView = __webpack_require__(27);
-  var Range = __webpack_require__(40);
-  var Core = __webpack_require__(11);
-  var TimeAxis = __webpack_require__(50);
-  var CurrentTime = __webpack_require__(37);
-  var CustomTime = __webpack_require__(13);
-  var ItemSet = __webpack_require__(12);
+  var Emitter = __webpack_require__(20);
+  var Hammer = __webpack_require__(5);
+  var util = __webpack_require__(9);
+  var DataSet = __webpack_require__(15);
+  var DataView = __webpack_require__(17);
+  var Range = __webpack_require__(30);
+  var Core = __webpack_require__(33);
+  var TimeAxis = __webpack_require__(42);
+  var CurrentTime = __webpack_require__(27);
+  var CustomTime = __webpack_require__(45);
+  var ItemSet = __webpack_require__(34);
 
-  var Configurator = __webpack_require__(53);
-  var Validator = __webpack_require__(55)['default'];
-  var printStyle = __webpack_require__(55).printStyle;
-  var allOptions = __webpack_require__(56).allOptions;
-  var configureOptions = __webpack_require__(56).configureOptions;
+  var Configurator = __webpack_require__(46);
+  var Validator = __webpack_require__(48)['default'];
+  var printStyle = __webpack_require__(48).printStyle;
+  var allOptions = __webpack_require__(49).allOptions;
+  var configureOptions = __webpack_require__(49).configureOptions;
 
   /**
    * Create a timeline visualization
@@ -19204,15 +14386,15 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = Timeline;
 
 /***/ },
-/* 37 */
+/* 27 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
 
-  var util = __webpack_require__(19);
-  var Component = __webpack_require__(38);
-  var moment = __webpack_require__(20);
-  var locales = __webpack_require__(39);
+  var util = __webpack_require__(9);
+  var Component = __webpack_require__(28);
+  var moment = __webpack_require__(10);
+  var locales = __webpack_require__(29);
 
   /**
    * A current time bar
@@ -19380,7 +14562,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = CurrentTime;
 
 /***/ },
-/* 38 */
+/* 28 */
 /***/ function(module, exports, __webpack_require__) {
 
   /**
@@ -19440,7 +14622,7 @@ return /******/ (function(modules) { // webpackBootstrap
   // should be implemented by the component
 
 /***/ },
-/* 39 */
+/* 29 */
 /***/ function(module, exports, __webpack_require__) {
 
   // English
@@ -19462,16 +14644,16 @@ return /******/ (function(modules) { // webpackBootstrap
   exports['nl_BE'] = exports['nl'];
 
 /***/ },
-/* 40 */
+/* 30 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
 
-  var util = __webpack_require__(19);
-  var hammerUtil = __webpack_require__(41);
-  var moment = __webpack_require__(20);
-  var Component = __webpack_require__(38);
-  var DateUtil = __webpack_require__(42);
+  var util = __webpack_require__(9);
+  var hammerUtil = __webpack_require__(31);
+  var moment = __webpack_require__(10);
+  var Component = __webpack_require__(28);
+  var DateUtil = __webpack_require__(32);
 
   /**
    * @constructor Range
@@ -20138,12 +15320,12 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = Range;
 
 /***/ },
-/* 41 */
+/* 31 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
 
-  var Hammer = __webpack_require__(15);
+  var Hammer = __webpack_require__(5);
 
   /**
    * Register a touch event, taking place before a gesture
@@ -20210,12 +15392,12 @@ return /******/ (function(modules) { // webpackBootstrap
   exports.offRelease = exports.offTouch;
 
 /***/ },
-/* 42 */
+/* 32 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
 
-  var moment = __webpack_require__(20);
+  var moment = __webpack_require__(10);
 
   /**
    * used in Core to convert the options into a volatile variable
@@ -20670,14 +15852,2617 @@ return /******/ (function(modules) { // webpackBootstrap
   };
 
 /***/ },
-/* 43 */
+/* 33 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
 
-  var util = __webpack_require__(19);
-  var stack = __webpack_require__(44);
-  var RangeItem = __webpack_require__(45);
+  var Emitter = __webpack_require__(20);
+  var Hammer = __webpack_require__(5);
+  var hammerUtil = __webpack_require__(31);
+  var util = __webpack_require__(9);
+  var DataSet = __webpack_require__(15);
+  var DataView = __webpack_require__(17);
+  var Range = __webpack_require__(30);
+  var ItemSet = __webpack_require__(34);
+  var TimeAxis = __webpack_require__(42);
+  var Activator = __webpack_require__(43);
+  var DateUtil = __webpack_require__(32);
+  var CustomTime = __webpack_require__(45);
+
+  /**
+   * Create a timeline visualization
+   * @constructor
+   */
+  function Core() {}
+
+  // turn Core into an event emitter
+  Emitter(Core.prototype);
+
+  /**
+   * Create the main DOM for the Core: a root panel containing left, right,
+   * top, bottom, content, and background panel.
+   * @param {Element} container  The container element where the Core will
+   *                             be attached.
+   * @protected
+   */
+  Core.prototype._create = function (container) {
+    this.dom = {};
+
+    this.dom.container = container;
+
+    this.dom.root = document.createElement('div');
+    this.dom.background = document.createElement('div');
+    this.dom.backgroundVertical = document.createElement('div');
+    this.dom.backgroundHorizontal = document.createElement('div');
+    this.dom.centerContainer = document.createElement('div');
+    this.dom.leftContainer = document.createElement('div');
+    this.dom.rightContainer = document.createElement('div');
+    this.dom.center = document.createElement('div');
+    this.dom.left = document.createElement('div');
+    this.dom.right = document.createElement('div');
+    this.dom.top = document.createElement('div');
+    this.dom.bottom = document.createElement('div');
+    this.dom.shadowTop = document.createElement('div');
+    this.dom.shadowBottom = document.createElement('div');
+    this.dom.shadowTopLeft = document.createElement('div');
+    this.dom.shadowBottomLeft = document.createElement('div');
+    this.dom.shadowTopRight = document.createElement('div');
+    this.dom.shadowBottomRight = document.createElement('div');
+
+    this.dom.root.className = 'vis-timeline';
+    this.dom.background.className = 'vis-panel vis-background';
+    this.dom.backgroundVertical.className = 'vis-panel vis-background vis-vertical';
+    this.dom.backgroundHorizontal.className = 'vis-panel vis-background vis-horizontal';
+    this.dom.centerContainer.className = 'vis-panel vis-center';
+    this.dom.leftContainer.className = 'vis-panel vis-left';
+    this.dom.rightContainer.className = 'vis-panel vis-right';
+    this.dom.top.className = 'vis-panel vis-top';
+    this.dom.bottom.className = 'vis-panel vis-bottom';
+    this.dom.left.className = 'vis-content';
+    this.dom.center.className = 'vis-content';
+    this.dom.right.className = 'vis-content';
+    this.dom.shadowTop.className = 'vis-shadow vis-top';
+    this.dom.shadowBottom.className = 'vis-shadow vis-bottom';
+    this.dom.shadowTopLeft.className = 'vis-shadow vis-top';
+    this.dom.shadowBottomLeft.className = 'vis-shadow vis-bottom';
+    this.dom.shadowTopRight.className = 'vis-shadow vis-top';
+    this.dom.shadowBottomRight.className = 'vis-shadow vis-bottom';
+
+    this.dom.root.appendChild(this.dom.background);
+    this.dom.root.appendChild(this.dom.backgroundVertical);
+    this.dom.root.appendChild(this.dom.backgroundHorizontal);
+    this.dom.root.appendChild(this.dom.centerContainer);
+    this.dom.root.appendChild(this.dom.leftContainer);
+    this.dom.root.appendChild(this.dom.rightContainer);
+    this.dom.root.appendChild(this.dom.top);
+    this.dom.root.appendChild(this.dom.bottom);
+
+    this.dom.centerContainer.appendChild(this.dom.center);
+    this.dom.leftContainer.appendChild(this.dom.left);
+    this.dom.rightContainer.appendChild(this.dom.right);
+
+    this.dom.centerContainer.appendChild(this.dom.shadowTop);
+    this.dom.centerContainer.appendChild(this.dom.shadowBottom);
+    this.dom.leftContainer.appendChild(this.dom.shadowTopLeft);
+    this.dom.leftContainer.appendChild(this.dom.shadowBottomLeft);
+    this.dom.rightContainer.appendChild(this.dom.shadowTopRight);
+    this.dom.rightContainer.appendChild(this.dom.shadowBottomRight);
+
+    this.on('rangechange', this.redraw.bind(this));
+    this.on('touch', this._onTouch.bind(this));
+    this.on('pan', this._onDrag.bind(this));
+
+    var me = this;
+    this.on('change', function (properties) {
+      if (properties && properties.queue == true) {
+        // redraw once on next tick
+        if (!me._redrawTimer) {
+          me._redrawTimer = setTimeout(function () {
+            me._redrawTimer = null;
+            me._redraw();
+          }, 0);
+        }
+      } else {
+        // redraw immediately
+        me._redraw();
+      }
+    });
+
+    // create event listeners for all interesting events, these events will be
+    // emitted via emitter
+    this.hammer = new Hammer(this.dom.root);
+    this.hammer.get('pinch').set({ enable: true });
+    this.hammer.get('pan').set({ threshold: 5, direction: 30 }); // 30 is ALL_DIRECTIONS in hammer.
+    this.listeners = {};
+
+    var events = ['tap', 'doubletap', 'press', 'pinch', 'pan', 'panstart', 'panmove', 'panend'
+    // TODO: cleanup
+    //'touch', 'pinch',
+    //'tap', 'doubletap', 'hold',
+    //'dragstart', 'drag', 'dragend',
+    //'mousewheel', 'DOMMouseScroll' // DOMMouseScroll is needed for Firefox
+    ];
+    events.forEach(function (type) {
+      var listener = function listener(event) {
+        if (me.isActive()) {
+          me.emit(type, event);
+        }
+      };
+      me.hammer.on(type, listener);
+      me.listeners[type] = listener;
+    });
+
+    // emulate a touch event (emitted before the start of a pan, pinch, tap, or press)
+    hammerUtil.onTouch(this.hammer, (function (event) {
+      me.emit('touch', event);
+    }).bind(this));
+
+    // emulate a release event (emitted after a pan, pinch, tap, or press)
+    hammerUtil.onRelease(this.hammer, (function (event) {
+      me.emit('release', event);
+    }).bind(this));
+
+    function onMouseWheel(event) {
+      if (me.isActive()) {
+        me.emit('mousewheel', event);
+      }
+    }
+    this.dom.root.addEventListener('mousewheel', onMouseWheel);
+    this.dom.root.addEventListener('DOMMouseScroll', onMouseWheel);
+
+    // size properties of each of the panels
+    this.props = {
+      root: {},
+      background: {},
+      centerContainer: {},
+      leftContainer: {},
+      rightContainer: {},
+      center: {},
+      left: {},
+      right: {},
+      top: {},
+      bottom: {},
+      border: {},
+      scrollTop: 0,
+      scrollTopMin: 0
+    };
+
+    this.customTimes = [];
+
+    // store state information needed for touch events
+    this.touch = {};
+
+    this.redrawCount = 0;
+
+    // attach the root panel to the provided container
+    if (!container) throw new Error('No container provided');
+    container.appendChild(this.dom.root);
+  };
+
+  /**
+   * Set options. Options will be passed to all components loaded in the Timeline.
+   * @param {Object} [options]
+   *                           {String} orientation
+   *                              Vertical orientation for the Timeline,
+   *                              can be 'bottom' (default) or 'top'.
+   *                           {String | Number} width
+   *                              Width for the timeline, a number in pixels or
+   *                              a css string like '1000px' or '75%'. '100%' by default.
+   *                           {String | Number} height
+   *                              Fixed height for the Timeline, a number in pixels or
+   *                              a css string like '400px' or '75%'. If undefined,
+   *                              The Timeline will automatically size such that
+   *                              its contents fit.
+   *                           {String | Number} minHeight
+   *                              Minimum height for the Timeline, a number in pixels or
+   *                              a css string like '400px' or '75%'.
+   *                           {String | Number} maxHeight
+   *                              Maximum height for the Timeline, a number in pixels or
+   *                              a css string like '400px' or '75%'.
+   *                           {Number | Date | String} start
+   *                              Start date for the visible window
+   *                           {Number | Date | String} end
+   *                              End date for the visible window
+   */
+  Core.prototype.setOptions = function (options) {
+    if (options) {
+      // copy the known options
+      var fields = ['width', 'height', 'minHeight', 'maxHeight', 'autoResize', 'start', 'end', 'clickToUse', 'dataAttributes', 'hiddenDates'];
+      util.selectiveExtend(fields, this.options, options);
+
+      if ('orientation' in options) {
+        if (typeof options.orientation === 'string') {
+          this.options.orientation = {
+            item: options.orientation,
+            axis: options.orientation
+          };
+        } else if (typeof options.orientation === 'object') {
+          if ('item' in options.orientation) {
+            this.options.orientation.item = options.orientation.item;
+          }
+          if ('axis' in options.orientation) {
+            this.options.orientation.axis = options.orientation.axis;
+          }
+        }
+      }
+
+      if (this.options.orientation.axis === 'both') {
+        if (!this.timeAxis2) {
+          var timeAxis2 = this.timeAxis2 = new TimeAxis(this.body);
+          timeAxis2.setOptions = function (options) {
+            var _options = options ? util.extend({}, options) : {};
+            _options.orientation = 'top'; // override the orientation option, always top
+            TimeAxis.prototype.setOptions.call(timeAxis2, _options);
+          };
+          this.components.push(timeAxis2);
+        }
+      } else {
+        if (this.timeAxis2) {
+          var index = this.components.indexOf(this.timeAxis2);
+          if (index !== -1) {
+            this.components.splice(index, 1);
+          }
+          this.timeAxis2.destroy();
+          this.timeAxis2 = null;
+        }
+      }
+
+      // if the graph2d's drawPoints is a function delegate the callback to the onRender property
+      if (typeof options.drawPoints == 'function') {
+        options.drawPoints = {
+          onRender: options.drawPoints
+        };
+      }
+
+      if ('hiddenDates' in this.options) {
+        DateUtil.convertHiddenOptions(this.body, this.options.hiddenDates);
+      }
+
+      if ('clickToUse' in options) {
+        if (options.clickToUse) {
+          if (!this.activator) {
+            this.activator = new Activator(this.dom.root);
+          }
+        } else {
+          if (this.activator) {
+            this.activator.destroy();
+            delete this.activator;
+          }
+        }
+      }
+
+      if ('showCustomTime' in options) {
+        throw new Error('Option `showCustomTime` is deprecated. Create a custom time bar via timeline.addCustomTime(time [, id])');
+      }
+
+      // enable/disable autoResize
+      this._initAutoResize();
+    }
+
+    // propagate options to all components
+    this.components.forEach(function (component) {
+      return component.setOptions(options);
+    });
+
+    // enable/disable configure
+    if ('configure' in options) {
+      if (!this.configurator) {
+        this.configurator = this._createConfigurator();
+      }
+
+      this.configurator.setOptions(options.configure);
+
+      // collect the settings of all components, and pass them to the configuration system
+      var appliedOptions = util.deepExtend({}, this.options);
+      this.components.forEach(function (component) {
+        util.deepExtend(appliedOptions, component.options);
+      });
+      this.configurator.setModuleOptions({ global: appliedOptions });
+    }
+
+    // redraw everything
+    this._redraw();
+  };
+
+  /**
+   * Returns true when the Timeline is active.
+   * @returns {boolean}
+   */
+  Core.prototype.isActive = function () {
+    return !this.activator || this.activator.active;
+  };
+
+  /**
+   * Destroy the Core, clean up all DOM elements and event listeners.
+   */
+  Core.prototype.destroy = function () {
+    // unbind datasets
+    this.setItems(null);
+    this.setGroups(null);
+
+    // remove all event listeners
+    this.off();
+
+    // stop checking for changed size
+    this._stopAutoResize();
+
+    // remove from DOM
+    if (this.dom.root.parentNode) {
+      this.dom.root.parentNode.removeChild(this.dom.root);
+    }
+    this.dom = null;
+
+    // remove Activator
+    if (this.activator) {
+      this.activator.destroy();
+      delete this.activator;
+    }
+
+    // cleanup hammer touch events
+    for (var event in this.listeners) {
+      if (this.listeners.hasOwnProperty(event)) {
+        delete this.listeners[event];
+      }
+    }
+    this.listeners = null;
+    this.hammer = null;
+
+    // give all components the opportunity to cleanup
+    this.components.forEach(function (component) {
+      return component.destroy();
+    });
+
+    this.body = null;
+  };
+
+  /**
+   * Set a custom time bar
+   * @param {Date} time
+   * @param {number} [id=undefined] Optional id of the custom time bar to be adjusted.
+   */
+  Core.prototype.setCustomTime = function (time, id) {
+    var customTimes = this.customTimes.filter(function (component) {
+      return id === component.options.id;
+    });
+
+    if (customTimes.length === 0) {
+      throw new Error('No custom time bar found with id ' + JSON.stringify(id));
+    }
+
+    if (customTimes.length > 0) {
+      customTimes[0].setCustomTime(time);
+    }
+  };
+
+  /**
+   * Retrieve the current custom time.
+   * @param {number} [id=undefined]    Id of the custom time bar.
+   * @return {Date | undefined} customTime
+   */
+  Core.prototype.getCustomTime = function (id) {
+    var customTimes = this.customTimes.filter(function (component) {
+      return component.options.id === id;
+    });
+
+    if (customTimes.length === 0) {
+      throw new Error('No custom time bar found with id ' + JSON.stringify(id));
+    }
+    return customTimes[0].getCustomTime();
+  };
+
+  /**
+   * Add custom vertical bar
+   * @param {Date | String | Number} [time]  A Date, unix timestamp, or
+   *                                         ISO date string. Time point where
+   *                                         the new bar should be placed.
+   *                                         If not provided, `new Date()` will
+   *                                         be used.
+   * @param {Number | String} [id=undefined] Id of the new bar. Optional
+   * @return {Number | String}               Returns the id of the new bar
+   */
+  Core.prototype.addCustomTime = function (time, id) {
+    var timestamp = time !== undefined ? util.convert(time, 'Date').valueOf() : new Date();
+
+    var exists = this.customTimes.some(function (customTime) {
+      return customTime.options.id === id;
+    });
+    if (exists) {
+      throw new Error('A custom time with id ' + JSON.stringify(id) + ' already exists');
+    }
+
+    var customTime = new CustomTime(this.body, {
+      time: timestamp,
+      id: id
+    });
+
+    this.customTimes.push(customTime);
+    this.components.push(customTime);
+    this.redraw();
+
+    return id;
+  };
+
+  /**
+   * Remove previously added custom bar
+   * @param {int} id ID of the custom bar to be removed
+   * @return {boolean} True if the bar exists and is removed, false otherwise
+   */
+  Core.prototype.removeCustomTime = function (id) {
+    var customTimes = this.customTimes.filter(function (bar) {
+      return bar.options.id === id;
+    });
+
+    if (customTimes.length === 0) {
+      throw new Error('No custom time bar found with id ' + JSON.stringify(id));
+    }
+
+    customTimes.forEach((function (customTime) {
+      this.customTimes.splice(this.customTimes.indexOf(customTime), 1);
+      this.components.splice(this.components.indexOf(customTime), 1);
+      customTime.destroy();
+    }).bind(this));
+  };
+
+  /**
+   * Get the id's of the currently visible items.
+   * @returns {Array} The ids of the visible items
+   */
+  Core.prototype.getVisibleItems = function () {
+    return this.itemSet && this.itemSet.getVisibleItems() || [];
+  };
+
+  /**
+   * Set Core window such that it fits all items
+   * @param {Object} [options]  Available options:
+   *                                `animation: boolean | {duration: number, easingFunction: string}`
+   *                                    If true (default), the range is animated
+   *                                    smoothly to the new window. An object can be
+   *                                    provided to specify duration and easing function.
+   *                                    Default duration is 500 ms, and default easing
+   *                                    function is 'easeInOutQuad'.
+   */
+  Core.prototype.fit = function (options) {
+    var range = this.getDataRange();
+
+    // skip range set if there is no min and max date
+    if (range.min === null && range.max === null) {
+      return;
+    }
+
+    // apply a margin of 1% left and right of the data
+    var interval = range.max - range.min;
+    var min = new Date(range.min.valueOf() - interval * 0.01);
+    var max = new Date(range.max.valueOf() + interval * 0.01);
+
+    var animation = options && options.animation !== undefined ? options.animation : true;
+    this.range.setRange(min, max, animation);
+  };
+
+  /**
+   * Calculate the data range of the items start and end dates
+   * @returns {{min: Date | null, max: Date | null}}
+   * @protected
+   */
+  Core.prototype.getDataRange = function () {
+    // must be implemented by Timeline and Graph2d
+    throw new Error('Cannot invoke abstract method getDataRange');
+  };
+
+  /**
+   * Set the visible window. Both parameters are optional, you can change only
+   * start or only end. Syntax:
+   *
+   *     TimeLine.setWindow(start, end)
+   *     TimeLine.setWindow(start, end, options)
+   *     TimeLine.setWindow(range)
+   *
+   * Where start and end can be a Date, number, or string, and range is an
+   * object with properties start and end.
+   *
+   * @param {Date | Number | String | Object} [start] Start date of visible window
+   * @param {Date | Number | String} [end]            End date of visible window
+   * @param {Object} [options]  Available options:
+   *                                `animation: boolean | {duration: number, easingFunction: string}`
+   *                                    If true (default), the range is animated
+   *                                    smoothly to the new window. An object can be
+   *                                    provided to specify duration and easing function.
+   *                                    Default duration is 500 ms, and default easing
+   *                                    function is 'easeInOutQuad'.
+   */
+  Core.prototype.setWindow = function (start, end, options) {
+    var animation;
+    if (arguments.length == 1) {
+      var range = arguments[0];
+      animation = range.animation !== undefined ? range.animation : true;
+      this.range.setRange(range.start, range.end, animation);
+    } else {
+      animation = options && options.animation !== undefined ? options.animation : true;
+      this.range.setRange(start, end, animation);
+    }
+  };
+
+  /**
+   * Move the window such that given time is centered on screen.
+   * @param {Date | Number | String} time
+   * @param {Object} [options]  Available options:
+   *                                `animation: boolean | {duration: number, easingFunction: string}`
+   *                                    If true (default), the range is animated
+   *                                    smoothly to the new window. An object can be
+   *                                    provided to specify duration and easing function.
+   *                                    Default duration is 500 ms, and default easing
+   *                                    function is 'easeInOutQuad'.
+   */
+  Core.prototype.moveTo = function (time, options) {
+    var interval = this.range.end - this.range.start;
+    var t = util.convert(time, 'Date').valueOf();
+
+    var start = t - interval / 2;
+    var end = t + interval / 2;
+    var animation = options && options.animation !== undefined ? options.animation : true;
+
+    this.range.setRange(start, end, animation);
+  };
+
+  /**
+   * Get the visible window
+   * @return {{start: Date, end: Date}}   Visible range
+   */
+  Core.prototype.getWindow = function () {
+    var range = this.range.getRange();
+    return {
+      start: new Date(range.start),
+      end: new Date(range.end)
+    };
+  };
+
+  /**
+   * Force a redraw. Can be overridden by implementations of Core
+   */
+  Core.prototype.redraw = function () {
+    this._redraw();
+  };
+
+  /**
+   * Redraw for internal use. Redraws all components. See also the public
+   * method redraw.
+   * @protected
+   */
+  Core.prototype._redraw = function () {
+    var resized = false;
+    var options = this.options;
+    var props = this.props;
+    var dom = this.dom;
+
+    if (!dom) return; // when destroyed
+
+    DateUtil.updateHiddenDates(this.body, this.options.hiddenDates);
+
+    // update class names
+    if (options.orientation == 'top') {
+      util.addClassName(dom.root, 'vis-top');
+      util.removeClassName(dom.root, 'vis-bottom');
+    } else {
+      util.removeClassName(dom.root, 'vis-top');
+      util.addClassName(dom.root, 'vis-bottom');
+    }
+
+    // update root width and height options
+    dom.root.style.maxHeight = util.option.asSize(options.maxHeight, '');
+    dom.root.style.minHeight = util.option.asSize(options.minHeight, '');
+    dom.root.style.width = util.option.asSize(options.width, '');
+
+    // calculate border widths
+    props.border.left = (dom.centerContainer.offsetWidth - dom.centerContainer.clientWidth) / 2;
+    props.border.right = props.border.left;
+    props.border.top = (dom.centerContainer.offsetHeight - dom.centerContainer.clientHeight) / 2;
+    props.border.bottom = props.border.top;
+    var borderRootHeight = dom.root.offsetHeight - dom.root.clientHeight;
+    var borderRootWidth = dom.root.offsetWidth - dom.root.clientWidth;
+
+    // workaround for a bug in IE: the clientWidth of an element with
+    // a height:0px and overflow:hidden is not calculated and always has value 0
+    if (dom.centerContainer.clientHeight === 0) {
+      props.border.left = props.border.top;
+      props.border.right = props.border.left;
+    }
+    if (dom.root.clientHeight === 0) {
+      borderRootWidth = borderRootHeight;
+    }
+
+    // calculate the heights. If any of the side panels is empty, we set the height to
+    // minus the border width, such that the border will be invisible
+    props.center.height = dom.center.offsetHeight;
+    props.left.height = dom.left.offsetHeight;
+    props.right.height = dom.right.offsetHeight;
+    props.top.height = dom.top.clientHeight || -props.border.top;
+    props.bottom.height = dom.bottom.clientHeight || -props.border.bottom;
+
+    // TODO: compensate borders when any of the panels is empty.
+
+    // apply auto height
+    // TODO: only calculate autoHeight when needed (else we cause an extra reflow/repaint of the DOM)
+    var contentHeight = Math.max(props.left.height, props.center.height, props.right.height);
+    var autoHeight = props.top.height + contentHeight + props.bottom.height + borderRootHeight + props.border.top + props.border.bottom;
+    dom.root.style.height = util.option.asSize(options.height, autoHeight + 'px');
+
+    // calculate heights of the content panels
+    props.root.height = dom.root.offsetHeight;
+    props.background.height = props.root.height - borderRootHeight;
+    var containerHeight = props.root.height - props.top.height - props.bottom.height - borderRootHeight;
+    props.centerContainer.height = containerHeight;
+    props.leftContainer.height = containerHeight;
+    props.rightContainer.height = props.leftContainer.height;
+
+    // calculate the widths of the panels
+    props.root.width = dom.root.offsetWidth;
+    props.background.width = props.root.width - borderRootWidth;
+    props.left.width = dom.leftContainer.clientWidth || -props.border.left;
+    props.leftContainer.width = props.left.width;
+    props.right.width = dom.rightContainer.clientWidth || -props.border.right;
+    props.rightContainer.width = props.right.width;
+    var centerWidth = props.root.width - props.left.width - props.right.width - borderRootWidth;
+    props.center.width = centerWidth;
+    props.centerContainer.width = centerWidth;
+    props.top.width = centerWidth;
+    props.bottom.width = centerWidth;
+
+    // resize the panels
+    dom.background.style.height = props.background.height + 'px';
+    dom.backgroundVertical.style.height = props.background.height + 'px';
+    dom.backgroundHorizontal.style.height = props.centerContainer.height + 'px';
+    dom.centerContainer.style.height = props.centerContainer.height + 'px';
+    dom.leftContainer.style.height = props.leftContainer.height + 'px';
+    dom.rightContainer.style.height = props.rightContainer.height + 'px';
+
+    dom.background.style.width = props.background.width + 'px';
+    dom.backgroundVertical.style.width = props.centerContainer.width + 'px';
+    dom.backgroundHorizontal.style.width = props.background.width + 'px';
+    dom.centerContainer.style.width = props.center.width + 'px';
+    dom.top.style.width = props.top.width + 'px';
+    dom.bottom.style.width = props.bottom.width + 'px';
+
+    // reposition the panels
+    dom.background.style.left = '0';
+    dom.background.style.top = '0';
+    dom.backgroundVertical.style.left = props.left.width + props.border.left + 'px';
+    dom.backgroundVertical.style.top = '0';
+    dom.backgroundHorizontal.style.left = '0';
+    dom.backgroundHorizontal.style.top = props.top.height + 'px';
+    dom.centerContainer.style.left = props.left.width + 'px';
+    dom.centerContainer.style.top = props.top.height + 'px';
+    dom.leftContainer.style.left = '0';
+    dom.leftContainer.style.top = props.top.height + 'px';
+    dom.rightContainer.style.left = props.left.width + props.center.width + 'px';
+    dom.rightContainer.style.top = props.top.height + 'px';
+    dom.top.style.left = props.left.width + 'px';
+    dom.top.style.top = '0';
+    dom.bottom.style.left = props.left.width + 'px';
+    dom.bottom.style.top = props.top.height + props.centerContainer.height + 'px';
+
+    // update the scrollTop, feasible range for the offset can be changed
+    // when the height of the Core or of the contents of the center changed
+    this._updateScrollTop();
+
+    // reposition the scrollable contents
+    var offset = this.props.scrollTop;
+    if (options.orientation.item != 'top') {
+      offset += Math.max(this.props.centerContainer.height - this.props.center.height - this.props.border.top - this.props.border.bottom, 0);
+    }
+    dom.center.style.left = '0';
+    dom.center.style.top = offset + 'px';
+    dom.left.style.left = '0';
+    dom.left.style.top = offset + 'px';
+    dom.right.style.left = '0';
+    dom.right.style.top = offset + 'px';
+
+    // show shadows when vertical scrolling is available
+    var visibilityTop = this.props.scrollTop == 0 ? 'hidden' : '';
+    var visibilityBottom = this.props.scrollTop == this.props.scrollTopMin ? 'hidden' : '';
+    dom.shadowTop.style.visibility = visibilityTop;
+    dom.shadowBottom.style.visibility = visibilityBottom;
+    dom.shadowTopLeft.style.visibility = visibilityTop;
+    dom.shadowBottomLeft.style.visibility = visibilityBottom;
+    dom.shadowTopRight.style.visibility = visibilityTop;
+    dom.shadowBottomRight.style.visibility = visibilityBottom;
+
+    // redraw all components
+    this.components.forEach(function (component) {
+      resized = component.redraw() || resized;
+    });
+    if (resized) {
+      // keep repainting until all sizes are settled
+      var MAX_REDRAWS = 3; // maximum number of consecutive redraws
+      if (this.redrawCount < MAX_REDRAWS) {
+        this.redrawCount++;
+        this._redraw();
+      } else {
+        console.log('WARNING: infinite loop in redraw?');
+      }
+      this.redrawCount = 0;
+    }
+  };
+
+  // TODO: deprecated since version 1.1.0, remove some day
+  Core.prototype.repaint = function () {
+    throw new Error('Function repaint is deprecated. Use redraw instead.');
+  };
+
+  /**
+   * Set a current time. This can be used for example to ensure that a client's
+   * time is synchronized with a shared server time.
+   * Only applicable when option `showCurrentTime` is true.
+   * @param {Date | String | Number} time     A Date, unix timestamp, or
+   *                                          ISO date string.
+   */
+  Core.prototype.setCurrentTime = function (time) {
+    if (!this.currentTime) {
+      throw new Error('Option showCurrentTime must be true');
+    }
+
+    this.currentTime.setCurrentTime(time);
+  };
+
+  /**
+   * Get the current time.
+   * Only applicable when option `showCurrentTime` is true.
+   * @return {Date} Returns the current time.
+   */
+  Core.prototype.getCurrentTime = function () {
+    if (!this.currentTime) {
+      throw new Error('Option showCurrentTime must be true');
+    }
+
+    return this.currentTime.getCurrentTime();
+  };
+
+  /**
+   * Convert a position on screen (pixels) to a datetime
+   * @param {int}     x    Position on the screen in pixels
+   * @return {Date}   time The datetime the corresponds with given position x
+   * @protected
+   */
+  // TODO: move this function to Range
+  Core.prototype._toTime = function (x) {
+    return DateUtil.toTime(this, x, this.props.center.width);
+  };
+
+  /**
+   * Convert a position on the global screen (pixels) to a datetime
+   * @param {int}     x    Position on the screen in pixels
+   * @return {Date}   time The datetime the corresponds with given position x
+   * @protected
+   */
+  // TODO: move this function to Range
+  Core.prototype._toGlobalTime = function (x) {
+    return DateUtil.toTime(this, x, this.props.root.width);
+    //var conversion = this.range.conversion(this.props.root.width);
+    //return new Date(x / conversion.scale + conversion.offset);
+  };
+
+  /**
+   * Convert a datetime (Date object) into a position on the screen
+   * @param {Date}   time A date
+   * @return {int}   x    The position on the screen in pixels which corresponds
+   *                      with the given date.
+   * @protected
+   */
+  // TODO: move this function to Range
+  Core.prototype._toScreen = function (time) {
+    return DateUtil.toScreen(this, time, this.props.center.width);
+  };
+
+  /**
+   * Convert a datetime (Date object) into a position on the root
+   * This is used to get the pixel density estimate for the screen, not the center panel
+   * @param {Date}   time A date
+   * @return {int}   x    The position on root in pixels which corresponds
+   *                      with the given date.
+   * @protected
+   */
+  // TODO: move this function to Range
+  Core.prototype._toGlobalScreen = function (time) {
+    return DateUtil.toScreen(this, time, this.props.root.width);
+    //var conversion = this.range.conversion(this.props.root.width);
+    //return (time.valueOf() - conversion.offset) * conversion.scale;
+  };
+
+  /**
+   * Initialize watching when option autoResize is true
+   * @private
+   */
+  Core.prototype._initAutoResize = function () {
+    if (this.options.autoResize == true) {
+      this._startAutoResize();
+    } else {
+      this._stopAutoResize();
+    }
+  };
+
+  /**
+   * Watch for changes in the size of the container. On resize, the Panel will
+   * automatically redraw itself.
+   * @private
+   */
+  Core.prototype._startAutoResize = function () {
+    var me = this;
+
+    this._stopAutoResize();
+
+    this._onResize = function () {
+      if (me.options.autoResize != true) {
+        // stop watching when the option autoResize is changed to false
+        me._stopAutoResize();
+        return;
+      }
+
+      if (me.dom.root) {
+        // check whether the frame is resized
+        // Note: we compare offsetWidth here, not clientWidth. For some reason,
+        // IE does not restore the clientWidth from 0 to the actual width after
+        // changing the timeline's container display style from none to visible
+        if (me.dom.root.offsetWidth != me.props.lastWidth || me.dom.root.offsetHeight != me.props.lastHeight) {
+          me.props.lastWidth = me.dom.root.offsetWidth;
+          me.props.lastHeight = me.dom.root.offsetHeight;
+
+          me.emit('change');
+        }
+      }
+    };
+
+    // add event listener to window resize
+    util.addEventListener(window, 'resize', this._onResize);
+
+    this.watchTimer = setInterval(this._onResize, 1000);
+  };
+
+  /**
+   * Stop watching for a resize of the frame.
+   * @private
+   */
+  Core.prototype._stopAutoResize = function () {
+    if (this.watchTimer) {
+      clearInterval(this.watchTimer);
+      this.watchTimer = undefined;
+    }
+
+    // remove event listener on window.resize
+    util.removeEventListener(window, 'resize', this._onResize);
+    this._onResize = null;
+  };
+
+  /**
+   * Start moving the timeline vertically
+   * @param {Event} event
+   * @private
+   */
+  Core.prototype._onTouch = function (event) {
+    this.touch.allowDragging = true;
+    this.touch.initialScrollTop = this.props.scrollTop;
+  };
+
+  /**
+   * Start moving the timeline vertically
+   * @param {Event} event
+   * @private
+   */
+  Core.prototype._onPinch = function (event) {
+    this.touch.allowDragging = false;
+  };
+
+  /**
+   * Move the timeline vertically
+   * @param {Event} event
+   * @private
+   */
+  Core.prototype._onDrag = function (event) {
+    // refuse to drag when we where pinching to prevent the timeline make a jump
+    // when releasing the fingers in opposite order from the touch screen
+    if (!this.touch.allowDragging) return;
+
+    var delta = event.deltaY;
+
+    var oldScrollTop = this._getScrollTop();
+    var newScrollTop = this._setScrollTop(this.touch.initialScrollTop + delta);
+
+    if (newScrollTop != oldScrollTop) {
+      this._redraw(); // TODO: this causes two redraws when dragging, the other is triggered by rangechange already
+      this.emit('verticalDrag');
+    }
+  };
+
+  /**
+   * Apply a scrollTop
+   * @param {Number} scrollTop
+   * @returns {Number} scrollTop  Returns the applied scrollTop
+   * @private
+   */
+  Core.prototype._setScrollTop = function (scrollTop) {
+    this.props.scrollTop = scrollTop;
+    this._updateScrollTop();
+    return this.props.scrollTop;
+  };
+
+  /**
+   * Update the current scrollTop when the height of  the containers has been changed
+   * @returns {Number} scrollTop  Returns the applied scrollTop
+   * @private
+   */
+  Core.prototype._updateScrollTop = function () {
+    // recalculate the scrollTopMin
+    var scrollTopMin = Math.min(this.props.centerContainer.height - this.props.center.height, 0); // is negative or zero
+    if (scrollTopMin != this.props.scrollTopMin) {
+      // in case of bottom orientation, change the scrollTop such that the contents
+      // do not move relative to the time axis at the bottom
+      if (this.options.orientation.item != 'top') {
+        this.props.scrollTop += scrollTopMin - this.props.scrollTopMin;
+      }
+      this.props.scrollTopMin = scrollTopMin;
+    }
+
+    // limit the scrollTop to the feasible scroll range
+    if (this.props.scrollTop > 0) this.props.scrollTop = 0;
+    if (this.props.scrollTop < scrollTopMin) this.props.scrollTop = scrollTopMin;
+
+    return this.props.scrollTop;
+  };
+
+  /**
+   * Get the current scrollTop
+   * @returns {number} scrollTop
+   * @private
+   */
+  Core.prototype._getScrollTop = function () {
+    return this.props.scrollTop;
+  };
+
+  /**
+   * Load a configurator
+   * @return {Object}
+   * @private
+   */
+  Core.prototype._createConfigurator = function () {
+    throw new Error('Cannot invoke abstract method _createConfigurator');
+  };
+
+  module.exports = Core;
+
+/***/ },
+/* 34 */
+/***/ function(module, exports, __webpack_require__) {
+
+  'use strict';
+
+  var Hammer = __webpack_require__(5);
+  var util = __webpack_require__(9);
+  var DataSet = __webpack_require__(15);
+  var DataView = __webpack_require__(17);
+  var TimeStep = __webpack_require__(38);
+  var Component = __webpack_require__(28);
+  var Group = __webpack_require__(35);
+  var BackgroundGroup = __webpack_require__(39);
+  var BoxItem = __webpack_require__(40);
+  var PointItem = __webpack_require__(2);
+  var RangeItem = __webpack_require__(37);
+  var BackgroundItem = __webpack_require__(41);
+
+  var UNGROUPED = '__ungrouped__'; // reserved group id for ungrouped items
+  var BACKGROUND = '__background__'; // reserved group id for background items without group
+
+  /**
+   * An ItemSet holds a set of items and ranges which can be displayed in a
+   * range. The width is determined by the parent of the ItemSet, and the height
+   * is determined by the size of the items.
+   * @param {{dom: Object, domProps: Object, emitter: Emitter, range: Range}} body
+   * @param {Object} [options]      See ItemSet.setOptions for the available options.
+   * @constructor ItemSet
+   * @extends Component
+   */
+  function ItemSet(body, options) {
+    this.body = body;
+
+    this.defaultOptions = {
+      type: null, // 'box', 'point', 'range', 'background'
+      orientation: {
+        item: 'bottom' // item orientation: 'top' or 'bottom'
+      },
+      align: 'auto', // alignment of box items
+      stack: true,
+      groupOrder: null,
+
+      selectable: true,
+      multiselect: false,
+
+      editable: {
+        updateTime: false,
+        updateGroup: false,
+        add: false,
+        remove: false
+      },
+
+      snap: TimeStep.snap,
+
+      onAdd: function onAdd(item, callback) {
+        callback(item);
+      },
+      onUpdate: function onUpdate(item, callback) {
+        callback(item);
+      },
+      onMove: function onMove(item, callback) {
+        callback(item);
+      },
+      onRemove: function onRemove(item, callback) {
+        callback(item);
+      },
+      onMoving: function onMoving(item, callback) {
+        callback(item);
+      },
+
+      margin: {
+        item: {
+          horizontal: 10,
+          vertical: 10
+        },
+        axis: 20
+      }
+    };
+
+    // options is shared by this ItemSet and all its items
+    this.options = util.extend({}, this.defaultOptions);
+
+    // options for getting items from the DataSet with the correct type
+    this.itemOptions = {
+      type: { start: 'Date', end: 'Date' }
+    };
+
+    this.conversion = {
+      toScreen: body.util.toScreen,
+      toTime: body.util.toTime
+    };
+    this.dom = {};
+    this.props = {};
+    this.hammer = null;
+
+    var me = this;
+    this.itemsData = null; // DataSet
+    this.groupsData = null; // DataSet
+
+    // listeners for the DataSet of the items
+    this.itemListeners = {
+      'add': function add(event, params, senderId) {
+        me._onAdd(params.items);
+      },
+      'update': function update(event, params, senderId) {
+        me._onUpdate(params.items);
+      },
+      'remove': function remove(event, params, senderId) {
+        me._onRemove(params.items);
+      }
+    };
+
+    // listeners for the DataSet of the groups
+    this.groupListeners = {
+      'add': function add(event, params, senderId) {
+        me._onAddGroups(params.items);
+      },
+      'update': function update(event, params, senderId) {
+        me._onUpdateGroups(params.items);
+      },
+      'remove': function remove(event, params, senderId) {
+        me._onRemoveGroups(params.items);
+      }
+    };
+
+    this.items = {}; // object with an Item for every data item
+    this.groups = {}; // Group object for every group
+    this.groupIds = [];
+
+    this.selection = []; // list with the ids of all selected nodes
+    this.stackDirty = true; // if true, all items will be restacked on next redraw
+
+    this.touchParams = {}; // stores properties while dragging
+    // create the HTML DOM
+
+    this._create();
+
+    this.setOptions(options);
+  }
+
+  ItemSet.prototype = new Component();
+
+  // available item types will be registered here
+  ItemSet.types = {
+    background: BackgroundItem,
+    box: BoxItem,
+    range: RangeItem,
+    point: PointItem
+  };
+
+  /**
+   * Create the HTML DOM for the ItemSet
+   */
+  ItemSet.prototype._create = function () {
+    var frame = document.createElement('div');
+    frame.className = 'vis-itemset';
+    frame['timeline-itemset'] = this;
+    this.dom.frame = frame;
+
+    // create background panel
+    var background = document.createElement('div');
+    background.className = 'vis-background';
+    frame.appendChild(background);
+    this.dom.background = background;
+
+    // create foreground panel
+    var foreground = document.createElement('div');
+    foreground.className = 'vis-foreground';
+    frame.appendChild(foreground);
+    this.dom.foreground = foreground;
+
+    // create axis panel
+    var axis = document.createElement('div');
+    axis.className = 'vis-axis';
+    this.dom.axis = axis;
+
+    // create labelset
+    var labelSet = document.createElement('div');
+    labelSet.className = 'vis-labelset';
+    this.dom.labelSet = labelSet;
+
+    // create ungrouped Group
+    this._updateUngrouped();
+
+    // create background Group
+    var backgroundGroup = new BackgroundGroup(BACKGROUND, null, this);
+    backgroundGroup.show();
+    this.groups[BACKGROUND] = backgroundGroup;
+
+    // attach event listeners
+    // Note: we bind to the centerContainer for the case where the height
+    //       of the center container is larger than of the ItemSet, so we
+    //       can click in the empty area to create a new item or deselect an item.
+    this.hammer = new Hammer(this.body.dom.centerContainer);
+
+    // drag items when selected
+    this.hammer.on('hammer.input', (function (event) {
+      if (event.isFirst) {
+        this._onTouch(event);
+      }
+    }).bind(this));
+    this.hammer.on('panstart', this._onDragStart.bind(this));
+    this.hammer.on('panmove', this._onDrag.bind(this));
+    this.hammer.on('panend', this._onDragEnd.bind(this));
+    this.hammer.get('pan').set({ threshold: 5, direction: 30 }); // 30 is ALL_DIRECTIONS in hammer.
+
+    // single select (or unselect) when tapping an item
+    this.hammer.on('tap', this._onSelectItem.bind(this));
+
+    // multi select when holding mouse/touch, or on ctrl+click
+    this.hammer.on('press', this._onMultiSelectItem.bind(this));
+
+    // add item on doubletap
+    this.hammer.on('doubletap', this._onAddItem.bind(this));
+
+    // attach to the DOM
+    this.show();
+  };
+
+  /**
+   * Set options for the ItemSet. Existing options will be extended/overwritten.
+   * @param {Object} [options] The following options are available:
+   *                           {String} type
+   *                              Default type for the items. Choose from 'box'
+   *                              (default), 'point', 'range', or 'background'.
+   *                              The default style can be overwritten by
+   *                              individual items.
+   *                           {String} align
+   *                              Alignment for the items, only applicable for
+   *                              BoxItem. Choose 'center' (default), 'left', or
+   *                              'right'.
+   *                           {String} orientation.item
+   *                              Orientation of the item set. Choose 'top' or
+   *                              'bottom' (default).
+   *                           {Function} groupOrder
+   *                              A sorting function for ordering groups
+   *                           {Boolean} stack
+   *                              If true (default), items will be stacked on
+   *                              top of each other.
+   *                           {Number} margin.axis
+   *                              Margin between the axis and the items in pixels.
+   *                              Default is 20.
+   *                           {Number} margin.item.horizontal
+   *                              Horizontal margin between items in pixels.
+   *                              Default is 10.
+   *                           {Number} margin.item.vertical
+   *                              Vertical Margin between items in pixels.
+   *                              Default is 10.
+   *                           {Number} margin.item
+   *                              Margin between items in pixels in both horizontal
+   *                              and vertical direction. Default is 10.
+   *                           {Number} margin
+   *                              Set margin for both axis and items in pixels.
+   *                           {Boolean} selectable
+   *                              If true (default), items can be selected.
+   *                           {Boolean} multiselect
+   *                              If true, multiple items can be selected.
+   *                              False by default.
+   *                           {Boolean} editable
+   *                              Set all editable options to true or false
+   *                           {Boolean} editable.updateTime
+   *                              Allow dragging an item to an other moment in time
+   *                           {Boolean} editable.updateGroup
+   *                              Allow dragging an item to an other group
+   *                           {Boolean} editable.add
+   *                              Allow creating new items on double tap
+   *                           {Boolean} editable.remove
+   *                              Allow removing items by clicking the delete button
+   *                              top right of a selected item.
+   *                           {Function(item: Item, callback: Function)} onAdd
+   *                              Callback function triggered when an item is about to be added:
+   *                              when the user double taps an empty space in the Timeline.
+   *                           {Function(item: Item, callback: Function)} onUpdate
+   *                              Callback function fired when an item is about to be updated.
+   *                              This function typically has to show a dialog where the user
+   *                              change the item. If not implemented, nothing happens.
+   *                           {Function(item: Item, callback: Function)} onMove
+   *                              Fired when an item has been moved. If not implemented,
+   *                              the move action will be accepted.
+   *                           {Function(item: Item, callback: Function)} onRemove
+   *                              Fired when an item is about to be deleted.
+   *                              If not implemented, the item will be always removed.
+   */
+  ItemSet.prototype.setOptions = function (options) {
+    if (options) {
+      // copy all options that we know
+      var fields = ['type', 'align', 'order', 'stack', 'selectable', 'multiselect', 'groupOrder', 'dataAttributes', 'template', 'hide', 'snap'];
+      util.selectiveExtend(fields, this.options, options);
+
+      if ('orientation' in options) {
+        if (typeof options.orientation === 'string') {
+          this.options.orientation.item = options.orientation === 'top' ? 'top' : 'bottom';
+        } else if (typeof options.orientation === 'object' && 'item' in options.orientation) {
+          this.options.orientation.item = options.orientation.item;
+        }
+      }
+
+      if ('margin' in options) {
+        if (typeof options.margin === 'number') {
+          this.options.margin.axis = options.margin;
+          this.options.margin.item.horizontal = options.margin;
+          this.options.margin.item.vertical = options.margin;
+        } else if (typeof options.margin === 'object') {
+          util.selectiveExtend(['axis'], this.options.margin, options.margin);
+          if ('item' in options.margin) {
+            if (typeof options.margin.item === 'number') {
+              this.options.margin.item.horizontal = options.margin.item;
+              this.options.margin.item.vertical = options.margin.item;
+            } else if (typeof options.margin.item === 'object') {
+              util.selectiveExtend(['horizontal', 'vertical'], this.options.margin.item, options.margin.item);
+            }
+          }
+        }
+      }
+
+      if ('editable' in options) {
+        if (typeof options.editable === 'boolean') {
+          this.options.editable.updateTime = options.editable;
+          this.options.editable.updateGroup = options.editable;
+          this.options.editable.add = options.editable;
+          this.options.editable.remove = options.editable;
+        } else if (typeof options.editable === 'object') {
+          util.selectiveExtend(['updateTime', 'updateGroup', 'add', 'remove'], this.options.editable, options.editable);
+        }
+      }
+
+      // callback functions
+      var addCallback = (function (name) {
+        var fn = options[name];
+        if (fn) {
+          if (!(fn instanceof Function)) {
+            throw new Error('option ' + name + ' must be a function ' + name + '(item, callback)');
+          }
+          this.options[name] = fn;
+        }
+      }).bind(this);
+      ['onAdd', 'onUpdate', 'onRemove', 'onMove', 'onMoving'].forEach(addCallback);
+
+      // force the itemSet to refresh: options like orientation and margins may be changed
+      this.markDirty();
+    }
+  };
+
+  /**
+   * Mark the ItemSet dirty so it will refresh everything with next redraw.
+   * Optionally, all items can be marked as dirty and be refreshed.
+   * @param {{refreshItems: boolean}} [options]
+   */
+  ItemSet.prototype.markDirty = function (options) {
+    this.groupIds = [];
+    this.stackDirty = true;
+
+    if (options && options.refreshItems) {
+      util.forEach(this.items, function (item) {
+        item.dirty = true;
+        if (item.displayed) item.redraw();
+      });
+    }
+  };
+
+  /**
+   * Destroy the ItemSet
+   */
+  ItemSet.prototype.destroy = function () {
+    this.hide();
+    this.setItems(null);
+    this.setGroups(null);
+
+    this.hammer = null;
+
+    this.body = null;
+    this.conversion = null;
+  };
+
+  /**
+   * Hide the component from the DOM
+   */
+  ItemSet.prototype.hide = function () {
+    // remove the frame containing the items
+    if (this.dom.frame.parentNode) {
+      this.dom.frame.parentNode.removeChild(this.dom.frame);
+    }
+
+    // remove the axis with dots
+    if (this.dom.axis.parentNode) {
+      this.dom.axis.parentNode.removeChild(this.dom.axis);
+    }
+
+    // remove the labelset containing all group labels
+    if (this.dom.labelSet.parentNode) {
+      this.dom.labelSet.parentNode.removeChild(this.dom.labelSet);
+    }
+  };
+
+  /**
+   * Show the component in the DOM (when not already visible).
+   * @return {Boolean} changed
+   */
+  ItemSet.prototype.show = function () {
+    // show frame containing the items
+    if (!this.dom.frame.parentNode) {
+      this.body.dom.center.appendChild(this.dom.frame);
+    }
+
+    // show axis with dots
+    if (!this.dom.axis.parentNode) {
+      this.body.dom.backgroundVertical.appendChild(this.dom.axis);
+    }
+
+    // show labelset containing labels
+    if (!this.dom.labelSet.parentNode) {
+      this.body.dom.left.appendChild(this.dom.labelSet);
+    }
+  };
+
+  /**
+   * Set selected items by their id. Replaces the current selection
+   * Unknown id's are silently ignored.
+   * @param {string[] | string} [ids] An array with zero or more id's of the items to be
+   *                                  selected, or a single item id. If ids is undefined
+   *                                  or an empty array, all items will be unselected.
+   */
+  ItemSet.prototype.setSelection = function (ids) {
+    var i, ii, id, item;
+
+    if (ids == undefined) ids = [];
+    if (!Array.isArray(ids)) ids = [ids];
+
+    // unselect currently selected items
+    for (i = 0, ii = this.selection.length; i < ii; i++) {
+      id = this.selection[i];
+      item = this.items[id];
+      if (item) item.unselect();
+    }
+
+    // select items
+    this.selection = [];
+    for (i = 0, ii = ids.length; i < ii; i++) {
+      id = ids[i];
+      item = this.items[id];
+      if (item) {
+        this.selection.push(id);
+        item.select();
+      }
+    }
+  };
+
+  /**
+   * Get the selected items by their id
+   * @return {Array} ids  The ids of the selected items
+   */
+  ItemSet.prototype.getSelection = function () {
+    return this.selection.concat([]);
+  };
+
+  /**
+   * Get the id's of the currently visible items.
+   * @returns {Array} The ids of the visible items
+   */
+  ItemSet.prototype.getVisibleItems = function () {
+    var range = this.body.range.getRange();
+    var left = this.body.util.toScreen(range.start);
+    var right = this.body.util.toScreen(range.end);
+
+    var ids = [];
+    for (var groupId in this.groups) {
+      if (this.groups.hasOwnProperty(groupId)) {
+        var group = this.groups[groupId];
+        var rawVisibleItems = group.visibleItems;
+
+        // filter the "raw" set with visibleItems into a set which is really
+        // visible by pixels
+        for (var i = 0; i < rawVisibleItems.length; i++) {
+          var item = rawVisibleItems[i];
+          // TODO: also check whether visible vertically
+          if (item.left < right && item.left + item.width > left) {
+            ids.push(item.id);
+          }
+        }
+      }
+    }
+
+    return ids;
+  };
+
+  /**
+   * Deselect a selected item
+   * @param {String | Number} id
+   * @private
+   */
+  ItemSet.prototype._deselect = function (id) {
+    var selection = this.selection;
+    for (var i = 0, ii = selection.length; i < ii; i++) {
+      if (selection[i] == id) {
+        // non-strict comparison!
+        selection.splice(i, 1);
+        break;
+      }
+    }
+  };
+
+  /**
+   * Repaint the component
+   * @return {boolean} Returns true if the component is resized
+   */
+  ItemSet.prototype.redraw = function () {
+    var margin = this.options.margin,
+        range = this.body.range,
+        asSize = util.option.asSize,
+        options = this.options,
+        orientation = options.orientation.item,
+        resized = false,
+        frame = this.dom.frame;
+
+    // recalculate absolute position (before redrawing groups)
+    this.props.top = this.body.domProps.top.height + this.body.domProps.border.top;
+    this.props.left = this.body.domProps.left.width + this.body.domProps.border.left;
+
+    // update class name
+    frame.className = 'vis-itemset';
+
+    // reorder the groups (if needed)
+    resized = this._orderGroups() || resized;
+
+    // check whether zoomed (in that case we need to re-stack everything)
+    // TODO: would be nicer to get this as a trigger from Range
+    var visibleInterval = range.end - range.start;
+    var zoomed = visibleInterval != this.lastVisibleInterval || this.props.width != this.props.lastWidth;
+    if (zoomed) this.stackDirty = true;
+    this.lastVisibleInterval = visibleInterval;
+    this.props.lastWidth = this.props.width;
+
+    var restack = this.stackDirty;
+    var firstGroup = this._firstGroup();
+    var firstMargin = {
+      item: margin.item,
+      axis: margin.axis
+    };
+    var nonFirstMargin = {
+      item: margin.item,
+      axis: margin.item.vertical / 2
+    };
+    var height = 0;
+    var minHeight = margin.axis + margin.item.vertical;
+
+    // redraw the background group
+    this.groups[BACKGROUND].redraw(range, nonFirstMargin, restack);
+
+    // redraw all regular groups
+    util.forEach(this.groups, function (group) {
+      var groupMargin = group == firstGroup ? firstMargin : nonFirstMargin;
+      var groupResized = group.redraw(range, groupMargin, restack);
+      resized = groupResized || resized;
+      height += group.height;
+    });
+    height = Math.max(height, minHeight);
+    this.stackDirty = false;
+
+    // update frame height
+    frame.style.height = asSize(height);
+
+    // calculate actual size
+    this.props.width = frame.offsetWidth;
+    this.props.height = height;
+
+    // reposition axis
+    this.dom.axis.style.top = asSize(orientation == 'top' ? this.body.domProps.top.height + this.body.domProps.border.top : this.body.domProps.top.height + this.body.domProps.centerContainer.height);
+    this.dom.axis.style.left = '0';
+
+    // check if this component is resized
+    resized = this._isResized() || resized;
+
+    return resized;
+  };
+
+  /**
+   * Get the first group, aligned with the axis
+   * @return {Group | null} firstGroup
+   * @private
+   */
+  ItemSet.prototype._firstGroup = function () {
+    var firstGroupIndex = this.options.orientation.item == 'top' ? 0 : this.groupIds.length - 1;
+    var firstGroupId = this.groupIds[firstGroupIndex];
+    var firstGroup = this.groups[firstGroupId] || this.groups[UNGROUPED];
+
+    return firstGroup || null;
+  };
+
+  /**
+   * Create or delete the group holding all ungrouped items. This group is used when
+   * there are no groups specified.
+   * @protected
+   */
+  ItemSet.prototype._updateUngrouped = function () {
+    var ungrouped = this.groups[UNGROUPED];
+    var background = this.groups[BACKGROUND];
+    var item, itemId;
+
+    if (this.groupsData) {
+      // remove the group holding all ungrouped items
+      if (ungrouped) {
+        ungrouped.hide();
+        delete this.groups[UNGROUPED];
+
+        for (itemId in this.items) {
+          if (this.items.hasOwnProperty(itemId)) {
+            item = this.items[itemId];
+            item.parent && item.parent.remove(item);
+            var groupId = this._getGroupId(item.data);
+            var group = this.groups[groupId];
+            group && group.add(item) || item.hide();
+          }
+        }
+      }
+    } else {
+      // create a group holding all (unfiltered) items
+      if (!ungrouped) {
+        var id = null;
+        var data = null;
+        ungrouped = new Group(id, data, this);
+        this.groups[UNGROUPED] = ungrouped;
+
+        for (itemId in this.items) {
+          if (this.items.hasOwnProperty(itemId)) {
+            item = this.items[itemId];
+            ungrouped.add(item);
+          }
+        }
+
+        ungrouped.show();
+      }
+    }
+  };
+
+  /**
+   * Get the element for the labelset
+   * @return {HTMLElement} labelSet
+   */
+  ItemSet.prototype.getLabelSet = function () {
+    return this.dom.labelSet;
+  };
+
+  /**
+   * Set items
+   * @param {vis.DataSet | null} items
+   */
+  ItemSet.prototype.setItems = function (items) {
+    var me = this,
+        ids,
+        oldItemsData = this.itemsData;
+
+    // replace the dataset
+    if (!items) {
+      this.itemsData = null;
+    } else if (items instanceof DataSet || items instanceof DataView) {
+      this.itemsData = items;
+    } else {
+      throw new TypeError('Data must be an instance of DataSet or DataView');
+    }
+
+    if (oldItemsData) {
+      // unsubscribe from old dataset
+      util.forEach(this.itemListeners, function (callback, event) {
+        oldItemsData.off(event, callback);
+      });
+
+      // remove all drawn items
+      ids = oldItemsData.getIds();
+      this._onRemove(ids);
+    }
+
+    if (this.itemsData) {
+      // subscribe to new dataset
+      var id = this.id;
+      util.forEach(this.itemListeners, function (callback, event) {
+        me.itemsData.on(event, callback, id);
+      });
+
+      // add all new items
+      ids = this.itemsData.getIds();
+      this._onAdd(ids);
+
+      // update the group holding all ungrouped items
+      this._updateUngrouped();
+    }
+  };
+
+  /**
+   * Get the current items
+   * @returns {vis.DataSet | null}
+   */
+  ItemSet.prototype.getItems = function () {
+    return this.itemsData;
+  };
+
+  /**
+   * Set groups
+   * @param {vis.DataSet} groups
+   */
+  ItemSet.prototype.setGroups = function (groups) {
+    var me = this,
+        ids;
+
+    // unsubscribe from current dataset
+    if (this.groupsData) {
+      util.forEach(this.groupListeners, function (callback, event) {
+        me.groupsData.off(event, callback);
+      });
+
+      // remove all drawn groups
+      ids = this.groupsData.getIds();
+      this.groupsData = null;
+      this._onRemoveGroups(ids); // note: this will cause a redraw
+    }
+
+    // replace the dataset
+    if (!groups) {
+      this.groupsData = null;
+    } else if (groups instanceof DataSet || groups instanceof DataView) {
+      this.groupsData = groups;
+    } else {
+      throw new TypeError('Data must be an instance of DataSet or DataView');
+    }
+
+    if (this.groupsData) {
+      // subscribe to new dataset
+      var id = this.id;
+      util.forEach(this.groupListeners, function (callback, event) {
+        me.groupsData.on(event, callback, id);
+      });
+
+      // draw all ms
+      ids = this.groupsData.getIds();
+      this._onAddGroups(ids);
+    }
+
+    // update the group holding all ungrouped items
+    this._updateUngrouped();
+
+    // update the order of all items in each group
+    this._order();
+
+    this.body.emitter.emit('change', { queue: true });
+  };
+
+  /**
+   * Get the current groups
+   * @returns {vis.DataSet | null} groups
+   */
+  ItemSet.prototype.getGroups = function () {
+    return this.groupsData;
+  };
+
+  /**
+   * Remove an item by its id
+   * @param {String | Number} id
+   */
+  ItemSet.prototype.removeItem = function (id) {
+    var item = this.itemsData.get(id),
+        dataset = this.itemsData.getDataSet();
+
+    if (item) {
+      // confirm deletion
+      this.options.onRemove(item, function (item) {
+        if (item) {
+          // remove by id here, it is possible that an item has no id defined
+          // itself, so better not delete by the item itself
+          dataset.remove(id);
+        }
+      });
+    }
+  };
+
+  /**
+   * Get the time of an item based on it's data and options.type
+   * @param {Object} itemData
+   * @returns {string} Returns the type
+   * @private
+   */
+  ItemSet.prototype._getType = function (itemData) {
+    return itemData.type || this.options.type || (itemData.end ? 'range' : 'box');
+  };
+
+  /**
+   * Get the group id for an item
+   * @param {Object} itemData
+   * @returns {string} Returns the groupId
+   * @private
+   */
+  ItemSet.prototype._getGroupId = function (itemData) {
+    var type = this._getType(itemData);
+    if (type == 'background' && itemData.group == undefined) {
+      return BACKGROUND;
+    } else {
+      return this.groupsData ? itemData.group : UNGROUPED;
+    }
+  };
+
+  /**
+   * Handle updated items
+   * @param {Number[]} ids
+   * @protected
+   */
+  ItemSet.prototype._onUpdate = function (ids) {
+    var me = this;
+
+    ids.forEach((function (id) {
+      var itemData = me.itemsData.get(id, me.itemOptions);
+      var item = me.items[id];
+      var type = me._getType(itemData);
+
+      var constructor = ItemSet.types[type];
+      var selected;
+
+      if (item) {
+        // update item
+        if (!constructor || !(item instanceof constructor)) {
+          // item type has changed, delete the item and recreate it
+          selected = item.selected; // preserve selection of this item
+          me._removeItem(item);
+          item = null;
+        } else {
+          me._updateItem(item, itemData);
+        }
+      }
+
+      if (!item) {
+        // create item
+        if (constructor) {
+          item = new constructor(itemData, me.conversion, me.options);
+          item.id = id; // TODO: not so nice setting id afterwards
+          me._addItem(item);
+          if (selected) {
+            this.selection.push(id);
+            item.select();
+          }
+        } else if (type == 'rangeoverflow') {
+          // TODO: deprecated since version 2.1.0 (or 3.0.0?). cleanup some day
+          throw new TypeError('Item type "rangeoverflow" is deprecated. Use css styling instead: ' + '.vis-item.vis-range .vis-item-content {overflow: visible;}');
+        } else {
+          throw new TypeError('Unknown item type "' + type + '"');
+        }
+      }
+    }).bind(this));
+
+    this._order();
+    this.stackDirty = true; // force re-stacking of all items next redraw
+    this.body.emitter.emit('change', { queue: true });
+  };
+
+  /**
+   * Handle added items
+   * @param {Number[]} ids
+   * @protected
+   */
+  ItemSet.prototype._onAdd = ItemSet.prototype._onUpdate;
+
+  /**
+   * Handle removed items
+   * @param {Number[]} ids
+   * @protected
+   */
+  ItemSet.prototype._onRemove = function (ids) {
+    var count = 0;
+    var me = this;
+    ids.forEach(function (id) {
+      var item = me.items[id];
+      if (item) {
+        count++;
+        me._removeItem(item);
+      }
+    });
+
+    if (count) {
+      // update order
+      this._order();
+      this.stackDirty = true; // force re-stacking of all items next redraw
+      this.body.emitter.emit('change', { queue: true });
+    }
+  };
+
+  /**
+   * Update the order of item in all groups
+   * @private
+   */
+  ItemSet.prototype._order = function () {
+    // reorder the items in all groups
+    // TODO: optimization: only reorder groups affected by the changed items
+    util.forEach(this.groups, function (group) {
+      group.order();
+    });
+  };
+
+  /**
+   * Handle updated groups
+   * @param {Number[]} ids
+   * @private
+   */
+  ItemSet.prototype._onUpdateGroups = function (ids) {
+    this._onAddGroups(ids);
+  };
+
+  /**
+   * Handle changed groups (added or updated)
+   * @param {Number[]} ids
+   * @private
+   */
+  ItemSet.prototype._onAddGroups = function (ids) {
+    var me = this;
+
+    ids.forEach(function (id) {
+      var groupData = me.groupsData.get(id);
+      var group = me.groups[id];
+
+      if (!group) {
+        // check for reserved ids
+        if (id == UNGROUPED || id == BACKGROUND) {
+          throw new Error('Illegal group id. ' + id + ' is a reserved id.');
+        }
+
+        var groupOptions = Object.create(me.options);
+        util.extend(groupOptions, {
+          height: null
+        });
+
+        group = new Group(id, groupData, me);
+        me.groups[id] = group;
+
+        // add items with this groupId to the new group
+        for (var itemId in me.items) {
+          if (me.items.hasOwnProperty(itemId)) {
+            var item = me.items[itemId];
+            if (item.data.group == id) {
+              group.add(item);
+            }
+          }
+        }
+
+        group.order();
+        group.show();
+      } else {
+        // update group
+        group.setData(groupData);
+      }
+    });
+
+    this.body.emitter.emit('change', { queue: true });
+  };
+
+  /**
+   * Handle removed groups
+   * @param {Number[]} ids
+   * @private
+   */
+  ItemSet.prototype._onRemoveGroups = function (ids) {
+    var groups = this.groups;
+    ids.forEach(function (id) {
+      var group = groups[id];
+
+      if (group) {
+        group.hide();
+        delete groups[id];
+      }
+    });
+
+    this.markDirty();
+
+    this.body.emitter.emit('change', { queue: true });
+  };
+
+  /**
+   * Reorder the groups if needed
+   * @return {boolean} changed
+   * @private
+   */
+  ItemSet.prototype._orderGroups = function () {
+    if (this.groupsData) {
+      // reorder the groups
+      var groupIds = this.groupsData.getIds({
+        order: this.options.groupOrder
+      });
+
+      var changed = !util.equalArray(groupIds, this.groupIds);
+      if (changed) {
+        // hide all groups, removes them from the DOM
+        var groups = this.groups;
+        groupIds.forEach(function (groupId) {
+          groups[groupId].hide();
+        });
+
+        // show the groups again, attach them to the DOM in correct order
+        groupIds.forEach(function (groupId) {
+          groups[groupId].show();
+        });
+
+        this.groupIds = groupIds;
+      }
+
+      return changed;
+    } else {
+      return false;
+    }
+  };
+
+  /**
+   * Add a new item
+   * @param {Item} item
+   * @private
+   */
+  ItemSet.prototype._addItem = function (item) {
+    this.items[item.id] = item;
+
+    // add to group
+    var groupId = this._getGroupId(item.data);
+    var group = this.groups[groupId];
+    if (group) group.add(item);
+  };
+
+  /**
+   * Update an existing item
+   * @param {Item} item
+   * @param {Object} itemData
+   * @private
+   */
+  ItemSet.prototype._updateItem = function (item, itemData) {
+    var oldGroupId = item.data.group;
+    var oldSubGroupId = item.data.subgroup;
+
+    // update the items data (will redraw the item when displayed)
+    item.setData(itemData);
+
+    // update group
+    if (oldGroupId != item.data.group || oldSubGroupId != item.data.subgroup) {
+      var oldGroup = this.groups[oldGroupId];
+      if (oldGroup) oldGroup.remove(item);
+
+      var groupId = this._getGroupId(item.data);
+      var group = this.groups[groupId];
+      if (group) group.add(item);
+    }
+  };
+
+  /**
+   * Delete an item from the ItemSet: remove it from the DOM, from the map
+   * with items, and from the map with visible items, and from the selection
+   * @param {Item} item
+   * @private
+   */
+  ItemSet.prototype._removeItem = function (item) {
+    // remove from DOM
+    item.hide();
+
+    // remove from items
+    delete this.items[item.id];
+
+    // remove from selection
+    var index = this.selection.indexOf(item.id);
+    if (index != -1) this.selection.splice(index, 1);
+
+    // remove from group
+    item.parent && item.parent.remove(item);
+  };
+
+  /**
+   * Create an array containing all items being a range (having an end date)
+   * @param array
+   * @returns {Array}
+   * @private
+   */
+  ItemSet.prototype._constructByEndArray = function (array) {
+    var endArray = [];
+
+    for (var i = 0; i < array.length; i++) {
+      if (array[i] instanceof RangeItem) {
+        endArray.push(array[i]);
+      }
+    }
+    return endArray;
+  };
+
+  /**
+   * Register the clicked item on touch, before dragStart is initiated.
+   *
+   * dragStart is initiated from a mousemove event, AFTER the mouse/touch is
+   * already moving. Therefore, the mouse/touch can sometimes be above an other
+   * DOM element than the item itself.
+   *
+   * @param {Event} event
+   * @private
+   */
+  ItemSet.prototype._onTouch = function (event) {
+    // store the touched item, used in _onDragStart
+    this.touchParams.item = this.itemFromTarget(event);
+    this.touchParams.dragLeftItem = event.target.dragLeftItem || false;
+    this.touchParams.dragRightItem = event.target.dragRightItem || false;
+    this.touchParams.itemProps = null;
+  };
+
+  /**
+   * Start dragging the selected events
+   * @param {Event} event
+   * @private
+   */
+  ItemSet.prototype._onDragStart = function (event) {
+    var item = this.touchParams.item || null;
+    var me = this;
+    var props;
+
+    if (item && item.selected) {
+
+      if (!this.options.editable.updateTime && !this.options.editable.updateGroup && !item.editable) {
+        return;
+      }
+
+      // override options.editable
+      if (item.editable === false) {
+        return;
+      }
+
+      var dragLeftItem = this.touchParams.dragLeftItem;
+      var dragRightItem = this.touchParams.dragRightItem;
+
+      if (dragLeftItem) {
+        props = {
+          item: dragLeftItem,
+          initialX: event.center.x,
+          dragLeft: true,
+          data: util.extend({}, item.data) // clone the items data
+        };
+
+        this.touchParams.itemProps = [props];
+      } else if (dragRightItem) {
+        props = {
+          item: dragRightItem,
+          initialX: event.center.x,
+          dragRight: true,
+          data: util.extend({}, item.data) // clone the items data
+        };
+
+        this.touchParams.itemProps = [props];
+      } else {
+        this.touchParams.itemProps = this.getSelection().map(function (id) {
+          var item = me.items[id];
+          var props = {
+            item: item,
+            initialX: event.center.x,
+            data: util.extend({}, item.data) // clone the items data
+          };
+
+          return props;
+        });
+      }
+
+      event.stopPropagation();
+    } else if (this.options.editable.add && (event.srcEvent.ctrlKey || event.srcEvent.metaKey)) {
+      // create a new range item when dragging with ctrl key down
+      this._onDragStartAddItem(event);
+    }
+  };
+
+  /**
+   * Start creating a new range item by dragging.
+   * @param {Event} event
+   * @private
+   */
+  ItemSet.prototype._onDragStartAddItem = function (event) {
+    var snap = this.options.snap || null;
+    var xAbs = util.getAbsoluteLeft(this.dom.frame);
+    var x = event.center.x - xAbs - 10; // minus 10 to compensate for the drag starting as soon as you've moved 10px
+    var time = this.body.util.toTime(x);
+    var scale = this.body.util.getScale();
+    var step = this.body.util.getStep();
+    var start = snap ? snap(time, scale, step) : start;
+    var end = start;
+
+    var itemData = {
+      type: 'range',
+      start: start,
+      end: end,
+      content: 'new item'
+    };
+
+    var id = util.randomUUID();
+    itemData[this.itemsData._fieldId] = id;
+
+    var group = this.groupFromTarget(event);
+    if (group) {
+      itemData.group = group.groupId;
+    }
+
+    var newItem = new RangeItem(itemData, this.conversion, this.options);
+    newItem.id = id; // TODO: not so nice setting id afterwards
+    newItem.data = itemData;
+    this._addItem(newItem);
+
+    var props = {
+      item: newItem,
+      dragRight: true,
+      initialX: event.center.x,
+      data: util.extend({}, itemData)
+    };
+    this.touchParams.itemProps = [props];
+
+    event.stopPropagation();
+  };
+
+  /**
+   * Drag selected items
+   * @param {Event} event
+   * @private
+   */
+  ItemSet.prototype._onDrag = function (event) {
+    if (this.touchParams.itemProps) {
+      event.stopPropagation();
+
+      var me = this;
+      var snap = this.options.snap || null;
+      var xOffset = this.body.dom.root.offsetLeft + this.body.domProps.left.width;
+      var scale = this.body.util.getScale();
+      var step = this.body.util.getStep();
+
+      // move
+      this.touchParams.itemProps.forEach(function (props) {
+        var newProps = {};
+        var current = me.body.util.toTime(event.center.x - xOffset);
+        var initial = me.body.util.toTime(props.initialX - xOffset);
+        var offset = current - initial;
+
+        var itemData = util.extend({}, props.item.data); // clone the data
+
+        if (props.item.editable === false) {
+          return;
+        }
+
+        var updateTimeAllowed = me.options.editable.updateTime || props.item.editable === true;
+
+        if (updateTimeAllowed) {
+          if (props.dragLeft) {
+            // drag left side of a range item
+            if (itemData.start != undefined) {
+              var initialStart = util.convert(props.data.start, 'Date');
+              var start = new Date(initialStart.valueOf() + offset);
+              itemData.start = snap ? snap(start, scale, step) : start;
+            }
+          } else if (props.dragRight) {
+            // drag right side of a range item
+            if (itemData.end != undefined) {
+              var initialEnd = util.convert(props.data.end, 'Date');
+              var end = new Date(initialEnd.valueOf() + offset);
+              itemData.end = snap ? snap(end, scale, step) : end;
+            }
+          } else {
+            // drag both start and end
+            if (itemData.start != undefined) {
+              var initialStart = util.convert(props.data.start, 'Date').valueOf();
+              var start = new Date(initialStart + offset);
+
+              if (itemData.end != undefined) {
+                var initialEnd = util.convert(props.data.end, 'Date');
+                var duration = initialEnd.valueOf() - initialStart.valueOf();
+
+                itemData.start = snap ? snap(start, scale, step) : start;
+                itemData.end = new Date(itemData.start.valueOf() + duration);
+              } else {
+                itemData.start = snap ? snap(start, scale, step) : start;
+              }
+            }
+          }
+        }
+
+        var updateGroupAllowed = me.options.editable.updateGroup || props.item.editable === true;
+
+        if (updateGroupAllowed && (!props.dragLeft && !props.dragRight)) {
+          if (itemData.group != undefined) {
+            // drag from one group to another
+            var group = me.groupFromTarget(event);
+            if (group) {
+              itemData.group = group.groupId;
+            }
+          }
+        }
+
+        // confirm moving the item
+        me.options.onMoving(itemData, function (itemData) {
+          if (itemData) {
+            props.item.setData(itemData);
+          }
+        });
+      });
+
+      this.stackDirty = true; // force re-stacking of all items next redraw
+      this.body.emitter.emit('change');
+    }
+  };
+
+  /**
+   * Move an item to another group
+   * @param {Item} item
+   * @param {String | Number} groupId
+   * @private
+   */
+  ItemSet.prototype._moveToGroup = function (item, groupId) {
+    var group = this.groups[groupId];
+    if (group && group.groupId != item.data.group) {
+      var oldGroup = item.parent;
+      oldGroup.remove(item);
+      oldGroup.order();
+      group.add(item);
+      group.order();
+
+      item.data.group = group.groupId;
+    }
+  };
+
+  /**
+   * End of dragging selected items
+   * @param {Event} event
+   * @private
+   */
+  ItemSet.prototype._onDragEnd = function (event) {
+    if (this.touchParams.itemProps) {
+      event.stopPropagation();
+
+      // prepare a change set for the changed items
+      var changes = [];
+      var me = this;
+      var dataset = this.itemsData.getDataSet();
+
+      var itemProps = this.touchParams.itemProps;
+      this.touchParams.itemProps = null;
+      itemProps.forEach(function (props) {
+        var id = props.item.id;
+        var exists = me.itemsData.get(id, me.itemOptions) != null;
+
+        if (!exists) {
+          // add a new item
+          me.options.onAdd(props.item.data, function (itemData) {
+            me._removeItem(props.item); // remove temporary item
+            if (itemData) {
+              me.itemsData.getDataSet().add(itemData);
+            }
+
+            // force re-stacking of all items next redraw
+            me.stackDirty = true;
+            me.body.emitter.emit('change');
+          });
+        } else {
+          // update existing item
+          var itemData = util.extend({}, props.item.data); // clone the data
+          me.options.onMove(itemData, function (itemData) {
+            if (itemData) {
+              // apply changes
+              itemData[dataset._fieldId] = id; // ensure the item contains its id (can be undefined)
+              changes.push(itemData);
+            } else {
+              // restore original values
+              props.item.setData(props.data);
+
+              me.stackDirty = true; // force re-stacking of all items next redraw
+              me.body.emitter.emit('change');
+            }
+          });
+        }
+      });
+
+      // apply the changes to the data (if there are changes)
+      if (changes.length) {
+        dataset.update(changes);
+      }
+    }
+  };
+
+  /**
+   * Handle selecting/deselecting an item when tapping it
+   * @param {Event} event
+   * @private
+   */
+  ItemSet.prototype._onSelectItem = function (event) {
+    if (!this.options.selectable) return;
+
+    var ctrlKey = event.srcEvent && (event.srcEvent.ctrlKey || event.srcEvent.metaKey);
+    var shiftKey = event.srcEvent && event.srcEvent.shiftKey;
+    if (ctrlKey || shiftKey) {
+      this._onMultiSelectItem(event);
+      return;
+    }
+
+    var oldSelection = this.getSelection();
+
+    var item = this.itemFromTarget(event);
+    var selection = item ? [item.id] : [];
+    this.setSelection(selection);
+
+    var newSelection = this.getSelection();
+
+    // emit a select event,
+    // except when old selection is empty and new selection is still empty
+    if (newSelection.length > 0 || oldSelection.length > 0) {
+      this.body.emitter.emit('select', {
+        items: newSelection,
+        event: event
+      });
+    }
+  };
+
+  /**
+   * Handle creation and updates of an item on double tap
+   * @param event
+   * @private
+   */
+  ItemSet.prototype._onAddItem = function (event) {
+    if (!this.options.selectable) return;
+    if (!this.options.editable.add) return;
+
+    var me = this;
+    var snap = this.options.snap || null;
+    var item = this.itemFromTarget(event);
+
+    event.stopPropagation();
+
+    if (item) {
+      // update item
+
+      // execute async handler to update the item (or cancel it)
+      var itemData = me.itemsData.get(item.id); // get a clone of the data from the dataset
+      this.options.onUpdate(itemData, function (itemData) {
+        if (itemData) {
+          me.itemsData.getDataSet().update(itemData);
+        }
+      });
+    } else {
+      // add item
+      var xAbs = util.getAbsoluteLeft(this.dom.frame);
+      var x = event.center.x - xAbs;
+      var start = this.body.util.toTime(x);
+      var scale = this.body.util.getScale();
+      var step = this.body.util.getStep();
+
+      var newItem = {
+        start: snap ? snap(start, scale, step) : start,
+        content: 'new item'
+      };
+
+      // when default type is a range, add a default end date to the new item
+      if (this.options.type === 'range') {
+        var end = this.body.util.toTime(x + this.props.width / 5);
+        newItem.end = snap ? snap(end, scale, step) : end;
+      }
+
+      newItem[this.itemsData._fieldId] = util.randomUUID();
+
+      var group = this.groupFromTarget(event);
+      if (group) {
+        newItem.group = group.groupId;
+      }
+
+      // execute async handler to customize (or cancel) adding an item
+      this.options.onAdd(newItem, function (item) {
+        if (item) {
+          me.itemsData.getDataSet().add(item);
+          // TODO: need to trigger a redraw?
+        }
+      });
+    }
+  };
+
+  /**
+   * Handle selecting/deselecting multiple items when holding an item
+   * @param {Event} event
+   * @private
+   */
+  ItemSet.prototype._onMultiSelectItem = function (event) {
+    if (!this.options.selectable) return;
+
+    var item = this.itemFromTarget(event);
+
+    if (item) {
+      // multi select items (if allowed)
+
+      var selection = this.options.multiselect ? this.getSelection() // take current selection
+      : []; // deselect current selection
+
+      var shiftKey = event.srcEvent && event.srcEvent.shiftKey || false;
+
+      if (shiftKey && this.options.multiselect) {
+        // select all items between the old selection and the tapped item
+
+        // determine the selection range
+        selection.push(item.id);
+        var range = ItemSet._getItemRange(this.itemsData.get(selection, this.itemOptions));
+
+        // select all items within the selection range
+        selection = [];
+        for (var id in this.items) {
+          if (this.items.hasOwnProperty(id)) {
+            var _item = this.items[id];
+            var start = _item.data.start;
+            var end = _item.data.end !== undefined ? _item.data.end : start;
+
+            if (start >= range.min && end <= range.max && !(_item instanceof BackgroundItem)) {
+              selection.push(_item.id); // do not use id but item.id, id itself is stringified
+            }
+          }
+        }
+      } else {
+        // add/remove this item from the current selection
+        var index = selection.indexOf(item.id);
+        if (index == -1) {
+          // item is not yet selected -> select it
+          selection.push(item.id);
+        } else {
+          // item is already selected -> deselect it
+          selection.splice(index, 1);
+        }
+      }
+
+      this.setSelection(selection);
+
+      this.body.emitter.emit('select', {
+        items: this.getSelection(),
+        event: event
+      });
+    }
+  };
+
+  /**
+   * Calculate the time range of a list of items
+   * @param {Array.<Object>} itemsData
+   * @return {{min: Date, max: Date}} Returns the range of the provided items
+   * @private
+   */
+  ItemSet._getItemRange = function (itemsData) {
+    var max = null;
+    var min = null;
+
+    itemsData.forEach(function (data) {
+      if (min == null || data.start < min) {
+        min = data.start;
+      }
+
+      if (data.end != undefined) {
+        if (max == null || data.end > max) {
+          max = data.end;
+        }
+      } else {
+        if (max == null || data.start > max) {
+          max = data.start;
+        }
+      }
+    });
+
+    return {
+      min: min,
+      max: max
+    };
+  };
+
+  /**
+   * Find an item from an event target:
+   * searches for the attribute 'timeline-item' in the event target's element tree
+   * @param {Event} event
+   * @return {Item | null} item
+   */
+  ItemSet.prototype.itemFromTarget = function (event) {
+    var target = event.target;
+    while (target) {
+      if (target.hasOwnProperty('timeline-item')) {
+        return target['timeline-item'];
+      }
+      target = target.parentNode;
+    }
+
+    return null;
+  };
+
+  /**
+   * Find the Group from an event target:
+   * searches for the attribute 'timeline-group' in the event target's element tree
+   * @param {Event} event
+   * @return {Group | null} group
+   */
+  ItemSet.prototype.groupFromTarget = function (event) {
+    var clientY = event.center ? event.center.y : event.clientY;
+    for (var i = 0; i < this.groupIds.length; i++) {
+      var groupId = this.groupIds[i];
+      var group = this.groups[groupId];
+      var foreground = group.dom.foreground;
+      var top = util.getAbsoluteTop(foreground);
+      if (clientY > top && clientY < top + foreground.offsetHeight) {
+        return group;
+      }
+
+      if (this.options.orientation.item === 'top') {
+        if (i === this.groupIds.length - 1 && clientY > top) {
+          return group;
+        }
+      } else {
+        if (i === 0 && clientY < top + foreground.offset) {
+          return group;
+        }
+      }
+    }
+
+    return null;
+  };
+
+  /**
+   * Find the ItemSet from an event target:
+   * searches for the attribute 'timeline-itemset' in the event target's element tree
+   * @param {Event} event
+   * @return {ItemSet | null} item
+   */
+  ItemSet.itemSetFromTarget = function (event) {
+    var target = event.target;
+    while (target) {
+      if (target.hasOwnProperty('timeline-itemset')) {
+        return target['timeline-itemset'];
+      }
+      target = target.parentNode;
+    }
+
+    return null;
+  };
+
+  module.exports = ItemSet;
+
+/***/ },
+/* 35 */
+/***/ function(module, exports, __webpack_require__) {
+
+  'use strict';
+
+  var util = __webpack_require__(9);
+  var stack = __webpack_require__(36);
+  var RangeItem = __webpack_require__(37);
 
   /**
    * @constructor Group
@@ -21256,7 +19041,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = Group;
 
 /***/ },
-/* 44 */
+/* 36 */
 /***/ function(module, exports, __webpack_require__) {
 
   // Utility functions for ordering and stacking of items
@@ -21380,13 +19165,13 @@ return /******/ (function(modules) { // webpackBootstrap
   };
 
 /***/ },
-/* 45 */
+/* 37 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
 
-  var Hammer = __webpack_require__(15);
-  var Item = __webpack_require__(14);
+  var Hammer = __webpack_require__(5);
+  var Item = __webpack_require__(4);
 
   /**
    * @constructor RangeItem
@@ -21676,14 +19461,14 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = RangeItem;
 
 /***/ },
-/* 46 */
+/* 38 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
 
-  var moment = __webpack_require__(20);
-  var DateUtil = __webpack_require__(42);
-  var util = __webpack_require__(19);
+  var moment = __webpack_require__(10);
+  var DateUtil = __webpack_require__(32);
+  var util = __webpack_require__(9);
 
   /**
    * @constructor  TimeStep
@@ -22366,13 +20151,13 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = TimeStep;
 
 /***/ },
-/* 47 */
+/* 39 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
 
-  var util = __webpack_require__(19);
-  var Group = __webpack_require__(43);
+  var util = __webpack_require__(9);
+  var Group = __webpack_require__(35);
 
   /**
    * @constructor BackgroundGroup
@@ -22430,13 +20215,13 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = BackgroundGroup;
 
 /***/ },
-/* 48 */
+/* 40 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
 
-  var Item = __webpack_require__(14);
-  var util = __webpack_require__(19);
+  var Item = __webpack_require__(4);
+  var util = __webpack_require__(9);
 
   /**
    * @constructor BoxItem
@@ -22670,15 +20455,15 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = BoxItem;
 
 /***/ },
-/* 49 */
+/* 41 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
 
-  var Hammer = __webpack_require__(15);
-  var Item = __webpack_require__(14);
-  var BackgroundGroup = __webpack_require__(47);
-  var RangeItem = __webpack_require__(45);
+  var Hammer = __webpack_require__(5);
+  var Item = __webpack_require__(4);
+  var BackgroundGroup = __webpack_require__(39);
+  var RangeItem = __webpack_require__(37);
 
   /**
    * @constructor BackgroundItem
@@ -22891,16 +20676,16 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = BackgroundItem;
 
 /***/ },
-/* 50 */
+/* 42 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
 
-  var util = __webpack_require__(19);
-  var Component = __webpack_require__(38);
-  var TimeStep = __webpack_require__(46);
-  var DateUtil = __webpack_require__(42);
-  var moment = __webpack_require__(20);
+  var util = __webpack_require__(9);
+  var Component = __webpack_require__(28);
+  var TimeStep = __webpack_require__(38);
+  var DateUtil = __webpack_require__(32);
+  var moment = __webpack_require__(10);
 
   /**
    * A horizontal time axis
@@ -23330,15 +21115,15 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = TimeAxis;
 
 /***/ },
-/* 51 */
+/* 43 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
 
-  var keycharm = __webpack_require__(52);
-  var Emitter = __webpack_require__(30);
-  var Hammer = __webpack_require__(15);
-  var util = __webpack_require__(19);
+  var keycharm = __webpack_require__(44);
+  var Emitter = __webpack_require__(20);
+  var Hammer = __webpack_require__(5);
+  var util = __webpack_require__(9);
 
   /**
    * Turn an element into an clickToUse element.
@@ -23489,7 +21274,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = Activator;
 
 /***/ },
-/* 52 */
+/* 44 */
 /***/ function(module, exports, __webpack_require__) {
 
   var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;"use strict";
@@ -23688,7 +21473,247 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 53 */
+/* 45 */
+/***/ function(module, exports, __webpack_require__) {
+
+  'use strict';
+
+  var Hammer = __webpack_require__(5);
+  var util = __webpack_require__(9);
+  var Component = __webpack_require__(28);
+  var moment = __webpack_require__(10);
+  var locales = __webpack_require__(29);
+
+  /**
+   * A custom time bar
+   * @param {{range: Range, dom: Object}} body
+   * @param {Object} [options]        Available parameters:
+   *                                  {number | string} id
+   *                                  {string} locales
+   *                                  {string} locale
+   * @constructor CustomTime
+   * @extends Component
+   */
+
+  function CustomTime(body, options) {
+    this.body = body;
+
+    // default options
+    this.defaultOptions = {
+      locales: locales,
+      locale: 'en',
+      id: undefined
+    };
+    this.options = util.extend({}, this.defaultOptions);
+
+    if (options && options.time) {
+      this.customTime = options.time;
+    } else {
+      this.customTime = new Date();
+    }
+
+    this.eventParams = {}; // stores state parameters while dragging the bar
+
+    this.setOptions(options);
+
+    // create the DOM
+    this._create();
+  }
+
+  CustomTime.prototype = new Component();
+
+  /**
+   * Set options for the component. Options will be merged in current options.
+   * @param {Object} options  Available parameters:
+   *                                  {number | string} id
+   *                                  {string} locales
+   *                                  {string} locale
+   */
+  CustomTime.prototype.setOptions = function (options) {
+    if (options) {
+      // copy all options that we know
+      util.selectiveExtend(['locale', 'locales', 'id'], this.options, options);
+    }
+  };
+
+  /**
+   * Create the DOM for the custom time
+   * @private
+   */
+  CustomTime.prototype._create = function () {
+    var bar = document.createElement('div');
+    bar['custom-time'] = this;
+    bar.className = 'vis-custom-time ' + (this.options.id || '');
+    bar.style.position = 'absolute';
+    bar.style.top = '0px';
+    bar.style.height = '100%';
+    this.bar = bar;
+
+    var drag = document.createElement('div');
+    drag.style.position = 'relative';
+    drag.style.top = '0px';
+    drag.style.left = '-10px';
+    drag.style.height = '100%';
+    drag.style.width = '20px';
+    bar.appendChild(drag);
+
+    // attach event listeners
+    this.hammer = new Hammer(drag);
+    this.hammer.on('panstart', this._onDragStart.bind(this));
+    this.hammer.on('panmove', this._onDrag.bind(this));
+    this.hammer.on('panend', this._onDragEnd.bind(this));
+    this.hammer.get('pan').set({ threshold: 5, direction: 30 }); // 30 is ALL_DIRECTIONS in hammer.
+    // TODO: cleanup
+    //this.hammer.on('pan',   function (event) {
+    //  event.preventDefault();
+    //});
+  };
+
+  /**
+   * Destroy the CustomTime bar
+   */
+  CustomTime.prototype.destroy = function () {
+    this.hide();
+
+    this.hammer.destroy();
+    this.hammer = null;
+
+    this.body = null;
+  };
+
+  /**
+   * Repaint the component
+   * @return {boolean} Returns true if the component is resized
+   */
+  CustomTime.prototype.redraw = function () {
+    var parent = this.body.dom.backgroundVertical;
+    if (this.bar.parentNode != parent) {
+      // attach to the dom
+      if (this.bar.parentNode) {
+        this.bar.parentNode.removeChild(this.bar);
+      }
+      parent.appendChild(this.bar);
+    }
+
+    var x = this.body.util.toScreen(this.customTime);
+
+    var locale = this.options.locales[this.options.locale];
+    if (!locale) {
+      if (!this.warned) {
+        console.log('WARNING: options.locales[\'' + this.options.locale + '\'] not found. See http://visjs.org/docs/timeline.html#Localization');
+        this.warned = true;
+      }
+      locale = this.options.locales['en']; // fall back on english when not available
+    }
+    var title = locale.time + ': ' + moment(this.customTime).format('dddd, MMMM Do YYYY, H:mm:ss');
+    title = title.charAt(0).toUpperCase() + title.substring(1);
+
+    this.bar.style.left = x + 'px';
+    this.bar.title = title;
+
+    return false;
+  };
+
+  /**
+   * Remove the CustomTime from the DOM
+   */
+  CustomTime.prototype.hide = function () {
+    // remove the line from the DOM
+    if (this.bar.parentNode) {
+      this.bar.parentNode.removeChild(this.bar);
+    }
+  };
+
+  /**
+   * Set custom time.
+   * @param {Date | number | string} time
+   */
+  CustomTime.prototype.setCustomTime = function (time) {
+    this.customTime = util.convert(time, 'Date');
+    this.redraw();
+  };
+
+  /**
+   * Retrieve the current custom time.
+   * @return {Date} customTime
+   */
+  CustomTime.prototype.getCustomTime = function () {
+    return new Date(this.customTime.valueOf());
+  };
+
+  /**
+   * Start moving horizontally
+   * @param {Event} event
+   * @private
+   */
+  CustomTime.prototype._onDragStart = function (event) {
+    this.eventParams.dragging = true;
+    this.eventParams.customTime = this.customTime;
+
+    event.stopPropagation();
+  };
+
+  /**
+   * Perform moving operating.
+   * @param {Event} event
+   * @private
+   */
+  CustomTime.prototype._onDrag = function (event) {
+    if (!this.eventParams.dragging) return;
+
+    var x = this.body.util.toScreen(this.eventParams.customTime) + event.deltaX;
+    var time = this.body.util.toTime(x);
+
+    this.setCustomTime(time);
+
+    // fire a timechange event
+    this.body.emitter.emit('timechange', {
+      id: this.options.id,
+      time: new Date(this.customTime.valueOf())
+    });
+
+    event.stopPropagation();
+  };
+
+  /**
+   * Stop moving operating.
+   * @param {Event} event
+   * @private
+   */
+  CustomTime.prototype._onDragEnd = function (event) {
+    if (!this.eventParams.dragging) return;
+
+    // fire a timechanged event
+    this.body.emitter.emit('timechanged', {
+      id: this.options.id,
+      time: new Date(this.customTime.valueOf())
+    });
+
+    event.stopPropagation();
+  };
+
+  /**
+   * Find a custom time from an event target:
+   * searches for the attribute 'custom-time' in the event target's element tree
+   * @param {Event} event
+   * @return {CustomTime | null} customTime
+   */
+  CustomTime.customTimeFromTarget = function (event) {
+    var target = event.target;
+    while (target) {
+      if (target.hasOwnProperty('custom-time')) {
+        return target['custom-time'];
+      }
+      target = target.parentNode;
+    }
+
+    return null;
+  };
+
+  module.exports = CustomTime;
+
+/***/ },
+/* 46 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -23703,11 +21728,11 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
 
-  var _ColorPicker = __webpack_require__(54);
+  var _ColorPicker = __webpack_require__(47);
 
   var _ColorPicker2 = _interopRequireDefault(_ColorPicker);
 
-  var util = __webpack_require__(19);
+  var util = __webpack_require__(9);
 
   /**
    * The way this works is for all properties of this.possible options, you can supply the property name in any form to list the options.
@@ -24371,7 +22396,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 54 */
+/* 47 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -24384,9 +22409,9 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
 
-  var Hammer = __webpack_require__(15);
-  var hammerUtil = __webpack_require__(41);
-  var util = __webpack_require__(19);
+  var Hammer = __webpack_require__(5);
+  var hammerUtil = __webpack_require__(31);
+  var util = __webpack_require__(9);
 
   var ColorPicker = (function () {
     function ColorPicker() {
@@ -24955,7 +22980,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 55 */
+/* 48 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -24968,7 +22993,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
 
-  var util = __webpack_require__(19);
+  var util = __webpack_require__(9);
 
   var errorFound = false;
   var allOptions = undefined;
@@ -25225,9 +23250,9 @@ return /******/ (function(modules) { // webpackBootstrap
       // http://en.wikibooks.org/wiki/Algorithm_Implementation/Strings/Levenshtein_distance#JavaScript
       /*
        Copyright (c) 2011 Andrei Mackenzie
-        Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
-        The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
-        THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+         Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+         The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+         THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
        */
       value: function levenshteinDistance(a, b) {
         if (a.length === 0) return b.length;
@@ -25271,7 +23296,7 @@ return /******/ (function(modules) { // webpackBootstrap
   exports.printStyle = printStyle;
 
 /***/ },
-/* 56 */
+/* 49 */
 /***/ function(module, exports, __webpack_require__) {
 
   /**
@@ -25485,28 +23510,28 @@ return /******/ (function(modules) { // webpackBootstrap
   exports.configureOptions = configureOptions;
 
 /***/ },
-/* 57 */
+/* 50 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
 
-  var Emitter = __webpack_require__(30);
-  var Hammer = __webpack_require__(15);
-  var util = __webpack_require__(19);
-  var DataSet = __webpack_require__(25);
-  var DataView = __webpack_require__(27);
-  var Range = __webpack_require__(40);
-  var Core = __webpack_require__(11);
-  var TimeAxis = __webpack_require__(50);
-  var CurrentTime = __webpack_require__(37);
-  var CustomTime = __webpack_require__(13);
-  var LineGraph = __webpack_require__(58);
+  var Emitter = __webpack_require__(20);
+  var Hammer = __webpack_require__(5);
+  var util = __webpack_require__(9);
+  var DataSet = __webpack_require__(15);
+  var DataView = __webpack_require__(17);
+  var Range = __webpack_require__(30);
+  var Core = __webpack_require__(33);
+  var TimeAxis = __webpack_require__(42);
+  var CurrentTime = __webpack_require__(27);
+  var CustomTime = __webpack_require__(45);
+  var LineGraph = __webpack_require__(51);
 
-  var Configurator = __webpack_require__(53);
-  var Validator = __webpack_require__(55)['default'];
-  var printStyle = __webpack_require__(55).printStyle;
-  var allOptions = __webpack_require__(65).allOptions;
-  var configureOptions = __webpack_require__(65).configureOptions;
+  var Configurator = __webpack_require__(46);
+  var Validator = __webpack_require__(48)['default'];
+  var printStyle = __webpack_require__(48).printStyle;
+  var allOptions = __webpack_require__(59).allOptions;
+  var configureOptions = __webpack_require__(59).configureOptions;
 
   /**
    * Create a timeline visualization
@@ -25821,21 +23846,21 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = Graph2d;
 
 /***/ },
-/* 58 */
+/* 51 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
 
-  var util = __webpack_require__(19);
-  var DOMutil = __webpack_require__(24);
-  var DataSet = __webpack_require__(25);
-  var DataView = __webpack_require__(27);
-  var Component = __webpack_require__(38);
-  var DataAxis = __webpack_require__(59);
-  var GraphGroup = __webpack_require__(61);
-  var Legend = __webpack_require__(64);
-  var BarFunctions = __webpack_require__(63);
-  var LineFunctions = __webpack_require__(62);
+  var util = __webpack_require__(9);
+  var DOMutil = __webpack_require__(14);
+  var DataSet = __webpack_require__(15);
+  var DataView = __webpack_require__(17);
+  var Component = __webpack_require__(28);
+  var DataAxis = __webpack_require__(52);
+  var GraphGroup = __webpack_require__(54);
+  var Legend = __webpack_require__(58);
+  var BarFunctions = __webpack_require__(57);
+  var LineFunctions = __webpack_require__(55);
 
   var UNGROUPED = '__ungrouped__'; // reserved group id for ungrouped items
 
@@ -26797,15 +24822,15 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = LineGraph;
 
 /***/ },
-/* 59 */
+/* 52 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
 
-  var util = __webpack_require__(19);
-  var DOMutil = __webpack_require__(24);
-  var Component = __webpack_require__(38);
-  var DataStep = __webpack_require__(60);
+  var util = __webpack_require__(9);
+  var DOMutil = __webpack_require__(14);
+  var Component = __webpack_require__(28);
+  var DataStep = __webpack_require__(53);
 
   /**
    * A horizontal time axis
@@ -27401,7 +25426,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = DataAxis;
 
 /***/ },
-/* 60 */
+/* 53 */
 /***/ function(module, exports, __webpack_require__) {
 
   /**
@@ -27628,16 +25653,16 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = DataStep;
 
 /***/ },
-/* 61 */
+/* 54 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
 
-  var util = __webpack_require__(19);
-  var DOMutil = __webpack_require__(24);
-  var Line = __webpack_require__(62);
-  var Bar = __webpack_require__(63);
-  var Points = __webpack_require__(10);
+  var util = __webpack_require__(9);
+  var DOMutil = __webpack_require__(14);
+  var Line = __webpack_require__(55);
+  var Bar = __webpack_require__(57);
+  var Points = __webpack_require__(56);
 
   /**
    * /**
@@ -27838,13 +25863,13 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = GraphGroup;
 
 /***/ },
-/* 62 */
+/* 55 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
 
-  var DOMutil = __webpack_require__(24);
-  var Points = __webpack_require__(10);
+  var DOMutil = __webpack_require__(14);
+  var Points = __webpack_require__(56);
 
   function Line(groupId, options) {
     this.groupId = groupId;
@@ -28133,13 +26158,92 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = Line;
 
 /***/ },
-/* 63 */
+/* 56 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
 
-  var DOMutil = __webpack_require__(24);
-  var Points = __webpack_require__(10);
+  var DOMutil = __webpack_require__(14);
+
+  function Points(groupId, options) {
+    this.groupId = groupId;
+    this.options = options;
+  }
+
+  Points.prototype.getYRange = function (groupData) {
+    var yMin = groupData[0].y;
+    var yMax = groupData[0].y;
+    for (var j = 0; j < groupData.length; j++) {
+      yMin = yMin > groupData[j].y ? groupData[j].y : yMin;
+      yMax = yMax < groupData[j].y ? groupData[j].y : yMax;
+    }
+    return { min: yMin, max: yMax, yAxisOrientation: this.options.yAxisOrientation };
+  };
+
+  Points.prototype.draw = function (dataset, group, framework, offset) {
+    Points.draw(dataset, group, framework, offset);
+  };
+
+  /**
+   * draw the data points
+   *
+   * @param {Array} dataset
+   * @param {Object} JSONcontainer
+   * @param {Object} svg            | SVG DOM element
+   * @param {GraphGroup} group
+   * @param {Number} [offset]
+   */
+  Points.draw = function (dataset, group, framework, offset) {
+    offset = offset || 0;
+    var callback = getCallback();
+
+    for (var i = 0; i < dataset.length; i++) {
+      if (!callback) {
+        // draw the point the simple way.
+        DOMutil.drawPoint(dataset[i].x + offset, dataset[i].y, getGroupTemplate(), framework.svgElements, framework.svg, dataset[i].label);
+      } else {
+        var callbackResult = callback(dataset[i], group, framework); // result might be true, false or an object
+        if (callbackResult === true || typeof callbackResult === 'object') {
+          DOMutil.drawPoint(dataset[i].x + offset, dataset[i].y, getGroupTemplate(callbackResult), framework.svgElements, framework.svg, dataset[i].label);
+        }
+      }
+    }
+
+    function getGroupTemplate(callbackResult) {
+      callbackResult = typeof callbackResult === 'undefined' ? {} : callbackResult;
+      return {
+        style: callbackResult.style || group.options.drawPoints.style,
+        size: callbackResult.size || group.options.drawPoints.size,
+        className: callbackResult.className || group.className
+      };
+    }
+
+    function getCallback() {
+      var callback = undefined;
+      // check for the graph2d onRender
+      if (framework.options.drawPoints.onRender && typeof framework.options.drawPoints.onRender == 'function') {
+        callback = framework.options.drawPoints.onRender;
+      }
+
+      // override it with the group onRender if defined
+      if (group.group.options && group.group.options.drawPoints && group.group.options.drawPoints.onRender && typeof group.group.options.drawPoints.onRender == 'function') {
+        callback = group.group.options.drawPoints.onRender;
+      }
+
+      return callback;
+    }
+  };
+
+  module.exports = Points;
+
+/***/ },
+/* 57 */
+/***/ function(module, exports, __webpack_require__) {
+
+  'use strict';
+
+  var DOMutil = __webpack_require__(14);
+  var Points = __webpack_require__(56);
 
   function Bargraph(groupId, options) {
     this.groupId = groupId;
@@ -28381,14 +26485,14 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = Bargraph;
 
 /***/ },
-/* 64 */
+/* 58 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
 
-  var util = __webpack_require__(19);
-  var DOMutil = __webpack_require__(24);
-  var Component = __webpack_require__(38);
+  var util = __webpack_require__(9);
+  var DOMutil = __webpack_require__(14);
+  var Component = __webpack_require__(28);
 
   /**
    * Legend for Graph2d
@@ -28595,7 +26699,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = Legend;
 
 /***/ },
-/* 65 */
+/* 59 */
 /***/ function(module, exports, __webpack_require__) {
 
   /**
@@ -28864,7 +26968,7 @@ return /******/ (function(modules) { // webpackBootstrap
   exports.configureOptions = configureOptions;
 
 /***/ },
-/* 66 */
+/* 60 */
 /***/ function(module, exports, __webpack_require__) {
 
   // Load custom shapes into CanvasRenderingContext2D
@@ -28872,59 +26976,59 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
 
-  var _modulesGroups = __webpack_require__(67);
+  var _modulesGroups = __webpack_require__(61);
 
   var _modulesGroups2 = _interopRequireDefault(_modulesGroups);
 
-  var _modulesNodesHandler = __webpack_require__(68);
+  var _modulesNodesHandler = __webpack_require__(62);
 
   var _modulesNodesHandler2 = _interopRequireDefault(_modulesNodesHandler);
 
-  var _modulesEdgesHandler = __webpack_require__(86);
+  var _modulesEdgesHandler = __webpack_require__(82);
 
   var _modulesEdgesHandler2 = _interopRequireDefault(_modulesEdgesHandler);
 
-  var _modulesPhysicsEngine = __webpack_require__(90);
+  var _modulesPhysicsEngine = __webpack_require__(89);
 
   var _modulesPhysicsEngine2 = _interopRequireDefault(_modulesPhysicsEngine);
 
-  var _modulesClustering = __webpack_require__(99);
+  var _modulesClustering = __webpack_require__(98);
 
   var _modulesClustering2 = _interopRequireDefault(_modulesClustering);
 
-  var _modulesCanvasRenderer = __webpack_require__(101);
+  var _modulesCanvasRenderer = __webpack_require__(100);
 
   var _modulesCanvasRenderer2 = _interopRequireDefault(_modulesCanvasRenderer);
 
-  var _modulesCanvas = __webpack_require__(102);
+  var _modulesCanvas = __webpack_require__(101);
 
   var _modulesCanvas2 = _interopRequireDefault(_modulesCanvas);
 
-  var _modulesView = __webpack_require__(103);
+  var _modulesView = __webpack_require__(102);
 
   var _modulesView2 = _interopRequireDefault(_modulesView);
 
-  var _modulesInteractionHandler = __webpack_require__(104);
+  var _modulesInteractionHandler = __webpack_require__(103);
 
   var _modulesInteractionHandler2 = _interopRequireDefault(_modulesInteractionHandler);
 
-  var _modulesSelectionHandler = __webpack_require__(106);
+  var _modulesSelectionHandler = __webpack_require__(3);
 
   var _modulesSelectionHandler2 = _interopRequireDefault(_modulesSelectionHandler);
 
-  var _modulesLayoutEngine = __webpack_require__(107);
+  var _modulesLayoutEngine = __webpack_require__(106);
 
   var _modulesLayoutEngine2 = _interopRequireDefault(_modulesLayoutEngine);
 
-  var _modulesManipulationSystem = __webpack_require__(8);
+  var _modulesManipulationSystem = __webpack_require__(107);
 
   var _modulesManipulationSystem2 = _interopRequireDefault(_modulesManipulationSystem);
 
-  var _sharedConfigurator = __webpack_require__(53);
+  var _sharedConfigurator = __webpack_require__(46);
 
   var _sharedConfigurator2 = _interopRequireDefault(_sharedConfigurator);
 
-  var _sharedValidator = __webpack_require__(55);
+  var _sharedValidator = __webpack_require__(48);
 
   var _sharedValidator2 = _interopRequireDefault(_sharedValidator);
 
@@ -28932,15 +27036,15 @@ return /******/ (function(modules) { // webpackBootstrap
 
   __webpack_require__(109);
 
-  var Emitter = __webpack_require__(30);
-  var Hammer = __webpack_require__(15);
-  var util = __webpack_require__(19);
-  var DataSet = __webpack_require__(25);
-  var DataView = __webpack_require__(27);
+  var Emitter = __webpack_require__(20);
+  var Hammer = __webpack_require__(5);
+  var util = __webpack_require__(9);
+  var DataSet = __webpack_require__(15);
+  var DataView = __webpack_require__(17);
   var dotparser = __webpack_require__(110);
   var gephiParser = __webpack_require__(111);
   var Images = __webpack_require__(112);
-  var Activator = __webpack_require__(51);
+  var Activator = __webpack_require__(43);
   var locales = __webpack_require__(113);
 
   /**
@@ -29474,7 +27578,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = Network;
 
 /***/ },
-/* 67 */
+/* 61 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
@@ -29487,7 +27591,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
-  var util = __webpack_require__(19);
+  var util = __webpack_require__(9);
 
   /**
    * @class Groups
@@ -29616,7 +27720,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports["default"];
 
 /***/ },
-/* 68 */
+/* 62 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -29631,17 +27735,17 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
 
-  var _componentsNode = __webpack_require__(69);
+  var _componentsNode = __webpack_require__(63);
 
   var _componentsNode2 = _interopRequireDefault(_componentsNode);
 
-  var _componentsSharedLabel = __webpack_require__(70);
+  var _componentsSharedLabel = __webpack_require__(64);
 
   var _componentsSharedLabel2 = _interopRequireDefault(_componentsSharedLabel);
 
-  var util = __webpack_require__(19);
-  var DataSet = __webpack_require__(25);
-  var DataView = __webpack_require__(27);
+  var util = __webpack_require__(9);
+  var DataSet = __webpack_require__(15);
+  var DataView = __webpack_require__(17);
 
   var NodesHandler = (function () {
     function NodesHandler(body, images, groups, layoutEngine) {
@@ -30094,7 +28198,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 69 */
+/* 63 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -30109,71 +28213,71 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
 
-  var _sharedLabel = __webpack_require__(70);
+  var _sharedLabel = __webpack_require__(64);
 
   var _sharedLabel2 = _interopRequireDefault(_sharedLabel);
 
-  var _nodesShapesBox = __webpack_require__(71);
+  var _nodesShapesBox = __webpack_require__(65);
 
   var _nodesShapesBox2 = _interopRequireDefault(_nodesShapesBox);
 
-  var _nodesShapesCircle = __webpack_require__(72);
+  var _nodesShapesCircle = __webpack_require__(67);
 
   var _nodesShapesCircle2 = _interopRequireDefault(_nodesShapesCircle);
 
-  var _nodesShapesCircularImage = __webpack_require__(74);
+  var _nodesShapesCircularImage = __webpack_require__(69);
 
   var _nodesShapesCircularImage2 = _interopRequireDefault(_nodesShapesCircularImage);
 
-  var _nodesShapesDatabase = __webpack_require__(75);
+  var _nodesShapesDatabase = __webpack_require__(70);
 
   var _nodesShapesDatabase2 = _interopRequireDefault(_nodesShapesDatabase);
 
-  var _nodesShapesDiamond = __webpack_require__(76);
+  var _nodesShapesDiamond = __webpack_require__(71);
 
   var _nodesShapesDiamond2 = _interopRequireDefault(_nodesShapesDiamond);
 
-  var _nodesShapesDot = __webpack_require__(78);
+  var _nodesShapesDot = __webpack_require__(73);
 
   var _nodesShapesDot2 = _interopRequireDefault(_nodesShapesDot);
 
-  var _nodesShapesEllipse = __webpack_require__(79);
+  var _nodesShapesEllipse = __webpack_require__(74);
 
   var _nodesShapesEllipse2 = _interopRequireDefault(_nodesShapesEllipse);
 
-  var _nodesShapesIcon = __webpack_require__(5);
+  var _nodesShapesIcon = __webpack_require__(75);
 
   var _nodesShapesIcon2 = _interopRequireDefault(_nodesShapesIcon);
 
-  var _nodesShapesImage = __webpack_require__(80);
+  var _nodesShapesImage = __webpack_require__(76);
 
   var _nodesShapesImage2 = _interopRequireDefault(_nodesShapesImage);
 
-  var _nodesShapesSquare = __webpack_require__(81);
+  var _nodesShapesSquare = __webpack_require__(77);
 
   var _nodesShapesSquare2 = _interopRequireDefault(_nodesShapesSquare);
 
-  var _nodesShapesStar = __webpack_require__(82);
+  var _nodesShapesStar = __webpack_require__(78);
 
   var _nodesShapesStar2 = _interopRequireDefault(_nodesShapesStar);
 
-  var _nodesShapesText = __webpack_require__(83);
+  var _nodesShapesText = __webpack_require__(79);
 
   var _nodesShapesText2 = _interopRequireDefault(_nodesShapesText);
 
-  var _nodesShapesTriangle = __webpack_require__(84);
+  var _nodesShapesTriangle = __webpack_require__(80);
 
   var _nodesShapesTriangle2 = _interopRequireDefault(_nodesShapesTriangle);
 
-  var _nodesShapesTriangleDown = __webpack_require__(85);
+  var _nodesShapesTriangleDown = __webpack_require__(81);
 
   var _nodesShapesTriangleDown2 = _interopRequireDefault(_nodesShapesTriangleDown);
 
-  var _sharedValidator = __webpack_require__(55);
+  var _sharedValidator = __webpack_require__(48);
 
   var _sharedValidator2 = _interopRequireDefault(_sharedValidator);
 
-  var util = __webpack_require__(19);
+  var util = __webpack_require__(9);
 
   /**
    * @class Node
@@ -30614,7 +28718,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 70 */
+/* 64 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -30629,7 +28733,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
 
-  var util = __webpack_require__(19);
+  var util = __webpack_require__(9);
 
   var Label = (function () {
     function Label(body, options) {
@@ -30930,7 +29034,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 71 */
+/* 65 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -30949,7 +29053,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; }
 
-  var _utilNodeBase = __webpack_require__(3);
+  var _utilNodeBase = __webpack_require__(66);
 
   var _utilNodeBase2 = _interopRequireDefault(_utilNodeBase);
 
@@ -31035,7 +29139,75 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 72 */
+/* 66 */
+/***/ function(module, exports, __webpack_require__) {
+
+  'use strict';
+
+  Object.defineProperty(exports, '__esModule', {
+    value: true
+  });
+
+  var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
+
+  function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
+
+  var NodeBase = (function () {
+    function NodeBase(options, body, labelModule) {
+      _classCallCheck(this, NodeBase);
+
+      this.body = body;
+      this.labelModule = labelModule;
+      this.setOptions(options);
+      this.top = undefined;
+      this.left = undefined;
+      this.height = undefined;
+      this.width = undefined;
+      this.radius = undefined;
+      this.boundingBox = { top: 0, left: 0, right: 0, bottom: 0 };
+    }
+
+    _createClass(NodeBase, [{
+      key: 'setOptions',
+      value: function setOptions(options) {
+        this.options = options;
+      }
+    }, {
+      key: '_distanceToBorder',
+      value: function _distanceToBorder(angle) {
+        var borderWidth = 1;
+        return Math.min(Math.abs(this.width / 2 / Math.cos(angle)), Math.abs(this.height / 2 / Math.sin(angle))) + borderWidth;
+      }
+    }, {
+      key: 'enableShadow',
+      value: function enableShadow(ctx) {
+        if (this.options.shadow.enabled === true) {
+          ctx.shadowColor = 'rgba(0,0,0,0.5)';
+          ctx.shadowBlur = this.options.shadow.size;
+          ctx.shadowOffsetX = this.options.shadow.x;
+          ctx.shadowOffsetY = this.options.shadow.y;
+        }
+      }
+    }, {
+      key: 'disableShadow',
+      value: function disableShadow(ctx) {
+        if (this.options.shadow.enabled === true) {
+          ctx.shadowColor = 'rgba(0,0,0,0)';
+          ctx.shadowBlur = 0;
+          ctx.shadowOffsetX = 0;
+          ctx.shadowOffsetY = 0;
+        }
+      }
+    }]);
+
+    return NodeBase;
+  })();
+
+  exports['default'] = NodeBase;
+  module.exports = exports['default'];
+
+/***/ },
+/* 67 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -31054,7 +29226,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; }
 
-  var _utilCircleImageBase = __webpack_require__(73);
+  var _utilCircleImageBase = __webpack_require__(68);
 
   var _utilCircleImageBase2 = _interopRequireDefault(_utilCircleImageBase);
 
@@ -31125,7 +29297,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 73 */
+/* 68 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -31144,7 +29316,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; }
 
-  var _utilNodeBase = __webpack_require__(3);
+  var _utilNodeBase = __webpack_require__(66);
 
   var _utilNodeBase2 = _interopRequireDefault(_utilNodeBase);
 
@@ -31274,7 +29446,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 74 */
+/* 69 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -31293,7 +29465,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; }
 
-  var _utilCircleImageBase = __webpack_require__(73);
+  var _utilCircleImageBase = __webpack_require__(68);
 
   var _utilCircleImageBase2 = _interopRequireDefault(_utilCircleImageBase);
 
@@ -31379,7 +29551,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 75 */
+/* 70 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -31398,7 +29570,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; }
 
-  var _utilNodeBase = __webpack_require__(3);
+  var _utilNodeBase = __webpack_require__(66);
 
   var _utilNodeBase2 = _interopRequireDefault(_utilNodeBase);
 
@@ -31486,7 +29658,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 76 */
+/* 71 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -31505,7 +29677,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; }
 
-  var _utilShapeBase = __webpack_require__(77);
+  var _utilShapeBase = __webpack_require__(72);
 
   var _utilShapeBase2 = _interopRequireDefault(_utilShapeBase);
 
@@ -31542,7 +29714,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 77 */
+/* 72 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -31561,7 +29733,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; }
 
-  var _utilNodeBase = __webpack_require__(3);
+  var _utilNodeBase = __webpack_require__(66);
 
   var _utilNodeBase2 = _interopRequireDefault(_utilNodeBase);
 
@@ -31641,7 +29813,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 78 */
+/* 73 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -31660,7 +29832,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; }
 
-  var _utilShapeBase = __webpack_require__(77);
+  var _utilShapeBase = __webpack_require__(72);
 
   var _utilShapeBase2 = _interopRequireDefault(_utilShapeBase);
 
@@ -31697,7 +29869,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 79 */
+/* 74 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -31716,7 +29888,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; }
 
-  var _utilNodeBase = __webpack_require__(3);
+  var _utilNodeBase = __webpack_require__(66);
 
   var _utilNodeBase2 = _interopRequireDefault(_utilNodeBase);
 
@@ -31806,7 +29978,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 80 */
+/* 75 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -31825,7 +29997,123 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; }
 
-  var _utilCircleImageBase = __webpack_require__(73);
+  var _utilNodeBase = __webpack_require__(66);
+
+  var _utilNodeBase2 = _interopRequireDefault(_utilNodeBase);
+
+  var Icon = (function (_NodeBase) {
+    function Icon(options, body, labelModule) {
+      _classCallCheck(this, Icon);
+
+      _get(Object.getPrototypeOf(Icon.prototype), 'constructor', this).call(this, options, body, labelModule);
+    }
+
+    _inherits(Icon, _NodeBase);
+
+    _createClass(Icon, [{
+      key: 'resize',
+      value: function resize(ctx) {
+        if (this.width === undefined) {
+          var margin = 5;
+          var iconSize = {
+            width: Number(this.options.icon.size),
+            height: Number(this.options.icon.size)
+          };
+          this.width = iconSize.width + 2 * margin;
+          this.height = iconSize.height + 2 * margin;
+          this.radius = 0.5 * this.width;
+        }
+      }
+    }, {
+      key: 'draw',
+      value: function draw(ctx, x, y, selected, hover) {
+        this.resize(ctx);
+        this.options.icon.size = this.options.icon.size || 50;
+
+        this.left = x - this.width * 0.5;
+        this.top = y - this.height * 0.5;
+        this._icon(ctx, x, y, selected);
+
+        if (this.options.label !== undefined) {
+          var iconTextSpacing = 5;
+          this.labelModule.draw(ctx, x, y + this.height * 0.5 + iconTextSpacing, selected);
+        }
+
+        this.updateBoundingBox(x, y);
+      }
+    }, {
+      key: 'updateBoundingBox',
+      value: function updateBoundingBox(x, y) {
+        this.boundingBox.top = y - this.options.icon.size * 0.5;
+        this.boundingBox.left = x - this.options.icon.size * 0.5;
+        this.boundingBox.right = x + this.options.icon.size * 0.5;
+        this.boundingBox.bottom = y + this.options.icon.size * 0.5;
+
+        if (this.options.label !== undefined && this.labelModule.size.width > 0) {
+          var iconTextSpacing = 5;
+          this.boundingBox.left = Math.min(this.boundingBox.left, this.labelModule.size.left);
+          this.boundingBox.right = Math.max(this.boundingBox.right, this.labelModule.size.left + this.labelModule.size.width);
+          this.boundingBox.bottom = Math.max(this.boundingBox.bottom, this.boundingBox.bottom + this.labelModule.size.height + iconTextSpacing);
+        }
+      }
+    }, {
+      key: '_icon',
+      value: function _icon(ctx, x, y, selected) {
+        var iconSize = Number(this.options.icon.size);
+
+        if (this.options.icon.code !== undefined) {
+          ctx.font = (selected ? 'bold ' : '') + iconSize + 'px ' + this.options.icon.face;
+
+          // draw icon
+          ctx.fillStyle = this.options.icon.color || 'black';
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'middle';
+
+          // draw shadow if enabled
+          this.enableShadow(ctx);
+          ctx.fillText(this.options.icon.code, x, y);
+
+          // disable shadows for other elements.
+          this.disableShadow(ctx);
+        } else {
+          console.error('When using the icon shape, you need to define the code in the icon options object. This can be done per node or globally.');
+        }
+      }
+    }, {
+      key: 'distanceToBorder',
+      value: function distanceToBorder(ctx, angle) {
+        this.resize(ctx);
+        return this._distanceToBorder(angle);
+      }
+    }]);
+
+    return Icon;
+  })(_utilNodeBase2['default']);
+
+  exports['default'] = Icon;
+  module.exports = exports['default'];
+
+/***/ },
+/* 76 */
+/***/ function(module, exports, __webpack_require__) {
+
+  'use strict';
+
+  Object.defineProperty(exports, '__esModule', {
+    value: true
+  });
+
+  var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
+
+  var _get = function get(_x, _x2, _x3) { var _again = true; _function: while (_again) { var object = _x, property = _x2, receiver = _x3; desc = parent = getter = undefined; _again = false; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { _x = parent; _x2 = property; _x3 = receiver; _again = true; continue _function; } } else if ('value' in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } } };
+
+  function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
+
+  function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
+
+  function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; }
+
+  var _utilCircleImageBase = __webpack_require__(68);
 
   var _utilCircleImageBase2 = _interopRequireDefault(_utilCircleImageBase);
 
@@ -31894,7 +30182,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 81 */
+/* 77 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -31913,7 +30201,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; }
 
-  var _utilShapeBase = __webpack_require__(77);
+  var _utilShapeBase = __webpack_require__(72);
 
   var _utilShapeBase2 = _interopRequireDefault(_utilShapeBase);
 
@@ -31951,7 +30239,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 82 */
+/* 78 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -31970,7 +30258,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; }
 
-  var _utilShapeBase = __webpack_require__(77);
+  var _utilShapeBase = __webpack_require__(72);
 
   var _utilShapeBase2 = _interopRequireDefault(_utilShapeBase);
 
@@ -32007,7 +30295,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 83 */
+/* 79 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -32026,7 +30314,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; }
 
-  var _utilNodeBase = __webpack_require__(3);
+  var _utilNodeBase = __webpack_require__(66);
 
   var _utilNodeBase2 = _interopRequireDefault(_utilNodeBase);
 
@@ -32094,7 +30382,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 84 */
+/* 80 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -32113,7 +30401,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; }
 
-  var _utilShapeBase = __webpack_require__(77);
+  var _utilShapeBase = __webpack_require__(72);
 
   var _utilShapeBase2 = _interopRequireDefault(_utilShapeBase);
 
@@ -32150,7 +30438,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 85 */
+/* 81 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -32169,7 +30457,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; }
 
-  var _utilShapeBase = __webpack_require__(77);
+  var _utilShapeBase = __webpack_require__(72);
 
   var _utilShapeBase2 = _interopRequireDefault(_utilShapeBase);
 
@@ -32206,7 +30494,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 86 */
+/* 82 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -32221,17 +30509,17 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
 
-  var _componentsEdge = __webpack_require__(87);
+  var _componentsEdge = __webpack_require__(83);
 
   var _componentsEdge2 = _interopRequireDefault(_componentsEdge);
 
-  var _componentsSharedLabel = __webpack_require__(70);
+  var _componentsSharedLabel = __webpack_require__(64);
 
   var _componentsSharedLabel2 = _interopRequireDefault(_componentsSharedLabel);
 
-  var util = __webpack_require__(19);
-  var DataSet = __webpack_require__(25);
-  var DataView = __webpack_require__(27);
+  var util = __webpack_require__(9);
+  var DataSet = __webpack_require__(15);
+  var DataView = __webpack_require__(17);
 
   var EdgesHandler = (function () {
     function EdgesHandler(body, images, groups) {
@@ -32641,7 +30929,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 87 */
+/* 83 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -32656,23 +30944,23 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
 
-  var _sharedLabel = __webpack_require__(70);
+  var _sharedLabel = __webpack_require__(64);
 
   var _sharedLabel2 = _interopRequireDefault(_sharedLabel);
 
-  var _edgesBezierEdgeDynamic = __webpack_require__(4);
+  var _edgesBezierEdgeDynamic = __webpack_require__(84);
 
   var _edgesBezierEdgeDynamic2 = _interopRequireDefault(_edgesBezierEdgeDynamic);
 
-  var _edgesBezierEdgeStatic = __webpack_require__(88);
+  var _edgesBezierEdgeStatic = __webpack_require__(87);
 
   var _edgesBezierEdgeStatic2 = _interopRequireDefault(_edgesBezierEdgeStatic);
 
-  var _edgesStraightEdge = __webpack_require__(89);
+  var _edgesStraightEdge = __webpack_require__(88);
 
   var _edgesStraightEdge2 = _interopRequireDefault(_edgesStraightEdge);
 
-  var util = __webpack_require__(19);
+  var util = __webpack_require__(9);
 
   /**
    * @class Edge
@@ -33205,7 +31493,916 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 88 */
+/* 84 */
+/***/ function(module, exports, __webpack_require__) {
+
+  'use strict';
+
+  Object.defineProperty(exports, '__esModule', {
+    value: true
+  });
+
+  var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
+
+  var _get = function get(_x, _x2, _x3) { var _again = true; _function: while (_again) { var object = _x, property = _x2, receiver = _x3; desc = parent = getter = undefined; _again = false; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { _x = parent; _x2 = property; _x3 = receiver; _again = true; continue _function; } } else if ('value' in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } } };
+
+  function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
+
+  function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
+
+  function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; }
+
+  var _utilBezierEdgeBase = __webpack_require__(85);
+
+  var _utilBezierEdgeBase2 = _interopRequireDefault(_utilBezierEdgeBase);
+
+  var BezierEdgeDynamic = (function (_BezierEdgeBase) {
+    function BezierEdgeDynamic(options, body, labelModule) {
+      _classCallCheck(this, BezierEdgeDynamic);
+
+      //this.via = undefined; // Here for completeness but not allowed to defined before super() is invoked.
+      _get(Object.getPrototypeOf(BezierEdgeDynamic.prototype), 'constructor', this).call(this, options, body, labelModule); // --> this calls the setOptions below
+    }
+
+    _inherits(BezierEdgeDynamic, _BezierEdgeBase);
+
+    _createClass(BezierEdgeDynamic, [{
+      key: 'setOptions',
+      value: function setOptions(options) {
+        this.options = options;
+        this.id = this.options.id;
+        this.setupSupportNode();
+        this.connect();
+      }
+    }, {
+      key: 'connect',
+      value: function connect() {
+        this.from = this.body.nodes[this.options.from];
+        this.to = this.body.nodes[this.options.to];
+        if (this.from === undefined || this.to === undefined || this.options.physics === false) {
+          this.via.setOptions({ physics: false });
+        } else {
+          // fix weird behaviour where a selfreferencing node has physics enabled
+          if (this.from.id === this.to.id) {
+            this.via.setOptions({ physics: false });
+          } else {
+            this.via.setOptions({ physics: true });
+          }
+        }
+      }
+    }, {
+      key: 'cleanup',
+      value: function cleanup() {
+        if (this.via !== undefined) {
+          delete this.body.nodes[this.via.id];
+          this.via = undefined;
+          return true;
+        }
+        return false;
+      }
+    }, {
+      key: 'togglePhysics',
+      value: function togglePhysics(status) {
+        this.via.setOptions({ physics: status });
+        this.positionBezierNode();
+      }
+    }, {
+      key: 'setupSupportNode',
+
+      /**
+       * Bezier curves require an anchor point to calculate the smooth flow. These points are nodes. These nodes are invisible but
+       * are used for the force calculation.
+       *
+       * The changed data is not called, if needed, it is returned by the main edge constructor.
+       * @private
+       */
+      value: function setupSupportNode() {
+        if (this.via === undefined) {
+          var nodeId = 'edgeId:' + this.id;
+          var node = this.body.functions.createNode({
+            id: nodeId,
+            shape: 'circle',
+            physics: true,
+            hidden: true
+          });
+          this.body.nodes[nodeId] = node;
+          this.via = node;
+          this.via.parentEdgeId = this.id;
+          this.positionBezierNode();
+        }
+      }
+    }, {
+      key: 'positionBezierNode',
+      value: function positionBezierNode() {
+        if (this.via !== undefined && this.from !== undefined && this.to !== undefined) {
+          this.via.x = 0.5 * (this.from.x + this.to.x);
+          this.via.y = 0.5 * (this.from.y + this.to.y);
+        } else if (this.via !== undefined) {
+          this.via.x = 0;
+          this.via.y = 0;
+        }
+      }
+    }, {
+      key: '_line',
+
+      /**
+       * Draw a line between two nodes
+       * @param {CanvasRenderingContext2D} ctx
+       * @private
+       */
+      value: function _line(ctx) {
+        // draw a straight line
+        ctx.beginPath();
+        ctx.moveTo(this.from.x, this.from.y);
+        ctx.quadraticCurveTo(this.via.x, this.via.y, this.to.x, this.to.y);
+        // draw shadow if enabled
+        this.enableShadow(ctx);
+        ctx.stroke();
+        this.disableShadow(ctx);
+        return this.via;
+      }
+    }, {
+      key: 'getPoint',
+
+      /**
+       * Combined function of pointOnLine and pointOnBezier. This gives the coordinates of a point on the line at a certain percentage of the way
+       * @param percentage
+       * @param via
+       * @returns {{x: number, y: number}}
+       * @private
+       */
+      value: function getPoint(percentage) {
+        var t = percentage;
+        var x = Math.pow(1 - t, 2) * this.from.x + 2 * t * (1 - t) * this.via.x + Math.pow(t, 2) * this.to.x;
+        var y = Math.pow(1 - t, 2) * this.from.y + 2 * t * (1 - t) * this.via.y + Math.pow(t, 2) * this.to.y;
+
+        return { x: x, y: y };
+      }
+    }, {
+      key: '_findBorderPosition',
+      value: function _findBorderPosition(nearNode, ctx) {
+        return this._findBorderPositionBezier(nearNode, ctx, this.via);
+      }
+    }, {
+      key: '_getDistanceToEdge',
+      value: function _getDistanceToEdge(x1, y1, x2, y2, x3, y3) {
+        // x3,y3 is the point
+        return this._getDistanceToBezierEdge(x1, y1, x2, y2, x3, y3, this.via);
+      }
+    }]);
+
+    return BezierEdgeDynamic;
+  })(_utilBezierEdgeBase2['default']);
+
+  exports['default'] = BezierEdgeDynamic;
+  module.exports = exports['default'];
+
+/***/ },
+/* 85 */
+/***/ function(module, exports, __webpack_require__) {
+
+  'use strict';
+
+  Object.defineProperty(exports, '__esModule', {
+    value: true
+  });
+
+  var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
+
+  var _get = function get(_x2, _x3, _x4) { var _again = true; _function: while (_again) { var object = _x2, property = _x3, receiver = _x4; desc = parent = getter = undefined; _again = false; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { _x2 = parent; _x3 = property; _x4 = receiver; _again = true; continue _function; } } else if ('value' in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } } };
+
+  function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
+
+  function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
+
+  function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; }
+
+  var _EdgeBase2 = __webpack_require__(86);
+
+  var _EdgeBase3 = _interopRequireDefault(_EdgeBase2);
+
+  var BezierEdgeBase = (function (_EdgeBase) {
+    function BezierEdgeBase(options, body, labelModule) {
+      _classCallCheck(this, BezierEdgeBase);
+
+      _get(Object.getPrototypeOf(BezierEdgeBase.prototype), 'constructor', this).call(this, options, body, labelModule);
+    }
+
+    _inherits(BezierEdgeBase, _EdgeBase);
+
+    _createClass(BezierEdgeBase, [{
+      key: '_findBorderPositionBezier',
+
+      /**
+       * This function uses binary search to look for the point where the bezier curve crosses the border of the node.
+       *
+       * @param nearNode
+       * @param ctx
+       * @param viaNode
+       * @param nearNode
+       * @param ctx
+       * @param viaNode
+       * @param nearNode
+       * @param ctx
+       * @param viaNode
+       */
+      value: function _findBorderPositionBezier(nearNode, ctx) {
+        var viaNode = arguments[2] === undefined ? this._getViaCoordinates() : arguments[2];
+
+        var maxIterations = 10;
+        var iteration = 0;
+        var low = 0;
+        var high = 1;
+        var pos, angle, distanceToBorder, distanceToPoint, difference;
+        var threshold = 0.2;
+        var node = this.to;
+        var from = false;
+        if (nearNode.id === this.from.id) {
+          node = this.from;
+          from = true;
+        }
+
+        while (low <= high && iteration < maxIterations) {
+          var middle = (low + high) * 0.5;
+
+          pos = this.getPoint(middle, viaNode);
+          angle = Math.atan2(node.y - pos.y, node.x - pos.x);
+          distanceToBorder = node.distanceToBorder(ctx, angle);
+          distanceToPoint = Math.sqrt(Math.pow(pos.x - node.x, 2) + Math.pow(pos.y - node.y, 2));
+          difference = distanceToBorder - distanceToPoint;
+          if (Math.abs(difference) < threshold) {
+            break; // found
+          } else if (difference < 0) {
+            // distance to nodes is larger than distance to border --> t needs to be bigger if we're looking at the to node.
+            if (from === false) {
+              low = middle;
+            } else {
+              high = middle;
+            }
+          } else {
+            if (from === false) {
+              high = middle;
+            } else {
+              low = middle;
+            }
+          }
+
+          iteration++;
+        }
+        pos.t = middle;
+
+        return pos;
+      }
+    }, {
+      key: '_getDistanceToBezierEdge',
+
+      /**
+       * Calculate the distance between a point (x3,y3) and a line segment from
+       * (x1,y1) to (x2,y2).
+       * http://stackoverflow.com/questions/849211/shortest-distancae-between-a-point-and-a-line-segment
+       * @param {number} x1
+       * @param {number} y1
+       * @param {number} x2
+       * @param {number} y2
+       * @param {number} x3
+       * @param {number} y3
+       * @private
+       */
+      value: function _getDistanceToBezierEdge(x1, y1, x2, y2, x3, y3, via) {
+        // x3,y3 is the point
+        var xVia = undefined,
+            yVia = undefined;
+        xVia = via.x;
+        yVia = via.y;
+        var minDistance = 1000000000;
+        var distance = undefined;
+        var i = undefined,
+            t = undefined,
+            x = undefined,
+            y = undefined;
+        var lastX = x1;
+        var lastY = y1;
+        for (i = 1; i < 10; i++) {
+          t = 0.1 * i;
+          x = Math.pow(1 - t, 2) * x1 + 2 * t * (1 - t) * xVia + Math.pow(t, 2) * x2;
+          y = Math.pow(1 - t, 2) * y1 + 2 * t * (1 - t) * yVia + Math.pow(t, 2) * y2;
+          if (i > 0) {
+            distance = this._getDistanceToLine(lastX, lastY, x, y, x3, y3);
+            minDistance = distance < minDistance ? distance : minDistance;
+          }
+          lastX = x;
+          lastY = y;
+        }
+
+        return minDistance;
+      }
+    }]);
+
+    return BezierEdgeBase;
+  })(_EdgeBase3['default']);
+
+  exports['default'] = BezierEdgeBase;
+  module.exports = exports['default'];
+
+/***/ },
+/* 86 */
+/***/ function(module, exports, __webpack_require__) {
+
+  'use strict';
+
+  Object.defineProperty(exports, '__esModule', {
+    value: true
+  });
+
+  var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
+
+  function _slicedToArray(arr, i) { if (Array.isArray(arr)) { return arr; } else if (Symbol.iterator in Object(arr)) { var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i['return']) _i['return'](); } finally { if (_d) throw _e; } } return _arr; } else { throw new TypeError('Invalid attempt to destructure non-iterable instance'); } }
+
+  function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
+
+  var util = __webpack_require__(9);
+
+  var EdgeBase = (function () {
+    function EdgeBase(options, body, labelModule) {
+      _classCallCheck(this, EdgeBase);
+
+      this.body = body;
+      this.labelModule = labelModule;
+      this.setOptions(options);
+      this.colorDirty = true;
+      this.color = {};
+      this.selectionWidth = 2;
+      this.hoverWidth = 1.5;
+    }
+
+    _createClass(EdgeBase, [{
+      key: 'connect',
+      value: function connect() {
+        this.from = this.body.nodes[this.options.from];
+        this.to = this.body.nodes[this.options.to];
+      }
+    }, {
+      key: 'cleanup',
+      value: function cleanup() {
+        return false;
+      }
+    }, {
+      key: 'setOptions',
+      value: function setOptions(options) {
+        this.options = options;
+        this.from = this.body.nodes[this.options.from];
+        this.to = this.body.nodes[this.options.to];
+        this.id = this.options.id;
+      }
+    }, {
+      key: 'togglePhysics',
+
+      /**
+       * overloadable if the shape has to toggle the via node to disabled
+       * @param status
+       */
+      value: function togglePhysics(status) {}
+    }, {
+      key: 'drawLine',
+
+      /**
+       * Redraw a edge as a line
+       * Draw this edge in the given canvas
+       * The 2d context of a HTML canvas can be retrieved by canvas.getContext("2d");
+       * @param {CanvasRenderingContext2D}   ctx
+       * @private
+       */
+      value: function drawLine(ctx, selected, hover) {
+        // set style
+        ctx.strokeStyle = this.getColor(ctx, selected, hover);
+        ctx.lineWidth = this.getLineWidth(selected, hover);
+        var via = undefined;
+        if (this.options.dashes !== false) {
+          via = this._drawDashedLine(ctx);
+        } else {
+          via = this._drawLine(ctx);
+        }
+        return via;
+      }
+    }, {
+      key: '_drawLine',
+      value: function _drawLine(ctx) {
+        var via = undefined;
+        if (this.from != this.to) {
+          // draw line
+          via = this._line(ctx);
+        } else {
+          var _getCircleData2 = this._getCircleData(ctx);
+
+          var _getCircleData22 = _slicedToArray(_getCircleData2, 3);
+
+          var x = _getCircleData22[0];
+          var y = _getCircleData22[1];
+          var radius = _getCircleData22[2];
+
+          this._circle(ctx, x, y, radius);
+        }
+        return via;
+      }
+    }, {
+      key: '_drawDashedLine',
+      value: function _drawDashedLine(ctx) {
+        var via = undefined;
+        ctx.lineCap = 'round';
+        var pattern = [5, 5];
+        if (Array.isArray(this.options.dashes) === true) {
+          pattern = this.options.dashes;
+        }
+
+        // only firefox and chrome support this method, else we use the legacy one.
+        if (ctx.setLineDash !== undefined) {
+          ctx.save();
+
+          // set dash settings for chrome or firefox
+          ctx.setLineDash(pattern);
+          ctx.lineDashOffset = 0;
+
+          // draw the line
+          if (this.from != this.to) {
+            // draw line
+            via = this._line(ctx);
+          } else {
+            var _getCircleData3 = this._getCircleData(ctx);
+
+            var _getCircleData32 = _slicedToArray(_getCircleData3, 3);
+
+            var x = _getCircleData32[0];
+            var y = _getCircleData32[1];
+            var radius = _getCircleData32[2];
+
+            this._circle(ctx, x, y, radius);
+          }
+
+          // restore the dash settings.
+          ctx.setLineDash([0]);
+          ctx.lineDashOffset = 0;
+          ctx.restore();
+        } else {
+          // unsupporting smooth lines
+
+          if (this.from != this.to) {
+            // draw line
+            ctx.dashedLine(this.from.x, this.from.y, this.to.x, this.to.y, pattern);
+          } else {
+            var _getCircleData4 = this._getCircleData(ctx);
+
+            var _getCircleData42 = _slicedToArray(_getCircleData4, 3);
+
+            var x = _getCircleData42[0];
+            var y = _getCircleData42[1];
+            var radius = _getCircleData42[2];
+
+            this._circle(ctx, x, y, radius);
+          }
+          // draw shadow if enabled
+          this.enableShadow(ctx);
+
+          ctx.stroke();
+
+          // disable shadows for other elements.
+          this.disableShadow(ctx);
+        }
+        return via;
+      }
+    }, {
+      key: 'findBorderPosition',
+      value: function findBorderPosition(nearNode, ctx, options) {
+        if (this.from != this.to) {
+          return this._findBorderPosition(nearNode, ctx, options);
+        } else {
+          return this._findBorderPositionCircle(nearNode, ctx, options);
+        }
+      }
+    }, {
+      key: 'findBorderPositions',
+      value: function findBorderPositions(ctx) {
+        var from = {};
+        var to = {};
+        if (this.from != this.to) {
+          from = this._findBorderPosition(this.from, ctx);
+          to = this._findBorderPosition(this.to, ctx);
+        } else {
+          var _getCircleData5 = this._getCircleData(ctx);
+
+          var _getCircleData52 = _slicedToArray(_getCircleData5, 3);
+
+          var x = _getCircleData52[0];
+          var y = _getCircleData52[1];
+          var radius = _getCircleData52[2];
+
+          from = this._findBorderPositionCircle(this.from, ctx, { x: x, y: y, low: 0.25, high: 0.6, direction: -1 });
+          to = this._findBorderPositionCircle(this.from, ctx, { x: x, y: y, low: 0.6, high: 0.8, direction: 1 });
+        }
+        return { from: from, to: to };
+      }
+    }, {
+      key: '_getCircleData',
+      value: function _getCircleData(ctx) {
+        var x = undefined,
+            y = undefined;
+        var node = this.from;
+        var radius = this.options.selfReferenceSize;
+
+        if (ctx !== undefined) {
+          if (node.shape.width === undefined) {
+            node.shape.resize(ctx);
+          }
+        }
+
+        // get circle coordinates
+        if (node.shape.width > node.shape.height) {
+          x = node.x + node.shape.width * 0.5;
+          y = node.y - radius;
+        } else {
+          x = node.x + radius;
+          y = node.y - node.shape.height * 0.5;
+        }
+        return [x, y, radius];
+      }
+    }, {
+      key: '_pointOnCircle',
+
+      /**
+       * Get a point on a circle
+       * @param {Number} x
+       * @param {Number} y
+       * @param {Number} radius
+       * @param {Number} percentage. Value between 0 (line start) and 1 (line end)
+       * @return {Object} point
+       * @private
+       */
+      value: function _pointOnCircle(x, y, radius, percentage) {
+        var angle = percentage * 2 * Math.PI;
+        return {
+          x: x + radius * Math.cos(angle),
+          y: y - radius * Math.sin(angle)
+        };
+      }
+    }, {
+      key: '_findBorderPositionCircle',
+
+      /**
+       * This function uses binary search to look for the point where the circle crosses the border of the node.
+       * @param node
+       * @param ctx
+       * @param options
+       * @returns {*}
+       * @private
+       */
+      value: function _findBorderPositionCircle(node, ctx, options) {
+        var x = options.x;
+        var y = options.y;
+        var low = options.low;
+        var high = options.high;
+        var direction = options.direction;
+
+        var maxIterations = 10;
+        var iteration = 0;
+        var radius = this.options.selfReferenceSize;
+        var pos = undefined,
+            angle = undefined,
+            distanceToBorder = undefined,
+            distanceToPoint = undefined,
+            difference = undefined;
+        var threshold = 0.05;
+        var middle = (low + high) * 0.5;
+
+        while (low <= high && iteration < maxIterations) {
+          middle = (low + high) * 0.5;
+
+          pos = this._pointOnCircle(x, y, radius, middle);
+          angle = Math.atan2(node.y - pos.y, node.x - pos.x);
+          distanceToBorder = node.distanceToBorder(ctx, angle);
+          distanceToPoint = Math.sqrt(Math.pow(pos.x - node.x, 2) + Math.pow(pos.y - node.y, 2));
+          difference = distanceToBorder - distanceToPoint;
+          if (Math.abs(difference) < threshold) {
+            break; // found
+          } else if (difference > 0) {
+            // distance to nodes is larger than distance to border --> t needs to be bigger if we're looking at the to node.
+            if (direction > 0) {
+              low = middle;
+            } else {
+              high = middle;
+            }
+          } else {
+            if (direction > 0) {
+              high = middle;
+            } else {
+              low = middle;
+            }
+          }
+          iteration++;
+        }
+        pos.t = middle;
+
+        return pos;
+      }
+    }, {
+      key: 'getLineWidth',
+
+      /**
+       * Get the line width of the edge. Depends on width and whether one of the
+       * connected nodes is selected.
+       * @return {Number} width
+       * @private
+       */
+      value: function getLineWidth(selected, hover) {
+        if (selected === true) {
+          return Math.max(this.selectionWidth, 0.3 / this.body.view.scale);
+        } else {
+          if (hover === true) {
+            return Math.max(this.hoverWidth, 0.3 / this.body.view.scale);
+          } else {
+            return Math.max(this.options.width, 0.3 / this.body.view.scale);
+          }
+        }
+      }
+    }, {
+      key: 'getColor',
+      value: function getColor(ctx, selected, hover) {
+        var colorOptions = this.options.color;
+        if (colorOptions.inherit !== false) {
+          // when this is a loop edge, just use the 'from' method
+          if (colorOptions.inherit === 'both' && this.from.id !== this.to.id) {
+            var grd = ctx.createLinearGradient(this.from.x, this.from.y, this.to.x, this.to.y);
+            var fromColor = undefined,
+                toColor = undefined;
+            fromColor = this.from.options.color.highlight.border;
+            toColor = this.to.options.color.highlight.border;
+
+            if (this.from.selected === false && this.to.selected === false) {
+              fromColor = util.overrideOpacity(this.from.options.color.border, this.options.color.opacity);
+              toColor = util.overrideOpacity(this.to.options.color.border, this.options.color.opacity);
+            } else if (this.from.selected === true && this.to.selected === false) {
+              toColor = this.to.options.color.border;
+            } else if (this.from.selected === false && this.to.selected === true) {
+              fromColor = this.from.options.color.border;
+            }
+            grd.addColorStop(0, fromColor);
+            grd.addColorStop(1, toColor);
+
+            // -------------------- this returns -------------------- //
+            return grd;
+          }
+
+          if (this.colorDirty === true) {
+            if (colorOptions.inherit === 'to') {
+              this.color.highlight = this.to.options.color.highlight.border;
+              this.color.hover = this.to.options.color.hover.border;
+              this.color.color = util.overrideOpacity(this.to.options.color.border, colorOptions.opacity);
+            } else {
+              // (this.options.color.inherit.source === "from") {
+              this.color.highlight = this.from.options.color.highlight.border;
+              this.color.hover = this.from.options.color.hover.border;
+              this.color.color = util.overrideOpacity(this.from.options.color.border, colorOptions.opacity);
+            }
+          }
+        } else if (this.colorDirty === true) {
+          this.color.highlight = colorOptions.highlight;
+          this.color.hover = colorOptions.hover;
+          this.color.color = util.overrideOpacity(colorOptions.color, colorOptions.opacity);
+        }
+
+        // if color inherit is on and gradients are used, the function has already returned by now.
+        this.colorDirty = false;
+
+        if (selected === true) {
+          return this.color.highlight;
+        } else if (hover === true) {
+          return this.color.hover;
+        } else {
+          return this.color.color;
+        }
+      }
+    }, {
+      key: '_circle',
+
+      /**
+       * Draw a line from a node to itself, a circle
+       * @param {CanvasRenderingContext2D} ctx
+       * @param {Number} x
+       * @param {Number} y
+       * @param {Number} radius
+       * @private
+       */
+      value: function _circle(ctx, x, y, radius) {
+        // draw shadow if enabled
+        this.enableShadow(ctx);
+
+        // draw a circle
+        ctx.beginPath();
+        ctx.arc(x, y, radius, 0, 2 * Math.PI, false);
+        ctx.stroke();
+
+        // disable shadows for other elements.
+        this.disableShadow(ctx);
+      }
+    }, {
+      key: 'getDistanceToEdge',
+
+      /**
+       * Calculate the distance between a point (x3,y3) and a line segment from
+       * (x1,y1) to (x2,y2).
+       * http://stackoverflow.com/questions/849211/shortest-distancae-between-a-point-and-a-line-segment
+       * @param {number} x1
+       * @param {number} y1
+       * @param {number} x2
+       * @param {number} y2
+       * @param {number} x3
+       * @param {number} y3
+       * @private
+       */
+      value: function getDistanceToEdge(x1, y1, x2, y2, x3, y3, via) {
+        // x3,y3 is the point
+        var returnValue = 0;
+        if (this.from != this.to) {
+          returnValue = this._getDistanceToEdge(x1, y1, x2, y2, x3, y3, via);
+        } else {
+          var _getCircleData6 = this._getCircleData();
+
+          var _getCircleData62 = _slicedToArray(_getCircleData6, 3);
+
+          var x = _getCircleData62[0];
+          var y = _getCircleData62[1];
+          var radius = _getCircleData62[2];
+
+          var dx = x - x3;
+          var dy = y - y3;
+          returnValue = Math.abs(Math.sqrt(dx * dx + dy * dy) - radius);
+        }
+
+        if (this.labelModule.size.left < x3 && this.labelModule.size.left + this.labelModule.size.width > x3 && this.labelModule.size.top < y3 && this.labelModule.size.top + this.labelModule.size.height > y3) {
+          return 0;
+        } else {
+          return returnValue;
+        }
+      }
+    }, {
+      key: '_getDistanceToLine',
+      value: function _getDistanceToLine(x1, y1, x2, y2, x3, y3) {
+        var px = x2 - x1;
+        var py = y2 - y1;
+        var something = px * px + py * py;
+        var u = ((x3 - x1) * px + (y3 - y1) * py) / something;
+
+        if (u > 1) {
+          u = 1;
+        } else if (u < 0) {
+          u = 0;
+        }
+
+        var x = x1 + u * px;
+        var y = y1 + u * py;
+        var dx = x - x3;
+        var dy = y - y3;
+
+        //# Note: If the actual distance does not matter,
+        //# if you only want to compare what this function
+        //# returns to other results of this function, you
+        //# can just return the squared distance instead
+        //# (i.e. remove the sqrt) to gain a little performance
+
+        return Math.sqrt(dx * dx + dy * dy);
+      }
+    }, {
+      key: 'drawArrowHead',
+
+      /**
+       *
+       * @param ctx
+       * @param position
+       * @param viaNode
+       */
+      value: function drawArrowHead(ctx, position, viaNode, selected, hover) {
+        // set style
+        ctx.strokeStyle = this.getColor(ctx, selected, hover);
+        ctx.fillStyle = ctx.strokeStyle;
+        ctx.lineWidth = this.getLineWidth(selected, hover);
+
+        // set lets
+        var angle = undefined;
+        var length = undefined;
+        var arrowPos = undefined;
+        var node1 = undefined;
+        var node2 = undefined;
+        var guideOffset = undefined;
+        var scaleFactor = undefined;
+
+        if (position === 'from') {
+          node1 = this.from;
+          node2 = this.to;
+          guideOffset = 0.1;
+          scaleFactor = this.options.arrows.from.scaleFactor;
+        } else if (position === 'to') {
+          node1 = this.to;
+          node2 = this.from;
+          guideOffset = -0.1;
+          scaleFactor = this.options.arrows.to.scaleFactor;
+        } else {
+          node1 = this.to;
+          node2 = this.from;
+          scaleFactor = this.options.arrows.middle.scaleFactor;
+        }
+
+        // if not connected to itself
+        if (node1 != node2) {
+          if (position !== 'middle') {
+            // draw arrow head
+            if (this.options.smooth.enabled === true) {
+              arrowPos = this.findBorderPosition(node1, ctx, { via: viaNode });
+              var guidePos = this.getPoint(Math.max(0, Math.min(1, arrowPos.t + guideOffset)), viaNode);
+              angle = Math.atan2(arrowPos.y - guidePos.y, arrowPos.x - guidePos.x);
+            } else {
+              angle = Math.atan2(node1.y - node2.y, node1.x - node2.x);
+              arrowPos = this.findBorderPosition(node1, ctx);
+            }
+          } else {
+            angle = Math.atan2(node1.y - node2.y, node1.x - node2.x);
+            arrowPos = this.getPoint(0.6, viaNode); // this is 0.6 to account for the size of the arrow.
+          }
+          // draw arrow at the end of the line
+          length = (10 + 5 * this.options.width) * scaleFactor;
+          ctx.arrow(arrowPos.x, arrowPos.y, angle, length);
+
+          // draw shadow if enabled
+          this.enableShadow(ctx);
+          ctx.fill();
+
+          // disable shadows for other elements.
+          this.disableShadow(ctx);
+          ctx.stroke();
+        } else {
+          // draw circle
+          var _angle = undefined,
+              point = undefined;
+
+          var _getCircleData7 = this._getCircleData(ctx);
+
+          var _getCircleData72 = _slicedToArray(_getCircleData7, 3);
+
+          var x = _getCircleData72[0];
+          var y = _getCircleData72[1];
+          var radius = _getCircleData72[2];
+
+          if (position === 'from') {
+            point = this.findBorderPosition(this.from, ctx, { x: x, y: y, low: 0.25, high: 0.6, direction: -1 });
+            _angle = point.t * -2 * Math.PI + 1.5 * Math.PI + 0.1 * Math.PI;
+          } else if (position === 'to') {
+            point = this.findBorderPosition(this.from, ctx, { x: x, y: y, low: 0.6, high: 1, direction: 1 });
+            _angle = point.t * -2 * Math.PI + 1.5 * Math.PI - 1.1 * Math.PI;
+          } else {
+            point = this._pointOnCircle(x, y, radius, 0.175);
+            _angle = 3.9269908169872414; // === 0.175 * -2 * Math.PI + 1.5 * Math.PI + 0.1 * Math.PI;
+          }
+
+          // draw the arrowhead
+          var _length = (10 + 5 * this.options.width) * scaleFactor;
+          ctx.arrow(point.x, point.y, _angle, _length);
+
+          // draw shadow if enabled
+          this.enableShadow(ctx);
+          ctx.fill();
+
+          // disable shadows for other elements.
+          this.disableShadow(ctx);
+          ctx.stroke();
+        }
+      }
+    }, {
+      key: 'enableShadow',
+      value: function enableShadow(ctx) {
+        if (this.options.shadow.enabled === true) {
+          ctx.shadowColor = 'rgba(0,0,0,0.5)';
+          ctx.shadowBlur = this.options.shadow.size;
+          ctx.shadowOffsetX = this.options.shadow.x;
+          ctx.shadowOffsetY = this.options.shadow.y;
+        }
+      }
+    }, {
+      key: 'disableShadow',
+      value: function disableShadow(ctx) {
+        if (this.options.shadow.enabled === true) {
+          ctx.shadowColor = 'rgba(0,0,0,0)';
+          ctx.shadowBlur = 0;
+          ctx.shadowOffsetX = 0;
+          ctx.shadowOffsetY = 0;
+        }
+      }
+    }]);
+
+    return EdgeBase;
+  })();
+
+  exports['default'] = EdgeBase;
+  module.exports = exports['default'];
+
+/***/ },
+/* 87 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -33224,7 +32421,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; }
 
-  var _utilBezierEdgeBase = __webpack_require__(2);
+  var _utilBezierEdgeBase = __webpack_require__(85);
 
   var _utilBezierEdgeBase2 = _interopRequireDefault(_utilBezierEdgeBase);
 
@@ -33464,7 +32661,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 89 */
+/* 88 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -33483,7 +32680,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; }
 
-  var _utilEdgeBase = __webpack_require__(6);
+  var _utilEdgeBase = __webpack_require__(86);
 
   var _utilEdgeBase2 = _interopRequireDefault(_utilEdgeBase);
 
@@ -33569,7 +32766,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 90 */
+/* 89 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -33584,39 +32781,39 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
 
-  var _componentsPhysicsBarnesHutSolver = __webpack_require__(91);
+  var _componentsPhysicsBarnesHutSolver = __webpack_require__(90);
 
   var _componentsPhysicsBarnesHutSolver2 = _interopRequireDefault(_componentsPhysicsBarnesHutSolver);
 
-  var _componentsPhysicsRepulsionSolver = __webpack_require__(92);
+  var _componentsPhysicsRepulsionSolver = __webpack_require__(91);
 
   var _componentsPhysicsRepulsionSolver2 = _interopRequireDefault(_componentsPhysicsRepulsionSolver);
 
-  var _componentsPhysicsHierarchicalRepulsionSolver = __webpack_require__(93);
+  var _componentsPhysicsHierarchicalRepulsionSolver = __webpack_require__(92);
 
   var _componentsPhysicsHierarchicalRepulsionSolver2 = _interopRequireDefault(_componentsPhysicsHierarchicalRepulsionSolver);
 
-  var _componentsPhysicsSpringSolver = __webpack_require__(94);
+  var _componentsPhysicsSpringSolver = __webpack_require__(93);
 
   var _componentsPhysicsSpringSolver2 = _interopRequireDefault(_componentsPhysicsSpringSolver);
 
-  var _componentsPhysicsHierarchicalSpringSolver = __webpack_require__(95);
+  var _componentsPhysicsHierarchicalSpringSolver = __webpack_require__(94);
 
   var _componentsPhysicsHierarchicalSpringSolver2 = _interopRequireDefault(_componentsPhysicsHierarchicalSpringSolver);
 
-  var _componentsPhysicsCentralGravitySolver = __webpack_require__(96);
+  var _componentsPhysicsCentralGravitySolver = __webpack_require__(95);
 
   var _componentsPhysicsCentralGravitySolver2 = _interopRequireDefault(_componentsPhysicsCentralGravitySolver);
 
-  var _componentsPhysicsFA2BasedRepulsionSolver = __webpack_require__(97);
+  var _componentsPhysicsFA2BasedRepulsionSolver = __webpack_require__(96);
 
   var _componentsPhysicsFA2BasedRepulsionSolver2 = _interopRequireDefault(_componentsPhysicsFA2BasedRepulsionSolver);
 
-  var _componentsPhysicsFA2BasedCentralGravitySolver = __webpack_require__(98);
+  var _componentsPhysicsFA2BasedCentralGravitySolver = __webpack_require__(97);
 
   var _componentsPhysicsFA2BasedCentralGravitySolver2 = _interopRequireDefault(_componentsPhysicsFA2BasedCentralGravitySolver);
 
-  var util = __webpack_require__(19);
+  var util = __webpack_require__(9);
 
   var PhysicsEngine = (function () {
     function PhysicsEngine(body) {
@@ -34209,7 +33406,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 91 */
+/* 90 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
@@ -34708,7 +33905,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports["default"];
 
 /***/ },
-/* 92 */
+/* 91 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
@@ -34803,7 +34000,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports["default"];
 
 /***/ },
-/* 93 */
+/* 92 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
@@ -34894,7 +34091,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports["default"];
 
 /***/ },
-/* 94 */
+/* 93 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
@@ -35004,7 +34201,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports["default"];
 
 /***/ },
-/* 95 */
+/* 94 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
@@ -35133,7 +34330,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports["default"];
 
 /***/ },
-/* 96 */
+/* 95 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
@@ -35202,7 +34399,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports["default"];
 
 /***/ },
-/* 97 */
+/* 96 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
@@ -35221,7 +34418,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; }
 
-  var _BarnesHutSolver2 = __webpack_require__(91);
+  var _BarnesHutSolver2 = __webpack_require__(90);
 
   var _BarnesHutSolver3 = _interopRequireDefault(_BarnesHutSolver2);
 
@@ -35276,7 +34473,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports["default"];
 
 /***/ },
-/* 98 */
+/* 97 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
@@ -35295,7 +34492,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; }
 
-  var _CentralGravitySolver2 = __webpack_require__(96);
+  var _CentralGravitySolver2 = __webpack_require__(95);
 
   var _CentralGravitySolver3 = _interopRequireDefault(_CentralGravitySolver2);
 
@@ -35332,7 +34529,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports["default"];
 
 /***/ },
-/* 99 */
+/* 98 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -35347,11 +34544,11 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
 
-  var _componentsNodesCluster = __webpack_require__(100);
+  var _componentsNodesCluster = __webpack_require__(99);
 
   var _componentsNodesCluster2 = _interopRequireDefault(_componentsNodesCluster);
 
-  var util = __webpack_require__(19);
+  var util = __webpack_require__(9);
 
   var ClusterEngine = (function () {
     function ClusterEngine(body) {
@@ -36087,7 +35284,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 100 */
+/* 99 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -36104,7 +35301,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; }
 
-  var _Node2 = __webpack_require__(69);
+  var _Node2 = __webpack_require__(63);
 
   var _Node3 = _interopRequireDefault(_Node2);
 
@@ -36132,7 +35329,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 101 */
+/* 100 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -36149,7 +35346,7 @@ return /******/ (function(modules) { // webpackBootstrap
     window.requestAnimationFrame = window.requestAnimationFrame || window.mozRequestAnimationFrame || window.webkitRequestAnimationFrame || window.msRequestAnimationFrame;
   }
 
-  var util = __webpack_require__(19);
+  var util = __webpack_require__(9);
 
   var CanvasRenderer = (function () {
     function CanvasRenderer(body, canvas) {
@@ -36520,7 +35717,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 102 */
+/* 101 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -36533,10 +35730,10 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
 
-  var Hammer = __webpack_require__(15);
-  var hammerUtil = __webpack_require__(41);
+  var Hammer = __webpack_require__(5);
+  var hammerUtil = __webpack_require__(31);
 
-  var util = __webpack_require__(19);
+  var util = __webpack_require__(9);
 
   /**
    * Create the main frame for the Network.
@@ -36898,7 +36095,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 103 */
+/* 102 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
@@ -36911,7 +36108,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
-  var util = __webpack_require__(19);
+  var util = __webpack_require__(9);
 
   var View = (function () {
     function View(body, canvas) {
@@ -37303,7 +36500,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports["default"];
 
 /***/ },
-/* 104 */
+/* 103 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -37318,7 +36515,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
 
-  var _componentsNavigationHandler = __webpack_require__(7);
+  var _componentsNavigationHandler = __webpack_require__(104);
 
   var _componentsNavigationHandler2 = _interopRequireDefault(_componentsNavigationHandler);
 
@@ -37326,7 +36523,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   var _componentsPopup2 = _interopRequireDefault(_componentsPopup);
 
-  var util = __webpack_require__(19);
+  var util = __webpack_require__(9);
 
   var InteractionHandler = (function () {
     function InteractionHandler(body, canvas, selectionHandler) {
@@ -38067,6 +37264,332 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
+/* 104 */
+/***/ function(module, exports, __webpack_require__) {
+
+  'use strict';
+
+  Object.defineProperty(exports, '__esModule', {
+    value: true
+  });
+
+  var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
+
+  function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
+
+  var util = __webpack_require__(9);
+  var Hammer = __webpack_require__(5);
+  var hammerUtil = __webpack_require__(31);
+  var keycharm = __webpack_require__(44);
+
+  var NavigationHandler = (function () {
+    function NavigationHandler(body, canvas) {
+      var _this = this;
+
+      _classCallCheck(this, NavigationHandler);
+
+      this.body = body;
+      this.canvas = canvas;
+
+      this.iconsCreated = false;
+      this.navigationHammers = [];
+      this.boundFunctions = {};
+      this.touchTime = 0;
+      this.activated = false;
+
+      this.body.emitter.on('activate', function () {
+        _this.activated = true;_this.configureKeyboardBindings();
+      });
+      this.body.emitter.on('deactivate', function () {
+        _this.activated = false;_this.configureKeyboardBindings();
+      });
+      this.body.emitter.on('destroy', function () {
+        if (_this.keycharm !== undefined) {
+          _this.keycharm.destroy();
+        }
+      });
+
+      this.options = {};
+    }
+
+    _createClass(NavigationHandler, [{
+      key: 'setOptions',
+      value: function setOptions(options) {
+        if (options !== undefined) {
+          this.options = options;
+          this.create();
+        }
+      }
+    }, {
+      key: 'create',
+      value: function create() {
+        if (this.options.navigationButtons === true) {
+          if (this.iconsCreated === false) {
+            this.loadNavigationElements();
+          }
+        } else if (this.iconsCreated === true) {
+          this.cleanNavigation();
+        }
+
+        this.configureKeyboardBindings();
+      }
+    }, {
+      key: 'cleanNavigation',
+      value: function cleanNavigation() {
+        // clean hammer bindings
+        if (this.navigationHammers.length != 0) {
+          for (var i = 0; i < this.navigationHammers.length; i++) {
+            this.navigationHammers[i].destroy();
+          }
+          this.navigationHammers = [];
+        }
+
+        // clean up previous navigation items
+        if (this.navigationDOM && this.navigationDOM['wrapper'] && this.navigationDOM['wrapper'].parentNode) {
+          this.navigationDOM['wrapper'].parentNode.removeChild(this.navigationDOM['wrapper']);
+        }
+
+        this.iconsCreated = false;
+      }
+    }, {
+      key: 'loadNavigationElements',
+
+      /**
+       * Creation of the navigation controls nodes. They are drawn over the rest of the nodes and are not affected by scale and translation
+       * they have a triggerFunction which is called on click. If the position of the navigation controls is dependent
+       * on this.frame.canvas.clientWidth or this.frame.canvas.clientHeight, we flag horizontalAlignLeft and verticalAlignTop false.
+       * This means that the location will be corrected by the _relocateNavigation function on a size change of the canvas.
+       *
+       * @private
+       */
+      value: function loadNavigationElements() {
+        var _this2 = this;
+
+        this.cleanNavigation();
+
+        this.navigationDOM = {};
+        var navigationDivs = ['up', 'down', 'left', 'right', 'zoomIn', 'zoomOut', 'zoomExtends'];
+        var navigationDivActions = ['_moveUp', '_moveDown', '_moveLeft', '_moveRight', '_zoomIn', '_zoomOut', '_fit'];
+
+        this.navigationDOM['wrapper'] = document.createElement('div');
+        this.navigationDOM['wrapper'].className = 'vis-navigation';
+        this.canvas.frame.appendChild(this.navigationDOM['wrapper']);
+
+        for (var i = 0; i < navigationDivs.length; i++) {
+          this.navigationDOM[navigationDivs[i]] = document.createElement('div');
+          this.navigationDOM[navigationDivs[i]].className = 'vis-button vis-' + navigationDivs[i];
+          this.navigationDOM['wrapper'].appendChild(this.navigationDOM[navigationDivs[i]]);
+
+          var hammer = new Hammer(this.navigationDOM[navigationDivs[i]]);
+          if (navigationDivActions[i] === '_fit') {
+            hammerUtil.onTouch(hammer, this._fit.bind(this));
+          } else {
+            hammerUtil.onTouch(hammer, this.bindToRedraw.bind(this, navigationDivActions[i]));
+          }
+
+          this.navigationHammers.push(hammer);
+        }
+
+        // use a hammer for the release so we do not require the one used in the rest of the network
+        // the one the rest uses can be overloaded by the manipulation system.
+        var hammerFrame = new Hammer(this.canvas.frame);
+        hammerUtil.onRelease(hammerFrame, function () {
+          _this2._stopMovement();
+        });
+        this.navigationHammers.push(hammerFrame);
+
+        this.iconsCreated = true;
+      }
+    }, {
+      key: 'bindToRedraw',
+      value: function bindToRedraw(action) {
+        if (this.boundFunctions[action] === undefined) {
+          this.boundFunctions[action] = this[action].bind(this);
+          this.body.emitter.on('initRedraw', this.boundFunctions[action]);
+          this.body.emitter.emit('_startRendering');
+        }
+      }
+    }, {
+      key: 'unbindFromRedraw',
+      value: function unbindFromRedraw(action) {
+        if (this.boundFunctions[action] !== undefined) {
+          this.body.emitter.off('initRedraw', this.boundFunctions[action]);
+          this.body.emitter.emit('_stopRendering');
+          delete this.boundFunctions[action];
+        }
+      }
+    }, {
+      key: '_fit',
+
+      /**
+       * this stops all movement induced by the navigation buttons
+       *
+       * @private
+       */
+      value: function _fit() {
+        if (new Date().valueOf() - this.touchTime > 700) {
+          // TODO: fix ugly hack to avoid hammer's double fireing of event (because we use release?)
+          this.body.emitter.emit('fit', { duration: 700 });
+          this.touchTime = new Date().valueOf();
+        }
+      }
+    }, {
+      key: '_stopMovement',
+
+      /**
+       * this stops all movement induced by the navigation buttons
+       *
+       * @private
+       */
+      value: function _stopMovement() {
+        for (var boundAction in this.boundFunctions) {
+          if (this.boundFunctions.hasOwnProperty(boundAction)) {
+            this.body.emitter.off('initRedraw', this.boundFunctions[boundAction]);
+            this.body.emitter.emit('_stopRendering');
+          }
+        }
+        this.boundFunctions = {};
+      }
+    }, {
+      key: '_moveUp',
+      value: function _moveUp() {
+        this.body.view.translation.y += this.options.keyboard.speed.y;
+      }
+    }, {
+      key: '_moveDown',
+      value: function _moveDown() {
+        this.body.view.translation.y -= this.options.keyboard.speed.y;
+      }
+    }, {
+      key: '_moveLeft',
+      value: function _moveLeft() {
+        this.body.view.translation.x += this.options.keyboard.speed.x;
+      }
+    }, {
+      key: '_moveRight',
+      value: function _moveRight() {
+        this.body.view.translation.x -= this.options.keyboard.speed.x;
+      }
+    }, {
+      key: '_zoomIn',
+      value: function _zoomIn() {
+        this.body.view.scale *= 1 + this.options.keyboard.speed.zoom;
+        this.body.emitter.emit('zoom', { direction: '+', scale: this.body.view.scale });
+      }
+    }, {
+      key: '_zoomOut',
+      value: function _zoomOut() {
+        this.body.view.scale /= 1 + this.options.keyboard.speed.zoom;
+        this.body.emitter.emit('zoom', { direction: '-', scale: this.body.view.scale });
+      }
+    }, {
+      key: 'configureKeyboardBindings',
+
+      /**
+       * bind all keys using keycharm.
+       */
+      value: function configureKeyboardBindings() {
+        var _this3 = this;
+
+        if (this.keycharm !== undefined) {
+          this.keycharm.destroy();
+        }
+
+        if (this.options.keyboard.enabled === true) {
+          if (this.options.keyboard.bindToWindow === true) {
+            this.keycharm = keycharm({ container: window, preventDefault: true });
+          } else {
+            this.keycharm = keycharm({ container: this.canvas.frame, preventDefault: true });
+          }
+
+          this.keycharm.reset();
+
+          if (this.activated === true) {
+            this.keycharm.bind('up', function () {
+              _this3.bindToRedraw('_moveUp');
+            }, 'keydown');
+            this.keycharm.bind('down', function () {
+              _this3.bindToRedraw('_moveDown');
+            }, 'keydown');
+            this.keycharm.bind('left', function () {
+              _this3.bindToRedraw('_moveLeft');
+            }, 'keydown');
+            this.keycharm.bind('right', function () {
+              _this3.bindToRedraw('_moveRight');
+            }, 'keydown');
+            this.keycharm.bind('=', function () {
+              _this3.bindToRedraw('_zoomIn');
+            }, 'keydown');
+            this.keycharm.bind('num+', function () {
+              _this3.bindToRedraw('_zoomIn');
+            }, 'keydown');
+            this.keycharm.bind('num-', function () {
+              _this3.bindToRedraw('_zoomOut');
+            }, 'keydown');
+            this.keycharm.bind('-', function () {
+              _this3.bindToRedraw('_zoomOut');
+            }, 'keydown');
+            this.keycharm.bind('[', function () {
+              _this3.bindToRedraw('_zoomOut');
+            }, 'keydown');
+            this.keycharm.bind(']', function () {
+              _this3.bindToRedraw('_zoomIn');
+            }, 'keydown');
+            this.keycharm.bind('pageup', function () {
+              _this3.bindToRedraw('_zoomIn');
+            }, 'keydown');
+            this.keycharm.bind('pagedown', function () {
+              _this3.bindToRedraw('_zoomOut');
+            }, 'keydown');
+
+            this.keycharm.bind('up', function () {
+              _this3.unbindFromRedraw('_moveUp');
+            }, 'keyup');
+            this.keycharm.bind('down', function () {
+              _this3.unbindFromRedraw('_moveDown');
+            }, 'keyup');
+            this.keycharm.bind('left', function () {
+              _this3.unbindFromRedraw('_moveLeft');
+            }, 'keyup');
+            this.keycharm.bind('right', function () {
+              _this3.unbindFromRedraw('_moveRight');
+            }, 'keyup');
+            this.keycharm.bind('=', function () {
+              _this3.unbindFromRedraw('_zoomIn');
+            }, 'keyup');
+            this.keycharm.bind('num+', function () {
+              _this3.unbindFromRedraw('_zoomIn');
+            }, 'keyup');
+            this.keycharm.bind('num-', function () {
+              _this3.unbindFromRedraw('_zoomOut');
+            }, 'keyup');
+            this.keycharm.bind('-', function () {
+              _this3.unbindFromRedraw('_zoomOut');
+            }, 'keyup');
+            this.keycharm.bind('[', function () {
+              _this3.unbindFromRedraw('_zoomOut');
+            }, 'keyup');
+            this.keycharm.bind(']', function () {
+              _this3.unbindFromRedraw('_zoomIn');
+            }, 'keyup');
+            this.keycharm.bind('pageup', function () {
+              _this3.unbindFromRedraw('_zoomIn');
+            }, 'keyup');
+            this.keycharm.bind('pagedown', function () {
+              _this3.unbindFromRedraw('_zoomOut');
+            }, 'keyup');
+          }
+        }
+      }
+    }]);
+
+    return NavigationHandler;
+  })();
+
+  exports['default'] = NavigationHandler;
+  module.exports = exports['default'];
+
+/***/ },
 /* 105 */
 /***/ function(module, exports, __webpack_require__) {
 
@@ -38196,737 +37719,6 @@ return /******/ (function(modules) { // webpackBootstrap
 /* 106 */
 /***/ function(module, exports, __webpack_require__) {
 
-  "use strict";
-
-  Object.defineProperty(exports, "__esModule", {
-    value: true
-  });
-
-  var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
-
-  function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-
-  var Node = __webpack_require__(69);
-  var Edge = __webpack_require__(87);
-  var util = __webpack_require__(19);
-
-  var SelectionHandler = (function () {
-    function SelectionHandler(body, canvas) {
-      var _this = this;
-
-      _classCallCheck(this, SelectionHandler);
-
-      this.body = body;
-      this.canvas = canvas;
-      this.selectionObj = { nodes: [], edges: [] };
-      this.hoverObj = { nodes: {}, edges: {} };
-
-      this.options = {};
-      this.defaultOptions = {
-        multiselect: false,
-        selectable: true,
-        selectConnectedEdges: true,
-        hoverConnectedEdges: true
-      };
-      util.extend(this.options, this.defaultOptions);
-
-      this.body.emitter.on("_dataChanged", function () {
-        _this.updateSelection();
-      });
-    }
-
-    _createClass(SelectionHandler, [{
-      key: "setOptions",
-      value: function setOptions(options) {
-        if (options !== undefined) {
-          var fields = ["multiselect", "hoverConnectedEdges", "selectable", "selectConnectedEdges"];
-          util.selectiveDeepExtend(fields, this.options, options);
-        }
-      }
-    }, {
-      key: "selectOnPoint",
-
-      /**
-       * handles the selection part of the tap;
-       *
-       * @param {Object} pointer
-       * @private
-       */
-      value: function selectOnPoint(pointer) {
-        var selected = false;
-        if (this.options.selectable === true) {
-          var obj = this.getNodeAt(pointer) || this.getEdgeAt(pointer);
-
-          // unselect after getting the objects in order to restore width and height.
-          this.unselectAll();
-
-          if (obj !== undefined) {
-            selected = this.selectObject(obj);
-          }
-          this.body.emitter.emit("_requestRedraw");
-        }
-        return selected;
-      }
-    }, {
-      key: "selectAdditionalOnPoint",
-      value: function selectAdditionalOnPoint(pointer) {
-        var selectionChanged = false;
-        if (this.options.selectable === true) {
-          var obj = this.getNodeAt(pointer) || this.getEdgeAt(pointer);
-
-          if (obj !== undefined) {
-            selectionChanged = true;
-            if (obj.isSelected() === true) {
-              this.deselectObject(obj);
-            } else {
-              this.selectObject(obj);
-            }
-
-            this.body.emitter.emit("_requestRedraw");
-          }
-        }
-        return selectionChanged;
-      }
-    }, {
-      key: "_generateClickEvent",
-      value: function _generateClickEvent(eventType, event, pointer, oldSelection) {
-        var emptySelection = arguments[4] === undefined ? false : arguments[4];
-
-        var properties = undefined;
-        if (emptySelection === true) {
-          properties = { nodes: [], edges: [] };
-        } else {
-          properties = this.getSelection();
-        }
-        properties["pointer"] = {
-          DOM: { x: pointer.x, y: pointer.y },
-          canvas: this.canvas.DOMtoCanvas(pointer)
-        };
-        properties["event"] = event;
-
-        if (oldSelection !== undefined) {
-          properties["previousSelection"] = oldSelection;
-        }
-        this.body.emitter.emit(eventType, properties);
-      }
-    }, {
-      key: "selectObject",
-      value: function selectObject(obj) {
-        var highlightEdges = arguments[1] === undefined ? this.options.selectConnectedEdges : arguments[1];
-
-        if (obj !== undefined) {
-          if (obj instanceof Node) {
-            if (highlightEdges === true) {
-              this._selectConnectedEdges(obj);
-            }
-          }
-          obj.select();
-          this._addToSelection(obj);
-          return true;
-        }
-        return false;
-      }
-    }, {
-      key: "deselectObject",
-      value: function deselectObject(obj) {
-        if (obj.isSelected() === true) {
-          obj.selected = false;
-          this._removeFromSelection(obj);
-        }
-      }
-    }, {
-      key: "_getAllNodesOverlappingWith",
-
-      /**
-       * retrieve all nodes overlapping with given object
-       * @param {Object} object  An object with parameters left, top, right, bottom
-       * @return {Number[]}   An array with id's of the overlapping nodes
-       * @private
-       */
-      value: function _getAllNodesOverlappingWith(object) {
-        var overlappingNodes = [];
-        var nodes = this.body.nodes;
-        for (var i = 0; i < this.body.nodeIndices.length; i++) {
-          var nodeId = this.body.nodeIndices[i];
-          if (nodes[nodeId].isOverlappingWith(object)) {
-            overlappingNodes.push(nodeId);
-          }
-        }
-        return overlappingNodes;
-      }
-    }, {
-      key: "_pointerToPositionObject",
-
-      /**
-       * Return a position object in canvasspace from a single point in screenspace
-       *
-       * @param pointer
-       * @returns {{left: number, top: number, right: number, bottom: number}}
-       * @private
-       */
-      value: function _pointerToPositionObject(pointer) {
-        var canvasPos = this.canvas.DOMtoCanvas(pointer);
-        return {
-          left: canvasPos.x - 1,
-          top: canvasPos.y + 1,
-          right: canvasPos.x + 1,
-          bottom: canvasPos.y - 1
-        };
-      }
-    }, {
-      key: "getNodeAt",
-
-      /**
-       * Get the top node at the a specific point (like a click)
-       *
-       * @param {{x: Number, y: Number}} pointer
-       * @return {Node | undefined} node
-       * @private
-       */
-      value: function getNodeAt(pointer) {
-        var returnNode = arguments[1] === undefined ? true : arguments[1];
-
-        // we first check if this is an navigation controls element
-        var positionObject = this._pointerToPositionObject(pointer);
-        var overlappingNodes = this._getAllNodesOverlappingWith(positionObject);
-        // if there are overlapping nodes, select the last one, this is the
-        // one which is drawn on top of the others
-        if (overlappingNodes.length > 0) {
-          if (returnNode === true) {
-            return this.body.nodes[overlappingNodes[overlappingNodes.length - 1]];
-          } else {
-            return overlappingNodes[overlappingNodes.length - 1];
-          }
-        } else {
-          return undefined;
-        }
-      }
-    }, {
-      key: "_getEdgesOverlappingWith",
-
-      /**
-       * retrieve all edges overlapping with given object, selector is around center
-       * @param {Object} object  An object with parameters left, top, right, bottom
-       * @return {Number[]}   An array with id's of the overlapping nodes
-       * @private
-       */
-      value: function _getEdgesOverlappingWith(object, overlappingEdges) {
-        var edges = this.body.edges;
-        for (var i = 0; i < this.body.edgeIndices.length; i++) {
-          var edgeId = this.body.edgeIndices[i];
-          if (edges[edgeId].isOverlappingWith(object)) {
-            overlappingEdges.push(edgeId);
-          }
-        }
-      }
-    }, {
-      key: "_getAllEdgesOverlappingWith",
-
-      /**
-       * retrieve all nodes overlapping with given object
-       * @param {Object} object  An object with parameters left, top, right, bottom
-       * @return {Number[]}   An array with id's of the overlapping nodes
-       * @private
-       */
-      value: function _getAllEdgesOverlappingWith(object) {
-        var overlappingEdges = [];
-        this._getEdgesOverlappingWith(object, overlappingEdges);
-        return overlappingEdges;
-      }
-    }, {
-      key: "getEdgeAt",
-
-      /**
-       * Place holder. To implement change the getNodeAt to a _getObjectAt. Have the _getObjectAt call
-       * getNodeAt and _getEdgesAt, then priortize the selection to user preferences.
-       *
-       * @param pointer
-       * @returns {undefined}
-       * @private
-       */
-      value: function getEdgeAt(pointer) {
-        var returnEdge = arguments[1] === undefined ? true : arguments[1];
-
-        var positionObject = this._pointerToPositionObject(pointer);
-        var overlappingEdges = this._getAllEdgesOverlappingWith(positionObject);
-
-        if (overlappingEdges.length > 0) {
-          if (returnEdge === true) {
-            return this.body.edges[overlappingEdges[overlappingEdges.length - 1]];
-          } else {
-            return overlappingEdges[overlappingEdges.length - 1];
-          }
-        } else {
-          return undefined;
-        }
-      }
-    }, {
-      key: "_addToSelection",
-
-      /**
-       * Add object to the selection array.
-       *
-       * @param obj
-       * @private
-       */
-      value: function _addToSelection(obj) {
-        if (obj instanceof Node) {
-          this.selectionObj.nodes[obj.id] = obj;
-        } else {
-          this.selectionObj.edges[obj.id] = obj;
-        }
-      }
-    }, {
-      key: "_addToHover",
-
-      /**
-       * Add object to the selection array.
-       *
-       * @param obj
-       * @private
-       */
-      value: function _addToHover(obj) {
-        if (obj instanceof Node) {
-          this.hoverObj.nodes[obj.id] = obj;
-        } else {
-          this.hoverObj.edges[obj.id] = obj;
-        }
-      }
-    }, {
-      key: "_removeFromSelection",
-
-      /**
-       * Remove a single option from selection.
-       *
-       * @param {Object} obj
-       * @private
-       */
-      value: function _removeFromSelection(obj) {
-        if (obj instanceof Node) {
-          delete this.selectionObj.nodes[obj.id];
-        } else {
-          delete this.selectionObj.edges[obj.id];
-        }
-      }
-    }, {
-      key: "unselectAll",
-
-      /**
-       * Unselect all. The selectionObj is useful for this.
-       *
-       * @private
-       */
-      value: function unselectAll() {
-        for (var nodeId in this.selectionObj.nodes) {
-          if (this.selectionObj.nodes.hasOwnProperty(nodeId)) {
-            this.selectionObj.nodes[nodeId].unselect();
-          }
-        }
-        for (var edgeId in this.selectionObj.edges) {
-          if (this.selectionObj.edges.hasOwnProperty(edgeId)) {
-            this.selectionObj.edges[edgeId].unselect();
-          }
-        }
-
-        this.selectionObj = { nodes: {}, edges: {} };
-      }
-    }, {
-      key: "_getSelectedNodeCount",
-
-      /**
-       * return the number of selected nodes
-       *
-       * @returns {number}
-       * @private
-       */
-      value: function _getSelectedNodeCount() {
-        var count = 0;
-        for (var nodeId in this.selectionObj.nodes) {
-          if (this.selectionObj.nodes.hasOwnProperty(nodeId)) {
-            count += 1;
-          }
-        }
-        return count;
-      }
-    }, {
-      key: "_getSelectedNode",
-
-      /**
-       * return the selected node
-       *
-       * @returns {number}
-       * @private
-       */
-      value: function _getSelectedNode() {
-        for (var nodeId in this.selectionObj.nodes) {
-          if (this.selectionObj.nodes.hasOwnProperty(nodeId)) {
-            return this.selectionObj.nodes[nodeId];
-          }
-        }
-        return undefined;
-      }
-    }, {
-      key: "_getSelectedEdge",
-
-      /**
-       * return the selected edge
-       *
-       * @returns {number}
-       * @private
-       */
-      value: function _getSelectedEdge() {
-        for (var edgeId in this.selectionObj.edges) {
-          if (this.selectionObj.edges.hasOwnProperty(edgeId)) {
-            return this.selectionObj.edges[edgeId];
-          }
-        }
-        return undefined;
-      }
-    }, {
-      key: "_getSelectedEdgeCount",
-
-      /**
-       * return the number of selected edges
-       *
-       * @returns {number}
-       * @private
-       */
-      value: function _getSelectedEdgeCount() {
-        var count = 0;
-        for (var edgeId in this.selectionObj.edges) {
-          if (this.selectionObj.edges.hasOwnProperty(edgeId)) {
-            count += 1;
-          }
-        }
-        return count;
-      }
-    }, {
-      key: "_getSelectedObjectCount",
-
-      /**
-       * return the number of selected objects.
-       *
-       * @returns {number}
-       * @private
-       */
-      value: function _getSelectedObjectCount() {
-        var count = 0;
-        for (var nodeId in this.selectionObj.nodes) {
-          if (this.selectionObj.nodes.hasOwnProperty(nodeId)) {
-            count += 1;
-          }
-        }
-        for (var edgeId in this.selectionObj.edges) {
-          if (this.selectionObj.edges.hasOwnProperty(edgeId)) {
-            count += 1;
-          }
-        }
-        return count;
-      }
-    }, {
-      key: "_selectionIsEmpty",
-
-      /**
-       * Check if anything is selected
-       *
-       * @returns {boolean}
-       * @private
-       */
-      value: function _selectionIsEmpty() {
-        for (var nodeId in this.selectionObj.nodes) {
-          if (this.selectionObj.nodes.hasOwnProperty(nodeId)) {
-            return false;
-          }
-        }
-        for (var edgeId in this.selectionObj.edges) {
-          if (this.selectionObj.edges.hasOwnProperty(edgeId)) {
-            return false;
-          }
-        }
-        return true;
-      }
-    }, {
-      key: "_clusterInSelection",
-
-      /**
-       * check if one of the selected nodes is a cluster.
-       *
-       * @returns {boolean}
-       * @private
-       */
-      value: function _clusterInSelection() {
-        for (var nodeId in this.selectionObj.nodes) {
-          if (this.selectionObj.nodes.hasOwnProperty(nodeId)) {
-            if (this.selectionObj.nodes[nodeId].clusterSize > 1) {
-              return true;
-            }
-          }
-        }
-        return false;
-      }
-    }, {
-      key: "_selectConnectedEdges",
-
-      /**
-       * select the edges connected to the node that is being selected
-       *
-       * @param {Node} node
-       * @private
-       */
-      value: function _selectConnectedEdges(node) {
-        for (var i = 0; i < node.edges.length; i++) {
-          var edge = node.edges[i];
-          edge.select();
-          this._addToSelection(edge);
-        }
-      }
-    }, {
-      key: "_hoverConnectedEdges",
-
-      /**
-       * select the edges connected to the node that is being selected
-       *
-       * @param {Node} node
-       * @private
-       */
-      value: function _hoverConnectedEdges(node) {
-        for (var i = 0; i < node.edges.length; i++) {
-          var edge = node.edges[i];
-          edge.hover = true;
-          this._addToHover(edge);
-        }
-      }
-    }, {
-      key: "_unselectConnectedEdges",
-
-      /**
-       * unselect the edges connected to the node that is being selected
-       *
-       * @param {Node} node
-       * @private
-       */
-      value: function _unselectConnectedEdges(node) {
-        for (var i = 0; i < node.edges.length; i++) {
-          var edge = node.edges[i];
-          edge.unselect();
-          this._removeFromSelection(edge);
-        }
-      }
-    }, {
-      key: "blurObject",
-
-      /**
-       * This is called when someone clicks on a node. either select or deselect it.
-       * If there is an existing selection and we don't want to append to it, clear the existing selection
-       *
-       * @param {Node || Edge} object
-       * @private
-       */
-      value: function blurObject(object) {
-        if (object.hover === true) {
-          object.hover = false;
-          this.body.emitter.emit("blurNode", { node: object.id });
-        }
-      }
-    }, {
-      key: "hoverObject",
-
-      /**
-       * This is called when someone clicks on a node. either select or deselect it.
-       * If there is an existing selection and we don't want to append to it, clear the existing selection
-       *
-       * @param {Node || Edge} object
-       * @private
-       */
-      value: function hoverObject(object) {
-        var hoverChanged = false;
-        // remove all node hover highlights
-        for (var nodeId in this.hoverObj.nodes) {
-          if (this.hoverObj.nodes.hasOwnProperty(nodeId)) {
-            if (object === undefined) {
-              this.blurObject(this.hoverObj.nodes[nodeId]);
-              hoverChanged = true;
-            } else if (object instanceof Node && object.id != nodeId || object instanceof Edge || object === undefined) {
-              this.blurObject(this.hoverObj.nodes[nodeId]);
-              hoverChanged = true;
-              delete this.hoverObj.nodes[nodeId];
-            }
-          }
-        }
-
-        // removing all edge hover highlights
-        for (var edgeId in this.hoverObj.edges) {
-          if (this.hoverObj.edges.hasOwnProperty(edgeId)) {
-            this.hoverObj.edges[edgeId].hover = false;
-            delete this.hoverObj.edges[edgeId];
-          }
-        }
-
-        if (object !== undefined) {
-          if (object.hover === false) {
-            object.hover = true;
-            this._addToHover(object);
-            hoverChanged = true;
-            if (object instanceof Node) {
-              this.body.emitter.emit("hoverNode", { node: object.id });
-            }
-          }
-          if (object instanceof Node && this.options.hoverConnectedEdges === true) {
-            this._hoverConnectedEdges(object);
-          }
-        }
-
-        if (hoverChanged === true) {
-          this.body.emitter.emit("_requestRedraw");
-        }
-      }
-    }, {
-      key: "getSelection",
-
-      /**
-       *
-       * retrieve the currently selected objects
-       * @return {{nodes: Array.<String>, edges: Array.<String>}} selection
-       */
-      value: function getSelection() {
-        var nodeIds = this.getSelectedNodes();
-        var edgeIds = this.getSelectedEdges();
-        return { nodes: nodeIds, edges: edgeIds };
-      }
-    }, {
-      key: "getSelectedNodes",
-
-      /**
-       *
-       * retrieve the currently selected nodes
-       * @return {String[]} selection    An array with the ids of the
-       *                                            selected nodes.
-       */
-      value: function getSelectedNodes() {
-        var idArray = [];
-        if (this.options.selectable === true) {
-          for (var nodeId in this.selectionObj.nodes) {
-            if (this.selectionObj.nodes.hasOwnProperty(nodeId)) {
-              idArray.push(nodeId);
-            }
-          }
-        }
-        return idArray;
-      }
-    }, {
-      key: "getSelectedEdges",
-
-      /**
-       *
-       * retrieve the currently selected edges
-       * @return {Array} selection    An array with the ids of the
-       *                                            selected nodes.
-       */
-      value: function getSelectedEdges() {
-        var idArray = [];
-        if (this.options.selectable === true) {
-          for (var edgeId in this.selectionObj.edges) {
-            if (this.selectionObj.edges.hasOwnProperty(edgeId)) {
-              idArray.push(edgeId);
-            }
-          }
-        }
-        return idArray;
-      }
-    }, {
-      key: "selectNodes",
-
-      /**
-       * select zero or more nodes with the option to highlight edges
-       * @param {Number[] | String[]} selection     An array with the ids of the
-       *                                            selected nodes.
-       * @param {boolean} [highlightEdges]
-       */
-      value: function selectNodes(selection) {
-        var highlightEdges = arguments[1] === undefined ? true : arguments[1];
-
-        var i = undefined,
-            id = undefined;
-
-        if (!selection || selection.length === undefined) throw "Selection must be an array with ids";
-
-        // first unselect any selected node
-        this.unselectAll();
-
-        for (i = 0; i < selection.length; i++) {
-          id = selection[i];
-
-          var node = this.body.nodes[id];
-          if (!node) {
-            throw new RangeError("Node with id \"" + id + "\" not found");
-          }
-          this.selectObject(node, highlightEdges);
-        }
-        this.body.emitter.emit("_requestRedraw");
-      }
-    }, {
-      key: "selectEdges",
-
-      /**
-       * select zero or more edges
-       * @param {Number[] | String[]} selection     An array with the ids of the
-       *                                            selected nodes.
-       */
-      value: function selectEdges(selection) {
-        var i = undefined,
-            id = undefined;
-
-        if (!selection || selection.length === undefined) throw "Selection must be an array with ids";
-
-        // first unselect any selected objects
-        this.unselectAll();
-
-        for (i = 0; i < selection.length; i++) {
-          id = selection[i];
-
-          var edge = this.body.edges[id];
-          if (!edge) {
-            throw new RangeError("Edge with id \"" + id + "\" not found");
-          }
-          this.selectObject(edge);
-        }
-        this.body.emitter.emit("_requestRedraw");
-      }
-    }, {
-      key: "updateSelection",
-
-      /**
-       * Validate the selection: remove ids of nodes which no longer exist
-       * @private
-       */
-      value: function updateSelection() {
-        for (var nodeId in this.selectionObj.nodes) {
-          if (this.selectionObj.nodes.hasOwnProperty(nodeId)) {
-            if (!this.body.nodes.hasOwnProperty(nodeId)) {
-              delete this.selectionObj.nodes[nodeId];
-            }
-          }
-        }
-        for (var edgeId in this.selectionObj.edges) {
-          if (this.selectionObj.edges.hasOwnProperty(edgeId)) {
-            if (!this.body.edges.hasOwnProperty(edgeId)) {
-              delete this.selectionObj.edges[edgeId];
-            }
-          }
-        }
-      }
-    }]);
-
-    return SelectionHandler;
-  })();
-
-  exports["default"] = SelectionHandler;
-  module.exports = exports["default"];
-
-/***/ },
-/* 107 */
-/***/ function(module, exports, __webpack_require__) {
-
   'use strict';
 
   Object.defineProperty(exports, '__esModule', {
@@ -38937,7 +37729,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
 
-  var util = __webpack_require__(19);
+  var util = __webpack_require__(9);
 
   var LayoutEngine = (function () {
     function LayoutEngine(body) {
@@ -39429,6 +38221,1220 @@ return /******/ (function(modules) { // webpackBootstrap
   })();
 
   exports['default'] = LayoutEngine;
+  module.exports = exports['default'];
+
+/***/ },
+/* 107 */
+/***/ function(module, exports, __webpack_require__) {
+
+  'use strict';
+
+  Object.defineProperty(exports, '__esModule', {
+    value: true
+  });
+
+  var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
+
+  function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
+
+  var util = __webpack_require__(9);
+  var Hammer = __webpack_require__(5);
+  var hammerUtil = __webpack_require__(31);
+
+  /**
+   * clears the toolbar div element of children
+   *
+   * @private
+   */
+
+  var ManipulationSystem = (function () {
+    function ManipulationSystem(body, canvas, selectionHandler) {
+      var _this = this;
+
+      _classCallCheck(this, ManipulationSystem);
+
+      this.body = body;
+      this.canvas = canvas;
+      this.selectionHandler = selectionHandler;
+
+      this.editMode = false;
+      this.manipulationDiv = undefined;
+      this.editModeDiv = undefined;
+      this.closeDiv = undefined;
+
+      this.manipulationHammers = [];
+      this.temporaryUIFunctions = {};
+      this.temporaryEventFunctions = [];
+
+      this.touchTime = 0;
+      this.temporaryIds = { nodes: [], edges: [] };
+      this.guiEnabled = false;
+      this.inMode = false;
+      this.selectedControlNode = undefined;
+
+      this.options = {};
+      this.defaultOptions = {
+        enabled: false,
+        initiallyActive: false,
+        addNode: true,
+        addEdge: true,
+        editNode: undefined,
+        editEdge: true,
+        deleteNode: true,
+        deleteEdge: true,
+        controlNodeStyle: {
+          shape: 'dot',
+          size: 6,
+          color: { background: '#ff0000', border: '#3c3c3c', highlight: { background: '#07f968', border: '#3c3c3c' } },
+          borderWidth: 2,
+          borderWidthSelected: 2
+        }
+      };
+      util.extend(this.options, this.defaultOptions);
+
+      this.body.emitter.on('destroy', function () {
+        _this._clean();
+      });
+      this.body.emitter.on('_dataChanged', this._restore.bind(this));
+      this.body.emitter.on('_resetData', this._restore.bind(this));
+    }
+
+    _createClass(ManipulationSystem, [{
+      key: '_restore',
+
+      /**
+       * If something changes in the data during editing, switch back to the initial datamanipulation state and close all edit modes.
+       * @private
+       */
+      value: function _restore() {
+        if (this.inMode !== false) {
+          if (this.options.initiallyActive === true) {
+            this.enableEditMode();
+          } else {
+            this.disableEditMode();
+          }
+        }
+      }
+    }, {
+      key: 'setOptions',
+
+      /**
+       * Set the Options
+       * @param options
+       */
+      value: function setOptions(options, allOptions, globalOptions) {
+        if (allOptions !== undefined) {
+          if (allOptions.locale !== undefined) {
+            this.options.locale = allOptions.locale;
+          } else {
+            this.options.locale = globalOptions.locale;
+          }
+          if (allOptions.locales !== undefined) {
+            this.options.locales = allOptions.locales;
+          } else {
+            this.options.locales = globalOptions.locales;
+          }
+        }
+
+        if (options !== undefined) {
+          if (typeof options === 'boolean') {
+            this.options.enabled = options;
+          } else {
+            this.options.enabled = true;
+            util.deepExtend(this.options, options);
+          }
+          if (this.options.initiallyActive === true) {
+            this.editMode = true;
+          }
+          this._setup();
+        }
+      }
+    }, {
+      key: 'toggleEditMode',
+
+      /**
+       * Enable or disable edit-mode. Draws the DOM required and cleans up after itself.
+       *
+       * @private
+       */
+      value: function toggleEditMode() {
+        if (this.editMode === true) {
+          this.disableEditMode();
+        } else {
+          this.enableEditMode();
+        }
+      }
+    }, {
+      key: 'enableEditMode',
+      value: function enableEditMode() {
+        this.editMode = true;
+
+        this._clean();
+        if (this.guiEnabled === true) {
+          this.manipulationDiv.style.display = 'block';
+          this.closeDiv.style.display = 'block';
+          this.editModeDiv.style.display = 'none';
+          this.showManipulatorToolbar();
+        }
+      }
+    }, {
+      key: 'disableEditMode',
+      value: function disableEditMode() {
+        this.editMode = false;
+
+        this._clean();
+        if (this.guiEnabled === true) {
+          this.manipulationDiv.style.display = 'none';
+          this.closeDiv.style.display = 'none';
+          this.editModeDiv.style.display = 'block';
+          this._createEditButton();
+        }
+      }
+    }, {
+      key: 'showManipulatorToolbar',
+
+      /**
+       * Creates the main toolbar. Removes functions bound to the select event. Binds all the buttons of the toolbar.
+       *
+       * @private
+       */
+      value: function showManipulatorToolbar() {
+        // restore the state of any bound functions or events, remove control nodes, restore physics
+        this._clean();
+
+        // reset global letiables
+        this.manipulationDOM = {};
+
+        // if the gui is enabled, draw all elements.
+        if (this.guiEnabled === true) {
+          // a _restore will hide these menus
+          this.editMode = true;
+          this.manipulationDiv.style.display = 'block';
+          this.closeDiv.style.display = 'block';
+
+          var selectedNodeCount = this.selectionHandler._getSelectedNodeCount();
+          var selectedEdgeCount = this.selectionHandler._getSelectedEdgeCount();
+          var selectedTotalCount = selectedNodeCount + selectedEdgeCount;
+          var locale = this.options.locales[this.options.locale];
+          var needSeperator = false;
+
+          if (this.options.addNode !== false) {
+            this._createAddNodeButton(locale);
+            needSeperator = true;
+          }
+          if (this.options.addEdge !== false) {
+            if (needSeperator === true) {
+              this._createSeperator(1);
+            } else {
+              needSeperator = true;
+            }
+            this._createAddEdgeButton(locale);
+          }
+
+          if (selectedNodeCount === 1 && typeof this.options.editNode === 'function') {
+            if (needSeperator === true) {
+              this._createSeperator(2);
+            } else {
+              needSeperator = true;
+            }
+            this._createEditNodeButton(locale);
+          } else if (selectedEdgeCount === 1 && selectedNodeCount === 0 && this.options.editEdge !== false) {
+            if (needSeperator === true) {
+              this._createSeperator(3);
+            } else {
+              needSeperator = true;
+            }
+            this._createEditEdgeButton(locale);
+          }
+
+          // remove buttons
+          if (selectedTotalCount !== 0) {
+            if (selectedNodeCount === 1 && this.options.deleteNode !== false) {
+              if (needSeperator === true) {
+                this._createSeperator(4);
+              }
+              this._createDeleteButton(locale);
+            } else if (selectedNodeCount === 0 && this.options.deleteEdge !== false) {
+              if (needSeperator === true) {
+                this._createSeperator(4);
+              }
+              this._createDeleteButton(locale);
+            }
+          }
+
+          // bind the close button
+          this._bindHammerToDiv(this.closeDiv, this.toggleEditMode.bind(this));
+
+          // refresh this bar based on what has been selected
+          this._temporaryBindEvent('select', this.showManipulatorToolbar.bind(this));
+        }
+
+        // redraw to show any possible changes
+        this.body.emitter.emit('_redraw');
+      }
+    }, {
+      key: 'addNodeMode',
+
+      /**
+       * Create the toolbar for adding Nodes
+       *
+       * @private
+       */
+      value: function addNodeMode() {
+        // when using the gui, enable edit mode if it wasnt already.
+        if (this.editMode !== true) {
+          this.enableEditMode();
+        }
+
+        // restore the state of any bound functions or events, remove control nodes, restore physics
+        this._clean();
+
+        this.inMode = 'addNode';
+        if (this.guiEnabled === true) {
+          var locale = this.options.locales[this.options.locale];
+          this.manipulationDOM = {};
+          this._createBackButton(locale);
+          this._createSeperator();
+          this._createDescription(locale['addDescription'] || this.options.locales['en']['addDescription']);
+
+          // bind the close button
+          this._bindHammerToDiv(this.closeDiv, this.toggleEditMode.bind(this));
+        }
+
+        this._temporaryBindEvent('click', this._performAddNode.bind(this));
+      }
+    }, {
+      key: 'editNode',
+
+      /**
+       * call the bound function to handle the editing of the node. The node has to be selected.
+       *
+       * @private
+       */
+      value: function editNode() {
+        var _this2 = this;
+
+        // when using the gui, enable edit mode if it wasnt already.
+        if (this.editMode !== true) {
+          this.enableEditMode();
+        }
+
+        // restore the state of any bound functions or events, remove control nodes, restore physics
+        this._clean();
+        var node = this.selectionHandler._getSelectedNode();
+        if (node !== undefined) {
+          this.inMode = 'editNode';
+          if (typeof this.options.editNode === 'function') {
+            if (node.isCluster !== true) {
+              var data = util.deepExtend({}, node.options, true);
+              data.x = node.x;
+              data.y = node.y;
+
+              if (this.options.editNode.length === 2) {
+                this.options.editNode(data, function (finalizedData) {
+                  if (finalizedData !== null && finalizedData !== undefined && _this2.inMode === 'editNode') {
+                    // if for whatever reason the mode has changes (due to dataset change) disregard the callback) {
+                    _this2.body.data.nodes.getDataSet().update(finalizedData);
+                  }
+                  _this2.showManipulatorToolbar();
+                });
+              } else {
+                throw new Error('The function for edit does not support two arguments (data, callback)');
+              }
+            } else {
+              alert(this.options.locales[this.options.locale]['editClusterError'] || this.options.locales['en']['editClusterError']);
+            }
+          } else {
+            throw new Error('No function has been configured to handle the editing of nodes.');
+          }
+        } else {
+          this.showManipulatorToolbar();
+        }
+      }
+    }, {
+      key: 'addEdgeMode',
+
+      /**
+       * create the toolbar to connect nodes
+       *
+       * @private
+       */
+      value: function addEdgeMode() {
+        // when using the gui, enable edit mode if it wasnt already.
+        if (this.editMode !== true) {
+          this.enableEditMode();
+        }
+
+        // restore the state of any bound functions or events, remove control nodes, restore physics
+        this._clean();
+
+        this.inMode = 'addEdge';
+        if (this.guiEnabled === true) {
+          var locale = this.options.locales[this.options.locale];
+          this.manipulationDOM = {};
+          this._createBackButton(locale);
+          this._createSeperator();
+          this._createDescription(locale['edgeDescription'] || this.options.locales['en']['edgeDescription']);
+
+          // bind the close button
+          this._bindHammerToDiv(this.closeDiv, this.toggleEditMode.bind(this));
+        }
+
+        // temporarily overload functions
+        this._temporaryBindUI('onTouch', this._handleConnect.bind(this));
+        this._temporaryBindUI('onDragEnd', this._finishConnect.bind(this));
+        this._temporaryBindUI('onDrag', this._dragControlNode.bind(this));
+        this._temporaryBindUI('onRelease', this._finishConnect.bind(this));
+
+        this._temporaryBindUI('onDragStart', function () {});
+        this._temporaryBindUI('onHold', function () {});
+      }
+    }, {
+      key: 'editEdgeMode',
+
+      /**
+       * create the toolbar to edit edges
+       *
+       * @private
+       */
+      value: function editEdgeMode() {
+        var _this3 = this;
+
+        // when using the gui, enable edit mode if it wasnt already.
+        if (this.editMode !== true) {
+          this.enableEditMode();
+        }
+
+        // restore the state of any bound functions or events, remove control nodes, restore physics
+        this._clean();
+
+        this.inMode = 'editEdge';
+        if (this.guiEnabled === true) {
+          var locale = this.options.locales[this.options.locale];
+          this.manipulationDOM = {};
+          this._createBackButton(locale);
+          this._createSeperator();
+          this._createDescription(locale['editEdgeDescription'] || this.options.locales['en']['editEdgeDescription']);
+
+          // bind the close button
+          this._bindHammerToDiv(this.closeDiv, this.toggleEditMode.bind(this));
+        }
+
+        this.edgeBeingEditedId = this.selectionHandler.getSelectedEdges()[0];
+        if (this.edgeBeingEditedId !== undefined) {
+          (function () {
+            var edge = _this3.body.edges[_this3.edgeBeingEditedId];
+
+            // create control nodes
+            var controlNodeFrom = _this3._getNewTargetNode(edge.from.x, edge.from.y);
+            var controlNodeTo = _this3._getNewTargetNode(edge.to.x, edge.to.y);
+
+            _this3.temporaryIds.nodes.push(controlNodeFrom.id);
+            _this3.temporaryIds.nodes.push(controlNodeTo.id);
+
+            _this3.body.nodes[controlNodeFrom.id] = controlNodeFrom;
+            _this3.body.nodeIndices.push(controlNodeFrom.id);
+            _this3.body.nodes[controlNodeTo.id] = controlNodeTo;
+            _this3.body.nodeIndices.push(controlNodeTo.id);
+
+            // temporarily overload UI functions, cleaned up automatically because of _temporaryBindUI
+            _this3._temporaryBindUI('onTouch', _this3._controlNodeTouch.bind(_this3)); // used to get the position
+            _this3._temporaryBindUI('onTap', function () {}); // disabled
+            _this3._temporaryBindUI('onHold', function () {}); // disabled
+            _this3._temporaryBindUI('onDragStart', _this3._controlNodeDragStart.bind(_this3)); // used to select control node
+            _this3._temporaryBindUI('onDrag', _this3._controlNodeDrag.bind(_this3)); // used to drag control node
+            _this3._temporaryBindUI('onDragEnd', _this3._controlNodeDragEnd.bind(_this3)); // used to connect or revert control nodes
+            _this3._temporaryBindUI('onMouseMove', function () {}); // disabled
+
+            // create function to position control nodes correctly on movement
+            // automatically cleaned up because we use the temporary bind
+            _this3._temporaryBindEvent('beforeDrawing', function (ctx) {
+              var positions = edge.edgeType.findBorderPositions(ctx);
+              if (controlNodeFrom.selected === false) {
+                controlNodeFrom.x = positions.from.x;
+                controlNodeFrom.y = positions.from.y;
+              }
+              if (controlNodeTo.selected === false) {
+                controlNodeTo.x = positions.to.x;
+                controlNodeTo.y = positions.to.y;
+              }
+            });
+
+            _this3.body.emitter.emit('_redraw');
+          })();
+        } else {
+          this.showManipulatorToolbar();
+        }
+      }
+    }, {
+      key: 'deleteSelected',
+
+      /**
+       * delete everything in the selection
+       *
+       * @private
+       */
+      value: function deleteSelected() {
+        var _this4 = this;
+
+        // when using the gui, enable edit mode if it wasnt already.
+        if (this.editMode !== true) {
+          this.enableEditMode();
+        }
+
+        // restore the state of any bound functions or events, remove control nodes, restore physics
+        this._clean();
+
+        this.inMode = 'delete';
+        var selectedNodes = this.selectionHandler.getSelectedNodes();
+        var selectedEdges = this.selectionHandler.getSelectedEdges();
+        var deleteFunction = undefined;
+        if (selectedNodes.length > 0) {
+          for (var i = 0; i < selectedNodes.length; i++) {
+            if (this.body.nodes[selectedNodes[i]].isCluster === true) {
+              alert(this.options.locales[this.options.locale]['deleteClusterError'] || this.options.locales['en']['deleteClusterError']);
+              return;
+            }
+          }
+
+          if (typeof this.options.deleteNode === 'function') {
+            deleteFunction = this.options.deleteNode;
+          }
+        } else if (selectedEdges.length > 0) {
+          if (typeof this.options.deleteEdge === 'function') {
+            deleteFunction = this.options.deleteEdge;
+          }
+        }
+
+        if (typeof deleteFunction === 'function') {
+          var data = { nodes: selectedNodes, edges: selectedEdges };
+          if (deleteFunction.length === 2) {
+            deleteFunction(data, function (finalizedData) {
+              if (finalizedData !== null && finalizedData !== undefined && _this4.inMode === 'delete') {
+                // if for whatever reason the mode has changes (due to dataset change) disregard the callback) {
+                _this4.body.data.edges.getDataSet().remove(finalizedData.edges);
+                _this4.body.data.nodes.getDataSet().remove(finalizedData.nodes);
+                _this4.body.emitter.emit('startSimulation');
+                _this4.showManipulatorToolbar();
+              } else {
+                _this4.body.emitter.emit('startSimulation');
+                _this4.showManipulatorToolbar();
+              }
+            });
+          } else {
+            throw new Error('The function for delete does not support two arguments (data, callback)');
+          }
+        } else {
+          this.body.data.edges.getDataSet().remove(selectedEdges);
+          this.body.data.nodes.getDataSet().remove(selectedNodes);
+          this.body.emitter.emit('startSimulation');
+          this.showManipulatorToolbar();
+        }
+      }
+    }, {
+      key: '_setup',
+
+      //********************************************** PRIVATE ***************************************//
+
+      /**
+       * draw or remove the DOM
+       * @private
+       */
+      value: function _setup() {
+        if (this.options.enabled === true) {
+          // Enable the GUI
+          this.guiEnabled = true;
+
+          this._createWrappers();
+          if (this.editMode === false) {
+            this._createEditButton();
+          } else {
+            this.showManipulatorToolbar();
+          }
+        } else {
+          this._removeManipulationDOM();
+
+          // disable the gui
+          this.guiEnabled = false;
+        }
+      }
+    }, {
+      key: '_createWrappers',
+
+      /**
+       * create the div overlays that contain the DOM
+       * @private
+       */
+      value: function _createWrappers() {
+        // load the manipulator HTML elements. All styling done in css.
+        if (this.manipulationDiv === undefined) {
+          this.manipulationDiv = document.createElement('div');
+          this.manipulationDiv.className = 'vis-manipulation';
+          if (this.editMode === true) {
+            this.manipulationDiv.style.display = 'block';
+          } else {
+            this.manipulationDiv.style.display = 'none';
+          }
+          this.canvas.frame.appendChild(this.manipulationDiv);
+        }
+
+        // container for the edit button.
+        if (this.editModeDiv === undefined) {
+          this.editModeDiv = document.createElement('div');
+          this.editModeDiv.className = 'vis-edit-mode';
+          if (this.editMode === true) {
+            this.editModeDiv.style.display = 'none';
+          } else {
+            this.editModeDiv.style.display = 'block';
+          }
+          this.canvas.frame.appendChild(this.editModeDiv);
+        }
+
+        // container for the close div button
+        if (this.closeDiv === undefined) {
+          this.closeDiv = document.createElement('div');
+          this.closeDiv.className = 'vis-close';
+          this.closeDiv.style.display = this.manipulationDiv.style.display;
+          this.canvas.frame.appendChild(this.closeDiv);
+        }
+      }
+    }, {
+      key: '_getNewTargetNode',
+
+      /**
+       * generate a new target node. Used for creating new edges and editing edges
+       * @param x
+       * @param y
+       * @returns {*}
+       * @private
+       */
+      value: function _getNewTargetNode(x, y) {
+        var controlNodeStyle = util.deepExtend({}, this.options.controlNodeStyle);
+
+        controlNodeStyle.id = 'targetNode' + util.randomUUID();
+        controlNodeStyle.hidden = false;
+        controlNodeStyle.physics = false;
+        controlNodeStyle.x = x;
+        controlNodeStyle.y = y;
+
+        return this.body.functions.createNode(controlNodeStyle);
+      }
+    }, {
+      key: '_createEditButton',
+
+      /**
+       * Create the edit button
+       */
+      value: function _createEditButton() {
+        // restore everything to it's original state (if applicable)
+        this._clean();
+
+        // reset the manipulationDOM
+        this.manipulationDOM = {};
+
+        // empty the editModeDiv
+        util.recursiveDOMDelete(this.editModeDiv);
+
+        // create the contents for the editMode button
+        var locale = this.options.locales[this.options.locale];
+        var button = this._createButton('editMode', 'vis-button vis-edit vis-edit-mode', locale['edit'] || this.options.locales['en']['edit']);
+        this.editModeDiv.appendChild(button);
+
+        // bind a hammer listener to the button, calling the function toggleEditMode.
+        this._bindHammerToDiv(button, this.toggleEditMode.bind(this));
+      }
+    }, {
+      key: '_clean',
+
+      /**
+       * this function cleans up after everything this module does. Temporary elements, functions and events are removed, physics restored, hammers removed.
+       * @private
+       */
+      value: function _clean() {
+        // not in mode
+        this.inMode = false;
+
+        // _clean the divs
+        if (this.guiEnabled === true) {
+          util.recursiveDOMDelete(this.editModeDiv);
+          util.recursiveDOMDelete(this.manipulationDiv);
+
+          // removes all the bindings and overloads
+          this._cleanManipulatorHammers();
+        }
+
+        // remove temporary nodes and edges
+        this._cleanupTemporaryNodesAndEdges();
+
+        // restore overloaded UI functions
+        this._unbindTemporaryUIs();
+
+        // remove the temporaryEventFunctions
+        this._unbindTemporaryEvents();
+
+        // restore the physics if required
+        this.body.emitter.emit('restorePhysics');
+      }
+    }, {
+      key: '_cleanManipulatorHammers',
+
+      /**
+       * Each dom element has it's own hammer. They are stored in this.manipulationHammers. This cleans them up.
+       * @private
+       */
+      value: function _cleanManipulatorHammers() {
+        // _clean hammer bindings
+        if (this.manipulationHammers.length != 0) {
+          for (var i = 0; i < this.manipulationHammers.length; i++) {
+            this.manipulationHammers[i].destroy();
+          }
+          this.manipulationHammers = [];
+        }
+      }
+    }, {
+      key: '_removeManipulationDOM',
+
+      /**
+       * Remove all DOM elements created by this module.
+       * @private
+       */
+      value: function _removeManipulationDOM() {
+        // removes all the bindings and overloads
+        this._clean();
+
+        // empty the manipulation divs
+        util.recursiveDOMDelete(this.manipulationDiv);
+        util.recursiveDOMDelete(this.editModeDiv);
+        util.recursiveDOMDelete(this.closeDiv);
+
+        // remove the manipulation divs
+        if (this.manipulationDiv) {
+          this.canvas.frame.removeChild(this.manipulationDiv);
+        }
+        if (this.editModeDiv) {
+          this.canvas.frame.removeChild(this.editModeDiv);
+        }
+        if (this.closeDiv) {
+          this.canvas.frame.removeChild(this.manipulationDiv);
+        }
+
+        // set the references to undefined
+        this.manipulationDiv = undefined;
+        this.editModeDiv = undefined;
+        this.closeDiv = undefined;
+      }
+    }, {
+      key: '_createSeperator',
+
+      /**
+       * create a seperator line. the index is to differentiate in the manipulation dom
+       * @param index
+       * @private
+       */
+      value: function _createSeperator() {
+        var index = arguments[0] === undefined ? 1 : arguments[0];
+
+        this.manipulationDOM['seperatorLineDiv' + index] = document.createElement('div');
+        this.manipulationDOM['seperatorLineDiv' + index].className = 'vis-separator-line';
+        this.manipulationDiv.appendChild(this.manipulationDOM['seperatorLineDiv' + index]);
+      }
+    }, {
+      key: '_createAddNodeButton',
+
+      // ----------------------    DOM functions for buttons    --------------------------//
+
+      value: function _createAddNodeButton(locale) {
+        var button = this._createButton('addNode', 'vis-button vis-add', locale['addNode'] || this.options.locales['en']['addNode']);
+        this.manipulationDiv.appendChild(button);
+        this._bindHammerToDiv(button, this.addNodeMode.bind(this));
+      }
+    }, {
+      key: '_createAddEdgeButton',
+      value: function _createAddEdgeButton(locale) {
+        var button = this._createButton('addEdge', 'vis-button vis-connect', locale['addEdge'] || this.options.locales['en']['addEdge']);
+        this.manipulationDiv.appendChild(button);
+        this._bindHammerToDiv(button, this.addEdgeMode.bind(this));
+      }
+    }, {
+      key: '_createEditNodeButton',
+      value: function _createEditNodeButton(locale) {
+        var button = this._createButton('editNode', 'vis-button vis-edit', locale['editNode'] || this.options.locales['en']['editNode']);
+        this.manipulationDiv.appendChild(button);
+        this._bindHammerToDiv(button, this.editNode.bind(this));
+      }
+    }, {
+      key: '_createEditEdgeButton',
+      value: function _createEditEdgeButton(locale) {
+        var button = this._createButton('editEdge', 'vis-button vis-edit', locale['editEdge'] || this.options.locales['en']['editEdge']);
+        this.manipulationDiv.appendChild(button);
+        this._bindHammerToDiv(button, this.editEdgeMode.bind(this));
+      }
+    }, {
+      key: '_createDeleteButton',
+      value: function _createDeleteButton(locale) {
+        var button = this._createButton('delete', 'vis-button vis-delete', locale['del'] || this.options.locales['en']['del']);
+        this.manipulationDiv.appendChild(button);
+        this._bindHammerToDiv(button, this.deleteSelected.bind(this));
+      }
+    }, {
+      key: '_createBackButton',
+      value: function _createBackButton(locale) {
+        var button = this._createButton('back', 'vis-button vis-back', locale['back'] || this.options.locales['en']['back']);
+        this.manipulationDiv.appendChild(button);
+        this._bindHammerToDiv(button, this.showManipulatorToolbar.bind(this));
+      }
+    }, {
+      key: '_createButton',
+      value: function _createButton(id, className, label) {
+        var labelClassName = arguments[3] === undefined ? 'vis-label' : arguments[3];
+
+        this.manipulationDOM[id + 'Div'] = document.createElement('div');
+        this.manipulationDOM[id + 'Div'].className = className;
+        this.manipulationDOM[id + 'Label'] = document.createElement('div');
+        this.manipulationDOM[id + 'Label'].className = labelClassName;
+        this.manipulationDOM[id + 'Label'].innerHTML = label;
+        this.manipulationDOM[id + 'Div'].appendChild(this.manipulationDOM[id + 'Label']);
+        return this.manipulationDOM[id + 'Div'];
+      }
+    }, {
+      key: '_createDescription',
+      value: function _createDescription(label) {
+        this.manipulationDiv.appendChild(this._createButton('description', 'vis-button vis-none', label));
+      }
+    }, {
+      key: '_temporaryBindEvent',
+
+      // -------------------------- End of DOM functions for buttons ------------------------------//
+
+      /**
+       * this binds an event until cleanup by the clean functions.
+       * @param event
+       * @param newFunction
+       * @private
+       */
+      value: function _temporaryBindEvent(event, newFunction) {
+        this.temporaryEventFunctions.push({ event: event, boundFunction: newFunction });
+        this.body.emitter.on(event, newFunction);
+      }
+    }, {
+      key: '_temporaryBindUI',
+
+      /**
+       * this overrides an UI function until cleanup by the clean function
+       * @param UIfunctionName
+       * @param newFunction
+       * @private
+       */
+      value: function _temporaryBindUI(UIfunctionName, newFunction) {
+        if (this.body.eventListeners[UIfunctionName] !== undefined) {
+          this.temporaryUIFunctions[UIfunctionName] = this.body.eventListeners[UIfunctionName];
+          this.body.eventListeners[UIfunctionName] = newFunction;
+        } else {
+          throw new Error('This UI function does not exist. Typo? You tried: ' + UIfunctionName + ' possible are: ' + JSON.stringify(Object.keys(this.body.eventListeners)));
+        }
+      }
+    }, {
+      key: '_unbindTemporaryUIs',
+
+      /**
+       * Restore the overridden UI functions to their original state.
+       *
+       * @private
+       */
+      value: function _unbindTemporaryUIs() {
+        for (var functionName in this.temporaryUIFunctions) {
+          if (this.temporaryUIFunctions.hasOwnProperty(functionName)) {
+            this.body.eventListeners[functionName] = this.temporaryUIFunctions[functionName];
+            delete this.temporaryUIFunctions[functionName];
+          }
+        }
+        this.temporaryUIFunctions = {};
+      }
+    }, {
+      key: '_unbindTemporaryEvents',
+
+      /**
+       * Unbind the events created by _temporaryBindEvent
+       * @private
+       */
+      value: function _unbindTemporaryEvents() {
+        for (var i = 0; i < this.temporaryEventFunctions.length; i++) {
+          var eventName = this.temporaryEventFunctions[i].event;
+          var boundFunction = this.temporaryEventFunctions[i].boundFunction;
+          this.body.emitter.off(eventName, boundFunction);
+        }
+        this.temporaryEventFunctions = [];
+      }
+    }, {
+      key: '_bindHammerToDiv',
+
+      /**
+       * Bind an hammer instance to a DOM element.
+       * @param domElement
+       * @param funct
+       */
+      value: function _bindHammerToDiv(domElement, boundFunction) {
+        var hammer = new Hammer(domElement, {});
+        hammerUtil.onTouch(hammer, boundFunction);
+        this.manipulationHammers.push(hammer);
+      }
+    }, {
+      key: '_cleanupTemporaryNodesAndEdges',
+
+      /**
+       * Neatly clean up temporary edges and nodes
+       * @private
+       */
+      value: function _cleanupTemporaryNodesAndEdges() {
+        // _clean temporary edges
+        for (var i = 0; i < this.temporaryIds.edges.length; i++) {
+          this.body.edges[this.temporaryIds.edges[i]].disconnect();
+          delete this.body.edges[this.temporaryIds.edges[i]];
+          var indexTempEdge = this.body.edgeIndices.indexOf(this.temporaryIds.edges[i]);
+          if (indexTempEdge !== -1) {
+            this.body.edgeIndices.splice(indexTempEdge, 1);
+          }
+        }
+
+        // _clean temporary nodes
+        for (var i = 0; i < this.temporaryIds.nodes.length; i++) {
+          delete this.body.nodes[this.temporaryIds.nodes[i]];
+          var indexTempNode = this.body.nodeIndices.indexOf(this.temporaryIds.nodes[i]);
+          if (indexTempNode !== -1) {
+            this.body.nodeIndices.splice(indexTempNode, 1);
+          }
+        }
+
+        this.temporaryIds = { nodes: [], edges: [] };
+      }
+    }, {
+      key: '_controlNodeTouch',
+
+      // ------------------------------------------ EDIT EDGE FUNCTIONS -----------------------------------------//
+
+      /**
+       * the touch is used to get the position of the initial click
+       * @param event
+       * @private
+       */
+      value: function _controlNodeTouch(event) {
+        this.selectionHandler.unselectAll();
+        this.lastTouch = this.body.functions.getPointer(event.center);
+        this.lastTouch.translation = util.extend({}, this.body.view.translation); // copy the object
+      }
+    }, {
+      key: '_controlNodeDragStart',
+
+      /**
+       * the drag start is used to mark one of the control nodes as selected.
+       * @param event
+       * @private
+       */
+      value: function _controlNodeDragStart(event) {
+        var pointer = this.lastTouch;
+        var pointerObj = this.selectionHandler._pointerToPositionObject(pointer);
+        var from = this.body.nodes[this.temporaryIds.nodes[0]];
+        var to = this.body.nodes[this.temporaryIds.nodes[1]];
+        var edge = this.body.edges[this.edgeBeingEditedId];
+        this.selectedControlNode = undefined;
+
+        var fromSelect = from.isOverlappingWith(pointerObj);
+        var toSelect = to.isOverlappingWith(pointerObj);
+
+        if (fromSelect === true) {
+          this.selectedControlNode = from;
+          edge.edgeType.from = from;
+        } else if (toSelect === true) {
+          this.selectedControlNode = to;
+          edge.edgeType.to = to;
+        }
+
+        this.body.emitter.emit('_redraw');
+      }
+    }, {
+      key: '_controlNodeDrag',
+
+      /**
+       * dragging the control nodes or the canvas
+       * @param event
+       * @private
+       */
+      value: function _controlNodeDrag(event) {
+        this.body.emitter.emit('disablePhysics');
+        var pointer = this.body.functions.getPointer(event.center);
+        var pos = this.canvas.DOMtoCanvas(pointer);
+
+        if (this.selectedControlNode !== undefined) {
+          this.selectedControlNode.x = pos.x;
+          this.selectedControlNode.y = pos.y;
+        } else {
+          // if the drag was not started properly because the click started outside the network div, start it now.
+          var diffX = pointer.x - this.lastTouch.x;
+          var diffY = pointer.y - this.lastTouch.y;
+          this.body.view.translation = { x: this.lastTouch.translation.x + diffX, y: this.lastTouch.translation.y + diffY };
+        }
+        this.body.emitter.emit('_redraw');
+      }
+    }, {
+      key: '_controlNodeDragEnd',
+
+      /**
+       * connecting or restoring the control nodes.
+       * @param event
+       * @private
+       */
+      value: function _controlNodeDragEnd(event) {
+        var pointer = this.body.functions.getPointer(event.center);
+        var pointerObj = this.selectionHandler._pointerToPositionObject(pointer);
+        var edge = this.body.edges[this.edgeBeingEditedId];
+
+        var overlappingNodeIds = this.selectionHandler._getAllNodesOverlappingWith(pointerObj);
+        var node = undefined;
+        for (var i = overlappingNodeIds.length - 1; i >= 0; i--) {
+          if (overlappingNodeIds[i] !== this.selectedControlNode.id) {
+            node = this.body.nodes[overlappingNodeIds[i]];
+            break;
+          }
+        }
+
+        // perform the connection
+        if (node !== undefined && this.selectedControlNode !== undefined) {
+          if (node.isCluster === true) {
+            alert(this.options.locales[this.options.locale]['createEdgeError'] || this.options.locales['en']['createEdgeError']);
+          } else {
+            var from = this.body.nodes[this.temporaryIds.nodes[0]];
+            if (this.selectedControlNode.id === from.id) {
+              this._performEditEdge(node.id, edge.to.id);
+            } else {
+              this._performEditEdge(edge.from.id, node.id);
+            }
+          }
+        } else {
+          edge.updateEdgeType();
+          this.body.emitter.emit('restorePhysics');
+        }
+        this.body.emitter.emit('_redraw');
+      }
+    }, {
+      key: '_handleConnect',
+
+      // ------------------------------------ END OF EDIT EDGE FUNCTIONS -----------------------------------------//
+
+      // ------------------------------------------- ADD EDGE FUNCTIONS -----------------------------------------//
+      /**
+       * the function bound to the selection event. It checks if you want to connect a cluster and changes the description
+       * to walk the user through the process.
+       *
+       * @private
+       */
+      value: function _handleConnect(event) {
+        // check to avoid double fireing of this function.
+        if (new Date().valueOf() - this.touchTime > 100) {
+          this.lastTouch = this.body.functions.getPointer(event.center);
+          this.lastTouch.translation = util.extend({}, this.body.view.translation); // copy the object
+
+          var pointer = this.lastTouch;
+          var node = this.selectionHandler.getNodeAt(pointer);
+
+          if (node !== undefined) {
+            if (node.isCluster === true) {
+              alert(this.options.locales[this.options.locale]['createEdgeError'] || this.options.locales['en']['createEdgeError']);
+            } else {
+              // create a node the temporary line can look at
+              var targetNode = this._getNewTargetNode(node.x, node.y);
+              this.body.nodes[targetNode.id] = targetNode;
+              this.body.nodeIndices.push(targetNode.id);
+
+              // create a temporary edge
+              var connectionEdge = this.body.functions.createEdge({
+                id: 'connectionEdge' + util.randomUUID(),
+                from: node.id,
+                to: targetNode.id,
+                physics: false,
+                smooth: {
+                  enabled: true,
+                  type: 'continuous',
+                  roundness: 0.5
+                }
+              });
+              this.body.edges[connectionEdge.id] = connectionEdge;
+              this.body.edgeIndices.push(connectionEdge.id);
+
+              this.temporaryIds.nodes.push(targetNode.id);
+              this.temporaryIds.edges.push(connectionEdge.id);
+            }
+          }
+          this.touchTime = new Date().valueOf();
+        }
+      }
+    }, {
+      key: '_dragControlNode',
+      value: function _dragControlNode(event) {
+        var pointer = this.body.functions.getPointer(event.center);
+        if (this.temporaryIds.nodes[0] !== undefined) {
+          var targetNode = this.body.nodes[this.temporaryIds.nodes[0]]; // there is only one temp node in the add edge mode.
+          targetNode.x = this.canvas._XconvertDOMtoCanvas(pointer.x);
+          targetNode.y = this.canvas._YconvertDOMtoCanvas(pointer.y);
+          this.body.emitter.emit('_redraw');
+        } else {
+          var diffX = pointer.x - this.lastTouch.x;
+          var diffY = pointer.y - this.lastTouch.y;
+          this.body.view.translation = { x: this.lastTouch.translation.x + diffX, y: this.lastTouch.translation.y + diffY };
+        }
+      }
+    }, {
+      key: '_finishConnect',
+
+      /**
+       * Connect the new edge to the target if one exists, otherwise remove temp line
+       * @param event
+       * @private
+       */
+      value: function _finishConnect(event) {
+        var pointer = this.body.functions.getPointer(event.center);
+        var pointerObj = this.selectionHandler._pointerToPositionObject(pointer);
+
+        // remember the edge id
+        var connectFromId = undefined;
+        if (this.temporaryIds.edges[0] !== undefined) {
+          connectFromId = this.body.edges[this.temporaryIds.edges[0]].fromId;
+        }
+
+        // get the overlapping node but NOT the temporary node;
+        var overlappingNodeIds = this.selectionHandler._getAllNodesOverlappingWith(pointerObj);
+        var node = undefined;
+        for (var i = overlappingNodeIds.length - 1; i >= 0; i--) {
+          // if the node id is NOT a temporary node, accept the node.
+          if (this.temporaryIds.nodes.indexOf(overlappingNodeIds[i]) === -1) {
+            node = this.body.nodes[overlappingNodeIds[i]];
+            break;
+          }
+        }
+
+        // clean temporary nodes and edges.
+        this._cleanupTemporaryNodesAndEdges();
+
+        // perform the connection
+        if (node !== undefined) {
+          if (node.isCluster === true) {
+            alert(this.options.locales[this.options.locale]['createEdgeError'] || this.options.locales['en']['createEdgeError']);
+          } else {
+            if (this.body.nodes[connectFromId] !== undefined && this.body.nodes[node.id] !== undefined) {
+              this._performAddEdge(connectFromId, node.id);
+            }
+          }
+        }
+        this.body.emitter.emit('_redraw');
+      }
+    }, {
+      key: '_performAddNode',
+
+      // --------------------------------------- END OF ADD EDGE FUNCTIONS -------------------------------------//
+
+      // ------------------------------ Performing all the actual data manipulation ------------------------//
+
+      /**
+       * Adds a node on the specified location
+       */
+      value: function _performAddNode(clickData) {
+        var _this5 = this;
+
+        var defaultData = {
+          id: util.randomUUID(),
+          x: clickData.pointer.canvas.x,
+          y: clickData.pointer.canvas.y,
+          label: 'new'
+        };
+
+        if (typeof this.options.addNode === 'function') {
+          if (this.options.addNode.length === 2) {
+            this.options.addNode(defaultData, function (finalizedData) {
+              if (finalizedData !== null && finalizedData !== undefined && _this5.inMode === 'addNode') {
+                // if for whatever reason the mode has changes (due to dataset change) disregard the callback
+                _this5.body.data.nodes.getDataSet().add(finalizedData);
+                _this5.showManipulatorToolbar();
+              }
+            });
+          } else {
+            throw new Error('The function for add does not support two arguments (data,callback)');
+            this.showManipulatorToolbar();
+          }
+        } else {
+          this.body.data.nodes.getDataSet().add(defaultData);
+          this.showManipulatorToolbar();
+        }
+      }
+    }, {
+      key: '_performAddEdge',
+
+      /**
+       * connect two nodes with a new edge.
+       *
+       * @private
+       */
+      value: function _performAddEdge(sourceNodeId, targetNodeId) {
+        var _this6 = this;
+
+        var defaultData = { from: sourceNodeId, to: targetNodeId };
+        if (typeof this.options.addEdge === 'function') {
+          if (this.options.addEdge.length === 2) {
+            this.options.addEdge(defaultData, function (finalizedData) {
+              if (finalizedData !== null && finalizedData !== undefined && _this6.inMode === 'addEdge') {
+                // if for whatever reason the mode has changes (due to dataset change) disregard the callback
+                _this6.body.data.edges.getDataSet().add(finalizedData);
+                _this6.selectionHandler.unselectAll();
+                _this6.showManipulatorToolbar();
+              }
+            });
+          } else {
+            throw new Error('The function for connect does not support two arguments (data,callback)');
+          }
+        } else {
+          this.body.data.edges.getDataSet().add(defaultData);
+          this.selectionHandler.unselectAll();
+          this.showManipulatorToolbar();
+        }
+      }
+    }, {
+      key: '_performEditEdge',
+
+      /**
+       * connect two nodes with a new edge.
+       *
+       * @private
+       */
+      value: function _performEditEdge(sourceNodeId, targetNodeId) {
+        var _this7 = this;
+
+        var defaultData = { id: this.edgeBeingEditedId, from: sourceNodeId, to: targetNodeId };
+        if (typeof this.options.editEdge === 'function') {
+          if (this.options.editEdge.length === 2) {
+            this.options.editEdge(defaultData, function (finalizedData) {
+              if (finalizedData === null || finalizedData === undefined || _this7.inMode !== 'editEdge') {
+                // if for whatever reason the mode has changes (due to dataset change) disregard the callback) {
+                _this7.body.edges[defaultData.id].updateEdgeType();
+                _this7.body.emitter.emit('_redraw');
+              } else {
+                _this7.body.data.edges.getDataSet().update(finalizedData);
+                _this7.selectionHandler.unselectAll();
+                _this7.showManipulatorToolbar();
+              }
+            });
+          } else {
+            throw new Error('The function for edit does not support two arguments (data, callback)');
+          }
+        } else {
+          this.body.data.edges.getDataSet().update(defaultData);
+          this.selectionHandler.unselectAll();
+          this.showManipulatorToolbar();
+        }
+      }
+    }]);
+
+    return ManipulationSystem;
+  })();
+
+  exports['default'] = ManipulationSystem;
   module.exports = exports['default'];
 
 /***/ },

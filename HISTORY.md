@@ -25,6 +25,7 @@ http://visjs.org
 - Fixed #1036, bug in lockedRedraw. Thanks @vges!
 - Added getDataset to all manipulation functions. Thanks @ericvandever!
 - Fixed #1039, icon now returns correct distance to border
+- Added blurEdge and hoverEdge events.
 
 ### Graph2d
 
