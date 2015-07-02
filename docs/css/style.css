@@ -189,3 +189,18 @@ pre.options {
 pre.hidden {
     display:none;
 }
+
+#breadcrumbs {
+  font-size: 0.85em;
+}
+
+#breadcrumbs::before {
+  content: "You are here:";
+  padding-right: 5px;
+}
+
+#breadcrumbs > *:not(:first-child)::before{
+  content: "▸";
+  padding: 0 2px 0 5px;
+  display:inline-block;
+}
