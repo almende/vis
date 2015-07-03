@@ -129,6 +129,7 @@ var options = {
     },
     image: undefined,
     label: undefined,
+    labelHighlightBold: true,
     level: undefined,
     mass: 1,
     physics: true,
@@ -415,6 +416,12 @@ network.setOptions(options);
             <td>The label is the piece of text shown in or under the node, depending on the shape.</td>
         </tr>
         <tr>
+            <td>labelHighlightBold</td>
+            <td>Boolean</td>
+            <td><code>true</code></td>
+            <td>Determines whether or not the label becomes bold when the node is selected.</td>
+        </tr>
+        <tr>
             <td>level</td>
             <td>Number</td>
             <td><code>undefined</code></td>
@@ -535,6 +542,8 @@ var scale = customScalingFunction(min,max,total,value);
 var diff = maxSize - minSize;
 mySize = minSize + diff * scale;
 </pre>
+                Please note: <code>maxSize</code> and <code>minSize</code> are the values <code>scaling.max</code>
+                and <code>scaling.min</code> provided in the options.
             </td>
         </tr>
         <tr class='toggle collapsible' onclick="toggleTable('optionTable','shadow', this);">
@@ -638,3 +647,5 @@ mySize = minSize + diff * scale;
 <script src="../js/bootstrap.min.js"></script>
 <!-- IE10 viewport hack for Surface/desktop Windows 8 bug -->
 <script src="../js/ie10-viewport-bug-workaround.js"></script>
+<!-- controller -->
+<script src="../js/main.js"></script>

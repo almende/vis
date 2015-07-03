@@ -125,6 +125,7 @@ var options = {
     hidden: false,
     hoverWidth: 1.5,
     label: undefined,
+    labelHighlightBold: true,
     length: undefined,
     physics: true,
     scaling:{
@@ -408,6 +409,12 @@ var options: {
             <td>The label of the edge. HTML does not work in here because the network uses HTML5 Canvas.</td>
         </tr>
         <tr>
+            <td>labelHighlightBold</td>
+            <td>Boolean</td>
+            <td><code>true</code></td>
+            <td>Determines whether or not the label becomes bold when the edge is selected.</td>
+        </tr>
+        <tr>
             <td>length</td>
             <td>Number</td>
             <td><code>undefined</code></td>
@@ -514,6 +521,8 @@ var scale = customScalingFunction(min,max,total,value);
 var diff = maxWidth - minWidth;
 myWidth = minWidth + diff * scale;
 </pre>
+                Please note: <code>maxWidth</code> and <code>minWidth</code> are the values <code>scaling.max</code>
+                and <code>scaling.min</code> provided in the options.
             </td>
         </tr>
         <tr>
@@ -651,3 +660,5 @@ var options: {
 <script src="../js/bootstrap.min.js"></script>
 <!-- IE10 viewport hack for Surface/desktop Windows 8 bug -->
 <script src="../js/ie10-viewport-bug-workaround.js"></script>
+<!-- controller -->
+<script src="../js/main.js"></script>
