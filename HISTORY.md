@@ -4,6 +4,11 @@ http://visjs.org
 
 ## not-yet-released, version 4.3.1-SNAPSHOT
 
+### General
+
+- Documentation now has breadcrums. Thanks @felixhayashi!
+
+
 ### Graph3d
 
 - Fixed #970: Implemented options `dataColor`, `axisColor`, and `gridColor`.
@@ -28,12 +33,20 @@ http://visjs.org
 - Added blurEdge and hoverEdge events.
 - Added labelHighlightBold option to edges and nodes.
 - Added getOptionsFromConfigurator method.
+- Fixed extra edges in clustering.
+- Fixed cleaning up of clustering edges on declustering.
+- Made fit() method only look at visible nodes to get the range.
 
 ### Graph2d
 
 - Made graph2d more robust against string values in the y position.
 - Fixed bug where 0 axis was always in the automatically fitted range.
 - Added drawPoints.onRender. Thanks @mschallar!
+
+### Timeline
+
+- Fixed cleaning up of items in subgroups, thanks @ChenMachluf!
+- Improved error notification with groups, thanks @skinkie!
 
 
 ## 2015-06-16, version 4.3.0
