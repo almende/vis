@@ -12,7 +12,7 @@ http://visjs.org
 
 - Fixed #970: Implemented options `dataColor`, `axisColor`, and `gridColor`.
 
-### Network
+### Network 
 
 - Fixed Hammerjs direction issue.
 - Fixed recursion error when node is fixed but has no position.
