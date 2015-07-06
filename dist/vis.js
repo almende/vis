@@ -4,8 +4,8 @@
  *
  * A dynamic, browser-based visualization library.
  *
- * @version 4.4.0
- * @date    2015-07-03
+ * @version 4.4.1-SNAPSHOT
+ * @date    2015-07-06
  *
  * @license
  * Copyright (C) 2011-2014 Almende B.V, http://almende.com
@@ -35729,7 +35729,7 @@ return /******/ (function(modules) { // webpackBootstrap
        */
       value: function _lockedRedraw() {
         var nodePosition = { x: this.body.nodes[this.lockedOnNodeId].x, y: this.body.nodes[this.lockedOnNodeId].y };
-        var viewCenter = this.canvas.DOMtoCanvas({ x: 0.5 * this.frame.canvas.clientWidth, y: 0.5 * this.frame.canvas.clientHeight });
+        var viewCenter = this.canvas.DOMtoCanvas({ x: 0.5 * this.canvas.frame.canvas.clientWidth, y: 0.5 * this.canvas.frame.canvas.clientHeight });
         var distanceFromCenter = { // offset from view, distance view has to change by these x and y to center the node
           x: viewCenter.x - nodePosition.x,
           y: viewCenter.y - nodePosition.y

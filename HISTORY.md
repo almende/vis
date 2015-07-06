@@ -3,6 +3,10 @@ http://visjs.org
 
 ## not yet released, version 4.4.1-SNAPSHOT
 
+### Network
+
+- Properly fixed the _lockedRedraw method.
+
 ## 2015-07-03, version 4.4.0
 
 ### General
