@@ -6,6 +6,7 @@ http://visjs.org
 ### Network
 
 - Properly fixed the _lockedRedraw method.
+- Fixed node resizing on dragging.
 
 ## 2015-07-03, version 4.4.0
 

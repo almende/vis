@@ -27919,7 +27919,7 @@ return /******/ (function(modules) { // webpackBootstrap
        * @param {CanvasRenderingContext2D}   ctx
        */
       value: function resize(ctx) {
-        this.shape.resize(ctx);
+        this.shape.resize(ctx, this.selected);
       }
     }, {
       key: 'isOverlappingWith',
@@ -28908,14 +28908,14 @@ return /******/ (function(modules) { // webpackBootstrap
 
         ctx.stroke();
 
-        this.updateBoundingBox(x, y, ctx);
+        this.updateBoundingBox(x, y, ctx, selected);
 
         this.labelModule.draw(ctx, x, y, selected);
       }
     }, {
       key: 'updateBoundingBox',
-      value: function updateBoundingBox(x, y, ctx) {
-        this.resize(ctx);
+      value: function updateBoundingBox(x, y, ctx, selected) {
+        this.resize(ctx, selected);
 
         this.left = x - this.width * 0.5;
         this.top = y - this.height * 0.5;
@@ -29229,13 +29229,13 @@ return /******/ (function(modules) { // webpackBootstrap
 
         ctx.stroke();
 
-        this.updateBoundingBox(x, y);
+        this.updateBoundingBox(x, y, ctx, selected);
         this.labelModule.draw(ctx, x, y, selected);
       }
     }, {
       key: 'updateBoundingBox',
-      value: function updateBoundingBox(x, y, ctx) {
-        this.resize(ctx, false); // just in case
+      value: function updateBoundingBox(x, y, ctx, selected) {
+        this.resize(ctx, selected); // just in case
 
         this.left = x - this.width * 0.5;
         this.top = y - this.height * 0.5;
@@ -29638,12 +29638,12 @@ return /******/ (function(modules) { // webpackBootstrap
         // disable shadows for other elements.
         this.disableShadow(ctx);
 
-        this.updateBoundingBox(x, y);
+        this.updateBoundingBox(x, y, ctx, selected);
       }
     }, {
       key: 'updateBoundingBox',
-      value: function updateBoundingBox(x, y) {
-        this.resize();
+      value: function updateBoundingBox(x, y, ctx, selected) {
+        this.resize(ctx, selected);
 
         this.left = x - this.width / 2;
         this.top = y - this.height / 2;
@@ -34894,7 +34894,7 @@ return /******/ (function(modules) { // webpackBootstrap
           if (nodes.hasOwnProperty(nodeId)) {
             node = nodes[nodeId];
             node.resize(ctx);
-            node.updateBoundingBox(ctx);
+            node.updateBoundingBox(ctx, node.selected);
           }
         }
 
@@ -34938,7 +34938,7 @@ return /******/ (function(modules) { // webpackBootstrap
             } else if (node.isBoundingBoxOverlappingWith(viewableArea) === true) {
               node.draw(ctx);
             } else {
-              node.updateBoundingBox(ctx);
+              node.updateBoundingBox(ctx, node.selected);
             }
           }
         }
@@ -36216,7 +36216,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
             // if the drag was not started properly because the click started outside the network div, start it now.
             if (this.drag.pointer === undefined) {
-              this._handleDragStart(event);
+              this.onDragStart(event);
               return;
             }
             var diffX = pointer.x - this.drag.pointer.x;
