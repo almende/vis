@@ -5,7 +5,7 @@
  * A dynamic, browser-based visualization library.
  *
  * @version 4.4.1-SNAPSHOT
- * @date    2015-07-06
+ * @date    2015-07-07
  *
  * @license
  * Copyright (C) 2011-2014 Almende B.V, http://almende.com
@@ -3658,7 +3658,10 @@ return /******/ (function(modules) { // webpackBootstrap
               }
             }
           } else if (Array.isArray(b[prop])) {
-            throw new TypeError('Arrays are not supported by deepExtend');
+            a[prop] = [];
+            for (var i = 0; i < b[prop].length; i++) {
+              a[prop].push(b[prop][i]);
+            }
           } else {
             a[prop] = b[prop];
           }
@@ -27079,6 +27082,7 @@ return /******/ (function(modules) { // webpackBootstrap
           x: false,
           y: false
         },
+        dashes: false,
         font: {
           color: '#343434',
           size: 14, // px
@@ -28674,7 +28678,11 @@ return /******/ (function(modules) { // webpackBootstrap
         ctx.lineWidth = selected ? selectionLineWidth : borderWidth;
         ctx.lineWidth *= this.networkScaleInv;
         ctx.lineWidth = Math.min(this.width, ctx.lineWidth);
-
+        if (this.options.dashes) {
+          ctx.setLineDash(this.options.dashes);
+        } else {
+          ctx.setLineDash([0]);
+        }
         ctx.fillStyle = selected ? this.options.color.highlight.background : hover ? this.options.color.hover.background : this.options.color.background;
         ctx.circle(x, y, size);
 
@@ -39648,6 +39656,7 @@ return /******/ (function(modules) { // webpackBootstrap
         y: { boolean: boolean },
         __type__: { object: object, boolean: boolean }
       },
+      dashes: { boolean: boolean, array: array },
       font: {
         color: { string: string },
         size: { number: number }, // px
@@ -39789,6 +39798,7 @@ return /******/ (function(modules) { // webpackBootstrap
         x: false,
         y: false
       },
+      dashes: false,
       font: {
         color: ['color', '#343434'],
         size: [14, 0, 100, 1], // px
