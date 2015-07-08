@@ -10611,6 +10611,7 @@ return /******/ (function(modules) { // webpackBootstrap
       if (options.zMax !== undefined) this.defaultZMax = options.zMax;
       if (options.valueMin !== undefined) this.defaultValueMin = options.valueMin;
       if (options.valueMax !== undefined) this.defaultValueMax = options.valueMax;
+      if (options.backgroundColor !== undefined) this._setBackgroundColor(options.backgroundColor);
 
       if (options.cameraPosition !== undefined) cameraPosition = options.cameraPosition;
 
@@ -10638,7 +10639,6 @@ return /******/ (function(modules) { // webpackBootstrap
           }
         }
       }
-      this._setBackgroundColor(options.backgroundColor);
     }
 
     this.setSize(this.width, this.height);
@@ -11243,7 +11243,7 @@ return /******/ (function(modules) { // webpackBootstrap
             } else {
               v = 1;
               fillStyle = this._hsv2rgb(h, s, v);
-              strokeStyle = this.axisColor;
+              strokeStyle = this.axisColor; // TODO: should be customizable
             }
           } else {
             fillStyle = 'gray';
@@ -11260,7 +11260,7 @@ return /******/ (function(modules) { // webpackBootstrap
           ctx.lineTo(top.screen.x, top.screen.y);
           ctx.closePath();
           ctx.fill();
-          ctx.stroke();
+          ctx.stroke(); // TODO: only draw stroke when strokeWidth > 0
         }
       }
     } else {
@@ -17810,6 +17810,9 @@ return /******/ (function(modules) { // webpackBootstrap
     // update contents
     var content = data && data.content;
     if (content instanceof Element) {
+      while (this.dom.inner.firstChild) {
+        this.dom.inner.removeChild(this.dom.inner.firstChild);
+      }
       this.dom.inner.appendChild(content);
     } else if (content !== undefined && content !== null) {
       this.dom.inner.innerHTML = content;
@@ -17844,11 +17847,11 @@ return /******/ (function(modules) { // webpackBootstrap
 
     // update style
     if (this.style) {
-      util.removeCssText(this.dom.label, 'vis-' + this.style);
+      util.removeCssText(this.dom.label, this.style);
       this.style = null;
     }
     if (data && data.style) {
-      util.addCssText(this.dom.label, 'vis-' + data.style);
+      util.addCssText(this.dom.label, data.style);
       this.style = data.style;
     }
   };
@@ -26721,7 +26724,7 @@ return /******/ (function(modules) { // webpackBootstrap
     return this.canvas.canvasToDOM.apply(this.canvas, arguments);
   };
   Network.prototype.DOMtoCanvas = function () {
-    return this.canvas.DOMtoCanvas(this.canvas, arguments);
+    return this.canvas.DOMtoCanvas.apply(this.canvas, arguments);
   };
   Network.prototype.findNode = function () {
     return this.clustering.findNode.apply(this.clustering, arguments);

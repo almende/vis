@@ -7,6 +7,7 @@ http://visjs.org
 
 - Properly fixed the _lockedRedraw method.
 - Fixed node resizing on dragging.
+- Added shapeProperties, thanks @zukomgwili!
 
 ### Graph3d
 

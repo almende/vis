@@ -9,7 +9,3 @@ npm-debug.log
 # vim temporary files
 .*.sw[op]
 test/
-dist/*
-dist/vis.js
-dist/vis.map
-dist/vis.min.js
