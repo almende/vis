@@ -282,15 +282,6 @@ network.setOptions(options);
                 the interaction module)</i>.
             </td>
         </tr>
-        <tr>
-            <td>dashes</td>
-            <td>Array or Boolean</td>
-            <td><code>false</code></td>
-            <td>The dashes property only applies when the shape is a <code>circularImage</code>.
-                You set the dashes by supplying an Array. Array formart: [dash length, gap length]. 
-            </td>
-        </tr>
-
         <tr class='toggle collapsible' onclick="toggleTable('optionTable','fixed', this);">
             <td><span parent="fixed" class="right-caret"></span> fixed</td>
             <td>Object or Boolean</td>
@@ -598,6 +589,21 @@ mySize = minSize + diff * scale;
                 The ones with the label outside of it are: <code>image</code>, <code>circularImage</code>,
                 <code>diamond</code>, <code>dot</code>, <code>star</code>, <code>triangle</code>,
                 <code>triangleDown</code>, <code>square</code> and <code>icon</code>.
+            </td>
+        </tr>
+        <tr class='toggle collapsible' onclick="toggleTable('optionTable','shapeProperties', this);">
+            <td><span parent="shapeProperties" class="right-caret"></span> shapeProperties</td>
+            <td>Object</td>
+            <td><code>Object</code></td>
+            <td>This object contains configuration for specific shapes
+            </td>
+        </tr>
+        <tr parent="shapeProperties" class="hidden">
+            <td class="indent">shapeProperties.borderDashes</td>
+            <td>Object or Boolean</td>
+            <td><code>false</code></td>
+            <td>This property applies to all shapes that have borders.
+                You set the dashes by supplying an Array. Array formart: [dash length, gap length]. 
             </td>
         </tr>
         <tr>
