@@ -5,7 +5,7 @@
  * A dynamic, browser-based visualization library.
  *
  * @version 4.4.1-SNAPSHOT
- * @date    2015-07-07
+ * @date    2015-07-08
  *
  * @license
  * Copyright (C) 2011-2014 Almende B.V, http://almende.com
@@ -27082,7 +27082,6 @@ return /******/ (function(modules) { // webpackBootstrap
           x: false,
           y: false
         },
-        dashes: false,
         font: {
           color: '#343434',
           size: 14, // px
@@ -27132,6 +27131,9 @@ return /******/ (function(modules) { // webpackBootstrap
           y: 5
         },
         shape: 'ellipse',
+        shapeProperties: {
+          borderDashes: false
+        },
         size: 25,
         title: undefined,
         value: undefined,
@@ -28387,10 +28389,14 @@ return /******/ (function(modules) { // webpackBootstrap
         var borderRadius = 6;
         ctx.roundRect(this.left, this.top, this.width, this.height, borderRadius);
 
+        //draw dashed border if enabled
+        this.enableBorderDashes(ctx);
         // draw shadow if enabled
         this.enableShadow(ctx);
         ctx.fill();
 
+        //disable dashed border for other elements
+        this.disableBorderDashes(ctx);
         // disable shadows for other elements.
         this.disableShadow(ctx);
 
@@ -28486,6 +28492,20 @@ return /******/ (function(modules) { // webpackBootstrap
           ctx.shadowBlur = 0;
           ctx.shadowOffsetX = 0;
           ctx.shadowOffsetY = 0;
+        }
+      }
+    }, {
+      key: 'enableBorderDashes',
+      value: function enableBorderDashes(ctx) {
+        if (this.options.shapeProperties.borderDashes !== false) {
+          ctx.setLineDash(this.options.shapeProperties.borderDashes);
+        }
+      }
+    }, {
+      key: 'disableBorderDashes',
+      value: function disableBorderDashes(ctx) {
+        if (this.options.shapeProperties.borderDashes == false) {
+          ctx.setLineDash([0]);
         }
       }
     }]);
@@ -28678,18 +28698,17 @@ return /******/ (function(modules) { // webpackBootstrap
         ctx.lineWidth = selected ? selectionLineWidth : borderWidth;
         ctx.lineWidth *= this.networkScaleInv;
         ctx.lineWidth = Math.min(this.width, ctx.lineWidth);
-        if (this.options.dashes) {
-          ctx.setLineDash(this.options.dashes);
-        } else {
-          ctx.setLineDash([0]);
-        }
         ctx.fillStyle = selected ? this.options.color.highlight.background : hover ? this.options.color.hover.background : this.options.color.background;
         ctx.circle(x, y, size);
 
+        //draw dashed border if enabled
+        this.enableBorderDashes(ctx);
         // draw shadow if enabled
         this.enableShadow(ctx);
         ctx.fill();
 
+        //disable dashed border for other elements
+        this.disableBorderDashes(ctx);
         // disable shadows for other elements.
         this.disableShadow(ctx);
 
@@ -28907,10 +28926,14 @@ return /******/ (function(modules) { // webpackBootstrap
         ctx.fillStyle = selected ? this.options.color.highlight.background : hover ? this.options.color.hover.background : this.options.color.background;
         ctx.database(x - this.width / 2, y - this.height * 0.5, this.width, this.height);
 
+        //draw dashed border if enabled
+        this.enableBorderDashes(ctx);
         // draw shadow if enabled
         this.enableShadow(ctx);
         ctx.fill();
 
+        //disable dashed border for other elements
+        this.disableBorderDashes(ctx);
         // disable shadows for other elements.
         this.disableShadow(ctx);
 
@@ -29068,10 +29091,14 @@ return /******/ (function(modules) { // webpackBootstrap
         ctx.fillStyle = selected ? this.options.color.highlight.background : hover ? this.options.color.hover.background : this.options.color.background;
         ctx[shape](x, y, this.options.size);
 
+        //draw dashed border if enabled
+        this.enableBorderDashes(ctx);
         // draw shadow if enabled
         this.enableShadow(ctx);
         ctx.fill();
 
+        //disable dashed border for other elements
+        this.disableBorderDashes(ctx);
         // disable shadows for other elements.
         this.disableShadow(ctx);
 
@@ -29228,10 +29255,14 @@ return /******/ (function(modules) { // webpackBootstrap
         ctx.fillStyle = selected ? this.options.color.highlight.background : hover ? this.options.color.hover.background : this.options.color.background;
         ctx.ellipse(this.left, this.top, this.width, this.height);
 
+        //draw dashed border if enabled
+        this.enableBorderDashes(ctx);
         // draw shadow if enabled
         this.enableShadow(ctx);
         ctx.fill();
 
+        //disable dashed border for other elements
+        this.disableBorderDashes(ctx);
         // disable shadows for other elements.
         this.disableShadow(ctx);
 
@@ -39656,7 +39687,6 @@ return /******/ (function(modules) { // webpackBootstrap
         y: { boolean: boolean },
         __type__: { object: object, boolean: boolean }
       },
-      dashes: { boolean: boolean, array: array },
       font: {
         color: { string: string },
         size: { number: number }, // px
@@ -39704,6 +39734,10 @@ return /******/ (function(modules) { // webpackBootstrap
         __type__: { object: object, boolean: boolean }
       },
       shape: { string: ['ellipse', 'circle', 'database', 'box', 'text', 'image', 'circularImage', 'diamond', 'dot', 'star', 'triangle', 'triangleDown', 'square', 'icon'] },
+      shapeProperties: {
+        borderDashes: { boolean: boolean, array: array },
+        __type__: { object: object }
+      },
       size: { number: number },
       title: { string: string, 'undefined': 'undefined' },
       value: { number: number, 'undefined': 'undefined' },
@@ -39798,7 +39832,6 @@ return /******/ (function(modules) { // webpackBootstrap
         x: false,
         y: false
       },
-      dashes: false,
       font: {
         color: ['color', '#343434'],
         size: [14, 0, 100, 1], // px
@@ -39836,6 +39869,9 @@ return /******/ (function(modules) { // webpackBootstrap
         y: [5, -30, 30, 1]
       },
       shape: ['ellipse', 'box', 'circle', 'database', 'diamond', 'dot', 'square', 'star', 'text', 'triangle', 'triangleDown'],
+      shapeProperties: {
+        borderDashes: false
+      },
       size: [25, 0, 200, 1]
     },
     edges: {
