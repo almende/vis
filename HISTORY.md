@@ -8,6 +8,11 @@ http://visjs.org
 - Properly fixed the _lockedRedraw method.
 - Fixed node resizing on dragging.
 
+### Graph3d
+
+- Do not change `backgroundColor` when not provided in options. Thanks @ozydingo.
+
+
 ## 2015-07-03, version 4.4.0
 
 ### General
