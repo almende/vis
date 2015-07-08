@@ -15,6 +15,7 @@ http://visjs.org
 ### Timeline
 
 - Fixed #1001: First element of group style being cut.
+- Fixed #1071: HTML contents of a group not cleared when the contents is updated.
 
 
 ## 2015-07-03, version 4.4.0
