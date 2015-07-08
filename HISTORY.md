@@ -12,6 +12,10 @@ http://visjs.org
 
 - Do not change `backgroundColor` when not provided in options. Thanks @ozydingo.
 
+### Timeline
+
+- Fixed #1001: First element of group style being cut.
+
 
 ## 2015-07-03, version 4.4.0
 
