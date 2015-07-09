@@ -15,6 +15,7 @@ http://visjs.org
 
 ### Timeline
 
+- Implemented support for group templates (#996). Thanks @hansmaulwurf23.
 - Fixed #1001: First element of group style being cut.
 - Fixed #1071: HTML contents of a group not cleared when the contents is updated.
 - Fixed #1033: Moved item data not updated in DataSet when using an asynchronous
