@@ -16,6 +16,8 @@ http://visjs.org
 
 - Fixed #1001: First element of group style being cut.
 - Fixed #1071: HTML contents of a group not cleared when the contents is updated.
+- Fixed #1033: Moved item data not updated in DataSet when using an asynchronous
+  `onMove` handler.
 
 
 ## 2015-07-03, version 4.4.0
