@@ -19,6 +19,8 @@ http://visjs.org
 - Fixed #1071: HTML contents of a group not cleared when the contents is updated.
 - Fixed #1033: Moved item data not updated in DataSet when using an asynchronous
   `onMove` handler.
+- Fixed #239: Do not zoom/move the window when the mouse is on the left panel
+  with group labels. 
 
 
 ## 2015-07-03, version 4.4.0
