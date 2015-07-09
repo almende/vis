@@ -5,7 +5,7 @@
  * A dynamic, browser-based visualization library.
  *
  * @version 4.4.1-SNAPSHOT
- * @date    2015-07-06
+ * @date    2015-07-08
  *
  * @license
  * Copyright (C) 2011-2014 Almende B.V, http://almende.com
@@ -3658,7 +3658,10 @@ return /******/ (function(modules) { // webpackBootstrap
               }
             }
           } else if (Array.isArray(b[prop])) {
-            throw new TypeError('Arrays are not supported by deepExtend');
+            a[prop] = [];
+            for (var i = 0; i < b[prop].length; i++) {
+              a[prop].push(b[prop][i]);
+            }
           } else {
             a[prop] = b[prop];
           }
@@ -10608,6 +10611,7 @@ return /******/ (function(modules) { // webpackBootstrap
       if (options.zMax !== undefined) this.defaultZMax = options.zMax;
       if (options.valueMin !== undefined) this.defaultValueMin = options.valueMin;
       if (options.valueMax !== undefined) this.defaultValueMax = options.valueMax;
+      if (options.backgroundColor !== undefined) this._setBackgroundColor(options.backgroundColor);
 
       if (options.cameraPosition !== undefined) cameraPosition = options.cameraPosition;
 
@@ -10635,7 +10639,6 @@ return /******/ (function(modules) { // webpackBootstrap
           }
         }
       }
-      this._setBackgroundColor(options.backgroundColor);
     }
 
     this.setSize(this.width, this.height);
@@ -11240,7 +11243,7 @@ return /******/ (function(modules) { // webpackBootstrap
             } else {
               v = 1;
               fillStyle = this._hsv2rgb(h, s, v);
-              strokeStyle = this.axisColor;
+              strokeStyle = this.axisColor; // TODO: should be customizable
             }
           } else {
             fillStyle = 'gray';
@@ -11257,7 +11260,7 @@ return /******/ (function(modules) { // webpackBootstrap
           ctx.lineTo(top.screen.x, top.screen.y);
           ctx.closePath();
           ctx.fill();
-          ctx.stroke();
+          ctx.stroke(); // TODO: only draw stroke when strokeWidth > 0
         }
       }
     } else {
@@ -17807,6 +17810,9 @@ return /******/ (function(modules) { // webpackBootstrap
     // update contents
     var content = data && data.content;
     if (content instanceof Element) {
+      while (this.dom.inner.firstChild) {
+        this.dom.inner.removeChild(this.dom.inner.firstChild);
+      }
       this.dom.inner.appendChild(content);
     } else if (content !== undefined && content !== null) {
       this.dom.inner.innerHTML = content;
@@ -17841,11 +17847,11 @@ return /******/ (function(modules) { // webpackBootstrap
 
     // update style
     if (this.style) {
-      util.removeCssText(this.dom.label, 'vis-' + this.style);
+      util.removeCssText(this.dom.label, this.style);
       this.style = null;
     }
     if (data && data.style) {
-      util.addCssText(this.dom.label, 'vis-' + data.style);
+      util.addCssText(this.dom.label, data.style);
       this.style = data.style;
     }
   };
@@ -26718,7 +26724,7 @@ return /******/ (function(modules) { // webpackBootstrap
     return this.canvas.canvasToDOM.apply(this.canvas, arguments);
   };
   Network.prototype.DOMtoCanvas = function () {
-    return this.canvas.DOMtoCanvas(this.canvas, arguments);
+    return this.canvas.DOMtoCanvas.apply(this.canvas, arguments);
   };
   Network.prototype.findNode = function () {
     return this.clustering.findNode.apply(this.clustering, arguments);
@@ -27128,6 +27134,9 @@ return /******/ (function(modules) { // webpackBootstrap
           y: 5
         },
         shape: 'ellipse',
+        shapeProperties: {
+          borderDashes: false
+        },
         size: 25,
         title: undefined,
         value: undefined,
@@ -28383,10 +28392,14 @@ return /******/ (function(modules) { // webpackBootstrap
         var borderRadius = 6;
         ctx.roundRect(this.left, this.top, this.width, this.height, borderRadius);
 
+        //draw dashed border if enabled
+        this.enableBorderDashes(ctx);
         // draw shadow if enabled
         this.enableShadow(ctx);
         ctx.fill();
 
+        //disable dashed border for other elements
+        this.disableBorderDashes(ctx);
         // disable shadows for other elements.
         this.disableShadow(ctx);
 
@@ -28482,6 +28495,20 @@ return /******/ (function(modules) { // webpackBootstrap
           ctx.shadowBlur = 0;
           ctx.shadowOffsetX = 0;
           ctx.shadowOffsetY = 0;
+        }
+      }
+    }, {
+      key: 'enableBorderDashes',
+      value: function enableBorderDashes(ctx) {
+        if (this.options.shapeProperties.borderDashes !== false) {
+          ctx.setLineDash(this.options.shapeProperties.borderDashes);
+        }
+      }
+    }, {
+      key: 'disableBorderDashes',
+      value: function disableBorderDashes(ctx) {
+        if (this.options.shapeProperties.borderDashes == false) {
+          ctx.setLineDash([0]);
         }
       }
     }]);
@@ -28674,14 +28701,17 @@ return /******/ (function(modules) { // webpackBootstrap
         ctx.lineWidth = selected ? selectionLineWidth : borderWidth;
         ctx.lineWidth *= this.networkScaleInv;
         ctx.lineWidth = Math.min(this.width, ctx.lineWidth);
-
         ctx.fillStyle = selected ? this.options.color.highlight.background : hover ? this.options.color.hover.background : this.options.color.background;
         ctx.circle(x, y, size);
 
+        //draw dashed border if enabled
+        this.enableBorderDashes(ctx);
         // draw shadow if enabled
         this.enableShadow(ctx);
         ctx.fill();
 
+        //disable dashed border for other elements
+        this.disableBorderDashes(ctx);
         // disable shadows for other elements.
         this.disableShadow(ctx);
 
@@ -28899,10 +28929,14 @@ return /******/ (function(modules) { // webpackBootstrap
         ctx.fillStyle = selected ? this.options.color.highlight.background : hover ? this.options.color.hover.background : this.options.color.background;
         ctx.database(x - this.width / 2, y - this.height * 0.5, this.width, this.height);
 
+        //draw dashed border if enabled
+        this.enableBorderDashes(ctx);
         // draw shadow if enabled
         this.enableShadow(ctx);
         ctx.fill();
 
+        //disable dashed border for other elements
+        this.disableBorderDashes(ctx);
         // disable shadows for other elements.
         this.disableShadow(ctx);
 
@@ -29060,10 +29094,14 @@ return /******/ (function(modules) { // webpackBootstrap
         ctx.fillStyle = selected ? this.options.color.highlight.background : hover ? this.options.color.hover.background : this.options.color.background;
         ctx[shape](x, y, this.options.size);
 
+        //draw dashed border if enabled
+        this.enableBorderDashes(ctx);
         // draw shadow if enabled
         this.enableShadow(ctx);
         ctx.fill();
 
+        //disable dashed border for other elements
+        this.disableBorderDashes(ctx);
         // disable shadows for other elements.
         this.disableShadow(ctx);
 
@@ -29220,10 +29258,14 @@ return /******/ (function(modules) { // webpackBootstrap
         ctx.fillStyle = selected ? this.options.color.highlight.background : hover ? this.options.color.hover.background : this.options.color.background;
         ctx.ellipse(this.left, this.top, this.width, this.height);
 
+        //draw dashed border if enabled
+        this.enableBorderDashes(ctx);
         // draw shadow if enabled
         this.enableShadow(ctx);
         ctx.fill();
 
+        //disable dashed border for other elements
+        this.disableBorderDashes(ctx);
         // disable shadows for other elements.
         this.disableShadow(ctx);
 
@@ -39695,6 +39737,10 @@ return /******/ (function(modules) { // webpackBootstrap
         __type__: { object: object, boolean: boolean }
       },
       shape: { string: ['ellipse', 'circle', 'database', 'box', 'text', 'image', 'circularImage', 'diamond', 'dot', 'star', 'triangle', 'triangleDown', 'square', 'icon'] },
+      shapeProperties: {
+        borderDashes: { boolean: boolean, array: array },
+        __type__: { object: object }
+      },
       size: { number: number },
       title: { string: string, 'undefined': 'undefined' },
       value: { number: number, 'undefined': 'undefined' },
@@ -39826,6 +39872,9 @@ return /******/ (function(modules) { // webpackBootstrap
         y: [5, -30, 30, 1]
       },
       shape: ['ellipse', 'box', 'circle', 'database', 'diamond', 'dot', 'square', 'star', 'text', 'triangle', 'triangleDown'],
+      shapeProperties: {
+        borderDashes: false
+      },
       size: [25, 0, 200, 1]
     },
     edges: {
