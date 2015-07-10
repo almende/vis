@@ -5,7 +5,7 @@
  * A dynamic, browser-based visualization library.
  *
  * @version 4.4.1-SNAPSHOT
- * @date    2015-07-08
+ * @date    2015-07-10
  *
  * @license
  * Copyright (C) 2011-2014 Almende B.V, http://almende.com
@@ -34302,13 +34302,34 @@ return /******/ (function(modules) { // webpackBootstrap
           if (childEdgesObj.hasOwnProperty(edgeId)) {
             if (this.body.edges[edgeId] !== undefined) {
               var edge = this.body.edges[edgeId];
+
               // if the edge is a clusterEdge, we delete it. The opening of the clusters will restore these edges when required.
               if (edgeId.substr(0, 12) === 'clusterEdge:') {
-                edge.edgeType.cleanup();
-                // this removes the edge from node.edges, which is why edgeIds is formed
-                edge.disconnect();
-                delete childEdgesObj[edgeId];
-                delete this.body.edges[edgeId];
+                // we only delete the cluster edge if there is another edge to the node that is not a cluster.
+                var target = edge.from.isCluster === true ? edge.toId : edge.fromId;
+                var deleteEdge = false;
+
+                // search the contained edges for an edge that has a link to the targetNode
+                for (var edgeId2 in childEdgesObj) {
+                  if (childEdgesObj.hasOwnProperty(edgeId2)) {
+                    if (this.body.edges[edgeId2] !== undefined && edgeId2 !== edgeId) {
+                      var edge2 = this.body.edges[edgeId2];
+                      if (edge2.fromId == target || edge2.toId == target) {
+                        deleteEdge = true;
+                        break;
+                      }
+                    }
+                  }
+                }
+
+                // if we found the edge that will trigger the recreation of a new cluster edge on opening, we can delete this edge.
+                if (deleteEdge === true) {
+                  edge.edgeType.cleanup();
+                  // this removes the edge from node.edges, which is why edgeIds is formed
+                  edge.disconnect();
+                  delete childEdgesObj[edgeId];
+                  delete this.body.edges[edgeId];
+                }
               } else {
                 edge.togglePhysics(false);
                 edge.options.hidden = true;
