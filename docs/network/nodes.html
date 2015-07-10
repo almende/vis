@@ -11,6 +11,9 @@
 
     <!-- Bootstrap core CSS -->
     <link href="../css/bootstrap.css" rel="stylesheet">
+    <!-- Tipue vendor css -->
+    <link href="../css/tipuesearch.css" rel="stylesheet">
+
     <link href="../css/style.css" rel="stylesheet">
 
     <!-- HTML5 shim and Respond.js for IE8 support of HTML5 elements and media queries -->
@@ -57,6 +60,20 @@
                         <li><a href="http://www.visjs.org/featureRequests.html">Feature requests</a></li>
                         <li><a href="http://www.visjs.org/index.html#licenses">License</a></li>
                     </ul>
+                    <form class="navbar-form navbar-right" role="search">
+                        <input name="q" id="tipue_search_input" autocomplete="off" type="text" class="form-control" placeholder="Enter keywords">
+                        <button type="submit" class="btn btn-default">Go!</button>
+                    </form>
+                    <div id="search-results-wrapper" class="panel panel-default">
+                      <div class="panel-body">
+                        <div id="tipue_search_content"></div>
+                      </div>
+                    </div>
+                    <div id="keyword-info" class="panel panel-success">
+                      <div class="panel-body">
+                          Found <span id="keyword-count"></span> results. Click <a id="keyword-jumper-button" href="">here</a> to jump to the first keyword occurence!
+                      </div>
+                    </div>
                 </div>
             </div>
         </nav>
@@ -73,7 +90,6 @@
     <h1>Network - nodes</h1>
 
     <p>Handles the creation and deletion of nodes and contains the global node options and styles.</p>
-    <a class="btn btn-primary" role="button" onclick="history.back()">Back to overview.</a>
     <h3>Options</h3>
     <p>The options for the nodes have to be contained in an object titled 'nodes'. All of these options can be supplied per node as well. Obviously, 'id' should not be defined globally but per node. Options defined
         in the global nodes object, are applied to all nodes. If a node has options of its own, those will be used instead of the global options.</p>
@@ -661,5 +677,11 @@ mySize = minSize + diff * scale;
 <script src="../js/bootstrap.min.js"></script>
 <!-- IE10 viewport hack for Surface/desktop Windows 8 bug -->
 <script src="../js/ie10-viewport-bug-workaround.js"></script>
+<!-- jquery extensions -->
+<script src="../js/jquery.highlight.js"></script>
+<script src="../js/jquery.url.min.js"></script>
+<!-- Tipue vendor js -->
+<script src="../js/tipuesearch.config.js"></script>
+<script src="../js/tipuesearch.min.js"></script>
 <!-- controller -->
 <script src="../js/main.js"></script>
