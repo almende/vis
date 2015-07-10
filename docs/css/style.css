@@ -204,3 +204,35 @@ pre.hidden {
   padding: 0 2px 0 5px;
   display:inline-block;
 }
+
+#tipue_search_content {
+  max-width: 100% !important;
+}
+
+#navbar #keyword-count {
+  font-weight: bold;
+}
+
+#navbar .panel {
+  clear: both;
+  z-index: 1;
+  position: relative;
+  display: none;
+}
+
+#navbar form[role="search"]::after {
+  background: rgba(0, 0, 0, 0) url("../img/arrow.svg") no-repeat scroll 145px 0;
+  background-size: 27%;
+  content: "Just search it";
+  display: block;
+  padding: 40px 40px;
+  position: absolute;
+  width: 220px;
+  margin: 10px 0 0 20px;
+  color: black;
+  opacity: 0.4;
+}
+
+.highlight {
+    background-color: #FFFF88;
+}
