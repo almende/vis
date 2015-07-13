@@ -16,13 +16,15 @@ http://visjs.org
 ### Timeline
 
 - Implemented support for group templates (#996). Thanks @hansmaulwurf23.
+- Implemented option `zoomKey` for both Timeline and Graph2d (see #1082). 
+  Thanks @hansmaulwurf23.
 - Fixed #1076: Fixed possible overlap of minor labels text on the TimeAxis. 
 - Fixed #1001: First element of group style being cut.
 - Fixed #1071: HTML contents of a group not cleared when the contents is updated.
 - Fixed #1033: Moved item data not updated in DataSet when using an asynchronous
   `onMove` handler.
 - Fixed #239: Do not zoom/move the window when the mouse is on the left panel
-  with group labels. 
+  with group labels.   
 
 
 ## 2015-07-03, version 4.4.0
