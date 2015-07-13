@@ -1026,6 +1026,26 @@ function (option, path) {
             <td>The width of the timeline in pixels or as a percentage.</td>
         </tr>
 
+		<tr>
+      		<td>zoomable</td>
+      		<td>boolean</td>
+      		<td><code>true</code></td>
+      		<td>
+        		Specifies whether the Timeline can be zoomed by pinching or scrolling in the window.
+        		Only applicable when option <code>moveable</code> is set <code><code>true</code></code>.
+      		</td>
+    	</tr>
+
+		<tr>
+		    <td>zoomKey</td>
+		    <td>String</td>
+		    <td><code>''</code></td>
+		    <td>Specifies whether the Timeline is only zoomed when an additional key is down.
+		      	Available values are '' (does not apply), 'altKey', 'ctrlKey', or 'metaKey'.
+		        Only applicable when option <code>moveable</code> is set <code><code>true</code></code>.
+		    </td>
+		</tr>
+
         <tr>
             <td>zoomMax</td>
             <td>Number</td>
