@@ -68,7 +68,7 @@
                     </ul>
                     <form class="navbar-form navbar-right" role="search">
                         <input name="q" id="tipue_search_input" autocomplete="off" type="text" class="form-control" placeholder="Enter keywords">
-                        <button type="submit" class="btn btn-default">Go!</button>
+                        <button type="button" class="btn btn-default" onclick="vis.initSiteSearch(true);">Go!</button>
                     </form>
                     <div id="search-results-wrapper" class="panel panel-default">
                       <div class="panel-body">
@@ -670,6 +670,7 @@ var options: {
 <!-- Bootstrap core JavaScript
 ================================================== -->
 <!-- Placed at the end of the document so the pages load faster -->
+<script src="../js/keycharm.js"></script>
 <script src="../js/jquery.min.js"></script>
 <script src="../js/bootstrap.min.js"></script>
 <!-- IE10 viewport hack for Surface/desktop Windows 8 bug -->
@@ -679,6 +680,6 @@ var options: {
 <script src="../js/jquery.url.min.js"></script>
 <!-- Tipue vendor js -->
 <script src="../js/tipuesearch.config.js"></script>
-<script src="../js/tipuesearch.min.js"></script>
+<script src="../js/tipuesearch.js"></script>
 <!-- controller -->
 <script src="../js/main.js"></script>

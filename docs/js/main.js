@@ -3,8 +3,22 @@ $(document).ready(function() {
   vis.createBreadcrumbs($(".container.full").first());
   vis.initSiteSearch();
   vis.initKeywords();
+
+  $("#tipue_search_input").keyup(checkInput)
+
+  vis.typingTimeout = 0;
       
 });
+
+function checkInput() {
+  if (document.getElementById("tipue_search_input").value.length > 3) {
+    clearTimeout(vis.typingTimeout);
+    vis.typingTimeout = setTimeout(vis.initSiteSearch(true),300);
+  }
+  else {
+    document.getElementById("search-results-wrapper").style.display = "none";
+  }
+}
 
 // namespace
 var vis = {};
@@ -57,17 +71,18 @@ vis.createBreadcrumbs = function(container) {
  * 
  * @author felixhayashi
  */
-vis.initSiteSearch = function() {
-        
+vis.initSiteSearch = function(dynamic) { // Added dynamic flag for live update ~ Alex
   $("#tipue_search_input").tipuesearch({
     "mode": "live",
     "show": 3,
-  });
-  
+  },dynamic);
+
   var hasSearchMessage = $("#tipue_search_content").children().length > 0;
   if(hasSearchMessage) {
     // show result panel
-    $("#search-results-wrapper").css("display", "block");
+    if ($("#search-results-wrapper").css("display") === 'none') {
+      $("#search-results-wrapper").css("display", "block");
+    }
     // encode the keywords that were entered by the user
     var keywords = $("#tipue_search_input").val().replace(/\s/g, ",");
     // add keywords to result-urls
@@ -117,7 +132,7 @@ vis.initKeywords = function() {
       // do not cache hits outside the handler; creates problems with prettyfy lib
       // we use the first visible(!) hit at the time the button is clicked
       var firstHit = $(".highlight:visible").first();
-      if(firstHit) {
+      if(firstHit.length) {
         $("html, body").animate({ scrollTop: $(firstHit).offset().top }, 2000);
       }
     });    

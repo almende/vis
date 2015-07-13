@@ -14269,8 +14269,12 @@ return /******/ (function(modules) { // webpackBootstrap
   Range.prototype._onDragStart = function (event) {
     this.deltaDifference = 0;
     this.previousDelta = 0;
+
     // only allow dragging when configured as movable
     if (!this.options.moveable) return;
+
+    // only start dragging when the mouse is inside the current range
+    if (!this._isInsideRange(event)) return;
 
     // refuse to drag when we where pinching to prevent the timeline make a jump
     // when releasing the fingers in opposite order from the touch screen
@@ -14291,6 +14295,8 @@ return /******/ (function(modules) { // webpackBootstrap
    * @private
    */
   Range.prototype._onDrag = function (event) {
+    if (!this.props.touch.dragging) return;
+
     // only allow dragging when configured as movable
     if (!this.options.moveable) return;
 
@@ -14342,6 +14348,8 @@ return /******/ (function(modules) { // webpackBootstrap
    * @private
    */
   Range.prototype._onDragEnd = function (event) {
+    if (!this.props.touch.dragging) return;
+
     // only allow dragging when configured as movable
     if (!this.options.moveable) return;
 
@@ -14372,6 +14380,9 @@ return /******/ (function(modules) { // webpackBootstrap
   Range.prototype._onMouseWheel = function (event) {
     // only allow zooming when configured as zoomable and moveable
     if (!(this.options.zoomable && this.options.moveable)) return;
+
+    // only zoom when the mouse is inside the current range
+    if (!this._isInsideRange(event)) return;
 
     // retrieve delta
     var delta = 0;
@@ -14469,6 +14480,23 @@ return /******/ (function(modules) { // webpackBootstrap
 
     this.startToFront = false; // revert to default
     this.endToFront = true; // revert to default
+  };
+
+  /**
+   * Test whether the mouse from a mouse event is inside the visible window,
+   * between the current start and end date
+   * @param {Object} event
+   * @return {boolean} Returns true when inside the visible window
+   * @private
+   */
+  Range.prototype._isInsideRange = function (event) {
+    // calculate the time where the mouse is, check whether inside
+    // and no scroll action should happen.
+    var clientX = event.center ? event.center.x : event.clientX;
+    var x = clientX - util.getAbsoluteLeft(this.body.dom.centerContainer);
+    var time = this.body.util.toTime(x);
+
+    return time >= this.start && time <= this.end;
   };
 
   /**
@@ -15517,6 +15545,16 @@ return /******/ (function(modules) { // webpackBootstrap
   };
 
   /**
+   * Retrieve meta information from an event.
+   * Should be overridden by classes extending Core
+   * @param {Event} event
+   * @return {Object} An object with related information.
+   */
+  Core.prototype.getEventProperties = function (event) {
+    return { event: event };
+  };
+
+  /**
    * Add custom vertical bar
    * @param {Date | String | Number} [time]  A Date, unix timestamp, or
    *                                         ISO date string. Time point where
@@ -16379,7 +16417,7 @@ return /******/ (function(modules) { // webpackBootstrap
   ItemSet.prototype.setOptions = function (options) {
     if (options) {
       // copy all options that we know
-      var fields = ['type', 'align', 'order', 'stack', 'selectable', 'multiselect', 'groupOrder', 'dataAttributes', 'template', 'hide', 'snap'];
+      var fields = ['type', 'align', 'order', 'stack', 'selectable', 'multiselect', 'groupOrder', 'dataAttributes', 'template', 'groupTemplate', 'hide', 'snap'];
       util.selectiveExtend(fields, this.options, options);
 
       if ('orientation' in options) {
@@ -17416,13 +17454,11 @@ return /******/ (function(modules) { // webpackBootstrap
     if (this.touchParams.itemProps) {
       event.stopPropagation();
 
-      // prepare a change set for the changed items
-      var changes = [];
       var me = this;
       var dataset = this.itemsData.getDataSet();
-
       var itemProps = this.touchParams.itemProps;
       this.touchParams.itemProps = null;
+
       itemProps.forEach(function (props) {
         var id = props.item.id;
         var exists = me.itemsData.get(id, me.itemOptions) != null;
@@ -17446,7 +17482,7 @@ return /******/ (function(modules) { // webpackBootstrap
             if (itemData) {
               // apply changes
               itemData[dataset._fieldId] = id; // ensure the item contains its id (can be undefined)
-              changes.push(itemData);
+              dataset.update(itemData);
             } else {
               // restore original values
               props.item.setData(props.data);
@@ -17457,11 +17493,6 @@ return /******/ (function(modules) { // webpackBootstrap
           });
         }
       });
-
-      // apply the changes to the data (if there are changes)
-      if (changes.length) {
-        dataset.update(changes);
-      }
     }
   };
 
@@ -17808,8 +17839,15 @@ return /******/ (function(modules) { // webpackBootstrap
    */
   Group.prototype.setData = function (data) {
     // update contents
-    var content = data && data.content;
+    var content;
+    if (this.itemSet.options && this.itemSet.options.groupTemplate) {
+      content = this.itemSet.options.groupTemplate(data);
+    } else {
+      content = data && data.content;
+    }
+
     if (content instanceof Element) {
+      this.dom.inner.appendChild(content);
       while (this.dom.inner.firstChild) {
         this.dom.inner.removeChild(this.dom.inner.firstChild);
       }
@@ -20170,6 +20208,7 @@ return /******/ (function(modules) { // webpackBootstrap
     var xPrev = 0;
     var width = 0;
     var prevLine;
+    var prevText;
     var xFirstMajorLabel = undefined;
     var max = 0;
     var className;
@@ -20188,9 +20227,12 @@ return /******/ (function(modules) { // webpackBootstrap
       if (prevLine) {
         prevLine.style.width = width + 'px';
       }
+      if (prevText) {
+        prevText.style.width = width + 'px';
+      }
 
       if (this.options.showMinorLabels) {
-        this._repaintMinorText(x, step.getLabelMinor(), orientation, className);
+        prevText = this._repaintMinorText(x, step.getLabelMinor(), orientation, className);
       }
 
       if (isMajor && this.options.showMajorLabels) {
@@ -20236,6 +20278,7 @@ return /******/ (function(modules) { // webpackBootstrap
    * @param {String} text
    * @param {String} orientation   "top" or "bottom" (default)
    * @param {String} className
+   * @return {Element} Returns the HTML element of the created label
    * @private
    */
   TimeAxis.prototype._repaintMinorText = function (x, text, orientation, className) {
@@ -20257,6 +20300,8 @@ return /******/ (function(modules) { // webpackBootstrap
     label.style.left = x + 'px';
     label.className = 'vis-text vis-minor ' + className;
     //label.title = title;  // TODO: this is a heavy operation
+
+    return label;
   };
 
   /**
@@ -20265,6 +20310,7 @@ return /******/ (function(modules) { // webpackBootstrap
    * @param {String} text
    * @param {String} orientation   "top" or "bottom" (default)
    * @param {String} className
+   * @return {Element} Returns the HTML element of the created label
    * @private
    */
   TimeAxis.prototype._repaintMajorText = function (x, text, orientation, className) {
@@ -20286,6 +20332,8 @@ return /******/ (function(modules) { // webpackBootstrap
 
     label.style.top = orientation == 'top' ? '0' : this.props.minorLabelHeight + 'px';
     label.style.left = x + 'px';
+
+    return label;
   };
 
   /**
@@ -22693,6 +22741,7 @@ return /******/ (function(modules) { // webpackBootstrap
     snap: { 'function': 'function', 'null': 'null' },
     start: { date: date, number: number, string: string, moment: moment },
     template: { 'function': 'function' },
+    groupTemplate: { 'function': 'function' },
     timeAxis: {
       scale: { string: string, 'undefined': 'undefined' },
       step: { number: number, 'undefined': 'undefined' },

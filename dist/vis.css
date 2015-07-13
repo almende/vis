@@ -320,6 +320,9 @@
   position: absolute;
   color: #4d4d4d;
   padding: 3px;
+  overflow: hidden;
+  box-sizing: border-box;
+
   white-space: nowrap;
 }
 
