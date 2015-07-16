@@ -5,7 +5,7 @@
  * A dynamic, browser-based visualization library.
  *
  * @version 4.4.1-SNAPSHOT
- * @date    2015-07-10
+ * @date    2015-07-16
  *
  * @license
  * Copyright (C) 2011-2014 Almende B.V, http://almende.com
@@ -13994,7 +13994,7 @@ return /******/ (function(modules) { // webpackBootstrap
   Range.prototype.setOptions = function (options) {
     if (options) {
       // copy the options that we know
-      var fields = ['direction', 'min', 'max', 'zoomMin', 'zoomMax', 'moveable', 'zoomable', 'activate', 'hiddenDates'];
+      var fields = ['direction', 'min', 'max', 'zoomMin', 'zoomMax', 'moveable', 'zoomable', 'activate', 'hiddenDates', 'zoomKey'];
       util.selectiveExtend(fields, this.options, options);
 
       if ('start' in options || 'end' in options) {
@@ -14383,6 +14383,9 @@ return /******/ (function(modules) { // webpackBootstrap
 
     // only zoom when the mouse is inside the current range
     if (!this._isInsideRange(event)) return;
+
+    // only zoom when the according key is pressed and the zoomKey option is set
+    if (this.options.zoomKey && !event[this.options.zoomKey]) return;
 
     // retrieve delta
     var delta = 0;
@@ -18155,6 +18158,11 @@ return /******/ (function(modules) { // webpackBootstrap
       if (subgroup) {
         var itemIndex = subgroup.items.indexOf(item);
         subgroup.items.splice(itemIndex, 1);
+        if (!subgroup.items.length) {
+          delete this.subgroups[item.data.subgroup];
+          this.subgroupIndex--;
+        }
+        this.orderSubgroups();
       }
     }
   };
@@ -20202,37 +20210,40 @@ return /******/ (function(modules) { // webpackBootstrap
     dom.majorTexts = [];
     dom.minorTexts = [];
 
-    var cur;
-    var x = 0;
+    var current;
+    var next;
+    var x;
+    var xNext;
     var isMajor;
-    var xPrev = 0;
-    var width = 0;
-    var prevLine;
-    var prevText;
+    var width;
+    var line;
+    var labelMinor;
     var xFirstMajorLabel = undefined;
     var max = 0;
     var className;
 
     step.first();
+    next = step.getCurrent();
+    xNext = this.body.util.toScreen(next);
     while (step.hasNext() && max < 1000) {
       max++;
 
-      cur = step.getCurrent();
       isMajor = step.isMajor();
       className = step.getClassName();
+      labelMinor = step.getLabelMinor();
 
-      xPrev = x;
-      x = this.body.util.toScreen(cur);
-      width = x - xPrev;
-      if (prevLine) {
-        prevLine.style.width = width + 'px';
-      }
-      if (prevText) {
-        prevText.style.width = width + 'px';
-      }
+      current = next;
+      x = xNext;
 
-      if (this.options.showMinorLabels) {
-        prevText = this._repaintMinorText(x, step.getLabelMinor(), orientation, className);
+      step.next();
+      next = step.getCurrent();
+      xNext = this.body.util.toScreen(next);
+
+      width = xNext - x;
+      var labelFits = labelMinor.length * this.props.minorCharWidth < width;
+
+      if (this.options.showMinorLabels && labelFits) {
+        this._repaintMinorText(x, labelMinor, orientation, className);
       }
 
       if (isMajor && this.options.showMajorLabels) {
@@ -20242,12 +20253,16 @@ return /******/ (function(modules) { // webpackBootstrap
           }
           this._repaintMajorText(x, step.getLabelMajor(), orientation, className);
         }
-        prevLine = this._repaintMajorLine(x, orientation, className);
+        line = this._repaintMajorLine(x, width, orientation, className);
       } else {
-        prevLine = this._repaintMinorLine(x, orientation, className);
+        if (labelFits) {
+          line = this._repaintMinorLine(x, width, orientation, className);
+        } else {
+          if (line) {
+            line.style.width = parseInt(line.style.width) + width + 'px';
+          }
+        }
       }
-
-      step.next();
     }
 
     // create a major label on the left when needed
@@ -20339,12 +20354,13 @@ return /******/ (function(modules) { // webpackBootstrap
   /**
    * Create a minor line for the axis at position x
    * @param {Number} x
+   * @param {Number} width
    * @param {String} orientation   "top" or "bottom" (default)
    * @param {String} className
    * @return {Element} Returns the created line
    * @private
    */
-  TimeAxis.prototype._repaintMinorLine = function (x, orientation, className) {
+  TimeAxis.prototype._repaintMinorLine = function (x, width, orientation, className) {
     // reuse redundant line
     var line = this.dom.redundant.lines.shift();
     if (!line) {
@@ -20362,6 +20378,7 @@ return /******/ (function(modules) { // webpackBootstrap
     }
     line.style.height = props.minorLineHeight + 'px';
     line.style.left = x - props.minorLineWidth / 2 + 'px';
+    line.style.width = width + 'px';
 
     line.className = 'vis-grid vis-vertical vis-minor ' + className;
 
@@ -20371,12 +20388,13 @@ return /******/ (function(modules) { // webpackBootstrap
   /**
    * Create a Major line for the axis at position x
    * @param {Number} x
+   * @param {Number} width
    * @param {String} orientation   "top" or "bottom" (default)
    * @param {String} className
    * @return {Element} Returns the created line
    * @private
    */
-  TimeAxis.prototype._repaintMajorLine = function (x, orientation, className) {
+  TimeAxis.prototype._repaintMajorLine = function (x, width, orientation, className) {
     // reuse redundant line
     var line = this.dom.redundant.lines.shift();
     if (!line) {
@@ -20394,6 +20412,7 @@ return /******/ (function(modules) { // webpackBootstrap
     }
     line.style.left = x - props.majorLineWidth / 2 + 'px';
     line.style.height = props.majorLineHeight + 'px';
+    line.style.width = width + 'px';
 
     line.className = 'vis-grid vis-vertical vis-major ' + className;
 
@@ -22750,6 +22769,7 @@ return /******/ (function(modules) { // webpackBootstrap
     type: { string: string },
     width: { string: string, number: number },
     zoomable: { boolean: boolean },
+    zoomKey: { string: ['ctrlKey', 'altKey', 'metaKey', ''] },
     zoomMax: { number: number },
     zoomMin: { number: number },
 
@@ -22834,6 +22854,7 @@ return /******/ (function(modules) { // webpackBootstrap
       type: ['box', 'point', 'range', 'background'],
       width: '100%',
       zoomable: true,
+      zoomKey: ['ctrlKey', 'altKey', 'metaKey', ''],
       zoomMax: [315360000000000, 10, 315360000000000, 1],
       zoomMin: [10, 10, 315360000000000, 1]
     }
@@ -26191,6 +26212,7 @@ return /******/ (function(modules) { // webpackBootstrap
     },
     width: { string: string, number: number },
     zoomable: { boolean: boolean },
+    zoomKey: { string: ['ctrlKey', 'altKey', 'metaKey', ''] },
     zoomMax: { number: number },
     zoomMin: { number: number },
     __type__: { object: object }
@@ -26292,6 +26314,7 @@ return /******/ (function(modules) { // webpackBootstrap
       start: '',
       width: '100%',
       zoomable: true,
+      zoomKey: ['ctrlKey', 'altKey', 'metaKey', ''],
       zoomMax: [315360000000000, 10, 315360000000000, 1],
       zoomMin: [10, 10, 315360000000000, 1]
     }
@@ -27408,7 +27431,7 @@ return /******/ (function(modules) { // webpackBootstrap
           }
           var data = this.body.data.nodes._data[nodeId];
           if (node !== undefined && data !== undefined) {
-            node.setOptions({ fixed: false });
+            node.setOptions({ fixed: false, x: null, y: null });
             node.setOptions(data);
           }
         }
@@ -27733,11 +27756,20 @@ return /******/ (function(modules) { // webpackBootstrap
         }
 
         // set these options locally
+        // clear x and y positions
         if (options.x !== undefined) {
-          this.x = parseInt(options.x);this.predefinedPosition = true;
+          if (options.x === null) {
+            this.x = undefined;this.predefinedPosition = false;
+          } else {
+            this.x = parseInt(options.x);this.predefinedPosition = true;
+          }
         }
         if (options.y !== undefined) {
-          this.y = parseInt(options.y);this.predefinedPosition = true;
+          if (options.y === null) {
+            this.y = undefined;this.predefinedPosition = false;
+          } else {
+            this.y = parseInt(options.y);this.predefinedPosition = true;
+          }
         }
         if (options.size !== undefined) {
           this.baseSize = options.size;
@@ -37934,6 +37966,11 @@ return /******/ (function(modules) { // webpackBootstrap
           }
 
           if (this.options.hierarchical.enabled === true) {
+            if (prevHierarchicalState === true) {
+              // refresh the overridden options for nodes and edges.
+              this.body.emitter.emit('refresh');
+            }
+
             // make sure the level seperation is the right way up
             if (this.options.hierarchical.direction === 'RL' || this.options.hierarchical.direction === 'DU') {
               if (this.options.hierarchical.levelSeparation > 0) {

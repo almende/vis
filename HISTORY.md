@@ -3,11 +3,17 @@ http://visjs.org
 
 ## not yet released, version 4.4.1-SNAPSHOT
 
+### General
+
+- Docs have been greatly improved thanks to @felixhayashi! Thanks a lot!
+
 ### Network
 
 - Properly fixed the _lockedRedraw method.
 - Fixed node resizing on dragging.
 - Added shapeProperties, thanks @zukomgwili!
+- Fixed missing edges during clustering.
+- Fixed missing refresh of node data when changing hierarchical layout on the fly.
 
 ### Graph3d
 
