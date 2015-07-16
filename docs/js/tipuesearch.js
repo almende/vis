@@ -4,12 +4,16 @@ Tipue Search 5.0
 Copyright (c) 2015 Tipue
 Tipue Search is released under the MIT License
 http://www.tipue.com/search
-*/
 
+
+Also altered by @AlexDM0 for live updating :)
+*/
+var tipuesearch_in = {
+       pages: []
+  };
 
 (function($) {
-
-     $.fn.tipuesearch = function(options,dynamic) {
+     $.fn.tipuesearch = function(options,dynamic,query) {
           var set = $.extend( {
           
                'show'                   : 7,
@@ -30,17 +34,14 @@ http://www.tipue.com/search
           if (dynamic === undefined) {
                dynamic = false;
           }
+
           return this.each(function() {
 
-               var tipuesearch_in = {
-                    pages: []
-               };
                $.ajaxSetup({
                     async: false
                });
                var tipuesearch_t_c = 0;
-
-               if (set.mode == 'live')
+               if (set.mode == 'live' && tipuesearch_in.pages.length == 0)
                {
                     for (var i = 0; i < tipuesearch_pages.length; i++)
                     {
@@ -73,7 +74,7 @@ http://www.tipue.com/search
                               });
                     }
                }
-               
+
                if (set.mode == 'json')
                {
                     $.getJSON(set.contentLocation)
@@ -506,7 +507,7 @@ http://www.tipue.com/search
 
                     $('#tipue_search_content').hide();
                     $('#tipue_search_content').html(out);
-                    $('#tipue_search_content').slideDown(200);
+                    $('#tipue_search_content').slideDown(0);
 
                     $('#tipue_search_replaced').click(function()
                     {
@@ -519,8 +520,8 @@ http://www.tipue.com/search
                          var id_a = id_v.split('_');
                     
                          getTipueSearch(parseInt(id_a[0]), id_a[1]);
-                    });                                                       
-               }          
+                    });
+               }
           
           });
      };

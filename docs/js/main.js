@@ -5,7 +5,6 @@ $(document).ready(function() {
   vis.initKeywords();
 
   $("#tipue_search_input").keyup(checkInput)
-
   vis.typingTimeout = 0;
       
 });
@@ -13,7 +12,7 @@ $(document).ready(function() {
 function checkInput() {
   if (document.getElementById("tipue_search_input").value.length > 3) {
     clearTimeout(vis.typingTimeout);
-    vis.typingTimeout = setTimeout(vis.initSiteSearch(true),300);
+    vis.typingTimeout = setTimeout(function () {vis.initSiteSearch(true)},200);
   }
   else {
     document.getElementById("search-results-wrapper").style.display = "none";
@@ -76,6 +75,7 @@ vis.initSiteSearch = function(dynamic) { // Added dynamic flag for live update ~
     "mode": "live",
     "show": 3,
   },dynamic);
+
 
   var hasSearchMessage = $("#tipue_search_content").children().length > 0;
   if(hasSearchMessage) {
