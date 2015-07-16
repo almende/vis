@@ -227,33 +227,33 @@
             <td>Generates an interactive option editor with filtering.</td>
         </tr>
         <tr>
-            <td><a href="./edges.html">edges</a></td>
+            <td href="./edges.html">edges</a></td>
             <td>Handles the creation and deletion of edges and contains the global edge options and styles.</td>
         </tr>
         <tr>
-            <td><a href="./groups.html">groups</a></td>
+            <td href="./groups.html">groups</a></td>
             <td>Contains the groups and some options on how to handle nodes with non-existing groups.</td>
         </tr>
         <tr>
-            <td><a href="./interaction.html">interaction</a></td>
+            <td href="./interaction.html">interaction</a></td>
             <td>Used for all user interaction with the network. Handles mouse and touch events and selection as well as
                 the navigation buttons and the popups.
             </td>
         </tr>
         <tr>
-            <td><a href="./layout.html">layout</a></td>
+            <td href="./layout.html">layout</a></td>
             <td>Governs the initial and hierarchical positioning.</td>
         </tr>
         <tr>
-            <td><a href="./manipulation.html">manipulation</a></td>
+            <td href="./manipulation.html">manipulation</a></td>
             <td>Supplies an API and optional GUI to alter the data in the network.</td>
         </tr>
         <tr>
-            <td><a href="./nodes.html">nodes</a></td>
+            <td href="./nodes.html">nodes</a></td>
             <td>Handles the creation and deletion of nodes and contains the global node options and styles.</td>
         </tr>
         <tr>
-            <td><a href="./physics.html">physics</a></td>
+            <td href="./physics.html">physics</a></td>
             <td>Does all the simulation moving the nodes and edges to their final positions, also governs
                 stabilization.
             </td>
@@ -294,8 +294,7 @@ network.setOptions(options);
                 <th>Default</th>
                 <th>Description</th>
             </tr>
-            <tr>
-                <td>autoResize</td>
+            <tr><td id="event_autoResize">autoResize</td>
                 <td>Boolean</td>
                 <td><code>true</code></td>
                 <td>If true, the Network will automatically detect when its container is resized, and redraw itself
@@ -303,20 +302,17 @@ network.setOptions(options);
                     using the function redraw() and setSize().
                 </td>
             </tr>
-            <tr>
-                <td>width</td>
+            <tr><td id="event_width">width</td>
                 <td>String</td>
                 <td><code>'100%'</code></td>
                 <td>the width of the canvas. Can be in percentages or pixels (ie. <code>'400px'</code>).</td>
             </tr>
-            <tr>
-                <td>height</td>
+            <tr><td id="event_height">height</td>
                 <td>String</td>
                 <td><code>'100%'</code></td>
                 <td>the height of the canvas. Can be in percentages or pixels (ie. <code>'400px'</code>).</td>
             </tr>
-            <tr>
-                <td>locale</td>
+            <tr><td id="event_locale">locale</td>
                 <td>String</td>
                 <td><code>'en'</code></td>
                 <td>Select the locale. By default, the language is English. If you want to use another language, you
@@ -324,8 +320,7 @@ network.setOptions(options);
                     need to define your own locale and refer to it here.
                 </td>
             </tr>
-            <tr>
-                <td>locales</td>
+            <tr><td id="event_locales">locales</td>
                 <td>Object</td>
                 <td>defaultLocales</td>
                 <td>Locales object. By default only <code>'en'</code> and <code>'nl'</code> are supported. Take a look
@@ -335,8 +330,7 @@ network.setOptions(options);
                         section below</a> for more explaination on how to customize this.
                 </td>
             </tr>
-            <tr>
-                <td>clickToUse</td>
+            <tr><td id="event_clickToUse">clickToUse</td>
                 <td>Boolean</td>
                 <td>false</td>
                 <td>Locales object. By default only <code>'en'</code> and <code>'nl'</code> are supported. Take a look
@@ -346,60 +340,52 @@ network.setOptions(options);
                         section below</a> for more explaination on how to customize this.
                 </td>
             </tr>
-            <tr>
-                <td>configure</td>
+            <tr><td id="event_configure">configure</td>
                 <td>Object</td>
                 <td>Object</td>
-                <td><a href="./configure.html">All options in this object are explained in the configure module.</a>
+                <td href="./configure.html">All options in this object are explained in the configure module.</a>
                 </td>
             </tr>
-            <tr>
-                <td>edges</td>
+            <tr><td id="event_edges">edges</td>
                 <td>Object</td>
                 <td>Object</td>
-                <td><a href="./edges.html">All options in this object are explained in the edges module.</a>
+                <td href="./edges.html">All options in this object are explained in the edges module.</a>
                 </td>
             </tr>
-            <tr>
-                <td>nodes</td>
+            <tr><td id="event_nodes">nodes</td>
                 <td>Object</td>
                 <td>Object</td>
-                <td><a href="./nodes.html">All options in this object are explained in the nodes module.</a>
+                <td href="./nodes.html">All options in this object are explained in the nodes module.</a>
                 </td>
             </tr>
-            <tr>
-                <td>groups</td>
+            <tr><td id="event_groups">groups</td>
                 <td>Object</td>
                 <td>Object</td>
-                <td><a href="./groups.html">All options in this object are explained in the groups module.</a>
+                <td href="./groups.html">All options in this object are explained in the groups module.</a>
                 </td>
             </tr>
-            <tr>
-                <td>layout</td>
+            <tr><td id="event_layout">layout</td>
                 <td>Object</td>
                 <td>Object</td>
-                <td><a href="./layout.html">All options in this object are explained in the layout module.</a>
+                <td href="./layout.html">All options in this object are explained in the layout module.</a>
                 </td>
             </tr>
-            <tr>
-                <td>interaction</td>
+            <tr><td id="event_interaction">interaction</td>
                 <td>Object</td>
                 <td>Object</td>
-                <td><a href="./interaction.html">All options in this object are explained in the interaction module.</a>
+                <td href="./interaction.html">All options in this object are explained in the interaction module.</a>
                 </td>
             </tr>
-            <tr>
-                <td>manipulation</td>
+            <tr><td id="event_manipulation">manipulation</td>
                 <td>Object</td>
                 <td>Object</td>
-                <td><a href="./manipulation.html">All options in this object are explained in the manipulation module.</a>
+                <td href="./manipulation.html">All options in this object are explained in the manipulation module.</a>
                 </td>
             </tr>
-            <tr>
-                <td>physics</td>
+            <tr><td id="event_physics">physics</td>
                 <td>Object</td>
                 <td>Object</td>
-                <td><a href="./physics.html">All options in this object are explained in the physics module.</a>
+                <td href="./physics.html">All options in this object are explained in the physics module.</a>
                 </td>
             </tr>
         </table>
@@ -442,14 +428,14 @@ var locales = {
                 <td colspan="2">Global methods for the network.</td>
             </tr>
             <tr class="collapsible toggle" onclick="toggleTable('methodTable','destroy', this);">
-                <td colspan="2"><span parent="destroy" class="right-caret"></span><a id="destroy"></a> destroy()</td>
+                <td colspan="2"><span parent="destroy" class="right-caret" id="method_destroy"></span> destroy()</td>
             </tr>
             <tr class="hidden" parent="destroy">
                 <td class="midMethods">Returns: none</td>
                 <td>Remove the network from the DOM and remove all Hammer bindings and references.</td>
             </tr>
             <tr class="collapsible toggle" onclick="toggleTable('methodTable','setData', this);">
-                <td colspan="2"><span parent="setData" class="right-caret"></span> setData({<code><i>nodes: vis
+                <td colspan="2"><span parent="setData" class="right-caret" id="method_setData"></span> setData({<code><i>nodes: vis
                     DataSet/Array</i></code>,<code><i>edges: vis
                     DataSet/Array</i></code>})
                 </td>
@@ -463,7 +449,7 @@ var locales = {
                 </td>
             </tr>
             <tr class="collapsible toggle" onclick="toggleTable('methodTable','setOptions', this);">
-                <td colspan="2"><span parent="setOptions" class="right-caret"></span> setOptions(<code>Object
+                <td colspan="2"><span parent="setOptions" class="right-caret" id="method_setOptions"></span> setOptions(<code>Object
                     options</code>)
                 </td>
             </tr>
@@ -475,7 +461,7 @@ var locales = {
                 </td>
             </tr>
             <tr class="collapsible toggle" onclick="toggleTable('methodTable','onEvent', this);">
-                <td colspan="2"><span parent="onEvent" class="right-caret"></span> on(<code>String event name, Function callback</code>)
+                <td colspan="2"><span parent="onEvent" class="right-caret" id="method_on"></span> on(<code>String event name, Function callback</code>)
                 </td>
             </tr>
             <tr class="hidden" parent="onEvent">
@@ -484,7 +470,7 @@ var locales = {
                 </td>
             </tr>
             <tr class="collapsible toggle" onclick="toggleTable('methodTable','offEvent', this);">
-                <td colspan="2"><span parent="offEvent" class="right-caret"></span> off(<code>String event name, Function callback</code>)
+                <td colspan="2"><span parent="offEvent" class="right-caret" id="method_off"></span> off(<code>String event name, Function callback</code>)
                 </td>
             </tr>
             <tr class="hidden" parent="offEvent">
@@ -493,7 +479,7 @@ var locales = {
                 </td>
             </tr>
             <tr class="collapsible toggle" onclick="toggleTable('methodTable','onceEvent', this);">
-                <td colspan="2"><span parent="onceEvent" class="right-caret"></span> once(<code>String event name, Function callback</code>)
+                <td colspan="2"><span parent="onceEvent" class="right-caret" id="method_once"></span> once(<code>String event name, Function callback</code>)
                 </td>
             </tr>
             <tr class="hidden" parent="onceEvent">
@@ -507,7 +493,7 @@ var locales = {
                 <td colspan="2">Methods related to the canvas.</td>
             </tr>
             <tr class="collapsible toggle" onclick="toggleTable('methodTable','canvasToDOM', this);">
-                <td colspan="2"><span parent="canvasToDOM" class="right-caret"></span> canvasToDOM({<code><i>x:
+                <td colspan="2"><span parent="canvasToDOM" class="right-caret" id="method_canvasToDOM"></span> canvasToDOM({<code><i>x:
                     Number</i></code>,<code><i>y:
                     Number</i></code>})
                 </td>
@@ -520,7 +506,7 @@ var locales = {
                 </td>
             </tr>
             <tr class="collapsible toggle" onclick="toggleTable('methodTable','DOMtoCanvas', this);">
-                <td colspan="2"><span parent="DOMtoCanvas" class="right-caret"></span> DOMtoCanvas({<code><i>x:
+                <td colspan="2"><span parent="DOMtoCanvas" class="right-caret" id="method_DOMtoCanvas"></span> DOMtoCanvas({<code><i>x:
                     Number</i></code>,<code><i>y:
                     Number</i></code>})
                 </td>
@@ -533,14 +519,14 @@ var locales = {
                 </td>
             </tr>
             <tr class="collapsible toggle" onclick="toggleTable('methodTable','redraw', this);">
-                <td colspan="2"><span parent="redraw" class="right-caret"></span> redraw()</td>
+                <td colspan="2"><span parent="redraw" class="right-caret" id="method_redraw"></span> redraw()</td>
             </tr>
             <tr class="hidden" parent="redraw">
                 <td class="midMethods">Returns: none</td>
                 <td>Redraw the network.</td>
             </tr>
             <tr class="collapsible toggle" onclick="toggleTable('methodTable','setSize', this);">
-                <td colspan="2"><span parent="setSize" class="right-caret"></span> setSize(<code><i>String
+                <td colspan="2"><span parent="setSize" class="right-caret" id="method_setSize"></span> setSize(<code><i>String
                     width</i></code>,<code><i>String
                     height</i></code>)
                 </td>
@@ -554,7 +540,7 @@ var locales = {
                 <td colspan="2">Clustering</td>
             </tr>
             <tr class="collapsible toggle" onclick="toggleTable('methodTable','cluster', this);">
-                <td colspan="2"><span parent="cluster" class="right-caret"></span> cluster(
+                <td colspan="2"><span parent="cluster" class="right-caret" id="method_cluster"></span> cluster(
                     <code>Object options</code>)
                 </td>
             </tr>
@@ -568,7 +554,7 @@ var locales = {
                 </td>
             </tr>
             <tr class="collapsible toggle" onclick="toggleTable('methodTable','clusterByConnection', this);">
-                <td colspan="2"><span parent="clusterByConnection" class="right-caret"></span> clusterByConnection(
+                <td colspan="2"><span parent="clusterByConnection" class="right-caret" id="method_clusterByConnection"></span> clusterByConnection(
                     <code>String nodeId</code>,
                     <code>[Object options]</code>
                     )
@@ -585,7 +571,7 @@ var locales = {
                 </td>
             </tr>
             <tr class="collapsible toggle" onclick="toggleTable('methodTable','clusterByHubsize', this);">
-                <td colspan="2"><span parent="clusterByHubsize" class="right-caret"></span> clusterByHubsize(
+                <td colspan="2"><span parent="clusterByHubsize" class="right-caret" id="method_clusterByHubsize"></span> clusterByHubsize(
                     <code>[Number hubsize]</code>,
                     <code>[Object options]</code>)
                 </td>
@@ -601,7 +587,7 @@ var locales = {
                 </td>
             </tr>
             <tr class="collapsible toggle" onclick="toggleTable('methodTable','clusterOutliers', this);">
-                <td colspan="2"><span parent="clusterOutliers" class="right-caret"></span> clusterOutliers(
+                <td colspan="2"><span parent="clusterOutliers" class="right-caret" id="method_clusterOutliers"></span> clusterOutliers(
                     <code>[Object options]</code>)
             </tr>
             <tr class="hidden" parent="clusterOutliers">
@@ -611,7 +597,7 @@ var locales = {
                 </td>
             </tr>
             <tr class="collapsible toggle" onclick="toggleTable('methodTable','findNode', this);">
-                <td colspan="2"><span parent="findNode" class="right-caret"></span> findNode(
+                <td colspan="2"><span parent="findNode" class="right-caret" id="method_findNode"></span> findNode(
                     <code>String nodeId</code>)
             </tr>
             <tr class="hidden" parent="findNode">
@@ -626,7 +612,7 @@ var locales = {
                 </td>
             </tr>
             <tr class="collapsible toggle" onclick="toggleTable('methodTable','isCluster', this);">
-                <td colspan="2"><span parent="isCluster" class="right-caret"></span> isCluster(
+                <td colspan="2"><span parent="isCluster" class="right-caret" id="method_isCluster"></span> isCluster(
                     <code>String nodeId</code>)
             </tr>
             <tr class="hidden" parent="isCluster">
@@ -634,7 +620,7 @@ var locales = {
                 <td>Returns true if the node whose ID has been supplied is a cluster.</td>
             </tr>
             <tr class="collapsible toggle" onclick="toggleTable('methodTable','getNodesInCluster', this);">
-                <td colspan="2"><span parent="getNodesInCluster" class="right-caret"></span> getNodesInCluster(
+                <td colspan="2"><span parent="getNodesInCluster" class="right-caret" id="method_getNodesInCluster"></span> getNodesInCluster(
                     <code>String clusterNodeId</code>)
             </tr>
             <tr class="hidden" parent="getNodesInCluster">
@@ -643,7 +629,7 @@ var locales = {
                 </td>
             </tr>
             <tr class="collapsible toggle" onclick="toggleTable('methodTable','openCluster', this);">
-                <td colspan="2"><span parent="openCluster" class="right-caret"></span> openCluster(
+                <td colspan="2"><span parent="openCluster" class="right-caret" id="method_openCluster"></span> openCluster(
                     <code>String nodeId, Object options</code>)
             </tr>
             <tr class="hidden" parent="openCluster">
@@ -671,7 +657,7 @@ function releaseFunction (clusterPosition, containedNodesPositions) {
                 <td colspan="2">Layout</td>
             </tr>
             <tr class="collapsible toggle" onclick="toggleTable('methodTable','getSeed', this);">
-                <td colspan="2"><span parent="getSeed" class="right-caret"></span> getSeed()</td>
+                <td colspan="2"><span parent="getSeed" class="right-caret" id="method_getSeed"></span> getSeed()</td>
             </tr>
             <tr class="hidden" parent="clusterByHubsize">
             </tr>
@@ -688,14 +674,14 @@ function releaseFunction (clusterPosition, containedNodesPositions) {
                 <td colspan="2">Manipulation methods to use the manipulation system without GUI.</td>
             </tr>
             <tr class="collapsible toggle" onclick="toggleTable('methodTable','enableEditMode', this);">
-                <td colspan="2"><span parent="enableEditMode" class="right-caret"></span> enableEditMode()</td>
+                <td colspan="2"><span parent="enableEditMode" class="right-caret" id="method_enableEditMode"></span> enableEditMode()</td>
             </tr>
             <tr class="hidden" parent="enableEditMode">
                 <td class="midMethods">Returns: none</td>
                 <td>Programatically enable the edit mode. Similar effect to pressing the edit button.</td>
             </tr>
             <tr class="collapsible toggle" onclick="toggleTable('methodTable','disableEditMode', this);">
-                <td colspan="2"><span parent="disableEditMode" class="right-caret"></span> disableEditMode()</td>
+                <td colspan="2"><span parent="disableEditMode" class="right-caret" id="method_disableEditMode"></span> disableEditMode()</td>
             </tr>
             <tr class="hidden" parent="disableEditMode">
                 <td class="midMethods">Returns: none</td>
@@ -704,7 +690,7 @@ function releaseFunction (clusterPosition, containedNodesPositions) {
                 </td>
             </tr>
             <tr class="collapsible toggle" onclick="toggleTable('methodTable','addNodeMode', this);">
-                <td colspan="2"><span parent="addNodeMode" class="right-caret"></span> addNodeMode()</td>
+                <td colspan="2"><span parent="addNodeMode" class="right-caret" id="method_addNodeMode"></span> addNodeMode()</td>
             </tr>
             <tr class="hidden" parent="addNodeMode">
                 <td class="midMethods">Returns: none</td>
@@ -716,28 +702,28 @@ function releaseFunction (clusterPosition, containedNodesPositions) {
                 </td>
             </tr>
             <tr class="collapsible toggle" onclick="toggleTable('methodTable','editNode', this);">
-                <td colspan="2"><span parent="editNode" class="right-caret"></span> editNode()</td>
+                <td colspan="2"><span parent="editNode" class="right-caret" id="method_editNode"></span> editNode()</td>
             </tr>
             <tr class="hidden" parent="editNode">
                 <td class="midMethods">Returns: none</td>
                 <td>Edit the selected node. The explaination from <code>addNodeMode</code> applies here as well.</td>
             </tr>
             <tr class="collapsible toggle" onclick="toggleTable('methodTable','addEdgeMode', this);">
-                <td colspan="2"><span parent="addEdgeMode" class="right-caret"></span> addEdgeMode()</td>
+                <td colspan="2"><span parent="addEdgeMode" class="right-caret" id="method_addEdgeMode"></span> addEdgeMode()</td>
             </tr>
             <tr class="hidden" parent="addEdgeMode">
                 <td class="midMethods">Returns: none</td>
                 <td>Go into addEdge mode. The explaination from <code>addNodeMode</code> applies here as well.</td>
             </tr>
             <tr class="collapsible toggle" onclick="toggleTable('methodTable','editEdgeMode', this);">
-                <td colspan="2"><span parent="editEdgeMode" class="right-caret"></span> editEdgeMode()</td>
+                <td colspan="2"><span parent="editEdgeMode" class="right-caret" id="method_editEdgeMode"></span> editEdgeMode()</td>
             </tr>
             <tr class="hidden" parent="editEdgeMode">
                 <td class="midMethods">Returns: none</td>
                 <td>Go into editEdge mode. The explaination from <code>addNodeMode</code> applies here as well.</td>
             </tr>
             <tr class="collapsible toggle" onclick="toggleTable('methodTable','deleteSelected', this);">
-                <td colspan="2"><span parent="deleteSelected" class="right-caret"></span> deleteSelected()</td>
+                <td colspan="2"><span parent="deleteSelected" class="right-caret" id="method_deleteSelected"></span> deleteSelected()</td>
             </tr>
             <tr class="hidden" parent="deleteSelected">
                 <td class="midMethods">Returns: none</td>
@@ -749,7 +735,7 @@ function releaseFunction (clusterPosition, containedNodesPositions) {
                 <td colspan="2">Methods to get information on nodes and edges.</td>
             </tr>
             <tr class="collapsible toggle" onclick="toggleTable('methodTable','getPositions', this);">
-                <td colspan="2"><span parent="getPositions" class="right-caret"></span> getPositions(<code><i>[Array of
+                <td colspan="2"><span parent="getPositions" class="right-caret" id="method_getPositions"></span> getPositions(<code><i>[Array of
                     nodeIds]</i></code>)
                 </td>
             </tr>
@@ -771,7 +757,7 @@ function releaseFunction (clusterPosition, containedNodesPositions) {
                 </td>
             </tr>
             <tr class="collapsible toggle" onclick="toggleTable('methodTable','storePositions', this);">
-                <td colspan="2"><span parent="storePositions" class="right-caret"></span> storePositions()</td>
+                <td colspan="2"><span parent="storePositions" class="right-caret" id="method_storePositions"></span> storePositions()</td>
             </tr>
             <tr class="hidden" parent="storePositions">
                 <td class="midMethods">Returns: none</td>
@@ -798,7 +784,7 @@ function releaseFunction (clusterPosition, containedNodesPositions) {
 
             </tr>
             <tr class="collapsible toggle" onclick="toggleTable('methodTable','getBoundingBox', this);">
-                <td colspan="2"><span parent="getBoundingBox" class="right-caret"></span> getBoundingBox(<code><i>String
+                <td colspan="2"><span parent="getBoundingBox" class="right-caret" id="method_getBoundingBox"></span> getBoundingBox(<code><i>String
                     nodeId</i></code>)
                 </td>
             </tr>
@@ -817,7 +803,7 @@ function releaseFunction (clusterPosition, containedNodesPositions) {
                 </td>
             </tr>
             <tr class="collapsible toggle" onclick="toggleTable('methodTable','getConnectedNodes', this);">
-                <td colspan="2"><span parent="getConnectedNodes" class="right-caret"></span> getConnectedNodes(<code><i>String
+                <td colspan="2"><span parent="getConnectedNodes" class="right-caret" id="method_getConnectedNodes"></span> getConnectedNodes(<code><i>String
                     nodeId or edgeId</i></code>)
                 </td>
             </tr>
@@ -827,7 +813,7 @@ function releaseFunction (clusterPosition, containedNodesPositions) {
                 vis will first match the id to nodes. If no match is found, it will search in the edgelist and return an array: <code>[fromId, toId]</code>.</td>
             </tr>
             <tr class="collapsible toggle" onclick="toggleTable('methodTable','getConnectedEdges', this);">
-                <td colspan="2"><span parent="getConnectedEdges" class="right-caret"></span> getConnectedEdges(<code><i>String
+                <td colspan="2"><span parent="getConnectedEdges" class="right-caret" id="method_getConnectedEdges"></span> getConnectedEdges(<code><i>String
                     nodeId</i></code>)
                 </td>
             </tr>
@@ -841,7 +827,7 @@ function releaseFunction (clusterPosition, containedNodesPositions) {
                 <td colspan="2">Physics methods to control when the simulation should run.</td>
             </tr>
             <tr class="collapsible toggle" onclick="toggleTable('methodTable','startSimulation', this);">
-                <td colspan="2"><span parent="startSimulation" class="right-caret"></span> startSimulation()</td>
+                <td colspan="2"><span parent="startSimulation" class="right-caret" id="method_startSimulation"></span> startSimulation()</td>
             </tr>
             <tr class="hidden" parent="startSimulation">
                 <td class="midMethods">Returns: none</td>
@@ -850,7 +836,7 @@ function releaseFunction (clusterPosition, containedNodesPositions) {
                 </td>
             </tr>
             <tr class="collapsible toggle" onclick="toggleTable('methodTable','stopSimulation', this);">
-                <td colspan="2"><span parent="stopSimulation" class="right-caret"></span> stopSimulation()</td>
+                <td colspan="2"><span parent="stopSimulation" class="right-caret" id="method_stopSimulation"></span> stopSimulation()</td>
             </tr>
             <tr class="hidden" parent="stopSimulation">
                 <td class="midMethods">Returns: none</td>
@@ -860,7 +846,7 @@ function releaseFunction (clusterPosition, containedNodesPositions) {
                 </td>
             </tr>
             <tr class="collapsible toggle" onclick="toggleTable('methodTable','stabilize', this);">
-                <td colspan="2"><span parent="stabilize" class="right-caret"></span> stabilize([iterations])</td>
+                <td colspan="2"><span parent="stabilize" class="right-caret" id="method_stabilize"></span> stabilize([iterations])</td>
             </tr>
             <tr class="hidden" parent="stabilize">
                 <td class="midMethods">Returns: none</td>
@@ -872,7 +858,7 @@ function releaseFunction (clusterPosition, containedNodesPositions) {
                 <td colspan="2">Selection methods for nodes and edges.</td>
             </tr>
             <tr class="collapsible toggle" onclick="toggleTable('methodTable','getSelection', this);">
-                <td colspan="2"><span parent="getSelection" class="right-caret"></span> getSelection()</td>
+                <td colspan="2"><span parent="getSelection" class="right-caret" id="method_getSelection"></span> getSelection()</td>
             </tr>
             <tr class="hidden" parent="getSelection">
                 <td class="midMethods">Returns: Object</td>
@@ -886,7 +872,7 @@ function releaseFunction (clusterPosition, containedNodesPositions) {
             </tr>
 
             <tr class="collapsible toggle" onclick="toggleTable('methodTable','getSelectedNodes', this);">
-                <td colspan="2"><span parent="getSelectedNodes" class="right-caret"></span> getSelectedNodes()</td>
+                <td colspan="2"><span parent="getSelectedNodes" class="right-caret" id="method_getSelectedNodes"></span> getSelectedNodes()</td>
             </tr>
             <tr class="hidden" parent="getSelectedNodes">
                 <td class="midMethods">Returns: Array</td>
@@ -895,14 +881,14 @@ function releaseFunction (clusterPosition, containedNodesPositions) {
                 </td>
             </tr>
             <tr class="collapsible toggle" onclick="toggleTable('methodTable','getSelectedEdges', this);">
-                <td colspan="2"><span parent="getSelectedEdges" class="right-caret"></span> getSelectedEdges()</td>
+                <td colspan="2"><span parent="getSelectedEdges" class="right-caret" id="method_getSelectedEdges"></span> getSelectedEdges()</td>
             </tr>
             <tr class="hidden" parent="getSelectedEdges">
                 <td class="midMethods">Returns: Array</td>
                 <td>Returns an array of selected edge ids like so: <code>[edgeId1, edgeId2, ..]</code>.</td>
             </tr>
             <tr class="collapsible toggle" onclick="toggleTable('methodTable','getNodeAt', this);">
-                <td colspan="2"><span parent="getNodeAt" class="right-caret"></span> getNodeAt(<code><i>{x: xPosition
+                <td colspan="2"><span parent="getNodeAt" class="right-caret" id="method_getNodeAt"></span> getNodeAt(<code><i>{x: xPosition
                     DOM, y: yPosition DOM}</i></code>)
                 </td>
             </tr>
@@ -914,7 +900,7 @@ function releaseFunction (clusterPosition, containedNodesPositions) {
                 </td>
             </tr>
             <tr class="collapsible toggle" onclick="toggleTable('methodTable','getEdgeAt', this);">
-                <td colspan="2"><span parent="getEdgeAt" class="right-caret"></span> getEdgeAt(<code><i>{x: xPosition
+                <td colspan="2"><span parent="getEdgeAt" class="right-caret" id="method_getEdgeAt"></span> getEdgeAt(<code><i>{x: xPosition
                     DOM, y: yPosition DOM}</i></code>)
                 </td>
             </tr>
@@ -926,7 +912,7 @@ function releaseFunction (clusterPosition, containedNodesPositions) {
                 </td>
             </tr>
             <tr class="collapsible toggle" onclick="toggleTable('methodTable','selectNodes', this);">
-                <td colspan="2"><span parent="selectNodes" class="right-caret"></span> selectNodes(<code><i>Array with
+                <td colspan="2"><span parent="selectNodes" class="right-caret" id="method_selectNodes"></span> selectNodes(<code><i>Array with
                     nodeIds</i></code>,<code><i>[Boolean
                     highlightEdges]</i></code>)
                 </td>
@@ -941,7 +927,7 @@ function releaseFunction (clusterPosition, containedNodesPositions) {
                 </td>
             </tr>
             <tr class="collapsible toggle" onclick="toggleTable('methodTable','selectEdges', this);">
-                <td colspan="2"><span parent="selectEdges" class="right-caret"></span> selectEdges(<code><i>Array with
+                <td colspan="2"><span parent="selectEdges" class="right-caret" id="method_selectEdges"></span> selectEdges(<code><i>Array with
                     edgeIds</i></code>)
                 </td>
             </tr>
@@ -953,7 +939,7 @@ function releaseFunction (clusterPosition, containedNodesPositions) {
                 </td>
             </tr>
             <tr class="collapsible toggle" onclick="toggleTable('methodTable','unselectAll', this);">
-                <td colspan="2"><span parent="unselectAll" class="right-caret"></span> unselectAll()</td>
+                <td colspan="2"><span parent="unselectAll" class="right-caret" id="method_unselectAll"></span> unselectAll()</td>
             </tr>
             <tr class="hidden" parent="unselectAll">
                 <td class="midMethods">Returns: none</td>
@@ -965,7 +951,7 @@ function releaseFunction (clusterPosition, containedNodesPositions) {
                 <td colspan="2">Methods to control the viewport for zoom and animation.</td>
             </tr>
             <tr class="collapsible toggle" onclick="toggleTable('methodTable','getScale', this);">
-                <td colspan="2"><span parent="getScale" class="right-caret"></span> getScale()</td>
+                <td colspan="2"><span parent="getScale" class="right-caret" id="method_getScale"></span> getScale()</td>
             </tr>
             <tr class="hidden" parent="getScale">
                 <td class="midMethods">Returns: Number</td>
@@ -973,7 +959,7 @@ function releaseFunction (clusterPosition, containedNodesPositions) {
                 </td>
             </tr>
             <tr class="collapsible toggle" onclick="toggleTable('methodTable','clusterByHubsize', this);">
-                <td colspan="2"><span parent="clusterByHubsize" class="right-caret"></span> getViewPosition()</td>
+                <td colspan="2"><span parent="clusterByHubsize" class="right-caret" id="method_getViewPosition"></span> getViewPosition()</td>
             </tr>
             <tr class="hidden" parent="clusterByHubsize">
                 <td class="midMethods">Returns: Number</td>
@@ -981,7 +967,7 @@ function releaseFunction (clusterPosition, containedNodesPositions) {
             </tr>
 
             <tr class="collapsible toggle" onclick="toggleTable('methodTable','fit', this);">
-                <td colspan="2"><span parent="fit" class="right-caret"></span> fit(<code>[Object
+                <td colspan="2"><span parent="fit" class="right-caret" id="method_fit"></span> fit(<code>[Object
                     options]</code>)
                 </td>
             </tr>
@@ -1003,7 +989,7 @@ function releaseFunction (clusterPosition, containedNodesPositions) {
                 </td>
             </tr>
             <tr class="collapsible toggle" onclick="toggleTable('methodTable','focus', this);">
-                <td colspan="2"><span parent="focus" class="right-caret"></span> focus(
+                <td colspan="2"><span parent="focus" class="right-caret" id="method_focus"></span> focus(
                     <code>String nodeId</code>,
                     <code>[Object options]</code>)
                 </td>
@@ -1032,7 +1018,7 @@ function releaseFunction (clusterPosition, containedNodesPositions) {
                 </td>
             </tr>
             <tr class="collapsible toggle" onclick="toggleTable('methodTable','moveTo', this);">
-                <td colspan="2"><span parent="moveTo" class="right-caret"></span> moveTo(<code>Object
+                <td colspan="2"><span parent="moveTo" class="right-caret" id="method_moveTo"></span> moveTo(<code>Object
                     options</code>)
                 </td>
             </tr>
@@ -1067,7 +1053,7 @@ function releaseFunction (clusterPosition, containedNodesPositions) {
 
 
             <tr class="collapsible toggle" onclick="toggleTable('methodTable','releaseNode', this);">
-                <td colspan="2"><span parent="releaseNode" class="right-caret"></span> releaseNode()</td>
+                <td colspan="2"><span parent="releaseNode" class="right-caret" id="method_releaseNode"></span> releaseNode()</td>
             </tr>
             <tr class="hidden" parent="releaseNode">
                 <td class="midMethods">Returns: none</td>
@@ -1077,7 +1063,7 @@ function releaseFunction (clusterPosition, containedNodesPositions) {
                 <td colspan="2">Methods to use with the configurator module.</td>
             </tr>
             <tr class="collapsible toggle" onclick="toggleTable('methodTable','getOptionsFromConfigurator', this);">
-                <td colspan="2"><span parent="getOptionsFromConfigurator" class="right-caret"></span> getOptionsFromConfigurator()</td>
+                <td colspan="2"><span parent="getOptionsFromConfigurator" class="right-caret" id="method_getOptionsFromConfigurator"></span> getOptionsFromConfigurator()</td>
             </tr>
             <tr class="hidden" parent="getOptionsFromConfigurator">
                 <td class="midMethods">Returns: Object</td>
@@ -1099,8 +1085,7 @@ function releaseFunction (clusterPosition, containedNodesPositions) {
                 <th>Type</th>
                 <th>Description</th>
             </tr>
-            <tr>
-                <td>joinCondition(<br>&nbsp;&nbsp;<code>nodeOptions:&nbsp;Object</code><br>)</td>
+            <tr><td>joinCondition(<br>&nbsp;&nbsp;<code>nodeOptions:&nbsp;Object</code><br>)</td>
                 <td>Function</td>
                 <td><i>Optional for all but the cluster method. </i> The cluster module loops over all nodes that are
                     selected to be in the cluster and calls this function with their data as argument.
@@ -1128,8 +1113,7 @@ network.clustering.cluster(options);
 </pre>
                 </td>
             </tr>
-            <tr>
-                <td>processProperties(<br>&nbsp;&nbsp;<code>clusterOptions:&nbsp;Object</code>,<br>
+            <tr><td>processProperties(<br>&nbsp;&nbsp;<code>clusterOptions:&nbsp;Object</code>,<br>
                     &nbsp;&nbsp;<code>childNodesOptions:&nbsp;Array</code>,<br>
                     &nbsp;&nbsp;<code>childEdgesOptions:&nbsp;Array</code><br>)</td>
                 <td>Function</td>
@@ -1165,8 +1149,7 @@ var options = {
 </pre>
                 </td>
             </tr>
-            <tr>
-                <td>clusterNodeProperties</td>
+            <tr><td id="event_clusterNodeProperties">clusterNodeProperties</td>
                 <td>Object</td>
                 <td><i>Optional. </i> This is an object containing the options for the cluster node. All options
                     described
@@ -1177,8 +1160,7 @@ var options = {
                     fine tuning. If undefined, default node options will be used.
                 </td>
             </tr>
-            <tr>
-                <td>clusterEdgeProperties</td>
+            <tr><td id="event_clusterEdgeProperties">clusterEdgeProperties</td>
                 <td>Object</td>
                 <td><i>Optional. </i> This is an object containing the options for the edges connected to the cluster.
                     All
@@ -1208,8 +1190,7 @@ var options = {
             <tr class="subHeader">
                 <td colspan="3">Events triggered by human interaction, selection, dragging etc.</td>
             </tr>
-            <tr>
-                <td>click</td>
+            <tr><td id="event_click">click</td>
                 <td>
                     Object
                 </td>
@@ -1227,8 +1208,7 @@ var options = {
 </pre>
                 </td>
             </tr>
-            <tr>
-                <td>doubleClick</td>
+            <tr><td id="event_doubleClick">doubleClick</td>
                 <td>same as <code>click</code>.</td>
                 <td>Fired when the user double clicks the mouse or double taps on a touchscreen device. Since a double
                     click
@@ -1239,48 +1219,41 @@ var options = {
                     processing them.
                 </td>
             </tr>
-            <tr>
-                <td>oncontext</td>
+            <tr><td id="event_oncontext">oncontext</td>
                 <td>same as <code>click</code>.</td>
                 <td>Fired when the user click on the canvas with the right mouse button. The right mouse button does not
                     select by default. You can use the method <code>getNodeAt</code> to select the node if you
                     want.
                 </td>
             </tr>
-            <tr>
-                <td>hold</td>
+            <tr><td id="event_hold">hold</td>
                 <td>same as <code>click</code>.</td>
                 <td>Fired when the user clicks and holds the mouse or taps and holds on a touchscreen device. A click
                     event
                     is also fired in this case.
                 </td>
             </tr>
-            <tr>
-                <td>release</td>
+            <tr><td id="event_release">release</td>
                 <td>same as <code>click</code>.</td>
                 <td>Fired after drawing on the canvas has been completed. Can be used to draw on top of the network.
                 </td>
             </tr>
-            <tr>
-                <td>select</td>
+            <tr><td id="event_select">select</td>
                 <td>same as <code>click</code>.</td>
                 <td>Fired when the selection has changed by user action. This means a node or edge has been selected,
                     added
                     to the selection or deselected. <b>All select events are only triggered on click and hold</b>.
                 </td>
             </tr>
-            <tr>
-                <td>selectNode</td>
+            <tr><td id="event_selectNode">selectNode</td>
                 <td>same as <code>click</code>.</td>
                 <td>Fired when a node has been selected by the user.</td>
             </tr>
-            <tr>
-                <td>selectEdge</td>
+            <tr><td id="event_selectEdge">selectEdge</td>
                 <td>same as <code>click</code>.</td>
                 <td>Fired when a edge has been selected by the user.</td>
             </tr>
-            <tr>
-                <td>deselectNode</td>
+            <tr><td id="event_deselectNode">deselectNode</td>
                 <td>Object
                 </td>
                 <td>Fired when a node (or nodes) has (or have) been deselected by the user. The previous selection is the list of nodes and edges that were selected before the last user event. Passes an object with properties structured as:
@@ -1301,76 +1274,63 @@ var options = {
 </pre>
                 </td>
             </tr>
-            <tr>
-                <td>deselectEdge</td>
+            <tr><td id="event_deselectEdge">deselectEdge</td>
                 <td>same as <code>deselectNode</code>.</td>
                 <td>Fired when a edge (or edges) has (or have) been deselected by the user. The previous selection is
                     the
                     list of nodes and edges that were selected before the last user event.
                 </td>
             </tr>
-            <tr>
-                <td>dragStart</td>
+            <tr><td id="event_dragStart">dragStart</td>
                 <td>same as <code>click</code>.</td>
                 <td>Fired when starting a drag.</td>
             </tr>
-            <tr>
-                <td>dragging</td>
+            <tr><td id="event_dragging">dragging</td>
                 <td>same as <code>click</code>.</td>
                 <td>Fired when dragging node(s) or the view.</td>
             </tr>
-            <tr>
-                <td>dragEnd</td>
+            <tr><td id="event_dragEnd">dragEnd</td>
                 <td>same as <code>click</code>.</td>
                 <td>Fired when the drag has finished.</td>
             </tr>
-            <tr>
-                <td>hoverNode</td>
+            <tr><td id="event_hoverNode">hoverNode</td>
                 <td><code>{node: nodeId}</code></td>
                 <td>Fired interaction:{hover:true} and the mouse hovers over a node.</td>
             </tr>
-            <tr>
-                <td>blurNode</td>
+            <tr><td id="event_blurNode">blurNode</td>
                 <td><code>{node: nodeId}</code></td>
                 <td>Fired interaction:{hover:true} and the mouse moved away from a node it was hovering over before.</td>
             </tr>
-            <tr>
-                <td>hoverEdge</td>
+            <tr><td id="event_hoverEdge">hoverEdge</td>
                 <td><code>{edge: edgeId}</code></td>
                 <td>Fired interaction:{hover:true} and the mouse hovers over an edge.</td>
             </tr>
-            <tr>
-                <td>blurEdge</td>
+            <tr><td id="event_blurEdge">blurEdge</td>
                 <td><code>{edge: edgeId}</code></td>
                 <td>Fired interaction:{hover:true} and the mouse moved away from an edge it was hovering over before.</td>
             </tr>
-            <tr>
-                <td>zoom</td>
+            <tr><td id="event_zoom">zoom</td>
                 <td><code>{direction:'+'/'-', scale: Number}</code></td>
                 <td>Fired when the user zooms in or out. The properties tell you which direction the zoom is in. The scale is a number greater than 0, which is the same that you get with network.getScale().</td>
             </tr>
-            <tr>
-                <td>showPopup</td>
+            <tr><td id="event_showPopup">showPopup</td>
                 <td><code>id of item corresponding to popup</code></td>
                 <td>Fired when the popup (tooltip) is shown.</td>
             </tr>
-            <tr>
-                <td>hidePopup</td>
+            <tr><td id="event_hidePopup">hidePopup</td>
                 <td>none</td>
                 <td>Fired when the popup (tooltip) is hidden.</td>
             </tr>
             <tr class="subHeader ">
                 <td colspan="3">Events triggered the physics simulation. Can be used to trigger GUI updates.</td>
             </tr>
-            <tr>
-                <td>startStabilizing</td>
+            <tr><td id="event_startStabilizing">startStabilizing</td>
                 <td>none</td>
                 <td>Fired when stabilization starts. This is also the case when you drag a node and the physics
                     simulation
                     restarts to stabilize again. Stabilization does not neccesarily imply 'without showing'.
                 </td>
-            <tr>
-                <td>stabilizationProgress</td>
+            <tr><td id="event_stabilizationProgress">stabilizationProgress</td>
                 <td>Object</td>
                 <td>Fired when a multiple of the <code>updateInterval</code> number of iterations is reached. This only occurs in the 'hidden' stabilization. Passes an object with properties structured as:
 
@@ -1380,13 +1340,11 @@ var options = {
 }</pre>
                 </td>
             </tr>
-            <tr>
-                <td>stabilizationIterationsDone</td>
+            <tr><td id="event_stabilizationIterationsDone">stabilizationIterationsDone</td>
                 <td>none</td>
                 <td>Fired when the 'hidden' stabilization finishes. This does not necessarily mean the network is stabilized; it could also mean that the amount of iterations defined in the options has been reached.
                 </td>
-            <tr>
-                <td>stabilized</td>
+            <tr><td id="event_stabilized">stabilized</td>
                 <td>Object</td>
                 <td>Fired when the network has stabilized or when the <code>stopSimulation()</code> has been called. The amount of iterations it took could be used to tweak the maximum amount of iterations needed to stabilize the network. Passes an object with properties structured as:
 <pre class="prettyprint lang-js">{
@@ -1397,8 +1355,7 @@ var options = {
             <tr class="subHeader">
                 <td colspan="3">Event triggered by the canvas.</td>
             </tr>
-            <tr>
-                <td>resize</td>
+            <tr><td id="event_resize">resize</td>
                 <td>Object</td>
                 <td>Fired when the size of the canvas has been resized, either by a redraw call when the container div has changed in size, a setSize() call with new values or a setOptions() with new width and/or height values. Passes an object with properties structured as:
 
@@ -1418,22 +1375,19 @@ var options = {
                     canvas.
                 </td>
             </tr>
-            <tr>
-                <td>initRedraw</td>
+            <tr><td id="event_initRedraw">initRedraw</td>
                 <td>none</td>
                 <td>Fired before the redrawing begins. The simulation step has completed at this point. Can be used to
                     move
                     custom elements before starting drawing the new frame.
                 </td>
-            <tr>
-                <td>beforeDrawing</td>
+            <tr><td id="event_beforeDrawing">beforeDrawing</td>
                 <td><code>canvas context</code></td>
                 <td>Fired after the canvas has been cleared, scaled and translated to the viewing position but before
                     all
                     edges and nodes are drawn. Can be used to draw behind the network.
                 </td>
-            <tr>
-                <td>afterDrawing</td>
+            <tr><td id="event_afterDrawing">afterDrawing</td>
                 <td><code>canvas context</code></td>
                 <td>Fired after drawing on the canvas has been completed. Can be used to draw on top of the network.
                 </td>
@@ -1441,8 +1395,7 @@ var options = {
             <tr class="subHeader">
                 <td colspan="3">Event triggered by the view module.</td>
             </tr>
-            <tr>
-                <td>animationFinished</td>
+            <tr><td id="event_animationFinished">animationFinished</td>
                 <td>none</td>
                 <td>Fired when an animation is finished.</td>
         </table>
@@ -1508,8 +1461,7 @@ var network = new vis.Network(container, data);
                 <th>Default</th>
                 <th>Description</th>
             </tr>
-            <tr>
-                <td>nodes.fixed</td>
+            <tr><td>nodes.fixed</td>
                 <td>Boolean</td>
                 <td><code>true</code></td>
                 <td>When false, the nodes will move according to the physics model after import. If true, the nodes do
@@ -1517,16 +1469,14 @@ var network = new vis.Network(container, data);
                     errors in the physics.
                 </td>
             </tr>
-            <tr>
-                <td>nodes.parseColor</td>
+            <tr><td>nodes.parseColor</td>
                 <td>Boolean</td>
                 <td><code>false</code></td>
                 <td>If true, the color will be parsed by the vis parser, generating extra colors for the borders,
                     highlighs and hover. If false, the node will be the supplied color.
                 </td>
             </tr>
-            <tr>
-                <td>edges.inheritColor</td>
+            <tr><td>edges.inheritColor</td>
                 <td>Boolean</td>
                 <td><code>false</code></td>
                 <td>When true, the color supplied by gephi is ignored and the inherit color mode is used with the global

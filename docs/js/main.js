@@ -15,6 +15,8 @@ function checkInput() {
     vis.typingTimeout = setTimeout(function () {vis.initSiteSearch(true)},200);
   }
   else {
+    var title = document.title.replace(/(\(.+\) )/g,"");
+    document.title = title;
     document.getElementById("search-results-wrapper").style.display = "none";
   }
 }
