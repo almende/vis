@@ -206,7 +206,21 @@
     <br>
     </div>
 
-    <h3>Modules</h3>
+    <h2 id="Contents">Contents</h2>
+    <ul>
+        <li><a href="#modules">Modules</a></li>
+        <li><a href="#options">Options</a></li>
+        <li><a href="#methods">Methods</a></li>
+        <li><a href="#Events">Events</a></li>
+        <li><a href="#importing_data">Importing Data</a>
+            <ul>
+                <li><a href="#importGephi">from Gephi</a></li>
+                <li><a href="#importDot">from DOT language</a></li>
+            </ul>
+        </li>
+    </ul>
+
+    <h2 id="modules">Modules</h2>
     <table class="modules">
         <tr>
             <td width="120px"><a href="./configure.html">configure</a></td>
@@ -248,24 +262,9 @@
     </table>
 
     <br>
-    <br>
-
-    <ul class="nav nav-tabs">
-        <li role="presentation" class="active"
-            onclick="toggleTab(this);"
-            targetNode="optionsDiv"><a>Options</a></li>
-        <li role="presentation"
-            onclick="toggleTab(this);"
-            targetNode="methodsDiv"><a>Methods</a></li>
-        <li role="presentation" onclick="toggleTab(this);"
-            targetNode="eventsDiv"><a>Events</a></li>
-        <li role="presentation"
-            onclick="toggleTab(this);"
-            targetNode="importDiv"><a>Import</a></li>
-    </ul>
-    <br>
 
     <div id="optionsDiv">
+        <h2  id="options">Options</h2>
 <pre class="prettyprint lang-js options">
 var options = {
   autoResize: true,
@@ -431,8 +430,9 @@ var locales = {
         <p>If you want to define your own locale, you can change the key ('en' here) and change all the strings. You can
             then use your new key in the locale option.</p>
     </div>
-    <div id="methodsDiv" class=" hidden">
-        <h3>All Methods</h3>
+    <br /><hr />
+    <div id="methodsDiv">
+        <h2 id="methods">Methods</h2>
 
         <p>This is a list of all the methods in the public API. They have been grouped by category, which correspond to
             the
@@ -442,7 +442,7 @@ var locales = {
                 <td colspan="2">Global methods for the network.</td>
             </tr>
             <tr class="collapsible toggle" onclick="toggleTable('methodTable','destroy', this);">
-                <td colspan="2"><span parent="destroy" class="right-caret"></span> destroy()</td>
+                <td colspan="2"><span parent="destroy" class="right-caret"></span><a id="destroy"></a> destroy()</td>
             </tr>
             <tr class="hidden" parent="destroy">
                 <td class="midMethods">Returns: none</td>
@@ -1184,7 +1184,7 @@ var options = {
                     All
                     options described in the <a href="./edges.html">edges module</a> are allowed. Using this, you can
                     style
-                    the edges connecting to the cluster any way you want. If none are provided, the optoins from the
+                    the edges connecting to the cluster any way you want. If none are provided, the options from the
                     edges
                     that are replaced are used. If undefined, default edge options will be used.
                 </td>
@@ -1192,8 +1192,9 @@ var options = {
 
         </table>
     </div>
-    <div id="eventsDiv" class="hidden">
-        <h3>All Events</h3>
+    <br /><hr />
+    <div id="eventsDiv">
+        <h2 id="Events">Events</h2>
 
         <p>This is a list of all the events in the public API. They are collected here from all individual modules.</p>
 
@@ -1448,7 +1449,9 @@ var options = {
 
     </div>
 
-    <div id="importDiv" class=" hidden">
+    <br /><hr />
+    <div id="importDiv">
+        <h2 id="importing_data">Importing data</h2>
 
         <p>Network contains conversion utilities to import data from <a href="#importGephi">Gephi</a> and graphs in the <a href="#importDot">DOT language</a>.</p>
 
