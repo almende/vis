@@ -14,6 +14,7 @@ http://visjs.org
 - Added shapeProperties, thanks @zukomgwili!
 - Fixed missing edges during clustering.
 - Fixed missing refresh of node data when changing hierarchical layout on the fly.
+- Added configChange event.
 
 ### Graph3d
 

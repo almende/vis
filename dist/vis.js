@@ -21696,6 +21696,11 @@ return /******/ (function(modules) { // webpackBootstrap
        */
       value: function _update(value, path) {
         var options = this._constructOptions(value, path);
+
+        if (this.parent.body && this.parent.body.emitter && this.parent.body.emitter.emit) {
+          this.parent.body.emitter.emit('configChange', options);
+        }
+
         this.parent.setOptions(options);
       }
     }, {

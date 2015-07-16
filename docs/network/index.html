@@ -1398,6 +1398,17 @@ var options = {
             <tr><td id="event_animationFinished">animationFinished</td>
                 <td>none</td>
                 <td>Fired when an animation is finished.</td>
+            </tr>
+            <tr class="subHeader">
+                <td colspan="3">Event triggered by the configuration module.</td>
+            </tr>
+            <tr><td id="event_configChange">configChange</td>
+                <td>Object</td>
+                <td>Fired when a user changes any option in the configurator. The options object can be used with the setOptions method or stringified using JSON.stringify().
+                    You do not have to manually put the options into the network: this is done automatically. You can use the event
+                    to store user options in the database.
+                </td>
+            </tr>
         </table>
 
     </div>
