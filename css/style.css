@@ -3,6 +3,11 @@ body {
     font-size:16px;
 }
 
+#linkStatus {
+    font-size:12px;
+    font-style: italic;
+}
+
 a.btn {
     width:130px;
 }

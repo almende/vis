@@ -12,6 +12,7 @@
     <link rel="icon" HREF="favicon.ico">
     <title>vis.js - A dynamic, browser based visualization library.</title>
 
+
     <!-- Bootstrap core CSS -->
     <link href="./css/bootstrap.css" rel="stylesheet">
 
@@ -26,13 +27,25 @@
     <![endif]-->
 
     <script src="./js/smooth-scroll.min.js"></script>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/vis/4.5.0/vis.min.js"></script>
+
     <script language="JavaScript">
         smoothScroll.init();
+
+        function evalLinks() {
+            if (typeof vis === 'undefined') {
+                console.log(document.getElementById("linkStatus"))
+                document.getElementById("linkStatus").innerHTML = "-- CDN links are momentarily unavailable.<br />";
+                document.getElementById("cdn_vis").style.color = "rgb(150,150,150)";
+                document.getElementById("cdn_vis_css").style.color = "rgb(150,150,150)";
+            }
+        }
     </script>
 </head>
 <!-- NAVBAR
 ================================================== -->
-<body>
+<body onload="evalLinks()">
 <div class="navbar-wrapper">
     <div class="container">
         <nav class="navbar navbar-inverse navbar-static-top" role="navigation">
@@ -183,8 +196,9 @@
                     <pre class="prettyprint">bower install vis</pre>
                     <h3>link from cdnjs.com</h3>
                     <p>
-                        <a href="https://cdnjs.cloudflare.com/ajax/libs/vis/4.5.0/vis.min.js" target="_blank">vis.min.js</a> <br>
-                        <a href="https://cdnjs.cloudflare.com/ajax/libs/vis/4.5.0/vis.min.css" target="_blank">vis.min.css</a> <br>
+                        <a id="cdn_vis" href="https://cdnjs.cloudflare.com/ajax/libs/vis/4.5.0/vis.min.js" target="_blank">vis.min.js</a> <br>
+                        <a id="cdn_vis_css" href="https://cdnjs.cloudflare.com/ajax/libs/vis/4.5.0/vis.min.css" target="_blank">vis.min.css</a> <br>
+                        <span id="linkStatus"></span>
                     </p>
                     <h3>download</h3>
                     <p>
