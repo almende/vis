@@ -5,7 +5,7 @@
  * A dynamic, browser-based visualization library.
  *
  * @version 4.4.1-SNAPSHOT
- * @date    2015-07-16
+ * @date    2015-07-17
  *
  * @license
  * Copyright (C) 2011-2014 Almende B.V, http://almende.com
@@ -37722,13 +37722,10 @@ return /******/ (function(modules) { // webpackBootstrap
         // remove all node hover highlights
         for (var nodeId in this.hoverObj.nodes) {
           if (this.hoverObj.nodes.hasOwnProperty(nodeId)) {
-            if (object === undefined) {
+            if (object === undefined || object instanceof Node && object.id != nodeId || object instanceof Edge) {
               this.blurObject(this.hoverObj.nodes[nodeId]);
-              hoverChanged = true;
-            } else if (object instanceof Node && object.id != nodeId || object instanceof Edge || object === undefined) {
-              this.blurObject(this.hoverObj.nodes[nodeId]);
-              hoverChanged = true;
               delete this.hoverObj.nodes[nodeId];
+              hoverChanged = true;
             }
           }
         }
@@ -37736,8 +37733,18 @@ return /******/ (function(modules) { // webpackBootstrap
         // removing all edge hover highlights
         for (var edgeId in this.hoverObj.edges) {
           if (this.hoverObj.edges.hasOwnProperty(edgeId)) {
-            this.hoverObj.edges[edgeId].hover = false;
-            delete this.hoverObj.edges[edgeId];
+            // if the hover has been changed here it means that the node has been hovered over or off
+            // we then do not use the blurObject method here.
+            if (hoverChanged === true) {
+              this.hoverObj.edges[edgeId].hover = false;
+              delete this.hoverObj.edges[edgeId];
+            }
+            // if the blur remains the same and the object is undefined (mouse off), we blur the edge
+            else if (object === undefined) {
+              this.blurObject(this.hoverObj.edges[edgeId]);
+              delete this.hoverObj.edges[edgeId];
+              hoverChanged = true;
+            }
           }
         }
 

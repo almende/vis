@@ -15,6 +15,7 @@ http://visjs.org
 - Fixed missing edges during clustering.
 - Fixed missing refresh of node data when changing hierarchical layout on the fly.
 - Added configChange event.
+- Fixed hover and blur events for edges.
 
 ### Graph3d
 
