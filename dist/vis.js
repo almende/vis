@@ -27428,6 +27428,8 @@ return /******/ (function(modules) { // webpackBootstrap
     }, {
       key: 'refresh',
       value: function refresh() {
+        var clearPositions = arguments[0] === undefined ? false : arguments[0];
+
         var nodes = this.body.nodes;
         for (var nodeId in nodes) {
           var node = undefined;
@@ -27436,7 +27438,10 @@ return /******/ (function(modules) { // webpackBootstrap
           }
           var data = this.body.data.nodes._data[nodeId];
           if (node !== undefined && data !== undefined) {
-            node.setOptions({ fixed: false, x: null, y: null });
+            if (clearPositions === true) {
+              node.setOptions({ x: null, y: null });
+            }
+            node.setOptions({ fixed: false });
             node.setOptions(data);
           }
         }
@@ -37983,7 +37988,7 @@ return /******/ (function(modules) { // webpackBootstrap
           if (this.options.hierarchical.enabled === true) {
             if (prevHierarchicalState === true) {
               // refresh the overridden options for nodes and edges.
-              this.body.emitter.emit('refresh');
+              this.body.emitter.emit('refresh', true);
             }
 
             // make sure the level seperation is the right way up

@@ -1,6 +1,14 @@
 # vis.js history
 http://visjs.org
 
+
+## YET TO BE RELEASED, version 4.5.1
+
+### Network
+
+- Fixed another clustering bug, phantom edges should be gone now.
+- Fixed disabling hierarchical layout.
+
 ## 2015-07-17, version 4.5.0
 
 ### General
