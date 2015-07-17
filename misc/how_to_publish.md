@@ -76,6 +76,8 @@ This generates the vis.js library in the folder `./dist`.
 
 - Update the library version number in the index.html page.
 
+- Update the CDN links, regardless if they are online or not.
+
 - Commit the changes in the `gh-pages` branch.
 
 
