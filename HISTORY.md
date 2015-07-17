@@ -1,7 +1,7 @@
 # vis.js history
 http://visjs.org
 
-## not yet released, version 4.4.1-SNAPSHOT
+## 2015-07-17, version 4.5.0
 
 ### General
 
@@ -9,17 +9,17 @@ http://visjs.org
 
 ### Network
 
+- Added shapeProperties, thanks @zukomgwili!
+- Added configChange event.
 - Properly fixed the _lockedRedraw method.
 - Fixed node resizing on dragging.
-- Added shapeProperties, thanks @zukomgwili!
 - Fixed missing edges during clustering.
 - Fixed missing refresh of node data when changing hierarchical layout on the fly.
-- Added configChange event.
 - Fixed hover and blur events for edges.
 
 ### Graph3d
 
-- Do not change `backgroundColor` when not provided in options. Thanks @ozydingo.
+- Fixed not changing `backgroundColor` when not provided in options. Thanks @ozydingo.
 
 ### Timeline
 
