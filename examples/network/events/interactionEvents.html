@@ -47,7 +47,7 @@
         nodes: nodes,
         edges: edges
     };
-    var options = {};
+    var options = {interaction:{hover:true}};
     var network = new vis.Network(container, data, options);
 
     network.on("click", function (params) {
@@ -97,6 +97,18 @@
     });
     network.on("deselectEdge", function (params) {
         console.log('deselectEdge Event:', params);
+    });
+    network.on("hoverNode", function (params) {
+        console.log('hoverNode Event:', params);
+    });
+    network.on("hoverEdge", function (params) {
+        console.log('hoverEdge Event:', params);
+    });
+    network.on("blurNode", function (params) {
+        console.log('blurNode Event:', params);
+    });
+    network.on("blurEdge", function (params) {
+        console.log('blurEdge Event:', params);
     });
 
 

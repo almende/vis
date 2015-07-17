@@ -10,6 +10,9 @@
 
   <!-- Bootstrap core CSS -->
   <link href="../css/bootstrap.css" rel="stylesheet">
+  <!-- Tipue vendor css -->
+  <link href="../css/tipuesearch.css" rel="stylesheet">
+
   <link href="../css/style.css" rel="stylesheet">
 
 
@@ -28,7 +31,13 @@
   <script language="JavaScript">
     smoothScroll.init();
   </script>
-
+  
+  <!-- Tipue vendor css -->
+  <link href="../css/tipuesearch.css" rel="stylesheet">
+    
+  <!-- Tipue vendor css -->
+  <link href="../css/tipuesearch.css" rel="stylesheet">
+  
   <script type="text/javascript" src="../js/toggleTable.js"></script>
 </head>
 <body onload="prettyPrint();">
@@ -586,6 +595,13 @@ function (option, path) {
     </tr>
 
     <tr>
+      <td>groupTemplate</td>
+      <td>function</td>
+      <td>none</td>
+      <td>A template function used to generate the contents of the groups. The function is called by the Timeline with a groups data as argument, and must return HTML code as result. When the option groupTemplate is specified, the groups do not need to have a field <code>content</code>. See section <a href="#Templates">Templates</a> for a detailed explanation.</td>
+    </tr>
+
+    <tr>
       <td>height</td>
       <td>number or String</td>
       <td>none</td>
@@ -896,6 +912,16 @@ function (option, path) {
       <td><code>true</code></td>
       <td>
         Specifies whether the Timeline can be zoomed by pinching or scrolling in the window.
+        Only applicable when option <code>moveable</code> is set <code><code>true</code></code>.
+      </td>
+    </tr>
+
+	<tr>
+      <td>zoomKey</td>
+      <td>String</td>
+      <td><code>''</code></td>
+      <td>Specifies whether the Timeline is only zoomed when an additional key is down.
+      	Available values are '' (does not apply), 'altKey', 'ctrlKey', or 'metaKey'.
         Only applicable when option <code>moveable</code> is set <code><code>true</code></code>.
       </td>
     </tr>
@@ -1607,5 +1633,11 @@ var options = {
 <script src="../js/bootstrap.min.js"></script>
 <!-- IE10 viewport hack for Surface/desktop Windows 8 bug -->
 <script src="../js/ie10-viewport-bug-workaround.js"></script>
+<!-- jquery extensions -->
+<script src="../js/jquery.highlight.js"></script>
+<script src="../js/jquery.url.min.js"></script>
+<!-- Tipue vendor js -->
+<script src="../js/tipuesearch.config.js"></script>
+<script src="../js/tipuesearch.js"></script>
 <!-- controller -->
 <script src="../js/main.js"></script>
