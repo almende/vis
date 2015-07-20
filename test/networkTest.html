@@ -1,148 +1,116 @@
 <!doctype html>
 <html>
 <head>
-    <title>Network | Hierarchical layout</title>
-
+    <title>Network | Clustering</title>
+    <script type="text/javascript" src="../dist/vis.js"></script>
     <style type="text/css">
-        body {
-            font: 10pt sans;
-        }
-
         #mynetwork {
             width: 600px;
             height: 600px;
             border: 1px solid lightgray;
         }
+        p {
+            max-width: 600px;
+        }
+        h4 {
+            margin-bottom: 3px;
+        }
     </style>
-
-    <script type="text/javascript" src="../dist/vis.js"></script>
-
-
-    <script type="text/javascript">
-        var nodes = null;
-        var edges = null;
-        var network = null;
-
-        function destroy() {
-            if (network !== null) {
-                network.destroy();
-                network = null;
-            }
-        }
-
-        function draw() {
-            destroy();
-            // randomly create some nodes and edges
-            var nodeCount = document.getElementById('nodeCount').value;
-            //var data = getScaleFreeNetwork(nodeCount)
-            var nodes = [
-                {id: 4, label: '4'},
-                {id: 5, label: '5'},
-                {id: 7, label: '7'},
-                {id: 9, label: '9'},
-                {id: 10, label: '10'},
-                {id: 101, label: '101'},
-                {id: 102, label: '102'},
-                {id: 103, label: '103'}
-            ];
-
-            // create an array with edges
-            var edges = [
-                {from: 10, to: 4},
-                {from: 7, to: 5},
-                {from: 9, to: 7},
-                {from: 10, to: 9},
-                {from: 101, to: 102},
-                {from: 102, to: 103}
-            ];
-
-            var data = {
-                nodes: nodes,
-                edges: edges
-            };
-            // create a network
-            var container = document.getElementById('mynetwork');
-            var directionInput = document.getElementById("direction").value;
-            var options = {
-                interaction: {
-                    navigationButtons: true
-                },
-                layout: {
-                    hierarchical: {
-                        direction: directionInput
-                    }
-                }
-            };
-            network = new vis.Network(container, data, options);
-
-            // add event listeners
-            network.on('select', function (params) {
-                document.getElementById('selection').innerHTML = 'Selection: ' + params.nodes;
-            });
-        }
-
-        function changeOptions(directionInputValue) {
-            network.setOptions({
-                layout: {
-                    hierarchical: {
-                        direction: directionInputValue
-                    }
-                }
-            });
-        }
-
-    </script>
 </head>
 
-<body onload="draw();">
-<h2>Hierarchical Layout - Scale-Free-Network</h2>
-
-<div style="width:700px; font-size:14px; text-align: justify;">
-    This example shows the randomly generated <b>scale-free-network</b> set of nodes and connected edges from example 2.
-    In this example, hierarchical layout has been enabled and the vertical levels are determined automatically.
-</div>
-<br/>
-
-<form onsubmit="draw(); return false;">
-    <label for="nodeCount">Number of nodes:</label>
-    <input id="nodeCount" type="text" value="25" style="width: 50px;">
-    <input type="submit" value="Go">
-</form>
-<p>
-    <input type="button" id="btn-UD" value="Up-Down">
-    <input type="button" id="btn-DU" value="Down-Up">
-    <input type="button" id="btn-LR" value="Left-Right">
-    <input type="button" id="btn-RL" value="Right-Left">
-    <input type="hidden" id='direction' value="UD">
-</p>
-
-<script language="javascript">
-    var directionInput = document.getElementById("direction");
-    var btnUD = document.getElementById("btn-UD");
-    btnUD.onclick = function () {
-        directionInput.value = "UD";
-        changeOptions(directionInput.value);
-    }
-    var btnDU = document.getElementById("btn-DU");
-    btnDU.onclick = function () {
-        directionInput.value = "DU";
-        changeOptions(directionInput.value);
-    };
-    var btnLR = document.getElementById("btn-LR");
-    btnLR.onclick = function () {
-        directionInput.value = "LR";
-        changeOptions(directionInput.value);
-    };
-    var btnRL = document.getElementById("btn-RL");
-    btnRL.onclick = function () {
-        directionInput.value = "RL";
-        changeOptions(directionInput.value);
-    };
-</script>
-<br>
+<body>
 
 <div id="mynetwork"></div>
 
-<p id="selection"></p>
+<script type="text/javascript">
+    // create an array with nodes
+    var nodes = [
+        {id: 1, label: '1'},
+        {id: 2, label: '2'},
+        {id: 3, label: '3'},
+        {id: 4, label: '4'},
+        {id: 'a', label: 'a'},
+        {id: 'b', label: 'b'},
+        {id: 'c', label: 'c'},
+        {id: 'd', label: 'd'}
+    ];
+
+    // create an array with edges
+    var edges = [
+        {from: '1', to: '2', arrows:'to'},
+        {from: '2', to: '3', arrows:'to'},
+        {from: '3', to: '4', arrows:'to'},
+        {from: 'a', to: 'b', arrows:'to'},
+        {from: 'b', to: 'c', arrows:'to'},
+        {from: 'c', to: 'd', arrows:'to'}
+    ];
+
+    // create a network
+    var container = document.getElementById('mynetwork');
+    var data = {
+        nodes: nodes,
+        edges: edges
+    };
+    var options = {
+        interaction: {
+            navigationButtons: true
+        },
+        layout: {randomSeed: 8}
+    };
+    var network = new vis.Network(container, data, options);
+
+    // if we click on a node, we want to open it up!
+    network.on("selectNode", function (params) {
+        if (params.nodes.length == 1) {
+            if (network.isCluster(params.nodes[0]) == true) {
+                network.openCluster(params.nodes[0])
+            }
+        }
+    });
+
+    setTimeout(function() {
+//        alert("Clustering 2 and 'b'");
+        var clusterOptionsByData = {
+            joinCondition: function(node) {
+                if (node.id == '2' || node.id == 'b')
+                    return true;
+                return false;
+            },
+            clusterNodeProperties: {id:"c1", label:'c1'}
+        }
+        network.cluster(clusterOptionsByData);
+    }, 1)
+
+    setTimeout(function() {
+//        alert("Clustering 4 and 'd'");
+        var clusterOptionsByData = {
+            joinCondition: function(node) {
+                if (node.id == '4' || node.id == 'd')
+                    return true;
+                return false;
+            },
+            clusterNodeProperties: {id:"c2", label:'c2'}
+        }
+        network.cluster(clusterOptionsByData);
+    }, 100)
+
+    setTimeout(function() {
+//        alert('Changing to UD layout');
+        customLayout = { hierarchical: { direction: "UD" } };
+        network.setOptions({layout: customLayout});
+    }, 300)
+
+//    setTimeout(function() {
+//        alert('Changing to DEFAULT layout, but does not work');
+//        customLayout = {};
+//        network.setOptions({"layout": {
+//            "hierarchical": {
+//                "enabled": false
+//            }
+//        }});
+//    }, 15000)
+
+</script>
+
 </body>
 </html>

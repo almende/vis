@@ -5,7 +5,7 @@
  * A dynamic, browser-based visualization library.
  *
  * @version 4.5.1--snapshot
- * @date    2015-07-17
+ * @date    2015-07-20
  *
  * @license
  * Copyright (C) 2011-2014 Almende B.V, http://almende.com
@@ -38636,7 +38636,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
           // remove buttons
           if (selectedTotalCount !== 0) {
-            if (selectedNodeCount === 1 && this.options.deleteNode !== false) {
+            if (selectedNodeCount > 0 && this.options.deleteNode !== false) {
               if (needSeperator === true) {
                 this._createSeperator(4);
               }
