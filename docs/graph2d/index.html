@@ -145,7 +145,6 @@
 
     <h2 id="Contents">Contents</h2>
     <ul>
-        <li><a href="#Overview">Overview</a></li>
         <li><a href="#Data_Format">Data Format</a>
             <ul>
                 <li><a href="#items">Items</a></li>
@@ -227,7 +226,7 @@
             Options is a name-value map in the JSON format. The available options
             are described in section <a href="#Configuration_Options">Configuration Options</a>.
             Groups is a vis <code>DataSet</code> containing groups. The available options and the method of construction
-            are described in section <a href="#Group_Options">Data Format</a>.
+            are described in section <a href="#Data_Format">Data Format</a>.
         </p>
         <pre class="prettyprint lang-js options">var graph = new vis.Graph2d(container [, data] [, groups] [, options]);</pre>
         For backwards compatibility, groups and options can be interchanged.
@@ -245,7 +244,7 @@
 
     <h2 id="Data_Format">Data Format</h2>
     <p>
-        Graph2d can load data from an <code>Array</code>, a <code>DataSet</code> or a <code>DataView</code>.
+        Graph2d can load data from an <code>Array</code>, a <code>DataSet</code> (offering 2 way data binding), or a <code>DataView</code> (offering one way data binding).
         Objects are added to this DataSet by using the <code>add()</code> function.
         Data points must have properties <code>x</code>, <code>y</code>, and <code>z</code>,
         and can optionally have a property <code>style</code> and <code>filter</code>.

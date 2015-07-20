@@ -209,19 +209,20 @@
 
   <h3 id="items">Items</h3>
   <p>
-    The Timeline uses regular Arrays and Objects as data format.
-    Data items can contain the properties <code>start</code>,
+    For items, the Timeline accepts an Array, a DataSet (offering 2 way data binding),
+    or a DataView (offering 1 way data binding).
+    Items are regular objects and can contain the properties <code>start</code>,
     <code>end</code> (optional), <code>content</code>,
     <code>group</code> (optional), <code>className</code> (optional), 
     <code>editable</code> (optional), and <code>style</code> (optional).
   </p>
 
   <p>
-    A table is constructed as:
+    A DataSet is constructed as:
   </p>
 
 <pre class="prettyprint lang-js">
-var items = [
+var items = new vis.DataSet([
   {
     start: new Date(2010, 7, 15),
     end: new Date(2010, 8, 2),  // end is optional
@@ -343,7 +344,9 @@ var items = [
 
   <h3 id="groups">Groups</h3>
   <p>
-    Like the items, groups are regular JavaScript Arrays and Objects.
+    For the items, groups can be an Array, a DataSet (offering 2 way data binding),
+    or a DataView (offering 1 way data binding).
+
     Using groups, items can be grouped together.
     Items are filtered per group, and displayed as
 
@@ -1120,9 +1123,9 @@ document.getElementById('myTimeline').onclick = function (event) {
       <td>none</td>
       <td>Set both groups and items at once. Both properties are optional. This is a convenience method for individually calling both <code>setItems(items)</code> and <code>setGroups(groups)</code>.
         Both <code>items</code> and <code>groups</code> can be an Array with Objects,
-        a DataSet, or a DataView. For each of the groups, the items of the
-        timeline are filtered on the property <code>group</code>, which
-        must correspond with the id of the group.
+        a DataSet (offering 2 way data binding), or a DataView (offering 1 way data binding).
+        For each of the groups, the items of the timeline are filtered on the
+        property <code>group</code>, which must correspond with the id of the group.
       </td>
     </tr>
 
@@ -1131,9 +1134,9 @@ document.getElementById('myTimeline').onclick = function (event) {
       <td>none</td>
       <td>Set a data set with groups for the Timeline.
         <code>groups</code> can be an Array with Objects,
-        a DataSet, or a DataView. For each of the groups, the items of the
-        timeline are filtered on the property <code>group</code>, which
-        must correspond with the id of the group.
+        a DataSet (offering 2 way data binding), or a DataView (offering 1 way data binding).
+        For each of the groups, the items of the timeline are filtered on the
+        property <code>group</code>, which must correspond with the id of the group.
       </td>
     </tr>
 
@@ -1142,7 +1145,7 @@ document.getElementById('myTimeline').onclick = function (event) {
       <td>none</td>
       <td>Set a data set with items for the Timeline.
         <code>items</code> can be an Array with Objects,
-        a DataSet, or a DataView.
+        a DataSet (offering 2 way data binding), or a DataView (offering 1 way data binding).
       </td>
     </tr>
 
