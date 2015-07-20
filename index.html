@@ -35,8 +35,8 @@
 
         function evalLinks() {
             if (typeof vis === 'undefined') {
-                console.log(document.getElementById("linkStatus"))
-                document.getElementById("linkStatus").innerHTML = "-- CDN links are momentarily unavailable.<br />";
+                console.log(document.getElementById("linkStatus"));
+                document.getElementById("linkStatus").innerHTML = "Note: The latest version (4.5.1) is not yet available on cdnjs, <a href='https://cdnjs.com/libraries/vis'>click here</a> to to pick the latest available version.<br />";
                 document.getElementById("cdn_vis").style.color = "rgb(150,150,150)";
                 document.getElementById("cdn_vis_css").style.color = "rgb(150,150,150)";
             }
