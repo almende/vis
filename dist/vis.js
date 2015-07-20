@@ -4,8 +4,8 @@
  *
  * A dynamic, browser-based visualization library.
  *
- * @version 4.5.0
- * @date    2015-07-17
+ * @version 4.5.1
+ * @date    2015-07-20
  *
  * @license
  * Copyright (C) 2011-2014 Almende B.V, http://almende.com
@@ -27428,6 +27428,8 @@ return /******/ (function(modules) { // webpackBootstrap
     }, {
       key: 'refresh',
       value: function refresh() {
+        var clearPositions = arguments.length <= 0 || arguments[0] === undefined ? false : arguments[0];
+
         var nodes = this.body.nodes;
         for (var nodeId in nodes) {
           var node = undefined;
@@ -27436,7 +27438,10 @@ return /******/ (function(modules) { // webpackBootstrap
           }
           var data = this.body.data.nodes._data[nodeId];
           if (node !== undefined && data !== undefined) {
-            node.setOptions({ fixed: false, x: null, y: null });
+            if (clearPositions === true) {
+              node.setOptions({ x: null, y: null });
+            }
+            node.setOptions({ fixed: false });
             node.setOptions(data);
           }
         }
@@ -34389,33 +34394,14 @@ return /******/ (function(modules) { // webpackBootstrap
             if (this.body.edges[edgeId] !== undefined) {
               var edge = this.body.edges[edgeId];
 
-              // if the edge is a clusterEdge, we delete it. The opening of the clusters will restore these edges when required.
-              if (edgeId.substr(0, 12) === 'clusterEdge:') {
-                // we only delete the cluster edge if there is another edge to the node that is not a cluster.
-                var target = edge.from.isCluster === true ? edge.toId : edge.fromId;
-                var deleteEdge = false;
-
-                // search the contained edges for an edge that has a link to the targetNode
-                for (var edgeId2 in childEdgesObj) {
-                  if (childEdgesObj.hasOwnProperty(edgeId2)) {
-                    if (this.body.edges[edgeId2] !== undefined && edgeId2 !== edgeId) {
-                      var edge2 = this.body.edges[edgeId2];
-                      if (edge2.fromId == target || edge2.toId == target) {
-                        deleteEdge = true;
-                        break;
-                      }
-                    }
-                  }
-                }
-
-                // if we found the edge that will trigger the recreation of a new cluster edge on opening, we can delete this edge.
-                if (deleteEdge === true) {
-                  edge.edgeType.cleanup();
-                  // this removes the edge from node.edges, which is why edgeIds is formed
-                  edge.disconnect();
-                  delete childEdgesObj[edgeId];
-                  delete this.body.edges[edgeId];
-                }
+              // if this is a cluster edge that is fully encompassed in the cluster, we want to delete it
+              // this check verifies that both of the connected nodes are in this cluster
+              if (edgeId.substr(0, 12) === 'clusterEdge:' && childNodesObj[edge.fromId] !== undefined && childNodesObj[edge.toId] !== undefined) {
+                edge.edgeType.cleanup();
+                // this removes the edge from node.edges, which is why edgeIds is formed
+                edge.disconnect();
+                delete childEdgesObj[edgeId];
+                delete this.body.edges[edgeId];
               } else {
                 edge.togglePhysics(false);
                 edge.options.hidden = true;
@@ -34718,8 +34704,8 @@ return /******/ (function(modules) { // webpackBootstrap
         average = average / hubCounter;
         averageSquared = averageSquared / hubCounter;
 
-        var letiance = averageSquared - Math.pow(average, 2);
-        var standardDeviation = Math.sqrt(letiance);
+        var variance = averageSquared - Math.pow(average, 2);
+        var standardDeviation = Math.sqrt(variance);
 
         var hubThreshold = Math.floor(average + 2 * standardDeviation);
 
@@ -37980,7 +37966,7 @@ return /******/ (function(modules) { // webpackBootstrap
           if (this.options.hierarchical.enabled === true) {
             if (prevHierarchicalState === true) {
               // refresh the overridden options for nodes and edges.
-              this.body.emitter.emit('refresh');
+              this.body.emitter.emit('refresh', true);
             }
 
             // make sure the level seperation is the right way up
@@ -38650,7 +38636,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
           // remove buttons
           if (selectedTotalCount !== 0) {
-            if (selectedNodeCount === 1 && this.options.deleteNode !== false) {
+            if (selectedNodeCount > 0 && this.options.deleteNode !== false) {
               if (needSeperator === true) {
                 this._createSeperator(4);
               }
