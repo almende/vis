@@ -12,7 +12,9 @@ http://visjs.org
 
 - Implemented #24: support for custom timezones, see configuration option `moment`.
 
+### Network
 
+- Fixed #1111, check if edges exist was not correct on update.
 
 ## 2015-07-20, version 4.5.1
 

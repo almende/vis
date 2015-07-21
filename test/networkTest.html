@@ -1,116 +1,557 @@
-<!doctype html>
-<html>
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml">
 <head>
-    <title>Network | Clustering</title>
-    <script type="text/javascript" src="../dist/vis.js"></script>
+    <title>Test</title>
+    <meta http-equiv="x-ua-compatible" content="IE=Edge" />
     <style type="text/css">
-        #mynetwork {
-            width: 600px;
-            height: 600px;
-            border: 1px solid lightgray;
-        }
-        p {
-            max-width: 600px;
-        }
-        h4 {
-            margin-bottom: 3px;
-        }
+
     </style>
+
+    <script type="text/javascript" src="../dist/vis.js"></script>
+    <link type="text/css" rel="stylesheet" href="../dist/vis.css">
+    <script type="text/javascript" src="http://code.jquery.com/jquery-1.7.2.js"></script>
+
+
+
 </head>
-
 <body>
+<input type="button" id="changeVis" value="ChangeVis"/>
+<div id="kl" style="position:absolute;height:700px; width:1200px;float:left;border: 2px solid #0094ff;overflow:auto">
+</div>
 
-<div id="mynetwork"></div>
 
-<script type="text/javascript">
-    // create an array with nodes
-    var nodes = [
-        {id: 1, label: '1'},
-        {id: 2, label: '2'},
-        {id: 3, label: '3'},
-        {id: 4, label: '4'},
-        {id: 'a', label: 'a'},
-        {id: 'b', label: 'b'},
-        {id: 'c', label: 'c'},
-        {id: 'd', label: 'd'}
-    ];
+<script>
+    var graph = null;
+    var chartVisual = null;
 
-    // create an array with edges
-    var edges = [
-        {from: '1', to: '2', arrows:'to'},
-        {from: '2', to: '3', arrows:'to'},
-        {from: '3', to: '4', arrows:'to'},
-        {from: 'a', to: 'b', arrows:'to'},
-        {from: 'b', to: 'c', arrows:'to'},
-        {from: 'c', to: 'd', arrows:'to'}
-    ];
+    window.onload = function () {
+        chartVisual = new weve.cg.view.ChartVisual();
+        chartVisual.LoadChart();
+    }
 
-    // create a network
-    var container = document.getElementById('mynetwork');
-    var data = {
-        nodes: nodes,
-        edges: edges
+    //
+    //     Copyright © 2011-2015 Cambridge Intelligence Limited.
+    //     All rights reserved.
+    //
+    //     Sample Code
+    //     Click here to see the code in action: Combos 1
+    var weve = weve || {};
+    weve.cg = weve.cg || {};
+    weve.cg.view = weve.cg.view || {};
+    network = {};
+
+    nodes = new vis.DataSet();
+    edges = new vis.DataSet();
+
+    // Javascript Constructor - The Main Graph object
+    weve.cg.view.ChartVisual = function () {
+        nodes2 = new vis.DataSet([
+            { label: "0", id: "d0" },
+            { label: "1", id: "d1" },
+            { label: "2", id: "d2" },
+            { label: "3", id: "d3" },
+            { label: "4", id: "d4" },
+            { label: "5", id: "d5" },
+            { label: "6", id: "d6" },
+            { label: "7", id: "d7" },
+            { label: "8", id: "d8" },
+            { label: "9", id: "d9" },
+            { label: "10", id: "d10" },
+            { label: "11", id: "d11" },
+            { label: "12", id: "d12" },
+            { label: "13", id: "d13" },
+            { label: "14", id: "d14" },
+            { label: "15", id: "d15" },
+            { label: "16", id: "d16" },
+            { label: "17", id: "d17" },
+            { label: "18", id: "d18" },
+            { label: "19", id: "d19" },
+            { label: "20", id: "d20" },
+            { label: "21", id: "d21" },
+            { label: "22", id: "d22" },
+            { label: "23", id: "d23" },
+            { label: "24", id: "d24" },
+            { label: "25", id: "d25" },
+            { label: "26", id: "d26" },
+            { label: "27", id: "d27" },
+            { label: "28", id: "d28" },
+            { label: "29", id: "d29" },
+            { label: "30", id: "d30" },
+            { label: "31", id: "d31" },
+            { label: "32", id: "d32" },
+            { label: "33", id: "d33" },
+            { label: "34", id: "d34" },
+            { label: "35", id: "d35" },
+            { label: "36", id: "d36" },
+            { label: "37", id: "d37" },
+            { label: "38", id: "d38" },
+            { label: "39", id: "d39" },
+            { label: "40", id: "d40" },
+            { label: "41", id: "d41" },
+            { label: "42", id: "d42" },
+            { label: "43", id: "d43" },
+            { label: "44", id: "d44" },
+            { label: "45", id: "d45" },
+            { label: "46", id: "d46" },
+            { label: "47", id: "d47" },
+            { label: "48", id: "d48" },
+            { label: "49", id: "d49" },
+            { label: "50", id: "d50" },
+            { label: "51", id: "d51" },
+            { label: "52", id: "d52" },
+            { label: "53", id: "d53" },
+            { label: "54", id: "d54" },
+            { label: "55", id: "d55" },
+            { label: "56", id: "d56" },
+            { label: "57", id: "d57" },
+            { label: "58", id: "d58" },
+            { label: "59", id: "d59" },
+            { label: "60", id: "d60" },
+            { label: "61", id: "d61" },
+            { label: "62", id: "d62" },
+            { label: "63", id: "d63" },
+            { label: "64", id: "d64" },
+            { label: "65", id: "d65" },
+            { label: "66", id: "d66" },
+            { label: "67", id: "d67" },
+            { label: "68", id: "d68" },
+            { label: "69", id: "d69" },
+            { label: "70", id: "d70" },
+            { label: "71", id: "d71" },
+            { label: "72", id: "d72" },
+            { label: "73", id: "d73" },
+            { label: "74", id: "d74" },
+            { label: "75", id: "d75" },
+            { label: "76", id: "d76" },
+            { label: "77", id: "d77" },
+            { label: "78", id: "d78" },
+            { label: "79", id: "d79" },
+            { label: "80", id: "d80" },
+            { label: "81", id: "d81" },
+            { label: "82", id: "d82" },
+            { label: "83", id: "d83" },
+            { label: "84", id: "d84" },
+            { label: "85", id: "d85" },
+            { label: "86", id: "d86" },
+            { label: "87", id: "d87" },
+            { label: "88", id: "d88" },
+            { label: "89", id: "d89" },
+            { label: "90", id: "d90" },
+            { label: "91", id: "d91" },
+            { label: "92", id: "d92" },
+            { label: "93", id: "d93" },
+            { label: "94", id: "d94" },
+            { label: "95", id: "d95" },
+            { label: "96", id: "d96" },
+            { label: "97", id: "d97" },
+            { label: "98", id: "d98" },
+            { label: "99", id: "d99" },
+            { label: "100", id: "d100" },
+            { label: "101", id: "d101" },
+            { label: "102", id: "d102" },
+            { label: "103", id: "d103" },
+            { label: "104", id: "d104" },
+            { label: "105", id: "d105" },
+            { label: "106", id: "d106" },
+            { label: "107", id: "d107" },
+            { label: "108", id: "d108" },
+            { label: "109", id: "d109" },
+            { label: "110", id: "d110" },
+            { label: "111", id: "d111" },
+            { label: "112", id: "d112" },
+            { label: "113", id: "d113" },
+            { label: "114", id: "d114" },
+            { label: "115", id: "d115" },
+            { label: "116", id: "d116" },
+            { label: "117", id: "d117" },
+            { label: "118", id: "d118" },
+            { label: "119", id: "d119" },
+            { label: "120", id: "d120" },
+            { label: "121", id: "d121" },
+            { label: "122", id: "d122" },
+            { label: "123", id: "d123" },
+            { label: "124", id: "d124" },
+            { label: "125", id: "d125" },
+            { label: "126", id: "d126" },
+            { label: "127", id: "d127" },
+            { label: "128", id: "d128" },
+            { label: "129", id: "d129" },
+            { label: "130", id: "d130" },
+            { label: "131", id: "d131" },
+            { label: "132", id: "d132" },
+            { label: "133", id: "d133" },
+            { label: "134", id: "d134" },
+            { label: "135", id: "d135" },
+            { label: "136", id: "d136" },
+            { label: "137", id: "d137" },
+            { label: "138", id: "d138" },
+            { label: "139", id: "d139" },
+            { label: "140", id: "d140" },
+            { label: "141", id: "d141" },
+            { label: "142", id: "d142" },
+            { label: "143", id: "d143" },
+            { label: "144", id: "d144" },
+            { label: "145", id: "d145" },
+            { label: "146", id: "d146" },
+            { label: "147", id: "d147" },
+            { label: "148", id: "d148" },
+            { label: "149", id: "d149" },
+            { label: "150", id: "d150" },
+            { label: "151", id: "d151" },
+            { label: "152", id: "d152" },
+            { label: "153", id: "d153" },
+            { label: "154", id: "d154" },
+            { label: "155", id: "d155" },
+            { label: "156", id: "d156" },
+            { label: "157", id: "d157" },
+            { label: "158", id: "d158" },
+            { label: "159", id: "d159" },
+            { label: "160", id: "d160" },
+            { label: "161", id: "d161" },
+            { label: "162", id: "d162" },
+            { label: "163", id: "d163" }
+
+        ]);
+
+        edges2 = new vis.DataSet([
+
+            { from: "d0", to: "d2" },
+            { from: "d1", to: "d0" },
+            { from: "d2", to: "d1" },
+            { from: "d3", to: "d2" },
+            { from: "d4", to: "d3" },
+            { from: "d5", to: "d4" },
+            { from: "d6", to: "d5" },
+            { from: "d7", to: "d6" },
+            { from: "d8", to: "d7" },
+            { from: "d9", to: "d8" },
+            { from: "d10", to: "d9" },
+            { from: "d11", to: "d10" },
+            { from: "d12", to: "d11" },
+            { from: "d13", to: "d12" },
+            { from: "d14", to: "d13" },
+            { from: "d15", to: "d14" },
+            { from: "d16", to: "d15" },
+            { from: "d17", to: "d16" },
+            { from: "d18", to: "d17" },
+            { from: "d19", to: "d18" },
+            { from: "d20", to: "d19" },
+            { from: "d21", to: "d20" },
+            { from: "d22", to: "d21" },
+            { from: "d23", to: "d22" },
+            { from: "d24", to: "d23" },
+            { from: "d25", to: "d24" },
+            { from: "d26", to: "d25" },
+            { from: "d27", to: "d26" },
+            { from: "d28", to: "d27" },
+            { from: "d29", to: "d28" },
+            { from: "d30", to: "d29" },
+            { from: "d31", to: "d30" },
+            { from: "d32", to: "d31" },
+            { from: "d33", to: "d32" },
+            { from: "d34", to: "d33" },
+            { from: "d35", to: "d34" },
+            { from: "d36", to: "d35" },
+            { from: "d37", to: "d36" },
+            { from: "d38", to: "d37" },
+            { from: "d39", to: "d38" },
+            { from: "d40", to: "d39" },
+            { from: "d41", to: "d40" },
+            { from: "d42", to: "d41" },
+            { from: "d43", to: "d42" },
+            { from: "d44", to: "d43" },
+            { from: "d45", to: "d44" },
+            { from: "d46", to: "d45" },
+            { from: "d47", to: "d46" },
+            { from: "d48", to: "d47" },
+            { from: "d49", to: "d48" },
+            { from: "d50", to: "d49" },
+            { from: "d51", to: "d50" },
+            { from: "d52", to: "d51" },
+            { from: "d53", to: "d52" },
+            { from: "d54", to: "d53" },
+            { from: "d55", to: "d54" },
+            { from: "d56", to: "d55" },
+            { from: "d57", to: "d56" },
+            { from: "d58", to: "d57" },
+            { from: "d59", to: "d58" },
+            { from: "d60", to: "d59" },
+            { from: "d61", to: "d60" },
+            { from: "d62", to: "d61" },
+            { from: "d63", to: "d62" },
+            { from: "d64", to: "d63" },
+            { from: "d65", to: "d64" },
+            { from: "d66", to: "d65" },
+            { from: "d67", to: "d66" },
+            { from: "d68", to: "d67" },
+            { from: "d69", to: "d68" },
+            { from: "d70", to: "d69" },
+            { from: "d71", to: "d70" },
+            { from: "d72", to: "d71" },
+            { from: "d73", to: "d72" },
+            { from: "d74", to: "d73" },
+            { from: "d75", to: "d74" },
+            { from: "d76", to: "d75" },
+            { from: "d77", to: "d76" },
+            { from: "d78", to: "d77" },
+            { from: "d79", to: "d78" },
+            { from: "d80", to: "d79" },
+            { from: "d81", to: "d80" },
+            { from: "d82", to: "d81" },
+            { from: "d83", to: "d82" },
+            { from: "d84", to: "d83" },
+            { from: "d85", to: "d84" },
+            { from: "d86", to: "d85" },
+            { from: "d87", to: "d86" },
+            { from: "d88", to: "d87" },
+            { from: "d89", to: "d88" },
+            { from: "d90", to: "d89" },
+            { from: "d91", to: "d90" },
+            { from: "d92", to: "d91" },
+            { from: "d93", to: "d92" },
+            { from: "d94", to: "d93" },
+            { from: "d95", to: "d94" },
+            { from: "d96", to: "d95" },
+            { from: "d97", to: "d96" },
+            { from: "d98", to: "d97" },
+            { from: "d99", to: "d98" },
+            { from: "d100", to: "d99" },
+            { from: "d101", to: "d100" },
+            { from: "d102", to: "d101" },
+            { from: "d103", to: "d102" },
+            { from: "d104", to: "d103" },
+            { from: "d105", to: "d104" },
+            { from: "d106", to: "d105" },
+            { from: "d107", to: "d106" },
+            { from: "d108", to: "d107" },
+            { from: "d109", to: "d108" },
+            { from: "d110", to: "d109" },
+            { from: "d111", to: "d110" },
+            { from: "d112", to: "d111" },
+            { from: "d113", to: "d112" },
+            { from: "d114", to: "d113" },
+            { from: "d115", to: "d114" },
+            { from: "d116", to: "d115" },
+            { from: "d117", to: "d116" },
+            { from: "d118", to: "d117" },
+            { from: "d119", to: "d118" },
+            { from: "d120", to: "d119" },
+            { from: "d121", to: "d120" },
+            { from: "d122", to: "d121" },
+            { from: "d123", to: "d122" },
+            { from: "d124", to: "d123" },
+            { from: "d125", to: "d124" },
+            { from: "d126", to: "d125" },
+            { from: "d127", to: "d126" },
+            { from: "d128", to: "d127" },
+            { from: "d129", to: "d128" },
+            { from: "d130", to: "d129" },
+            { from: "d131", to: "d130" },
+            { from: "d132", to: "d131" },
+            { from: "d133", to: "d132" },
+            { from: "d134", to: "d133" },
+            { from: "d135", to: "d134" },
+            { from: "d136", to: "d135" },
+            { from: "d137", to: "d136" },
+            { from: "d138", to: "d137" },
+            { from: "d139", to: "d138" },
+            { from: "d140", to: "d139" },
+            { from: "d141", to: "d140" },
+            { from: "d142", to: "d141" },
+            { from: "d143", to: "d142" },
+            { from: "d144", to: "d143" },
+            { from: "d145", to: "d144" },
+            { from: "d146", to: "d145" },
+            { from: "d147", to: "d146" },
+            { from: "d148", to: "d147" },
+            { from: "d149", to: "d148" },
+            { from: "d150", to: "d149" },
+            { from: "d151", to: "d150" },
+            { from: "d152", to: "d151" },
+            { from: "d153", to: "d152" },
+            { from: "d154", to: "d153" },
+            { from: "d155", to: "d154" },
+            { from: "d156", to: "d155" },
+            { from: "d157", to: "d156" },
+            { from: "d158", to: "d157" }
+        ]);
+
+        nodes = nodes2;
+        edges = edges2;
+
+
+        this.totalEdgesAdded = 0;
+
+        this.fitOnDone = false;
+        this.fitOnDoneIterations = 0;
+
+        this.options = {
+            nodes: {
+                shape: 'dot',
+                scaling: {
+                    label: {
+                        min: weve.cg.view.ChartVisual.minFont_largeGroup,
+                        max: weve.cg.view.ChartVisual.maxFont_largeGroup
+                    },
+                }
+            },
+
+            edges: {
+                smooth: {
+                    enabled: true,
+                    type: "dynamic",
+                    //   roundness: 0.5
+                },
+            },
+
+            interaction: {
+
+                multiselect: false,
+                navigationButtons: true,
+                selectable: true,
+                selectConnectedEdges: true,
+                tooltipDelay: 100,
+                zoomView: true
+            },
+            physics: {
+                stabilization: {
+                    enabled: true,
+                    iterations: 250, // maximum number of iteration to stabilize
+                    updateInterval: 5,
+                    onlyDynamicEdges: false,
+                    fit: true
+                }
+            }
+        };
+
     };
-    var options = {
-        interaction: {
-            navigationButtons: true
-        },
-        layout: {randomSeed: 8}
-    };
-    var network = new vis.Network(container, data, options);
 
-    // if we click on a node, we want to open it up!
-    network.on("selectNode", function (params) {
-        if (params.nodes.length == 1) {
-            if (network.isCluster(params.nodes[0]) == true) {
-                network.openCluster(params.nodes[0])
+    weve.cg.view.ChartVisual.minFont_smallGroup = 7;
+    weve.cg.view.ChartVisual.maxFont_smallGroup = 10;
+
+    weve.cg.view.ChartVisual.minFont_largeGroup = 20;
+    weve.cg.view.ChartVisual.maxFont_largeGroup = 25;
+
+
+    weve.cg.view.ChartVisual.prototype.LoadChart = function (viewModel, callBack) {
+        var g = this;
+        var container = document.getElementById('kl');
+
+        var data = {
+            nodes: nodes,
+            edges: edges
+        };
+
+
+        this.viewModel = viewModel;
+        network = new vis.Network(container, data, this.options);
+        this.startpercentage = 60;
+        network.on("click",this.neighbourhoodHighlight);
+
+    }
+
+
+    weve.cg.view.ChartVisual.prototype.neighbourhoodHighlight = function(params) {
+        // if something is selected:
+        var allNodes = nodes.get({returnType:"Object"});
+        var allEdges = edges.get({returnType:"Object"});
+
+        if (params.nodes.length > 0) {
+            this.highlightActive = true;
+
+            var i,j;
+            var selectedNode = params.nodes[0];
+            var degrees = 1;
+
+            // mark all nodes as hard to read.
+            for (var nodeId in allNodes) {
+                allNodes[nodeId].originalColor = allNodes[nodeId].color;
+                allNodes[nodeId].color = 'rgba(200,200,200,0.5)';
+                allNodes[nodeId].hiddenLabel = allNodes[nodeId].label;
+                allNodes[nodeId].label = undefined;
+                //allNodes[nodeId].hidden = true;
+            }
+
+            var connectedNodes = network.getConnectedNodes(selectedNode);
+            var allConnectedNodes = [];
+
+            // all first degree nodes get their own color and their label back
+            for (i = 0; i < connectedNodes.length; i++) {
+                allNodes[connectedNodes[i]].color = allNodes[connectedNodes[i]].originalColor;
+
+                if (allNodes[connectedNodes[i]].hiddenLabel !== undefined) {
+                    allNodes[connectedNodes[i]].label = allNodes[connectedNodes[i]].hiddenLabel;
+                    allNodes[connectedNodes[i]].hiddenLabel = undefined;
+                    //allNodes[nodeId].hidden = false;
+                }
+            }
+
+            // the main node gets its own color and its label back.
+            allNodes[selectedNode].color = allNodes[selectedNode].originalColor;
+            if (allNodes[selectedNode].hiddenLabel !== undefined) {
+                allNodes[selectedNode].label = allNodes[selectedNode].hiddenLabel;
+                allNodes[selectedNode].hiddenLabel = undefined;
+                //allNodes[nodeId].hidden = false;
+            }
+
+            var selectedEdges = params.edges;
+
+            for (var edgeId in allEdges) {
+                var edge = allEdges[edgeId];
+                edge.regularWidth = edge.width; //store the original width.
+
+                if (selectedEdges.indexOf(edge.id) == -1)
+                {
+                    edge.width = 0.01;
+                    //edge.hidden = true;
+                }
+            }
+
+
+        }
+        else if (this.highlightActive === true) {
+            // reset all nodes
+            for (var nodeId in allNodes) {
+                allNodes[nodeId].color = allNodes[nodeId].originalColor;
+                if (allNodes[nodeId].hiddenLabel !== undefined) {
+                    allNodes[nodeId].label = allNodes[nodeId].hiddenLabel;
+                    allNodes[nodeId].hiddenLabel = undefined;
+                    //allNodes[nodeId].hidden = false;
+                }
+            }
+
+            for (var edgeIds in allEdges) {
+                var edge = allEdges[edgeIds];
+                edge.width = edge.regularWidth; //restore the original width.
+                //edge.hidden= false;
+            }
+
+            this.highlightActive = false
+        }
+
+        // transform the object into an array
+        var updateArray = [];
+        for (nodeId in allNodes) {
+            if (allNodes.hasOwnProperty(nodeId)) {
+                updateArray.push(allNodes[nodeId]);
             }
         }
-    });
 
-    setTimeout(function() {
-//        alert("Clustering 2 and 'b'");
-        var clusterOptionsByData = {
-            joinCondition: function(node) {
-                if (node.id == '2' || node.id == 'b')
-                    return true;
-                return false;
-            },
-            clusterNodeProperties: {id:"c1", label:'c1'}
+        // transform the object into an array
+        var updateEdgesArray = [];
+        for (edgeId in allEdges) {
+            if (allEdges.hasOwnProperty(edgeId)) {
+                updateEdgesArray.push(allEdges[edgeId]);
+            }
         }
-        network.cluster(clusterOptionsByData);
-    }, 1)
 
-    setTimeout(function() {
-//        alert("Clustering 4 and 'd'");
-        var clusterOptionsByData = {
-            joinCondition: function(node) {
-                if (node.id == '4' || node.id == 'd')
-                    return true;
-                return false;
-            },
-            clusterNodeProperties: {id:"c2", label:'c2'}
-        }
-        network.cluster(clusterOptionsByData);
-    }, 100)
+        nodes.update(updateArray);
+        edges.update(updateEdgesArray);
+        console.log("edges", updateEdgesArray)
 
-    setTimeout(function() {
-//        alert('Changing to UD layout');
-        customLayout = { hierarchical: { direction: "UD" } };
-        network.setOptions({layout: customLayout});
-    }, 300)
-
-//    setTimeout(function() {
-//        alert('Changing to DEFAULT layout, but does not work');
-//        customLayout = {};
-//        network.setOptions({"layout": {
-//            "hierarchical": {
-//                "enabled": false
-//            }
-//        }});
-//    }, 15000)
+        //this.refreshUILayout(1000);
+    }
 
 </script>
-
 </body>
 </html>
