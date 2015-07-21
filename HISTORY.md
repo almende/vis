@@ -15,6 +15,7 @@ http://visjs.org
 ### Network
 
 - Fixed #1111, check if edges exist was not correct on update.
+- Fixed #1112, network now works in firefox on unix again.
 
 ## 2015-07-20, version 4.5.1
 

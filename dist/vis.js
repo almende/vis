@@ -28514,18 +28514,21 @@ return /******/ (function(modules) { // webpackBootstrap
         var borderRadius = 6;
         ctx.roundRect(this.left, this.top, this.width, this.height, borderRadius);
 
-        //draw dashed border if enabled
-        this.enableBorderDashes(ctx);
         // draw shadow if enabled
         this.enableShadow(ctx);
+        // draw the background
         ctx.fill();
-
-        //disable dashed border for other elements
-        this.disableBorderDashes(ctx);
         // disable shadows for other elements.
         this.disableShadow(ctx);
 
+        //draw dashed border if enabled, save and restore is required for firefox not to crash on unix.
+        ctx.save();
+        this.enableBorderDashes(ctx);
+        //draw the border
         ctx.stroke();
+        //disable dashed border for other elements
+        this.disableBorderDashes(ctx);
+        ctx.restore();
 
         this.updateBoundingBox(x, y);
         this.labelModule.draw(ctx, x, y, selected);
@@ -28623,14 +28626,24 @@ return /******/ (function(modules) { // webpackBootstrap
       key: 'enableBorderDashes',
       value: function enableBorderDashes(ctx) {
         if (this.options.shapeProperties.borderDashes !== false) {
-          ctx.setLineDash(this.options.shapeProperties.borderDashes);
+          if (ctx.setLineDash !== undefined) {
+            ctx.setLineDash(this.options.shapeProperties.borderDashes);
+          } else {
+            console.warn('setLineDash is not supported in this browser. The dashed borders cannot be used.');
+            this.options.shapeProperties.borderDashes = false;
+          }
         }
       }
     }, {
       key: 'disableBorderDashes',
       value: function disableBorderDashes(ctx) {
-        if (this.options.shapeProperties.borderDashes == false) {
-          ctx.setLineDash([0]);
+        if (this.options.shapeProperties.borderDashes !== false) {
+          if (ctx.setLineDash !== undefined) {
+            ctx.setLineDash([0]);
+          } else {
+            console.warn('setLineDash is not supported in this browser. The dashed borders cannot be used.');
+            this.options.shapeProperties.borderDashes = false;
+          }
         }
       }
     }]);
@@ -28826,18 +28839,21 @@ return /******/ (function(modules) { // webpackBootstrap
         ctx.fillStyle = selected ? this.options.color.highlight.background : hover ? this.options.color.hover.background : this.options.color.background;
         ctx.circle(x, y, size);
 
-        //draw dashed border if enabled
-        this.enableBorderDashes(ctx);
         // draw shadow if enabled
         this.enableShadow(ctx);
+        // draw the background
         ctx.fill();
-
-        //disable dashed border for other elements
-        this.disableBorderDashes(ctx);
         // disable shadows for other elements.
         this.disableShadow(ctx);
 
+        //draw dashed border if enabled, save and restore is required for firefox not to crash on unix.
+        ctx.save();
+        this.enableBorderDashes(ctx);
+        //draw the border
         ctx.stroke();
+        //disable dashed border for other elements
+        this.disableBorderDashes(ctx);
+        ctx.restore();
       }
     }, {
       key: '_drawImageAtPosition',
@@ -28848,6 +28864,8 @@ return /******/ (function(modules) { // webpackBootstrap
 
           // draw shadow if enabled
           this.enableShadow(ctx);
+
+          // draw image
           ctx.drawImage(this.imageObj, this.left, this.top, this.width, this.height);
 
           // disable shadows for other elements.
@@ -28948,15 +28966,16 @@ return /******/ (function(modules) { // webpackBootstrap
 
         var size = Math.min(0.5 * this.height, 0.5 * this.width);
 
+        // draw the backgroun circle. IMPORTANT: the stroke in this method is used by the clip method below.
         this._drawRawCircle(ctx, x, y, selected, hover, size);
 
+        // now we draw in the cicle, we save so we can revert the clip operation after drawing.
         ctx.save();
-        ctx.circle(x, y, size);
-        ctx.stroke();
+        // clip is used to use the stroke in drawRawCircle as an area that we can draw in.
         ctx.clip();
-
+        // draw the image
         this._drawImageAtPosition(ctx);
-
+        // restore so we can again draw on the full canvas
         ctx.restore();
 
         this._drawImageLabel(ctx, x, y, selected);
@@ -29051,21 +29070,23 @@ return /******/ (function(modules) { // webpackBootstrap
         ctx.fillStyle = selected ? this.options.color.highlight.background : hover ? this.options.color.hover.background : this.options.color.background;
         ctx.database(x - this.width / 2, y - this.height * 0.5, this.width, this.height);
 
-        //draw dashed border if enabled
-        this.enableBorderDashes(ctx);
         // draw shadow if enabled
         this.enableShadow(ctx);
+        // draw the background
         ctx.fill();
-
-        //disable dashed border for other elements
-        this.disableBorderDashes(ctx);
         // disable shadows for other elements.
         this.disableShadow(ctx);
 
+        //draw dashed border if enabled, save and restore is required for firefox not to crash on unix.
+        ctx.save();
+        this.enableBorderDashes(ctx);
+        //draw the border
         ctx.stroke();
+        //disable dashed border for other elements
+        this.disableBorderDashes(ctx);
+        ctx.restore();
 
         this.updateBoundingBox(x, y, ctx, selected);
-
         this.labelModule.draw(ctx, x, y, selected);
       }
     }, {
@@ -29216,18 +29237,21 @@ return /******/ (function(modules) { // webpackBootstrap
         ctx.fillStyle = selected ? this.options.color.highlight.background : hover ? this.options.color.hover.background : this.options.color.background;
         ctx[shape](x, y, this.options.size);
 
-        //draw dashed border if enabled
-        this.enableBorderDashes(ctx);
         // draw shadow if enabled
         this.enableShadow(ctx);
+        // draw the background
         ctx.fill();
-
-        //disable dashed border for other elements
-        this.disableBorderDashes(ctx);
         // disable shadows for other elements.
         this.disableShadow(ctx);
 
+        //draw dashed border if enabled, save and restore is required for firefox not to crash on unix.
+        ctx.save();
+        this.enableBorderDashes(ctx);
+        //draw the border
         ctx.stroke();
+        //disable dashed border for other elements
+        this.disableBorderDashes(ctx);
+        ctx.restore();
 
         if (this.options.label !== undefined) {
           var yLabel = y + 0.5 * this.height + 3; // the + 3 is to offset it a bit below the node.
@@ -29380,18 +29404,21 @@ return /******/ (function(modules) { // webpackBootstrap
         ctx.fillStyle = selected ? this.options.color.highlight.background : hover ? this.options.color.hover.background : this.options.color.background;
         ctx.ellipse(this.left, this.top, this.width, this.height);
 
-        //draw dashed border if enabled
-        this.enableBorderDashes(ctx);
         // draw shadow if enabled
         this.enableShadow(ctx);
+        // draw the background
         ctx.fill();
-
-        //disable dashed border for other elements
-        this.disableBorderDashes(ctx);
         // disable shadows for other elements.
         this.disableShadow(ctx);
 
+        //draw dashed border if enabled, save and restore is required for firefox not to crash on unix.
+        ctx.save();
+        this.enableBorderDashes(ctx);
+        //draw the border
         ctx.stroke();
+        //disable dashed border for other elements
+        this.disableBorderDashes(ctx);
+        ctx.restore();
 
         this.updateBoundingBox(x, y, ctx, selected);
         this.labelModule.draw(ctx, x, y, selected);
@@ -31395,7 +31422,6 @@ return /******/ (function(modules) { // webpackBootstrap
           ctx.restore();
         } else {
           // unsupporting smooth lines
-
           if (this.from != this.to) {
             // draw line
             ctx.dashedLine(this.from.x, this.from.y, this.to.x, this.to.y, pattern);
