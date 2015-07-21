@@ -5,7 +5,9 @@ http://visjs.org
 ## not yet released, version 4.5.2-SNAPSHOT
 
 
+### Network
 
+- Fixed #1111, check if edges exist was not correct on update.
 
 ## 2015-07-20, version 4.5.1
 
