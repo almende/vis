@@ -4,6 +4,13 @@ http://visjs.org
 
 ## not yet released, version 4.5.2-SNAPSHOT
 
+### Timeline
+
+- Implemented #24: support for custom timezones, see configuration option `moment`.
+
+### Graph2d
+
+- Implemented #24: support for custom timezones, see configuration option `moment`.
 
 
 

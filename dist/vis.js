@@ -5,7 +5,7 @@
  * A dynamic, browser-based visualization library.
  *
  * @version 4.5.2-SNAPSHOT
- * @date    2015-07-20
+ * @date    2015-07-21
  *
  * @license
  * Copyright (C) 2011-2014 Almende B.V, http://almende.com
@@ -107,32 +107,32 @@ return /******/ (function(modules) { // webpackBootstrap
   exports.Timeline = __webpack_require__(25);
   exports.Graph2d = __webpack_require__(49);
   exports.timeline = {
-    DateUtil: __webpack_require__(31),
+    DateUtil: __webpack_require__(29),
     DataStep: __webpack_require__(52),
-    Range: __webpack_require__(29),
-    stack: __webpack_require__(35),
-    TimeStep: __webpack_require__(37),
+    Range: __webpack_require__(26),
+    stack: __webpack_require__(33),
+    TimeStep: __webpack_require__(35),
 
     components: {
       items: {
         Item: __webpack_require__(2),
-        BackgroundItem: __webpack_require__(40),
-        BoxItem: __webpack_require__(39),
+        BackgroundItem: __webpack_require__(38),
+        BoxItem: __webpack_require__(37),
         PointItem: __webpack_require__(1),
-        RangeItem: __webpack_require__(36)
+        RangeItem: __webpack_require__(34)
       },
 
-      Component: __webpack_require__(27),
-      CurrentTime: __webpack_require__(26),
-      CustomTime: __webpack_require__(44),
+      Component: __webpack_require__(28),
+      CurrentTime: __webpack_require__(44),
+      CustomTime: __webpack_require__(42),
       DataAxis: __webpack_require__(51),
       GraphGroup: __webpack_require__(53),
-      Group: __webpack_require__(34),
-      BackgroundGroup: __webpack_require__(38),
-      ItemSet: __webpack_require__(33),
+      Group: __webpack_require__(32),
+      BackgroundGroup: __webpack_require__(36),
+      ItemSet: __webpack_require__(31),
       Legend: __webpack_require__(57),
       LineGraph: __webpack_require__(50),
-      TimeAxis: __webpack_require__(41)
+      TimeAxis: __webpack_require__(39)
     }
   };
 
@@ -160,7 +160,7 @@ return /******/ (function(modules) { // webpackBootstrap
   exports.moment = __webpack_require__(8);
   exports.hammer = __webpack_require__(3); // TODO: deprecate exports.hammer some day
   exports.Hammer = __webpack_require__(3);
-  exports.keycharm = __webpack_require__(43);
+  exports.keycharm = __webpack_require__(41);
 
 /***/ },
 /* 1 */
@@ -13128,15 +13128,16 @@ return /******/ (function(modules) { // webpackBootstrap
 
   var Emitter = __webpack_require__(19);
   var Hammer = __webpack_require__(3);
+  var moment = __webpack_require__(8);
   var util = __webpack_require__(7);
   var DataSet = __webpack_require__(14);
   var DataView = __webpack_require__(16);
-  var Range = __webpack_require__(29);
-  var Core = __webpack_require__(32);
-  var TimeAxis = __webpack_require__(41);
-  var CurrentTime = __webpack_require__(26);
-  var CustomTime = __webpack_require__(44);
-  var ItemSet = __webpack_require__(33);
+  var Range = __webpack_require__(26);
+  var Core = __webpack_require__(30);
+  var TimeAxis = __webpack_require__(39);
+  var CurrentTime = __webpack_require__(44);
+  var CustomTime = __webpack_require__(42);
+  var ItemSet = __webpack_require__(31);
 
   var Configurator = __webpack_require__(45);
   var Validator = __webpack_require__(47)['default'];
@@ -13176,6 +13177,8 @@ return /******/ (function(modules) { // webpackBootstrap
         axis: 'bottom', // axis orientation: 'bottom', 'top', or 'both'
         item: 'bottom' // not relevant
       },
+
+      moment: moment,
 
       width: null,
       height: null,
@@ -13657,268 +13660,10 @@ return /******/ (function(modules) { // webpackBootstrap
   'use strict';
 
   var util = __webpack_require__(7);
-  var Component = __webpack_require__(27);
+  var hammerUtil = __webpack_require__(27);
   var moment = __webpack_require__(8);
-  var locales = __webpack_require__(28);
-
-  /**
-   * A current time bar
-   * @param {{range: Range, dom: Object, domProps: Object}} body
-   * @param {Object} [options]        Available parameters:
-   *                                  {Boolean} [showCurrentTime]
-   * @constructor CurrentTime
-   * @extends Component
-   */
-  function CurrentTime(body, options) {
-    this.body = body;
-
-    // default options
-    this.defaultOptions = {
-      showCurrentTime: true,
-
-      locales: locales,
-      locale: 'en'
-    };
-    this.options = util.extend({}, this.defaultOptions);
-    this.offset = 0;
-
-    this._create();
-
-    this.setOptions(options);
-  }
-
-  CurrentTime.prototype = new Component();
-
-  /**
-   * Create the HTML DOM for the current time bar
-   * @private
-   */
-  CurrentTime.prototype._create = function () {
-    var bar = document.createElement('div');
-    bar.className = 'vis-current-time';
-    bar.style.position = 'absolute';
-    bar.style.top = '0px';
-    bar.style.height = '100%';
-
-    this.bar = bar;
-  };
-
-  /**
-   * Destroy the CurrentTime bar
-   */
-  CurrentTime.prototype.destroy = function () {
-    this.options.showCurrentTime = false;
-    this.redraw(); // will remove the bar from the DOM and stop refreshing
-
-    this.body = null;
-  };
-
-  /**
-   * Set options for the component. Options will be merged in current options.
-   * @param {Object} options  Available parameters:
-   *                          {boolean} [showCurrentTime]
-   */
-  CurrentTime.prototype.setOptions = function (options) {
-    if (options) {
-      // copy all options that we know
-      util.selectiveExtend(['showCurrentTime', 'locale', 'locales'], this.options, options);
-    }
-  };
-
-  /**
-   * Repaint the component
-   * @return {boolean} Returns true if the component is resized
-   */
-  CurrentTime.prototype.redraw = function () {
-    if (this.options.showCurrentTime) {
-      var parent = this.body.dom.backgroundVertical;
-      if (this.bar.parentNode != parent) {
-        // attach to the dom
-        if (this.bar.parentNode) {
-          this.bar.parentNode.removeChild(this.bar);
-        }
-        parent.appendChild(this.bar);
-
-        this.start();
-      }
-
-      var now = new Date(new Date().valueOf() + this.offset);
-      var x = this.body.util.toScreen(now);
-
-      var locale = this.options.locales[this.options.locale];
-      if (!locale) {
-        if (!this.warned) {
-          console.log('WARNING: options.locales[\'' + this.options.locale + '\'] not found. See http://visjs.org/docs/timeline.html#Localization');
-          this.warned = true;
-        }
-        locale = this.options.locales['en']; // fall back on english when not available
-      }
-      var title = locale.current + ' ' + locale.time + ': ' + moment(now).format('dddd, MMMM Do YYYY, H:mm:ss');
-      title = title.charAt(0).toUpperCase() + title.substring(1);
-
-      this.bar.style.left = x + 'px';
-      this.bar.title = title;
-    } else {
-      // remove the line from the DOM
-      if (this.bar.parentNode) {
-        this.bar.parentNode.removeChild(this.bar);
-      }
-      this.stop();
-    }
-
-    return false;
-  };
-
-  /**
-   * Start auto refreshing the current time bar
-   */
-  CurrentTime.prototype.start = function () {
-    var me = this;
-
-    function update() {
-      me.stop();
-
-      // determine interval to refresh
-      var scale = me.body.range.conversion(me.body.domProps.center.width).scale;
-      var interval = 1 / scale / 10;
-      if (interval < 30) interval = 30;
-      if (interval > 1000) interval = 1000;
-
-      me.redraw();
-
-      // start a renderTimer to adjust for the new time
-      me.currentTimeTimer = setTimeout(update, interval);
-    }
-
-    update();
-  };
-
-  /**
-   * Stop auto refreshing the current time bar
-   */
-  CurrentTime.prototype.stop = function () {
-    if (this.currentTimeTimer !== undefined) {
-      clearTimeout(this.currentTimeTimer);
-      delete this.currentTimeTimer;
-    }
-  };
-
-  /**
-   * Set a current time. This can be used for example to ensure that a client's
-   * time is synchronized with a shared server time.
-   * @param {Date | String | Number} time     A Date, unix timestamp, or
-   *                                          ISO date string.
-   */
-  CurrentTime.prototype.setCurrentTime = function (time) {
-    var t = util.convert(time, 'Date').valueOf();
-    var now = new Date().valueOf();
-    this.offset = t - now;
-    this.redraw();
-  };
-
-  /**
-   * Get the current time.
-   * @return {Date} Returns the current time.
-   */
-  CurrentTime.prototype.getCurrentTime = function () {
-    return new Date(new Date().valueOf() + this.offset);
-  };
-
-  module.exports = CurrentTime;
-
-/***/ },
-/* 27 */
-/***/ function(module, exports) {
-
-  /**
-   * Prototype for visual components
-   * @param {{dom: Object, domProps: Object, emitter: Emitter, range: Range}} [body]
-   * @param {Object} [options]
-   */
-  "use strict";
-
-  function Component(body, options) {
-    this.options = null;
-    this.props = null;
-  }
-
-  /**
-   * Set options for the component. The new options will be merged into the
-   * current options.
-   * @param {Object} options
-   */
-  Component.prototype.setOptions = function (options) {
-    if (options) {
-      util.extend(this.options, options);
-    }
-  };
-
-  /**
-   * Repaint the component
-   * @return {boolean} Returns true if the component is resized
-   */
-  Component.prototype.redraw = function () {
-    // should be implemented by the component
-    return false;
-  };
-
-  /**
-   * Destroy the component. Cleanup DOM and event listeners
-   */
-  Component.prototype.destroy = function () {};
-
-  /**
-   * Test whether the component is resized since the last time _isResized() was
-   * called.
-   * @return {Boolean} Returns true if the component is resized
-   * @protected
-   */
-  Component.prototype._isResized = function () {
-    var resized = this.props._previousWidth !== this.props.width || this.props._previousHeight !== this.props.height;
-
-    this.props._previousWidth = this.props.width;
-    this.props._previousHeight = this.props.height;
-
-    return resized;
-  };
-
-  module.exports = Component;
-
-  // should be implemented by the component
-
-/***/ },
-/* 28 */
-/***/ function(module, exports) {
-
-  // English
-  'use strict';
-
-  exports['en'] = {
-    current: 'current',
-    time: 'time'
-  };
-  exports['en_EN'] = exports['en'];
-  exports['en_US'] = exports['en'];
-
-  // Dutch
-  exports['nl'] = {
-    current: 'huidige',
-    time: 'tijd'
-  };
-  exports['nl_NL'] = exports['nl'];
-  exports['nl_BE'] = exports['nl'];
-
-/***/ },
-/* 29 */
-/***/ function(module, exports, __webpack_require__) {
-
-  'use strict';
-
-  var util = __webpack_require__(7);
-  var hammerUtil = __webpack_require__(30);
-  var moment = __webpack_require__(8);
-  var Component = __webpack_require__(27);
-  var DateUtil = __webpack_require__(31);
+  var Component = __webpack_require__(28);
+  var DateUtil = __webpack_require__(29);
 
   /**
    * @constructor Range
@@ -13943,6 +13688,7 @@ return /******/ (function(modules) { // webpackBootstrap
     this.defaultOptions = {
       start: null,
       end: null,
+      moment: moment,
       direction: 'horizontal', // 'horizontal' or 'vertical'
       moveable: true,
       zoomable: true,
@@ -13994,7 +13740,7 @@ return /******/ (function(modules) { // webpackBootstrap
   Range.prototype.setOptions = function (options) {
     if (options) {
       // copy the options that we know
-      var fields = ['direction', 'min', 'max', 'zoomMin', 'zoomMax', 'moveable', 'zoomable', 'activate', 'hiddenDates', 'zoomKey'];
+      var fields = ['direction', 'min', 'max', 'zoomMin', 'zoomMax', 'moveable', 'zoomable', 'moment', 'activate', 'hiddenDates', 'zoomKey'];
       util.selectiveExtend(fields, this.options, options);
 
       if ('start' in options || 'end' in options) {
@@ -14060,7 +13806,7 @@ return /******/ (function(modules) { // webpackBootstrap
           var e = done || finalEnd === null ? finalEnd : initEnd + (finalEnd - initEnd) * ease;
 
           changed = me._applyRange(s, e);
-          DateUtil.updateHiddenDates(me.body, me.options.hiddenDates);
+          DateUtil.updateHiddenDates(me.options.moment, me.body, me.options.hiddenDates);
           anyChanged = anyChanged || changed;
           if (changed) {
             me.body.emitter.emit('rangechange', { start: new Date(me.start), end: new Date(me.end), byUser: byUser });
@@ -14081,7 +13827,7 @@ return /******/ (function(modules) { // webpackBootstrap
       return next();
     } else {
       var changed = this._applyRange(finalStart, finalEnd);
-      DateUtil.updateHiddenDates(this.body, this.options.hiddenDates);
+      DateUtil.updateHiddenDates(this.options.moment, this.body, this.options.hiddenDates);
       if (changed) {
         var params = { start: new Date(this.start), end: new Date(this.end), byUser: byUser };
         this.body.emitter.emit('rangechange', params);
@@ -14457,8 +14203,8 @@ return /******/ (function(modules) { // webpackBootstrap
     var scale = 1 / (event.scale + this.scaleOffset);
     var centerDate = this._pointerToDate(this.props.touch.center);
 
-    var hiddenDuration = DateUtil.getHiddenDurationBetween(this.body.hiddenDates, this.start, this.end);
-    var hiddenDurationBefore = DateUtil.getHiddenDurationBefore(this.body.hiddenDates, this, centerDate);
+    var hiddenDuration = DateUtil.getHiddenDurationBetween(this.options.moment, this.body.hiddenDates, this.start, this.end);
+    var hiddenDurationBefore = DateUtil.getHiddenDurationBefore(this.options.moment, this.body.hiddenDates, this, centerDate);
     var hiddenDurationAfter = hiddenDuration - hiddenDurationBefore;
 
     // calculate new start and end
@@ -14554,7 +14300,7 @@ return /******/ (function(modules) { // webpackBootstrap
     }
 
     var hiddenDuration = DateUtil.getHiddenDurationBetween(this.body.hiddenDates, this.start, this.end);
-    var hiddenDurationBefore = DateUtil.getHiddenDurationBefore(this.body.hiddenDates, this, center);
+    var hiddenDurationBefore = DateUtil.getHiddenDurationBefore(this.options.moment, this.body.hiddenDates, this, center);
     var hiddenDurationAfter = hiddenDuration - hiddenDurationBefore;
 
     // calculate new start and end
@@ -14616,7 +14362,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = Range;
 
 /***/ },
-/* 30 */
+/* 27 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -14688,19 +14434,80 @@ return /******/ (function(modules) { // webpackBootstrap
   exports.offRelease = exports.offTouch;
 
 /***/ },
-/* 31 */
-/***/ function(module, exports, __webpack_require__) {
+/* 28 */
+/***/ function(module, exports) {
 
+  /**
+   * Prototype for visual components
+   * @param {{dom: Object, domProps: Object, emitter: Emitter, range: Range}} [body]
+   * @param {Object} [options]
+   */
   "use strict";
 
-  var moment = __webpack_require__(8);
+  function Component(body, options) {
+    this.options = null;
+    this.props = null;
+  }
 
+  /**
+   * Set options for the component. The new options will be merged into the
+   * current options.
+   * @param {Object} options
+   */
+  Component.prototype.setOptions = function (options) {
+    if (options) {
+      util.extend(this.options, options);
+    }
+  };
+
+  /**
+   * Repaint the component
+   * @return {boolean} Returns true if the component is resized
+   */
+  Component.prototype.redraw = function () {
+    // should be implemented by the component
+    return false;
+  };
+
+  /**
+   * Destroy the component. Cleanup DOM and event listeners
+   */
+  Component.prototype.destroy = function () {};
+
+  /**
+   * Test whether the component is resized since the last time _isResized() was
+   * called.
+   * @return {Boolean} Returns true if the component is resized
+   * @protected
+   */
+  Component.prototype._isResized = function () {
+    var resized = this.props._previousWidth !== this.props.width || this.props._previousHeight !== this.props.height;
+
+    this.props._previousWidth = this.props.width;
+    this.props._previousHeight = this.props.height;
+
+    return resized;
+  };
+
+  module.exports = Component;
+
+  // should be implemented by the component
+
+/***/ },
+/* 29 */
+/***/ function(module, exports) {
+
+  
   /**
    * used in Core to convert the options into a volatile variable
    * 
-   * @param Core
+   * @param {function} moment
+   * @param {Object} body
+   * @param {Array} hiddenDates
    */
-  exports.convertHiddenOptions = function (body, hiddenDates) {
+  "use strict";
+
+  exports.convertHiddenOptions = function (moment, body, hiddenDates) {
     body.hiddenDates = [];
     if (hiddenDates) {
       if (Array.isArray(hiddenDates) == true) {
@@ -14721,12 +14528,13 @@ return /******/ (function(modules) { // webpackBootstrap
 
   /**
    * create new entrees for the repeating hidden dates
-   * @param body
-   * @param hiddenDates
+   * @param {function} moment
+   * @param {Object} body
+   * @param {Array} hiddenDates
    */
-  exports.updateHiddenDates = function (body, hiddenDates) {
+  exports.updateHiddenDates = function (moment, body, hiddenDates) {
     if (hiddenDates && body.domProps.centerContainer.width !== undefined) {
-      exports.convertHiddenOptions(body, hiddenDates);
+      exports.convertHiddenOptions(moment, body, hiddenDates);
 
       var start = moment(body.range.start);
       var end = moment(body.range.end);
@@ -14914,10 +14722,11 @@ return /******/ (function(modules) { // webpackBootstrap
 
   /**
    * Used in TimeStep to avoid the hidden times.
-   * @param timeStep
+   * @param {function} moment
+   * @param {TimeStep} timeStep
    * @param previousTime
    */
-  exports.stepOverHiddenDates = function (timeStep, previousTime) {
+  exports.stepOverHiddenDates = function (moment, timeStep, previousTime) {
     var stepInHidden = false;
     var currentValue = timeStep.current.valueOf();
     for (var i = 0; i < timeStep.hiddenDates.length; i++) {
@@ -14941,7 +14750,7 @@ return /******/ (function(modules) { // webpackBootstrap
         timeStep.switchedDay = true;
       }
 
-      timeStep.current = newValue.toDate();
+      timeStep.current = newValue;
     }
   };
 
@@ -14986,7 +14795,7 @@ return /******/ (function(modules) { // webpackBootstrap
       }
 
       var duration = exports.getHiddenDurationBetween(Core.body.hiddenDates, Core.range.start, Core.range.end);
-      time = exports.correctTimeForHidden(Core.body.hiddenDates, Core.range, time);
+      time = exports.correctTimeForHidden(Core.options.moment, Core.body.hiddenDates, Core.range, time);
 
       var conversion = Core.range.conversion(width, duration);
       return (time.valueOf() - conversion.offset) * conversion.scale;
@@ -15038,18 +14847,19 @@ return /******/ (function(modules) { // webpackBootstrap
 
   /**
    * Support function
+   * @param moment
    * @param hiddenDates
    * @param range
    * @param time
    * @returns {{duration: number, time: *, offset: number}}
    */
-  exports.correctTimeForHidden = function (hiddenDates, range, time) {
+  exports.correctTimeForHidden = function (moment, hiddenDates, range, time) {
     time = moment(time).toDate().valueOf();
-    time -= exports.getHiddenDurationBefore(hiddenDates, range, time);
+    time -= exports.getHiddenDurationBefore(moment, hiddenDates, range, time);
     return time;
   };
 
-  exports.getHiddenDurationBefore = function (hiddenDates, range, time) {
+  exports.getHiddenDurationBefore = function (moment, hiddenDates, range, time) {
     var timeOffset = 0;
     time = moment(time).toDate().valueOf();
 
@@ -15148,23 +14958,23 @@ return /******/ (function(modules) { // webpackBootstrap
   };
 
 /***/ },
-/* 32 */
+/* 30 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
 
   var Emitter = __webpack_require__(19);
   var Hammer = __webpack_require__(3);
-  var hammerUtil = __webpack_require__(30);
+  var hammerUtil = __webpack_require__(27);
   var util = __webpack_require__(7);
   var DataSet = __webpack_require__(14);
   var DataView = __webpack_require__(16);
-  var Range = __webpack_require__(29);
-  var ItemSet = __webpack_require__(33);
-  var TimeAxis = __webpack_require__(41);
-  var Activator = __webpack_require__(42);
-  var DateUtil = __webpack_require__(31);
-  var CustomTime = __webpack_require__(44);
+  var Range = __webpack_require__(26);
+  var ItemSet = __webpack_require__(31);
+  var TimeAxis = __webpack_require__(39);
+  var Activator = __webpack_require__(40);
+  var DateUtil = __webpack_require__(29);
+  var CustomTime = __webpack_require__(42);
 
   /**
    * Create a timeline visualization
@@ -15364,7 +15174,7 @@ return /******/ (function(modules) { // webpackBootstrap
   Core.prototype.setOptions = function (options) {
     if (options) {
       // copy the known options
-      var fields = ['width', 'height', 'minHeight', 'maxHeight', 'autoResize', 'start', 'end', 'clickToUse', 'dataAttributes', 'hiddenDates'];
+      var fields = ['width', 'height', 'minHeight', 'maxHeight', 'autoResize', 'start', 'end', 'clickToUse', 'dataAttributes', 'hiddenDates', 'locale', 'locales', 'moment'];
       util.selectiveExtend(fields, this.options, options);
 
       if ('orientation' in options) {
@@ -15412,7 +15222,7 @@ return /******/ (function(modules) { // webpackBootstrap
       }
 
       if ('hiddenDates' in this.options) {
-        DateUtil.convertHiddenOptions(this.body, this.options.hiddenDates);
+        DateUtil.convertHiddenOptions(this.options.moment, this.body, this.options.hiddenDates);
       }
 
       if ('clickToUse' in options) {
@@ -15577,10 +15387,10 @@ return /******/ (function(modules) { // webpackBootstrap
       throw new Error('A custom time with id ' + JSON.stringify(id) + ' already exists');
     }
 
-    var customTime = new CustomTime(this.body, {
+    var customTime = new CustomTime(this.body, util.extend({}, this.options, {
       time: timestamp,
       id: id
-    });
+    }));
 
     this.customTimes.push(customTime);
     this.components.push(customTime);
@@ -15742,7 +15552,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
     if (!dom) return; // when destroyed
 
-    DateUtil.updateHiddenDates(this.body, this.options.hiddenDates);
+    DateUtil.updateHiddenDates(this.options.moment, this.body, this.options.hiddenDates);
 
     // update class names
     if (options.orientation == 'top') {
@@ -16134,7 +15944,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = Core;
 
 /***/ },
-/* 33 */
+/* 31 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -16143,14 +15953,14 @@ return /******/ (function(modules) { // webpackBootstrap
   var util = __webpack_require__(7);
   var DataSet = __webpack_require__(14);
   var DataView = __webpack_require__(16);
-  var TimeStep = __webpack_require__(37);
-  var Component = __webpack_require__(27);
-  var Group = __webpack_require__(34);
-  var BackgroundGroup = __webpack_require__(38);
-  var BoxItem = __webpack_require__(39);
+  var TimeStep = __webpack_require__(35);
+  var Component = __webpack_require__(28);
+  var Group = __webpack_require__(32);
+  var BackgroundGroup = __webpack_require__(36);
+  var BoxItem = __webpack_require__(37);
   var PointItem = __webpack_require__(1);
-  var RangeItem = __webpack_require__(36);
-  var BackgroundItem = __webpack_require__(40);
+  var RangeItem = __webpack_require__(34);
+  var BackgroundItem = __webpack_require__(38);
 
   var UNGROUPED = '__ungrouped__'; // reserved group id for ungrouped items
   var BACKGROUND = '__background__'; // reserved group id for background items without group
@@ -17754,14 +17564,14 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = ItemSet;
 
 /***/ },
-/* 34 */
+/* 32 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
 
   var util = __webpack_require__(7);
-  var stack = __webpack_require__(35);
-  var RangeItem = __webpack_require__(36);
+  var stack = __webpack_require__(33);
+  var RangeItem = __webpack_require__(34);
 
   /**
    * @constructor Group
@@ -18361,7 +18171,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = Group;
 
 /***/ },
-/* 35 */
+/* 33 */
 /***/ function(module, exports) {
 
   // Utility functions for ordering and stacking of items
@@ -18485,7 +18295,7 @@ return /******/ (function(modules) { // webpackBootstrap
   };
 
 /***/ },
-/* 36 */
+/* 34 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -18781,13 +18591,13 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = RangeItem;
 
 /***/ },
-/* 37 */
+/* 35 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
 
   var moment = __webpack_require__(8);
-  var DateUtil = __webpack_require__(31);
+  var DateUtil = __webpack_require__(29);
   var util = __webpack_require__(7);
 
   /**
@@ -18817,10 +18627,12 @@ return /******/ (function(modules) { // webpackBootstrap
    * @param {Number} [minimumStep] Optional. Minimum step size in milliseconds
    */
   function TimeStep(start, end, minimumStep, hiddenDates) {
+    this.moment = moment;
+
     // variables
-    this.current = new Date();
-    this._start = new Date();
-    this._end = new Date();
+    this.current = this.moment();
+    this._start = this.moment();
+    this._end = this.moment();
 
     this.autoScale = true;
     this.scale = 'day';
@@ -18866,6 +18678,20 @@ return /******/ (function(modules) { // webpackBootstrap
   };
 
   /**
+   * Set custom constructor function for moment. Can be used to set dates
+   * to UTC or to set a utcOffset.
+   * @param {function} moment
+   */
+  TimeStep.prototype.setMoment = function (moment) {
+    this.moment = moment;
+
+    // update the date properties, can have a new utcOffset
+    this.current = this.moment(this.current);
+    this._start = this.moment(this._start);
+    this._end = this.moment(this._end);
+  };
+
+  /**
    * Set custom formatting for the minor an major labels of the TimeStep.
    * Both `minorLabels` and `majorLabels` are an Object with properties:
    * 'millisecond', 'second', 'minute', 'hour', 'weekday', 'day', 'month', 'year'.
@@ -18891,8 +18717,8 @@ return /******/ (function(modules) { // webpackBootstrap
       throw 'No legal start or end date in method setRange';
     }
 
-    this._start = start != undefined ? new Date(start.valueOf()) : new Date();
-    this._end = end != undefined ? new Date(end.valueOf()) : new Date();
+    this._start = start != undefined ? this.moment(start.valueOf()) : new Date();
+    this._end = end != undefined ? this.moment(end.valueOf()) : new Date();
 
     if (this.autoScale) {
       this.setMinimumStep(minimumStep);
@@ -18902,8 +18728,8 @@ return /******/ (function(modules) { // webpackBootstrap
   /**
    * Set the range iterator to the start date.
    */
-  TimeStep.prototype.first = function () {
-    this.current = new Date(this._start.valueOf());
+  TimeStep.prototype.start = function () {
+    this.current = this._start.clone();
     this.roundToMinor();
   };
 
@@ -18917,19 +18743,19 @@ return /******/ (function(modules) { // webpackBootstrap
     // noinspection FallThroughInSwitchStatementJS
     switch (this.scale) {
       case 'year':
-        this.current.setFullYear(this.step * Math.floor(this.current.getFullYear() / this.step));
-        this.current.setMonth(0);
+        this.current.year(this.step * Math.floor(this.current.year() / this.step));
+        this.current.month(0);
       case 'month':
-        this.current.setDate(1);
+        this.current.date(1);
       case 'day': // intentional fall through
       case 'weekday':
-        this.current.setHours(0);
+        this.current.hours(0);
       case 'hour':
-        this.current.setMinutes(0);
+        this.current.minutes(0);
       case 'minute':
-        this.current.setSeconds(0);
+        this.current.seconds(0);
       case 'second':
-        this.current.setMilliseconds(0);
+        this.current.milliseconds(0);
         //case 'millisecond': // nothing to do for milliseconds
     }
 
@@ -18937,20 +18763,20 @@ return /******/ (function(modules) { // webpackBootstrap
       // round down to the first minor value that is a multiple of the current step size
       switch (this.scale) {
         case 'millisecond':
-          this.current.setMilliseconds(this.current.getMilliseconds() - this.current.getMilliseconds() % this.step);break;
+          this.current.subtract(this.current.milliseconds() % this.step, 'milliseconds');break;
         case 'second':
-          this.current.setSeconds(this.current.getSeconds() - this.current.getSeconds() % this.step);break;
+          this.current.subtract(this.current.seconds() % this.step, 'seconds');break;
         case 'minute':
-          this.current.setMinutes(this.current.getMinutes() - this.current.getMinutes() % this.step);break;
+          this.current.subtract(this.current.minutes() % this.step, 'minutes');break;
         case 'hour':
-          this.current.setHours(this.current.getHours() - this.current.getHours() % this.step);break;
+          this.current.subtract(this.current.hours() % this.step, 'hours');break;
         case 'weekday': // intentional fall through
         case 'day':
-          this.current.setDate(this.current.getDate() - 1 - (this.current.getDate() - 1) % this.step + 1);break;
+          this.current.subtract((this.current.date() - 1) % this.step);break;
         case 'month':
-          this.current.setMonth(this.current.getMonth() - this.current.getMonth() % this.step);break;
+          this.current.subtract(this.current.month() % this.step);break;
         case 'year':
-          this.current.setFullYear(this.current.getFullYear() - this.current.getFullYear() % this.step);break;
+          this.current.subtract(this.current.year() % this.step);break;
         default:
           break;
       }
@@ -18973,48 +18799,47 @@ return /******/ (function(modules) { // webpackBootstrap
 
     // Two cases, needed to prevent issues with switching daylight savings
     // (end of March and end of October)
-    if (this.current.getMonth() < 6) {
+    if (this.current.month() < 6) {
       switch (this.scale) {
         case 'millisecond':
-
-          this.current = new Date(this.current.valueOf() + this.step);break;
+          this.current.add(this.step, 'millisecond');break;
         case 'second':
-          this.current = new Date(this.current.valueOf() + this.step * 1000);break;
+          this.current.add(this.step, 'second');break;
         case 'minute':
-          this.current = new Date(this.current.valueOf() + this.step * 1000 * 60);break;
+          this.current.add(this.step, 'minute');break;
         case 'hour':
-          this.current = new Date(this.current.valueOf() + this.step * 1000 * 60 * 60);
+          this.current.add(this.step, 'hour');
           // in case of skipping an hour for daylight savings, adjust the hour again (else you get: 0h 5h 9h ... instead of 0h 4h 8h ...)
-          var h = this.current.getHours();
-          this.current.setHours(h - h % this.step);
+          // TODO: is this still needed now we use the function of moment.js?
+          this.current.subtract(this.current.hours() % this.step);
           break;
         case 'weekday': // intentional fall through
         case 'day':
-          this.current.setDate(this.current.getDate() + this.step);break;
+          this.current.add(this.step, 'day');break;
         case 'month':
-          this.current.setMonth(this.current.getMonth() + this.step);break;
+          this.current.add(this.step, 'month');break;
         case 'year':
-          this.current.setFullYear(this.current.getFullYear() + this.step);break;
+          this.current.add(this.step, 'year');break;
         default:
           break;
       }
     } else {
       switch (this.scale) {
         case 'millisecond':
-          this.current = new Date(this.current.valueOf() + this.step);break;
+          this.current.add(this.step, 'millisecond');break;
         case 'second':
-          this.current.setSeconds(this.current.getSeconds() + this.step);break;
+          this.current.add(this.step, 'second');break;
         case 'minute':
-          this.current.setMinutes(this.current.getMinutes() + this.step);break;
+          this.current.add(this.step, 'minute');break;
         case 'hour':
-          this.current.setHours(this.current.getHours() + this.step);break;
+          this.current.add(this.step, 'hour');break;
         case 'weekday': // intentional fall through
         case 'day':
-          this.current.setDate(this.current.getDate() + this.step);break;
+          this.current.add(this.step, 'day');break;
         case 'month':
-          this.current.setMonth(this.current.getMonth() + this.step);break;
+          this.current.add(this.step, 'month');break;
         case 'year':
-          this.current.setFullYear(this.current.getFullYear() + this.step);break;
+          this.current.add(this.step, 'year');break;
         default:
           break;
       }
@@ -19024,18 +18849,18 @@ return /******/ (function(modules) { // webpackBootstrap
       // round down to the correct major value
       switch (this.scale) {
         case 'millisecond':
-          if (this.current.getMilliseconds() < this.step) this.current.setMilliseconds(0);break;
+          if (this.current.milliseconds() < this.step) this.current.milliseconds(0);break;
         case 'second':
-          if (this.current.getSeconds() < this.step) this.current.setSeconds(0);break;
+          if (this.current.seconds() < this.step) this.current.seconds(0);break;
         case 'minute':
-          if (this.current.getMinutes() < this.step) this.current.setMinutes(0);break;
+          if (this.current.minutes() < this.step) this.current.minutes(0);break;
         case 'hour':
-          if (this.current.getHours() < this.step) this.current.setHours(0);break;
+          if (this.current.hours() < this.step) this.current.hours(0);break;
         case 'weekday': // intentional fall through
         case 'day':
-          if (this.current.getDate() < this.step + 1) this.current.setDate(1);break;
+          if (this.current.date() < this.step + 1) this.current.date(1);break;
         case 'month':
-          if (this.current.getMonth() < this.step) this.current.setMonth(0);break;
+          if (this.current.month() < this.step) this.current.month(0);break;
         case 'year':
           break; // nothing to do for year
         default:
@@ -19045,15 +18870,15 @@ return /******/ (function(modules) { // webpackBootstrap
 
     // safety mechanism: if current time is still unchanged, move to the end
     if (this.current.valueOf() == prev) {
-      this.current = new Date(this._end.valueOf());
+      this.current = this._end.clone();
     }
 
-    DateUtil.stepOverHiddenDates(this, prev);
+    DateUtil.stepOverHiddenDates(this.moment, this, prev);
   };
 
   /**
    * Get the current datetime
-   * @return {Date}  current The current date
+   * @return {Moment}  current The current date
    */
   TimeStep.prototype.getCurrent = function () {
     return this.current;
@@ -19207,93 +19032,93 @@ return /******/ (function(modules) { // webpackBootstrap
    * @return {Date} snappedDate
    */
   TimeStep.snap = function (date, scale, step) {
-    var clone = new Date(date.valueOf());
+    var clone = moment(date);
 
     if (scale == 'year') {
-      var year = clone.getFullYear() + Math.round(clone.getMonth() / 12);
-      clone.setFullYear(Math.round(year / step) * step);
-      clone.setMonth(0);
-      clone.setDate(0);
-      clone.setHours(0);
-      clone.setMinutes(0);
-      clone.setSeconds(0);
-      clone.setMilliseconds(0);
+      var year = clone.year() + Math.round(clone.month() / 12);
+      clone.year(Math.round(year / step) * step);
+      clone.month(0);
+      clone.date(0);
+      clone.hours(0);
+      clone.minutes(0);
+      clone.seconds(0);
+      clone.mlliseconds(0);
     } else if (scale == 'month') {
-      if (clone.getDate() > 15) {
-        clone.setDate(1);
-        clone.setMonth(clone.getMonth() + 1);
+      if (clone.date() > 15) {
+        clone.date(1);
+        clone.add(1, 'month');
         // important: first set Date to 1, after that change the month.
       } else {
-        clone.setDate(1);
+        clone.date(1);
       }
 
-      clone.setHours(0);
-      clone.setMinutes(0);
-      clone.setSeconds(0);
-      clone.setMilliseconds(0);
+      clone.hours(0);
+      clone.minutes(0);
+      clone.seconds(0);
+      clone.milliseconds(0);
     } else if (scale == 'day') {
       //noinspection FallthroughInSwitchStatementJS
       switch (step) {
         case 5:
         case 2:
-          clone.setHours(Math.round(clone.getHours() / 24) * 24);break;
+          clone.hours(Math.round(clone.hours() / 24) * 24);break;
         default:
-          clone.setHours(Math.round(clone.getHours() / 12) * 12);break;
+          clone.hours(Math.round(clone.hours() / 12) * 12);break;
       }
-      clone.setMinutes(0);
-      clone.setSeconds(0);
-      clone.setMilliseconds(0);
+      clone.minutes(0);
+      clone.seconds(0);
+      clone.milliseconds(0);
     } else if (scale == 'weekday') {
       //noinspection FallthroughInSwitchStatementJS
       switch (step) {
         case 5:
         case 2:
-          clone.setHours(Math.round(clone.getHours() / 12) * 12);break;
+          clone.hours(Math.round(clone.hours() / 12) * 12);break;
         default:
-          clone.setHours(Math.round(clone.getHours() / 6) * 6);break;
+          clone.hours(Math.round(clone.hours() / 6) * 6);break;
       }
-      clone.setMinutes(0);
-      clone.setSeconds(0);
-      clone.setMilliseconds(0);
+      clone.minutes(0);
+      clone.seconds(0);
+      clone.milliseconds(0);
     } else if (scale == 'hour') {
       switch (step) {
         case 4:
-          clone.setMinutes(Math.round(clone.getMinutes() / 60) * 60);break;
+          clone.minutes(Math.round(clone.minutes() / 60) * 60);break;
         default:
-          clone.setMinutes(Math.round(clone.getMinutes() / 30) * 30);break;
+          clone.minutes(Math.round(clone.minutes() / 30) * 30);break;
       }
-      clone.setSeconds(0);
-      clone.setMilliseconds(0);
+      clone.seconds(0);
+      clone.milliseconds(0);
     } else if (scale == 'minute') {
       //noinspection FallthroughInSwitchStatementJS
       switch (step) {
         case 15:
         case 10:
-          clone.setMinutes(Math.round(clone.getMinutes() / 5) * 5);
-          clone.setSeconds(0);
+          clone.minutes(Math.round(clone.minutes() / 5) * 5);
+          clone.seconds(0);
           break;
         case 5:
-          clone.setSeconds(Math.round(clone.getSeconds() / 60) * 60);break;
+          clone.seconds(Math.round(clone.seconds() / 60) * 60);break;
         default:
-          clone.setSeconds(Math.round(clone.getSeconds() / 30) * 30);break;
+          clone.seconds(Math.round(clone.seconds() / 30) * 30);break;
       }
-      clone.setMilliseconds(0);
+      clone.milliseconds(0);
     } else if (scale == 'second') {
       //noinspection FallthroughInSwitchStatementJS
       switch (step) {
         case 15:
         case 10:
-          clone.setSeconds(Math.round(clone.getSeconds() / 5) * 5);
-          clone.setMilliseconds(0);
+          clone.seconds(Math.round(clone.seconds() / 5) * 5);
+          clone.milliseconds(0);
           break;
         case 5:
-          clone.setMilliseconds(Math.round(clone.getMilliseconds() / 1000) * 1000);break;
+          clone.milliseconds(Math.round(clone.milliseconds() / 1000) * 1000);break;
         default:
-          clone.setMilliseconds(Math.round(clone.getMilliseconds() / 500) * 500);break;
+          clone.milliseconds(Math.round(clone.milliseconds() / 500) * 500);break;
       }
     } else if (scale == 'millisecond') {
       var _step = step > 5 ? step / 2 : 1;
-      clone.setMilliseconds(Math.round(clone.getMilliseconds() / _step) * _step);
+      clone.milliseconds(Math.round(clone.milliseconds() / _step) * _step);
     }
 
     return clone;
@@ -19346,20 +19171,21 @@ return /******/ (function(modules) { // webpackBootstrap
       }
     }
 
+    var date = this.moment(this.current);
     switch (this.scale) {
       case 'millisecond':
-        return this.current.getMilliseconds() == 0;
+        return date.milliseconds() == 0;
       case 'second':
-        return this.current.getSeconds() == 0;
+        return date.seconds() == 0;
       case 'minute':
-        return this.current.getHours() == 0 && this.current.getMinutes() == 0;
+        return date.hours() == 0 && date.minutes() == 0;
       case 'hour':
-        return this.current.getHours() == 0;
+        return date.hours() == 0;
       case 'weekday': // intentional fall through
       case 'day':
-        return this.current.getDate() == 1;
+        return date.date() == 1;
       case 'month':
-        return this.current.getMonth() == 0;
+        return date.month() == 0;
       case 'year':
         return false;
       default:
@@ -19379,7 +19205,7 @@ return /******/ (function(modules) { // webpackBootstrap
     }
 
     var format = this.format.minorLabels[this.scale];
-    return format && format.length > 0 ? moment(date).format(format) : '';
+    return format && format.length > 0 ? this.moment(date).format(format) : '';
   };
 
   /**
@@ -19394,12 +19220,13 @@ return /******/ (function(modules) { // webpackBootstrap
     }
 
     var format = this.format.majorLabels[this.scale];
-    return format && format.length > 0 ? moment(date).format(format) : '';
+    return format && format.length > 0 ? this.moment(date).format(format) : '';
   };
 
   TimeStep.prototype.getClassName = function () {
-    var m = moment(this.current);
-    var date = m.locale ? m.locale('en') : m.lang('en'); // old versions of moment have .lang() function
+    var _moment = this.moment;
+    var m = this.moment(this.current);
+    var current = m.locale ? m.locale('en') : m.lang('en'); // old versions of moment have .lang() function
     var step = this.step;
 
     function even(value) {
@@ -19410,10 +19237,10 @@ return /******/ (function(modules) { // webpackBootstrap
       if (date.isSame(new Date(), 'day')) {
         return ' vis-today';
       }
-      if (date.isSame(moment().add(1, 'day'), 'day')) {
+      if (date.isSame(_moment().add(1, 'day'), 'day')) {
         return ' vis-tomorrow';
       }
-      if (date.isSame(moment().add(-1, 'day'), 'day')) {
+      if (date.isSame(_moment().add(-1, 'day'), 'day')) {
         return ' vis-yesterday';
       }
       return '';
@@ -19433,35 +19260,35 @@ return /******/ (function(modules) { // webpackBootstrap
 
     switch (this.scale) {
       case 'millisecond':
-        return even(date.milliseconds()).trim();
+        return even(current.milliseconds()).trim();
 
       case 'second':
-        return even(date.seconds()).trim();
+        return even(current.seconds()).trim();
 
       case 'minute':
-        return even(date.minutes()).trim();
+        return even(current.minutes()).trim();
 
       case 'hour':
-        var hours = date.hours();
+        var hours = current.hours();
         if (this.step == 4) {
           hours = hours + '-h' + (hours + 4);
         }
-        return 'vis-h' + hours + today(date) + even(date.hours());
+        return 'vis-h' + hours + today(current) + even(current.hours());
 
       case 'weekday':
-        return 'vis-' + date.format('dddd').toLowerCase() + today(date) + currentWeek(date) + even(date.date());
+        return 'vis-' + current.format('dddd').toLowerCase() + today(current) + currentWeek(current) + even(current.date());
 
       case 'day':
-        var day = date.date();
-        var month = date.format('MMMM').toLowerCase();
-        return 'vis-day' + day + ' vis-' + month + currentMonth(date) + even(day - 1);
+        var day = current.date();
+        var month = current.format('MMMM').toLowerCase();
+        return 'vis-day' + day + ' vis-' + month + currentMonth(current) + even(day - 1);
 
       case 'month':
-        return 'vis-' + date.format('MMMM').toLowerCase() + currentMonth(date) + even(date.month());
+        return 'vis-' + current.format('MMMM').toLowerCase() + currentMonth(current) + even(current.month());
 
       case 'year':
-        var year = date.year();
-        return 'vis-year' + year + currentYear(date) + even(year);
+        var year = current.year();
+        return 'vis-year' + year + currentYear(current) + even(year);
 
       default:
         return '';
@@ -19471,13 +19298,13 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = TimeStep;
 
 /***/ },
-/* 38 */
+/* 36 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
 
   var util = __webpack_require__(7);
-  var Group = __webpack_require__(34);
+  var Group = __webpack_require__(32);
 
   /**
    * @constructor BackgroundGroup
@@ -19535,7 +19362,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = BackgroundGroup;
 
 /***/ },
-/* 39 */
+/* 37 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -19775,15 +19602,15 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = BoxItem;
 
 /***/ },
-/* 40 */
+/* 38 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
 
   var Hammer = __webpack_require__(3);
   var Item = __webpack_require__(2);
-  var BackgroundGroup = __webpack_require__(38);
-  var RangeItem = __webpack_require__(36);
+  var BackgroundGroup = __webpack_require__(36);
+  var RangeItem = __webpack_require__(34);
 
   /**
    * @constructor BackgroundItem
@@ -19996,15 +19823,15 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = BackgroundItem;
 
 /***/ },
-/* 41 */
+/* 39 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
 
   var util = __webpack_require__(7);
-  var Component = __webpack_require__(27);
-  var TimeStep = __webpack_require__(37);
-  var DateUtil = __webpack_require__(31);
+  var Component = __webpack_require__(28);
+  var TimeStep = __webpack_require__(35);
+  var DateUtil = __webpack_require__(29);
   var moment = __webpack_require__(8);
 
   /**
@@ -20043,6 +19870,7 @@ return /******/ (function(modules) { // webpackBootstrap
       showMinorLabels: true,
       showMajorLabels: true,
       format: TimeStep.FORMAT,
+      moment: moment,
       timeAxis: null
     };
     this.options = util.extend({}, this.defaultOptions);
@@ -20068,7 +19896,7 @@ return /******/ (function(modules) { // webpackBootstrap
   TimeAxis.prototype.setOptions = function (options) {
     if (options) {
       // copy all options that we know
-      util.selectiveExtend(['showMinorLabels', 'showMajorLabels', 'hiddenDates', 'timeAxis'], this.options, options);
+      util.selectiveExtend(['showMinorLabels', 'showMajorLabels', 'hiddenDates', 'timeAxis', 'moment'], this.options, options);
 
       // deep copy the format options
       util.selectiveDeepExtend(['format'], this.options, options);
@@ -20187,10 +20015,11 @@ return /******/ (function(modules) { // webpackBootstrap
     var start = util.convert(this.body.range.start, 'Number');
     var end = util.convert(this.body.range.end, 'Number');
     var timeLabelsize = this.body.util.toTime((this.props.minorCharWidth || 10) * 7).valueOf();
-    var minimumStep = timeLabelsize - DateUtil.getHiddenDurationBefore(this.body.hiddenDates, this.body.range, timeLabelsize);
+    var minimumStep = timeLabelsize - DateUtil.getHiddenDurationBefore(this.options.moment, this.body.hiddenDates, this.body.range, timeLabelsize);
     minimumStep -= this.body.util.toTime(0).valueOf();
 
     var step = new TimeStep(new Date(start), new Date(end), minimumStep, this.body.hiddenDates);
+    step.setMoment(this.options.moment);
     if (this.options.format) {
       step.setFormat(this.options.format);
     }
@@ -20222,7 +20051,7 @@ return /******/ (function(modules) { // webpackBootstrap
     var max = 0;
     var className;
 
-    step.first();
+    step.start();
     next = step.getCurrent();
     xNext = this.body.util.toScreen(next);
     while (step.hasNext() && max < 1000) {
@@ -20240,7 +20069,7 @@ return /******/ (function(modules) { // webpackBootstrap
       xNext = this.body.util.toScreen(next);
 
       width = xNext - x;
-      var labelFits = labelMinor.length * this.props.minorCharWidth < width;
+      var labelFits = (labelMinor.length + 1) * this.props.minorCharWidth < width;
 
       if (this.options.showMinorLabels && labelFits) {
         this._repaintMinorText(x, labelMinor, orientation, className);
@@ -20456,12 +20285,12 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = TimeAxis;
 
 /***/ },
-/* 42 */
+/* 40 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
 
-  var keycharm = __webpack_require__(43);
+  var keycharm = __webpack_require__(41);
   var Emitter = __webpack_require__(19);
   var Hammer = __webpack_require__(3);
   var util = __webpack_require__(7);
@@ -20615,7 +20444,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = Activator;
 
 /***/ },
-/* 43 */
+/* 41 */
 /***/ function(module, exports, __webpack_require__) {
 
   var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;"use strict";
@@ -20814,16 +20643,16 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 44 */
+/* 42 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
 
   var Hammer = __webpack_require__(3);
   var util = __webpack_require__(7);
-  var Component = __webpack_require__(27);
+  var Component = __webpack_require__(28);
   var moment = __webpack_require__(8);
-  var locales = __webpack_require__(28);
+  var locales = __webpack_require__(43);
 
   /**
    * A custom time bar
@@ -20841,6 +20670,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
     // default options
     this.defaultOptions = {
+      moment: moment,
       locales: locales,
       locale: 'en',
       id: undefined
@@ -20873,7 +20703,7 @@ return /******/ (function(modules) { // webpackBootstrap
   CustomTime.prototype.setOptions = function (options) {
     if (options) {
       // copy all options that we know
-      util.selectiveExtend(['locale', 'locales', 'id'], this.options, options);
+      util.selectiveExtend(['moment', 'locale', 'locales', 'id'], this.options, options);
     }
   };
 
@@ -20904,10 +20734,6 @@ return /******/ (function(modules) { // webpackBootstrap
     this.hammer.on('panmove', this._onDrag.bind(this));
     this.hammer.on('panend', this._onDragEnd.bind(this));
     this.hammer.get('pan').set({ threshold: 5, direction: 30 }); // 30 is ALL_DIRECTIONS in hammer.
-    // TODO: cleanup
-    //this.hammer.on('pan',   function (event) {
-    //  event.preventDefault();
-    //});
   };
 
   /**
@@ -20946,7 +20772,8 @@ return /******/ (function(modules) { // webpackBootstrap
       }
       locale = this.options.locales['en']; // fall back on english when not available
     }
-    var title = locale.time + ': ' + moment(this.customTime).format('dddd, MMMM Do YYYY, H:mm:ss');
+
+    var title = locale.time + ': ' + this.options.moment(this.customTime).format('dddd, MMMM Do YYYY, H:mm:ss');
     title = title.charAt(0).toUpperCase() + title.substring(1);
 
     this.bar.style.left = x + 'px';
@@ -21052,6 +20879,205 @@ return /******/ (function(modules) { // webpackBootstrap
   };
 
   module.exports = CustomTime;
+
+/***/ },
+/* 43 */
+/***/ function(module, exports) {
+
+  // English
+  'use strict';
+
+  exports['en'] = {
+    current: 'current',
+    time: 'time'
+  };
+  exports['en_EN'] = exports['en'];
+  exports['en_US'] = exports['en'];
+
+  // Dutch
+  exports['nl'] = {
+    current: 'huidige',
+    time: 'tijd'
+  };
+  exports['nl_NL'] = exports['nl'];
+  exports['nl_BE'] = exports['nl'];
+
+/***/ },
+/* 44 */
+/***/ function(module, exports, __webpack_require__) {
+
+  'use strict';
+
+  var util = __webpack_require__(7);
+  var Component = __webpack_require__(28);
+  var moment = __webpack_require__(8);
+  var locales = __webpack_require__(43);
+
+  /**
+   * A current time bar
+   * @param {{range: Range, dom: Object, domProps: Object}} body
+   * @param {Object} [options]        Available parameters:
+   *                                  {Boolean} [showCurrentTime]
+   * @constructor CurrentTime
+   * @extends Component
+   */
+  function CurrentTime(body, options) {
+    this.body = body;
+
+    // default options
+    this.defaultOptions = {
+      showCurrentTime: true,
+
+      moment: moment,
+      locales: locales,
+      locale: 'en'
+    };
+    this.options = util.extend({}, this.defaultOptions);
+    this.offset = 0;
+
+    this._create();
+
+    this.setOptions(options);
+  }
+
+  CurrentTime.prototype = new Component();
+
+  /**
+   * Create the HTML DOM for the current time bar
+   * @private
+   */
+  CurrentTime.prototype._create = function () {
+    var bar = document.createElement('div');
+    bar.className = 'vis-current-time';
+    bar.style.position = 'absolute';
+    bar.style.top = '0px';
+    bar.style.height = '100%';
+
+    this.bar = bar;
+  };
+
+  /**
+   * Destroy the CurrentTime bar
+   */
+  CurrentTime.prototype.destroy = function () {
+    this.options.showCurrentTime = false;
+    this.redraw(); // will remove the bar from the DOM and stop refreshing
+
+    this.body = null;
+  };
+
+  /**
+   * Set options for the component. Options will be merged in current options.
+   * @param {Object} options  Available parameters:
+   *                          {boolean} [showCurrentTime]
+   */
+  CurrentTime.prototype.setOptions = function (options) {
+    if (options) {
+      // copy all options that we know
+      util.selectiveExtend(['showCurrentTime', 'moment', 'locale', 'locales'], this.options, options);
+    }
+  };
+
+  /**
+   * Repaint the component
+   * @return {boolean} Returns true if the component is resized
+   */
+  CurrentTime.prototype.redraw = function () {
+    if (this.options.showCurrentTime) {
+      var parent = this.body.dom.backgroundVertical;
+      if (this.bar.parentNode != parent) {
+        // attach to the dom
+        if (this.bar.parentNode) {
+          this.bar.parentNode.removeChild(this.bar);
+        }
+        parent.appendChild(this.bar);
+
+        this.start();
+      }
+
+      var now = this.options.moment(new Date().valueOf() + this.offset);
+      var x = this.body.util.toScreen(now);
+
+      var locale = this.options.locales[this.options.locale];
+      if (!locale) {
+        if (!this.warned) {
+          console.log('WARNING: options.locales[\'' + this.options.locale + '\'] not found. See http://visjs.org/docs/timeline.html#Localization');
+          this.warned = true;
+        }
+        locale = this.options.locales['en']; // fall back on english when not available
+      }
+      var title = locale.current + ' ' + locale.time + ': ' + now.format('dddd, MMMM Do YYYY, H:mm:ss');
+      title = title.charAt(0).toUpperCase() + title.substring(1);
+
+      this.bar.style.left = x + 'px';
+      this.bar.title = title;
+    } else {
+      // remove the line from the DOM
+      if (this.bar.parentNode) {
+        this.bar.parentNode.removeChild(this.bar);
+      }
+      this.stop();
+    }
+
+    return false;
+  };
+
+  /**
+   * Start auto refreshing the current time bar
+   */
+  CurrentTime.prototype.start = function () {
+    var me = this;
+
+    function update() {
+      me.stop();
+
+      // determine interval to refresh
+      var scale = me.body.range.conversion(me.body.domProps.center.width).scale;
+      var interval = 1 / scale / 10;
+      if (interval < 30) interval = 30;
+      if (interval > 1000) interval = 1000;
+
+      me.redraw();
+
+      // start a renderTimer to adjust for the new time
+      me.currentTimeTimer = setTimeout(update, interval);
+    }
+
+    update();
+  };
+
+  /**
+   * Stop auto refreshing the current time bar
+   */
+  CurrentTime.prototype.stop = function () {
+    if (this.currentTimeTimer !== undefined) {
+      clearTimeout(this.currentTimeTimer);
+      delete this.currentTimeTimer;
+    }
+  };
+
+  /**
+   * Set a current time. This can be used for example to ensure that a client's
+   * time is synchronized with a shared server time.
+   * @param {Date | String | Number} time     A Date, unix timestamp, or
+   *                                          ISO date string.
+   */
+  CurrentTime.prototype.setCurrentTime = function (time) {
+    var t = util.convert(time, 'Date').valueOf();
+    var now = new Date().valueOf();
+    this.offset = t - now;
+    this.redraw();
+  };
+
+  /**
+   * Get the current time.
+   * @return {Date} Returns the current time.
+   */
+  CurrentTime.prototype.getCurrentTime = function () {
+    return new Date(new Date().valueOf() + this.offset);
+  };
+
+  module.exports = CurrentTime;
 
 /***/ },
 /* 45 */
@@ -21766,7 +21792,7 @@ return /******/ (function(modules) { // webpackBootstrap
   function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
 
   var Hammer = __webpack_require__(3);
-  var hammerUtil = __webpack_require__(30);
+  var hammerUtil = __webpack_require__(27);
   var util = __webpack_require__(7);
 
   var ColorPicker = (function () {
@@ -22723,6 +22749,7 @@ return /******/ (function(modules) { // webpackBootstrap
       },
       __type__: { object: object }
     },
+    moment: { 'function': 'function' },
     groupOrder: { string: string, 'function': 'function' },
     height: { string: string, number: number },
     hiddenDates: { object: object, array: array },
@@ -22876,14 +22903,15 @@ return /******/ (function(modules) { // webpackBootstrap
 
   var Emitter = __webpack_require__(19);
   var Hammer = __webpack_require__(3);
+  var moment = __webpack_require__(8);
   var util = __webpack_require__(7);
   var DataSet = __webpack_require__(14);
   var DataView = __webpack_require__(16);
-  var Range = __webpack_require__(29);
-  var Core = __webpack_require__(32);
-  var TimeAxis = __webpack_require__(41);
-  var CurrentTime = __webpack_require__(26);
-  var CustomTime = __webpack_require__(44);
+  var Range = __webpack_require__(26);
+  var Core = __webpack_require__(30);
+  var TimeAxis = __webpack_require__(39);
+  var CurrentTime = __webpack_require__(44);
+  var CustomTime = __webpack_require__(42);
   var LineGraph = __webpack_require__(50);
 
   var Configurator = __webpack_require__(45);
@@ -22919,6 +22947,8 @@ return /******/ (function(modules) { // webpackBootstrap
         axis: 'bottom', // axis orientation: 'bottom', 'top', or 'both'
         item: 'bottom' // not relevant for Graph2d
       },
+
+      moment: moment,
 
       width: null,
       height: null,
@@ -23214,7 +23244,7 @@ return /******/ (function(modules) { // webpackBootstrap
   var DOMutil = __webpack_require__(13);
   var DataSet = __webpack_require__(14);
   var DataView = __webpack_require__(16);
-  var Component = __webpack_require__(27);
+  var Component = __webpack_require__(28);
   var DataAxis = __webpack_require__(51);
   var GraphGroup = __webpack_require__(53);
   var Legend = __webpack_require__(57);
@@ -24188,7 +24218,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   var util = __webpack_require__(7);
   var DOMutil = __webpack_require__(13);
-  var Component = __webpack_require__(27);
+  var Component = __webpack_require__(28);
   var DataStep = __webpack_require__(52);
 
   /**
@@ -25851,7 +25881,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   var util = __webpack_require__(7);
   var DOMutil = __webpack_require__(13);
-  var Component = __webpack_require__(27);
+  var Component = __webpack_require__(28);
 
   /**
    * Legend for Graph2d
@@ -26192,6 +26222,7 @@ return /******/ (function(modules) { // webpackBootstrap
       },
       __type__: { object: object }
     },
+    moment: { 'function': 'function' },
     height: { string: string, number: number },
     hiddenDates: { object: object, array: array },
     locale: { string: string },
@@ -26405,7 +26436,7 @@ return /******/ (function(modules) { // webpackBootstrap
   var dotparser = __webpack_require__(110);
   var gephiParser = __webpack_require__(111);
   var Images = __webpack_require__(112);
-  var Activator = __webpack_require__(42);
+  var Activator = __webpack_require__(40);
   var locales = __webpack_require__(113);
 
   /**
@@ -35172,7 +35203,7 @@ return /******/ (function(modules) { // webpackBootstrap
   function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
 
   var Hammer = __webpack_require__(3);
-  var hammerUtil = __webpack_require__(30);
+  var hammerUtil = __webpack_require__(27);
 
   var util = __webpack_require__(7);
 
@@ -36717,8 +36748,8 @@ return /******/ (function(modules) { // webpackBootstrap
 
   var util = __webpack_require__(7);
   var Hammer = __webpack_require__(3);
-  var hammerUtil = __webpack_require__(30);
-  var keycharm = __webpack_require__(43);
+  var hammerUtil = __webpack_require__(27);
+  var keycharm = __webpack_require__(41);
 
   var NavigationHandler = (function () {
     function NavigationHandler(body, canvas) {
@@ -38426,7 +38457,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   var util = __webpack_require__(7);
   var Hammer = __webpack_require__(3);
-  var hammerUtil = __webpack_require__(30);
+  var hammerUtil = __webpack_require__(27);
 
   /**
    * clears the toolbar div element of children
