@@ -34924,6 +34924,7 @@ return /******/ (function(modules) { // webpackBootstrap
         });
         this.body.emitter.on('destroy', function () {
           _this.renderRequests = 0;
+          _this.allowRedraw = false;
           _this.renderingActive = false;
           if (_this.requiresTimeout === true) {
             clearTimeout(_this.renderTimer);

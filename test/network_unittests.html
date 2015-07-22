@@ -46,7 +46,7 @@
     };
     var container = document.getElementById('mynetwork');
 
-    function drawQuick(testOptions) {
+    function drawQuick() {
         draw({physics:{stabilization:false}});
     }
 
@@ -192,7 +192,7 @@
                 console.error("FAILED", JSON.stringify(testOptions, null, 4))
             }, 500);
             var counter = 0;
-            drawQuick(testOptions);
+            drawQuick();
             network.on("afterDrawing", function () {
                 counter++;
                 if (counter > 2) {
@@ -206,7 +206,7 @@
                 clearTimeout(failed);
                 network.destroy();
             });
-            network.on("destroy", function () {
+            network.once("destroy", function () {
                 clearTimeout(failed);
                 setTimeout(checkOptions, 100);
             })
