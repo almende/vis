@@ -46,7 +46,7 @@
     };
     var container = document.getElementById('mynetwork');
 
-    function drawQuick() {
+    function drawQuick(testOptions) {
         draw({physics:{stabilization:false}});
     }
 
@@ -176,36 +176,46 @@
 
 
 
-    var amountOfOptionChecks = 200;
-    var optionCheckTime = 150;
+    var amountOfOptionChecks = 50;
     var optionsThreshold = 0.8;
-    function checkOptions(i) {
-//        console.log('checking Options iteration:',i)
-        var allOptions = vis.network.allOptions.allOptions;
-        var testOptions = {};
-        constructOptions(allOptions, testOptions);
-        var failed = setTimeout(function() {console.error("FAILED",JSON.stringify(testOptions,null,4))}, 0.9*optionCheckTime);
-        var counter = 0;
-        drawQuick();
-        network.on("afterDrawing", function() {
-            counter++;
-            if (counter > 2) {
-                counter = 0;
-                network.off('afterDrawing');
+    var optionGlobalCount = 0;
+    function checkOptions() {
+        optionGlobalCount++;
+        if (optionGlobalCount == amountOfOptionChecks) {
+            checkMethods();
+        }
+        else {
+            var allOptions = vis.network.allOptions.allOptions;
+            var testOptions = {};
+            constructOptions(allOptions, testOptions);
+            var failed = setTimeout(function () {
+                console.error("FAILED", JSON.stringify(testOptions, null, 4))
+            }, 500);
+            var counter = 0;
+            drawQuick(testOptions);
+            network.on("afterDrawing", function () {
+                counter++;
+                if (counter > 2) {
+                    counter = 0;
+                    network.off('afterDrawing');
+                    clearTimeout(failed);
+                    network.destroy();
+                }
+            })
+            network.on("stabilized", function () {
                 clearTimeout(failed);
-            }
-        })
-        network.on("stabilized", function() {
-            clearTimeout(failed);
-        });
-        network.on("destroy", function() {
-            clearTimeout(failed);
-        })
-        network.setOptions(testOptions);
+                network.destroy();
+            });
+            network.on("destroy", function () {
+                clearTimeout(failed);
+                setTimeout(checkOptions, 100);
+            })
+            console.log("now testing:",testOptions)
+            network.setOptions(testOptions);
+        }
     }
 
     function constructOptions(allOptions, testOptions) {
-
         for (var option in allOptions) {
             if (Math.random() < optionsThreshold) {
                 if (option !== "__type__" && option !== '__any__' && option !== 'locales' && option !== 'image' && option !== 'id') {
@@ -254,10 +264,11 @@
     }
 
 
-    for (var i = 0; i < amountOfOptionChecks; i++) {
-        setTimeout(checkOptions.bind(this,i), i*optionCheckTime);
-    }
-    setTimeout(checkMethods, amountOfOptionChecks*optionCheckTime);
+    checkOptions();
+//    for (var i = 0; i < amountOfOptionChecks; i++) {
+//        setTimeout(checkOptions.bind(this,i), i*optionCheckTime);
+//    }
+//    setTimeout(checkMethods, amountOfOptionChecks*optionCheckTime);
 </script>
 </body>
 </html>
