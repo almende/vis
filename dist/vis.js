@@ -5,7 +5,7 @@
  * A dynamic, browser-based visualization library.
  *
  * @version 4.5.2-SNAPSHOT
- * @date    2015-07-21
+ * @date    2015-07-22
  *
  * @license
  * Copyright (C) 2011-2014 Almende B.V, http://almende.com
@@ -27243,7 +27243,8 @@ return /******/ (function(modules) { // webpackBootstrap
         },
         shape: 'ellipse',
         shapeProperties: {
-          borderDashes: false
+          borderDashes: false,
+          borderRadius: 6
         },
         size: 25,
         title: undefined,
@@ -28511,7 +28512,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
         ctx.fillStyle = selected ? this.options.color.highlight.background : hover ? this.options.color.hover.background : this.options.color.background;
 
-        var borderRadius = 6;
+        var borderRadius = this.options.shapeProperties.borderRadius;
         ctx.roundRect(this.left, this.top, this.width, this.height, borderRadius);
 
         // draw shadow if enabled
@@ -28627,7 +28628,11 @@ return /******/ (function(modules) { // webpackBootstrap
       value: function enableBorderDashes(ctx) {
         if (this.options.shapeProperties.borderDashes !== false) {
           if (ctx.setLineDash !== undefined) {
-            ctx.setLineDash(this.options.shapeProperties.borderDashes);
+            var dashes = this.options.shapeProperties.borderDashes;
+            if (dashes === true) {
+              dashes = [5, 15];
+            }
+            ctx.setLineDash(dashes);
           } else {
             console.warn('setLineDash is not supported in this browser. The dashed borders cannot be used.');
             this.options.shapeProperties.borderDashes = false;
@@ -39901,6 +39906,7 @@ return /******/ (function(modules) { // webpackBootstrap
       shape: { string: ['ellipse', 'circle', 'database', 'box', 'text', 'image', 'circularImage', 'diamond', 'dot', 'star', 'triangle', 'triangleDown', 'square', 'icon'] },
       shapeProperties: {
         borderDashes: { boolean: boolean, array: array },
+        borderRadius: { number: number },
         __type__: { object: object }
       },
       size: { number: number },
@@ -40035,7 +40041,8 @@ return /******/ (function(modules) { // webpackBootstrap
       },
       shape: ['ellipse', 'box', 'circle', 'database', 'diamond', 'dot', 'square', 'star', 'text', 'triangle', 'triangleDown'],
       shapeProperties: {
-        borderDashes: false
+        //borderDashes: false,
+        borderRadius: 6
       },
       size: [25, 0, 200, 1]
     },
