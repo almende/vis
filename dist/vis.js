@@ -27244,7 +27244,8 @@ return /******/ (function(modules) { // webpackBootstrap
         shape: 'ellipse',
         shapeProperties: {
           borderDashes: false,
-          borderRadius: 6
+          borderRadius: 6,
+          useImageSize: false
         },
         size: 25,
         title: undefined,
@@ -28811,19 +28812,25 @@ return /******/ (function(modules) { // webpackBootstrap
             width = 0;
             height = 0;
           }
-          if (this.imageObj.width > this.imageObj.height) {
-            ratio = this.imageObj.width / this.imageObj.height;
-            width = this.options.size * 2 * ratio || this.imageObj.width;
-            height = this.options.size * 2 || this.imageObj.height;
-          } else {
-            if (this.imageObj.width && this.imageObj.height) {
-              // not undefined or 0
-              ratio = this.imageObj.height / this.imageObj.width;
+          if (this.options.shapeProperties.useImageSize === false) {
+            if (this.imageObj.width > this.imageObj.height) {
+              ratio = this.imageObj.width / this.imageObj.height;
+              width = this.options.size * 2 * ratio || this.imageObj.width;
+              height = this.options.size * 2 || this.imageObj.height;
             } else {
-              ratio = 1;
+              if (this.imageObj.width && this.imageObj.height) {
+                // not undefined or 0
+                ratio = this.imageObj.height / this.imageObj.width;
+              } else {
+                ratio = 1;
+              }
+              width = this.options.size * 2;
+              height = this.options.size * 2 * ratio;
             }
-            width = this.options.size * 2 || this.imageObj.width;
-            height = this.options.size * 2 * ratio || this.imageObj.height;
+          } else {
+            // when not using the size property, we use the image size
+            width = this.imageObj.width;
+            height = this.imageObj.height;
           }
           this.width = width;
           this.height = height;
@@ -39907,6 +39914,7 @@ return /******/ (function(modules) { // webpackBootstrap
       shapeProperties: {
         borderDashes: { boolean: boolean, array: array },
         borderRadius: { number: number },
+        useImageSize: { boolean: boolean },
         __type__: { object: object }
       },
       size: { number: number },
@@ -40041,8 +40049,9 @@ return /******/ (function(modules) { // webpackBootstrap
       },
       shape: ['ellipse', 'box', 'circle', 'database', 'diamond', 'dot', 'square', 'star', 'text', 'triangle', 'triangleDown'],
       shapeProperties: {
-        //borderDashes: false,
-        borderRadius: 6
+        borderDashes: false,
+        borderRadius: 6,
+        useImageSize: false
       },
       size: [25, 0, 200, 1]
     },
