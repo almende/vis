@@ -108,8 +108,8 @@
     <li><a href="#Editing_Items">Editing Items</a></li>
     <li><a href="#Templates">Templates</a></li>
     <li><a href="#Localization">Localization</a></li>
+    <li><a href="#Time_zone">Time zone</a></li>
     <li><a href="#Styles">Styles</a></li>
-    <li><a href="#Data_Policy">Data Policy</a></li>
   </ul>
 
   <h2 id="Example">Example</h2>
@@ -639,6 +639,13 @@ function (option, path) {
       <td>Object</td>
       <td>none</td>
       <td>A map with i18n locales. See section <a href="#Localization">Localization</a> for more information.</td>
+    </tr>
+
+    <tr>
+      <td>moment</td>
+      <td>function</td>
+      <td>vis.moment</td>
+      <td>A constructor for creating a moment.js Date. Allows for applying a custom time zone. See section <a href="#Time_zone">Time zone</a> for more information.</td>
     </tr>
 
     <tr class='toggle collapsible' onclick="toggleTable('optionTable','margin', this);">
@@ -1543,6 +1550,32 @@ var options = {
   </table>
 
 
+  <h2 id="Time_zone">Time zone</h2>
+  <p>
+    By default, the Timeline displays time in local time. To display a Timeline in an other time zone or in UTC, the date constructor can be overloaded via the configuration option <code>moment</code>, which by default is the constructor function of moment.js. More information about UTC with moment.js can be found in the docs: <a href="http://momentjs.com/docs/#/parsing/utc/">http://momentjs.com/docs/#/parsing/utc/</a>.
+  </p>
+
+  <p>
+    Examples:
+  </p>
+
+<pre class="prettyprint lang-js">// display in UTC
+var options = {
+  moment: function(date) {
+    return vis.moment(date).utc();
+  }
+};
+
+// display in UTC +08:00
+var options = {
+  moment: function(date) {
+    return vis.moment(date).utcOffset('+08:00');
+  }
+};
+</pre>
+
+
+
   <h2 id="Styles">Styles</h2>
   <p>
     All parts of the Timeline have a class name and a default css style.
@@ -1619,13 +1652,6 @@ var options = {
   }
 &lt;/style&gt;
 </pre>
-
-
-  <h2 id="Data_Policy">Data Policy</h2>
-  <p>
-    All code and data is processed and rendered in the browser.
-    No data is sent to any server.
-  </p>
 
 </div>
 

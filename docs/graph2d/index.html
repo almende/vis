@@ -160,8 +160,8 @@
         <li><a href="#Methods">Methods</a></li>
         <li><a href="#Events">Events</a></li>
         <li><a href="#Localization">Localization</a></li>
+        <li><a href="#Time_zone">Time zone</a></li>
         <li><a href="#Styles">Styles</a></li>
-        <li><a href="#Data_Policy">Data Policy</a></li>
     </ul>
 
 
@@ -717,6 +717,14 @@ onRender: function(item, group, graph2d) {
             <td>'top-right'</td>
             <td>Determine the position of the legend coupled to the right axis. Options are 'top-left', 'top-right', 'bottom-left' or 'bottom-right'.</td>
         </tr>
+
+        <tr>
+            <td>moment</td>
+            <td>function</td>
+            <td>vis.moment</td>
+            <td>A constructor for creating a moment.js Date. Allows for applying a custom time zone. See section <a href="#Time_zone">Time zone</a> for more information.</td>
+        </tr>
+
         <tr>
             <td class="greenField">sampling</td>
             <td>Boolean</td>
@@ -1423,6 +1431,32 @@ Graph2d.off('rangechanged', onChange);
             </td>
         </tr>
     </table>
+
+    <h2 id="Time_zone">Time zone</h2>
+    <p>
+        By default, the Timeline displays time in local time. To display a Timeline in an other time zone or in UTC, the date constructor can be overloaded via the configuration option <code>moment</code>, which by default is the constructor function of moment.js. More information about UTC with moment.js can be found in the docs: <a href="http://momentjs.com/docs/#/parsing/utc/">http://momentjs.com/docs/#/parsing/utc/</a>.
+    </p>
+
+    <p>
+        Examples:
+    </p>
+
+<pre class="prettyprint lang-js">// display in UTC
+var options = {
+  moment: function(date) {
+    return vis.moment(date).utc();
+  }
+};
+
+// display in UTC +08:00
+var options = {
+  moment: function(date) {
+    return vis.moment(date).utcOffset('+08:00');
+  }
+};
+</pre>
+
+
 
     <h2 id="Styles">Styles</h2>
     <p>
