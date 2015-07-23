@@ -45,7 +45,8 @@
         {id: 12, shape: 'circularImage', image: DIR + '12.png'},
         {id: 13, shape: 'circularImage', image: DIR + '13.png'},
         {id: 14, shape: 'circularImage', image: DIR + '14.png'},
-        {id: 15, shape: 'circularImage', image: DIR + 'missing.png', brokenImage: DIR + 'missingBrokenImage.png', label:"when images\nfail\nto load"}
+        {id: 15, shape: 'circularImage', image: DIR + 'missing.png', brokenImage: DIR + 'missingBrokenImage.png', label:"when images\nfail\nto load"},
+        {id: 16, shape: 'circularImage', image: DIR + 'anotherMissing.png', brokenImage: DIR + '9.png', label:"fallback image in action"}
       ];
 
       // create connections between people
@@ -64,7 +65,8 @@
         {from: 10, to: 11},
         {from: 11, to: 12},
         {from: 12, to: 13},
-        {from: 13, to: 14}
+        {from: 13, to: 14},
+		{from: 9, to: 16}
       ];
 
       // create a network
