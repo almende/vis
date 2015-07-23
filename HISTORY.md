@@ -3,6 +3,11 @@ http://visjs.org
 
 ## not yet released, version 4.6.1
 
+### Timeline
+
+- Items keep their group offset while dragging items located in multiple groups.
+  Thanks @Fice.
+
 
 ## 2015-07-22, version 4.6.0
 
