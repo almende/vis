@@ -27480,6 +27480,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
         for (var i = 0; i < ids.length; i++) {
           var id = ids[i];
+          nodes[id].cleanup();
           delete nodes[id];
         }
 
@@ -27830,16 +27831,6 @@ return /******/ (function(modules) { // webpackBootstrap
       }
 
       /**
-       * Enable or disable the physics.
-       * @param status
-       */
-    }, {
-      key: 'togglePhysics',
-      value: function togglePhysics(status) {
-        this.options.physics = status;
-      }
-
-      /**
        * Set or overwrite options for the node
        * @param {Object} options an object with options
        * @param {Object} constants  and object with default, global options
@@ -27847,6 +27838,7 @@ return /******/ (function(modules) { // webpackBootstrap
     }, {
       key: 'setOptions',
       value: function setOptions(options) {
+        var currentShape = this.options.shape;
         if (!options) {
           return;
         }
@@ -27902,11 +27894,8 @@ return /******/ (function(modules) { // webpackBootstrap
           }
         }
 
-        this.updateShape();
+        this.updateShape(currentShape);
         this.updateLabelModule();
-
-        // reset the size of the node, this can be changed
-        this._reset();
 
         if (options.hidden !== undefined || options.physics !== undefined) {
           return true;
@@ -27933,54 +27922,62 @@ return /******/ (function(modules) { // webpackBootstrap
       }
     }, {
       key: 'updateShape',
-      value: function updateShape() {
-        // choose draw method depending on the shape
-        switch (this.options.shape) {
-          case 'box':
-            this.shape = new _nodesShapesBox2['default'](this.options, this.body, this.labelModule);
-            break;
-          case 'circle':
-            this.shape = new _nodesShapesCircle2['default'](this.options, this.body, this.labelModule);
-            break;
-          case 'circularImage':
-            this.shape = new _nodesShapesCircularImage2['default'](this.options, this.body, this.labelModule, this.imageObj);
-            break;
-          case 'database':
-            this.shape = new _nodesShapesDatabase2['default'](this.options, this.body, this.labelModule);
-            break;
-          case 'diamond':
-            this.shape = new _nodesShapesDiamond2['default'](this.options, this.body, this.labelModule);
-            break;
-          case 'dot':
-            this.shape = new _nodesShapesDot2['default'](this.options, this.body, this.labelModule);
-            break;
-          case 'ellipse':
-            this.shape = new _nodesShapesEllipse2['default'](this.options, this.body, this.labelModule);
-            break;
-          case 'icon':
-            this.shape = new _nodesShapesIcon2['default'](this.options, this.body, this.labelModule);
-            break;
-          case 'image':
-            this.shape = new _nodesShapesImage2['default'](this.options, this.body, this.labelModule, this.imageObj);
-            break;
-          case 'square':
-            this.shape = new _nodesShapesSquare2['default'](this.options, this.body, this.labelModule);
-            break;
-          case 'star':
-            this.shape = new _nodesShapesStar2['default'](this.options, this.body, this.labelModule);
-            break;
-          case 'text':
-            this.shape = new _nodesShapesText2['default'](this.options, this.body, this.labelModule);
-            break;
-          case 'triangle':
-            this.shape = new _nodesShapesTriangle2['default'](this.options, this.body, this.labelModule);
-            break;
-          case 'triangleDown':
-            this.shape = new _nodesShapesTriangleDown2['default'](this.options, this.body, this.labelModule);
-            break;
-          default:
-            this.shape = new _nodesShapesEllipse2['default'](this.options, this.body, this.labelModule);
-            break;
+      value: function updateShape(currentShape) {
+        if (currentShape === this.options.shape) {
+          this.shape.setOptions(this.options);
+        } else {
+          // clean up the shape if it is already made so the new shape can start clean.
+          if (this.shape) {
+            this.shape.cleanup();
+          }
+          // choose draw method depending on the shape
+          switch (this.options.shape) {
+            case 'box':
+              this.shape = new _nodesShapesBox2['default'](this.options, this.body, this.labelModule);
+              break;
+            case 'circle':
+              this.shape = new _nodesShapesCircle2['default'](this.options, this.body, this.labelModule);
+              break;
+            case 'circularImage':
+              this.shape = new _nodesShapesCircularImage2['default'](this.options, this.body, this.labelModule, this.imageObj);
+              break;
+            case 'database':
+              this.shape = new _nodesShapesDatabase2['default'](this.options, this.body, this.labelModule);
+              break;
+            case 'diamond':
+              this.shape = new _nodesShapesDiamond2['default'](this.options, this.body, this.labelModule);
+              break;
+            case 'dot':
+              this.shape = new _nodesShapesDot2['default'](this.options, this.body, this.labelModule);
+              break;
+            case 'ellipse':
+              this.shape = new _nodesShapesEllipse2['default'](this.options, this.body, this.labelModule);
+              break;
+            case 'icon':
+              this.shape = new _nodesShapesIcon2['default'](this.options, this.body, this.labelModule);
+              break;
+            case 'image':
+              this.shape = new _nodesShapesImage2['default'](this.options, this.body, this.labelModule, this.imageObj);
+              break;
+            case 'square':
+              this.shape = new _nodesShapesSquare2['default'](this.options, this.body, this.labelModule);
+              break;
+            case 'star':
+              this.shape = new _nodesShapesStar2['default'](this.options, this.body, this.labelModule);
+              break;
+            case 'text':
+              this.shape = new _nodesShapesText2['default'](this.options, this.body, this.labelModule);
+              break;
+            case 'triangle':
+              this.shape = new _nodesShapesTriangle2['default'](this.options, this.body, this.labelModule);
+              break;
+            case 'triangleDown':
+              this.shape = new _nodesShapesTriangleDown2['default'](this.options, this.body, this.labelModule);
+              break;
+            default:
+              this.shape = new _nodesShapesEllipse2['default'](this.options, this.body, this.labelModule);
+              break;
+          }
         }
         this._reset();
       }
@@ -30712,17 +30709,6 @@ return /******/ (function(modules) { // webpackBootstrap
       }
 
       /**
-       * Enable or disable the physics.
-       * @param status
-       */
-    }, {
-      key: 'togglePhysics',
-      value: function togglePhysics(status) {
-        this.options.physics = status;
-        this.edgeType.togglePhysics(status);
-      }
-
-      /**
        * Connect an edge to its nodes
        */
     }, {
@@ -31549,14 +31535,6 @@ return /******/ (function(modules) { // webpackBootstrap
       }
 
       /**
-       * overloadable if the shape has to toggle the via node to disabled
-       * @param status
-       */
-    }, {
-      key: 'togglePhysics',
-      value: function togglePhysics(status) {}
-
-      /**
        * Redraw a edge as a line
        * Draw this edge in the given canvas
        * The 2d context of a HTML canvas can be retrieved by canvas.getContext("2d");
@@ -32372,6 +32350,12 @@ return /******/ (function(modules) { // webpackBootstrap
         this.options = options;
         this.id = this.options.id;
         this.setupSupportNode();
+
+        // when we change the physics state of the edge, we reposition the support node.
+        if (this.options.physics !== options.physics) {
+          this.via.setOptions({ physics: this.options.physics });
+          this.positionBezierNode();
+        }
         this.connect();
       }
     }, {
@@ -32390,6 +32374,11 @@ return /******/ (function(modules) { // webpackBootstrap
           }
         }
       }
+
+      /**
+       * remove the support nodes
+       * @returns {boolean}
+       */
     }, {
       key: 'cleanup',
       value: function cleanup() {
@@ -32399,12 +32388,6 @@ return /******/ (function(modules) { // webpackBootstrap
           return true;
         }
         return false;
-      }
-    }, {
-      key: 'togglePhysics',
-      value: function togglePhysics(status) {
-        this.via.setOptions({ physics: status });
-        this.positionBezierNode();
       }
 
       /**
@@ -34823,8 +34806,8 @@ return /******/ (function(modules) { // webpackBootstrap
                 delete childEdgesObj[edgeId];
                 delete this.body.edges[edgeId];
               } else {
-                edge.togglePhysics(false);
-                edge.options.hidden = true;
+                edge.setOptions({ physics: false, hidden: true });
+                //edge.options.hidden = true;
               }
             }
           }
@@ -34834,8 +34817,7 @@ return /******/ (function(modules) { // webpackBootstrap
         for (var nodeId in childNodesObj) {
           if (childNodesObj.hasOwnProperty(nodeId)) {
             this.clusteredNodes[nodeId] = { clusterId: clusterNodeProperties.id, node: this.body.nodes[nodeId] };
-            this.body.nodes[nodeId].togglePhysics(false);
-            this.body.nodes[nodeId].options.hidden = true;
+            this.body.nodes[nodeId].setOptions({ hidden: true, physics: false });
           }
         }
 
@@ -34964,8 +34946,10 @@ return /******/ (function(modules) { // webpackBootstrap
             containedNode.vx = clusterNode.vx;
             containedNode.vy = clusterNode.vy;
 
-            containedNode.options.hidden = false;
-            containedNode.togglePhysics(true);
+            // we use these methods to avoid reinstantiating the shape, which happens with setOptions.
+            //containedNode.toggleHidden(false);
+            //containedNode.togglePhysics(true);
+            containedNode.setOptions({ hidden: false, physics: true });
 
             delete this.clusteredNodes[nodeId];
           }
@@ -35011,8 +34995,9 @@ return /******/ (function(modules) { // webpackBootstrap
                   this.body.edges[id].connect();
                 }
               } else {
-                edge.options.hidden = false;
-                edge.togglePhysics(true);
+                edge.setOptions({ physics: true, hidden: false });
+                //edge.options.hidden = false;
+                //edge.togglePhysics(true);
               }
             }
           }
@@ -35035,6 +35020,7 @@ return /******/ (function(modules) { // webpackBootstrap
         }
 
         // remove clusterNode
+        this.body.nodes[clusterNodeId].cleanup();
         delete this.body.nodes[clusterNodeId];
 
         if (refreshData === true) {
