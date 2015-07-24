@@ -5,8 +5,10 @@ http://visjs.org
 
 ### Timeline
 
-- Items keep their group offset while dragging items located in multiple groups.
-  Thanks @Fice.
+- Fixed #192: Items keep their group offset while dragging items located in 
+  multiple groups. Thanks @Fice.
+- Fixed #1118: since v4.6.0, grid of time axis was wrongly positioned on some 
+  scales.
 
 
 ## 2015-07-22, version 4.6.0
