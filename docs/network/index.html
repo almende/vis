@@ -780,8 +780,14 @@ function releaseFunction (clusterPosition, containedNodesPositions) {
                         positions when using clusters since they cannot be correctly initialized from just the
                         positions.</b>
                 </td>
-
-
+            </tr>
+            <tr class="collapsible toggle" onclick="toggleTable('methodTable','moveNode', this);">
+                <td colspan="2"><span parent="moveNode" class="right-caret" id="method_moveNode"></span> moveNode(<code><i>nodeId, Number x, Number y</i></code>)</td>
+            </tr>
+            <tr class="hidden" parent="moveNode">
+                <td class="midMethods">Returns: none</td>
+                <td>You can use this to programatically move a node. <i>The supplied x and y positions have to be in canvas space!</i>
+                </td>
             </tr>
             <tr class="collapsible toggle" onclick="toggleTable('methodTable','getBoundingBox', this);">
                 <td colspan="2"><span parent="getBoundingBox" class="right-caret" id="method_getBoundingBox"></span> getBoundingBox(<code><i>String

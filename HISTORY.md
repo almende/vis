@@ -11,6 +11,11 @@ http://visjs.org
   scales.
 
 
+### Network
+
+- Added moveNode method.
+
+
 ## 2015-07-22, version 4.6.0
 
 ### Timeline

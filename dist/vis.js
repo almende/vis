@@ -4,8 +4,8 @@
  *
  * A dynamic, browser-based visualization library.
  *
- * @version 4.6.0
- * @date    2015-07-22
+ * @version 4.6.1-SNAPSHOT
+ * @date    2015-07-24
  *
  * @license
  * Copyright (C) 2011-2014 Almende B.V, http://almende.com
@@ -17044,6 +17044,18 @@ return /******/ (function(modules) { // webpackBootstrap
   };
 
   /**
+   * Given an group id, returns the index it has.
+   *
+   * @param {Number} groupID
+   * @private
+   */
+  ItemSet.prototype._getGroupIndex = function (groupId) {
+    for (var i = 0; i < this.groupIds.length; i++) {
+      if (groupId == this.groupIds[i]) return i;
+    }
+  };
+
+  /**
    * Start dragging the selected events
    * @param {Event} event
    * @private
@@ -17086,11 +17098,17 @@ return /******/ (function(modules) { // webpackBootstrap
 
         this.touchParams.itemProps = [props];
       } else {
+        this.touchParams.selectedItem = item;
+
+        var baseGroupIndex = this._getGroupIndex(item.data.group);
+
         this.touchParams.itemProps = this.getSelection().map(function (id) {
           var item = me.items[id];
+          var groupIndex = me._getGroupIndex(item.data.group);
           var props = {
             item: item,
             initialX: event.center.x,
+            groupOffset: baseGroupIndex - groupIndex,
             data: util.extend({}, item.data) // clone the items data
           };
 
@@ -17166,6 +17184,22 @@ return /******/ (function(modules) { // webpackBootstrap
       var scale = this.body.util.getScale();
       var step = this.body.util.getStep();
 
+      //only calculate the new group for the item that's actually dragged
+      var selectedItem = this.touchParams.selectedItem;
+      var updateGroupAllowed = me.options.editable.updateGroup;
+      var newGroupBase = null;
+      if (updateGroupAllowed && selectedItem) {
+        if (selectedItem.data.group != undefined) {
+          // drag from one group to another
+          var group = me.groupFromTarget(event);
+          if (group) {
+            //we know the offset for all items, so the new group for all items
+            //will be relative to this one.
+            newGroupBase = this._getGroupIndex(group.groupId);
+          }
+        }
+      }
+
       // move
       this.touchParams.itemProps.forEach(function (props) {
         var newProps = {};
@@ -17217,13 +17251,15 @@ return /******/ (function(modules) { // webpackBootstrap
 
         var updateGroupAllowed = me.options.editable.updateGroup || props.item.editable === true;
 
-        if (updateGroupAllowed && (!props.dragLeft && !props.dragRight)) {
+        if (updateGroupAllowed && (!props.dragLeft && !props.dragRight) && newGroupBase != null) {
           if (itemData.group != undefined) {
-            // drag from one group to another
-            var group = me.groupFromTarget(event);
-            if (group) {
-              itemData.group = group.groupId;
-            }
+            var newOffset = newGroupBase - props.groupOffset;
+
+            //make sure we stay in bounds
+            newOffset = Math.max(0, newOffset);
+            newOffset = Math.min(me.groupIds.length - 1, newOffset);
+
+            itemData.group = me.groupIds[newOffset];
           }
         }
 
@@ -18773,11 +18809,11 @@ return /******/ (function(modules) { // webpackBootstrap
           this.current.subtract(this.current.hours() % this.step, 'hours');break;
         case 'weekday': // intentional fall through
         case 'day':
-          this.current.subtract((this.current.date() - 1) % this.step);break;
+          this.current.subtract((this.current.date() - 1) % this.step, 'day');break;
         case 'month':
-          this.current.subtract(this.current.month() % this.step);break;
+          this.current.subtract(this.current.month() % this.step, 'month');break;
         case 'year':
-          this.current.subtract(this.current.year() % this.step);break;
+          this.current.subtract(this.current.year() % this.step, 'year');break;
         default:
           break;
       }
@@ -18812,7 +18848,7 @@ return /******/ (function(modules) { // webpackBootstrap
           this.current.add(this.step, 'hour');
           // in case of skipping an hour for daylight savings, adjust the hour again (else you get: 0h 5h 9h ... instead of 0h 4h 8h ...)
           // TODO: is this still needed now we use the function of moment.js?
-          this.current.subtract(this.current.hours() % this.step);
+          this.current.subtract(this.current.hours() % this.step, 'hour');
           break;
         case 'weekday': // intentional fall through
         case 'day':
@@ -22631,9 +22667,9 @@ return /******/ (function(modules) { // webpackBootstrap
       // http://en.wikibooks.org/wiki/Algorithm_Implementation/Strings/Levenshtein_distance#JavaScript
       /*
        Copyright (c) 2011 Andrei Mackenzie
-         Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
-         The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
-         THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+        Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+        The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+        THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
        */
     }, {
       key: 'levenshteinDistance',
@@ -26892,6 +26928,9 @@ return /******/ (function(modules) { // webpackBootstrap
   Network.prototype.storePositions = function () {
     return this.nodesHandler.storePositions.apply(this.nodesHandler, arguments);
   };
+  Network.prototype.moveNode = function () {
+    return this.nodesHandler.moveNode.apply(this.nodesHandler, arguments);
+  };
   Network.prototype.getBoundingBox = function () {
     return this.nodesHandler.getBoundingBox.apply(this.nodesHandler, arguments);
   };
@@ -27244,9 +27283,9 @@ return /******/ (function(modules) { // webpackBootstrap
         },
         shape: 'ellipse',
         shapeProperties: {
-          borderDashes: false,
-          borderRadius: 6,
-          useImageSize: false
+          borderDashes: false, // only for borders
+          borderRadius: 6, // only for box shape
+          useImageSize: false // only for image and circularImage shapes
         },
         size: 25,
         title: undefined,
@@ -27599,6 +27638,28 @@ return /******/ (function(modules) { // webpackBootstrap
           console.log("NodeId provided for getConnectedEdges does not exist. Provided: ", nodeId);
         }
         return edgeList;
+      }
+
+      /**
+       * Move a node.
+       * @param String nodeId
+       * @param Number x
+       * @param Number y
+       */
+    }, {
+      key: 'moveNode',
+      value: function moveNode(nodeId, x, y) {
+        var _this4 = this;
+
+        if (this.body.nodes[nodeId] !== undefined) {
+          this.body.nodes[nodeId].x = Number(x);
+          this.body.nodes[nodeId].y = Number(y);
+          setTimeout(function () {
+            _this4.body.emitter.emit("startSimulation");
+          }, 0);
+        } else {
+          console.log("Node id supplied to moveNode does not exist. Provided: ", nodeId);
+        }
       }
     }]);
 
@@ -28514,7 +28575,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
         ctx.fillStyle = selected ? this.options.color.highlight.background : hover ? this.options.color.hover.background : this.options.color.background;
 
-        var borderRadius = this.options.shapeProperties.borderRadius;
+        var borderRadius = this.options.shapeProperties.borderRadius; // only effective for box
         ctx.roundRect(this.left, this.top, this.width, this.height, borderRadius);
 
         // draw shadow if enabled
@@ -41456,71 +41517,121 @@ return /******/ (function(modules) { // webpackBootstrap
    */
   "use strict";
 
-  function Images(callback) {
-    this.images = {};
-    this.imageBroken = {};
-    this.callback = callback;
-  }
+  Object.defineProperty(exports, "__esModule", {
+      value: true
+  });
 
-  /**
-   *
-   * @param {string} url          Url of the image
-   * @param {string} url          Url of an image to use if the url image is not found
-   * @return {Image} img          The image object
-   */
-  Images.prototype.load = function (url, brokenUrl, id) {
-    var img = this.images[url]; // make a pointer
-    if (img === undefined) {
-      // create the image
-      var me = this;
-      img = new Image();
-      img.onload = function () {
-        // IE11 fix -- thanks dponch!
-        if (this.width === 0) {
-          document.body.appendChild(this);
-          this.width = this.offsetWidth;
-          this.height = this.offsetHeight;
-          document.body.removeChild(this);
-        }
+  var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
 
-        if (me.callback) {
-          me.images[url] = img;
-          me.callback(this);
-        }
-      };
+  function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
-      img.onerror = function () {
-        if (brokenUrl === undefined) {
-          console.error("Could not load image:", url);
-          delete this.src;
-          if (me.callback) {
-            me.callback(this);
+  var Images = (function () {
+      function Images(callback) {
+          _classCallCheck(this, Images);
+
+          this.images = {};
+          this.imageBroken = {};
+          this.callback = callback;
+      }
+
+      /**
+       * @param {string} url                      The Url to cache the image as 
+        * @return {Image} imageToLoadBrokenUrlOn  The image object
+       */
+
+      _createClass(Images, [{
+          key: "_addImageToCache",
+          value: function _addImageToCache(url, imageToCache) {
+              // IE11 fix -- thanks dponch!
+              if (imageToCache.width === 0) {
+                  document.body.appendChild(imageToCache);
+                  imageToCache.width = imageToCache.offsetWidth;
+                  imageToCache.height = imageToCache.offsetHeight;
+                  document.body.removeChild(imageToCache);
+              }
+
+              this.images[url] = imageToCache;
           }
-        } else {
-          if (me.imageBroken[id] && me.imageBroken[id][url] === true) {
-            console.error("Could not load brokenImage:", brokenUrl);
-            delete this.src;
-            if (me.callback) {
-              me.callback(this);
-            }
-          } else {
-            console.error("Could not load image:", url);
-            this.src = brokenUrl;
-            if (me.imageBroken[id] === undefined) {
-              me.imageBroken[id] = {};
-            }
-            me.imageBroken[id][url] = true;
+
+          /**
+           * @param {string} url                      The original Url that failed to load, if the broken image is successfully loaded it will be added to the cache using this Url as the key so that subsequent requests for this Url will return the broken image
+           * @param {string} brokenUrl                Url the broken image to try and load
+           * @return {Image} imageToLoadBrokenUrlOn   The image object
+           */
+      }, {
+          key: "_tryloadBrokenUrl",
+          value: function _tryloadBrokenUrl(url, brokenUrl, imageToLoadBrokenUrlOn) {
+              var _this = this;
+
+              //If any of the parameters aren't specified then exit the function because nothing constructive can be done
+              if (url === undefined || brokenUrl === undefined || imageToLoadBrokenUrlOn === undefined) return;
+
+              //Clear the old subscription to the error event and put a new in place that only handle errors in loading the brokenImageUrl
+              imageToLoadBrokenUrlOn.onerror = function () {
+                  console.error("Could not load brokenImage:", brokenUrl);
+                  //Add an empty image to the cache so that when subsequent load calls are made for the url we don't try load the image and broken image again
+                  _this._addImageToCache(url, new Image());
+              };
+
+              //Set the source of the image to the brokenUrl, this is actually what kicks off the loading of the broken image
+              imageToLoadBrokenUrlOn.src = brokenUrl;
           }
-        }
-      };
 
-      img.src = url;
-    }
+          /**
+           * @return {Image} imageToRedrawWith The images that will be passed to the callback when it is invoked
+           */
+      }, {
+          key: "_redrawWithImage",
+          value: function _redrawWithImage(imageToRedrawWith) {
+              if (this.callback) {
+                  this.callback(imageToRedrawWith);
+              }
+          }
 
-    return img;
-  };
+          /**
+           * @param {string} url          Url of the image
+           * @param {string} brokenUrl    Url of an image to use if the url image is not found
+           * @return {Image} img          The image object
+           */
+      }, {
+          key: "load",
+          value: function load(url, brokenUrl, id) {
+              var _this2 = this;
 
-  module.exports = Images;
+              //Try and get the image from the cache, if successful then return the cached image  
+              var cachedImage = this.images[url];
+              if (cachedImage) return cachedImage;
+
+              //Create a new image
+              var img = new Image();
+
+              //Subscribe to the event that is raised if the image loads successfully
+              img.onload = function () {
+                  //Add the image to the cache and then request a redraw
+                  _this2._addImageToCache(url, img);
+                  _this2._redrawWithImage(img);
+              };
+
+              //Subscribe to the event that is raised if the image fails to load
+              img.onerror = function () {
+                  console.error("Could not load image:", url);
+                  //Try and load the image specified by the brokenUrl using
+                  _this2._tryloadBrokenUrl(url, brokenUrl, img);
+              };
+
+              //Set the source of the image to the url, this is actuall what kicks off the loading of the image
+              img.src = url;
+
+              //Return the new image
+              return img;
+          }
+      }]);
+
+      return Images;
+  })();
+
+  exports["default"] = Images;
+  module.exports = exports["default"];
 
 /***/ },
 /* 113 */
