@@ -27923,7 +27923,7 @@ return /******/ (function(modules) { // webpackBootstrap
     }, {
       key: 'updateShape',
       value: function updateShape(currentShape) {
-        if (currentShape === this.options.shape) {
+        if (currentShape === this.options.shape && this.shape) {
           this.shape.setOptions(this.options);
         } else {
           // clean up the shape if it is already made so the new shape can start clean.
