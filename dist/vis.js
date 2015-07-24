@@ -139,10 +139,10 @@ return /******/ (function(modules) { // webpackBootstrap
   // Network
   exports.Network = __webpack_require__(59);
   exports.network = {
-    Images: __webpack_require__(112),
-    dotparser: __webpack_require__(110),
-    gephiParser: __webpack_require__(111),
-    allOptions: __webpack_require__(108)
+    Images: __webpack_require__(114),
+    dotparser: __webpack_require__(112),
+    gephiParser: __webpack_require__(113),
+    allOptions: __webpack_require__(110)
   };
   exports.network.convertDot = function (input) {
     return exports.network.dotparser.DOTToGraph(input);
@@ -26417,39 +26417,39 @@ return /******/ (function(modules) { // webpackBootstrap
 
   var _modulesEdgesHandler2 = _interopRequireDefault(_modulesEdgesHandler);
 
-  var _modulesPhysicsEngine = __webpack_require__(88);
+  var _modulesPhysicsEngine = __webpack_require__(90);
 
   var _modulesPhysicsEngine2 = _interopRequireDefault(_modulesPhysicsEngine);
 
-  var _modulesClustering = __webpack_require__(97);
+  var _modulesClustering = __webpack_require__(99);
 
   var _modulesClustering2 = _interopRequireDefault(_modulesClustering);
 
-  var _modulesCanvasRenderer = __webpack_require__(99);
+  var _modulesCanvasRenderer = __webpack_require__(101);
 
   var _modulesCanvasRenderer2 = _interopRequireDefault(_modulesCanvasRenderer);
 
-  var _modulesCanvas = __webpack_require__(100);
+  var _modulesCanvas = __webpack_require__(102);
 
   var _modulesCanvas2 = _interopRequireDefault(_modulesCanvas);
 
-  var _modulesView = __webpack_require__(101);
+  var _modulesView = __webpack_require__(103);
 
   var _modulesView2 = _interopRequireDefault(_modulesView);
 
-  var _modulesInteractionHandler = __webpack_require__(102);
+  var _modulesInteractionHandler = __webpack_require__(104);
 
   var _modulesInteractionHandler2 = _interopRequireDefault(_modulesInteractionHandler);
 
-  var _modulesSelectionHandler = __webpack_require__(105);
+  var _modulesSelectionHandler = __webpack_require__(107);
 
   var _modulesSelectionHandler2 = _interopRequireDefault(_modulesSelectionHandler);
 
-  var _modulesLayoutEngine = __webpack_require__(106);
+  var _modulesLayoutEngine = __webpack_require__(108);
 
   var _modulesLayoutEngine2 = _interopRequireDefault(_modulesLayoutEngine);
 
-  var _modulesManipulationSystem = __webpack_require__(107);
+  var _modulesManipulationSystem = __webpack_require__(109);
 
   var _modulesManipulationSystem2 = _interopRequireDefault(_modulesManipulationSystem);
 
@@ -26461,7 +26461,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   var _sharedValidator2 = _interopRequireDefault(_sharedValidator);
 
-  var _optionsJs = __webpack_require__(108);
+  var _optionsJs = __webpack_require__(110);
 
   /**
    * @constructor Network
@@ -26474,18 +26474,18 @@ return /******/ (function(modules) { // webpackBootstrap
    *                              {Array} edges
    * @param {Object} options      Options
    */
-  __webpack_require__(109);
+  __webpack_require__(111);
 
   var Emitter = __webpack_require__(19);
   var Hammer = __webpack_require__(3);
   var util = __webpack_require__(7);
   var DataSet = __webpack_require__(14);
   var DataView = __webpack_require__(16);
-  var dotparser = __webpack_require__(110);
-  var gephiParser = __webpack_require__(111);
-  var Images = __webpack_require__(112);
+  var dotparser = __webpack_require__(112);
+  var gephiParser = __webpack_require__(113);
+  var Images = __webpack_require__(114);
   var Activator = __webpack_require__(40);
-  var locales = __webpack_require__(113);
+  var locales = __webpack_require__(115);
 
   function Network(container, data, options) {
     var _this = this;
@@ -27652,8 +27652,7 @@ return /******/ (function(modules) { // webpackBootstrap
         var _this4 = this;
 
         if (this.body.nodes[nodeId] !== undefined) {
-          this.body.nodes[nodeId].x = Number(x);
-          this.body.nodes[nodeId].y = Number(y);
+          this.body.nodes[nodeId].move(Number(x), Number(y));
           setTimeout(function () {
             _this4.body.emitter.emit("startSimulation");
           }, 0);
@@ -28144,6 +28143,29 @@ return /******/ (function(modules) { // webpackBootstrap
       key: 'isBoundingBoxOverlappingWith',
       value: function isBoundingBoxOverlappingWith(obj) {
         return this.shape.boundingBox.left < obj.right && this.shape.boundingBox.right > obj.left && this.shape.boundingBox.top < obj.bottom && this.shape.boundingBox.bottom > obj.top;
+      }
+
+      /**
+       * move the node to a new position.
+       * @param x
+       * @param y
+       */
+    }, {
+      key: 'move',
+      value: function move(x, y) {
+        this.x = x;
+        this.y = y;
+        this.shape.move(x, y);
+      }
+
+      /**
+       * clean all required things on delete.
+       * @returns {*}
+       */
+    }, {
+      key: 'cleanup',
+      value: function cleanup() {
+        return this.shape.cleanup();
       }
     }], [{
       key: 'parseOptions',
@@ -28714,6 +28736,14 @@ return /******/ (function(modules) { // webpackBootstrap
           }
         }
       }
+
+      // possible to overload in the shapes.
+    }, {
+      key: 'move',
+      value: function move(x, y) {}
+    }, {
+      key: 'cleanup',
+      value: function cleanup() {}
     }]);
 
     return NodeBase;
@@ -30157,6 +30187,7 @@ return /******/ (function(modules) { // webpackBootstrap
         smooth: {
           enabled: true,
           type: "dynamic",
+          forceDirection: 'none',
           roundness: 0.5
         },
         title: undefined,
@@ -30395,7 +30426,7 @@ return /******/ (function(modules) { // webpackBootstrap
           var id = ids[i];
           var edge = edges[id];
           if (edge !== undefined) {
-            edge.edgeType.cleanup();
+            edge.cleanup();
             edge.disconnect();
             delete edges[id];
           }
@@ -30500,15 +30531,19 @@ return /******/ (function(modules) { // webpackBootstrap
 
   var _sharedLabel2 = _interopRequireDefault(_sharedLabel);
 
-  var _edgesBezierEdgeDynamic = __webpack_require__(83);
+  var _edgesCubicBezierEdge = __webpack_require__(86);
+
+  var _edgesCubicBezierEdge2 = _interopRequireDefault(_edgesCubicBezierEdge);
+
+  var _edgesBezierEdgeDynamic = __webpack_require__(88);
 
   var _edgesBezierEdgeDynamic2 = _interopRequireDefault(_edgesBezierEdgeDynamic);
 
-  var _edgesBezierEdgeStatic = __webpack_require__(86);
+  var _edgesBezierEdgeStatic = __webpack_require__(83);
 
   var _edgesBezierEdgeStatic2 = _interopRequireDefault(_edgesBezierEdgeStatic);
 
-  var _edgesStraightEdge = __webpack_require__(87);
+  var _edgesStraightEdge = __webpack_require__(89);
 
   /**
    * @class Edge
@@ -30635,19 +30670,23 @@ return /******/ (function(modules) { // webpackBootstrap
       value: function updateEdgeType() {
         var dataChanged = false;
         var changeInType = true;
+        var smooth = this.options.smooth;
         if (this.edgeType !== undefined) {
-          if (this.edgeType instanceof _edgesBezierEdgeDynamic2['default'] && this.options.smooth.enabled === true && this.options.smooth.type === 'dynamic') {
+          if (this.edgeType instanceof _edgesBezierEdgeDynamic2['default'] && smooth.enabled === true && smooth.type === 'dynamic') {
             changeInType = false;
           }
-          if (this.edgeType instanceof _edgesBezierEdgeStatic2['default'] && this.options.smooth.enabled === true && this.options.smooth.type !== 'dynamic') {
+          if (this.edgeType instanceof _edgesCubicBezierEdge2['default'] && smooth.enabled === true && smooth.type === 'cubicBezier') {
             changeInType = false;
           }
-          if (this.edgeType instanceof _edgesStraightEdge2['default'] && this.options.smooth.enabled === false) {
+          if (this.edgeType instanceof _edgesBezierEdgeStatic2['default'] && smooth.enabled === true && smooth.type !== 'dynamic' && smooth.type !== 'cubicBezier') {
+            changeInType = false;
+          }
+          if (this.edgeType instanceof _edgesStraightEdge2['default'] && smooth.enabled === false) {
             changeInType = false;
           }
 
           if (changeInType === true) {
-            dataChanged = this.edgeType.cleanup();
+            dataChanged = this.cleanup();
           }
         }
 
@@ -30656,6 +30695,8 @@ return /******/ (function(modules) { // webpackBootstrap
             if (this.options.smooth.type === 'dynamic') {
               dataChanged = true;
               this.edgeType = new _edgesBezierEdgeDynamic2['default'](this.options, this.body, this.labelModule);
+            } else if (this.options.smooth.type === 'cubicBezier') {
+              this.edgeType = new _edgesCubicBezierEdge2['default'](this.options, this.body, this.labelModule);
             } else {
               this.edgeType = new _edgesBezierEdgeStatic2['default'](this.options, this.body, this.labelModule);
             }
@@ -30938,6 +30979,16 @@ return /******/ (function(modules) { // webpackBootstrap
       value: function unselect() {
         this.selected = false;
       }
+
+      /**
+       * cleans all required things on delete
+       * @returns {*}
+       */
+    }, {
+      key: 'cleanup',
+      value: function cleanup() {
+        return this.edgeType.cleanup();
+      }
     }], [{
       key: 'parseOptions',
       value: function parseOptions(parentOptions, newOptions) {
@@ -31056,7 +31107,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
 
-  var _get = function get(_x, _x2, _x3) { var _again = true; _function: while (_again) { var object = _x, property = _x2, receiver = _x3; desc = parent = getter = undefined; _again = false; if (object === null) object = Function.prototype; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { _x = parent; _x2 = property; _x3 = receiver; _again = true; continue _function; } } else if ('value' in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } } };
+  var _get = function get(_x4, _x5, _x6) { var _again = true; _function: while (_again) { var object = _x4, property = _x5, receiver = _x6; desc = parent = getter = undefined; _again = false; if (object === null) object = Function.prototype; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { _x4 = parent; _x5 = property; _x6 = receiver; _again = true; continue _function; } } else if ('value' in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } } };
 
   function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
 
@@ -31068,110 +31119,213 @@ return /******/ (function(modules) { // webpackBootstrap
 
   var _utilBezierEdgeBase2 = _interopRequireDefault(_utilBezierEdgeBase);
 
-  var BezierEdgeDynamic = (function (_BezierEdgeBase) {
-    _inherits(BezierEdgeDynamic, _BezierEdgeBase);
+  var BezierEdgeStatic = (function (_BezierEdgeBase) {
+    _inherits(BezierEdgeStatic, _BezierEdgeBase);
 
-    function BezierEdgeDynamic(options, body, labelModule) {
-      _classCallCheck(this, BezierEdgeDynamic);
+    function BezierEdgeStatic(options, body, labelModule) {
+      _classCallCheck(this, BezierEdgeStatic);
 
-      //this.via = undefined; // Here for completeness but not allowed to defined before super() is invoked.
-      _get(Object.getPrototypeOf(BezierEdgeDynamic.prototype), 'constructor', this).call(this, options, body, labelModule); // --> this calls the setOptions below
+      _get(Object.getPrototypeOf(BezierEdgeStatic.prototype), 'constructor', this).call(this, options, body, labelModule);
     }
 
-    _createClass(BezierEdgeDynamic, [{
-      key: 'setOptions',
-      value: function setOptions(options) {
-        this.options = options;
-        this.id = this.options.id;
-        this.setupSupportNode();
-        this.connect();
-      }
-    }, {
-      key: 'connect',
-      value: function connect() {
-        this.from = this.body.nodes[this.options.from];
-        this.to = this.body.nodes[this.options.to];
-        if (this.from === undefined || this.to === undefined || this.options.physics === false) {
-          this.via.setOptions({ physics: false });
-        } else {
-          // fix weird behaviour where a selfreferencing node has physics enabled
-          if (this.from.id === this.to.id) {
-            this.via.setOptions({ physics: false });
-          } else {
-            this.via.setOptions({ physics: true });
-          }
-        }
-      }
-    }, {
-      key: 'cleanup',
-      value: function cleanup() {
-        if (this.via !== undefined) {
-          delete this.body.nodes[this.via.id];
-          this.via = undefined;
-          return true;
-        }
-        return false;
-      }
-    }, {
-      key: 'togglePhysics',
-      value: function togglePhysics(status) {
-        this.via.setOptions({ physics: status });
-        this.positionBezierNode();
-      }
+    /**
+     * Draw a line between two nodes
+     * @param {CanvasRenderingContext2D} ctx
+     * @private
+     */
 
-      /**
-       * Bezier curves require an anchor point to calculate the smooth flow. These points are nodes. These nodes are invisible but
-       * are used for the force calculation.
-       *
-       * The changed data is not called, if needed, it is returned by the main edge constructor.
-       * @private
-       */
-    }, {
-      key: 'setupSupportNode',
-      value: function setupSupportNode() {
-        if (this.via === undefined) {
-          var nodeId = "edgeId:" + this.id;
-          var node = this.body.functions.createNode({
-            id: nodeId,
-            shape: 'circle',
-            physics: true,
-            hidden: true
-          });
-          this.body.nodes[nodeId] = node;
-          this.via = node;
-          this.via.parentEdgeId = this.id;
-          this.positionBezierNode();
-        }
-      }
-    }, {
-      key: 'positionBezierNode',
-      value: function positionBezierNode() {
-        if (this.via !== undefined && this.from !== undefined && this.to !== undefined) {
-          this.via.x = 0.5 * (this.from.x + this.to.x);
-          this.via.y = 0.5 * (this.from.y + this.to.y);
-        } else if (this.via !== undefined) {
-          this.via.x = 0;
-          this.via.y = 0;
-        }
-      }
-
-      /**
-       * Draw a line between two nodes
-       * @param {CanvasRenderingContext2D} ctx
-       * @private
-       */
-    }, {
+    _createClass(BezierEdgeStatic, [{
       key: '_line',
       value: function _line(ctx) {
         // draw a straight line
         ctx.beginPath();
         ctx.moveTo(this.from.x, this.from.y);
-        ctx.quadraticCurveTo(this.via.x, this.via.y, this.to.x, this.to.y);
+        var via = this._getViaCoordinates();
+        var returnValue = via;
+
+        // fallback to normal straight edges
+        if (via.x === undefined) {
+          ctx.lineTo(this.to.x, this.to.y);
+          returnValue = undefined;
+        } else {
+          ctx.quadraticCurveTo(via.x, via.y, this.to.x, this.to.y);
+        }
         // draw shadow if enabled
         this.enableShadow(ctx);
         ctx.stroke();
         this.disableShadow(ctx);
-        return this.via;
+        return returnValue;
+      }
+    }, {
+      key: '_getViaCoordinates',
+      value: function _getViaCoordinates() {
+        var xVia = undefined;
+        var yVia = undefined;
+        var factor = this.options.smooth.roundness;
+        var type = this.options.smooth.type;
+        var dx = Math.abs(this.from.x - this.to.x);
+        var dy = Math.abs(this.from.y - this.to.y);
+        if (type === 'discrete' || type === 'diagonalCross') {
+          if (Math.abs(this.from.x - this.to.x) <= Math.abs(this.from.y - this.to.y)) {
+            if (this.from.y >= this.to.y) {
+              if (this.from.x <= this.to.x) {
+                xVia = this.from.x + factor * dy;
+                yVia = this.from.y - factor * dy;
+              } else if (this.from.x > this.to.x) {
+                xVia = this.from.x - factor * dy;
+                yVia = this.from.y - factor * dy;
+              }
+            } else if (this.from.y < this.to.y) {
+              if (this.from.x <= this.to.x) {
+                xVia = this.from.x + factor * dy;
+                yVia = this.from.y + factor * dy;
+              } else if (this.from.x > this.to.x) {
+                xVia = this.from.x - factor * dy;
+                yVia = this.from.y + factor * dy;
+              }
+            }
+            if (type === "discrete") {
+              xVia = dx < factor * dy ? this.from.x : xVia;
+            }
+          } else if (Math.abs(this.from.x - this.to.x) > Math.abs(this.from.y - this.to.y)) {
+            if (this.from.y >= this.to.y) {
+              if (this.from.x <= this.to.x) {
+                xVia = this.from.x + factor * dx;
+                yVia = this.from.y - factor * dx;
+              } else if (this.from.x > this.to.x) {
+                xVia = this.from.x - factor * dx;
+                yVia = this.from.y - factor * dx;
+              }
+            } else if (this.from.y < this.to.y) {
+              if (this.from.x <= this.to.x) {
+                xVia = this.from.x + factor * dx;
+                yVia = this.from.y + factor * dx;
+              } else if (this.from.x > this.to.x) {
+                xVia = this.from.x - factor * dx;
+                yVia = this.from.y + factor * dx;
+              }
+            }
+            if (type === "discrete") {
+              yVia = dy < factor * dx ? this.from.y : yVia;
+            }
+          }
+        } else if (type === "straightCross") {
+          if (Math.abs(this.from.x - this.to.x) <= Math.abs(this.from.y - this.to.y)) {
+            // up - down
+            xVia = this.from.x;
+            if (this.from.y < this.to.y) {
+              yVia = this.to.y - (1 - factor) * dy;
+            } else {
+              yVia = this.to.y + (1 - factor) * dy;
+            }
+          } else if (Math.abs(this.from.x - this.to.x) > Math.abs(this.from.y - this.to.y)) {
+            // left - right
+            if (this.from.x < this.to.x) {
+              xVia = this.to.x - (1 - factor) * dx;
+            } else {
+              xVia = this.to.x + (1 - factor) * dx;
+            }
+            yVia = this.from.y;
+          }
+        } else if (type === 'horizontal') {
+          if (this.from.x < this.to.x) {
+            xVia = this.to.x - (1 - factor) * dx;
+          } else {
+            xVia = this.to.x + (1 - factor) * dx;
+          }
+          yVia = this.from.y;
+        } else if (type === 'vertical') {
+          xVia = this.from.x;
+          if (this.from.y < this.to.y) {
+            yVia = this.to.y - (1 - factor) * dy;
+          } else {
+            yVia = this.to.y + (1 - factor) * dy;
+          }
+        } else if (type === 'curvedCW') {
+          dx = this.to.x - this.from.x;
+          dy = this.from.y - this.to.y;
+          var radius = Math.sqrt(dx * dx + dy * dy);
+          var pi = Math.PI;
+
+          var originalAngle = Math.atan2(dy, dx);
+          var myAngle = (originalAngle + (factor * 0.5 + 0.5) * pi) % (2 * pi);
+
+          xVia = this.from.x + (factor * 0.5 + 0.5) * radius * Math.sin(myAngle);
+          yVia = this.from.y + (factor * 0.5 + 0.5) * radius * Math.cos(myAngle);
+        } else if (type === 'curvedCCW') {
+          dx = this.to.x - this.from.x;
+          dy = this.from.y - this.to.y;
+          var radius = Math.sqrt(dx * dx + dy * dy);
+          var pi = Math.PI;
+
+          var originalAngle = Math.atan2(dy, dx);
+          var myAngle = (originalAngle + (-factor * 0.5 + 0.5) * pi) % (2 * pi);
+
+          xVia = this.from.x + (factor * 0.5 + 0.5) * radius * Math.sin(myAngle);
+          yVia = this.from.y + (factor * 0.5 + 0.5) * radius * Math.cos(myAngle);
+        } else {
+          // continuous
+          if (Math.abs(this.from.x - this.to.x) <= Math.abs(this.from.y - this.to.y)) {
+            if (this.from.y >= this.to.y) {
+              if (this.from.x <= this.to.x) {
+                xVia = this.from.x + factor * dy;
+                yVia = this.from.y - factor * dy;
+                xVia = this.to.x < xVia ? this.to.x : xVia;
+              } else if (this.from.x > this.to.x) {
+                xVia = this.from.x - factor * dy;
+                yVia = this.from.y - factor * dy;
+                xVia = this.to.x > xVia ? this.to.x : xVia;
+              }
+            } else if (this.from.y < this.to.y) {
+              if (this.from.x <= this.to.x) {
+                xVia = this.from.x + factor * dy;
+                yVia = this.from.y + factor * dy;
+                xVia = this.to.x < xVia ? this.to.x : xVia;
+              } else if (this.from.x > this.to.x) {
+                xVia = this.from.x - factor * dy;
+                yVia = this.from.y + factor * dy;
+                xVia = this.to.x > xVia ? this.to.x : xVia;
+              }
+            }
+          } else if (Math.abs(this.from.x - this.to.x) > Math.abs(this.from.y - this.to.y)) {
+            if (this.from.y >= this.to.y) {
+              if (this.from.x <= this.to.x) {
+                xVia = this.from.x + factor * dx;
+                yVia = this.from.y - factor * dx;
+                yVia = this.to.y > yVia ? this.to.y : yVia;
+              } else if (this.from.x > this.to.x) {
+                xVia = this.from.x - factor * dx;
+                yVia = this.from.y - factor * dx;
+                yVia = this.to.y > yVia ? this.to.y : yVia;
+              }
+            } else if (this.from.y < this.to.y) {
+              if (this.from.x <= this.to.x) {
+                xVia = this.from.x + factor * dx;
+                yVia = this.from.y + factor * dx;
+                yVia = this.to.y < yVia ? this.to.y : yVia;
+              } else if (this.from.x > this.to.x) {
+                xVia = this.from.x - factor * dx;
+                yVia = this.from.y + factor * dx;
+                yVia = this.to.y < yVia ? this.to.y : yVia;
+              }
+            }
+          }
+        }
+        return { x: xVia, y: yVia };
+      }
+    }, {
+      key: '_findBorderPosition',
+      value: function _findBorderPosition(nearNode, ctx) {
+        var options = arguments.length <= 2 || arguments[2] === undefined ? {} : arguments[2];
+
+        return this._findBorderPositionBezier(nearNode, ctx, options.via);
+      }
+    }, {
+      key: '_getDistanceToEdge',
+      value: function _getDistanceToEdge(x1, y1, x2, y2, x3, y3) {
+        var via = arguments.length <= 6 || arguments[6] === undefined ? this._getViaCoordinates() : arguments[6];
+        // x3,y3 is the point
+        return this._getDistanceToBezierEdge(x1, y1, x2, y2, x3, y3, via);
       }
 
       /**
@@ -31184,29 +31338,20 @@ return /******/ (function(modules) { // webpackBootstrap
     }, {
       key: 'getPoint',
       value: function getPoint(percentage) {
+        var via = arguments.length <= 1 || arguments[1] === undefined ? this._getViaCoordinates() : arguments[1];
+
         var t = percentage;
-        var x = Math.pow(1 - t, 2) * this.from.x + 2 * t * (1 - t) * this.via.x + Math.pow(t, 2) * this.to.x;
-        var y = Math.pow(1 - t, 2) * this.from.y + 2 * t * (1 - t) * this.via.y + Math.pow(t, 2) * this.to.y;
+        var x = Math.pow(1 - t, 2) * this.from.x + 2 * t * (1 - t) * via.x + Math.pow(t, 2) * this.to.x;
+        var y = Math.pow(1 - t, 2) * this.from.y + 2 * t * (1 - t) * via.y + Math.pow(t, 2) * this.to.y;
 
         return { x: x, y: y };
       }
-    }, {
-      key: '_findBorderPosition',
-      value: function _findBorderPosition(nearNode, ctx) {
-        return this._findBorderPositionBezier(nearNode, ctx, this.via);
-      }
-    }, {
-      key: '_getDistanceToEdge',
-      value: function _getDistanceToEdge(x1, y1, x2, y2, x3, y3) {
-        // x3,y3 is the point
-        return this._getDistanceToBezierEdge(x1, y1, x2, y2, x3, y3, this.via);
-      }
     }]);
 
-    return BezierEdgeDynamic;
+    return BezierEdgeStatic;
   })(_utilBezierEdgeBase2['default']);
 
-  exports['default'] = BezierEdgeDynamic;
+  exports['default'] = BezierEdgeStatic;
   module.exports = exports['default'];
 
 /***/ },
@@ -31310,22 +31455,18 @@ return /******/ (function(modules) { // webpackBootstrap
        * Calculate the distance between a point (x3,y3) and a line segment from
        * (x1,y1) to (x2,y2).
        * http://stackoverflow.com/questions/849211/shortest-distancae-between-a-point-and-a-line-segment
-       * @param {number} x1
-       * @param {number} y1
-       * @param {number} x2
-       * @param {number} y2
-       * @param {number} x3
-       * @param {number} y3
+       * @param {number} x1 from x
+       * @param {number} y1 from y
+       * @param {number} x2 to x
+       * @param {number} y2 to y
+       * @param {number} x3 point to check x
+       * @param {number} y3 point to check y
        * @private
        */
     }, {
       key: '_getDistanceToBezierEdge',
       value: function _getDistanceToBezierEdge(x1, y1, x2, y2, x3, y3, via) {
         // x3,y3 is the point
-        var xVia = undefined,
-            yVia = undefined;
-        xVia = via.x;
-        yVia = via.y;
         var minDistance = 1e9;
         var distance = undefined;
         var i = undefined,
@@ -31336,8 +31477,8 @@ return /******/ (function(modules) { // webpackBootstrap
         var lastY = y1;
         for (i = 1; i < 10; i++) {
           t = 0.1 * i;
-          x = Math.pow(1 - t, 2) * x1 + 2 * t * (1 - t) * xVia + Math.pow(t, 2) * x2;
-          y = Math.pow(1 - t, 2) * y1 + 2 * t * (1 - t) * yVia + Math.pow(t, 2) * y2;
+          x = Math.pow(1 - t, 2) * x1 + 2 * t * (1 - t) * via.x + Math.pow(t, 2) * x2;
+          y = Math.pow(1 - t, 2) * y1 + 2 * t * (1 - t) * via.y + Math.pow(t, 2) * y2;
           if (i > 0) {
             distance = this._getDistanceToLine(lastX, lastY, x, y, x3, y3);
             minDistance = distance < minDistance ? distance : minDistance;
@@ -31962,9 +32103,11 @@ return /******/ (function(modules) { // webpackBootstrap
     value: true
   });
 
+  var _slicedToArray = (function () { function sliceIterator(arr, i) { var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i['return']) _i['return'](); } finally { if (_d) throw _e; } } return _arr; } return function (arr, i) { if (Array.isArray(arr)) { return arr; } else if (Symbol.iterator in Object(arr)) { return sliceIterator(arr, i); } else { throw new TypeError('Invalid attempt to destructure non-iterable instance'); } }; })();
+
   var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
 
-  var _get = function get(_x4, _x5, _x6) { var _again = true; _function: while (_again) { var object = _x4, property = _x5, receiver = _x6; desc = parent = getter = undefined; _again = false; if (object === null) object = Function.prototype; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { _x4 = parent; _x5 = property; _x6 = receiver; _again = true; continue _function; } } else if ('value' in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } } };
+  var _get = function get(_x3, _x4, _x5) { var _again = true; _function: while (_again) { var object = _x3, property = _x4, receiver = _x5; desc = parent = getter = undefined; _again = false; if (object === null) object = Function.prototype; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { _x3 = parent; _x4 = property; _x5 = receiver; _again = true; continue _function; } } else if ('value' in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } } };
 
   function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
 
@@ -31972,17 +32115,17 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; }
 
-  var _utilBezierEdgeBase = __webpack_require__(84);
+  var _utilCubicBezierEdgeBase = __webpack_require__(87);
 
-  var _utilBezierEdgeBase2 = _interopRequireDefault(_utilBezierEdgeBase);
+  var _utilCubicBezierEdgeBase2 = _interopRequireDefault(_utilCubicBezierEdgeBase);
 
-  var BezierEdgeStatic = (function (_BezierEdgeBase) {
-    _inherits(BezierEdgeStatic, _BezierEdgeBase);
+  var CubicBezierEdge = (function (_CubicBezierEdgeBase) {
+    _inherits(CubicBezierEdge, _CubicBezierEdgeBase);
 
-    function BezierEdgeStatic(options, body, labelModule) {
-      _classCallCheck(this, BezierEdgeStatic);
+    function CubicBezierEdge(options, body, labelModule) {
+      _classCallCheck(this, CubicBezierEdge);
 
-      _get(Object.getPrototypeOf(BezierEdgeStatic.prototype), 'constructor', this).call(this, options, body, labelModule);
+      _get(Object.getPrototypeOf(CubicBezierEdge.prototype), 'constructor', this).call(this, options, body, labelModule);
     }
 
     /**
@@ -31991,21 +32134,28 @@ return /******/ (function(modules) { // webpackBootstrap
      * @private
      */
 
-    _createClass(BezierEdgeStatic, [{
+    _createClass(CubicBezierEdge, [{
       key: '_line',
       value: function _line(ctx) {
-        // draw a straight line
+        var _getViaCoordinates2 = this._getViaCoordinates();
+
+        var _getViaCoordinates22 = _slicedToArray(_getViaCoordinates2, 2);
+
+        var via1 = _getViaCoordinates22[0];
+        var via2 = _getViaCoordinates22[1];
+
+        var returnValue = [via1, via2];
+
+        // start drawing the line.
         ctx.beginPath();
         ctx.moveTo(this.from.x, this.from.y);
-        var via = this._getViaCoordinates();
-        var returnValue = via;
 
         // fallback to normal straight edges
-        if (via.x === undefined) {
+        if (via1.x === undefined) {
           ctx.lineTo(this.to.x, this.to.y);
           returnValue = undefined;
         } else {
-          ctx.quadraticCurveTo(via.x, via.y, this.to.x, this.to.y);
+          ctx.bezierCurveTo(via1.x, via1.y, via2.x, via2.y, this.to.x, this.to.y);
         }
         // draw shadow if enabled
         this.enableShadow(ctx);
@@ -32016,173 +32166,46 @@ return /******/ (function(modules) { // webpackBootstrap
     }, {
       key: '_getViaCoordinates',
       value: function _getViaCoordinates() {
-        var xVia = undefined;
-        var yVia = undefined;
-        var factor = this.options.smooth.roundness;
-        var type = this.options.smooth.type;
-        var dx = Math.abs(this.from.x - this.to.x);
-        var dy = Math.abs(this.from.y - this.to.y);
-        if (type === 'discrete' || type === 'diagonalCross') {
-          if (Math.abs(this.from.x - this.to.x) <= Math.abs(this.from.y - this.to.y)) {
-            if (this.from.y >= this.to.y) {
-              if (this.from.x <= this.to.x) {
-                xVia = this.from.x + factor * dy;
-                yVia = this.from.y - factor * dy;
-              } else if (this.from.x > this.to.x) {
-                xVia = this.from.x - factor * dy;
-                yVia = this.from.y - factor * dy;
-              }
-            } else if (this.from.y < this.to.y) {
-              if (this.from.x <= this.to.x) {
-                xVia = this.from.x + factor * dy;
-                yVia = this.from.y + factor * dy;
-              } else if (this.from.x > this.to.x) {
-                xVia = this.from.x - factor * dy;
-                yVia = this.from.y + factor * dy;
-              }
-            }
-            if (type === "discrete") {
-              xVia = dx < factor * dy ? this.from.x : xVia;
-            }
-          } else if (Math.abs(this.from.x - this.to.x) > Math.abs(this.from.y - this.to.y)) {
-            if (this.from.y >= this.to.y) {
-              if (this.from.x <= this.to.x) {
-                xVia = this.from.x + factor * dx;
-                yVia = this.from.y - factor * dx;
-              } else if (this.from.x > this.to.x) {
-                xVia = this.from.x - factor * dx;
-                yVia = this.from.y - factor * dx;
-              }
-            } else if (this.from.y < this.to.y) {
-              if (this.from.x <= this.to.x) {
-                xVia = this.from.x + factor * dx;
-                yVia = this.from.y + factor * dx;
-              } else if (this.from.x > this.to.x) {
-                xVia = this.from.x - factor * dx;
-                yVia = this.from.y + factor * dx;
-              }
-            }
-            if (type === "discrete") {
-              yVia = dy < factor * dx ? this.from.y : yVia;
-            }
-          }
-        } else if (type === "straightCross") {
-          if (Math.abs(this.from.x - this.to.x) <= Math.abs(this.from.y - this.to.y)) {
-            // up - down
-            xVia = this.from.x;
-            if (this.from.y < this.to.y) {
-              yVia = this.to.y - (1 - factor) * dy;
-            } else {
-              yVia = this.to.y + (1 - factor) * dy;
-            }
-          } else if (Math.abs(this.from.x - this.to.x) > Math.abs(this.from.y - this.to.y)) {
-            // left - right
-            if (this.from.x < this.to.x) {
-              xVia = this.to.x - (1 - factor) * dx;
-            } else {
-              xVia = this.to.x + (1 - factor) * dx;
-            }
-            yVia = this.from.y;
-          }
-        } else if (type === 'horizontal') {
-          if (this.from.x < this.to.x) {
-            xVia = this.to.x - (1 - factor) * dx;
-          } else {
-            xVia = this.to.x + (1 - factor) * dx;
-          }
-          yVia = this.from.y;
-        } else if (type === 'vertical') {
-          xVia = this.from.x;
-          if (this.from.y < this.to.y) {
-            yVia = this.to.y - (1 - factor) * dy;
-          } else {
-            yVia = this.to.y + (1 - factor) * dy;
-          }
-        } else if (type === 'curvedCW') {
-          dx = this.to.x - this.from.x;
-          dy = this.from.y - this.to.y;
-          var radius = Math.sqrt(dx * dx + dy * dy);
-          var pi = Math.PI;
+        var dx = this.from.x - this.to.x;
+        var dy = this.from.y - this.to.y;
 
-          var originalAngle = Math.atan2(dy, dx);
-          var myAngle = (originalAngle + (factor * 0.5 + 0.5) * pi) % (2 * pi);
+        var x1 = undefined,
+            y1 = undefined,
+            x2 = undefined,
+            y2 = undefined;
+        var roundness = this.options.smooth.roundness;;
 
-          xVia = this.from.x + (factor * 0.5 + 0.5) * radius * Math.sin(myAngle);
-          yVia = this.from.y + (factor * 0.5 + 0.5) * radius * Math.cos(myAngle);
-        } else if (type === 'curvedCCW') {
-          dx = this.to.x - this.from.x;
-          dy = this.from.y - this.to.y;
-          var radius = Math.sqrt(dx * dx + dy * dy);
-          var pi = Math.PI;
-
-          var originalAngle = Math.atan2(dy, dx);
-          var myAngle = (originalAngle + (-factor * 0.5 + 0.5) * pi) % (2 * pi);
-
-          xVia = this.from.x + (factor * 0.5 + 0.5) * radius * Math.sin(myAngle);
-          yVia = this.from.y + (factor * 0.5 + 0.5) * radius * Math.cos(myAngle);
+        // horizontal if x > y or if direction is forced or if direction is horizontal
+        if ((Math.abs(dx) > Math.abs(dy) || this.options.smooth.forceDirection === true || this.options.smooth.forceDirection === 'horizontal') && this.options.smooth.forceDirection !== 'vertical') {
+          y1 = this.from.y;
+          y2 = this.to.y;
+          x1 = this.from.x - roundness * dx;
+          x2 = this.to.x + roundness * dx;
         } else {
-          // continuous
-          if (Math.abs(this.from.x - this.to.x) <= Math.abs(this.from.y - this.to.y)) {
-            if (this.from.y >= this.to.y) {
-              if (this.from.x <= this.to.x) {
-                xVia = this.from.x + factor * dy;
-                yVia = this.from.y - factor * dy;
-                xVia = this.to.x < xVia ? this.to.x : xVia;
-              } else if (this.from.x > this.to.x) {
-                xVia = this.from.x - factor * dy;
-                yVia = this.from.y - factor * dy;
-                xVia = this.to.x > xVia ? this.to.x : xVia;
-              }
-            } else if (this.from.y < this.to.y) {
-              if (this.from.x <= this.to.x) {
-                xVia = this.from.x + factor * dy;
-                yVia = this.from.y + factor * dy;
-                xVia = this.to.x < xVia ? this.to.x : xVia;
-              } else if (this.from.x > this.to.x) {
-                xVia = this.from.x - factor * dy;
-                yVia = this.from.y + factor * dy;
-                xVia = this.to.x > xVia ? this.to.x : xVia;
-              }
-            }
-          } else if (Math.abs(this.from.x - this.to.x) > Math.abs(this.from.y - this.to.y)) {
-            if (this.from.y >= this.to.y) {
-              if (this.from.x <= this.to.x) {
-                xVia = this.from.x + factor * dx;
-                yVia = this.from.y - factor * dx;
-                yVia = this.to.y > yVia ? this.to.y : yVia;
-              } else if (this.from.x > this.to.x) {
-                xVia = this.from.x - factor * dx;
-                yVia = this.from.y - factor * dx;
-                yVia = this.to.y > yVia ? this.to.y : yVia;
-              }
-            } else if (this.from.y < this.to.y) {
-              if (this.from.x <= this.to.x) {
-                xVia = this.from.x + factor * dx;
-                yVia = this.from.y + factor * dx;
-                yVia = this.to.y < yVia ? this.to.y : yVia;
-              } else if (this.from.x > this.to.x) {
-                xVia = this.from.x - factor * dx;
-                yVia = this.from.y + factor * dx;
-                yVia = this.to.y < yVia ? this.to.y : yVia;
-              }
-            }
-          }
+          y1 = this.from.y - roundness * dy;
+          y2 = this.to.y + roundness * dy;
+          x1 = this.from.x;
+          x2 = this.to.x;
         }
-        return { x: xVia, y: yVia };
+
+        return [{ x: x1, y: y1 }, { x: x2, y: y2 }];
       }
     }, {
       key: '_findBorderPosition',
       value: function _findBorderPosition(nearNode, ctx) {
-        var options = arguments.length <= 2 || arguments[2] === undefined ? {} : arguments[2];
-
-        return this._findBorderPositionBezier(nearNode, ctx, options.via);
+        return this._findBorderPositionBezier(nearNode, ctx);
       }
     }, {
       key: '_getDistanceToEdge',
       value: function _getDistanceToEdge(x1, y1, x2, y2, x3, y3) {
-        var via = arguments.length <= 6 || arguments[6] === undefined ? this._getViaCoordinates() : arguments[6];
+        var _ref = arguments.length <= 6 || arguments[6] === undefined ? this._getViaCoordinates() : arguments[6];
+
+        var _ref2 = _slicedToArray(_ref, 2);
+
+        var via1 = _ref2[0];
+        var via2 = _ref2[1];
         // x3,y3 is the point
-        return this._getDistanceToBezierEdge(x1, y1, x2, y2, x3, y3, via);
+        return this._getDistanceToBezierEdge(x1, y1, x2, y2, x3, y3, via1, via2);
       }
 
       /**
@@ -32195,24 +32218,287 @@ return /******/ (function(modules) { // webpackBootstrap
     }, {
       key: 'getPoint',
       value: function getPoint(percentage) {
-        var via = arguments.length <= 1 || arguments[1] === undefined ? this._getViaCoordinates() : arguments[1];
+        var _ref3 = arguments.length <= 1 || arguments[1] === undefined ? this._getViaCoordinates() : arguments[1];
+
+        var _ref32 = _slicedToArray(_ref3, 2);
+
+        var via1 = _ref32[0];
+        var via2 = _ref32[1];
 
         var t = percentage;
-        var x = Math.pow(1 - t, 2) * this.from.x + 2 * t * (1 - t) * via.x + Math.pow(t, 2) * this.to.x;
-        var y = Math.pow(1 - t, 2) * this.from.y + 2 * t * (1 - t) * via.y + Math.pow(t, 2) * this.to.y;
+        var vec = [];
+        vec[0] = Math.pow(1 - t, 3);
+        vec[1] = 3 * t * Math.pow(1 - t, 2);
+        vec[2] = 3 * Math.pow(t, 2) * (1 - t);
+        vec[3] = Math.pow(t, 3);
+        var x = vec[0] * this.from.x + vec[1] * via1.x + vec[2] * via2.x + vec[3] * this.to.x;
+        var y = vec[0] * this.from.y + vec[1] * via1.y + vec[2] * via2.y + vec[3] * this.to.y;
 
         return { x: x, y: y };
       }
     }]);
 
-    return BezierEdgeStatic;
-  })(_utilBezierEdgeBase2['default']);
+    return CubicBezierEdge;
+  })(_utilCubicBezierEdgeBase2['default']);
 
-  exports['default'] = BezierEdgeStatic;
+  exports['default'] = CubicBezierEdge;
   module.exports = exports['default'];
+
+  // get the coordinates of the support points.
 
 /***/ },
 /* 87 */
+/***/ function(module, exports, __webpack_require__) {
+
+  'use strict';
+
+  Object.defineProperty(exports, '__esModule', {
+    value: true
+  });
+
+  var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
+
+  var _get = function get(_x, _x2, _x3) { var _again = true; _function: while (_again) { var object = _x, property = _x2, receiver = _x3; desc = parent = getter = undefined; _again = false; if (object === null) object = Function.prototype; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { _x = parent; _x2 = property; _x3 = receiver; _again = true; continue _function; } } else if ('value' in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } } };
+
+  function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
+
+  function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
+
+  function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; }
+
+  var _BezierEdgeBase2 = __webpack_require__(84);
+
+  var _BezierEdgeBase3 = _interopRequireDefault(_BezierEdgeBase2);
+
+  var CubicBezierEdgeBase = (function (_BezierEdgeBase) {
+    _inherits(CubicBezierEdgeBase, _BezierEdgeBase);
+
+    function CubicBezierEdgeBase(options, body, labelModule) {
+      _classCallCheck(this, CubicBezierEdgeBase);
+
+      _get(Object.getPrototypeOf(CubicBezierEdgeBase.prototype), 'constructor', this).call(this, options, body, labelModule);
+    }
+
+    /**
+     * Calculate the distance between a point (x3,y3) and a line segment from
+     * (x1,y1) to (x2,y2).
+     * http://stackoverflow.com/questions/849211/shortest-distancae-between-a-point-and-a-line-segment
+     * https://en.wikipedia.org/wiki/B%C3%A9zier_curve
+     * @param {number} x1 from x
+     * @param {number} y1 from y
+     * @param {number} x2 to x
+     * @param {number} y2 to y
+     * @param {number} x3 point to check x
+     * @param {number} y3 point to check y
+     * @private
+     */
+
+    _createClass(CubicBezierEdgeBase, [{
+      key: '_getDistanceToBezierEdge',
+      value: function _getDistanceToBezierEdge(x1, y1, x2, y2, x3, y3, via1, via2) {
+        // x3,y3 is the point
+        var minDistance = 1e9;
+        var distance = undefined;
+        var i = undefined,
+            t = undefined,
+            x = undefined,
+            y = undefined;
+        var lastX = x1;
+        var lastY = y1;
+        var vec = [0, 0, 0, 0];
+        for (i = 1; i < 10; i++) {
+          t = 0.1 * i;
+          vec[0] = Math.pow(1 - t, 3);
+          vec[1] = 3 * t * Math.pow(1 - t, 2);
+          vec[2] = 3 * Math.pow(t, 2) * (1 - t);
+          vec[3] = Math.pow(t, 3);
+          x = vec[0] * x1 + vec[1] * via1.x + vec[2] * via2.x + vec[3] * x2;
+          y = vec[0] * y1 + vec[1] * via1.y + vec[2] * via2.y + vec[3] * y2;
+          if (i > 0) {
+            distance = this._getDistanceToLine(lastX, lastY, x, y, x3, y3);
+            minDistance = distance < minDistance ? distance : minDistance;
+          }
+          lastX = x;
+          lastY = y;
+        }
+
+        return minDistance;
+      }
+    }]);
+
+    return CubicBezierEdgeBase;
+  })(_BezierEdgeBase3['default']);
+
+  exports['default'] = CubicBezierEdgeBase;
+  module.exports = exports['default'];
+
+/***/ },
+/* 88 */
+/***/ function(module, exports, __webpack_require__) {
+
+  'use strict';
+
+  Object.defineProperty(exports, '__esModule', {
+    value: true
+  });
+
+  var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
+
+  var _get = function get(_x, _x2, _x3) { var _again = true; _function: while (_again) { var object = _x, property = _x2, receiver = _x3; desc = parent = getter = undefined; _again = false; if (object === null) object = Function.prototype; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { _x = parent; _x2 = property; _x3 = receiver; _again = true; continue _function; } } else if ('value' in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } } };
+
+  function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
+
+  function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
+
+  function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; }
+
+  var _utilBezierEdgeBase = __webpack_require__(84);
+
+  var _utilBezierEdgeBase2 = _interopRequireDefault(_utilBezierEdgeBase);
+
+  var BezierEdgeDynamic = (function (_BezierEdgeBase) {
+    _inherits(BezierEdgeDynamic, _BezierEdgeBase);
+
+    function BezierEdgeDynamic(options, body, labelModule) {
+      _classCallCheck(this, BezierEdgeDynamic);
+
+      //this.via = undefined; // Here for completeness but not allowed to defined before super() is invoked.
+      _get(Object.getPrototypeOf(BezierEdgeDynamic.prototype), 'constructor', this).call(this, options, body, labelModule); // --> this calls the setOptions below
+    }
+
+    _createClass(BezierEdgeDynamic, [{
+      key: 'setOptions',
+      value: function setOptions(options) {
+        this.options = options;
+        this.id = this.options.id;
+        this.setupSupportNode();
+        this.connect();
+      }
+    }, {
+      key: 'connect',
+      value: function connect() {
+        this.from = this.body.nodes[this.options.from];
+        this.to = this.body.nodes[this.options.to];
+        if (this.from === undefined || this.to === undefined || this.options.physics === false) {
+          this.via.setOptions({ physics: false });
+        } else {
+          // fix weird behaviour where a selfreferencing node has physics enabled
+          if (this.from.id === this.to.id) {
+            this.via.setOptions({ physics: false });
+          } else {
+            this.via.setOptions({ physics: true });
+          }
+        }
+      }
+    }, {
+      key: 'cleanup',
+      value: function cleanup() {
+        if (this.via !== undefined) {
+          delete this.body.nodes[this.via.id];
+          this.via = undefined;
+          return true;
+        }
+        return false;
+      }
+    }, {
+      key: 'togglePhysics',
+      value: function togglePhysics(status) {
+        this.via.setOptions({ physics: status });
+        this.positionBezierNode();
+      }
+
+      /**
+       * Bezier curves require an anchor point to calculate the smooth flow. These points are nodes. These nodes are invisible but
+       * are used for the force calculation.
+       *
+       * The changed data is not called, if needed, it is returned by the main edge constructor.
+       * @private
+       */
+    }, {
+      key: 'setupSupportNode',
+      value: function setupSupportNode() {
+        if (this.via === undefined) {
+          var nodeId = "edgeId:" + this.id;
+          var node = this.body.functions.createNode({
+            id: nodeId,
+            shape: 'circle',
+            physics: true,
+            hidden: true
+          });
+          this.body.nodes[nodeId] = node;
+          this.via = node;
+          this.via.parentEdgeId = this.id;
+          this.positionBezierNode();
+        }
+      }
+    }, {
+      key: 'positionBezierNode',
+      value: function positionBezierNode() {
+        if (this.via !== undefined && this.from !== undefined && this.to !== undefined) {
+          this.via.x = 0.5 * (this.from.x + this.to.x);
+          this.via.y = 0.5 * (this.from.y + this.to.y);
+        } else if (this.via !== undefined) {
+          this.via.x = 0;
+          this.via.y = 0;
+        }
+      }
+
+      /**
+       * Draw a line between two nodes
+       * @param {CanvasRenderingContext2D} ctx
+       * @private
+       */
+    }, {
+      key: '_line',
+      value: function _line(ctx) {
+        // draw a straight line
+        ctx.beginPath();
+        ctx.moveTo(this.from.x, this.from.y);
+        ctx.quadraticCurveTo(this.via.x, this.via.y, this.to.x, this.to.y);
+        // draw shadow if enabled
+        this.enableShadow(ctx);
+        ctx.stroke();
+        this.disableShadow(ctx);
+        return this.via;
+      }
+
+      /**
+       * Combined function of pointOnLine and pointOnBezier. This gives the coordinates of a point on the line at a certain percentage of the way
+       * @param percentage
+       * @param via
+       * @returns {{x: number, y: number}}
+       * @private
+       */
+    }, {
+      key: 'getPoint',
+      value: function getPoint(percentage) {
+        var t = percentage;
+        var x = Math.pow(1 - t, 2) * this.from.x + 2 * t * (1 - t) * this.via.x + Math.pow(t, 2) * this.to.x;
+        var y = Math.pow(1 - t, 2) * this.from.y + 2 * t * (1 - t) * this.via.y + Math.pow(t, 2) * this.to.y;
+
+        return { x: x, y: y };
+      }
+    }, {
+      key: '_findBorderPosition',
+      value: function _findBorderPosition(nearNode, ctx) {
+        return this._findBorderPositionBezier(nearNode, ctx, this.via);
+      }
+    }, {
+      key: '_getDistanceToEdge',
+      value: function _getDistanceToEdge(x1, y1, x2, y2, x3, y3) {
+        // x3,y3 is the point
+        return this._getDistanceToBezierEdge(x1, y1, x2, y2, x3, y3, this.via);
+      }
+    }]);
+
+    return BezierEdgeDynamic;
+  })(_utilBezierEdgeBase2['default']);
+
+  exports['default'] = BezierEdgeDynamic;
+  module.exports = exports['default'];
+
+/***/ },
+/* 89 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -32317,7 +32603,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 88 */
+/* 90 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -32332,35 +32618,35 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
 
-  var _componentsPhysicsBarnesHutSolver = __webpack_require__(89);
+  var _componentsPhysicsBarnesHutSolver = __webpack_require__(91);
 
   var _componentsPhysicsBarnesHutSolver2 = _interopRequireDefault(_componentsPhysicsBarnesHutSolver);
 
-  var _componentsPhysicsRepulsionSolver = __webpack_require__(90);
+  var _componentsPhysicsRepulsionSolver = __webpack_require__(92);
 
   var _componentsPhysicsRepulsionSolver2 = _interopRequireDefault(_componentsPhysicsRepulsionSolver);
 
-  var _componentsPhysicsHierarchicalRepulsionSolver = __webpack_require__(91);
+  var _componentsPhysicsHierarchicalRepulsionSolver = __webpack_require__(93);
 
   var _componentsPhysicsHierarchicalRepulsionSolver2 = _interopRequireDefault(_componentsPhysicsHierarchicalRepulsionSolver);
 
-  var _componentsPhysicsSpringSolver = __webpack_require__(92);
+  var _componentsPhysicsSpringSolver = __webpack_require__(94);
 
   var _componentsPhysicsSpringSolver2 = _interopRequireDefault(_componentsPhysicsSpringSolver);
 
-  var _componentsPhysicsHierarchicalSpringSolver = __webpack_require__(93);
+  var _componentsPhysicsHierarchicalSpringSolver = __webpack_require__(95);
 
   var _componentsPhysicsHierarchicalSpringSolver2 = _interopRequireDefault(_componentsPhysicsHierarchicalSpringSolver);
 
-  var _componentsPhysicsCentralGravitySolver = __webpack_require__(94);
+  var _componentsPhysicsCentralGravitySolver = __webpack_require__(96);
 
   var _componentsPhysicsCentralGravitySolver2 = _interopRequireDefault(_componentsPhysicsCentralGravitySolver);
 
-  var _componentsPhysicsFA2BasedRepulsionSolver = __webpack_require__(95);
+  var _componentsPhysicsFA2BasedRepulsionSolver = __webpack_require__(97);
 
   var _componentsPhysicsFA2BasedRepulsionSolver2 = _interopRequireDefault(_componentsPhysicsFA2BasedRepulsionSolver);
 
-  var _componentsPhysicsFA2BasedCentralGravitySolver = __webpack_require__(96);
+  var _componentsPhysicsFA2BasedCentralGravitySolver = __webpack_require__(98);
 
   var _componentsPhysicsFA2BasedCentralGravitySolver2 = _interopRequireDefault(_componentsPhysicsFA2BasedCentralGravitySolver);
 
@@ -32782,6 +33068,8 @@ return /******/ (function(modules) { // webpackBootstrap
         var timestep = this.options.timestep;
         var forces = this.physicsBody.forces;
         var velocities = this.physicsBody.velocities;
+        var x = node.x;
+        var y = node.y;
 
         // store the state so we can revert
         this.previousStates[nodeId] = { x: node.x, y: node.y, vx: velocities[nodeId].x, vy: velocities[nodeId].y };
@@ -32791,7 +33079,7 @@ return /******/ (function(modules) { // webpackBootstrap
           var ax = (forces[nodeId].x - dx) / node.options.mass; // acceleration
           velocities[nodeId].x += ax * timestep; // velocity
           velocities[nodeId].x = Math.abs(velocities[nodeId].x) > maxVelocity ? velocities[nodeId].x > 0 ? maxVelocity : -maxVelocity : velocities[nodeId].x;
-          node.x += velocities[nodeId].x * timestep; // position
+          x += velocities[nodeId].x * timestep; // position
         } else {
             forces[nodeId].x = 0;
             velocities[nodeId].x = 0;
@@ -32802,12 +33090,13 @@ return /******/ (function(modules) { // webpackBootstrap
           var ay = (forces[nodeId].y - dy) / node.options.mass; // acceleration
           velocities[nodeId].y += ay * timestep; // velocity
           velocities[nodeId].y = Math.abs(velocities[nodeId].y) > maxVelocity ? velocities[nodeId].y > 0 ? maxVelocity : -maxVelocity : velocities[nodeId].y;
-          node.y += velocities[nodeId].y * timestep; // position
+          y += velocities[nodeId].y * timestep; // position
         } else {
             forces[nodeId].y = 0;
             velocities[nodeId].y = 0;
           }
 
+        node.move(x, y);
         var totalVelocity = Math.sqrt(Math.pow(velocities[nodeId].x, 2) + Math.pow(velocities[nodeId].y, 2));
         return totalVelocity;
       }
@@ -32957,7 +33246,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 89 */
+/* 91 */
 /***/ function(module, exports) {
 
   "use strict";
@@ -33456,7 +33745,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports["default"];
 
 /***/ },
-/* 90 */
+/* 92 */
 /***/ function(module, exports) {
 
   "use strict";
@@ -33551,7 +33840,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports["default"];
 
 /***/ },
-/* 91 */
+/* 93 */
 /***/ function(module, exports) {
 
   "use strict";
@@ -33642,7 +33931,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports["default"];
 
 /***/ },
-/* 92 */
+/* 94 */
 /***/ function(module, exports) {
 
   "use strict";
@@ -33752,7 +34041,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports["default"];
 
 /***/ },
-/* 93 */
+/* 95 */
 /***/ function(module, exports) {
 
   "use strict";
@@ -33881,7 +34170,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports["default"];
 
 /***/ },
-/* 94 */
+/* 96 */
 /***/ function(module, exports) {
 
   "use strict";
@@ -33950,7 +34239,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports["default"];
 
 /***/ },
-/* 95 */
+/* 97 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
@@ -33969,7 +34258,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; }
 
-  var _BarnesHutSolver2 = __webpack_require__(89);
+  var _BarnesHutSolver2 = __webpack_require__(91);
 
   var _BarnesHutSolver3 = _interopRequireDefault(_BarnesHutSolver2);
 
@@ -34024,7 +34313,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports["default"];
 
 /***/ },
-/* 96 */
+/* 98 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
@@ -34043,7 +34332,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; }
 
-  var _CentralGravitySolver2 = __webpack_require__(94);
+  var _CentralGravitySolver2 = __webpack_require__(96);
 
   var _CentralGravitySolver3 = _interopRequireDefault(_CentralGravitySolver2);
 
@@ -34080,7 +34369,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports["default"];
 
 /***/ },
-/* 97 */
+/* 99 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -34095,7 +34384,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
 
-  var _componentsNodesCluster = __webpack_require__(98);
+  var _componentsNodesCluster = __webpack_require__(100);
 
   var _componentsNodesCluster2 = _interopRequireDefault(_componentsNodesCluster);
 
@@ -34528,7 +34817,7 @@ return /******/ (function(modules) { // webpackBootstrap
               // if this is a cluster edge that is fully encompassed in the cluster, we want to delete it
               // this check verifies that both of the connected nodes are in this cluster
               if (edgeId.substr(0, 12) === "clusterEdge:" && childNodesObj[edge.fromId] !== undefined && childNodesObj[edge.toId] !== undefined) {
-                edge.edgeType.cleanup();
+                edge.cleanup();
                 // this removes the edge from node.edges, which is why edgeIds is formed
                 edge.disconnect();
                 delete childEdgesObj[edgeId];
@@ -34688,7 +34977,7 @@ return /******/ (function(modules) { // webpackBootstrap
             var edge = containedEdges[edgeId];
             // if this edge was a temporary edge and it's connected nodes do not exist anymore, we remove it from the data
             if (this.body.nodes[edge.fromId] === undefined || this.body.nodes[edge.toId] === undefined || edge.toId == clusterNodeId || edge.fromId == clusterNodeId) {
-              edge.edgeType.cleanup();
+              edge.cleanup();
               // this removes the edge from node.edges, which is why edgeIds is formed
               edge.disconnect();
               delete this.body.edges[edgeId];
@@ -34739,7 +35028,7 @@ return /******/ (function(modules) { // webpackBootstrap
         // actually removing the edges
         for (var i = 0; i < removeIds.length; i++) {
           var edgeId = removeIds[i];
-          this.body.edges[edgeId].edgeType.cleanup();
+          this.body.edges[edgeId].cleanup();
           // this removes the edge from node.edges, which is why edgeIds is formed
           this.body.edges[edgeId].disconnect();
           delete this.body.edges[edgeId];
@@ -34856,7 +35145,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 98 */
+/* 100 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -34901,7 +35190,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 99 */
+/* 101 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -35290,7 +35579,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 100 */
+/* 102 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -35668,7 +35957,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 101 */
+/* 103 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
@@ -36070,7 +36359,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports["default"];
 
 /***/ },
-/* 102 */
+/* 104 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -36085,11 +36374,11 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
 
-  var _componentsNavigationHandler = __webpack_require__(103);
+  var _componentsNavigationHandler = __webpack_require__(105);
 
   var _componentsNavigationHandler2 = _interopRequireDefault(_componentsNavigationHandler);
 
-  var _componentsPopup = __webpack_require__(104);
+  var _componentsPopup = __webpack_require__(106);
 
   var _componentsPopup2 = _interopRequireDefault(_componentsPopup);
 
@@ -36834,7 +37123,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 103 */
+/* 105 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -37160,7 +37449,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 104 */
+/* 106 */
 /***/ function(module, exports) {
 
   /**
@@ -37286,7 +37575,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 105 */
+/* 107 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
@@ -38030,7 +38319,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports["default"];
 
 /***/ },
-/* 106 */
+/* 108 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -38170,12 +38459,14 @@ return /******/ (function(modules) { // webpackBootstrap
               this.optionsBackup.edges = {
                 smooth: allOptions.edges.smooth.enabled === undefined ? true : allOptions.edges.smooth.enabled,
                 type: allOptions.edges.smooth.type === undefined ? 'dynamic' : allOptions.edges.smooth.type,
-                roundness: allOptions.edges.smooth.roundness === undefined ? 0.5 : allOptions.edges.smooth.roundness
+                roundness: allOptions.edges.smooth.roundness === undefined ? 0.5 : allOptions.edges.smooth.roundness,
+                forceDirection: allOptions.edges.smooth.forceDirection === undefined ? false : allOptions.edges.smooth.forceDirection
               };
               allOptions.edges.smooth = {
                 enabled: allOptions.edges.smooth.enabled === undefined ? true : allOptions.edges.smooth.enabled,
                 type: type,
-                roundness: allOptions.edges.smooth.roundness === undefined ? 0.5 : allOptions.edges.smooth.roundness
+                roundness: allOptions.edges.smooth.roundness === undefined ? 0.5 : allOptions.edges.smooth.roundness,
+                forceDirection: allOptions.edges.smooth.forceDirection === undefined ? false : allOptions.edges.smooth.forceDirection
               };
             }
           }
@@ -38543,7 +38834,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 107 */
+/* 109 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -39757,7 +40048,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 108 */
+/* 110 */
 /***/ function(module, exports) {
 
   /**
@@ -39845,8 +40136,9 @@ return /******/ (function(modules) { // webpackBootstrap
       },
       smooth: {
         enabled: { boolean: boolean },
-        type: { string: ['dynamic', 'continuous', 'discrete', 'diagonalCross', 'straightCross', 'horizontal', 'vertical', 'curvedCW', 'curvedCCW'] },
+        type: { string: ['dynamic', 'continuous', 'discrete', 'diagonalCross', 'straightCross', 'horizontal', 'vertical', 'curvedCW', 'curvedCCW', 'cubicBezier'] },
         roundness: { number: number },
+        forceDirection: { string: ['horizontal', 'vertical', 'none'], boolean: boolean },
         __type__: { object: object, boolean: boolean }
       },
       title: { string: string, 'undefined': 'undefined' },
@@ -40166,7 +40458,8 @@ return /******/ (function(modules) { // webpackBootstrap
       },
       smooth: {
         enabled: true,
-        type: ['dynamic', 'continuous', 'discrete', 'diagonalCross', 'straightCross', 'horizontal', 'vertical', 'curvedCW', 'curvedCCW'],
+        type: ['dynamic', 'continuous', 'discrete', 'diagonalCross', 'straightCross', 'horizontal', 'vertical', 'curvedCW', 'curvedCCW', 'cubicBezier'],
+        forceDirection: ['horizontal', 'vertical', 'none'],
         roundness: [0.5, 0, 1, 0.05]
       },
       width: [1, 0, 30, 1]
@@ -40251,7 +40544,7 @@ return /******/ (function(modules) { // webpackBootstrap
   exports.configureOptions = configureOptions;
 
 /***/ },
-/* 109 */
+/* 111 */
 /***/ function(module, exports) {
 
   /**
@@ -40538,7 +40831,7 @@ return /******/ (function(modules) { // webpackBootstrap
   }
 
 /***/ },
-/* 110 */
+/* 112 */
 /***/ function(module, exports) {
 
   /**
@@ -41436,7 +41729,7 @@ return /******/ (function(modules) { // webpackBootstrap
   exports.DOTToGraph = DOTToGraph;
 
 /***/ },
-/* 111 */
+/* 113 */
 /***/ function(module, exports) {
 
   'use strict';
@@ -41508,7 +41801,7 @@ return /******/ (function(modules) { // webpackBootstrap
   exports.parseGephi = parseGephi;
 
 /***/ },
-/* 112 */
+/* 114 */
 /***/ function(module, exports) {
 
   /**
@@ -41634,7 +41927,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports["default"];
 
 /***/ },
-/* 113 */
+/* 115 */
 /***/ function(module, exports) {
 
   // English

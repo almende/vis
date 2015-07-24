@@ -14,6 +14,7 @@ http://visjs.org
 ### Network
 
 - Added moveNode method.
+- Added cubic Bezier curves.
 
 
 ## 2015-07-22, version 4.6.0

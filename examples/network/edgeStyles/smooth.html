@@ -33,37 +33,15 @@
     <br /> <br />
 </div>
 
-<p>
-  Smooth curve type:
-  <select id="dropdownID" onchange="update();">
-    <option value="continuous" selected="selected">continuous</option>
-    <option value="discrete">discrete</option>
-    <option value="diagonalCross">diagonalCross</option>
-    <option value="straightCross">straightCross</option>
-    <option value="horizontal">horizontal</option>
-    <option value="vertical">vertical</option>
-    <option value="curvedCW">curvedCW</option>
-    <option value="curvedCCW">curvedCCW</option>
-    <option value="dynamic">dynamic</option>
-    <option value="none">none</option>
-  </select>
-</p>
-<p>
-  Roundness (0..1): <input type="range" min="0" max="1" value="0.5" step="0.05" style="width:200px" id="roundnessSlider" onchange="update();"> <input id="roundnessScreen" style="width:30px;" value="0.5"> <br>(0.5 is max roundness for continuous, 1.0 for the others)
-</p>
-
 <div id="mynetwork"></div>
 
 <script type="text/javascript">
 
-  var dropdown = document.getElementById("dropdownID");
-  var roundnessSlider = document.getElementById("roundnessSlider");
-  var roundnessScreen = document.getElementById("roundnessScreen");
   // create an array with nodes
   var nodes = [
     {id: 1, label: 'Fixed node', x:0, y:0, fixed:true},
     {id: 2, label: 'Drag me', x:150, y:130, physics:false},
-    {id: 3, label: 'Obstacle', x:80, y:-80, fixed:true, mass:5}
+    {id: 3, label: 'Obstacle', x:80, y:-80, fixed:true, mass:10}
   ];
 
   // create an array with edges
@@ -79,6 +57,12 @@
   };
   var options = {
     physics:true,
+    configure:function (option, path) {
+      if (path.indexOf('smooth') !== -1 || option === 'smooth') {
+        return true;
+      }
+      return false;
+    },
     edges: {
       smooth: {
         type: 'continuous'
@@ -87,33 +71,7 @@
   };
   var network = new vis.Network(container, data, options);
 
-  function update() {
-    var type = dropdown.value;
-    var options;
-    var roundness = parseFloat(roundnessSlider.value);
-    roundnessScreen.value = roundness;
-    if (type === 'none') {
-      options = {
-        edges: {
-          smooth: false
-        }
-      };
-    }
-    else {
-      options = {
-        edges: {
-          smooth: {
-            type: type,
-            roundness: roundness
-          }
-        }
-      };
-    }
 
-    network.setOptions(options);
-  }
-
-  update();
 </script>
 
 </body>
