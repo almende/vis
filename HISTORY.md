@@ -1,7 +1,8 @@
 # vis.js history
 http://visjs.org
 
-## not yet released, version 4.6.1
+
+## 2015-07-27, version 4.7.0
 
 ### Timeline
 
@@ -9,7 +10,6 @@ http://visjs.org
   multiple groups. Thanks @Fice.
 - Fixed #1118: since v4.6.0, grid of time axis was wrongly positioned on some 
   scales.
-
 
 ### Network
 
