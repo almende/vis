@@ -5,7 +5,7 @@
  * A dynamic, browser-based visualization library.
  *
  * @version 4.6.1-SNAPSHOT
- * @date    2015-07-24
+ * @date    2015-07-27
  *
  * @license
  * Copyright (C) 2011-2014 Almende B.V, http://almende.com
@@ -27653,7 +27653,8 @@ return /******/ (function(modules) { // webpackBootstrap
         var _this4 = this;
 
         if (this.body.nodes[nodeId] !== undefined) {
-          this.body.nodes[nodeId].move(Number(x), Number(y));
+          this.body.nodes[nodeId].x = Number(x);
+          this.body.nodes[nodeId].y = Number(y);
           setTimeout(function () {
             _this4.body.emitter.emit("startSimulation");
           }, 0);
@@ -28140,19 +28141,6 @@ return /******/ (function(modules) { // webpackBootstrap
       key: 'isBoundingBoxOverlappingWith',
       value: function isBoundingBoxOverlappingWith(obj) {
         return this.shape.boundingBox.left < obj.right && this.shape.boundingBox.right > obj.left && this.shape.boundingBox.top < obj.bottom && this.shape.boundingBox.bottom > obj.top;
-      }
-
-      /**
-       * move the node to a new position.
-       * @param x
-       * @param y
-       */
-    }, {
-      key: 'move',
-      value: function move(x, y) {
-        this.x = x;
-        this.y = y;
-        this.shape.move(x, y);
       }
 
       /**
@@ -28734,10 +28722,7 @@ return /******/ (function(modules) { // webpackBootstrap
         }
       }
 
-      // possible to overload in the shapes.
-    }, {
-      key: 'move',
-      value: function move(x, y) {}
+      // possible cleanup for use in shapes
     }, {
       key: 'cleanup',
       value: function cleanup() {}
@@ -33051,8 +33036,6 @@ return /******/ (function(modules) { // webpackBootstrap
         var timestep = this.options.timestep;
         var forces = this.physicsBody.forces;
         var velocities = this.physicsBody.velocities;
-        var x = node.x;
-        var y = node.y;
 
         // store the state so we can revert
         this.previousStates[nodeId] = { x: node.x, y: node.y, vx: velocities[nodeId].x, vy: velocities[nodeId].y };
@@ -33062,7 +33045,7 @@ return /******/ (function(modules) { // webpackBootstrap
           var ax = (forces[nodeId].x - dx) / node.options.mass; // acceleration
           velocities[nodeId].x += ax * timestep; // velocity
           velocities[nodeId].x = Math.abs(velocities[nodeId].x) > maxVelocity ? velocities[nodeId].x > 0 ? maxVelocity : -maxVelocity : velocities[nodeId].x;
-          x += velocities[nodeId].x * timestep; // position
+          node.x += velocities[nodeId].x * timestep; // position
         } else {
             forces[nodeId].x = 0;
             velocities[nodeId].x = 0;
@@ -33073,13 +33056,12 @@ return /******/ (function(modules) { // webpackBootstrap
           var ay = (forces[nodeId].y - dy) / node.options.mass; // acceleration
           velocities[nodeId].y += ay * timestep; // velocity
           velocities[nodeId].y = Math.abs(velocities[nodeId].y) > maxVelocity ? velocities[nodeId].y > 0 ? maxVelocity : -maxVelocity : velocities[nodeId].y;
-          y += velocities[nodeId].y * timestep; // position
+          node.y += velocities[nodeId].y * timestep; // position
         } else {
             forces[nodeId].y = 0;
             velocities[nodeId].y = 0;
           }
 
-        node.move(x, y);
         var totalVelocity = Math.sqrt(Math.pow(velocities[nodeId].x, 2) + Math.pow(velocities[nodeId].y, 2));
         return totalVelocity;
       }
