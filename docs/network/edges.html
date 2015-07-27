@@ -623,11 +623,19 @@ var options: {
             <td>String</td>
             <td><code>'dynamic'</code></td>
             <td>Possible options: <code>'dynamic', 'continuous', 'discrete', 'diagonalCross', 'straightCross', 'horizontal',
-                'vertical', 'curvedCW', 'curvedCCW'</code>. Take a look at our example 26 to see what these look like
+                'vertical', 'curvedCW', 'curvedCCW', 'cubicBezier'</code>. Take a look at our example 26 to see what these look like
                 and pick the one that you like best!
                 <br><br>
                 When using dynamic, the edges will have an invisible support node guiding the shape. This node is part of the
                 physics simulation.
+            </td>
+        </tr>
+        <tr parent="smooth" class="hidden">
+            <td class="indent">smooth.forceDirection</td>
+            <td>String or Boolean</td>
+            <td><code>false</code></td>
+            <td>Accepted options: <code>['horizontal', 'vertical', 'none']</code>. This options is only used with the cubicBezier curves. When true, horizontal is chosen, when false,
+                the direction that is larger (x distance between nodes vs y distance between nodes) is used. If the x distance is larger, horizontal. This is ment to be used with hierarchical layouts.
             </td>
         </tr>
         <tr parent="smooth" class="hidden">
