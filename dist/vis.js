@@ -5,7 +5,7 @@
  * A dynamic, browser-based visualization library.
  *
  * @version 4.6.1-SNAPSHOT
- * @date    2015-07-27
+ * @date    2015-07-30
  *
  * @license
  * Copyright (C) 2011-2014 Almende B.V, http://almende.com
@@ -25795,7 +25795,13 @@ return /******/ (function(modules) { // webpackBootstrap
       DOMutil.drawBar(combinedData[i].x + drawData.offset, combinedData[i].y - heightOffset, drawData.width, group.zeroPosition - combinedData[i].y, group.className + ' vis-bar', framework.svgElements, framework.svg, group.style);
       // draw points
       if (group.options.drawPoints.enabled === true) {
-        Points.draw([combinedData[i]], group, framework, drawData.offset);
+        var pointData = {
+          x: combinedData[i].x + drawData.offset,
+          y: combinedData[i].y - heightOffset,
+          groupId: combinedData[i].groupId,
+          label: combinedData[i].label
+        };
+        Points.draw([pointData], group, framework, drawData.offset);
         //DOMutil.drawPoint(combinedData[i].x + drawData.offset, combinedData[i].y, group, framework.svgElements, framework.svg);
       }
     }
