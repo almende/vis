@@ -15844,8 +15844,10 @@ return /******/ (function(modules) { // webpackBootstrap
     }
 
     // remove event listener on window.resize
-    util.removeEventListener(window, 'resize', this._onResize);
-    this._onResize = null;
+    if (this._onResize) {
+      util.removeEventListener(window, 'resize', this._onResize);
+      this._onResize = null;
+    }
   };
 
   /**
