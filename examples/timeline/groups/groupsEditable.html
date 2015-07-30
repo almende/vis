@@ -1,0 +1,295 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+  <title>Timeline | Editable Groups</title>
+
+  <style>
+    body, html {
+      font-family: arial, sans-serif;
+      font-size: 11pt;
+    }
+
+    #visualization {
+      box-sizing: border-box;
+      width: 100%;
+      height: 300px;
+    }
+  </style>
+
+  <script src="../../../dist/vis.js"></script>
+  <link href="../../../dist/vis.css" rel="stylesheet" type="text/css" />
+<!--   <script src="../../googleAnalytics.js"></script> -->
+</head>
+<body>
+<p>
+  This example demonstrates editable groups (for now only reordering).
+</p>
+<div id="visualization"></div>
+
+<script>
+  // http://motocal.com/
+  var groups = new vis.DataSet([
+	{"content": "Formula E", "id": "Formula E", "value": 1},
+	{"content": "WRC", "id": "WRC", "value": 2},
+	{"content": "MotoGP", "id": "MotoGP", "value": 3},
+	{"content": "V8SC", "id": "V8SC", "value": 4},
+	{"content": "WTCC", "id": "WTCC", "value": 5},
+	{"content": "F1", "id": "F1", "value": 6},
+	{"content": "SBK", "id": "SBK", "value": 7},
+	{"content": "IndyCar", "id": "IndyCar", "value": 8},
+	{"content": "MotoAmerica", "id": "MotoAmerica", "value": 9},
+	{"content": "SGP", "id": "SGP", "value": 10},
+	{"content": "EWC", "id": "EWC", "value": 11},
+	{"content": "BSB", "id": "BSB", "value": 12},
+	{"content": "DTM", "id": "DTM", "value": 13},
+	{"content": "BTCC", "id": "BTCC", "value": 14},
+	{"content": "WorldRX", "id": "WorldRX", "value": 15},
+	{"content": "WSR", "id": "WSR", "value": 16},
+	{"content": "Roads", "id": "Roads", "value": 17},
+	{"content": "WEC", "id": "WEC", "value": 18},
+  ]);
+
+  // create a dataset with items
+  // note that months are zero-based in the JavaScript Date object, so month 3 is April
+  var items = new vis.DataSet([
+	{start: new Date(2015, 0, 10), end: new Date(2015, 0, 11), group:"Formula E", content:"Argentina",id:"531@motocal.net"},
+	{start: new Date(2015, 0, 22), end: new Date(2015, 0, 26), group:"WRC", content:"Rallye Monte-Carlo",id:"591@motocal.net"},
+	{start: new Date(2015, 1, 04), end: new Date(2015, 1, 08), group:"MotoGP", content:"Sepang MotoGP Test 1",id:"578@motocal.net"},
+	{start: new Date(2015, 1, 12), end: new Date(2015, 1, 16), group:"WRC", content:"Rally Sweden",id:"592@motocal.net"},
+	{start: new Date(2015, 1, 20), end: new Date(2015, 1, 23), group:"SBK", content:"Australia",id:"616@motocal.net"},
+	{start: new Date(2015, 1, 23), end: new Date(2015, 1, 27), group:"MotoGP", content:"Sepang MotoGP Test 2",id:"579@motocal.net"},
+	{start: new Date(2015, 1, 26), end: new Date(2015, 2, 02), group:"V8SC", content:"Clipsal 500 Adelaide",id:"659@motocal.net"},
+	{start: new Date(2015, 2, 05), end: new Date(2015, 2, 09), group:"WRC", content:"Rally Guanajuato Mexico",id:"593@motocal.net"},
+	{start: new Date(2015, 2, 06), end: new Date(2015, 2, 09), group:"WTCC", content:"Argentina",id:"717@motocal.net"},
+	{start: new Date(2015, 2, 12), end: new Date(2015, 2, 16), group:"V8SC", content:"Australian Grand Prix",id:"660@motocal.net"},
+	{start: new Date(2015, 2, 13), end: new Date(2015, 2, 16), group:"F1", content:"Australia",id:"630@motocal.net"},
+	{start: new Date(2015, 2, 14), end: new Date(2015, 2, 15), group:"Formula E", content:"Miami, USA",id:"534@motocal.net"},
+	{start: new Date(2015, 2, 14), end: new Date(2015, 2, 17), group:"MotoGP", content:"Qatar MotoGP Test",id:"577@motocal.net"},
+	{start: new Date(2015, 2, 20), end: new Date(2015, 2, 23), group:"SBK", content:"Thailand",id:"617@motocal.net"},
+	{start: new Date(2015, 2, 27), end: new Date(2015, 2, 30), group:"F1", content:"Malaysia",id:"631@motocal.net"},
+	{start: new Date(2015, 2, 27), end: new Date(2015, 2, 30), group:"V8SC", content:"Tasmania SuperSprint",id:"661@motocal.net"},
+	{start: new Date(2015, 2, 27), end: new Date(2015, 2, 30), group:"IndyCar", content:"Grand Prix of St. Petersburg",id:"752@motocal.net"},
+	{start: new Date(2015, 3, 04), end: new Date(2015, 3, 07), group:"BSB", content:"Round 1",id:"604@motocal.net"},
+	{start: new Date(2015, 3, 04), end: new Date(2015, 3, 06), group:"BTCC", content:"Rounds 1, 2 & 3",id:"581@motocal.net"},
+	{start: new Date(2015, 3, 04), end: new Date(2015, 3, 05), group:"Formula E", content:"Long Beach, USA",id:"535@motocal.net"},
+	{start: new Date(2015, 3, 10), end: new Date(2015, 3, 13), group:"IndyCar", content:"Indy Grand Prix of Louisiana",id:"753@motocal.net"},
+	{start: new Date(2015, 3, 10), end: new Date(2015, 3, 13), group:"MotoAmerica", content:"COTA",id:"705@motocal.net"},
+	{start: new Date(2015, 3, 10), end: new Date(2015, 3, 13), group:"SBK", content:"Aragon",id:"618@motocal.net"},
+	{start: new Date(2015, 3, 10), end: new Date(2015, 3, 13), group:"MotoGP", content:"Americas",id:"540@motocal.net"},
+	{start: new Date(2015, 3, 10), end: new Date(2015, 3, 13), group:"F1", content:"China",id:"632@motocal.net"},
+	{start: new Date(2015, 3, 12), end: new Date(2015, 3, 13), group:"WEC", content:"6 Hours of Silverstone",id:"674@motocal.net"},
+	{start: new Date(2015, 3, 17), end: new Date(2015, 3, 20), group:"BSB", content:"Round 2",id:"605@motocal.net"},
+	{start: new Date(2015, 3, 17), end: new Date(2015, 3, 20), group:"F1", content:"Bahrain",id:"633@motocal.net"},
+	{start: new Date(2015, 3, 17), end: new Date(2015, 3, 20), group:"IndyCar", content:"Grand Prix of Long Beach",id:"754@motocal.net"},
+	{start: new Date(2015, 3, 17), end: new Date(2015, 3, 20), group:"MotoAmerica", content:"Road Atlanta",id:"706@motocal.net"},
+	{start: new Date(2015, 3, 17), end: new Date(2015, 3, 20), group:"SBK", content:"Netherlands",id:"619@motocal.net"},
+	{start: new Date(2015, 3, 17), end: new Date(2015, 3, 20), group:"WTCC", content:"Morocco",id:"718@motocal.net"},
+	{start: new Date(2015, 3, 17), end: new Date(2015, 3, 20), group:"MotoGP", content:"Argentina",id:"559@motocal.net"},
+	{start: new Date(2015, 3, 18), end: new Date(2015, 3, 19), group:"SGP", content:"Warsaw",id:"729@motocal.net"},
+	{start: new Date(2015, 3, 18), end: new Date(2015, 3, 20), group:"EWC", content:"24 Heures Moto Le Mans",id:"701@motocal.net"},
+	{start: new Date(2015, 3, 18), end: new Date(2015, 3, 20), group:"BTCC", content:"Rounds 4, 5 & 6",id:"582@motocal.net"},
+	{start: new Date(2015, 3, 23), end: new Date(2015, 3, 27), group:"WRC", content:"Rally Argentina",id:"595@motocal.net"},
+	{start: new Date(2015, 3, 24), end: new Date(2015, 3, 27), group:"WorldRX", content:"Portugal",id:"686@motocal.net"},
+	{start: new Date(2015, 3, 24), end: new Date(2015, 3, 27), group:"IndyCar", content:"Indy Grand Prix of Alabama",id:"755@motocal.net"},
+	{start: new Date(2015, 3, 25), end: new Date(2015, 3, 27), group:"WSR", content:"Spain",id:"742@motocal.net"},
+	{start: new Date(2015, 4, 01), end: new Date(2015, 4, 04), group:"MotoGP", content:"Spain",id:"542@motocal.net"},
+	{start: new Date(2015, 4, 01), end: new Date(2015, 4, 04), group:"WorldRX", content:"Hockenheim",id:"768@motocal.net"},
+	{start: new Date(2015, 4, 01), end: new Date(2015, 4, 04), group:"DTM", content:"Hockenheim",id:"650@motocal.net"},
+	{start: new Date(2015, 4, 01), end: new Date(2015, 4, 04), group:"WTCC", content:"Hungary",id:"719@motocal.net"},
+	{start: new Date(2015, 4, 01), end: new Date(2015, 4, 04), group:"V8SC", content:"Perth SuperSprint",id:"662@motocal.net"},
+	{start: new Date(2015, 4, 02), end: new Date(2015, 4, 05), group:"BSB", content:"Round 3",id:"606@motocal.net"},
+	{start: new Date(2015, 4, 02), end: new Date(2015, 4, 03), group:"WEC", content:"6 Hours of Spa-Francorchamps",id:"675@motocal.net"},
+	{start: new Date(2015, 4, 07), end: new Date(2015, 4, 10), group:"IndyCar", content:"Grand Prix of Indianapolis",id:"756@motocal.net"},
+	{start: new Date(2015, 4, 08), end: new Date(2015, 4, 11), group:"F1", content:"Spain",id:"634@motocal.net"},
+	{start: new Date(2015, 4, 08), end: new Date(2015, 4, 11), group:"SBK", content:"Italy",id:"620@motocal.net"},
+	{start: new Date(2015, 4, 09), end: new Date(2015, 4, 10), group:"Formula E", content:"Monaco",id:"536@motocal.net"},
+	{start: new Date(2015, 4, 09), end: new Date(2015, 4, 11), group:"BTCC", content:"Rounds 7, 8 & 9",id:"583@motocal.net"},
+	{start: new Date(2015, 4, 10), end: new Date(2015, 4, 17), group:"Roads", content:"North West 200",id:"682@motocal.net"},
+	{start: new Date(2015, 4, 15), end: new Date(2015, 4, 17), group:"WTCC", content:"Germany",id:"720@motocal.net"},
+	{start: new Date(2015, 4, 15), end: new Date(2015, 4, 18), group:"WorldRX", content:"Belgium",id:"687@motocal.net"},
+	{start: new Date(2015, 4, 15), end: new Date(2015, 4, 18), group:"V8SC", content:"Winton SuperSprint",id:"663@motocal.net"},
+	{start: new Date(2015, 4, 15), end: new Date(2015, 4, 18), group:"MotoGP", content:"France",id:"543@motocal.net"},
+	{start: new Date(2015, 4, 15), end: new Date(2015, 4, 18), group:"MotoAmerica", content:"VIR",id:"707@motocal.net"},
+	{start: new Date(2015, 4, 16), end: new Date(2015, 4, 17), group:"SGP", content:"Tampere",id:"730@motocal.net"},
+	{start: new Date(2015, 4, 21), end: new Date(2015, 4, 25), group:"WRC", content:"Rally de Portugal",id:"594@motocal.net"},
+	{start: new Date(2015, 4, 21), end: new Date(2015, 4, 25), group:"F1", content:"Monaco",id:"635@motocal.net"},
+	{start: new Date(2015, 4, 22), end: new Date(2015, 4, 25), group:"WorldRX", content:"Great Britain",id:"688@motocal.net"},
+	{start: new Date(2015, 4, 22), end: new Date(2015, 4, 25), group:"SBK", content:"UK",id:"621@motocal.net"},
+	{start: new Date(2015, 4, 22), end: new Date(2015, 4, 25), group:"IndyCar", content:"Indianapolis 500",id:"757@motocal.net"},
+	{start: new Date(2015, 4, 23), end: new Date(2015, 4, 24), group:"SGP", content:"Prague",id:"731@motocal.net"},
+	{start: new Date(2015, 4, 23), end: new Date(2015, 4, 24), group:"Formula E", content:"Germany",id:"537@motocal.net"},
+	{start: new Date(2015, 4, 24), end: new Date(2015, 4, 25), group:"WSR", content:"Monaco",id:"743@motocal.net"},
+	{start: new Date(2015, 4, 29), end: new Date(2015, 5, 01), group:"MotoAmerica", content:"Road America",id:"708@motocal.net"},
+	{start: new Date(2015, 4, 29), end: new Date(2015, 5, 01), group:"IndyCar", content:"Dual in Detroit",id:"758@motocal.net"},
+	{start: new Date(2015, 4, 29), end: new Date(2015, 5, 01), group:"MotoGP", content:"Italy",id:"562@motocal.net"},
+	{start: new Date(2015, 4, 29), end: new Date(2015, 5, 01), group:"DTM", content:"Lausitzring",id:"651@motocal.net"},
+	{start: new Date(2015, 4, 30), end: new Date(2015, 5, 13), group:"Roads", content:"Isle of Man TT",id:"683@motocal.net"},
+	{start: new Date(2015, 4, 30), end: new Date(2015, 5, 01), group:"WSR", content:"Belgium",id:"745@motocal.net"},
+	{start: new Date(2015, 5, 04), end: new Date(2015, 5, 07), group:"IndyCar", content:"Firestone 600",id:"759@motocal.net"},
+	{start: new Date(2015, 5, 05), end: new Date(2015, 5, 08), group:"SBK", content:"Portugal",id:"622@motocal.net"},
+	{start: new Date(2015, 5, 05), end: new Date(2015, 5, 08), group:"F1", content:"Canada",id:"636@motocal.net"},
+	{start: new Date(2015, 5, 05), end: new Date(2015, 5, 08), group:"WTCC", content:"Russia",id:"721@motocal.net"},
+	{start: new Date(2015, 5, 06), end: new Date(2015, 5, 07), group:"Formula E", content:"Russia",id:"716@motocal.net"},
+	{start: new Date(2015, 5, 06), end: new Date(2015, 5, 08), group:"BTCC", content:"Rounds 10, 11 & 12",id:"584@motocal.net"},
+	{start: new Date(2015, 5, 11), end: new Date(2015, 5, 15), group:"WRC", content:"Rally d'Italia Sardegna",id:"596@motocal.net"},
+	{start: new Date(2015, 5, 12), end: new Date(2015, 5, 15), group:"MotoGP", content:"Catalunya",id:"545@motocal.net"},
+	{start: new Date(2015, 5, 12), end: new Date(2015, 5, 15), group:"IndyCar", content:"Indy Toronto",id:"760@motocal.net"},
+	{start: new Date(2015, 5, 12), end: new Date(2015, 5, 15), group:"MotoAmerica", content:"Barber",id:"709@motocal.net"},
+	{start: new Date(2015, 5, 13), end: new Date(2015, 5, 15), group:"WSR", content:"Hungary",id:"746@motocal.net"},
+	{start: new Date(2015, 5, 13), end: new Date(2015, 5, 15), group:"WEC", content:"24 Heures du Mans",id:"676@motocal.net"},
+	{start: new Date(2015, 5, 19), end: new Date(2015, 5, 22), group:"V8SC", content:"Skycity Triple Crown",id:"664@motocal.net"},
+	{start: new Date(2015, 5, 19), end: new Date(2015, 5, 22), group:"WTCC", content:"Slovakia",id:"722@motocal.net"},
+	{start: new Date(2015, 5, 19), end: new Date(2015, 5, 22), group:"SBK", content:"Riviera di Rimini",id:"623@motocal.net"},
+	{start: new Date(2015, 5, 19), end: new Date(2015, 5, 22), group:"BSB", content:"Round 4",id:"607@motocal.net"},
+	{start: new Date(2015, 5, 19), end: new Date(2015, 5, 22), group:"F1", content:"Austria",id:"637@motocal.net"},
+	{start: new Date(2015, 5, 19), end: new Date(2015, 5, 22), group:"WorldRX", content:"Germany",id:"689@motocal.net"},
+	{start: new Date(2015, 5, 25), end: new Date(2015, 5, 28), group:"MotoGP", content:"Netherlands",id:"546@motocal.net"},
+	{start: new Date(2015, 5, 25), end: new Date(2015, 5, 28), group:"IndyCar", content:"MAVTV 500",id:"761@motocal.net"},
+	{start: new Date(2015, 5, 26), end: new Date(2015, 5, 29), group:"WTCC", content:"France",id:"723@motocal.net"},
+	{start: new Date(2015, 5, 26), end: new Date(2015, 5, 29), group:"DTM", content:"Norisring",id:"652@motocal.net"},
+	{start: new Date(2015, 5, 26), end: new Date(2015, 5, 29), group:"MotoAmerica", content:"Miller",id:"710@motocal.net"},
+	{start: new Date(2015, 5, 27), end: new Date(2015, 5, 29), group:"BTCC", content:"Rounds 13, 14 & 15",id:"585@motocal.net"},
+	{start: new Date(2015, 5, 27), end: new Date(2015, 5, 29), group:"Formula E", content:"United Kingdom",id:"538@motocal.net"},
+	{start: new Date(2015, 6, 02), end: new Date(2015, 6, 06), group:"WRC", content:"Rally Poland",id:"597@motocal.net"},
+	{start: new Date(2015, 6, 03), end: new Date(2015, 6, 06), group:"F1", content:"Britain",id:"638@motocal.net"},
+	{start: new Date(2015, 6, 03), end: new Date(2015, 6, 06), group:"WorldRX", content:"Sweden",id:"690@motocal.net"},
+	{start: new Date(2015, 6, 03), end: new Date(2015, 6, 06), group:"BSB", content:"Round 5",id:"608@motocal.net"},
+	{start: new Date(2015, 6, 04), end: new Date(2015, 6, 05), group:"SGP", content:"Cardiff",id:"732@motocal.net"},
+	{start: new Date(2015, 6, 06), end: new Date(2015, 6, 10), group:"Roads", content:"Southern 100",id:"714@motocal.net"},
+	{start: new Date(2015, 6, 10), end: new Date(2015, 6, 13), group:"MotoGP", content:"Germany",id:"565@motocal.net"},
+	{start: new Date(2015, 6, 10), end: new Date(2015, 6, 13), group:"DTM", content:"Zandvoort",id:"653@motocal.net"},
+	{start: new Date(2015, 6, 10), end: new Date(2015, 6, 13), group:"IndyCar", content:"Wisconsin 250",id:"763@motocal.net"},
+	{start: new Date(2015, 6, 10), end: new Date(2015, 6, 13), group:"V8SC", content:"Townsville 400",id:"665@motocal.net"},
+	{start: new Date(2015, 6, 10), end: new Date(2015, 6, 13), group:"WTCC", content:"Portugal",id:"724@motocal.net"},
+	{start: new Date(2015, 6, 11), end: new Date(2015, 6, 13), group:"WSR", content:"Austria",id:"747@motocal.net"},
+	{start: new Date(2015, 6, 16), end: new Date(2015, 6, 19), group:"IndyCar", content:"Iowa Corn Indy 300",id:"764@motocal.net"},
+	{start: new Date(2015, 6, 17), end: new Date(2015, 6, 20), group:"SBK", content:"USA",id:"625@motocal.net"},
+	{start: new Date(2015, 6, 17), end: new Date(2015, 6, 20), group:"BSB", content:"Round 6",id:"609@motocal.net"},
+	{start: new Date(2015, 6, 17), end: new Date(2015, 6, 20), group:"MotoAmerica", content:"Mazda Raceway",id:"711@motocal.net"},
+	{start: new Date(2015, 6, 18), end: new Date(2015, 6, 19), group:"SGP", content:"Daugavpils",id:"733@motocal.net"},
+	{start: new Date(2015, 6, 24), end: new Date(2015, 6, 27), group:"F1", content:"Hungary",id:"640@motocal.net"},
+	{start: new Date(2015, 6, 25), end: new Date(2015, 6, 26), group:"SGP", content:"Målilla",id:"734@motocal.net"},
+	{start: new Date(2015, 6, 26), end: new Date(2015, 6, 27), group:"EWC", content:"Suzuka 8 Hours",id:"702@motocal.net"},
+	{start: new Date(2015, 6, 30), end: new Date(2015, 7, 03), group:"WRC", content:"Rally Finland",id:"598@motocal.net"},
+	{start: new Date(2015, 6, 31), end: new Date(2015, 7, 03), group:"BSB", content:"Round 7",id:"610@motocal.net"},
+	{start: new Date(2015, 6, 31), end: new Date(2015, 7, 03), group:"V8SC", content:"Ipswich SuperSprint",id:"666@motocal.net"},
+	{start: new Date(2015, 6, 31), end: new Date(2015, 7, 03), group:"DTM", content:"Spielberg",id:"654@motocal.net"},
+	{start: new Date(2015, 6, 31), end: new Date(2015, 7, 03), group:"IndyCar", content:"Honda Indy 200",id:"765@motocal.net"},
+	{start: new Date(2015, 6, 31), end: new Date(2015, 7, 03), group:"SBK", content:"Malaysia",id:"626@motocal.net"},
+	{start: new Date(2015, 7, 03), end: new Date(2015, 7, 09), group:"Roads", content:"Ulster Grand Prix",id:"684@motocal.net"},
+	{start: new Date(2015, 7, 07), end: new Date(2015, 7, 09), group:"WorldRX", content:"Canada",id:"691@motocal.net"},
+	{start: new Date(2015, 7, 07), end: new Date(2015, 7, 10), group:"MotoAmerica", content:"INDY",id:"712@motocal.net"},
+	{start: new Date(2015, 7, 07), end: new Date(2015, 7, 10), group:"MotoGP", content:"Indianapolis",id:"548@motocal.net"},
+	{start: new Date(2015, 7, 08), end: new Date(2015, 7, 10), group:"BTCC", content:"Rounds 16, 17 & 18",id:"586@motocal.net"},
+	{start: new Date(2015, 7, 08), end: new Date(2015, 7, 09), group:"SGP", content:"Horsens",id:"735@motocal.net"},
+	{start: new Date(2015, 7, 10), end: new Date(2015, 7, 12), group:"Formula E", content:"Pre-season test 1",id:"769@motocal.net"},
+	{start: new Date(2015, 7, 14), end: new Date(2015, 7, 17), group:"MotoGP", content:"Czech Republic",id:"549@motocal.net"},
+	{start: new Date(2015, 7, 17), end: new Date(2015, 7, 19), group:"Formula E", content:"Pre-season test 2",id:"770@motocal.net"},
+	{start: new Date(2015, 7, 20), end: new Date(2015, 7, 24), group:"WRC", content:"Rallye Deutschland",id:"599@motocal.net"},
+	{start: new Date(2015, 7, 21), end: new Date(2015, 7, 24), group:"IndyCar", content:"Pocono IndyCar 500",id:"766@motocal.net"},
+	{start: new Date(2015, 7, 21), end: new Date(2015, 7, 24), group:"BSB", content:"Round 8",id:"611@motocal.net"},
+	{start: new Date(2015, 7, 21), end: new Date(2015, 7, 24), group:"WorldRX", content:"Norway",id:"692@motocal.net"},
+	{start: new Date(2015, 7, 21), end: new Date(2015, 7, 24), group:"F1", content:"Belgium",id:"641@motocal.net"},
+	{start: new Date(2015, 7, 21), end: new Date(2015, 7, 24), group:"V8SC", content:"Sydney Motorsport Park SuperSprint",id:"667@motocal.net"},
+	{start: new Date(2015, 7, 22), end: new Date(2015, 7, 23), group:"EWC", content:"Oschersleben 8 Hours",id:"703@motocal.net"},
+	{start: new Date(2015, 7, 22), end: new Date(2015, 8, 05), group:"Roads", content:"Classic TT & Manx GP",id:"715@motocal.net"},
+	{start: new Date(2015, 7, 22), end: new Date(2015, 7, 24), group:"BTCC", content:"Rounds 19, 20 & 21",id:"587@motocal.net"},
+	{start: new Date(2015, 7, 24), end: new Date(2015, 7, 26), group:"Formula E", content:"Pre-season test 3",id:"771@motocal.net"},
+	{start: new Date(2015, 7, 28), end: new Date(2015, 7, 31), group:"DTM", content:"Moscow Raceway",id:"655@motocal.net"},
+	{start: new Date(2015, 7, 28), end: new Date(2015, 7, 31), group:"IndyCar", content:"Grand Prix of Sonoma",id:"767@motocal.net"},
+	{start: new Date(2015, 7, 28), end: new Date(2015, 7, 31), group:"MotoGP", content:"Great Britain",id:"568@motocal.net"},
+	{start: new Date(2015, 7, 29), end: new Date(2015, 7, 30), group:"SGP", content:"Gorzów",id:"737@motocal.net"},
+	{start: new Date(2015, 7, 30), end: new Date(2015, 7, 31), group:"WEC", content:"6 Hours of Nürburgring",id:"677@motocal.net"},
+	{start: new Date(2015, 8, 04), end: new Date(2015, 8, 07), group:"BSB", content:"Round 9",id:"612@motocal.net"},
+	{start: new Date(2015, 8, 04), end: new Date(2015, 8, 07), group:"WorldRX", content:"France",id:"693@motocal.net"},
+	{start: new Date(2015, 8, 04), end: new Date(2015, 8, 07), group:"F1", content:"Italy",id:"642@motocal.net"},
+	{start: new Date(2015, 8, 05), end: new Date(2015, 8, 07), group:"WSR", content:"United Kingdom",id:"748@motocal.net"},
+	{start: new Date(2015, 8, 05), end: new Date(2015, 8, 07), group:"BTCC", content:"Rounds 22, 23 & 24",id:"588@motocal.net"},
+	{start: new Date(2015, 8, 10), end: new Date(2015, 8, 14), group:"WRC", content:"Rally Australia",id:"600@motocal.net"},
+	{start: new Date(2015, 8, 11), end: new Date(2015, 8, 14), group:"V8SC", content:"Sandown 500",id:"668@motocal.net"},
+	{start: new Date(2015, 8, 11), end: new Date(2015, 8, 14), group:"MotoAmerica", content:"New Jersey",id:"713@motocal.net"},
+	{start: new Date(2015, 8, 11), end: new Date(2015, 8, 14), group:"MotoGP", content:"San Marino",id:"551@motocal.net"},
+	{start: new Date(2015, 8, 11), end: new Date(2015, 8, 14), group:"WTCC", content:"Japan",id:"725@motocal.net"},
+	{start: new Date(2015, 8, 11), end: new Date(2015, 8, 14), group:"DTM", content:"Oschersleben",id:"656@motocal.net"},
+	{start: new Date(2015, 8, 12), end: new Date(2015, 8, 14), group:"WSR", content:"Germany",id:"749@motocal.net"},
+	{start: new Date(2015, 8, 12), end: new Date(2015, 8, 13), group:"SGP", content:"Krško",id:"738@motocal.net"},
+	{start: new Date(2015, 8, 18), end: new Date(2015, 8, 21), group:"SBK", content:"Spain",id:"627@motocal.net"},
+	{start: new Date(2015, 8, 18), end: new Date(2015, 8, 21), group:"BSB", content:"Round 10",id:"613@motocal.net"},
+	{start: new Date(2015, 8, 18), end: new Date(2015, 8, 21), group:"F1", content:"Singapore",id:"643@motocal.net"},
+	{start: new Date(2015, 8, 18), end: new Date(2015, 8, 21), group:"WorldRX", content:"Barcelona",id:"694@motocal.net"},
+	{start: new Date(2015, 8, 19), end: new Date(2015, 8, 20), group:"WEC", content:"6 Hours of Circuit of the Americas",id:"678@motocal.net"},
+	{start: new Date(2015, 8, 19), end: new Date(2015, 8, 21), group:"EWC", content:"Bol d’Or",id:"704@motocal.net"},
+	{start: new Date(2015, 8, 25), end: new Date(2015, 8, 28), group:"MotoGP", content:"Aragon",id:"570@motocal.net"},
+	{start: new Date(2015, 8, 25), end: new Date(2015, 8, 28), group:"DTM", content:"Nürburgring",id:"657@motocal.net"},
+	{start: new Date(2015, 8, 25), end: new Date(2015, 8, 28), group:"WTCC", content:"China",id:"726@motocal.net"},
+	{start: new Date(2015, 8, 25), end: new Date(2015, 8, 28), group:"F1", content:"Japan",id:"644@motocal.net"},
+	{start: new Date(2015, 8, 26), end: new Date(2015, 8, 28), group:"BTCC", content:"Rounds 25, 26 & 27",id:"589@motocal.net"},
+	{start: new Date(2015, 8, 26), end: new Date(2015, 8, 27), group:"SGP", content:"Stockholm",id:"739@motocal.net"},
+	{start: new Date(2015, 8, 26), end: new Date(2015, 8, 28), group:"WSR", content:"France",id:"750@motocal.net"},
+	{start: new Date(2015, 9, 01), end: new Date(2015, 9, 05), group:"WRC", content:"Rallye de France",id:"601@motocal.net"},
+	{start: new Date(2015, 9, 02), end: new Date(2015, 9, 05), group:"SBK", content:"France",id:"628@motocal.net"},
+	{start: new Date(2015, 9, 02), end: new Date(2015, 9, 05), group:"BSB", content:"Round 11",id:"614@motocal.net"},
+	{start: new Date(2015, 9, 02), end: new Date(2015, 9, 05), group:"WorldRX", content:"Turkey",id:"695@motocal.net"},
+	{start: new Date(2015, 9, 03), end: new Date(2015, 9, 04), group:"SGP", content:"Toruń",id:"740@motocal.net"},
+	{start: new Date(2015, 9, 08), end: new Date(2015, 9, 12), group:"V8SC", content:"Bathurst 1000",id:"669@motocal.net"},
+	{start: new Date(2015, 9, 09), end: new Date(2015, 9, 12), group:"F1", content:"Russia",id:"645@motocal.net"},
+	{start: new Date(2015, 9, 09), end: new Date(2015, 9, 12), group:"MotoGP", content:"Japan",id:"553@motocal.net"},
+	{start: new Date(2015, 9, 10), end: new Date(2015, 9, 12), group:"BTCC", content:"Rounds 28, 29 & 30",id:"590@motocal.net"},
+	{start: new Date(2015, 9, 11), end: new Date(2015, 9, 12), group:"WEC", content:"6 Hours of Fuji",id:"679@motocal.net"},
+	{start: new Date(2015, 9, 16), end: new Date(2015, 9, 19), group:"WorldRX", content:"Italy",id:"696@motocal.net"},
+	{start: new Date(2015, 9, 16), end: new Date(2015, 9, 19), group:"MotoGP", content:"Australia",id:"572@motocal.net"},
+	{start: new Date(2015, 9, 16), end: new Date(2015, 9, 19), group:"DTM", content:"Hockenheim",id:"658@motocal.net"},
+	{start: new Date(2015, 9, 16), end: new Date(2015, 9, 19), group:"BSB", content:"Round 12",id:"615@motocal.net"},
+	{start: new Date(2015, 9, 16), end: new Date(2015, 9, 19), group:"SBK", content:"Qatar",id:"629@motocal.net"},
+	{start: new Date(2015, 9, 17), end: new Date(2015, 9, 19), group:"WSR", content:"Spain",id:"751@motocal.net"},
+	{start: new Date(2015, 9, 22), end: new Date(2015, 9, 26), group:"WRC", content:"Rally de Espana",id:"602@motocal.net"},
+	{start: new Date(2015, 9, 23), end: new Date(2015, 9, 26), group:"V8SC", content:"Gold Coast 600",id:"670@motocal.net"},
+	{start: new Date(2015, 9, 23), end: new Date(2015, 9, 26), group:"MotoGP", content:"Malaysia",id:"573@motocal.net"},
+	{start: new Date(2015, 9, 23), end: new Date(2015, 9, 26), group:"F1", content:"United States",id:"646@motocal.net"},
+	{start: new Date(2015, 9, 24), end: new Date(2015, 9, 25), group:"SGP", content:"Melbourne",id:"741@motocal.net"},
+	{start: new Date(2015, 9, 30), end: new Date(2015, 10, 02), group:"F1", content:"Mexico",id:"647@motocal.net"},
+	{start: new Date(2015, 9, 30), end: new Date(2015, 10, 02), group:"WTCC", content:"Thailand",id:"727@motocal.net"},
+	{start: new Date(2015, 10, 01), end: new Date(2015, 10, 02), group:"WEC", content:"6 Hours of Shanghai",id:"680@motocal.net"},
+	{start: new Date(2015, 10, 06), end: new Date(2015, 10, 09), group:"MotoGP", content:"Valencia",id:"556@motocal.net"},
+	{start: new Date(2015, 10, 06), end: new Date(2015, 10, 09), group:"V8SC", content:"ITM 500 Auckland",id:"671@motocal.net"},
+	{start: new Date(2015, 10, 12), end: new Date(2015, 10, 16), group:"WRC", content:"Wales Rally GB",id:"603@motocal.net"},
+	{start: new Date(2015, 10, 13), end: new Date(2015, 10, 16), group:"F1", content:"Brazil",id:"648@motocal.net"},
+	{start: new Date(2015, 10, 19), end: new Date(2015, 10, 23), group:"Roads", content:"Macau Grand Prix",id:"685@motocal.net"},
+	{start: new Date(2015, 10, 20), end: new Date(2015, 10, 23), group:"WTCC", content:"Qatar",id:"728@motocal.net"},
+	{start: new Date(2015, 10, 20), end: new Date(2015, 10, 23), group:"V8SC", content:"Phillip Island SuperSprint",id:"672@motocal.net"},
+	{start: new Date(2015, 10, 21), end: new Date(2015, 10, 22), group:"WEC", content:"6 Hours of Bahrain",id:"681@motocal.net"},
+	{start: new Date(2015, 10, 27), end: new Date(2015, 10, 30), group:"WorldRX", content:"Argentina",id:"700@motocal.net"},
+	{start: new Date(2015, 10, 27), end: new Date(2015, 10, 30), group:"F1", content:"Abu Dhabi",id:"649@motocal.net"},
+	{start: new Date(2015, 11, 04), end: new Date(2015, 11, 07), group:"V8SC", content:"Sydney 500",id:"673@motocal.net"},
+  ]);
+
+  // create visualization
+  var container = document.getElementById('visualization');
+  var options = {
+    // option groupOrder can be a property name or a sort function
+    // the sort function must compare two groups and return a value
+    //     > 0 when a > b
+    //     < 0 when a < b
+    //       0 when a == b
+    groupOrder: function (a, b) {
+      return a.value - b.value;
+    },
+    groupOrderSwap: function (a, b, groups) {
+    	var v = a.value;
+    	a.value = b.value;
+    	b.value = v;
+    },
+    editable: true,
+    groupEditable: true,
+    start: new Date(2015, 6, 1),
+    end: new Date(2015, 10, 1)
+  };
+
+  var timeline = new vis.Timeline(container);
+  timeline.setOptions(options);
+  timeline.setGroups(groups);
+  timeline.setItems(items);
+
+</script>
+</body>
+</html>
