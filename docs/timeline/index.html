@@ -603,13 +603,13 @@ function (option, path) {
       <td class="indent">groupEditable.remove</td>
       <td>boolean</td>
       <td><code>false</code></td>
-      <td>If true, groups can be deleted. For now removing new groups is done by the user.</td>
+      <td>If true, groups can be deleted. For now removing groups is done by the user.</td>
     </tr>
     <tr parent="groupEditable" class="hidden">
       <td class="indent">groupEditable.order</td>
       <td>boolean</td>
       <td><code>false</code></td>
-      <td>If true, groups can be dragged to change their order. Only applicable when the Timeline has groups.</td>
+      <td>If true, groups can be dragged to change their order. Only applicable when the Timeline has groups. For this option to work properly the groupOrder and groupOrderSwap options have to be set as well.</td>
     </tr>
 
     <tr>
@@ -1317,6 +1317,15 @@ timeline.off('select', onSelect);
       <td>Fired when double clicked inside the Timeline.
       </td>
     </tr>
+
+    <tr>
+      <td>groupDragged</td>
+      <td>
+        Passes the id of the dragged group.
+      </td>
+      <td>Fired after the dragging of a group is finished.
+      </td>
+    </tr>    
 
     <tr>
       <td>rangechange</td>
