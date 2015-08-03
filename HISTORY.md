@@ -4,6 +4,9 @@ http://visjs.org
 
 ## not yet released, version 4.7.1-SNAPSHOT
 
+### Timeline
+
+- Implemented reordering groups by dragging them vertically. Thanks @hansmaulwurf23.
 
 
 
