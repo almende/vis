@@ -588,12 +588,50 @@ function (option, path) {
       </td>
     </tr>
 
+	<tr class='toggle collapsible' onclick="toggleTable('optionTable','groupEditable', this);">
+      <td><span parent="groupEditable" class="right-caret"></span> groupEditable</td>
+      <td>boolean or Object</td>
+      <td><code>false</code></td>
+      <td>If true, the groups in the timeline can be manipulated. See also the callbacks <code>onAddGroup</code>, <code>onMoveGroup</code>, and <code>onRemoveGroup</code>. When <code>groupEditable</code> is an object, one can enable or disable individual manipulation actions.
+        The editing of groups follows the same principles as for items, see section <a href="#Editing_Items">Editing Items</a> for a detailed explanation.
+      </td>
+    </tr>
+    <tr parent="groupEditable" class="hidden">
+      <td class="indent">groupEditable.add</td>
+      <td>boolean</td>
+      <td><code>false</code></td>
+      <td>If true, new groups can be created in the Timeline. For now adding new groups is done by the user.</td>
+    </tr>
+    <tr parent="groupEditable" class="hidden">
+      <td class="indent">groupEditable.remove</td>
+      <td>boolean</td>
+      <td><code>false</code></td>
+      <td>If true, groups can be deleted. For now removing groups is done by the user.</td>
+    </tr>
+    <tr parent="groupEditable" class="hidden">
+      <td class="indent">groupEditable.order</td>
+      <td>boolean</td>
+      <td><code>false</code></td>
+      <td>If true, groups can be dragged to change their order. Only applicable when the Timeline has groups. For this option to work properly the groupOrder and groupOrderSwap options have to be set as well.</td>
+    </tr>
+
     <tr>
       <td>groupOrder</td>
       <td>String or Function</td>
-      <td>none</td>
+      <td>'order'</td>
       <td>Order the groups by a field name or custom sort function.
-        By default, groups are not ordered.
+        By default, groups are ordered by an attribute <code>order</code> (if set).
+      </td>
+    </tr>
+    
+    <tr>
+      <td>groupOrderSwap</td>
+      <td>Function</td>
+      <td>none</td>
+      <td>Swaps the positions of two groups. If groups have a custom order (via <code>groupOrder</code>) and groups are configured to be reorderable (via <code>groupEditable.order</code>), the user has to provide a function that swaps the positions of two given groups.
+      If this option is not set, the default implementation assumes that groups hold an attribute <code>order</code> which values are changed. The signature of the <code>groupOrderWap</code> function is:
+      <pre class="prettyprint lang-js">function groupOrderSwap(fromGroup: Object, toGroup: Object, groups: DataSet)</pre>
+      The first to arguments hold the groups of which the positions are to be swapped and the third argument holds the DataSet with all groups.
       </td>
     </tr>
 
@@ -738,6 +776,14 @@ function (option, path) {
       <td>Callback function triggered when an item is about to be added: when the user double taps an empty space in the Timeline. See section <a href="#Editing_Items">Editing Items</a> for more information. Only applicable when both options <code>selectable</code> and <code>editable.add</code> are set <code><code>true</code></code>.
       </td>
     </tr>
+    
+    <tr>
+      <td>onAddGroup</td>
+      <td>function</td>
+      <td>none</td>
+      <td>Callback function triggered when a group is about to be added. The signature and semantics are the same as for <code>onAdd</code>.
+      </td>
+    </tr>
 
     <tr>
       <td>onUpdate</td>
@@ -754,6 +800,14 @@ function (option, path) {
       <td>Callback function triggered when an item has been moved: after the user has dragged the item to an other position. See section <a href="#Editing_Items">Editing Items</a> for more information. Only applicable when both options <code>selectable</code> and <code>editable.updateTime</code> or <code>editable.updateGroup</code> are set <code><code>true</code></code>.
       </td>
     </tr>
+    
+    <tr>
+      <td>onMoveGroup</td>
+      <td>function</td>
+      <td>none</td>
+      <td>Callback function triggered when a group has been moved: after the user has dragged the group to an other position. The signature and semantics are the same as for <code>onMove</code>.
+      </td>
+    </tr>
 
     <tr>
       <td>onMoving</td>
@@ -768,6 +822,14 @@ function (option, path) {
       <td>function</td>
       <td>none</td>
       <td>Callback function triggered when an item is about to be removed: when the user tapped the delete button on the top right of a selected item. See section <a href="#Editing_Items">Editing Items</a> for more information. Only applicable when both options <code>selectable</code> and <code>editable.remove</code> are set <code><code>true</code></code>.
+      </td>
+    </tr>
+    
+    <tr>
+      <td>onRemoveGroup</td>
+      <td>function</td>
+      <td>none</td>
+      <td>Callback function triggered when a group is about to be removed. The signature and semantics are the same as for <code>onRemove</code>.
       </td>
     </tr>
 
@@ -1265,6 +1327,15 @@ timeline.off('select', onSelect);
       <td>Fired when double clicked inside the Timeline.
       </td>
     </tr>
+
+    <tr>
+      <td>groupDragged</td>
+      <td>
+        Passes the id of the dragged group.
+      </td>
+      <td>Fired after the dragging of a group is finished.
+      </td>
+    </tr>    
 
     <tr>
       <td>rangechange</td>

@@ -21,6 +21,10 @@
   border-bottom: 1px solid #bfbfbf;
 }
 
+.vis-labelset .vis-label.draggable {
+  cursor: pointer;
+}
+
 .vis-labelset .vis-label:last-child {
   border-bottom: none;
 }
