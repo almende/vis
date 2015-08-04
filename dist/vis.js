@@ -4,8 +4,8 @@
  *
  * A dynamic, browser-based visualization library.
  *
- * @version 4.6.1-SNAPSHOT
- * @date    2015-07-30
+ * @version 4.7.1-SNAPSHOT
+ * @date    2015-08-04
  *
  * @license
  * Copyright (C) 2011-2014 Almende B.V, http://almende.com
@@ -15987,7 +15987,12 @@ return /******/ (function(modules) { // webpackBootstrap
       },
       align: 'auto', // alignment of box items
       stack: true,
-      groupOrder: null,
+      groupOrderSwap: function groupOrderSwap(fromGroup, toGroup, groups) {
+        var targetOrder = toGroup.order;
+        toGroup.order = fromGroup.order;
+        fromGroup.order = targetOrder;
+      },
+      groupOrder: 'order',
 
       selectable: true,
       multiselect: false,
@@ -15995,6 +16000,12 @@ return /******/ (function(modules) { // webpackBootstrap
       editable: {
         updateTime: false,
         updateGroup: false,
+        add: false,
+        remove: false
+      },
+
+      groupEditable: {
+        order: false,
         add: false,
         remove: false
       },
@@ -16014,6 +16025,15 @@ return /******/ (function(modules) { // webpackBootstrap
         callback(item);
       },
       onMoving: function onMoving(item, callback) {
+        callback(item);
+      },
+      onAddGroup: function onAddGroup(item, callback) {
+        callback(item);
+      },
+      onMoveGroup: function onMoveGroup(item, callback) {
+        callback(item);
+      },
+      onRemoveGroup: function onRemoveGroup(item, callback) {
         callback(item);
       },
 
@@ -16080,6 +16100,7 @@ return /******/ (function(modules) { // webpackBootstrap
     this.stackDirty = true; // if true, all items will be restacked on next redraw
 
     this.touchParams = {}; // stores properties while dragging
+    this.groupTouchParams = {};
     // create the HTML DOM
 
     this._create();
@@ -16162,6 +16183,12 @@ return /******/ (function(modules) { // webpackBootstrap
     // add item on doubletap
     this.hammer.on('doubletap', this._onAddItem.bind(this));
 
+    this.groupHammer = new Hammer(this.body.dom.leftContainer);
+    this.groupHammer.on('panstart', this._onGroupDragStart.bind(this));
+    this.groupHammer.on('panmove', this._onGroupDrag.bind(this));
+    this.groupHammer.on('panend', this._onGroupDragEnd.bind(this));
+    this.groupHammer.get('pan').set({ threshold: 5, direction: 30 });
+
     // attach to the DOM
     this.show();
   };
@@ -16233,7 +16260,7 @@ return /******/ (function(modules) { // webpackBootstrap
   ItemSet.prototype.setOptions = function (options) {
     if (options) {
       // copy all options that we know
-      var fields = ['type', 'align', 'order', 'stack', 'selectable', 'multiselect', 'groupOrder', 'dataAttributes', 'template', 'groupTemplate', 'hide', 'snap'];
+      var fields = ['type', 'align', 'order', 'stack', 'selectable', 'multiselect', 'groupOrder', 'dataAttributes', 'template', 'groupTemplate', 'hide', 'snap', 'groupOrderSwap'];
       util.selectiveExtend(fields, this.options, options);
 
       if ('orientation' in options) {
@@ -16273,6 +16300,16 @@ return /******/ (function(modules) { // webpackBootstrap
         }
       }
 
+      if ('groupEditable' in options) {
+        if (typeof options.groupEditable === 'boolean') {
+          this.options.groupEditable.order = options.groupEditable;
+          this.options.groupEditable.add = options.groupEditable;
+          this.options.groupEditable.remove = options.groupEditable;
+        } else if (typeof options.groupEditable === 'object') {
+          util.selectiveExtend(['order', 'add', 'remove'], this.options.groupEditable, options.groupEditable);
+        }
+      }
+
       // callback functions
       var addCallback = (function (name) {
         var fn = options[name];
@@ -16283,7 +16320,7 @@ return /******/ (function(modules) { // webpackBootstrap
           this.options[name] = fn;
         }
       }).bind(this);
-      ['onAdd', 'onUpdate', 'onRemove', 'onMove', 'onMoving'].forEach(addCallback);
+      ['onAdd', 'onUpdate', 'onRemove', 'onMove', 'onMoving', 'onAddGroup', 'onMoveGroup', 'onRemoveGroup'].forEach(addCallback);
 
       // force the itemSet to refresh: options like orientation and margins may be changed
       this.markDirty();
@@ -17348,6 +17385,177 @@ return /******/ (function(modules) { // webpackBootstrap
     }
   };
 
+  ItemSet.prototype._onGroupDragStart = function (event) {
+    if (this.options.groupEditable.order) {
+      this.groupTouchParams.group = this.groupFromTarget(event);
+
+      if (this.groupTouchParams.group) {
+        event.stopPropagation();
+
+        this.groupTouchParams.originalOrder = this.groupsData.getIds({
+          order: this.options.groupOrder
+        });
+      }
+    }
+  };
+
+  ItemSet.prototype._onGroupDrag = function (event) {
+    if (this.options.groupEditable.order && this.groupTouchParams.group) {
+      event.stopPropagation();
+
+      // drag from one group to another
+      var group = this.groupFromTarget(event);
+
+      // try to avoid toggling when groups differ in height
+      if (group && group.height != this.groupTouchParams.group.height) {
+        var movingUp = group.top < this.groupTouchParams.group.top;
+        var clientY = event.center ? event.center.y : event.clientY;
+        var targetGroupTop = util.getAbsoluteTop(group.dom.foreground);
+        var draggedGroupHeight = this.groupTouchParams.group.height;
+        if (movingUp) {
+          // skip swapping the groups when the dragged group is not below clientY afterwards
+          if (targetGroupTop + draggedGroupHeight < clientY) {
+            return;
+          }
+        } else {
+          var targetGroupHeight = group.height;
+          // skip swapping the groups when the dragged group is not below clientY afterwards
+          if (targetGroupTop + targetGroupHeight - draggedGroupHeight > clientY) {
+            return;
+          }
+        }
+      }
+
+      if (group && group != this.groupTouchParams.group) {
+        var groupsData = this.groupsData;
+        var targetGroup = groupsData.get(group.groupId);
+        var draggedGroup = groupsData.get(this.groupTouchParams.group.groupId);
+
+        // switch groups
+        if (draggedGroup && targetGroup) {
+          this.options.groupOrderSwap(draggedGroup, targetGroup, this.groupsData);
+          this.groupsData.update(draggedGroup);
+          this.groupsData.update(targetGroup);
+        }
+
+        // fetch current order of groups
+        var newOrder = this.groupsData.getIds({
+          order: this.options.groupOrder
+        });
+
+        // in case of changes since _onGroupDragStart
+        if (!util.equalArray(newOrder, this.groupTouchParams.originalOrder)) {
+          var groupsData = this.groupsData;
+          var origOrder = this.groupTouchParams.originalOrder;
+          var draggedId = this.groupTouchParams.group.groupId;
+          var numGroups = Math.min(origOrder.length, newOrder.length);
+          var curPos = 0;
+          var newOffset = 0;
+          var orgOffset = 0;
+          while (curPos < numGroups) {
+            // as long as the groups are where they should be step down along the groups order
+            while (curPos + newOffset < numGroups && curPos + orgOffset < numGroups && newOrder[curPos + newOffset] == origOrder[curPos + orgOffset]) {
+              curPos++;
+            }
+
+            // all ok
+            if (curPos + newOffset >= numGroups) {
+              break;
+            }
+
+            // not all ok
+            // if dragged group was move upwards everything below should have an offset
+            if (newOrder[curPos + newOffset] == draggedId) {
+              newOffset = 1;
+              continue;
+            }
+            // if dragged group was move downwards everything above should have an offset
+            else if (origOrder[curPos + orgOffset] == draggedId) {
+                orgOffset = 1;
+                continue;
+              }
+              // found a group (apart from dragged group) that has the wrong position -> switch with the
+              // group at the position where other one should be, fix index arrays and continue
+              else {
+                  var slippedPosition = newOrder.indexOf(origOrder[curPos + orgOffset]);
+                  var switchGroup = groupsData.get(newOrder[curPos + newOffset]);
+                  var shouldBeGroup = groupsData.get(origOrder[curPos + orgOffset]);
+                  this.options.groupOrderSwap(switchGroup, shouldBeGroup, groupsData);
+                  groupsData.update(switchGroup);
+                  groupsData.update(shouldBeGroup);
+
+                  var switchGroupId = newOrder[curPos + newOffset];
+                  newOrder[curPos + newOffset] = origOrder[curPos + orgOffset];
+                  newOrder[slippedPosition] = switchGroupId;
+
+                  curPos++;
+                }
+          }
+        }
+      }
+    }
+  };
+
+  ItemSet.prototype._onGroupDragEnd = function (event) {
+    if (this.options.groupEditable.order && this.groupTouchParams.group) {
+      event.stopPropagation();
+
+      // update existing group
+      var me = this;
+      var id = me.groupTouchParams.group.groupId;
+      var dataset = me.groupsData.getDataSet();
+      var groupData = util.extend({}, dataset.get(id)); // clone the data
+      me.options.onMoveGroup(groupData, function (groupData) {
+        if (groupData) {
+          // apply changes
+          groupData[dataset._fieldId] = id; // ensure the group contains its id (can be undefined)
+          dataset.update(groupData);
+        } else {
+
+          // fetch current order of groups
+          var newOrder = dataset.getIds({
+            order: me.options.groupOrder
+          });
+
+          // restore original order
+          if (!util.equalArray(newOrder, me.groupTouchParams.originalOrder)) {
+            var origOrder = me.groupTouchParams.originalOrder;
+            var numGroups = Math.min(origOrder.length, newOrder.length);
+            var curPos = 0;
+            while (curPos < numGroups) {
+              // as long as the groups are where they should be step down along the groups order
+              while (curPos < numGroups && newOrder[curPos] == origOrder[curPos]) {
+                curPos++;
+              }
+
+              // all ok
+              if (curPos >= numGroups) {
+                break;
+              }
+
+              // found a group that has the wrong position -> switch with the
+              // group at the position where other one should be, fix index arrays and continue
+              var slippedPosition = newOrder.indexOf(origOrder[curPos]);
+              var switchGroup = dataset.get(newOrder[curPos]);
+              var shouldBeGroup = dataset.get(origOrder[curPos]);
+              me.options.groupOrderSwap(switchGroup, shouldBeGroup, dataset);
+              groupsData.update(switchGroup);
+              groupsData.update(shouldBeGroup);
+
+              var switchGroupId = newOrder[curPos];
+              newOrder[curPos] = origOrder[curPos];
+              newOrder[slippedPosition] = switchGroupId;
+
+              curPos++;
+            }
+          }
+        }
+      });
+
+      me.body.emitter.emit('groupDragged', { groupId: id });
+    }
+  };
+
   /**
    * Handle selecting/deselecting an item when tapping it
    * @param {Event} event
@@ -17657,7 +17865,11 @@ return /******/ (function(modules) { // webpackBootstrap
    */
   Group.prototype._create = function () {
     var label = document.createElement('div');
-    label.className = 'vis-label';
+    if (this.itemSet.options.groupEditable.order) {
+      label.className = 'vis-label draggable';
+    } else {
+      label.className = 'vis-label';
+    }
     this.dom.label = label;
 
     var inner = document.createElement('div');
@@ -19081,7 +19293,7 @@ return /******/ (function(modules) { // webpackBootstrap
       clone.hours(0);
       clone.minutes(0);
       clone.seconds(0);
-      clone.mlliseconds(0);
+      clone.milliseconds(0);
     } else if (scale == 'month') {
       if (clone.date() > 15) {
         clone.date(1);
@@ -22790,6 +23002,13 @@ return /******/ (function(modules) { // webpackBootstrap
     },
     moment: { 'function': 'function' },
     groupOrder: { string: string, 'function': 'function' },
+    groupEditable: {
+      add: { boolean: boolean, 'undefined': 'undefined' },
+      remove: { boolean: boolean, 'undefined': 'undefined' },
+      order: { boolean: boolean, 'undefined': 'undefined' },
+      __type__: { boolean: boolean, object: object }
+    },
+    groupOrderSwap: { 'function': 'function' },
     height: { string: string, number: number },
     hiddenDates: { object: object, array: array },
     locale: { string: string },
@@ -22817,6 +23036,9 @@ return /******/ (function(modules) { // webpackBootstrap
     onMove: { 'function': 'function' },
     onMoving: { 'function': 'function' },
     onRemove: { 'function': 'function' },
+    onAddGroup: { 'function': 'function' },
+    onMoveGroup: { 'function': 'function' },
+    onRemoveGroup: { 'function': 'function' },
     order: { 'function': 'function' },
     orientation: {
       axis: { string: string, 'undefined': 'undefined' },
@@ -22884,6 +23106,7 @@ return /******/ (function(modules) { // webpackBootstrap
       },
 
       //groupOrder: {string, 'function': 'function'},
+      groupsDraggable: false,
       height: '',
       //hiddenDates: {object, array},
       locale: '',
@@ -27488,7 +27711,6 @@ return /******/ (function(modules) { // webpackBootstrap
 
         for (var i = 0; i < ids.length; i++) {
           var id = ids[i];
-          nodes[id].cleanup();
           delete nodes[id];
         }
 
@@ -27935,10 +28157,6 @@ return /******/ (function(modules) { // webpackBootstrap
         if (currentShape === this.options.shape && this.shape) {
           this.shape.setOptions(this.options);
         } else {
-          // clean up the shape if it is already made so the new shape can start clean.
-          if (this.shape) {
-            this.shape.cleanup();
-          }
           // choose draw method depending on the shape
           switch (this.options.shape) {
             case 'box':
@@ -28149,16 +28367,6 @@ return /******/ (function(modules) { // webpackBootstrap
       key: 'isBoundingBoxOverlappingWith',
       value: function isBoundingBoxOverlappingWith(obj) {
         return this.shape.boundingBox.left < obj.right && this.shape.boundingBox.right > obj.left && this.shape.boundingBox.top < obj.bottom && this.shape.boundingBox.bottom > obj.top;
-      }
-
-      /**
-       * clean all required things on delete.
-       * @returns {*}
-       */
-    }, {
-      key: 'cleanup',
-      value: function cleanup() {
-        return this.shape.cleanup();
       }
     }], [{
       key: 'parseOptions',
@@ -28729,11 +28937,6 @@ return /******/ (function(modules) { // webpackBootstrap
           }
         }
       }
-
-      // possible cleanup for use in shapes
-    }, {
-      key: 'cleanup',
-      value: function cleanup() {}
     }]);
 
     return NodeBase;
@@ -35010,7 +35213,6 @@ return /******/ (function(modules) { // webpackBootstrap
         }
 
         // remove clusterNode
-        this.body.nodes[clusterNodeId].cleanup();
         delete this.body.nodes[clusterNodeId];
 
         if (refreshData === true) {
@@ -36566,10 +36768,13 @@ return /******/ (function(modules) { // webpackBootstrap
         var nodesChanges = _determineIfDifferent2.nodesChanges;
         var edgesChanges = _determineIfDifferent2.edgesChanges;
 
+        var nodeSelected = false;
+
         if (selectedNodesCount - previouslySelectedNodeCount > 0) {
           // node was selected
           this.selectionHandler._generateClickEvent('selectNode', event, pointer);
           selected = true;
+          nodeSelected = true;
         } else if (selectedNodesCount - previouslySelectedNodeCount < 0) {
           // node was deselected
           this.selectionHandler._generateClickEvent('deselectNode', event, pointer, previousSelection);
@@ -36577,10 +36782,12 @@ return /******/ (function(modules) { // webpackBootstrap
         } else if (selectedNodesCount === previouslySelectedNodeCount && nodesChanges === true) {
           this.selectionHandler._generateClickEvent('deselectNode', event, pointer, previousSelection);
           this.selectionHandler._generateClickEvent('selectNode', event, pointer);
+          nodeSelected = true;
           selected = true;
         }
 
-        if (selectedEdgesCount - previouslySelectedEdgeCount > 0) {
+        // handle the selected edges
+        if (selectedEdgesCount - previouslySelectedEdgeCount > 0 && nodeSelected === false) {
           // edge was selected
           this.selectionHandler._generateClickEvent('selectEdge', event, pointer);
           selected = true;
@@ -36594,6 +36801,7 @@ return /******/ (function(modules) { // webpackBootstrap
           selected = true;
         }
 
+        // fire the select event if anything has been selected or deselected
         if (selected === true) {
           // select or unselect
           this.selectionHandler._generateClickEvent('select', event, pointer);
