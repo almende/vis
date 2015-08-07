@@ -11,6 +11,7 @@ http://visjs.org
 ### Network
 
 - Fixed #1152, updating images now works.
+- Fixed cleaning up of nodes.
 
 
 ## 2015-07-27, version 4.7.0
