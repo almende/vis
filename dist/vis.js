@@ -21567,7 +21567,7 @@ return /******/ (function(modules) { // webpackBootstrap
         }
 
         this._push();
-        this.colorPicker.insertTo(this.container);
+        this.colorPicker.insertTo(document.body);
       }
 
       /**
@@ -21821,7 +21821,7 @@ return /******/ (function(modules) { // webpackBootstrap
       value: function _setupPopup(string, index) {
         var _this3 = this;
 
-        if (this.initialized === true && this.allowCreation === true && this.popupCounter < 4000) {
+        if (this.initialized === true && this.allowCreation === true && this.popupCounter < this.popupLimit) {
           var div = document.createElement("div");
           div.id = "vis-configuration-popup";
           div.className = "vis-configuration-popup";
@@ -21984,7 +21984,7 @@ return /******/ (function(modules) { // webpackBootstrap
         var rect = div.getBoundingClientRect();
         var bodyRect = document.body.getBoundingClientRect();
         var pickerX = rect.left + rect.width + 5;
-        var pickerY = rect.top - bodyRect.top + rect.height * 0.5;
+        var pickerY = rect.top - bodyRect.top + rect.height + 2;
         this.colorPicker.show(pickerX, pickerY);
         this.colorPicker.setColor(value);
         this.colorPicker.setCallback(function (color) {
