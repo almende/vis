@@ -27703,7 +27703,7 @@ return /******/ (function(modules) { // webpackBootstrap
             }
           }
 
-          // update the shape size in all nodes
+          // update the font in all nodes
           if (options.font !== undefined) {
             _componentsSharedLabel2['default'].parseOptions(this.options.font, options);
             for (var nodeId in this.body.nodes) {
@@ -28216,6 +28216,7 @@ return /******/ (function(modules) { // webpackBootstrap
         if (!options) {
           return;
         }
+
         // basic options
         if (options.id !== undefined) {
           this.id = options.id;
@@ -28268,8 +28269,8 @@ return /******/ (function(modules) { // webpackBootstrap
           }
         }
 
-        this.updateShape(currentShape);
         this.updateLabelModule();
+        this.updateShape(currentShape);
 
         if (options.hidden !== undefined || options.physics !== undefined) {
           return true;
@@ -28289,6 +28290,7 @@ return /******/ (function(modules) { // webpackBootstrap
         if (this.options.label === undefined || this.options.label === null) {
           this.options.label = '';
         }
+
         this.labelModule.setOptions(this.options, true);
         if (this.labelModule.baseSize !== undefined) {
           this.baseFontSize = this.labelModule.baseSize;
@@ -28590,6 +28592,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
       this.pointToSelf = false;
       this.baseSize = undefined;
+      this.fontOptions = {};
       this.setOptions(options);
       this.size = { top: 0, left: 0, width: 0, height: 0, yLine: 0 }; // could be cached
     }
@@ -28599,16 +28602,20 @@ return /******/ (function(modules) { // webpackBootstrap
       value: function setOptions(options) {
         var allowDeletion = arguments.length <= 1 || arguments[1] === undefined ? false : arguments[1];
 
-        this.options = options;
+        this.nodeOptions = options;
+
+        // We want to keep the font options seperated from the node options.
+        // The node options have to mirror the globals when they are not overruled.
+        this.fontOptions = util.deepExtend({}, options.font, true);
 
         if (options.label !== undefined) {
           this.labelDirty = true;
         }
 
         if (options.font !== undefined) {
-          Label.parseOptions(this.options.font, options, allowDeletion);
+          Label.parseOptions(this.fontOptions, options, allowDeletion);
           if (typeof options.font === 'string') {
-            this.baseSize = this.options.font.size;
+            this.baseSize = this.fontOptions.size;
           } else if (typeof options.font === 'object') {
             if (options.font.size !== undefined) {
               this.baseSize = options.font.size;
@@ -28631,11 +28638,11 @@ return /******/ (function(modules) { // webpackBootstrap
         var baseline = arguments.length <= 4 || arguments[4] === undefined ? 'middle' : arguments[4];
 
         // if no label, return
-        if (this.options.label === undefined) return;
+        if (this.nodeOptions.label === undefined) return;
 
         // check if we have to render the label
-        var viewFontSize = this.options.font.size * this.body.view.scale;
-        if (this.options.label && viewFontSize < this.options.scaling.label.drawThreshold - 1) return;
+        var viewFontSize = this.fontOptions.size * this.body.view.scale;
+        if (this.nodeOptions.label && viewFontSize < this.nodeOptions.scaling.label.drawThreshold - 1) return;
 
         // update the size cache if required
         this.calculateLabelSize(ctx, selected, x, y, baseline);
@@ -28654,12 +28661,12 @@ return /******/ (function(modules) { // webpackBootstrap
     }, {
       key: '_drawBackground',
       value: function _drawBackground(ctx) {
-        if (this.options.font.background !== undefined && this.options.font.background !== "none") {
-          ctx.fillStyle = this.options.font.background;
+        if (this.fontOptions.background !== undefined && this.fontOptions.background !== "none") {
+          ctx.fillStyle = this.fontOptions.background;
 
           var lineMargin = 2;
 
-          switch (this.options.font.align) {
+          switch (this.fontOptions.align) {
             case 'middle':
               ctx.fillRect(-this.size.width * 0.5, -this.size.height * 0.5, this.size.width, this.size.height);
               break;
@@ -28688,11 +28695,11 @@ return /******/ (function(modules) { // webpackBootstrap
       value: function _drawText(ctx, selected, x, y) {
         var baseline = arguments.length <= 4 || arguments[4] === undefined ? 'middle' : arguments[4];
 
-        var fontSize = this.options.font.size;
+        var fontSize = this.fontOptions.size;
         var viewFontSize = fontSize * this.body.view.scale;
         // this ensures that there will not be HUGE letters on screen by setting an upper limit on the visible text size (regardless of zoomLevel)
-        if (viewFontSize >= this.options.scaling.label.maxVisible) {
-          fontSize = Number(this.options.scaling.label.maxVisible) / this.body.view.scale;
+        if (viewFontSize >= this.nodeOptions.scaling.label.maxVisible) {
+          fontSize = Number(this.nodeOptions.scaling.label.maxVisible) / this.body.view.scale;
         }
 
         var yLine = this.size.yLine;
@@ -28712,20 +28719,20 @@ return /******/ (function(modules) { // webpackBootstrap
 
         x = _setAlignment22[0];
         yLine = _setAlignment22[1];
-        ctx.font = (selected && this.options.labelHighlightBold ? 'bold ' : '') + fontSize + "px " + this.options.font.face;
+        ctx.font = (selected && this.nodeOptions.labelHighlightBold ? 'bold ' : '') + fontSize + "px " + this.fontOptions.face;
         ctx.fillStyle = fontColor;
         ctx.textAlign = 'center';
 
         // set the strokeWidth
-        if (this.options.font.strokeWidth > 0) {
-          ctx.lineWidth = this.options.font.strokeWidth;
+        if (this.fontOptions.strokeWidth > 0) {
+          ctx.lineWidth = this.fontOptions.strokeWidth;
           ctx.strokeStyle = strokeColor;
           ctx.lineJoin = 'round';
         }
 
         // draw the text
         for (var i = 0; i < this.lineCount; i++) {
-          if (this.options.font.strokeWidth > 0) {
+          if (this.fontOptions.strokeWidth > 0) {
             ctx.strokeText(this.lines[i], x, yLine);
           }
           ctx.fillText(this.lines[i], x, yLine);
@@ -28737,15 +28744,15 @@ return /******/ (function(modules) { // webpackBootstrap
       value: function _setAlignment(ctx, x, yLine, baseline) {
         // check for label alignment (for edges)
         // TODO: make alignment for nodes
-        if (this.options.font.align !== 'horizontal' && this.pointToSelf === false) {
+        if (this.fontOptions.align !== 'horizontal' && this.pointToSelf === false) {
           x = 0;
           yLine = 0;
 
           var lineMargin = 2;
-          if (this.options.font.align === 'top') {
+          if (this.fontOptions.align === 'top') {
             ctx.textBaseline = 'alphabetic';
             yLine -= 2 * lineMargin; // distance from edge, required because we use alphabetic. Alphabetic has less difference between browsers
-          } else if (this.options.font.align === 'bottom') {
+          } else if (this.fontOptions.align === 'bottom') {
               ctx.textBaseline = 'hanging';
               yLine += 2 * lineMargin; // distance from edge, required because we use hanging. Hanging has less difference between browsers
             } else {
@@ -28769,10 +28776,10 @@ return /******/ (function(modules) { // webpackBootstrap
     }, {
       key: '_getColor',
       value: function _getColor(viewFontSize) {
-        var fontColor = this.options.font.color || '#000000';
-        var strokeColor = this.options.font.strokeColor || '#ffffff';
-        if (viewFontSize <= this.options.scaling.label.drawThreshold) {
-          var opacity = Math.max(0, Math.min(1, 1 - (this.options.scaling.label.drawThreshold - viewFontSize)));
+        var fontColor = this.fontOptions.color || '#000000';
+        var strokeColor = this.fontOptions.strokeColor || '#ffffff';
+        if (viewFontSize <= this.nodeOptions.scaling.label.drawThreshold) {
+          var opacity = Math.max(0, Math.min(1, 1 - (this.nodeOptions.scaling.label.drawThreshold - viewFontSize)));
           fontColor = util.overrideOpacity(fontColor, opacity);
           strokeColor = util.overrideOpacity(strokeColor, opacity);
         }
@@ -28792,7 +28799,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
         var size = {
           width: this._processLabel(ctx, selected),
-          height: this.options.font.size * this.lineCount,
+          height: this.fontOptions.size * this.lineCount,
           lineCount: this.lineCount
         };
         return size;
@@ -28816,12 +28823,12 @@ return /******/ (function(modules) { // webpackBootstrap
         if (this.labelDirty === true) {
           this.size.width = this._processLabel(ctx, selected);
         }
-        this.size.height = this.options.font.size * this.lineCount;
+        this.size.height = this.fontOptions.size * this.lineCount;
         this.size.left = x - this.size.width * 0.5;
         this.size.top = y - this.size.height * 0.5;
-        this.size.yLine = y + (1 - this.lineCount) * 0.5 * this.options.font.size;
+        this.size.yLine = y + (1 - this.lineCount) * 0.5 * this.fontOptions.size;
         if (baseline === "hanging") {
-          this.size.top += 0.5 * this.options.font.size;
+          this.size.top += 0.5 * this.fontOptions.size;
           this.size.top += 4; // distance from node, required because we use hanging. Hanging has less difference between browsers
           this.size.yLine += 4; // distance from node
         }
@@ -28842,10 +28849,10 @@ return /******/ (function(modules) { // webpackBootstrap
         var width = 0;
         var lines = [''];
         var lineCount = 0;
-        if (this.options.label !== undefined) {
-          lines = String(this.options.label).split('\n');
+        if (this.nodeOptions.label !== undefined) {
+          lines = String(this.nodeOptions.label).split('\n');
           lineCount = lines.length;
-          ctx.font = (selected && this.options.labelHighlightBold ? 'bold ' : '') + this.options.font.size + "px " + this.options.font.face;
+          ctx.font = (selected && this.nodeOptions.labelHighlightBold ? 'bold ' : '') + this.fontOptions.size + "px " + this.fontOptions.face;
           width = ctx.measureText(lines[0]).width;
           for (var i = 1; i < lineCount; i++) {
             var lineWidth = ctx.measureText(lines[i]).width;

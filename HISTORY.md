@@ -13,6 +13,7 @@ http://visjs.org
 - Fixed #1152, updating images now works.
 - Fixed cleaning up of nodes.
 - Improved the positioning and CSS of the configurator and the color picker.
+- Fixed dynamic updating of label properties.
 
 
 ## 2015-07-27, version 4.7.0
