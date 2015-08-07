@@ -8,6 +8,9 @@ http://visjs.org
 
 - Implemented reordering groups by dragging them vertically. Thanks @hansmaulwurf23.
 
+### Network
+
+- Fixed #1152, updating images now works.
 
 
 ## 2015-07-27, version 4.7.0

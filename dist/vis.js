@@ -5,7 +5,7 @@
  * A dynamic, browser-based visualization library.
  *
  * @version 4.7.1-SNAPSHOT
- * @date    2015-08-04
+ * @date    2015-08-07
  *
  * @license
  * Copyright (C) 2011-2014 Almende B.V, http://almende.com
@@ -28155,7 +28155,7 @@ return /******/ (function(modules) { // webpackBootstrap
       key: 'updateShape',
       value: function updateShape(currentShape) {
         if (currentShape === this.options.shape && this.shape) {
-          this.shape.setOptions(this.options);
+          this.shape.setOptions(this.options, this.imageObj);
         } else {
           // choose draw method depending on the shape
           switch (this.options.shape) {
@@ -29070,14 +29070,22 @@ return /******/ (function(modules) { // webpackBootstrap
       this.imageLoaded = false;
     }
 
-    /**
-     * This function resizes the image by the options size when the image has not yet loaded. If the image has loaded, we
-     * force the update of the size again.
-     *
-     * @private
-     */
-
     _createClass(CircleImageBase, [{
+      key: 'setOptions',
+      value: function setOptions(options, imageObj) {
+        this.options = options;
+        if (imageObj) {
+          this.imageObj = imageObj;
+        }
+      }
+
+      /**
+       * This function resizes the image by the options size when the image has not yet loaded. If the image has loaded, we
+       * force the update of the size again.
+       *
+       * @private
+       */
+    }, {
       key: '_resizeImage',
       value: function _resizeImage() {
         var force = false;
