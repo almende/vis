@@ -27838,7 +27838,6 @@ return /******/ (function(modules) { // webpackBootstrap
 
         for (var i = 0; i < ids.length; i++) {
           var id = ids[i];
-          nodes[id].cleanup();
           delete nodes[id];
         }
 
@@ -28278,10 +28277,6 @@ return /******/ (function(modules) { // webpackBootstrap
         if (currentShape === this.options.shape && this.shape) {
           this.shape.setOptions(this.options);
         } else {
-          // clean up the shape if it is already made so the new shape can start clean.
-          if (this.shape) {
-            this.shape.cleanup();
-          }
           // choose draw method depending on the shape
           switch (this.options.shape) {
             case 'box':
@@ -28492,16 +28487,6 @@ return /******/ (function(modules) { // webpackBootstrap
        */
       value: function isBoundingBoxOverlappingWith(obj) {
         return this.shape.boundingBox.left < obj.right && this.shape.boundingBox.right > obj.left && this.shape.boundingBox.top < obj.bottom && this.shape.boundingBox.bottom > obj.top;
-      }
-    }, {
-      key: 'cleanup',
-
-      /**
-       * clean all required things on delete.
-       * @returns {*}
-       */
-      value: function cleanup() {
-        return this.shape.cleanup();
       }
     }], [{
       key: 'parseOptions',
@@ -29079,11 +29064,6 @@ return /******/ (function(modules) { // webpackBootstrap
           }
         }
       }
-    }, {
-      key: 'cleanup',
-
-      // possible cleanup for use in shapes
-      value: function cleanup() {}
     }]);
 
     return NodeBase;
@@ -35360,7 +35340,6 @@ return /******/ (function(modules) { // webpackBootstrap
         }
 
         // remove clusterNode
-        this.body.nodes[clusterNodeId].cleanup();
         delete this.body.nodes[clusterNodeId];
 
         if (refreshData === true) {
@@ -36916,10 +36895,13 @@ return /******/ (function(modules) { // webpackBootstrap
         var nodesChanges = _determineIfDifferent2.nodesChanges;
         var edgesChanges = _determineIfDifferent2.edgesChanges;
 
+        var nodeSelected = false;
+
         if (selectedNodesCount - previouslySelectedNodeCount > 0) {
           // node was selected
           this.selectionHandler._generateClickEvent('selectNode', event, pointer);
           selected = true;
+          nodeSelected = true;
         } else if (selectedNodesCount - previouslySelectedNodeCount < 0) {
           // node was deselected
           this.selectionHandler._generateClickEvent('deselectNode', event, pointer, previousSelection);
@@ -36927,23 +36909,26 @@ return /******/ (function(modules) { // webpackBootstrap
         } else if (selectedNodesCount === previouslySelectedNodeCount && nodesChanges === true) {
           this.selectionHandler._generateClickEvent('deselectNode', event, pointer, previousSelection);
           this.selectionHandler._generateClickEvent('selectNode', event, pointer);
+          nodeSelected = true;
           selected = true;
         }
 
-        if (selectedEdgesCount - previouslySelectedEdgeCount < 0 || selectedEdgesCount === previouslySelectedEdgeCount && edgesChanges === true) {
+        // handle the selected edges
+        if (selectedEdgesCount - previouslySelectedEdgeCount > 0 && nodeSelected === false) {
+          // edge was selected
+          this.selectionHandler._generateClickEvent('selectEdge', event, pointer);
+          selected = true;
+        } else if (selectedEdgesCount - previouslySelectedEdgeCount < 0) {
           // edge was deselected
           this.selectionHandler._generateClickEvent('deselectEdge', event, pointer, previousSelection);
           selected = true;
-        }
-
-        // Check if the user clicked on an edge
-        var selectedNode = this.selectionHandler._getSelectedNode();
-        var selectedEdge = this.selectionHandler._getSelectedEdge();
-        if (selectedNode === undefined && selectedEdge !== undefined) {
+        } else if (selectedEdgesCount === previouslySelectedEdgeCount && edgesChanges === true) {
+          this.selectionHandler._generateClickEvent('deselectEdge', event, pointer, previousSelection);
           this.selectionHandler._generateClickEvent('selectEdge', event, pointer);
           selected = true;
         }
 
+        // fire the select event if anything has been selected or deselected
         if (selected === true) {
           // select or unselect
           this.selectionHandler._generateClickEvent('select', event, pointer);
