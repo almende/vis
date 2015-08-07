@@ -1,17 +1,17 @@
-div.vis-network-configuration {
+div.vis-configuration {
     position:relative;
     display:block;
     float:left;
     font-size:12px;
 }
 
-div.vis-network-configuration-wrapper {
+div.vis-configuration-wrapper {
     display:block;
     width:700px;
 }
 
 
-div.vis-network-configuration.vis-option-container{
+div.vis-configuration.vis-config-option-container{
     display:block;
     width:495px;
     background-color: #ffffff;
@@ -22,7 +22,7 @@ div.vis-network-configuration.vis-option-container{
     padding-left:5px;
 }
 
-div.vis-network-configuration.button{
+div.vis-configuration.vis-config-button{
     display:block;
     width:495px;
     height:25px;
@@ -38,13 +38,13 @@ div.vis-network-configuration.button{
     margin-bottom:30px;
 }
 
-div.vis-network-configuration.button.hover{
+div.vis-configuration.vis-config-button.hover{
     background-color: #4588e6;
     border:2px solid #214373;
     color:#ffffff;
 }
 
-div.vis-network-configuration.item{
+div.vis-configuration.vis-config-item{
     display:block;
     float:left;
     width:495px;
@@ -54,44 +54,44 @@ div.vis-network-configuration.item{
 }
 
 
-div.vis-network-configuration.item.s2{
+div.vis-configuration.vis-config-item.vis-config-s2{
     left:10px;
     background-color: #f7f8fa;
     padding-left:5px;
     border-radius:3px;
 }
-div.vis-network-configuration.item.s3{
+div.vis-configuration.vis-config-item.vis-config-s3{
     left:20px;
     background-color: #e4e9f0;
     padding-left:5px;
     border-radius:3px;
 }
-div.vis-network-configuration.item.s4{
+div.vis-configuration.vis-config-item.vis-config-s4{
     left:30px;
     background-color: #cfd8e6;
     padding-left:5px;
     border-radius:3px;
 }
 
-div.vis-network-configuration.header{
+div.vis-configuration.vis-config-header{
     font-size:18px;
     font-weight: bold;
 }
 
-div.vis-network-configuration.label{
+div.vis-configuration.vis-config-label{
     width:120px;
     height:25px;
     line-height: 25px;
 }
 
-div.vis-network-configuration.label.s3{
+div.vis-configuration.vis-config-label.vis-config-s3{
     width:110px;
 }
-div.vis-network-configuration.label.s4{
+div.vis-configuration.vis-config-label.vis-config-s4{
     width:100px;
 }
 
-div.vis-network-configuration.colorBlock{
+div.vis-configuration.vis-config-colorBlock{
     top:1px;
     width:30px;
     height:19px;
@@ -102,12 +102,12 @@ div.vis-network-configuration.colorBlock{
     cursor:pointer;
 }
 
-input.vis-network-configuration.checkbox {
+input.vis-configuration.vis-config-checkbox {
     left:-5px;
 }
 
 
-input.vis-network-configuration.rangeinput{
+input.vis-configuration.vis-config-rangeinput{
     position:relative;
     top:-5px;
     width:60px;
@@ -117,7 +117,7 @@ input.vis-network-configuration.rangeinput{
     pointer-events:none;
 }
 
-input.vis-network-configuration.range{
+input.vis-configuration.vis-config-range{
     /*removes default webkit styles*/
     -webkit-appearance: none;
 
@@ -129,7 +129,7 @@ input.vis-network-configuration.range{
     width: 300px;
     height:20px;
 }
-input.vis-network-configuration.range::-webkit-slider-runnable-track {
+input.vis-configuration.vis-config-range::-webkit-slider-runnable-track {
     width: 300px;
     height: 5px;
     background: #dedede; /* Old browsers */
@@ -145,7 +145,7 @@ input.vis-network-configuration.range::-webkit-slider-runnable-track {
     box-shadow: #aaaaaa 0px 0px 3px 0px;
     border-radius: 3px;
 }
-input.vis-network-configuration.range::-webkit-slider-thumb {
+input.vis-configuration.vis-config-range::-webkit-slider-thumb {
     -webkit-appearance: none;
     border: 1px solid #14334b;
     height: 17px;
@@ -162,10 +162,10 @@ input.vis-network-configuration.range::-webkit-slider-thumb {
     box-shadow: #111927 0px 0px 1px 0px;
     margin-top: -7px;
 }
-input.vis-network-configuration.range:focus {
+input.vis-configuration.vis-config-range:focus {
     outline: none;
 }
-input.vis-network-configuration.range:focus::-webkit-slider-runnable-track {
+input.vis-configuration.vis-config-range:focus::-webkit-slider-runnable-track {
     background: #9d9d9d; /* Old browsers */
     background: -moz-linear-gradient(top, #9d9d9d 0%, #c8c8c8 99%); /* FF3.6+ */
     background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,#9d9d9d), color-stop(99%,#c8c8c8)); /* Chrome,Safari4+ */
@@ -176,7 +176,7 @@ input.vis-network-configuration.range:focus::-webkit-slider-runnable-track {
     filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#9d9d9d', endColorstr='#c8c8c8',GradientType=0 ); /* IE6-9 */
 }
 
-input.vis-network-configuration.range::-moz-range-track {
+input.vis-configuration.vis-config-range::-moz-range-track {
     width: 300px;
     height: 10px;
     background: #dedede; /* Old browsers */
@@ -192,7 +192,7 @@ input.vis-network-configuration.range::-moz-range-track {
     box-shadow: #aaaaaa 0px 0px 3px 0px;
     border-radius: 3px;
 }
-input.vis-network-configuration.range::-moz-range-thumb {
+input.vis-configuration.vis-config-range::-moz-range-thumb {
     border: none;
     height: 16px;
     width: 16px;
@@ -202,12 +202,12 @@ input.vis-network-configuration.range::-moz-range-thumb {
 }
 
 /*hide the outline behind the border*/
-input.vis-network-configuration.range:-moz-focusring{
+input.vis-configuration.vis-config-range:-moz-focusring{
     outline: 1px solid white;
     outline-offset: -1px;
 }
 
-input.vis-network-configuration.range::-ms-track {
+input.vis-configuration.vis-config-range::-ms-track {
     width: 300px;
     height: 5px;
 
@@ -221,24 +221,63 @@ input.vis-network-configuration.range::-ms-track {
     /*remove default tick marks*/
     color: transparent;
 }
-input.vis-network-configuration.range::-ms-fill-lower {
+input.vis-configuration.vis-config-range::-ms-fill-lower {
     background: #777;
     border-radius: 10px;
 }
-input.vis-network-configuration.range::-ms-fill-upper {
+input.vis-configuration.vis-config-range::-ms-fill-upper {
     background: #ddd;
     border-radius: 10px;
 }
-input.vis-network-configuration.range::-ms-thumb {
+input.vis-configuration.vis-config-range::-ms-thumb {
     border: none;
     height: 16px;
     width: 16px;
     border-radius: 50%;
     background:  #385380;
 }
-input.vis-network-configuration.range:focus::-ms-fill-lower {
+input.vis-configuration.vis-config-range:focus::-ms-fill-lower {
     background: #888;
 }
-input.vis-network-configuration.range:focus::-ms-fill-upper {
+input.vis-configuration.vis-config-range:focus::-ms-fill-upper {
     background: #ccc;
+}
+
+.vis-configuration-popup {
+    position: absolute;
+    background: rgba(57, 76, 89, 0.85);
+    border: 2px solid #f2faff;
+    line-height:30px;
+    height:30px;
+    width:150px;
+    text-align:center;
+    color: #ffffff;
+    font-size:14px;
+    border-radius:4px;
+    -webkit-transition: opacity 0.3s ease-in-out;
+    -moz-transition: opacity 0.3s ease-in-out;
+    transition: opacity 0.3s ease-in-out;
+}
+.vis-configuration-popup:after, .vis-configuration-popup:before {
+    left: 100%;
+    top: 50%;
+    border: solid transparent;
+    content: " ";
+    height: 0;
+    width: 0;
+    position: absolute;
+    pointer-events: none;
+}
+
+.vis-configuration-popup:after {
+    border-color: rgba(136, 183, 213, 0);
+    border-left-color: rgba(57, 76, 89, 0.85);
+    border-width: 8px;
+    margin-top: -8px;
+}
+.vis-configuration-popup:before {
+    border-color: rgba(194, 225, 245, 0);
+    border-left-color: #f2faff;
+    border-width: 12px;
+    margin-top: -12px;
 }

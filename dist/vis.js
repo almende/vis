@@ -21419,6 +21419,8 @@ return /******/ (function(modules) { // webpackBootstrap
       this.allowCreation = false;
 
       this.options = {};
+      this.initialized = false;
+      this.popupCounter = 0;
       this.defaultOptions = {
         enabled: false,
         filter: true,
@@ -21430,6 +21432,9 @@ return /******/ (function(modules) { // webpackBootstrap
       this.configureOptions = configureOptions;
       this.moduleOptions = {};
       this.domElements = [];
+      this.popupDiv = {};
+      this.popupLimit = 5;
+      this.popupHistory = {};
       this.colorPicker = new _ColorPicker2['default'](pixelRatio);
       this.wrapper = undefined;
     }
@@ -21445,6 +21450,10 @@ return /******/ (function(modules) { // webpackBootstrap
       key: 'setOptions',
       value: function setOptions(options) {
         if (options !== undefined) {
+          // reset the popup history because the indices may have been changed.
+          this.popupHistory = {};
+          this._removePopup();
+
           var enabled = true;
           if (typeof options === 'string') {
             this.options.filter = options;
@@ -21537,20 +21546,20 @@ return /******/ (function(modules) { // webpackBootstrap
         if (this.options.showButton === true) {
           (function () {
             var generateButton = document.createElement('div');
-            generateButton.className = 'vis-network-configuration button';
+            generateButton.className = 'vis-configuration vis-config-button';
             generateButton.innerHTML = 'generate options';
             generateButton.onclick = function () {
               _this._printOptions();
             };
             generateButton.onmouseover = function () {
-              generateButton.className = 'vis-network-configuration button hover';
+              generateButton.className = 'vis-configuration vis-config-button hover';
             };
             generateButton.onmouseout = function () {
-              generateButton.className = 'vis-network-configuration button';
+              generateButton.className = 'vis-configuration vis-config-button';
             };
 
             _this.optionsContainer = document.createElement('div');
-            _this.optionsContainer.className = 'vis-network-configuration vis-option-container';
+            _this.optionsContainer.className = 'vis-configuration vis-config-option-container';
 
             _this.domElements.push(_this.optionsContainer);
             _this.domElements.push(generateButton);
@@ -21569,11 +21578,13 @@ return /******/ (function(modules) { // webpackBootstrap
       key: '_push',
       value: function _push() {
         this.wrapper = document.createElement('div');
-        this.wrapper.className = 'vis-network-configuration-wrapper';
+        this.wrapper.className = 'vis-configuration-wrapper';
         this.container.appendChild(this.wrapper);
         for (var i = 0; i < this.domElements.length; i++) {
           this.wrapper.appendChild(this.domElements[i]);
         }
+
+        this._showPopupIfNeeded();
       }
 
       /**
@@ -21592,6 +21603,8 @@ return /******/ (function(modules) { // webpackBootstrap
           this.wrapper = undefined;
         }
         this.domElements = [];
+
+        this._removePopup();
       }
 
       /**
@@ -21630,9 +21643,9 @@ return /******/ (function(modules) { // webpackBootstrap
         if (this.allowCreation === true) {
           var _len, domElements, _key;
 
-          (function () {
+          var _ret2 = (function () {
             var item = document.createElement('div');
-            item.className = 'vis-network-configuration item s' + path.length;
+            item.className = 'vis-configuration vis-config-item vis-config-s' + path.length;
 
             for (_len = _arguments.length, domElements = Array(_len > 1 ? _len - 1 : 0), _key = 1; _key < _len; _key++) {
               domElements[_key - 1] = _arguments[_key];
@@ -21642,8 +21655,14 @@ return /******/ (function(modules) { // webpackBootstrap
               item.appendChild(element);
             });
             _this2.domElements.push(item);
+            return {
+              v: _this2.domElements.length
+            };
           })();
+
+          if (typeof _ret2 === 'object') return _ret2.v;
         }
+        return 0;
       }
 
       /**
@@ -21655,7 +21674,7 @@ return /******/ (function(modules) { // webpackBootstrap
       key: '_makeHeader',
       value: function _makeHeader(name) {
         var div = document.createElement('div');
-        div.className = 'vis-network-configuration header';
+        div.className = 'vis-configuration vis-config-header';
         div.innerHTML = name;
         this._makeItem([], div);
       }
@@ -21674,7 +21693,7 @@ return /******/ (function(modules) { // webpackBootstrap
         var objectLabel = arguments.length <= 2 || arguments[2] === undefined ? false : arguments[2];
 
         var div = document.createElement('div');
-        div.className = 'vis-network-configuration label s' + path.length;
+        div.className = 'vis-configuration vis-config-label vis-config-s' + path.length;
         if (objectLabel === true) {
           div.innerHTML = '<i><b>' + name + ':</b></i>';
         } else {
@@ -21694,7 +21713,7 @@ return /******/ (function(modules) { // webpackBootstrap
       key: '_makeDropdown',
       value: function _makeDropdown(arr, value, path) {
         var select = document.createElement('select');
-        select.className = 'vis-network-configuration select';
+        select.className = 'vis-configuration vis-config-select';
         var selectedValue = 0;
         if (value !== undefined) {
           if (arr.indexOf(value) !== -1) {
@@ -21736,7 +21755,7 @@ return /******/ (function(modules) { // webpackBootstrap
         var max = arr[2];
         var step = arr[3];
         var range = document.createElement('input');
-        range.className = 'vis-network-configuration range';
+        range.className = 'vis-configuration vis-config-range';
         try {
           range.type = 'range'; // not supported on IE9
           range.min = min;
@@ -21744,14 +21763,25 @@ return /******/ (function(modules) { // webpackBootstrap
         } catch (err) {}
         range.step = step;
 
+        // set up the popup settings in case they are needed.
+        var popupString = '';
+        var popupValue = 0;
+
         if (value !== undefined) {
-          if (value < 0 && value * 2 < min) {
-            range.min = value * 2;
-          } else if (value * 0.1 < min) {
-            range.min = value / 10;
+          var factor = 1.20;
+          if (value < 0 && value * factor < min) {
+            range.min = Math.ceil(value * factor);
+            popupValue = range.min;
+            popupString = 'range increased';
+          } else if (value / factor < min) {
+            range.min = Math.ceil(value / factor);
+            popupValue = range.min;
+            popupString = 'range increased';
           }
-          if (value * 2 > max && max !== 1) {
-            range.max = value * 2;
+          if (value * factor > max && max !== 1) {
+            range.max = Math.ceil(value * factor);
+            popupValue = range.max;
+            popupString = 'range increased';
           }
           range.value = value;
         } else {
@@ -21759,7 +21789,7 @@ return /******/ (function(modules) { // webpackBootstrap
         }
 
         var input = document.createElement('input');
-        input.className = 'vis-network-configuration rangeinput';
+        input.className = 'vis-configuration vis-config-rangeinput';
         input.value = range.value;
 
         var me = this;
@@ -21771,7 +21801,76 @@ return /******/ (function(modules) { // webpackBootstrap
         };
 
         var label = this._makeLabel(path[path.length - 1], path);
-        this._makeItem(path, label, range, input);
+        var itemIndex = this._makeItem(path, label, range, input);
+
+        // if a popup is needed AND it has not been shown for this value, show it.
+        if (popupString !== '' && this.popupHistory[itemIndex] !== popupValue) {
+          this.popupHistory[itemIndex] = popupValue;
+          this._setupPopup(popupString, itemIndex);
+        }
+      }
+
+      /**
+       * prepare the popup
+       * @param string
+       * @param index
+       * @private
+       */
+    }, {
+      key: '_setupPopup',
+      value: function _setupPopup(string, index) {
+        var _this3 = this;
+
+        if (this.initialized === true && this.allowCreation === true && this.popupCounter < 4000) {
+          var div = document.createElement("div");
+          div.id = "vis-configuration-popup";
+          div.className = "vis-configuration-popup";
+          div.innerHTML = string;
+          div.onclick = function () {
+            _this3._removePopup();
+          };
+          this.popupCounter += 1;
+          this.popupDiv = { html: div, index: index };
+        }
+      }
+
+      /**
+       * remove the popup from the dom
+       * @private
+       */
+    }, {
+      key: '_removePopup',
+      value: function _removePopup() {
+        if (this.popupDiv.html !== undefined) {
+          this.popupDiv.html.parentNode.removeChild(this.popupDiv.html);
+          clearTimeout(this.popupDiv.hideTimeout);
+          clearTimeout(this.popupDiv.deleteTimeout);
+          this.popupDiv = {};
+        }
+      }
+
+      /**
+       * Show the popup if it is needed.
+       * @private
+       */
+    }, {
+      key: '_showPopupIfNeeded',
+      value: function _showPopupIfNeeded() {
+        var _this4 = this;
+
+        if (this.popupDiv.html !== undefined) {
+          var correspondingElement = this.domElements[this.popupDiv.index];
+          var rect = correspondingElement.getBoundingClientRect();
+          this.popupDiv.html.style.left = rect.left + "px";
+          this.popupDiv.html.style.top = rect.top - 30 + "px"; // 30 is the height;
+          document.body.appendChild(this.popupDiv.html);
+          this.popupDiv.hideTimeout = setTimeout(function () {
+            _this4.popupDiv.html.style.opacity = 0;
+          }, 1500);
+          this.popupDiv.deleteTimeout = setTimeout(function () {
+            _this4._removePopup();
+          }, 1800);
+        }
       }
 
       /**
@@ -21786,7 +21885,7 @@ return /******/ (function(modules) { // webpackBootstrap
       value: function _makeCheckbox(defaultValue, value, path) {
         var checkbox = document.createElement('input');
         checkbox.type = 'checkbox';
-        checkbox.className = 'vis-network-configuration checkbox';
+        checkbox.className = 'vis-configuration vis-config-checkbox';
         checkbox.checked = defaultValue;
         if (value !== undefined) {
           checkbox.checked = value;
@@ -21822,7 +21921,7 @@ return /******/ (function(modules) { // webpackBootstrap
       value: function _makeTextInput(defaultValue, value, path) {
         var checkbox = document.createElement('input');
         checkbox.type = 'text';
-        checkbox.className = 'vis-network-configuration text';
+        checkbox.className = 'vis-configuration vis-config-text';
         checkbox.value = value;
         if (value !== defaultValue) {
           this.changedOptions.push({ path: path, value: value });
@@ -21847,22 +21946,22 @@ return /******/ (function(modules) { // webpackBootstrap
     }, {
       key: '_makeColorField',
       value: function _makeColorField(arr, value, path) {
-        var _this3 = this;
+        var _this5 = this;
 
         var defaultColor = arr[1];
         var div = document.createElement('div');
         value = value === undefined ? defaultColor : value;
 
         if (value !== 'none') {
-          div.className = 'vis-network-configuration colorBlock';
+          div.className = 'vis-configuration vis-config-colorBlock';
           div.style.backgroundColor = value;
         } else {
-          div.className = 'vis-network-configuration colorBlock none';
+          div.className = 'vis-configuration vis-config-colorBlock none';
         }
 
         value = value === undefined ? defaultColor : value;
         div.onclick = function () {
-          _this3._showColorPicker(value, div, path);
+          _this5._showColorPicker(value, div, path);
         };
 
         var label = this._makeLabel(path[path.length - 1], path);
@@ -21880,7 +21979,7 @@ return /******/ (function(modules) { // webpackBootstrap
     }, {
       key: '_showColorPicker',
       value: function _showColorPicker(value, div, path) {
-        var _this4 = this;
+        var _this6 = this;
 
         var rect = div.getBoundingClientRect();
         var bodyRect = document.body.getBoundingClientRect();
@@ -21891,7 +21990,7 @@ return /******/ (function(modules) { // webpackBootstrap
         this.colorPicker.setCallback(function (color) {
           var colorString = 'rgba(' + color.r + ',' + color.g + ',' + color.b + ',' + color.a + ')';
           div.style.backgroundColor = colorString;
-          _this4._update(colorString, path);
+          _this6._update(colorString, path);
         });
       }
 
@@ -22017,7 +22116,7 @@ return /******/ (function(modules) { // webpackBootstrap
         if (this.parent.body && this.parent.body.emitter && this.parent.body.emitter.emit) {
           this.parent.body.emitter.emit("configChange", options);
         }
-
+        this.initialized = true;
         this.parent.setOptions(options);
       }
     }, {
