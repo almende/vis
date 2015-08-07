@@ -954,6 +954,14 @@ function (option, path) {
 }</pre>
       </td>
     </tr>
+
+    <tr parent="timeAxis" class="hidden">
+      <td class="indent">throttleRedraw</td>
+      <td>number</td>
+      <td><code>0</code></td>
+      <td>Limit the maximum number of redraws to once every x milliseconds. For example setting throttleRedraw to `100` milliseconds will limit the number of redraws to 10 times per second.</td>
+    </tr>
+
     <tr parent="timeAxis" class="hidden">
       <td class="indent">timeAxis.step</td>
       <td>number</td>

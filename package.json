@@ -32,9 +32,9 @@
     "emitter-component": "^1.1.1",
     "hammerjs": "^2.0.4",
     "keycharm": "^0.2.0",
-    "uuid": "^2.0.1",
     "moment": "^2.10.2",
-    "propagating-hammerjs": "^1.4.3"
+    "propagating-hammerjs": "^1.4.3",
+    "uuid": "^2.0.1"
   },
   "devDependencies": {
     "babel": "^5.1.11",
@@ -54,6 +54,8 @@
     "yargs": "^3.7.2"
   },
   "browserify": {
-    "transform": ["babelify"]
+    "transform": [
+      "babelify"
+    ]
   }
 }
