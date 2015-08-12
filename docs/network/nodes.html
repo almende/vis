@@ -93,7 +93,7 @@
     <h3>Options</h3>
     <p>The options for the nodes have to be contained in an object titled 'nodes'. All of these options can be supplied per node as well. Obviously, 'id' should not be defined globally but per node. Options defined
         in the global nodes object, are applied to all nodes. If a node has options of its own, those will be used instead of the global options.</p>
-    <p><b><i>When you have given a node an option, you will override the global option for that property. If you then set that option to <code>null</code>,
+    <p><b><i>When you have given a node an option, you will override the global option for that property, and also the group option for that property if the node is in a group. If you then set that option to <code>null</code>,
         it will revert back to the default value.</i></b>
     </p>
     <p>Click on the full options or shorthand options to show how these options are supposed to be used.</p>
@@ -374,7 +374,9 @@ network.setOptions(options);
             <td>group</td>
             <td>String</td>
             <td><code>undefined</code></td>
-            <td>When not <code>undefined</code>, the</td>
+            <td>When not <code>undefined</code>, the node will belong to the defined group. Styling information of
+                that group will apply to this node. Node specific styling overrides group styling. 
+            </td>
         </tr>
         <tr>
             <td>hidden</td>
