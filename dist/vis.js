@@ -5,7 +5,7 @@
  * A dynamic, browser-based visualization library.
  *
  * @version 4.7.1-SNAPSHOT
- * @date    2015-08-12
+ * @date    2015-08-13
  *
  * @license
  * Copyright (C) 2011-2014 Almende B.V, http://almende.com
@@ -142,7 +142,7 @@ return /******/ (function(modules) { // webpackBootstrap
     Images: __webpack_require__(116),
     dotparser: __webpack_require__(114),
     gephiParser: __webpack_require__(115),
-    allOptions: __webpack_require__(112)
+    allOptions: __webpack_require__(110)
   };
   exports.network.convertDot = function (input) {
     return exports.network.dotparser.DOTToGraph(input);
@@ -26823,7 +26823,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   var _modulesLayoutEngine2 = _interopRequireDefault(_modulesLayoutEngine);
 
-  var _modulesManipulationSystem = __webpack_require__(111);
+  var _modulesManipulationSystem = __webpack_require__(109);
 
   var _modulesManipulationSystem2 = _interopRequireDefault(_modulesManipulationSystem);
 
@@ -26835,7 +26835,9 @@ return /******/ (function(modules) { // webpackBootstrap
 
   var _sharedValidator2 = _interopRequireDefault(_sharedValidator);
 
-  var _optionsJs = __webpack_require__(112);
+  var _optionsJs = __webpack_require__(110);
+
+  var _modulesKamadaKawaiJs = __webpack_require__(111);
 
   /**
    * @constructor Network
@@ -26848,6 +26850,9 @@ return /******/ (function(modules) { // webpackBootstrap
    *                              {Array} edges
    * @param {Object} options      Options
    */
+
+  var _modulesKamadaKawaiJs2 = _interopRequireDefault(_modulesKamadaKawaiJs);
+
   __webpack_require__(113);
 
   var Emitter = __webpack_require__(19);
@@ -26913,6 +26918,7 @@ return /******/ (function(modules) { // webpackBootstrap
         createEdge: function createEdge() {},
         getPointer: function getPointer() {}
       },
+      modules: {},
       view: {
         scale: 1,
         translation: { x: 0, y: 0 }
@@ -26939,6 +26945,9 @@ return /******/ (function(modules) { // webpackBootstrap
 
     this.nodesHandler = new _modulesNodesHandler2['default'](this.body, this.images, this.groups, this.layoutEngine); // Handle adding, deleting and updating of nodes as well as global options
     this.edgesHandler = new _modulesEdgesHandler2['default'](this.body, this.images, this.groups); // Handle adding, deleting and updating of edges as well as global options
+
+    this.body.modules["kamadaKawai"] = new _modulesKamadaKawaiJs2['default'](this.body, 150, 0.05); // Layouting algorithm.
+    this.body.modules["clustering"] = this.clustering;
 
     // create the DOM elements
     this.canvas._create();
@@ -27148,6 +27157,9 @@ return /******/ (function(modules) { // webpackBootstrap
 
     // emit change in data
     this.body.emitter.emit("_dataChanged");
+
+    // emit data loaded
+    this.body.emitter.emit("_dataLoaded");
 
     // find a stable position or start animating to a stable position
     this.body.emitter.emit("initPhysics");
@@ -32666,21 +32678,21 @@ return /******/ (function(modules) { // webpackBootstrap
 /* 88 */
 /***/ function(module, exports, __webpack_require__) {
 
-  'use strict';
+  "use strict";
 
-  Object.defineProperty(exports, '__esModule', {
+  Object.defineProperty(exports, "__esModule", {
     value: true
   });
 
-  var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
+  var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
 
-  var _get = function get(_x, _x2, _x3) { var _again = true; _function: while (_again) { var object = _x, property = _x2, receiver = _x3; desc = parent = getter = undefined; _again = false; if (object === null) object = Function.prototype; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { _x = parent; _x2 = property; _x3 = receiver; _again = true; continue _function; } } else if ('value' in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } } };
+  var _get = function get(_x, _x2, _x3) { var _again = true; _function: while (_again) { var object = _x, property = _x2, receiver = _x3; desc = parent = getter = undefined; _again = false; if (object === null) object = Function.prototype; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { _x = parent; _x2 = property; _x3 = receiver; _again = true; continue _function; } } else if ("value" in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } } };
 
-  function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
+  function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { "default": obj }; }
 
-  function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
+  function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
-  function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; }
+  function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; }
 
   var _utilBezierEdgeBase = __webpack_require__(84);
 
@@ -32690,14 +32702,20 @@ return /******/ (function(modules) { // webpackBootstrap
     _inherits(BezierEdgeDynamic, _BezierEdgeBase);
 
     function BezierEdgeDynamic(options, body, labelModule) {
+      var _this = this;
+
       _classCallCheck(this, BezierEdgeDynamic);
 
       //this.via = undefined; // Here for completeness but not allowed to defined before super() is invoked.
-      _get(Object.getPrototypeOf(BezierEdgeDynamic.prototype), 'constructor', this).call(this, options, body, labelModule); // --> this calls the setOptions below
+      _get(Object.getPrototypeOf(BezierEdgeDynamic.prototype), "constructor", this).call(this, options, body, labelModule); // --> this calls the setOptions below
+      this._boundFunction = function () {
+        _this.positionBezierNode();
+      };
+      this.body.emitter.on("_repositionBezierNodes", this._boundFunction);
     }
 
     _createClass(BezierEdgeDynamic, [{
-      key: 'setOptions',
+      key: "setOptions",
       value: function setOptions(options) {
         this.options = options;
         this.id = this.options.id;
@@ -32711,7 +32729,7 @@ return /******/ (function(modules) { // webpackBootstrap
         this.connect();
       }
     }, {
-      key: 'connect',
+      key: "connect",
       value: function connect() {
         this.from = this.body.nodes[this.options.from];
         this.to = this.body.nodes[this.options.to];
@@ -32732,8 +32750,9 @@ return /******/ (function(modules) { // webpackBootstrap
        * @returns {boolean}
        */
     }, {
-      key: 'cleanup',
+      key: "cleanup",
       value: function cleanup() {
+        this.body.emitter.off("_repositionBezierNodes", this._boundFunction);
         if (this.via !== undefined) {
           delete this.body.nodes[this.via.id];
           this.via = undefined;
@@ -32750,7 +32769,7 @@ return /******/ (function(modules) { // webpackBootstrap
        * @private
        */
     }, {
-      key: 'setupSupportNode',
+      key: "setupSupportNode",
       value: function setupSupportNode() {
         if (this.via === undefined) {
           var nodeId = "edgeId:" + this.id;
@@ -32767,7 +32786,7 @@ return /******/ (function(modules) { // webpackBootstrap
         }
       }
     }, {
-      key: 'positionBezierNode',
+      key: "positionBezierNode",
       value: function positionBezierNode() {
         if (this.via !== undefined && this.from !== undefined && this.to !== undefined) {
           this.via.x = 0.5 * (this.from.x + this.to.x);
@@ -32784,7 +32803,7 @@ return /******/ (function(modules) { // webpackBootstrap
        * @private
        */
     }, {
-      key: '_line',
+      key: "_line",
       value: function _line(ctx) {
         // draw a straight line
         ctx.beginPath();
@@ -32805,7 +32824,7 @@ return /******/ (function(modules) { // webpackBootstrap
        * @private
        */
     }, {
-      key: 'getPoint',
+      key: "getPoint",
       value: function getPoint(percentage) {
         var t = percentage;
         var x = Math.pow(1 - t, 2) * this.from.x + 2 * t * (1 - t) * this.via.x + Math.pow(t, 2) * this.to.x;
@@ -32814,12 +32833,12 @@ return /******/ (function(modules) { // webpackBootstrap
         return { x: x, y: y };
       }
     }, {
-      key: '_findBorderPosition',
+      key: "_findBorderPosition",
       value: function _findBorderPosition(nearNode, ctx) {
         return this._findBorderPositionBezier(nearNode, ctx, this.via);
       }
     }, {
-      key: '_getDistanceToEdge',
+      key: "_getDistanceToEdge",
       value: function _getDistanceToEdge(x1, y1, x2, y2, x3, y3) {
         // x3,y3 is the point
         return this._getDistanceToBezierEdge(x1, y1, x2, y2, x3, y3, this.via);
@@ -32827,10 +32846,10 @@ return /******/ (function(modules) { // webpackBootstrap
     }]);
 
     return BezierEdgeDynamic;
-  })(_utilBezierEdgeBase2['default']);
+  })(_utilBezierEdgeBase2["default"]);
 
-  exports['default'] = BezierEdgeDynamic;
-  module.exports = exports['default'];
+  exports["default"] = BezierEdgeDynamic;
+  module.exports = exports["default"];
 
 /***/ },
 /* 89 */
@@ -33000,7 +33019,6 @@ return /******/ (function(modules) { // webpackBootstrap
       this.previousStates = {};
       this.freezeCache = {};
       this.renderTimer = undefined;
-      this.initialStabilizationEmitted = false;
 
       this.stabilized = false;
       this.startedStabilization = false;
@@ -33229,14 +33247,6 @@ return /******/ (function(modules) { // webpackBootstrap
         }
 
         if (this.stabilized === true) {
-          if (this.stabilizationIterations > 1) {
-            // trigger the 'stabilized' event.
-            // The event is triggered on the next tick, to prevent the case that
-            // it is fired while initializing the Network, in which case you would not
-            // be able to catch it
-            this.startedStabilization = false;
-            //this._emitStabilized();
-          }
           this.stopSimulation();
         }
       }
@@ -33245,8 +33255,7 @@ return /******/ (function(modules) { // webpackBootstrap
       value: function _emitStabilized() {
         var _this2 = this;
 
-        if (this.stabilizationIterations > 1 || this.initialStabilizationEmitted === false) {
-          this.initialStabilizationEmitted = true;
+        if (this.stabilizationIterations > 1) {
           setTimeout(function () {
             _this2.body.emitter.emit('stabilized', { iterations: _this2.stabilizationIterations });
             _this2.stabilizationIterations = 0;
@@ -33562,6 +33571,7 @@ return /******/ (function(modules) { // webpackBootstrap
         this.body.emitter.emit('_requestRedraw');
 
         if (this.stabilized === true) {
+          console.log("emitted");
           this._emitStabilized();
         } else {
           this.startSimulation();
@@ -34772,6 +34782,7 @@ return /******/ (function(modules) { // webpackBootstrap
         for (var i = 0; i < nodesToCluster.length; i++) {
           this.clusterByConnection(nodesToCluster[i], options, false);
         }
+
         this.body.emitter.emit('_dataChanged');
       }
 
@@ -34816,14 +34827,15 @@ return /******/ (function(modules) { // webpackBootstrap
       }
 
       /**
-      * Cluster all nodes in the network that have only 1 edge
-      * @param options
-      * @param refreshData
-      */
+       * Cluster all nodes in the network that have only X edges
+       * @param edgeCount
+       * @param options
+       * @param refreshData
+       */
     }, {
-      key: 'clusterOutliers',
-      value: function clusterOutliers(options) {
-        var refreshData = arguments.length <= 1 || arguments[1] === undefined ? true : arguments[1];
+      key: 'clusterByEdgeCount',
+      value: function clusterByEdgeCount(edgeCount, options) {
+        var refreshData = arguments.length <= 2 || arguments[2] === undefined ? true : arguments[2];
 
         options = this._checkOptions(options);
         var clusters = [];
@@ -34842,8 +34854,8 @@ return /******/ (function(modules) { // webpackBootstrap
             }
           }
 
-          if (visibleEdges === 1) {
-            // this is an outlier
+          if (visibleEdges === edgeCount) {
+            // this is a qualifying node
             var childNodeId = this._getConnectedId(edge, nodeId);
             if (childNodeId !== nodeId) {
               if (options.joinCondition === undefined) {
@@ -34879,6 +34891,32 @@ return /******/ (function(modules) { // webpackBootstrap
         if (refreshData === true) {
           this.body.emitter.emit('_dataChanged');
         }
+      }
+
+      /**
+      * Cluster all nodes in the network that have only 1 edge
+      * @param options
+      * @param refreshData
+      */
+    }, {
+      key: 'clusterOutliers',
+      value: function clusterOutliers(options) {
+        var refreshData = arguments.length <= 1 || arguments[1] === undefined ? true : arguments[1];
+
+        this.clusterByEdgeCount(1, options, refreshData);
+      }
+
+      /**
+       * Cluster all nodes in the network that have only 2 edge
+       * @param options
+       * @param refreshData
+       */
+    }, {
+      key: 'clusterBridges',
+      value: function clusterBridges(options) {
+        var refreshData = arguments.length <= 1 || arguments[1] === undefined ? true : arguments[1];
+
+        this.clusterByEdgeCount(2, options, refreshData);
       }
     }, {
       key: '_checkIfUsed',
@@ -34936,23 +34974,24 @@ return /******/ (function(modules) { // webpackBootstrap
           var edge = node.edges[i];
           var childNodeId = this._getConnectedId(edge, parentNodeId);
 
-          if (childNodeId !== parentNodeId) {
-            if (options.joinCondition === undefined) {
-              childEdgesObj[edge.id] = edge;
-              childNodesObj[childNodeId] = this.body.nodes[childNodeId];
-            } else {
-              // clone the options and insert some additional parameters that could be interesting.
-              var childClonedOptions = this._cloneOptions(this.body.nodes[childNodeId]);
-              if (options.joinCondition(parentClonedOptions, childClonedOptions) === true) {
+          if (this.clusteredNodes[childNodeId] === undefined) {
+            if (childNodeId !== parentNodeId) {
+              if (options.joinCondition === undefined) {
                 childEdgesObj[edge.id] = edge;
                 childNodesObj[childNodeId] = this.body.nodes[childNodeId];
+              } else {
+                // clone the options and insert some additional parameters that could be interesting.
+                var childClonedOptions = this._cloneOptions(this.body.nodes[childNodeId]);
+                if (options.joinCondition(parentClonedOptions, childClonedOptions) === true) {
+                  childEdgesObj[edge.id] = edge;
+                  childNodesObj[childNodeId] = this.body.nodes[childNodeId];
+                }
               }
+            } else {
+              childEdgesObj[edge.id] = edge;
             }
-          } else {
-            childEdgesObj[edge.id] = edge;
           }
         }
-
         this._cluster(childNodesObj, childEdgesObj, options, refreshData);
       }
 
@@ -35067,9 +35106,18 @@ return /******/ (function(modules) { // webpackBootstrap
       value: function _cluster(childNodesObj, childEdgesObj, options) {
         var refreshData = arguments.length <= 3 || arguments[3] === undefined ? true : arguments[3];
 
-        // kill condition: no children so cant cluster
+        // kill condition: no children so can't cluster
         if (Object.keys(childNodesObj).length === 0) {
           return;
+        }
+
+        // check if this cluster call is not trying to cluster anything that is in another cluster.
+        for (var nodeId in childNodesObj) {
+          if (childNodesObj.hasOwnProperty(nodeId)) {
+            if (this.clusteredNodes[nodeId] !== undefined) {
+              return;
+            }
+          }
         }
 
         var clusterNodeProperties = util.deepExtend({}, options.clusterNodeProperties);
@@ -35079,17 +35127,21 @@ return /******/ (function(modules) { // webpackBootstrap
           // get the childNode options
           var childNodesOptions = [];
           for (var nodeId in childNodesObj) {
-            var clonedOptions = this._cloneOptions(childNodesObj[nodeId]);
-            childNodesOptions.push(clonedOptions);
+            if (childNodesObj.hasOwnProperty(nodeId)) {
+              var clonedOptions = this._cloneOptions(childNodesObj[nodeId]);
+              childNodesOptions.push(clonedOptions);
+            }
           }
 
           // get clusterproperties based on childNodes
           var childEdgesOptions = [];
           for (var edgeId in childEdgesObj) {
-            // these cluster edges will be removed on creation of the cluster.
-            if (edgeId.substr(0, 12) !== "clusterEdge:") {
-              var clonedOptions = this._cloneOptions(childEdgesObj[edgeId], 'edge');
-              childEdgesOptions.push(clonedOptions);
+            if (childEdgesObj.hasOwnProperty(edgeId)) {
+              // these cluster edges will be removed on creation of the cluster.
+              if (edgeId.substr(0, 12) !== "clusterEdge:") {
+                var clonedOptions = this._cloneOptions(childEdgesObj[edgeId], 'edge');
+                childEdgesOptions.push(clonedOptions);
+              }
             }
           }
 
@@ -38663,19 +38715,14 @@ return /******/ (function(modules) { // webpackBootstrap
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
+
   Object.defineProperty(exports, '__esModule', {
     value: true
   });
 
   var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
 
-  function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
-
   function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
-
-  var _componentsKamadaKawaiJs = __webpack_require__(109);
-
-  var _componentsKamadaKawaiJs2 = _interopRequireDefault(_componentsKamadaKawaiJs);
 
   var util = __webpack_require__(7);
 
@@ -38713,6 +38760,9 @@ return /******/ (function(modules) { // webpackBootstrap
 
         this.body.emitter.on('_dataChanged', function () {
           _this.setupHierarchicalLayout();
+        });
+        this.body.emitter.on('_dataLoaded', function () {
+          _this.layoutNetwork();
         });
         this.body.emitter.on('_resetHierarchicalLayout', function () {
           _this.setupHierarchicalLayout();
@@ -38846,6 +38896,73 @@ return /******/ (function(modules) { // webpackBootstrap
         }
       }
     }, {
+      key: 'layoutNetwork',
+      value: function layoutNetwork() {
+        // first check if we should KamadaKawai to layout. The threshold is if less than half of the visible
+        // nodes have predefined positions we use this.
+        var positionDefined = 0;
+        for (var i = 0; i < this.body.nodeIndices.length; i++) {
+          var node = this.body.nodes[this.body.nodeIndices[i]];
+          if (node.predefinedPosition === true) {
+            positionDefined += 1;
+          }
+        }
+
+        // if less than half of the nodes have a predefined position we continue
+        if (positionDefined < 0.5 * this.body.nodeIndices.length) {
+          var levels = 0;
+          // if there are a lot of nodes, we cluster before we run the algorithm.
+          if (this.body.nodeIndices.length > 100) {
+            var startLength = this.body.nodeIndices.length;
+            while (this.body.nodeIndices.length > 150) {
+              levels += 1;
+              if (levels % 5 === 0) {
+                this.body.modules.clustering.clusterByHubsize();
+              } else if (levels % 3 === 0) {
+                this.body.modules.clustering.clusterBridges();
+              } else {
+                this.body.modules.clustering.clusterOutliers();
+              }
+              console.log('levels', levels);
+            }
+            this.body.modules.kamadaKawai.setOptions({ springLength: Math.max(150, 2 * startLength) });
+          }
+
+          // position the system for these nodes and edges
+          this.body.modules.kamadaKawai.solve(this.body.nodeIndices, this.body.edgeIndices, true);
+
+          // uncluster all clusters
+          if (levels > 0) {
+            var clustersPresent = true;
+            while (clustersPresent === true) {
+              clustersPresent = false;
+              for (var i = 0; i < this.body.nodeIndices.length; i++) {
+                if (this.body.nodes[this.body.nodeIndices[i]].isCluster === true) {
+                  clustersPresent = true;
+                  this.body.modules.clustering.openCluster(this.body.nodeIndices[i], {
+                    releaseFunction: function releaseFunction(clusterPosition, containedNodesPositions) {
+                      var newPositions = {};
+                      for (var nodeId in containedNodesPositions) {
+                        if (containedNodesPositions.hasOwnProperty(nodeId)) {
+                          newPositions[nodeId] = { x: clusterPosition.x, y: clusterPosition.y };
+                        }
+                      }
+                      return newPositions;
+                    }
+                  }, false);
+                }
+              }
+              if (clustersPresent === true) {
+                this.body.emitter.emit('_dataChanged');
+              }
+            }
+          }
+
+          // reposition all bezier nodes.
+          this.body.emitter.emit("_repositionBezierNodes");
+        }
+      }
+    }, {
       key: 'getSeed',
       value: function getSeed() {
         return this.initialRandomSeed;
@@ -38860,10 +38977,6 @@ return /******/ (function(modules) { // webpackBootstrap
     }, {
       key: 'setupHierarchicalLayout',
       value: function setupHierarchicalLayout() {
-        var kk = new _componentsKamadaKawaiJs2['default'](this.body, 100, 0.05);
-        kk.solve(this.body.nodeIndices, this.body.edgeIndices);
-        return;
-
         if (this.options.hierarchical.enabled === true && this.body.nodeIndices.length > 0) {
           // get the size of the largest hubs and check if the user has defined a level for a node.
           var node = undefined,
@@ -39184,286 +39297,6 @@ return /******/ (function(modules) { // webpackBootstrap
 
 /***/ },
 /* 109 */
-/***/ function(module, exports, __webpack_require__) {
-
-  /**
-   * Created by Alex on 8/7/2015.
-   */
-
-  "use strict";
-
-  Object.defineProperty(exports, "__esModule", {
-    value: true
-  });
-
-  var _slicedToArray = (function () { function sliceIterator(arr, i) { var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i["return"]) _i["return"](); } finally { if (_d) throw _e; } } return _arr; } return function (arr, i) { if (Array.isArray(arr)) { return arr; } else if (Symbol.iterator in Object(arr)) { return sliceIterator(arr, i); } else { throw new TypeError("Invalid attempt to destructure non-iterable instance"); } }; })();
-
-  var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
-
-  function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { "default": obj }; }
-
-  function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-
-  var _FloydWarshallJs = __webpack_require__(110);
-
-  var _FloydWarshallJs2 = _interopRequireDefault(_FloydWarshallJs);
-
-  var KamadaKawai = (function () {
-    function KamadaKawai(body, edgeLength, edgeStrength) {
-      _classCallCheck(this, KamadaKawai);
-
-      this.body = body;
-      this.springLength = edgeLength;
-      this.springConstant = edgeStrength;
-      this.distanceSolver = new _FloydWarshallJs2["default"]();
-    }
-
-    _createClass(KamadaKawai, [{
-      key: "setOptions",
-      value: function setOptions(options) {
-        if (options) {
-          if (options.springLength) {
-            this.springLength = options.springLength;
-          }
-          if (options.springConstant) {
-            this.springConstant = options.springConstant;
-          }
-        }
-      }
-    }, {
-      key: "solve",
-      value: function solve(nodesArray, edgesArray) {
-        console.time("FLOYD - getDistances");
-        var D_matrix = this.distanceSolver.getDistances(this.body, nodesArray, edgesArray); // distance matrix
-        console.timeEnd("FLOYD - getDistances");
-
-        // get the L Matrix
-        this._createL_matrix(D_matrix);
-
-        // get the K Matrix
-        this._createK_matrix(D_matrix);
-
-        console.time("positioning");
-        var threshold = 0.01;
-        var counter = 0;
-        var maxIterations = 1500;
-        var maxEnergy = 2 * threshold;
-        var highE_nodeId = 0,
-            dE_dx = 0,
-            dE_dy = 0;
-
-        while (maxEnergy > threshold && counter < maxIterations) {
-          counter += 1;
-
-          var _getHighestEnergyNode2 = this._getHighestEnergyNode();
-
-          var _getHighestEnergyNode22 = _slicedToArray(_getHighestEnergyNode2, 4);
-
-          highE_nodeId = _getHighestEnergyNode22[0];
-          maxEnergy = _getHighestEnergyNode22[1];
-          dE_dx = _getHighestEnergyNode22[2];
-          dE_dy = _getHighestEnergyNode22[3];
-
-          this._moveNode(highE_nodeId, dE_dx, dE_dy);
-        }
-        console.timeEnd("positioning");
-      }
-    }, {
-      key: "_getHighestEnergyNode",
-      value: function _getHighestEnergyNode() {
-        var nodesArray = this.body.nodeIndices;
-        var maxEnergy = 0;
-        var maxEnergyNode = nodesArray[0];
-        var energies = { dE_dx: 0, dE_dy: 0 };
-
-        for (var nodeIdx = 0; nodeIdx < nodesArray.length; nodeIdx++) {
-          var m = nodesArray[nodeIdx];
-
-          var _getEnergy2 = this._getEnergy(m);
-
-          var _getEnergy22 = _slicedToArray(_getEnergy2, 3);
-
-          var delta_m = _getEnergy22[0];
-          var dE_dx = _getEnergy22[1];
-          var dE_dy = _getEnergy22[2];
-
-          if (maxEnergy < delta_m) {
-            maxEnergy = delta_m;
-            maxEnergyNode = m;
-            energies.dE_dx = dE_dx;
-            energies.dE_dy = dE_dy;
-          }
-        }
-
-        return [maxEnergyNode, maxEnergy, energies.dE_dx, energies.dE_dy];
-      }
-    }, {
-      key: "_getEnergy",
-      value: function _getEnergy(m) {
-        var nodesArray = this.body.nodeIndices;
-        var nodes = this.body.nodes;
-
-        var x_m = nodes[m].x;
-        var y_m = nodes[m].y;
-        var dE_dx = 0;
-        var dE_dy = 0;
-        for (var iIdx = 0; iIdx < nodesArray.length; iIdx++) {
-          var i = nodesArray[iIdx];
-          if (i !== m) {
-            var x_i = nodes[i].x;
-            var y_i = nodes[i].y;
-            var denominator = 1.0 / Math.sqrt(Math.pow(x_m - x_i, 2) + Math.pow(y_m - y_i, 2));
-            dE_dx += this.K_matrix[m][i] * (x_m - x_i - this.L_matrix[m][i] * (x_m - x_i) * denominator);
-            dE_dy += this.K_matrix[m][i] * (y_m - y_i - this.L_matrix[m][i] * (y_m - y_i) * denominator);
-          }
-        }
-
-        var delta_m = Math.sqrt(Math.pow(dE_dx, 2) + Math.pow(dE_dy, 2));
-        return [delta_m, dE_dx, dE_dy];
-      }
-    }, {
-      key: "_moveNode",
-      value: function _moveNode(m, dE_dx, dE_dy) {
-        var nodesArray = this.body.nodeIndices;
-        var nodes = this.body.nodes;
-        var d2E_dx2 = 0;
-        var d2E_dxdy = 0;
-        var d2E_dy2 = 0;
-
-        var x_m = nodes[m].x;
-        var y_m = nodes[m].y;
-        for (var iIdx = 0; iIdx < nodesArray.length; iIdx++) {
-          var i = nodesArray[iIdx];
-          if (i !== m) {
-            var x_i = nodes[i].x;
-            var y_i = nodes[i].y;
-            var denominator = 1.0 / Math.pow(Math.pow(x_m - x_i, 2) + Math.pow(y_m - y_i, 2), 1.5);
-            d2E_dx2 += this.K_matrix[m][i] * (1 - this.L_matrix[m][i] * Math.pow(y_m - y_i, 2) * denominator);
-            d2E_dxdy += this.K_matrix[m][i] * (this.L_matrix[m][i] * (x_m - x_i) * (y_m - y_i) * denominator);
-            d2E_dy2 += this.K_matrix[m][i] * (1 - this.L_matrix[m][i] * Math.pow(x_m - x_i, 2) * denominator);
-          }
-        }
-        // make the variable names easier to make the solving of the linear system easier to read
-        var A = d2E_dx2,
-            B = d2E_dxdy,
-            C = dE_dx,
-            D = d2E_dy2,
-            E = dE_dy;
-
-        // solve the linear system for dx and dy
-        var dy = (C / A + E / B) / (B / A - D / B);
-        var dx = -(B * dy + C) / A;
-
-        // move the node
-        nodes[m].x += dx;
-        nodes[m].y += dy;
-      }
-    }, {
-      key: "_createL_matrix",
-      value: function _createL_matrix(D_matrix) {
-        var nodesArray = this.body.nodeIndices;
-        var edgeLength = this.springLength;
-
-        this.L_matrix = [];
-        for (var i = 0; i < nodesArray.length; i++) {
-          this.L_matrix[nodesArray[i]] = {};
-          for (var j = 0; j < nodesArray.length; j++) {
-            this.L_matrix[nodesArray[i]][nodesArray[j]] = edgeLength * D_matrix[nodesArray[i]][nodesArray[j]];
-          }
-        }
-      }
-    }, {
-      key: "_createK_matrix",
-      value: function _createK_matrix(D_matrix) {
-        var nodesArray = this.body.nodeIndices;
-        var edgeStrength = this.springConstant;
-
-        this.K_matrix = [];
-        for (var i = 0; i < nodesArray.length; i++) {
-          this.K_matrix[nodesArray[i]] = {};
-          for (var j = 0; j < nodesArray.length; j++) {
-            this.K_matrix[nodesArray[i]][nodesArray[j]] = edgeStrength * Math.pow(D_matrix[nodesArray[i]][nodesArray[j]], -2);
-          }
-        }
-      }
-    }]);
-
-    return KamadaKawai;
-  })();
-
-  exports["default"] = KamadaKawai;
-  module.exports = exports["default"];
-
-/***/ },
-/* 110 */
-/***/ function(module, exports) {
-
-  /**
-   * Created by Alex on 10-Aug-15.
-   */
-
-  "use strict";
-
-  Object.defineProperty(exports, "__esModule", {
-    value: true
-  });
-
-  var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
-
-  function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-
-  var FloydWarshall = (function () {
-    function FloydWarshall() {
-      _classCallCheck(this, FloydWarshall);
-    }
-
-    _createClass(FloydWarshall, [{
-      key: "getDistances",
-      value: function getDistances(body, nodesArray, edgesArray) {
-        var D_matrix = {};
-        var edges = body.edges;
-
-        // prepare matrix with large numbers
-        for (var i = 0; i < nodesArray.length; i++) {
-          D_matrix[nodesArray[i]] = {};
-          for (var j = 0; j < nodesArray.length; j++) {
-            D_matrix[nodesArray[i]][nodesArray[j]] = 1e9;
-          }
-        }
-
-        // put the weights for the edges in. This assumes unidirectionality.
-        for (var i = 0; i < edgesArray.length; i++) {
-          var edge = edges[edgesArray[i]];
-          D_matrix[edge.fromId][edge.toId] = 1;
-          D_matrix[edge.toId][edge.fromId] = 1;
-        }
-
-        // calculate all pair distances
-        for (var k = 0; k < nodesArray.length; k++) {
-          for (var i = 0; i < nodesArray.length; i++) {
-            for (var j = 0; j < nodesArray.length; j++) {
-              D_matrix[nodesArray[i]][nodesArray[j]] = Math.min(D_matrix[nodesArray[i]][nodesArray[j]], D_matrix[nodesArray[i]][nodesArray[k]] + D_matrix[nodesArray[k]][nodesArray[j]]);
-            }
-          }
-        }
-
-        // remove the self references from the matrix
-        for (var i = 0; i < nodesArray.length; i++) {
-          delete D_matrix[nodesArray[i]][nodesArray[i]];
-        }
-
-        return D_matrix;
-      }
-    }]);
-
-    return FloydWarshall;
-  })();
-
-  exports["default"] = FloydWarshall;
-  module.exports = exports["default"];
-
-/***/ },
-/* 111 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -40677,7 +40510,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 112 */
+/* 110 */
 /***/ function(module, exports) {
 
   /**
@@ -41171,6 +41004,363 @@ return /******/ (function(modules) { // webpackBootstrap
 
   exports.allOptions = allOptions;
   exports.configureOptions = configureOptions;
+
+/***/ },
+/* 111 */
+/***/ function(module, exports, __webpack_require__) {
+
+  /**
+   * Created by Alex on 8/7/2015.
+   */
+
+  // distance finding algorithm
+  "use strict";
+
+  Object.defineProperty(exports, "__esModule", {
+    value: true
+  });
+
+  var _slicedToArray = (function () { function sliceIterator(arr, i) { var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i["return"]) _i["return"](); } finally { if (_d) throw _e; } } return _arr; } return function (arr, i) { if (Array.isArray(arr)) { return arr; } else if (Symbol.iterator in Object(arr)) { return sliceIterator(arr, i); } else { throw new TypeError("Invalid attempt to destructure non-iterable instance"); } }; })();
+
+  var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
+
+  function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { "default": obj }; }
+
+  function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+  var _componentsAlgorithmsFloydWarshallJs = __webpack_require__(112);
+
+  /**
+   * KamadaKawai positions the nodes initially based on
+   *
+   * "AN ALGORITHM FOR DRAWING GENERAL UNDIRECTED GRAPHS"
+   * -- Tomihisa KAMADA and Satoru KAWAI in 1989
+   *
+   * Possible optimizations in the distance calculation can be implemented.
+   */
+
+  var _componentsAlgorithmsFloydWarshallJs2 = _interopRequireDefault(_componentsAlgorithmsFloydWarshallJs);
+
+  var KamadaKawai = (function () {
+    function KamadaKawai(body, edgeLength, edgeStrength) {
+      _classCallCheck(this, KamadaKawai);
+
+      this.body = body;
+      this.springLength = edgeLength;
+      this.springConstant = edgeStrength;
+      this.distanceSolver = new _componentsAlgorithmsFloydWarshallJs2["default"]();
+    }
+
+    /**
+     * Not sure if needed but can be used to update the spring length and spring constant
+     * @param options
+     */
+
+    _createClass(KamadaKawai, [{
+      key: "setOptions",
+      value: function setOptions(options) {
+        if (options) {
+          if (options.springLength) {
+            this.springLength = options.springLength;
+          }
+          if (options.springConstant) {
+            this.springConstant = options.springConstant;
+          }
+        }
+      }
+
+      /**
+       * Position the system
+       * @param nodesArray
+       * @param edgesArray
+       */
+    }, {
+      key: "solve",
+      value: function solve(nodesArray, edgesArray) {
+        var ignoreClusters = arguments.length <= 2 || arguments[2] === undefined ? false : arguments[2];
+
+        // get distance matrix
+        var D_matrix = this.distanceSolver.getDistances(this.body, nodesArray, edgesArray); // distance matrix
+
+        // get the L Matrix
+        this._createL_matrix(D_matrix);
+
+        // get the K Matrix
+        this._createK_matrix(D_matrix);
+
+        // calculate positions
+        var threshold = 0.01;
+        var innerThreshold = 1;
+        var iterations = 0;
+        var maxIterations = Math.max(1000, Math.min(10 * this.body.nodeIndices.length, 6000));
+        var maxInnerIterations = 5;
+
+        var maxEnergy = 1e9;
+        var highE_nodeId = 0,
+            dE_dx = 0,
+            dE_dy = 0,
+            delta_m = 0,
+            subIterations = 0;
+
+        while (maxEnergy > threshold && iterations < maxIterations) {
+          iterations += 1;
+
+          var _getHighestEnergyNode2 = this._getHighestEnergyNode(ignoreClusters);
+
+          var _getHighestEnergyNode22 = _slicedToArray(_getHighestEnergyNode2, 4);
+
+          highE_nodeId = _getHighestEnergyNode22[0];
+          maxEnergy = _getHighestEnergyNode22[1];
+          dE_dx = _getHighestEnergyNode22[2];
+          dE_dy = _getHighestEnergyNode22[3];
+
+          delta_m = maxEnergy;
+          subIterations = 0;
+          while (delta_m > innerThreshold && subIterations < maxInnerIterations) {
+            subIterations += 1;
+            this._moveNode(highE_nodeId, dE_dx, dE_dy);
+
+            var _getEnergy2 = this._getEnergy(highE_nodeId);
+
+            var _getEnergy22 = _slicedToArray(_getEnergy2, 3);
+
+            delta_m = _getEnergy22[0];
+            dE_dx = _getEnergy22[1];
+            dE_dy = _getEnergy22[2];
+          }
+        }
+      }
+
+      /**
+       * get the node with the highest energy
+       * @returns {*[]}
+       * @private
+       */
+    }, {
+      key: "_getHighestEnergyNode",
+      value: function _getHighestEnergyNode(ignoreClusters) {
+        var nodesArray = this.body.nodeIndices;
+        var nodes = this.body.nodes;
+        var maxEnergy = 0;
+        var maxEnergyNodeId = nodesArray[0];
+        var dE_dx_max = 0,
+            dE_dy_max = 0;
+
+        for (var nodeIdx = 0; nodeIdx < nodesArray.length; nodeIdx++) {
+          var m = nodesArray[nodeIdx];
+          // by not evaluating nodes with predefined positions we should only move nodes that have no positions.
+          if (nodes[m].predefinedPosition === false || nodes[m].isCluster === true && ignoreClusters === true || nodes[m].options.fixed.x === true || nodes[m].options.fixed.y === true) {
+            var _getEnergy3 = this._getEnergy(m);
+
+            var _getEnergy32 = _slicedToArray(_getEnergy3, 3);
+
+            var delta_m = _getEnergy32[0];
+            var dE_dx = _getEnergy32[1];
+            var dE_dy = _getEnergy32[2];
+
+            if (maxEnergy < delta_m) {
+              maxEnergy = delta_m;
+              maxEnergyNodeId = m;
+              dE_dx_max = dE_dx;
+              dE_dy_max = dE_dy;
+            }
+          }
+        }
+
+        return [maxEnergyNodeId, maxEnergy, dE_dx_max, dE_dy_max];
+      }
+
+      /**
+       * calculate the energy of a single node
+       * @param m
+       * @returns {*[]}
+       * @private
+       */
+    }, {
+      key: "_getEnergy",
+      value: function _getEnergy(m) {
+        var nodesArray = this.body.nodeIndices;
+        var nodes = this.body.nodes;
+
+        var x_m = nodes[m].x;
+        var y_m = nodes[m].y;
+        var dE_dx = 0;
+        var dE_dy = 0;
+        for (var iIdx = 0; iIdx < nodesArray.length; iIdx++) {
+          var i = nodesArray[iIdx];
+          if (i !== m) {
+            var x_i = nodes[i].x;
+            var y_i = nodes[i].y;
+            var denominator = 1.0 / Math.sqrt(Math.pow(x_m - x_i, 2) + Math.pow(y_m - y_i, 2));
+            dE_dx += this.K_matrix[m][i] * (x_m - x_i - this.L_matrix[m][i] * (x_m - x_i) * denominator);
+            dE_dy += this.K_matrix[m][i] * (y_m - y_i - this.L_matrix[m][i] * (y_m - y_i) * denominator);
+          }
+        }
+
+        var delta_m = Math.sqrt(Math.pow(dE_dx, 2) + Math.pow(dE_dy, 2));
+        return [delta_m, dE_dx, dE_dy];
+      }
+
+      /**
+       * move the node based on it's energy
+       * the dx and dy are calculated from the linear system proposed by Kamada and Kawai
+       * @param m
+       * @param dE_dx
+       * @param dE_dy
+       * @private
+       */
+    }, {
+      key: "_moveNode",
+      value: function _moveNode(m, dE_dx, dE_dy) {
+        var nodesArray = this.body.nodeIndices;
+        var nodes = this.body.nodes;
+        var d2E_dx2 = 0;
+        var d2E_dxdy = 0;
+        var d2E_dy2 = 0;
+
+        var x_m = nodes[m].x;
+        var y_m = nodes[m].y;
+        for (var iIdx = 0; iIdx < nodesArray.length; iIdx++) {
+          var i = nodesArray[iIdx];
+          if (i !== m) {
+            var x_i = nodes[i].x;
+            var y_i = nodes[i].y;
+            var denominator = 1.0 / Math.pow(Math.pow(x_m - x_i, 2) + Math.pow(y_m - y_i, 2), 1.5);
+            d2E_dx2 += this.K_matrix[m][i] * (1 - this.L_matrix[m][i] * Math.pow(y_m - y_i, 2) * denominator);
+            d2E_dxdy += this.K_matrix[m][i] * (this.L_matrix[m][i] * (x_m - x_i) * (y_m - y_i) * denominator);
+            d2E_dy2 += this.K_matrix[m][i] * (1 - this.L_matrix[m][i] * Math.pow(x_m - x_i, 2) * denominator);
+          }
+        }
+        // make the variable names easier to make the solving of the linear system easier to read
+        var A = d2E_dx2,
+            B = d2E_dxdy,
+            C = dE_dx,
+            D = d2E_dy2,
+            E = dE_dy;
+
+        // solve the linear system for dx and dy
+        var dy = (C / A + E / B) / (B / A - D / B);
+        var dx = -(B * dy + C) / A;
+
+        // move the node
+        nodes[m].x += dx;
+        nodes[m].y += dy;
+      }
+
+      /**
+       * Create the L matrix: edge length times shortest path
+       * @param D_matrix
+       * @private
+       */
+    }, {
+      key: "_createL_matrix",
+      value: function _createL_matrix(D_matrix) {
+        var nodesArray = this.body.nodeIndices;
+        var edgeLength = this.springLength;
+
+        this.L_matrix = [];
+        for (var i = 0; i < nodesArray.length; i++) {
+          this.L_matrix[nodesArray[i]] = {};
+          for (var j = 0; j < nodesArray.length; j++) {
+            this.L_matrix[nodesArray[i]][nodesArray[j]] = edgeLength * D_matrix[nodesArray[i]][nodesArray[j]];
+          }
+        }
+      }
+
+      /**
+       * Create the K matrix: spring constants times shortest path
+       * @param D_matrix
+       * @private
+       */
+    }, {
+      key: "_createK_matrix",
+      value: function _createK_matrix(D_matrix) {
+        var nodesArray = this.body.nodeIndices;
+        var edgeStrength = this.springConstant;
+
+        this.K_matrix = [];
+        for (var i = 0; i < nodesArray.length; i++) {
+          this.K_matrix[nodesArray[i]] = {};
+          for (var j = 0; j < nodesArray.length; j++) {
+            this.K_matrix[nodesArray[i]][nodesArray[j]] = edgeStrength * Math.pow(D_matrix[nodesArray[i]][nodesArray[j]], -2);
+          }
+        }
+      }
+    }]);
+
+    return KamadaKawai;
+  })();
+
+  exports["default"] = KamadaKawai;
+  module.exports = exports["default"];
+
+/***/ },
+/* 112 */
+/***/ function(module, exports) {
+
+  /**
+   * Created by Alex on 10-Aug-15.
+   */
+
+  "use strict";
+
+  Object.defineProperty(exports, "__esModule", {
+    value: true
+  });
+
+  var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
+
+  function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+  var FloydWarshall = (function () {
+    function FloydWarshall() {
+      _classCallCheck(this, FloydWarshall);
+    }
+
+    _createClass(FloydWarshall, [{
+      key: "getDistances",
+      value: function getDistances(body, nodesArray, edgesArray) {
+        var D_matrix = {};
+        var edges = body.edges;
+
+        // prepare matrix with large numbers
+        for (var i = 0; i < nodesArray.length; i++) {
+          D_matrix[nodesArray[i]] = {};
+          D_matrix[nodesArray[i]] = {};
+          for (var j = 0; j < nodesArray.length; j++) {
+            D_matrix[nodesArray[i]][nodesArray[j]] = i == j ? 0 : 1e9;
+            D_matrix[nodesArray[i]][nodesArray[j]] = i == j ? 0 : 1e9;
+          }
+        }
+
+        // put the weights for the edges in. This assumes unidirectionality.
+        for (var i = 0; i < edgesArray.length; i++) {
+          var edge = edges[edgesArray[i]];
+          D_matrix[edge.fromId][edge.toId] = 1;
+          D_matrix[edge.toId][edge.fromId] = 1;
+        }
+
+        var nodeCount = nodesArray.length;
+
+        // Adapted FloydWarshall based on unidirectionality to greatly reduce complexity.
+        for (var k = 0; k < nodeCount; k++) {
+          for (var i = 0; i < nodeCount - 1; i++) {
+            for (var j = i + 1; j < nodeCount; j++) {
+              D_matrix[nodesArray[i]][nodesArray[j]] = Math.min(D_matrix[nodesArray[i]][nodesArray[j]], D_matrix[nodesArray[i]][nodesArray[k]] + D_matrix[nodesArray[k]][nodesArray[j]]);
+              D_matrix[nodesArray[j]][nodesArray[i]] = D_matrix[nodesArray[i]][nodesArray[j]];
+            }
+          }
+        }
+
+        return D_matrix;
+      }
+    }]);
+
+    return FloydWarshall;
+  })();
+
+  exports["default"] = FloydWarshall;
+  module.exports = exports["default"];
 
 /***/ },
 /* 113 */
