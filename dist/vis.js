@@ -33017,6 +33017,10 @@ return /******/ (function(modules) { // webpackBootstrap
       this.simulationInterval = 1000 / 60;
       this.requiresTimeout = true;
       this.previousStates = {};
+      this.referenceState = {};
+      this.adaptive = false;
+      this.adaptiveCounter = 0;
+      this.adaptiveInterval = 3;
       this.freezeCache = {};
       this.renderTimer = undefined;
 
@@ -33075,6 +33079,7 @@ return /******/ (function(modules) { // webpackBootstrap
         timestep: 0.5
       };
       util.extend(this.options, this.defaultOptions);
+      this.timestep = 0.5;
 
       this.bindEventListeners();
     }
@@ -33133,10 +33138,17 @@ return /******/ (function(modules) { // webpackBootstrap
               this.physicsEnabled = false;
               this.stopSimulation();
             }
+
+            // set the timestep
+            this.timestep = this.options.timestep;
           }
         }
         this.init();
       }
+
+      /**
+       * configure the engine.
+       */
     }, {
       key: 'init',
       value: function init() {
@@ -33166,6 +33178,10 @@ return /******/ (function(modules) { // webpackBootstrap
 
         this.modelOptions = options;
       }
+
+      /**
+       * initialize the engine
+       */
     }, {
       key: 'initPhysics',
       value: function initPhysics() {
@@ -33192,6 +33208,9 @@ return /******/ (function(modules) { // webpackBootstrap
       value: function startSimulation() {
         if (this.physicsEnabled === true && this.options.enabled === true) {
           this.stabilized = false;
+
+          // when visible, adaptivity is disabled.
+          this.adaptive = false;
 
           // this sets the width of all nodes initially which could be required for the avoidOverlap
           this.body.emitter.emit("_resizeNodes");
@@ -33250,6 +33269,11 @@ return /******/ (function(modules) { // webpackBootstrap
           this.stopSimulation();
         }
       }
+
+      /**
+       * trigger the stabilized event.
+       * @private
+       */
     }, {
       key: '_emitStabilized',
       value: function _emitStabilized() {
@@ -33272,8 +33296,53 @@ return /******/ (function(modules) { // webpackBootstrap
       key: 'physicsTick',
       value: function physicsTick() {
         if (this.stabilized === false) {
-          this.calculateForces();
-          this.stabilized = this.moveNodes();
+          // adaptivity means the timestep adapts to the situation, only applicable for stabilization
+          if (this.adaptive === true) {
+            this.adaptiveCounter += 1;
+            if (this.adaptiveCounter % this.adaptiveInterval === 0) {
+              // we leave the timestep stable for "interval" iterations.
+              // first the big step and revert. Revert saves the reference state.
+              this.timestep = 2 * this.timestep;
+              this.calculateForces();
+              this.moveNodes();
+              this.revert();
+
+              // now the normal step. Since this is the last step, it is the more stable one and we will take this.
+              this.timestep = 0.5 * this.timestep;
+
+              // since it's half the step, we do it twice.
+              this.calculateForces();
+              this.moveNodes();
+              this.calculateForces();
+              this.moveNodes();
+
+              // we compare the two steps. if it is acceptable we double the step.
+              if (this.compare() === true) {
+                this.timestep = 2 * this.timestep;
+              } else {
+                // if not, we half the step to a minimum of the options timestep.
+                // if the half the timestep is smaller than the options step, we do not reset the counter
+                // we assume that the options timestep is stable enough.
+                if (0.5 * this.timestep < this.options.timestep) {
+                  this.timestep = this.options.timestep;
+                } else {
+                  // if the timestep was larger than 2 times the option one we check the adaptivity again to ensure
+                  // that large instabilities do not form.
+                  this.adaptiveCounter = -1; // check again next iteration
+                  this.timestep = 0.5 * this.timestep;
+                }
+              }
+            } else {
+              // normal step, keeping timestep constant
+              this.calculateForces();
+              this.moveNodes();
+            }
+          } else {
+            // case for the static timestep, we reset it to the one in options and take a normal step.
+            this.timestep = this.options.timestep;
+            this.calculateForces();
+            this.moveNodes();
+          }
 
           // determine if the network has stabilzied
           if (this.stabilized === true) {
@@ -33355,6 +33424,9 @@ return /******/ (function(modules) { // webpackBootstrap
           var nodeId = nodeIds[i];
           if (nodes[nodeId] !== undefined) {
             if (nodes[nodeId].options.physics === true) {
+              this.referenceState[nodeId] = {
+                positions: { x: nodes[nodeId].x, y: nodes[nodeId].y }
+              };
               velocities[nodeId].x = this.previousStates[nodeId].vx;
               velocities[nodeId].y = this.previousStates[nodeId].vy;
               nodes[nodeId].x = this.previousStates[nodeId].x;
@@ -33364,6 +33436,34 @@ return /******/ (function(modules) { // webpackBootstrap
             delete this.previousStates[nodeId];
           }
         }
+      }
+
+      /**
+       * This compares the reference state to the current state
+       */
+    }, {
+      key: 'compare',
+      value: function compare() {
+        var dx = undefined,
+            dy = undefined,
+            dpos = undefined;
+        var nodes = this.body.nodes;
+        var reference = this.referenceState;
+        var posThreshold = 0.25;
+
+        for (var nodeId in this.referenceState) {
+          if (this.referenceState.hasOwnProperty(nodeId)) {
+            dx = nodes[nodeId].x - reference[nodeId].positions.x;
+            dy = nodes[nodeId].y - reference[nodeId].positions.y;
+
+            dpos = Math.sqrt(Math.pow(dx, 2) + Math.pow(dy, 2));
+
+            if (dpos > posThreshold) {
+              return false;
+            }
+          }
+        }
+        return true;
       }
 
       /**
@@ -33389,12 +33489,13 @@ return /******/ (function(modules) { // webpackBootstrap
 
         if (nodesPresent === true) {
           if (vminCorrected > 0.5 * this.options.maxVelocity) {
-            return false;
+            this.stabilized = false;
           } else {
-            return stabilized;
+            this.stabilized = stabilized;
           }
+          return;
         }
-        return true;
+        this.stabilized = true;
       }
 
       /**
@@ -33409,7 +33510,7 @@ return /******/ (function(modules) { // webpackBootstrap
       key: '_performStep',
       value: function _performStep(nodeId, maxVelocity) {
         var node = this.body.nodes[nodeId];
-        var timestep = this.options.timestep;
+        var timestep = this.timestep;
         var forces = this.physicsBody.forces;
         var velocities = this.physicsBody.velocities;
 
@@ -33515,6 +33616,9 @@ return /******/ (function(modules) { // webpackBootstrap
           return;
         }
 
+        // enable adaptive timesteps
+        this.adaptive = true;
+
         // this sets the width of all nodes initially which could be required for the avoidOverlap
         this.body.emitter.emit("_resizeNodes");
 
@@ -33571,7 +33675,6 @@ return /******/ (function(modules) { // webpackBootstrap
         this.body.emitter.emit('_requestRedraw');
 
         if (this.stabilized === true) {
-          console.log("emitted");
           this._emitStabilized();
         } else {
           this.startSimulation();
