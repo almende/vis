@@ -5,7 +5,7 @@
  * A dynamic, browser-based visualization library.
  *
  * @version 4.7.1-SNAPSHOT
- * @date    2015-08-07
+ * @date    2015-08-12
  *
  * @license
  * Copyright (C) 2011-2014 Almende B.V, http://almende.com
@@ -139,10 +139,10 @@ return /******/ (function(modules) { // webpackBootstrap
   // Network
   exports.Network = __webpack_require__(59);
   exports.network = {
-    Images: __webpack_require__(114),
-    dotparser: __webpack_require__(112),
-    gephiParser: __webpack_require__(113),
-    allOptions: __webpack_require__(110)
+    Images: __webpack_require__(116),
+    dotparser: __webpack_require__(114),
+    gephiParser: __webpack_require__(115),
+    allOptions: __webpack_require__(112)
   };
   exports.network.convertDot = function (input) {
     return exports.network.dotparser.DOTToGraph(input);
@@ -26823,7 +26823,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   var _modulesLayoutEngine2 = _interopRequireDefault(_modulesLayoutEngine);
 
-  var _modulesManipulationSystem = __webpack_require__(109);
+  var _modulesManipulationSystem = __webpack_require__(111);
 
   var _modulesManipulationSystem2 = _interopRequireDefault(_modulesManipulationSystem);
 
@@ -26835,7 +26835,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   var _sharedValidator2 = _interopRequireDefault(_sharedValidator);
 
-  var _optionsJs = __webpack_require__(110);
+  var _optionsJs = __webpack_require__(112);
 
   /**
    * @constructor Network
@@ -26848,18 +26848,18 @@ return /******/ (function(modules) { // webpackBootstrap
    *                              {Array} edges
    * @param {Object} options      Options
    */
-  __webpack_require__(111);
+  __webpack_require__(113);
 
   var Emitter = __webpack_require__(19);
   var Hammer = __webpack_require__(3);
   var util = __webpack_require__(7);
   var DataSet = __webpack_require__(14);
   var DataView = __webpack_require__(16);
-  var dotparser = __webpack_require__(112);
-  var gephiParser = __webpack_require__(113);
-  var Images = __webpack_require__(114);
+  var dotparser = __webpack_require__(114);
+  var gephiParser = __webpack_require__(115);
+  var Images = __webpack_require__(116);
   var Activator = __webpack_require__(40);
-  var locales = __webpack_require__(115);
+  var locales = __webpack_require__(117);
 
   function Network(container, data, options) {
     var _this = this;
@@ -28216,7 +28216,6 @@ return /******/ (function(modules) { // webpackBootstrap
         if (!options) {
           return;
         }
-
         // basic options
         if (options.id !== undefined) {
           this.id = options.id;
@@ -28290,7 +28289,6 @@ return /******/ (function(modules) { // webpackBootstrap
         if (this.options.label === undefined || this.options.label === null) {
           this.options.label = '';
         }
-
         this.labelModule.setOptions(this.options, true);
         if (this.labelModule.baseSize !== undefined) {
           this.baseFontSize = this.labelModule.baseSize;
@@ -38665,14 +38663,19 @@ return /******/ (function(modules) { // webpackBootstrap
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
-
   Object.defineProperty(exports, '__esModule', {
     value: true
   });
 
   var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
 
+  function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
+
   function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
+
+  var _componentsKamadaKawaiJs = __webpack_require__(109);
+
+  var _componentsKamadaKawaiJs2 = _interopRequireDefault(_componentsKamadaKawaiJs);
 
   var util = __webpack_require__(7);
 
@@ -38857,6 +38860,10 @@ return /******/ (function(modules) { // webpackBootstrap
     }, {
       key: 'setupHierarchicalLayout',
       value: function setupHierarchicalLayout() {
+        var kk = new _componentsKamadaKawaiJs2['default'](this.body, 100, 0.05);
+        kk.solve(this.body.nodeIndices, this.body.edgeIndices);
+        return;
+
         if (this.options.hierarchical.enabled === true && this.body.nodeIndices.length > 0) {
           // get the size of the largest hubs and check if the user has defined a level for a node.
           var node = undefined,
@@ -39177,6 +39184,286 @@ return /******/ (function(modules) { // webpackBootstrap
 
 /***/ },
 /* 109 */
+/***/ function(module, exports, __webpack_require__) {
+
+  /**
+   * Created by Alex on 8/7/2015.
+   */
+
+  "use strict";
+
+  Object.defineProperty(exports, "__esModule", {
+    value: true
+  });
+
+  var _slicedToArray = (function () { function sliceIterator(arr, i) { var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i["return"]) _i["return"](); } finally { if (_d) throw _e; } } return _arr; } return function (arr, i) { if (Array.isArray(arr)) { return arr; } else if (Symbol.iterator in Object(arr)) { return sliceIterator(arr, i); } else { throw new TypeError("Invalid attempt to destructure non-iterable instance"); } }; })();
+
+  var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
+
+  function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { "default": obj }; }
+
+  function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+  var _FloydWarshallJs = __webpack_require__(110);
+
+  var _FloydWarshallJs2 = _interopRequireDefault(_FloydWarshallJs);
+
+  var KamadaKawai = (function () {
+    function KamadaKawai(body, edgeLength, edgeStrength) {
+      _classCallCheck(this, KamadaKawai);
+
+      this.body = body;
+      this.springLength = edgeLength;
+      this.springConstant = edgeStrength;
+      this.distanceSolver = new _FloydWarshallJs2["default"]();
+    }
+
+    _createClass(KamadaKawai, [{
+      key: "setOptions",
+      value: function setOptions(options) {
+        if (options) {
+          if (options.springLength) {
+            this.springLength = options.springLength;
+          }
+          if (options.springConstant) {
+            this.springConstant = options.springConstant;
+          }
+        }
+      }
+    }, {
+      key: "solve",
+      value: function solve(nodesArray, edgesArray) {
+        console.time("FLOYD - getDistances");
+        var D_matrix = this.distanceSolver.getDistances(this.body, nodesArray, edgesArray); // distance matrix
+        console.timeEnd("FLOYD - getDistances");
+
+        // get the L Matrix
+        this._createL_matrix(D_matrix);
+
+        // get the K Matrix
+        this._createK_matrix(D_matrix);
+
+        console.time("positioning");
+        var threshold = 0.01;
+        var counter = 0;
+        var maxIterations = 1500;
+        var maxEnergy = 2 * threshold;
+        var highE_nodeId = 0,
+            dE_dx = 0,
+            dE_dy = 0;
+
+        while (maxEnergy > threshold && counter < maxIterations) {
+          counter += 1;
+
+          var _getHighestEnergyNode2 = this._getHighestEnergyNode();
+
+          var _getHighestEnergyNode22 = _slicedToArray(_getHighestEnergyNode2, 4);
+
+          highE_nodeId = _getHighestEnergyNode22[0];
+          maxEnergy = _getHighestEnergyNode22[1];
+          dE_dx = _getHighestEnergyNode22[2];
+          dE_dy = _getHighestEnergyNode22[3];
+
+          this._moveNode(highE_nodeId, dE_dx, dE_dy);
+        }
+        console.timeEnd("positioning");
+      }
+    }, {
+      key: "_getHighestEnergyNode",
+      value: function _getHighestEnergyNode() {
+        var nodesArray = this.body.nodeIndices;
+        var maxEnergy = 0;
+        var maxEnergyNode = nodesArray[0];
+        var energies = { dE_dx: 0, dE_dy: 0 };
+
+        for (var nodeIdx = 0; nodeIdx < nodesArray.length; nodeIdx++) {
+          var m = nodesArray[nodeIdx];
+
+          var _getEnergy2 = this._getEnergy(m);
+
+          var _getEnergy22 = _slicedToArray(_getEnergy2, 3);
+
+          var delta_m = _getEnergy22[0];
+          var dE_dx = _getEnergy22[1];
+          var dE_dy = _getEnergy22[2];
+
+          if (maxEnergy < delta_m) {
+            maxEnergy = delta_m;
+            maxEnergyNode = m;
+            energies.dE_dx = dE_dx;
+            energies.dE_dy = dE_dy;
+          }
+        }
+
+        return [maxEnergyNode, maxEnergy, energies.dE_dx, energies.dE_dy];
+      }
+    }, {
+      key: "_getEnergy",
+      value: function _getEnergy(m) {
+        var nodesArray = this.body.nodeIndices;
+        var nodes = this.body.nodes;
+
+        var x_m = nodes[m].x;
+        var y_m = nodes[m].y;
+        var dE_dx = 0;
+        var dE_dy = 0;
+        for (var iIdx = 0; iIdx < nodesArray.length; iIdx++) {
+          var i = nodesArray[iIdx];
+          if (i !== m) {
+            var x_i = nodes[i].x;
+            var y_i = nodes[i].y;
+            var denominator = 1.0 / Math.sqrt(Math.pow(x_m - x_i, 2) + Math.pow(y_m - y_i, 2));
+            dE_dx += this.K_matrix[m][i] * (x_m - x_i - this.L_matrix[m][i] * (x_m - x_i) * denominator);
+            dE_dy += this.K_matrix[m][i] * (y_m - y_i - this.L_matrix[m][i] * (y_m - y_i) * denominator);
+          }
+        }
+
+        var delta_m = Math.sqrt(Math.pow(dE_dx, 2) + Math.pow(dE_dy, 2));
+        return [delta_m, dE_dx, dE_dy];
+      }
+    }, {
+      key: "_moveNode",
+      value: function _moveNode(m, dE_dx, dE_dy) {
+        var nodesArray = this.body.nodeIndices;
+        var nodes = this.body.nodes;
+        var d2E_dx2 = 0;
+        var d2E_dxdy = 0;
+        var d2E_dy2 = 0;
+
+        var x_m = nodes[m].x;
+        var y_m = nodes[m].y;
+        for (var iIdx = 0; iIdx < nodesArray.length; iIdx++) {
+          var i = nodesArray[iIdx];
+          if (i !== m) {
+            var x_i = nodes[i].x;
+            var y_i = nodes[i].y;
+            var denominator = 1.0 / Math.pow(Math.pow(x_m - x_i, 2) + Math.pow(y_m - y_i, 2), 1.5);
+            d2E_dx2 += this.K_matrix[m][i] * (1 - this.L_matrix[m][i] * Math.pow(y_m - y_i, 2) * denominator);
+            d2E_dxdy += this.K_matrix[m][i] * (this.L_matrix[m][i] * (x_m - x_i) * (y_m - y_i) * denominator);
+            d2E_dy2 += this.K_matrix[m][i] * (1 - this.L_matrix[m][i] * Math.pow(x_m - x_i, 2) * denominator);
+          }
+        }
+        // make the variable names easier to make the solving of the linear system easier to read
+        var A = d2E_dx2,
+            B = d2E_dxdy,
+            C = dE_dx,
+            D = d2E_dy2,
+            E = dE_dy;
+
+        // solve the linear system for dx and dy
+        var dy = (C / A + E / B) / (B / A - D / B);
+        var dx = -(B * dy + C) / A;
+
+        // move the node
+        nodes[m].x += dx;
+        nodes[m].y += dy;
+      }
+    }, {
+      key: "_createL_matrix",
+      value: function _createL_matrix(D_matrix) {
+        var nodesArray = this.body.nodeIndices;
+        var edgeLength = this.springLength;
+
+        this.L_matrix = [];
+        for (var i = 0; i < nodesArray.length; i++) {
+          this.L_matrix[nodesArray[i]] = {};
+          for (var j = 0; j < nodesArray.length; j++) {
+            this.L_matrix[nodesArray[i]][nodesArray[j]] = edgeLength * D_matrix[nodesArray[i]][nodesArray[j]];
+          }
+        }
+      }
+    }, {
+      key: "_createK_matrix",
+      value: function _createK_matrix(D_matrix) {
+        var nodesArray = this.body.nodeIndices;
+        var edgeStrength = this.springConstant;
+
+        this.K_matrix = [];
+        for (var i = 0; i < nodesArray.length; i++) {
+          this.K_matrix[nodesArray[i]] = {};
+          for (var j = 0; j < nodesArray.length; j++) {
+            this.K_matrix[nodesArray[i]][nodesArray[j]] = edgeStrength * Math.pow(D_matrix[nodesArray[i]][nodesArray[j]], -2);
+          }
+        }
+      }
+    }]);
+
+    return KamadaKawai;
+  })();
+
+  exports["default"] = KamadaKawai;
+  module.exports = exports["default"];
+
+/***/ },
+/* 110 */
+/***/ function(module, exports) {
+
+  /**
+   * Created by Alex on 10-Aug-15.
+   */
+
+  "use strict";
+
+  Object.defineProperty(exports, "__esModule", {
+    value: true
+  });
+
+  var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
+
+  function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+  var FloydWarshall = (function () {
+    function FloydWarshall() {
+      _classCallCheck(this, FloydWarshall);
+    }
+
+    _createClass(FloydWarshall, [{
+      key: "getDistances",
+      value: function getDistances(body, nodesArray, edgesArray) {
+        var D_matrix = {};
+        var edges = body.edges;
+
+        // prepare matrix with large numbers
+        for (var i = 0; i < nodesArray.length; i++) {
+          D_matrix[nodesArray[i]] = {};
+          for (var j = 0; j < nodesArray.length; j++) {
+            D_matrix[nodesArray[i]][nodesArray[j]] = 1e9;
+          }
+        }
+
+        // put the weights for the edges in. This assumes unidirectionality.
+        for (var i = 0; i < edgesArray.length; i++) {
+          var edge = edges[edgesArray[i]];
+          D_matrix[edge.fromId][edge.toId] = 1;
+          D_matrix[edge.toId][edge.fromId] = 1;
+        }
+
+        // calculate all pair distances
+        for (var k = 0; k < nodesArray.length; k++) {
+          for (var i = 0; i < nodesArray.length; i++) {
+            for (var j = 0; j < nodesArray.length; j++) {
+              D_matrix[nodesArray[i]][nodesArray[j]] = Math.min(D_matrix[nodesArray[i]][nodesArray[j]], D_matrix[nodesArray[i]][nodesArray[k]] + D_matrix[nodesArray[k]][nodesArray[j]]);
+            }
+          }
+        }
+
+        // remove the self references from the matrix
+        for (var i = 0; i < nodesArray.length; i++) {
+          delete D_matrix[nodesArray[i]][nodesArray[i]];
+        }
+
+        return D_matrix;
+      }
+    }]);
+
+    return FloydWarshall;
+  })();
+
+  exports["default"] = FloydWarshall;
+  module.exports = exports["default"];
+
+/***/ },
+/* 111 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -40390,7 +40677,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 110 */
+/* 112 */
 /***/ function(module, exports) {
 
   /**
@@ -40886,7 +41173,7 @@ return /******/ (function(modules) { // webpackBootstrap
   exports.configureOptions = configureOptions;
 
 /***/ },
-/* 111 */
+/* 113 */
 /***/ function(module, exports) {
 
   /**
@@ -41173,7 +41460,7 @@ return /******/ (function(modules) { // webpackBootstrap
   }
 
 /***/ },
-/* 112 */
+/* 114 */
 /***/ function(module, exports) {
 
   /**
@@ -42071,7 +42358,7 @@ return /******/ (function(modules) { // webpackBootstrap
   exports.DOTToGraph = DOTToGraph;
 
 /***/ },
-/* 113 */
+/* 115 */
 /***/ function(module, exports) {
 
   'use strict';
@@ -42143,7 +42430,7 @@ return /******/ (function(modules) { // webpackBootstrap
   exports.parseGephi = parseGephi;
 
 /***/ },
-/* 114 */
+/* 116 */
 /***/ function(module, exports) {
 
   /**
@@ -42269,7 +42556,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports["default"];
 
 /***/ },
-/* 115 */
+/* 117 */
 /***/ function(module, exports) {
 
   // English
