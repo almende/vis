@@ -5,7 +5,7 @@
  * A dynamic, browser-based visualization library.
  *
  * @version 4.7.1-SNAPSHOT
- * @date    2015-08-13
+ * @date    2015-08-14
  *
  * @license
  * Copyright (C) 2011-2014 Almende B.V, http://almende.com
@@ -33018,9 +33018,9 @@ return /******/ (function(modules) { // webpackBootstrap
       this.requiresTimeout = true;
       this.previousStates = {};
       this.referenceState = {};
-      this.adaptive = false;
+      this.adaptiveTimestep = true;
       this.adaptiveCounter = 0;
-      this.adaptiveInterval = 3;
+      this.adaptiveInterval = 2;
       this.freezeCache = {};
       this.renderTimer = undefined;
 
@@ -33067,7 +33067,7 @@ return /******/ (function(modules) { // webpackBootstrap
           damping: 0.09
         },
         maxVelocity: 50,
-        minVelocity: 0.1, // px/s
+        minVelocity: 0.75, // px/s
         solver: 'barnesHut',
         stabilization: {
           enabled: true,
@@ -33210,7 +33210,7 @@ return /******/ (function(modules) { // webpackBootstrap
           this.stabilized = false;
 
           // when visible, adaptivity is disabled.
-          this.adaptive = false;
+          //this.adaptiveTimestep = false;
 
           // this sets the width of all nodes initially which could be required for the avoidOverlap
           this.body.emitter.emit("_resizeNodes");
@@ -33297,10 +33297,11 @@ return /******/ (function(modules) { // webpackBootstrap
       value: function physicsTick() {
         if (this.stabilized === false) {
           // adaptivity means the timestep adapts to the situation, only applicable for stabilization
-          if (this.adaptive === true) {
+          if (this.adaptiveTimestep === true) {
             this.adaptiveCounter += 1;
             if (this.adaptiveCounter % this.adaptiveInterval === 0) {
               // we leave the timestep stable for "interval" iterations.
+              //console.log(this.timestep)
               // first the big step and revert. Revert saves the reference state.
               this.timestep = 2 * this.timestep;
               this.calculateForces();
@@ -33318,18 +33319,18 @@ return /******/ (function(modules) { // webpackBootstrap
 
               // we compare the two steps. if it is acceptable we double the step.
               if (this.compare() === true) {
-                this.timestep = 2 * this.timestep;
+                this.timestep = 1.1 * this.timestep;
               } else {
                 // if not, we half the step to a minimum of the options timestep.
                 // if the half the timestep is smaller than the options step, we do not reset the counter
                 // we assume that the options timestep is stable enough.
-                if (0.5 * this.timestep < this.options.timestep) {
+                if (0.9 * this.timestep < this.options.timestep) {
                   this.timestep = this.options.timestep;
                 } else {
                   // if the timestep was larger than 2 times the option one we check the adaptivity again to ensure
                   // that large instabilities do not form.
                   this.adaptiveCounter = -1; // check again next iteration
-                  this.timestep = 0.5 * this.timestep;
+                  this.timestep = 0.9 * this.timestep;
                 }
               }
             } else {
@@ -33476,26 +33477,17 @@ return /******/ (function(modules) { // webpackBootstrap
         var nodesPresent = false;
         var nodeIndices = this.physicsBody.physicsNodeIndices;
         var maxVelocity = this.options.maxVelocity ? this.options.maxVelocity : 1e9;
-        var stabilized = true;
-        var vminCorrected = this.options.minVelocity / Math.max(this.body.view.scale, 0.05);
+        var maxNodeVelocity = 0;
 
         for (var i = 0; i < nodeIndices.length; i++) {
           var nodeId = nodeIndices[i];
           var nodeVelocity = this._performStep(nodeId, maxVelocity);
           // stabilized is true if stabilized is true and velocity is smaller than vmin --> all nodes must be stabilized
-          stabilized = nodeVelocity < vminCorrected && stabilized === true;
+          maxNodeVelocity = Math.max(nodeVelocity, maxNodeVelocity);
           nodesPresent = true;
         }
 
-        if (nodesPresent === true) {
-          if (vminCorrected > 0.5 * this.options.maxVelocity) {
-            this.stabilized = false;
-          } else {
-            this.stabilized = stabilized;
-          }
-          return;
-        }
-        this.stabilized = true;
+        this.stabilized = maxNodeVelocity <= this.options.minVelocity;
       }
 
       /**
@@ -33617,7 +33609,7 @@ return /******/ (function(modules) { // webpackBootstrap
         }
 
         // enable adaptive timesteps
-        this.adaptive = true;
+        this.adaptiveTimestep = true;
 
         // this sets the width of all nodes initially which could be required for the avoidOverlap
         this.body.emitter.emit("_resizeNodes");
@@ -33648,7 +33640,6 @@ return /******/ (function(modules) { // webpackBootstrap
         var count = 0;
         while (this.stabilized === false && count < this.options.stabilization.updateInterval && this.stabilizationIterations < this.targetIterations) {
           this.physicsTick();
-          this.stabilizationIterations++;
           count++;
         }
 
@@ -39026,8 +39017,8 @@ return /******/ (function(modules) { // webpackBootstrap
               } else {
                 this.body.modules.clustering.clusterOutliers();
               }
-              console.log('levels', levels);
             }
+            // increase the size of the edges
             this.body.modules.kamadaKawai.setOptions({ springLength: Math.max(150, 2 * startLength) });
           }
 
