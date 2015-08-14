@@ -33019,6 +33019,7 @@ return /******/ (function(modules) { // webpackBootstrap
       this.previousStates = {};
       this.referenceState = {};
       this.adaptiveTimestep = true;
+      this.adaptiveTimestepEnabled = false;
       this.adaptiveCounter = 0;
       this.adaptiveInterval = 2;
       this.freezeCache = {};
@@ -33297,11 +33298,11 @@ return /******/ (function(modules) { // webpackBootstrap
       value: function physicsTick() {
         if (this.stabilized === false) {
           // adaptivity means the timestep adapts to the situation, only applicable for stabilization
-          if (this.adaptiveTimestep === true) {
+          if (this.adaptiveTimestep === true && this.adaptiveTimestepEnabled === true) {
             this.adaptiveCounter += 1;
+            var factor = 1.2;
             if (this.adaptiveCounter % this.adaptiveInterval === 0) {
               // we leave the timestep stable for "interval" iterations.
-              //console.log(this.timestep)
               // first the big step and revert. Revert saves the reference state.
               this.timestep = 2 * this.timestep;
               this.calculateForces();
@@ -33319,18 +33320,18 @@ return /******/ (function(modules) { // webpackBootstrap
 
               // we compare the two steps. if it is acceptable we double the step.
               if (this.compare() === true) {
-                this.timestep = 1.1 * this.timestep;
+                this.timestep = factor * this.timestep;
               } else {
                 // if not, we half the step to a minimum of the options timestep.
                 // if the half the timestep is smaller than the options step, we do not reset the counter
                 // we assume that the options timestep is stable enough.
-                if (0.9 * this.timestep < this.options.timestep) {
+                if (this.timestep / factor < this.options.timestep) {
                   this.timestep = this.options.timestep;
                 } else {
                   // if the timestep was larger than 2 times the option one we check the adaptivity again to ensure
                   // that large instabilities do not form.
                   this.adaptiveCounter = -1; // check again next iteration
-                  this.timestep = 0.9 * this.timestep;
+                  this.timestep = Math.max(this.options.timestep, this.timestep / factor);
                 }
               }
             } else {
@@ -33478,6 +33479,7 @@ return /******/ (function(modules) { // webpackBootstrap
         var nodeIndices = this.physicsBody.physicsNodeIndices;
         var maxVelocity = this.options.maxVelocity ? this.options.maxVelocity : 1e9;
         var maxNodeVelocity = 0;
+        var velocityAdaptiveThreshold = 5;
 
         for (var i = 0; i < nodeIndices.length; i++) {
           var nodeId = nodeIndices[i];
@@ -33486,6 +33488,8 @@ return /******/ (function(modules) { // webpackBootstrap
           maxNodeVelocity = Math.max(nodeVelocity, maxNodeVelocity);
           nodesPresent = true;
         }
+
+        this.adaptiveTimestepEnabled = maxNodeVelocity < velocityAdaptiveThreshold;
 
         this.stabilized = maxNodeVelocity <= this.options.minVelocity;
       }
