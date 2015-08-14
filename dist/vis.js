@@ -33018,12 +33018,14 @@ return /******/ (function(modules) { // webpackBootstrap
       this.requiresTimeout = true;
       this.previousStates = {};
       this.referenceState = {};
-      this.adaptiveTimestep = true;
-      this.adaptiveTimestepEnabled = false;
-      this.adaptiveCounter = 0;
-      this.adaptiveInterval = 2;
       this.freezeCache = {};
       this.renderTimer = undefined;
+
+      // parameters for the adaptive timestep
+      this.adaptiveTimestep = false;
+      this.adaptiveTimestepEnabled = false;
+      this.adaptiveCounter = 0;
+      this.adaptiveInterval = 3;
 
       this.stabilized = false;
       this.startedStabilization = false;
@@ -33118,6 +33120,11 @@ return /******/ (function(modules) { // webpackBootstrap
           _this.body.emitter.off();
         });
       }
+
+      /**
+       * set the physics options
+       * @param options
+       */
     }, {
       key: 'setOptions',
       value: function setOptions(options) {
@@ -33211,7 +33218,7 @@ return /******/ (function(modules) { // webpackBootstrap
           this.stabilized = false;
 
           // when visible, adaptivity is disabled.
-          //this.adaptiveTimestep = false;
+          this.adaptiveTimestep = false;
 
           // this sets the width of all nodes initially which could be required for the avoidOverlap
           this.body.emitter.emit("_resizeNodes");
@@ -33299,8 +33306,10 @@ return /******/ (function(modules) { // webpackBootstrap
         if (this.stabilized === false) {
           // adaptivity means the timestep adapts to the situation, only applicable for stabilization
           if (this.adaptiveTimestep === true && this.adaptiveTimestepEnabled === true) {
-            this.adaptiveCounter += 1;
+            // this is the factor for increasing the timestep on success.
             var factor = 1.2;
+
+            // we assume the adaptive interval is
             if (this.adaptiveCounter % this.adaptiveInterval === 0) {
               // we leave the timestep stable for "interval" iterations.
               // first the big step and revert. Revert saves the reference state.
@@ -33319,11 +33328,11 @@ return /******/ (function(modules) { // webpackBootstrap
               this.moveNodes();
 
               // we compare the two steps. if it is acceptable we double the step.
-              if (this.compare() === true) {
+              if (this._evaluateStepQuality() === true) {
                 this.timestep = factor * this.timestep;
               } else {
-                // if not, we half the step to a minimum of the options timestep.
-                // if the half the timestep is smaller than the options step, we do not reset the counter
+                // if not, we decrease the step to a minimum of the options timestep.
+                // if the decreased timestep is smaller than the options step, we do not reset the counter
                 // we assume that the options timestep is stable enough.
                 if (this.timestep / factor < this.options.timestep) {
                   this.timestep = this.options.timestep;
@@ -33339,6 +33348,9 @@ return /******/ (function(modules) { // webpackBootstrap
               this.calculateForces();
               this.moveNodes();
             }
+
+            // increment the counter
+            this.adaptiveCounter += 1;
           } else {
             // case for the static timestep, we reset it to the one in options and take a normal step.
             this.timestep = this.options.timestep;
@@ -33444,14 +33456,14 @@ return /******/ (function(modules) { // webpackBootstrap
        * This compares the reference state to the current state
        */
     }, {
-      key: 'compare',
-      value: function compare() {
+      key: '_evaluateStepQuality',
+      value: function _evaluateStepQuality() {
         var dx = undefined,
             dy = undefined,
             dpos = undefined;
         var nodes = this.body.nodes;
         var reference = this.referenceState;
-        var posThreshold = 0.25;
+        var posThreshold = 0.3;
 
         for (var nodeId in this.referenceState) {
           if (this.referenceState.hasOwnProperty(nodeId)) {
@@ -33475,23 +33487,25 @@ return /******/ (function(modules) { // webpackBootstrap
     }, {
       key: 'moveNodes',
       value: function moveNodes() {
-        var nodesPresent = false;
         var nodeIndices = this.physicsBody.physicsNodeIndices;
         var maxVelocity = this.options.maxVelocity ? this.options.maxVelocity : 1e9;
         var maxNodeVelocity = 0;
+        var averageNodeVelocity = 0;
+
+        // the velocity threshold (energy in the system) for the adaptivity toggle
         var velocityAdaptiveThreshold = 5;
 
         for (var i = 0; i < nodeIndices.length; i++) {
           var nodeId = nodeIndices[i];
           var nodeVelocity = this._performStep(nodeId, maxVelocity);
           // stabilized is true if stabilized is true and velocity is smaller than vmin --> all nodes must be stabilized
-          maxNodeVelocity = Math.max(nodeVelocity, maxNodeVelocity);
-          nodesPresent = true;
+          maxNodeVelocity = Math.max(maxNodeVelocity, nodeVelocity);
+          averageNodeVelocity += nodeVelocity;
         }
 
-        this.adaptiveTimestepEnabled = maxNodeVelocity < velocityAdaptiveThreshold;
-
-        this.stabilized = maxNodeVelocity <= this.options.minVelocity;
+        // evaluating the stabilized and adaptiveTimestepEnabled conditions
+        this.adaptiveTimestepEnabled = averageNodeVelocity / nodeIndices.length < velocityAdaptiveThreshold;
+        this.stabilized = maxNodeVelocity < this.options.minVelocity;
       }
 
       /**
@@ -33638,6 +33652,11 @@ return /******/ (function(modules) { // webpackBootstrap
           return _this3._stabilizationBatch();
         }, 0);
       }
+
+      /**
+       * One batch of stabilization
+       * @private
+       */
     }, {
       key: '_stabilizationBatch',
       value: function _stabilizationBatch() {
@@ -33654,6 +33673,11 @@ return /******/ (function(modules) { // webpackBootstrap
           this._finalizeStabilization();
         }
       }
+
+      /**
+       * Wrap up the stabilization, fit and emit the events.
+       * @private
+       */
     }, {
       key: '_finalizeStabilization',
       value: function _finalizeStabilization() {
@@ -39014,6 +39038,7 @@ return /******/ (function(modules) { // webpackBootstrap
             var startLength = this.body.nodeIndices.length;
             while (this.body.nodeIndices.length > 150) {
               levels += 1;
+              // if there are many nodes we do a hubsize cluster
               if (levels % 5 === 0) {
                 this.body.modules.clustering.clusterByHubsize();
               } else if (levels % 3 === 0) {
