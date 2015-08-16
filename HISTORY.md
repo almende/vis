@@ -14,7 +14,11 @@ http://visjs.org
 - Fixed cleaning up of nodes.
 - Improved the positioning and CSS of the configurator and the color picker.
 - Fixed dynamic updating of label properties.
-
+- Added support for labels in edges and titles for both nodes and edges during gephi import.
+- Added KamadaKawai layout engine for improved initial layout.
+- Added Adaptive timestep to the physics solvers for increased performance during stabilization.
+- Fixed bugs in clustering algorithm.
+- Greatly improved performance in clustering.
 
 ## 2015-07-27, version 4.7.0
 

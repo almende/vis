@@ -5,7 +5,7 @@
  * A dynamic, browser-based visualization library.
  *
  * @version 4.7.1-SNAPSHOT
- * @date    2015-08-14
+ * @date    2015-08-16
  *
  * @license
  * Copyright (C) 2011-2014 Almende B.V, http://almende.com
@@ -33199,7 +33199,7 @@ return /******/ (function(modules) { // webpackBootstrap
           } else {
             this.stabilized = false;
             this.ready = true;
-            this.body.emitter.emit('fit', {}, true);
+            this.body.emitter.emit('fit', {}, false);
             this.startSimulation();
           }
         } else {
@@ -34902,7 +34902,7 @@ return /******/ (function(modules) { // webpackBootstrap
         }
 
         for (var i = 0; i < nodesToCluster.length; i++) {
-          this.clusterByConnection(nodesToCluster[i], options, false);
+          this.clusterByConnection(nodesToCluster[i], options, true);
         }
 
         this.body.emitter.emit('_dataChanged');
@@ -34940,7 +34940,9 @@ return /******/ (function(modules) { // webpackBootstrap
             // collect the nodes that will be in the cluster
             for (var _i = 0; _i < node.edges.length; _i++) {
               var edge = node.edges[_i];
-              childEdgesObj[edge.id] = edge;
+              if (edge.hiddenByCluster !== true) {
+                childEdgesObj[edge.id] = edge;
+              }
             }
           }
         }
@@ -34961,45 +34963,65 @@ return /******/ (function(modules) { // webpackBootstrap
 
         options = this._checkOptions(options);
         var clusters = [];
-
+        var usedNodes = {};
+        var edge = undefined,
+            edges = undefined,
+            node = undefined,
+            nodeId = undefined,
+            visibleEdges = undefined;
         // collect the nodes that will be in the cluster
         for (var i = 0; i < this.body.nodeIndices.length; i++) {
           var childNodesObj = {};
           var childEdgesObj = {};
-          var nodeId = this.body.nodeIndices[i];
-          var visibleEdges = 0;
-          var edge = undefined;
-          for (var j = 0; j < this.body.nodes[nodeId].edges.length; j++) {
-            if (this.body.nodes[nodeId].edges[j].options.hidden === false) {
-              visibleEdges++;
-              edge = this.body.nodes[nodeId].edges[j];
-            }
-          }
+          nodeId = this.body.nodeIndices[i];
 
-          if (visibleEdges === edgeCount) {
-            // this is a qualifying node
-            var childNodeId = this._getConnectedId(edge, nodeId);
-            if (childNodeId !== nodeId) {
-              if (options.joinCondition === undefined) {
-                if (this._checkIfUsed(clusters, nodeId, edge.id) === false && this._checkIfUsed(clusters, childNodeId, edge.id) === false) {
-                  childEdgesObj[edge.id] = edge;
-                  childNodesObj[nodeId] = this.body.nodes[nodeId];
-                  childNodesObj[childNodeId] = this.body.nodes[childNodeId];
-                }
-              } else {
-                var clonedOptions = this._cloneOptions(this.body.nodes[nodeId]);
-                if (options.joinCondition(clonedOptions) === true && this._checkIfUsed(clusters, nodeId, edge.id) === false) {
-                  childEdgesObj[edge.id] = edge;
-                  childNodesObj[nodeId] = this.body.nodes[nodeId];
-                }
-                clonedOptions = this._cloneOptions(this.body.nodes[childNodeId]);
-                if (options.joinCondition(clonedOptions) === true && this._checkIfUsed(clusters, nodeId, edge.id) === false) {
-                  childEdgesObj[edge.id] = edge;
-                  childNodesObj[childNodeId] = this.body.nodes[childNodeId];
+          // if this node is already used in another cluster this session, we do not have to re-evaluate it.
+          if (usedNodes[nodeId] === undefined) {
+            visibleEdges = 0;
+            node = this.body.nodes[nodeId];
+            edges = [];
+            for (var j = 0; j < node.edges.length; j++) {
+              edge = node.edges[j];
+              if (edge.hiddenByCluster !== true) {
+                edges.push(edge);
+              }
+            }
+
+            // this node qualifies, we collect its neighbours to start the clustering process.
+            if (edges.length === edgeCount) {
+              var gatheringSuccessful = true;
+              for (var j = 0; j < edges.length; j++) {
+                edge = edges[j];
+                var childNodeId = this._getConnectedId(edge, nodeId);
+                // if unused and if not referencing itself
+                if (childNodeId !== nodeId && usedNodes[nodeId] === undefined) {
+                  // add the nodes to the list by the join condition.
+                  if (options.joinCondition === undefined) {
+                    childEdgesObj[edge.id] = edge;
+                    childNodesObj[nodeId] = this.body.nodes[nodeId];
+                    childNodesObj[childNodeId] = this.body.nodes[childNodeId];
+                    usedNodes[nodeId] = true;
+                  } else {
+                    var clonedOptions = this._cloneOptions(this.body.nodes[nodeId]);
+                    if (options.joinCondition(clonedOptions) === true) {
+                      childEdgesObj[edge.id] = edge;
+                      childNodesObj[nodeId] = this.body.nodes[nodeId];
+                      usedNodes[nodeId] = true;
+                    } else {
+                      // this node does not qualify after all.
+                      gatheringSuccessful = false;
+                      break;
+                    }
+                  }
+                } else {
+                  // this node does not qualify after all.
+                  gatheringSuccessful = false;
+                  break;
                 }
               }
 
-              if (Object.keys(childNodesObj).length > 0 && Object.keys(childEdgesObj).length > 0) {
+              // add to the cluster queue
+              if (Object.keys(childNodesObj).length > 0 && Object.keys(childEdgesObj).length > 0 && gatheringSuccessful === true) {
                 clusters.push({ nodes: childNodesObj, edges: childEdgesObj });
               }
             }
@@ -35039,17 +35061,6 @@ return /******/ (function(modules) { // webpackBootstrap
         var refreshData = arguments.length <= 1 || arguments[1] === undefined ? true : arguments[1];
 
         this.clusterByEdgeCount(2, options, refreshData);
-      }
-    }, {
-      key: '_checkIfUsed',
-      value: function _checkIfUsed(clusters, nodeId, edgeId) {
-        for (var i = 0; i < clusters.length; i++) {
-          var cluster = clusters[i];
-          if (cluster.nodes[nodeId] !== undefined || cluster.edges[edgeId] !== undefined) {
-            return true;
-          }
-        }
-        return false;
       }
 
       /**
@@ -35094,26 +35105,31 @@ return /******/ (function(modules) { // webpackBootstrap
         // collect the nodes that will be in the cluster
         for (var i = 0; i < node.edges.length; i++) {
           var edge = node.edges[i];
-          var childNodeId = this._getConnectedId(edge, parentNodeId);
+          if (edge.hiddenByCluster !== true) {
+            var childNodeId = this._getConnectedId(edge, parentNodeId);
 
-          if (this.clusteredNodes[childNodeId] === undefined) {
-            if (childNodeId !== parentNodeId) {
-              if (options.joinCondition === undefined) {
-                childEdgesObj[edge.id] = edge;
-                childNodesObj[childNodeId] = this.body.nodes[childNodeId];
-              } else {
-                // clone the options and insert some additional parameters that could be interesting.
-                var childClonedOptions = this._cloneOptions(this.body.nodes[childNodeId]);
-                if (options.joinCondition(parentClonedOptions, childClonedOptions) === true) {
+            // if the child node is not in a cluster (may not be needed now with the edge.hiddenByCluster check)
+            if (this.clusteredNodes[childNodeId] === undefined) {
+              if (childNodeId !== parentNodeId) {
+                if (options.joinCondition === undefined) {
                   childEdgesObj[edge.id] = edge;
                   childNodesObj[childNodeId] = this.body.nodes[childNodeId];
+                } else {
+                  // clone the options and insert some additional parameters that could be interesting.
+                  var childClonedOptions = this._cloneOptions(this.body.nodes[childNodeId]);
+                  if (options.joinCondition(parentClonedOptions, childClonedOptions) === true) {
+                    childEdgesObj[edge.id] = edge;
+                    childNodesObj[childNodeId] = this.body.nodes[childNodeId];
+                  }
                 }
+              } else {
+                // swallow the edge if it is self-referencing.
+                childEdgesObj[edge.id] = edge;
               }
-            } else {
-              childEdgesObj[edge.id] = edge;
             }
           }
         }
+
         this._cluster(childNodesObj, childEdgesObj, options, refreshData);
       }
 
@@ -35140,17 +35156,17 @@ return /******/ (function(modules) { // webpackBootstrap
       }
 
       /**
-      * This function creates the edges that will be attached to the cluster.
+      * This function creates the edges that will be attached to the cluster
+      * It looks for edges that are connected to the nodes from the "outside' of the cluster.
       *
       * @param childNodesObj
-      * @param childEdgesObj
       * @param newEdges
       * @param options
       * @private
       */
     }, {
       key: '_createClusterEdges',
-      value: function _createClusterEdges(childNodesObj, childEdgesObj, newEdges, clusterNodeProperties, clusterEdgeProperties) {
+      value: function _createClusterEdges(childNodesObj, clusterNodeProperties, clusterEdgeProperties) {
         var edge = undefined,
             childNodeId = undefined,
             childNode = undefined,
@@ -35158,7 +35174,10 @@ return /******/ (function(modules) { // webpackBootstrap
             fromId = undefined,
             otherNodeId = undefined;
 
+        // loop over all child nodes and their edges to find edges going out of the cluster
+        // these edges will be replaced by clusterEdges.
         var childKeys = Object.keys(childNodesObj);
+        var createEdges = [];
         for (var i = 0; i < childKeys.length; i++) {
           childNodeId = childKeys[i];
           childNode = childNodesObj[childNodeId];
@@ -35166,30 +35185,54 @@ return /******/ (function(modules) { // webpackBootstrap
           // construct new edges from the cluster to others
           for (var j = 0; j < childNode.edges.length; j++) {
             edge = childNode.edges[j];
-            childEdgesObj[edge.id] = edge;
+            // we only handle edges that are visible to the system, not the disabled ones from the clustering process.
+            if (edge.hiddenByCluster !== true) {
+              // set up the from and to.
+              if (edge.toId == childNodeId) {
+                // this is a double equals because ints and strings can be interchanged here.
+                toId = clusterNodeProperties.id;
+                fromId = edge.fromId;
+                otherNodeId = fromId;
+              } else {
+                toId = edge.toId;
+                fromId = clusterNodeProperties.id;
+                otherNodeId = toId;
+              }
 
-            // childNodeId position will be replaced by the cluster.
-            if (edge.toId == childNodeId) {
-              // this is a double equals because ints and strings can be interchanged here.
-              toId = clusterNodeProperties.id;
-              fromId = edge.fromId;
-              otherNodeId = fromId;
-            } else {
-              toId = edge.toId;
-              fromId = clusterNodeProperties.id;
-              otherNodeId = toId;
-            }
-
-            // if the node connected to the cluster is also in the cluster we do not need a new edge.
-            if (childNodesObj[otherNodeId] === undefined) {
-              var clonedOptions = this._cloneOptions(edge, 'edge');
-              util.deepExtend(clonedOptions, clusterEdgeProperties);
-              clonedOptions.from = fromId;
-              clonedOptions.to = toId;
-              clonedOptions.id = 'clusterEdge:' + util.randomUUID();
-              newEdges.push(this.body.functions.createEdge(clonedOptions));
+              // Only edges from the cluster outwards are being replaced.
+              if (childNodesObj[otherNodeId] === undefined) {
+                createEdges.push({ edge: edge, fromId: fromId, toId: toId });
+              }
             }
           }
+        }
+
+        // here we actually create the replacement edges. We could not do this in the loop above as the creation process
+        // would add an edge to the edges array we are iterating over.
+        for (var j = 0; j < createEdges.length; j++) {
+          var _edge = createEdges[j].edge;
+          // copy the options of the edge we will replace
+          var clonedOptions = this._cloneOptions(_edge, 'edge');
+          // make sure the properties of clusterEdges are superimposed on it
+          util.deepExtend(clonedOptions, clusterEdgeProperties);
+
+          // set up the edge
+          clonedOptions.from = createEdges[j].fromId;
+          clonedOptions.to = createEdges[j].toId;
+          clonedOptions.id = 'clusterEdge:' + util.randomUUID();
+          //clonedOptions.id = '(cf: ' + createEdges[j].fromId + " to: " + createEdges[j].toId + ")" + Math.random();
+
+          // create the edge and give a reference to the one it replaced.
+          var newEdge = this.body.functions.createEdge(clonedOptions);
+          newEdge.clusteringEdgeReplacingId = _edge.id;
+
+          // connect the edge.
+          this.body.edges[newEdge.id] = newEdge;
+          newEdge.connect();
+
+          // hide the replaced edge
+          _edge.setOptions({ physics: false, hidden: true });
+          _edge.hiddenByCluster = true;
         }
       }
 
@@ -35228,8 +35271,8 @@ return /******/ (function(modules) { // webpackBootstrap
       value: function _cluster(childNodesObj, childEdgesObj, options) {
         var refreshData = arguments.length <= 3 || arguments[3] === undefined ? true : arguments[3];
 
-        // kill condition: no children so can't cluster
-        if (Object.keys(childNodesObj).length === 0) {
+        // kill condition: no children so can't cluster or only one node in the cluster, dont bother
+        if (Object.keys(childNodesObj).length < 2) {
           return;
         }
 
@@ -35311,27 +35354,15 @@ return /******/ (function(modules) { // webpackBootstrap
         this.body.nodes[clusterNodeProperties.id] = clusterNode;
 
         // create the new edges that will connect to the cluster
-        var newEdges = [];
-        this._createClusterEdges(childNodesObj, childEdgesObj, newEdges, clusterNodeProperties, options.clusterEdgeProperties);
+        this._createClusterEdges(childNodesObj, clusterNodeProperties, options.clusterEdgeProperties);
 
         // disable the childEdges
         for (var edgeId in childEdgesObj) {
           if (childEdgesObj.hasOwnProperty(edgeId)) {
             if (this.body.edges[edgeId] !== undefined) {
               var edge = this.body.edges[edgeId];
-
-              // if this is a cluster edge that is fully encompassed in the cluster, we want to delete it
-              // this check verifies that both of the connected nodes are in this cluster
-              if (edgeId.substr(0, 12) === "clusterEdge:" && childNodesObj[edge.fromId] !== undefined && childNodesObj[edge.toId] !== undefined) {
-                edge.cleanup();
-                // this removes the edge from node.edges, which is why edgeIds is formed
-                edge.disconnect();
-                delete childEdgesObj[edgeId];
-                delete this.body.edges[edgeId];
-              } else {
-                edge.setOptions({ physics: false, hidden: true });
-                //edge.options.hidden = true;
-              }
+              edge.setOptions({ physics: false, hidden: true });
+              edge.hiddenByCluster = true;
             }
           }
         }
@@ -35342,12 +35373,6 @@ return /******/ (function(modules) { // webpackBootstrap
             this.clusteredNodes[nodeId] = { clusterId: clusterNodeProperties.id, node: this.body.nodes[nodeId] };
             this.body.nodes[nodeId].setOptions({ hidden: true, physics: false });
           }
-        }
-
-        // push new edges to global
-        for (var i = 0; i < newEdges.length; i++) {
-          this.body.edges[newEdges[i].id] = newEdges[i];
-          this.body.edges[newEdges[i].id].connect();
         }
 
         // set ID to undefined so no duplicates arise
@@ -35442,8 +35467,8 @@ return /******/ (function(modules) { // webpackBootstrap
             if (containedNodes.hasOwnProperty(nodeId)) {
               var containedNode = this.body.nodes[nodeId];
               if (newPositions[nodeId] !== undefined) {
-                containedNode.x = newPositions[nodeId].x || clusterNode.x;
-                containedNode.y = newPositions[nodeId].y || clusterNode.y;
+                containedNode.x = newPositions[nodeId].x === undefined ? clusterNode.x : newPositions[nodeId].x;
+                containedNode.y = newPositions[nodeId].y === undefined ? clusterNode.y : newPositions[nodeId].y;
               }
             }
           }
@@ -35470,76 +35495,77 @@ return /******/ (function(modules) { // webpackBootstrap
             containedNode.vy = clusterNode.vy;
 
             // we use these methods to avoid reinstantiating the shape, which happens with setOptions.
-            //containedNode.toggleHidden(false);
-            //containedNode.togglePhysics(true);
             containedNode.setOptions({ hidden: false, physics: true });
 
             delete this.clusteredNodes[nodeId];
           }
         }
 
-        // release edges
+        // copy the clusterNode edges because we cannot iterate over an object that we add or remove from.
+        var edgesToBeDeleted = [];
+        for (var i = 0; i < clusterNode.edges.length; i++) {
+          edgesToBeDeleted.push(clusterNode.edges[i]);
+        }
+
+        // actually handling the deleting.
+        for (var i = 0; i < edgesToBeDeleted.length; i++) {
+          var edge = edgesToBeDeleted[i];
+
+          var otherNodeId = this._getConnectedId(edge, clusterNodeId);
+          // if the other node is in another cluster, we transfer ownership of this edge to the other cluster
+          if (this.clusteredNodes[otherNodeId] !== undefined) {
+            // transfer ownership:
+            var otherCluster = this.body.nodes[this.clusteredNodes[otherNodeId].clusterId];
+            var transferEdge = this.body.edges[edge.clusteringEdgeReplacingId];
+            if (transferEdge !== undefined) {
+              otherCluster.containedEdges[transferEdge.id] = transferEdge;
+
+              // delete local reference
+              delete containedEdges[transferEdge.id];
+
+              // create new cluster edge from the otherCluster:
+              // get to and from
+              var fromId = transferEdge.fromId;
+              var toId = transferEdge.toId;
+              if (transferEdge.toId == otherNodeId) {
+                toId = this.clusteredNodes[otherNodeId].clusterId;
+              } else {
+                fromId = this.clusteredNodes[otherNodeId].clusterId;
+              }
+
+              // clone the options and apply the cluster options to them
+              var clonedOptions = this._cloneOptions(transferEdge, 'edge');
+              util.deepExtend(clonedOptions, otherCluster.clusterEdgeProperties);
+
+              // apply the edge specific options to it.
+              var id = 'clusterEdge:' + util.randomUUID();
+              util.deepExtend(clonedOptions, { from: fromId, to: toId, hidden: false, physics: true, id: id });
+
+              // create it
+              var newEdge = this.body.functions.createEdge(clonedOptions);
+              newEdge.clusteringEdgeReplacingId = transferEdge.id;
+              this.body.edges[id] = newEdge;
+              this.body.edges[id].connect();
+            }
+          } else {
+            var replacedEdge = this.body.edges[edge.clusteringEdgeReplacingId];
+            if (replacedEdge !== undefined) {
+              replacedEdge.setOptions({ physics: true, hidden: false });
+              replacedEdge.hiddenByCluster = false;
+            }
+          }
+          edge.cleanup();
+          // this removes the edge from node.edges, which is why edgeIds is formed
+          edge.disconnect();
+          delete this.body.edges[edge.id];
+        }
+
+        // handle the releasing of the edges
         for (var edgeId in containedEdges) {
           if (containedEdges.hasOwnProperty(edgeId)) {
             var edge = containedEdges[edgeId];
-            // if this edge was a temporary edge and it's connected nodes do not exist anymore, we remove it from the data
-            if (this.body.nodes[edge.fromId] === undefined || this.body.nodes[edge.toId] === undefined || edge.toId == clusterNodeId || edge.fromId == clusterNodeId) {
-              edge.cleanup();
-              // this removes the edge from node.edges, which is why edgeIds is formed
-              edge.disconnect();
-              delete this.body.edges[edgeId];
-            } else {
-              // one of the nodes connected to this edge is in a cluster. We give the edge to that cluster so it will be released when that cluster is opened.
-              if (this.clusteredNodes[edge.fromId] !== undefined || this.clusteredNodes[edge.toId] !== undefined) {
-                var fromId = undefined,
-                    toId = undefined;
-                var clusteredNode = this.clusteredNodes[edge.fromId] || this.clusteredNodes[edge.toId];
-                var clusterId = clusteredNode.clusterId;
-                var _clusterNode = this.body.nodes[clusterId];
-                _clusterNode.containedEdges[edgeId] = edge;
-
-                if (this.clusteredNodes[edge.fromId] !== undefined) {
-                  fromId = clusterId;
-                  toId = edge.toId;
-                } else {
-                  fromId = edge.fromId;
-                  toId = clusterId;
-                }
-
-                // if both from and to nodes are visible, we create a new temporary edge
-                if (this.body.nodes[fromId].options.hidden !== true && this.body.nodes[toId].options.hidden !== true) {
-                  var clonedOptions = this._cloneOptions(edge, 'edge');
-                  var id = 'clusterEdge:' + util.randomUUID();
-                  util.deepExtend(clonedOptions, _clusterNode.clusterEdgeProperties);
-                  util.deepExtend(clonedOptions, { from: fromId, to: toId, hidden: false, physics: true, id: id });
-                  var newEdge = this.body.functions.createEdge(clonedOptions);
-
-                  this.body.edges[id] = newEdge;
-                  this.body.edges[id].connect();
-                }
-              } else {
-                edge.setOptions({ physics: true, hidden: false });
-                //edge.options.hidden = false;
-                //edge.togglePhysics(true);
-              }
-            }
+            edge.setOptions({ physics: true, hidden: false });
           }
-        }
-
-        // remove all temporary edges, make an array of ids so we don't remove from the list we're iterating over.
-        var removeIds = [];
-        for (var i = 0; i < clusterNode.edges.length; i++) {
-          var edgeId = clusterNode.edges[i].id;
-          removeIds.push(edgeId);
-        }
-
-        // actually removing the edges
-        for (var i = 0; i < removeIds.length; i++) {
-          var edgeId = removeIds[i];
-          this.body.edges[edgeId].cleanup();
-          // this removes the edge from node.edges, which is why edgeIds is formed
-          this.body.edges[edgeId].disconnect();
-          delete this.body.edges[edgeId];
         }
 
         // remove clusterNode
@@ -39017,6 +39043,11 @@ return /******/ (function(modules) { // webpackBootstrap
           }
         }
       }
+
+      /**
+       * Use KamadaKawai to position nodes. This is quite a heavy algorithm so if there are a lot of nodes we
+       * cluster them first to reduce the amount.
+       */
     }, {
       key: 'layoutNetwork',
       value: function layoutNetwork() {
@@ -39033,15 +39064,14 @@ return /******/ (function(modules) { // webpackBootstrap
         // if less than half of the nodes have a predefined position we continue
         if (positionDefined < 0.5 * this.body.nodeIndices.length) {
           var levels = 0;
+          var clusterThreshold = 100;
           // if there are a lot of nodes, we cluster before we run the algorithm.
-          if (this.body.nodeIndices.length > 100) {
+          if (this.body.nodeIndices.length > clusterThreshold) {
             var startLength = this.body.nodeIndices.length;
-            while (this.body.nodeIndices.length > 150) {
+            while (this.body.nodeIndices.length > clusterThreshold) {
               levels += 1;
               // if there are many nodes we do a hubsize cluster
-              if (levels % 5 === 0) {
-                this.body.modules.clustering.clusterByHubsize();
-              } else if (levels % 3 === 0) {
+              if (levels % 3 === 0) {
                 this.body.modules.clustering.clusterBridges();
               } else {
                 this.body.modules.clustering.clusterOutliers();
@@ -39062,17 +39092,7 @@ return /******/ (function(modules) { // webpackBootstrap
               for (var i = 0; i < this.body.nodeIndices.length; i++) {
                 if (this.body.nodes[this.body.nodeIndices[i]].isCluster === true) {
                   clustersPresent = true;
-                  this.body.modules.clustering.openCluster(this.body.nodeIndices[i], {
-                    releaseFunction: function releaseFunction(clusterPosition, containedNodesPositions) {
-                      var newPositions = {};
-                      for (var nodeId in containedNodesPositions) {
-                        if (containedNodesPositions.hasOwnProperty(nodeId)) {
-                          newPositions[nodeId] = { x: clusterPosition.x, y: clusterPosition.y };
-                        }
-                      }
-                      return newPositions;
-                    }
-                  }, false);
+                  this.body.modules.clustering.openCluster(this.body.nodeIndices[i], {}, false);
                 }
               }
               if (clustersPresent === true) {
@@ -42710,6 +42730,8 @@ return /******/ (function(modules) { // webpackBootstrap
       edge['from'] = gEdge.source;
       edge['to'] = gEdge.target;
       edge['attributes'] = gEdge.attributes;
+      edge['label'] = gEdge.label;
+      edge['title'] = gEdge.attributes !== undefined ? gEdge.attributes.title : undefined;
       //    edge['value'] = gEdge.attributes !== undefined ? gEdge.attributes.Weight : undefined;
       //    edge['width'] = edge['value'] !== undefined ? undefined : edgegEdge.size;
       if (gEdge.color && options.inheritColor === false) {
@@ -42727,6 +42749,7 @@ return /******/ (function(modules) { // webpackBootstrap
       node['x'] = gNode.x;
       node['y'] = gNode.y;
       node['label'] = gNode.label;
+      node['title'] = gNode.attributes !== undefined ? gNode.attributes.title : undefined;
       if (options.nodes.parseColor === true) {
         node['color'] = gNode.color;
       } else {
