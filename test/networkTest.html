@@ -24,33 +24,49 @@
 
 <script type="text/javascript">
     var nodes = new vis.DataSet()
-    nodes.add({
-        id: 'foo',
-        label: 'foo',
-        group: 'a'
-    })
+    nodes.add({id:'A', label:"A", x:0, y:0})
+    nodes.add({id:'B', label:"B", x:100, y:0})
+    nodes.add({id:'C', label:"C", x:200, y:0})
+    nodes.add({id:'D', label:"D", x:0, y:100})
+    nodes.add({id:'E', label:"E", x:100, y:100})
+    nodes.add({id:'F', label:"F", x:200, y:100})
+    nodes.add({id:'G', label:"G", x:-100, y:200})
 
-    var options = {
-        groups: {
-            a: {
-                shape: 'image',
-                image: 'http://sc.chinaz.com/Files/pic/icons/1075/Hustler_063.png',
-            },
-            b: {
-                shape: 'image',
-                image: 'http://d2.72sc.com/pic/141128/knymkdvpqvz.png'
-            }
-        }
-    }
+    var edges = new vis.DataSet()
+    edges.add({id:'1', from:"A", to:"B"})
+    edges.add({id:'2', from:"B", to:"C"})
+    edges.add({id:'3', from:"D", to:"E"})
+    edges.add({id:'4', from:"E", to:"F"})
+    edges.add({id:'5', from:"D", to:"G"})
 
+    var options = {physics:false, edges:{smooth:false}};
     var network = new vis.Network(document.getElementById("mynetwork"), {
-        nodes: nodes
+        nodes: nodes,
+        edges: edges
     }, options)
 
-    setTimeout(function() {
-        nodes.update({id: 'foo', group: 'b'})
-        console.log("update")
-    },3000)
+    console.log("MAKE C1")
+    network.cluster({
+        joinCondition:function(nodeOptions) {
+            return nodeOptions.id == "B" || nodeOptions.id == "E";
+        },
+        clusterNodeProperties: {id:'C1', label:"C1"}
+    })
+
+    console.log("MAKE C2")
+    network.cluster({
+        joinCondition:function(nodeOptions) {
+            return nodeOptions.id == "D" || nodeOptions.id == "G";
+        },
+        clusterNodeProperties: {id:'C2', label:"C2"}
+    })
+
+    network.openCluster('C1', {
+        releaseFunction: function (cpos, npos) {
+            console.log(npos)
+            return npos;
+        }
+    })
 
 </script>
 

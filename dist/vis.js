@@ -5,7 +5,7 @@
  * A dynamic, browser-based visualization library.
  *
  * @version 4.7.1-SNAPSHOT
- * @date    2015-08-07
+ * @date    2015-08-19
  *
  * @license
  * Copyright (C) 2011-2014 Almende B.V, http://almende.com
@@ -139,9 +139,9 @@ return /******/ (function(modules) { // webpackBootstrap
   // Network
   exports.Network = __webpack_require__(59);
   exports.network = {
-    Images: __webpack_require__(114),
-    dotparser: __webpack_require__(112),
-    gephiParser: __webpack_require__(113),
+    Images: __webpack_require__(116),
+    dotparser: __webpack_require__(114),
+    gephiParser: __webpack_require__(115),
     allOptions: __webpack_require__(110)
   };
   exports.network.convertDot = function (input) {
@@ -26837,6 +26837,8 @@ return /******/ (function(modules) { // webpackBootstrap
 
   var _optionsJs = __webpack_require__(110);
 
+  var _modulesKamadaKawaiJs = __webpack_require__(111);
+
   /**
    * @constructor Network
    * Create a network visualization, displaying nodes and edges.
@@ -26848,18 +26850,21 @@ return /******/ (function(modules) { // webpackBootstrap
    *                              {Array} edges
    * @param {Object} options      Options
    */
-  __webpack_require__(111);
+
+  var _modulesKamadaKawaiJs2 = _interopRequireDefault(_modulesKamadaKawaiJs);
+
+  __webpack_require__(113);
 
   var Emitter = __webpack_require__(19);
   var Hammer = __webpack_require__(3);
   var util = __webpack_require__(7);
   var DataSet = __webpack_require__(14);
   var DataView = __webpack_require__(16);
-  var dotparser = __webpack_require__(112);
-  var gephiParser = __webpack_require__(113);
-  var Images = __webpack_require__(114);
+  var dotparser = __webpack_require__(114);
+  var gephiParser = __webpack_require__(115);
+  var Images = __webpack_require__(116);
   var Activator = __webpack_require__(40);
-  var locales = __webpack_require__(115);
+  var locales = __webpack_require__(117);
 
   function Network(container, data, options) {
     var _this = this;
@@ -26913,6 +26918,7 @@ return /******/ (function(modules) { // webpackBootstrap
         createEdge: function createEdge() {},
         getPointer: function getPointer() {}
       },
+      modules: {},
       view: {
         scale: 1,
         translation: { x: 0, y: 0 }
@@ -26939,6 +26945,9 @@ return /******/ (function(modules) { // webpackBootstrap
 
     this.nodesHandler = new _modulesNodesHandler2['default'](this.body, this.images, this.groups, this.layoutEngine); // Handle adding, deleting and updating of nodes as well as global options
     this.edgesHandler = new _modulesEdgesHandler2['default'](this.body, this.images, this.groups); // Handle adding, deleting and updating of edges as well as global options
+
+    this.body.modules["kamadaKawai"] = new _modulesKamadaKawaiJs2['default'](this.body, 150, 0.05); // Layouting algorithm.
+    this.body.modules["clustering"] = this.clustering;
 
     // create the DOM elements
     this.canvas._create();
@@ -27148,6 +27157,9 @@ return /******/ (function(modules) { // webpackBootstrap
 
     // emit change in data
     this.body.emitter.emit("_dataChanged");
+
+    // emit data loaded
+    this.body.emitter.emit("_dataLoaded");
 
     // find a stable position or start animating to a stable position
     this.body.emitter.emit("initPhysics");
@@ -28216,7 +28228,6 @@ return /******/ (function(modules) { // webpackBootstrap
         if (!options) {
           return;
         }
-
         // basic options
         if (options.id !== undefined) {
           this.id = options.id;
@@ -28290,7 +28301,6 @@ return /******/ (function(modules) { // webpackBootstrap
         if (this.options.label === undefined || this.options.label === null) {
           this.options.label = '';
         }
-
         this.labelModule.setOptions(this.options, true);
         if (this.labelModule.baseSize !== undefined) {
           this.baseFontSize = this.labelModule.baseSize;
@@ -32668,21 +32678,21 @@ return /******/ (function(modules) { // webpackBootstrap
 /* 88 */
 /***/ function(module, exports, __webpack_require__) {
 
-  'use strict';
+  "use strict";
 
-  Object.defineProperty(exports, '__esModule', {
+  Object.defineProperty(exports, "__esModule", {
     value: true
   });
 
-  var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
+  var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
 
-  var _get = function get(_x, _x2, _x3) { var _again = true; _function: while (_again) { var object = _x, property = _x2, receiver = _x3; desc = parent = getter = undefined; _again = false; if (object === null) object = Function.prototype; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { _x = parent; _x2 = property; _x3 = receiver; _again = true; continue _function; } } else if ('value' in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } } };
+  var _get = function get(_x, _x2, _x3) { var _again = true; _function: while (_again) { var object = _x, property = _x2, receiver = _x3; desc = parent = getter = undefined; _again = false; if (object === null) object = Function.prototype; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { _x = parent; _x2 = property; _x3 = receiver; _again = true; continue _function; } } else if ("value" in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } } };
 
-  function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
+  function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { "default": obj }; }
 
-  function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
+  function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
-  function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; }
+  function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; }
 
   var _utilBezierEdgeBase = __webpack_require__(84);
 
@@ -32692,14 +32702,20 @@ return /******/ (function(modules) { // webpackBootstrap
     _inherits(BezierEdgeDynamic, _BezierEdgeBase);
 
     function BezierEdgeDynamic(options, body, labelModule) {
+      var _this = this;
+
       _classCallCheck(this, BezierEdgeDynamic);
 
       //this.via = undefined; // Here for completeness but not allowed to defined before super() is invoked.
-      _get(Object.getPrototypeOf(BezierEdgeDynamic.prototype), 'constructor', this).call(this, options, body, labelModule); // --> this calls the setOptions below
+      _get(Object.getPrototypeOf(BezierEdgeDynamic.prototype), "constructor", this).call(this, options, body, labelModule); // --> this calls the setOptions below
+      this._boundFunction = function () {
+        _this.positionBezierNode();
+      };
+      this.body.emitter.on("_repositionBezierNodes", this._boundFunction);
     }
 
     _createClass(BezierEdgeDynamic, [{
-      key: 'setOptions',
+      key: "setOptions",
       value: function setOptions(options) {
         this.options = options;
         this.id = this.options.id;
@@ -32713,7 +32729,7 @@ return /******/ (function(modules) { // webpackBootstrap
         this.connect();
       }
     }, {
-      key: 'connect',
+      key: "connect",
       value: function connect() {
         this.from = this.body.nodes[this.options.from];
         this.to = this.body.nodes[this.options.to];
@@ -32734,8 +32750,9 @@ return /******/ (function(modules) { // webpackBootstrap
        * @returns {boolean}
        */
     }, {
-      key: 'cleanup',
+      key: "cleanup",
       value: function cleanup() {
+        this.body.emitter.off("_repositionBezierNodes", this._boundFunction);
         if (this.via !== undefined) {
           delete this.body.nodes[this.via.id];
           this.via = undefined;
@@ -32752,7 +32769,7 @@ return /******/ (function(modules) { // webpackBootstrap
        * @private
        */
     }, {
-      key: 'setupSupportNode',
+      key: "setupSupportNode",
       value: function setupSupportNode() {
         if (this.via === undefined) {
           var nodeId = "edgeId:" + this.id;
@@ -32769,7 +32786,7 @@ return /******/ (function(modules) { // webpackBootstrap
         }
       }
     }, {
-      key: 'positionBezierNode',
+      key: "positionBezierNode",
       value: function positionBezierNode() {
         if (this.via !== undefined && this.from !== undefined && this.to !== undefined) {
           this.via.x = 0.5 * (this.from.x + this.to.x);
@@ -32786,7 +32803,7 @@ return /******/ (function(modules) { // webpackBootstrap
        * @private
        */
     }, {
-      key: '_line',
+      key: "_line",
       value: function _line(ctx) {
         // draw a straight line
         ctx.beginPath();
@@ -32807,7 +32824,7 @@ return /******/ (function(modules) { // webpackBootstrap
        * @private
        */
     }, {
-      key: 'getPoint',
+      key: "getPoint",
       value: function getPoint(percentage) {
         var t = percentage;
         var x = Math.pow(1 - t, 2) * this.from.x + 2 * t * (1 - t) * this.via.x + Math.pow(t, 2) * this.to.x;
@@ -32816,12 +32833,12 @@ return /******/ (function(modules) { // webpackBootstrap
         return { x: x, y: y };
       }
     }, {
-      key: '_findBorderPosition',
+      key: "_findBorderPosition",
       value: function _findBorderPosition(nearNode, ctx) {
         return this._findBorderPositionBezier(nearNode, ctx, this.via);
       }
     }, {
-      key: '_getDistanceToEdge',
+      key: "_getDistanceToEdge",
       value: function _getDistanceToEdge(x1, y1, x2, y2, x3, y3) {
         // x3,y3 is the point
         return this._getDistanceToBezierEdge(x1, y1, x2, y2, x3, y3, this.via);
@@ -32829,10 +32846,10 @@ return /******/ (function(modules) { // webpackBootstrap
     }]);
 
     return BezierEdgeDynamic;
-  })(_utilBezierEdgeBase2['default']);
+  })(_utilBezierEdgeBase2["default"]);
 
-  exports['default'] = BezierEdgeDynamic;
-  module.exports = exports['default'];
+  exports["default"] = BezierEdgeDynamic;
+  module.exports = exports["default"];
 
 /***/ },
 /* 89 */
@@ -33000,9 +33017,15 @@ return /******/ (function(modules) { // webpackBootstrap
       this.simulationInterval = 1000 / 60;
       this.requiresTimeout = true;
       this.previousStates = {};
+      this.referenceState = {};
       this.freezeCache = {};
       this.renderTimer = undefined;
-      this.initialStabilizationEmitted = false;
+
+      // parameters for the adaptive timestep
+      this.adaptiveTimestep = false;
+      this.adaptiveTimestepEnabled = false;
+      this.adaptiveCounter = 0;
+      this.adaptiveInterval = 3;
 
       this.stabilized = false;
       this.startedStabilization = false;
@@ -33047,7 +33070,7 @@ return /******/ (function(modules) { // webpackBootstrap
           damping: 0.09
         },
         maxVelocity: 50,
-        minVelocity: 0.1, // px/s
+        minVelocity: 0.75, // px/s
         solver: 'barnesHut',
         stabilization: {
           enabled: true,
@@ -33056,9 +33079,11 @@ return /******/ (function(modules) { // webpackBootstrap
           onlyDynamicEdges: false,
           fit: true
         },
-        timestep: 0.5
+        timestep: 0.5,
+        adaptiveTimestep: true
       };
       util.extend(this.options, this.defaultOptions);
+      this.timestep = 0.5;
 
       this.bindEventListeners();
     }
@@ -33096,6 +33121,11 @@ return /******/ (function(modules) { // webpackBootstrap
           _this.body.emitter.off();
         });
       }
+
+      /**
+       * set the physics options
+       * @param options
+       */
     }, {
       key: 'setOptions',
       value: function setOptions(options) {
@@ -33117,10 +33147,17 @@ return /******/ (function(modules) { // webpackBootstrap
               this.physicsEnabled = false;
               this.stopSimulation();
             }
+
+            // set the timestep
+            this.timestep = this.options.timestep;
           }
         }
         this.init();
       }
+
+      /**
+       * configure the engine.
+       */
     }, {
       key: 'init',
       value: function init() {
@@ -33150,6 +33187,10 @@ return /******/ (function(modules) { // webpackBootstrap
 
         this.modelOptions = options;
       }
+
+      /**
+       * initialize the engine
+       */
     }, {
       key: 'initPhysics',
       value: function initPhysics() {
@@ -33159,7 +33200,7 @@ return /******/ (function(modules) { // webpackBootstrap
           } else {
             this.stabilized = false;
             this.ready = true;
-            this.body.emitter.emit('fit', {}, true);
+            this.body.emitter.emit('fit', {}, false);
             this.startSimulation();
           }
         } else {
@@ -33176,6 +33217,9 @@ return /******/ (function(modules) { // webpackBootstrap
       value: function startSimulation() {
         if (this.physicsEnabled === true && this.options.enabled === true) {
           this.stabilized = false;
+
+          // when visible, adaptivity is disabled.
+          this.adaptiveTimestep = false;
 
           // this sets the width of all nodes initially which could be required for the avoidOverlap
           this.body.emitter.emit("_resizeNodes");
@@ -33231,24 +33275,20 @@ return /******/ (function(modules) { // webpackBootstrap
         }
 
         if (this.stabilized === true) {
-          if (this.stabilizationIterations > 1) {
-            // trigger the 'stabilized' event.
-            // The event is triggered on the next tick, to prevent the case that
-            // it is fired while initializing the Network, in which case you would not
-            // be able to catch it
-            this.startedStabilization = false;
-            //this._emitStabilized();
-          }
           this.stopSimulation();
         }
       }
+
+      /**
+       * trigger the stabilized event.
+       * @private
+       */
     }, {
       key: '_emitStabilized',
       value: function _emitStabilized() {
         var _this2 = this;
 
-        if (this.stabilizationIterations > 1 || this.initialStabilizationEmitted === false) {
-          this.initialStabilizationEmitted = true;
+        if (this.stabilizationIterations > 1) {
           setTimeout(function () {
             _this2.body.emitter.emit('stabilized', { iterations: _this2.stabilizationIterations });
             _this2.stabilizationIterations = 0;
@@ -33265,8 +33305,59 @@ return /******/ (function(modules) { // webpackBootstrap
       key: 'physicsTick',
       value: function physicsTick() {
         if (this.stabilized === false) {
-          this.calculateForces();
-          this.stabilized = this.moveNodes();
+          // adaptivity means the timestep adapts to the situation, only applicable for stabilization
+          if (this.adaptiveTimestep === true && this.adaptiveTimestepEnabled === true) {
+            // this is the factor for increasing the timestep on success.
+            var factor = 1.2;
+
+            // we assume the adaptive interval is
+            if (this.adaptiveCounter % this.adaptiveInterval === 0) {
+              // we leave the timestep stable for "interval" iterations.
+              // first the big step and revert. Revert saves the reference state.
+              this.timestep = 2 * this.timestep;
+              this.calculateForces();
+              this.moveNodes();
+              this.revert();
+
+              // now the normal step. Since this is the last step, it is the more stable one and we will take this.
+              this.timestep = 0.5 * this.timestep;
+
+              // since it's half the step, we do it twice.
+              this.calculateForces();
+              this.moveNodes();
+              this.calculateForces();
+              this.moveNodes();
+
+              // we compare the two steps. if it is acceptable we double the step.
+              if (this._evaluateStepQuality() === true) {
+                this.timestep = factor * this.timestep;
+              } else {
+                // if not, we decrease the step to a minimum of the options timestep.
+                // if the decreased timestep is smaller than the options step, we do not reset the counter
+                // we assume that the options timestep is stable enough.
+                if (this.timestep / factor < this.options.timestep) {
+                  this.timestep = this.options.timestep;
+                } else {
+                  // if the timestep was larger than 2 times the option one we check the adaptivity again to ensure
+                  // that large instabilities do not form.
+                  this.adaptiveCounter = -1; // check again next iteration
+                  this.timestep = Math.max(this.options.timestep, this.timestep / factor);
+                }
+              }
+            } else {
+              // normal step, keeping timestep constant
+              this.calculateForces();
+              this.moveNodes();
+            }
+
+            // increment the counter
+            this.adaptiveCounter += 1;
+          } else {
+            // case for the static timestep, we reset it to the one in options and take a normal step.
+            this.timestep = this.options.timestep;
+            this.calculateForces();
+            this.moveNodes();
+          }
 
           // determine if the network has stabilzied
           if (this.stabilized === true) {
@@ -33348,6 +33439,9 @@ return /******/ (function(modules) { // webpackBootstrap
           var nodeId = nodeIds[i];
           if (nodes[nodeId] !== undefined) {
             if (nodes[nodeId].options.physics === true) {
+              this.referenceState[nodeId] = {
+                positions: { x: nodes[nodeId].x, y: nodes[nodeId].y }
+              };
               velocities[nodeId].x = this.previousStates[nodeId].vx;
               velocities[nodeId].y = this.previousStates[nodeId].vy;
               nodes[nodeId].x = this.previousStates[nodeId].x;
@@ -33360,34 +33454,59 @@ return /******/ (function(modules) { // webpackBootstrap
       }
 
       /**
+       * This compares the reference state to the current state
+       */
+    }, {
+      key: '_evaluateStepQuality',
+      value: function _evaluateStepQuality() {
+        var dx = undefined,
+            dy = undefined,
+            dpos = undefined;
+        var nodes = this.body.nodes;
+        var reference = this.referenceState;
+        var posThreshold = 0.3;
+
+        for (var nodeId in this.referenceState) {
+          if (this.referenceState.hasOwnProperty(nodeId)) {
+            dx = nodes[nodeId].x - reference[nodeId].positions.x;
+            dy = nodes[nodeId].y - reference[nodeId].positions.y;
+
+            dpos = Math.sqrt(Math.pow(dx, 2) + Math.pow(dy, 2));
+
+            if (dpos > posThreshold) {
+              return false;
+            }
+          }
+        }
+        return true;
+      }
+
+      /**
        * move the nodes one timestap and check if they are stabilized
        * @returns {boolean}
        */
     }, {
       key: 'moveNodes',
       value: function moveNodes() {
-        var nodesPresent = false;
         var nodeIndices = this.physicsBody.physicsNodeIndices;
         var maxVelocity = this.options.maxVelocity ? this.options.maxVelocity : 1e9;
-        var stabilized = true;
-        var vminCorrected = this.options.minVelocity / Math.max(this.body.view.scale, 0.05);
+        var maxNodeVelocity = 0;
+        var averageNodeVelocity = 0;
+
+        // the velocity threshold (energy in the system) for the adaptivity toggle
+        var velocityAdaptiveThreshold = 5;
 
         for (var i = 0; i < nodeIndices.length; i++) {
           var nodeId = nodeIndices[i];
           var nodeVelocity = this._performStep(nodeId, maxVelocity);
           // stabilized is true if stabilized is true and velocity is smaller than vmin --> all nodes must be stabilized
-          stabilized = nodeVelocity < vminCorrected && stabilized === true;
-          nodesPresent = true;
+          maxNodeVelocity = Math.max(maxNodeVelocity, nodeVelocity);
+          averageNodeVelocity += nodeVelocity;
         }
 
-        if (nodesPresent === true) {
-          if (vminCorrected > 0.5 * this.options.maxVelocity) {
-            return false;
-          } else {
-            return stabilized;
-          }
-        }
-        return true;
+        // evaluating the stabilized and adaptiveTimestepEnabled conditions
+        this.adaptiveTimestepEnabled = averageNodeVelocity / nodeIndices.length < velocityAdaptiveThreshold;
+        this.stabilized = maxNodeVelocity < this.options.minVelocity;
       }
 
       /**
@@ -33402,7 +33521,7 @@ return /******/ (function(modules) { // webpackBootstrap
       key: '_performStep',
       value: function _performStep(nodeId, maxVelocity) {
         var node = this.body.nodes[nodeId];
-        var timestep = this.options.timestep;
+        var timestep = this.timestep;
         var forces = this.physicsBody.forces;
         var velocities = this.physicsBody.velocities;
 
@@ -33508,6 +33627,9 @@ return /******/ (function(modules) { // webpackBootstrap
           return;
         }
 
+        // enable adaptive timesteps
+        this.adaptiveTimestep = true && this.options.adaptiveTimestep;
+
         // this sets the width of all nodes initially which could be required for the avoidOverlap
         this.body.emitter.emit("_resizeNodes");
 
@@ -33531,13 +33653,17 @@ return /******/ (function(modules) { // webpackBootstrap
           return _this3._stabilizationBatch();
         }, 0);
       }
+
+      /**
+       * One batch of stabilization
+       * @private
+       */
     }, {
       key: '_stabilizationBatch',
       value: function _stabilizationBatch() {
         var count = 0;
         while (this.stabilized === false && count < this.options.stabilization.updateInterval && this.stabilizationIterations < this.targetIterations) {
           this.physicsTick();
-          this.stabilizationIterations++;
           count++;
         }
 
@@ -33548,6 +33674,11 @@ return /******/ (function(modules) { // webpackBootstrap
           this._finalizeStabilization();
         }
       }
+
+      /**
+       * Wrap up the stabilization, fit and emit the events.
+       * @private
+       */
     }, {
       key: '_finalizeStabilization',
       value: function _finalizeStabilization() {
@@ -34772,8 +34903,9 @@ return /******/ (function(modules) { // webpackBootstrap
         }
 
         for (var i = 0; i < nodesToCluster.length; i++) {
-          this.clusterByConnection(nodesToCluster[i], options, false);
+          this.clusterByConnection(nodesToCluster[i], options, true);
         }
+
         this.body.emitter.emit('_dataChanged');
       }
 
@@ -34809,7 +34941,9 @@ return /******/ (function(modules) { // webpackBootstrap
             // collect the nodes that will be in the cluster
             for (var _i = 0; _i < node.edges.length; _i++) {
               var edge = node.edges[_i];
-              childEdgesObj[edge.id] = edge;
+              if (edge.hiddenByCluster !== true) {
+                childEdgesObj[edge.id] = edge;
+              }
             }
           }
         }
@@ -34818,56 +34952,77 @@ return /******/ (function(modules) { // webpackBootstrap
       }
 
       /**
-      * Cluster all nodes in the network that have only 1 edge
-      * @param options
-      * @param refreshData
-      */
+       * Cluster all nodes in the network that have only X edges
+       * @param edgeCount
+       * @param options
+       * @param refreshData
+       */
     }, {
-      key: 'clusterOutliers',
-      value: function clusterOutliers(options) {
-        var refreshData = arguments.length <= 1 || arguments[1] === undefined ? true : arguments[1];
+      key: 'clusterByEdgeCount',
+      value: function clusterByEdgeCount(edgeCount, options) {
+        var refreshData = arguments.length <= 2 || arguments[2] === undefined ? true : arguments[2];
 
         options = this._checkOptions(options);
         var clusters = [];
-
+        var usedNodes = {};
+        var edge = undefined,
+            edges = undefined,
+            node = undefined,
+            nodeId = undefined,
+            visibleEdges = undefined;
         // collect the nodes that will be in the cluster
         for (var i = 0; i < this.body.nodeIndices.length; i++) {
           var childNodesObj = {};
           var childEdgesObj = {};
-          var nodeId = this.body.nodeIndices[i];
-          var visibleEdges = 0;
-          var edge = undefined;
-          for (var j = 0; j < this.body.nodes[nodeId].edges.length; j++) {
-            if (this.body.nodes[nodeId].edges[j].options.hidden === false) {
-              visibleEdges++;
-              edge = this.body.nodes[nodeId].edges[j];
-            }
-          }
+          nodeId = this.body.nodeIndices[i];
 
-          if (visibleEdges === 1) {
-            // this is an outlier
-            var childNodeId = this._getConnectedId(edge, nodeId);
-            if (childNodeId !== nodeId) {
-              if (options.joinCondition === undefined) {
-                if (this._checkIfUsed(clusters, nodeId, edge.id) === false && this._checkIfUsed(clusters, childNodeId, edge.id) === false) {
-                  childEdgesObj[edge.id] = edge;
-                  childNodesObj[nodeId] = this.body.nodes[nodeId];
-                  childNodesObj[childNodeId] = this.body.nodes[childNodeId];
-                }
-              } else {
-                var clonedOptions = this._cloneOptions(this.body.nodes[nodeId]);
-                if (options.joinCondition(clonedOptions) === true && this._checkIfUsed(clusters, nodeId, edge.id) === false) {
-                  childEdgesObj[edge.id] = edge;
-                  childNodesObj[nodeId] = this.body.nodes[nodeId];
-                }
-                clonedOptions = this._cloneOptions(this.body.nodes[childNodeId]);
-                if (options.joinCondition(clonedOptions) === true && this._checkIfUsed(clusters, nodeId, edge.id) === false) {
-                  childEdgesObj[edge.id] = edge;
-                  childNodesObj[childNodeId] = this.body.nodes[childNodeId];
+          // if this node is already used in another cluster this session, we do not have to re-evaluate it.
+          if (usedNodes[nodeId] === undefined) {
+            visibleEdges = 0;
+            node = this.body.nodes[nodeId];
+            edges = [];
+            for (var j = 0; j < node.edges.length; j++) {
+              edge = node.edges[j];
+              if (edge.hiddenByCluster !== true) {
+                edges.push(edge);
+              }
+            }
+
+            // this node qualifies, we collect its neighbours to start the clustering process.
+            if (edges.length === edgeCount) {
+              var gatheringSuccessful = true;
+              for (var j = 0; j < edges.length; j++) {
+                edge = edges[j];
+                var childNodeId = this._getConnectedId(edge, nodeId);
+                // if unused and if not referencing itself
+                if (childNodeId !== nodeId && usedNodes[nodeId] === undefined) {
+                  // add the nodes to the list by the join condition.
+                  if (options.joinCondition === undefined) {
+                    childEdgesObj[edge.id] = edge;
+                    childNodesObj[nodeId] = this.body.nodes[nodeId];
+                    childNodesObj[childNodeId] = this.body.nodes[childNodeId];
+                    usedNodes[nodeId] = true;
+                  } else {
+                    var clonedOptions = this._cloneOptions(this.body.nodes[nodeId]);
+                    if (options.joinCondition(clonedOptions) === true) {
+                      childEdgesObj[edge.id] = edge;
+                      childNodesObj[nodeId] = this.body.nodes[nodeId];
+                      usedNodes[nodeId] = true;
+                    } else {
+                      // this node does not qualify after all.
+                      gatheringSuccessful = false;
+                      break;
+                    }
+                  }
+                } else {
+                  // this node does not qualify after all.
+                  gatheringSuccessful = false;
+                  break;
                 }
               }
 
-              if (Object.keys(childNodesObj).length > 0 && Object.keys(childEdgesObj).length > 0) {
+              // add to the cluster queue
+              if (Object.keys(childNodesObj).length > 0 && Object.keys(childEdgesObj).length > 0 && gatheringSuccessful === true) {
                 clusters.push({ nodes: childNodesObj, edges: childEdgesObj });
               }
             }
@@ -34882,16 +35037,31 @@ return /******/ (function(modules) { // webpackBootstrap
           this.body.emitter.emit('_dataChanged');
         }
       }
+
+      /**
+      * Cluster all nodes in the network that have only 1 edge
+      * @param options
+      * @param refreshData
+      */
     }, {
-      key: '_checkIfUsed',
-      value: function _checkIfUsed(clusters, nodeId, edgeId) {
-        for (var i = 0; i < clusters.length; i++) {
-          var cluster = clusters[i];
-          if (cluster.nodes[nodeId] !== undefined || cluster.edges[edgeId] !== undefined) {
-            return true;
-          }
-        }
-        return false;
+      key: 'clusterOutliers',
+      value: function clusterOutliers(options) {
+        var refreshData = arguments.length <= 1 || arguments[1] === undefined ? true : arguments[1];
+
+        this.clusterByEdgeCount(1, options, refreshData);
+      }
+
+      /**
+       * Cluster all nodes in the network that have only 2 edge
+       * @param options
+       * @param refreshData
+       */
+    }, {
+      key: 'clusterBridges',
+      value: function clusterBridges(options) {
+        var refreshData = arguments.length <= 1 || arguments[1] === undefined ? true : arguments[1];
+
+        this.clusterByEdgeCount(2, options, refreshData);
       }
 
       /**
@@ -34936,22 +35106,28 @@ return /******/ (function(modules) { // webpackBootstrap
         // collect the nodes that will be in the cluster
         for (var i = 0; i < node.edges.length; i++) {
           var edge = node.edges[i];
-          var childNodeId = this._getConnectedId(edge, parentNodeId);
+          if (edge.hiddenByCluster !== true) {
+            var childNodeId = this._getConnectedId(edge, parentNodeId);
 
-          if (childNodeId !== parentNodeId) {
-            if (options.joinCondition === undefined) {
-              childEdgesObj[edge.id] = edge;
-              childNodesObj[childNodeId] = this.body.nodes[childNodeId];
-            } else {
-              // clone the options and insert some additional parameters that could be interesting.
-              var childClonedOptions = this._cloneOptions(this.body.nodes[childNodeId]);
-              if (options.joinCondition(parentClonedOptions, childClonedOptions) === true) {
+            // if the child node is not in a cluster (may not be needed now with the edge.hiddenByCluster check)
+            if (this.clusteredNodes[childNodeId] === undefined) {
+              if (childNodeId !== parentNodeId) {
+                if (options.joinCondition === undefined) {
+                  childEdgesObj[edge.id] = edge;
+                  childNodesObj[childNodeId] = this.body.nodes[childNodeId];
+                } else {
+                  // clone the options and insert some additional parameters that could be interesting.
+                  var childClonedOptions = this._cloneOptions(this.body.nodes[childNodeId]);
+                  if (options.joinCondition(parentClonedOptions, childClonedOptions) === true) {
+                    childEdgesObj[edge.id] = edge;
+                    childNodesObj[childNodeId] = this.body.nodes[childNodeId];
+                  }
+                }
+              } else {
+                // swallow the edge if it is self-referencing.
                 childEdgesObj[edge.id] = edge;
-                childNodesObj[childNodeId] = this.body.nodes[childNodeId];
               }
             }
-          } else {
-            childEdgesObj[edge.id] = edge;
           }
         }
 
@@ -34981,17 +35157,17 @@ return /******/ (function(modules) { // webpackBootstrap
       }
 
       /**
-      * This function creates the edges that will be attached to the cluster.
+      * This function creates the edges that will be attached to the cluster
+      * It looks for edges that are connected to the nodes from the "outside' of the cluster.
       *
       * @param childNodesObj
-      * @param childEdgesObj
       * @param newEdges
       * @param options
       * @private
       */
     }, {
       key: '_createClusterEdges',
-      value: function _createClusterEdges(childNodesObj, childEdgesObj, newEdges, clusterNodeProperties, clusterEdgeProperties) {
+      value: function _createClusterEdges(childNodesObj, clusterNodeProperties, clusterEdgeProperties) {
         var edge = undefined,
             childNodeId = undefined,
             childNode = undefined,
@@ -34999,7 +35175,10 @@ return /******/ (function(modules) { // webpackBootstrap
             fromId = undefined,
             otherNodeId = undefined;
 
+        // loop over all child nodes and their edges to find edges going out of the cluster
+        // these edges will be replaced by clusterEdges.
         var childKeys = Object.keys(childNodesObj);
+        var createEdges = [];
         for (var i = 0; i < childKeys.length; i++) {
           childNodeId = childKeys[i];
           childNode = childNodesObj[childNodeId];
@@ -35007,30 +35186,54 @@ return /******/ (function(modules) { // webpackBootstrap
           // construct new edges from the cluster to others
           for (var j = 0; j < childNode.edges.length; j++) {
             edge = childNode.edges[j];
-            childEdgesObj[edge.id] = edge;
+            // we only handle edges that are visible to the system, not the disabled ones from the clustering process.
+            if (edge.hiddenByCluster !== true) {
+              // set up the from and to.
+              if (edge.toId == childNodeId) {
+                // this is a double equals because ints and strings can be interchanged here.
+                toId = clusterNodeProperties.id;
+                fromId = edge.fromId;
+                otherNodeId = fromId;
+              } else {
+                toId = edge.toId;
+                fromId = clusterNodeProperties.id;
+                otherNodeId = toId;
+              }
 
-            // childNodeId position will be replaced by the cluster.
-            if (edge.toId == childNodeId) {
-              // this is a double equals because ints and strings can be interchanged here.
-              toId = clusterNodeProperties.id;
-              fromId = edge.fromId;
-              otherNodeId = fromId;
-            } else {
-              toId = edge.toId;
-              fromId = clusterNodeProperties.id;
-              otherNodeId = toId;
-            }
-
-            // if the node connected to the cluster is also in the cluster we do not need a new edge.
-            if (childNodesObj[otherNodeId] === undefined) {
-              var clonedOptions = this._cloneOptions(edge, 'edge');
-              util.deepExtend(clonedOptions, clusterEdgeProperties);
-              clonedOptions.from = fromId;
-              clonedOptions.to = toId;
-              clonedOptions.id = 'clusterEdge:' + util.randomUUID();
-              newEdges.push(this.body.functions.createEdge(clonedOptions));
+              // Only edges from the cluster outwards are being replaced.
+              if (childNodesObj[otherNodeId] === undefined) {
+                createEdges.push({ edge: edge, fromId: fromId, toId: toId });
+              }
             }
           }
+        }
+
+        // here we actually create the replacement edges. We could not do this in the loop above as the creation process
+        // would add an edge to the edges array we are iterating over.
+        for (var j = 0; j < createEdges.length; j++) {
+          var _edge = createEdges[j].edge;
+          // copy the options of the edge we will replace
+          var clonedOptions = this._cloneOptions(_edge, 'edge');
+          // make sure the properties of clusterEdges are superimposed on it
+          util.deepExtend(clonedOptions, clusterEdgeProperties);
+
+          // set up the edge
+          clonedOptions.from = createEdges[j].fromId;
+          clonedOptions.to = createEdges[j].toId;
+          clonedOptions.id = 'clusterEdge:' + util.randomUUID();
+          //clonedOptions.id = '(cf: ' + createEdges[j].fromId + " to: " + createEdges[j].toId + ")" + Math.random();
+
+          // create the edge and give a reference to the one it replaced.
+          var newEdge = this.body.functions.createEdge(clonedOptions);
+          newEdge.clusteringEdgeReplacingId = _edge.id;
+
+          // connect the edge.
+          this.body.edges[newEdge.id] = newEdge;
+          newEdge.connect();
+
+          // hide the replaced edge
+          _edge.setOptions({ physics: false, hidden: true });
+          _edge.hiddenByCluster = true;
         }
       }
 
@@ -35069,9 +35272,18 @@ return /******/ (function(modules) { // webpackBootstrap
       value: function _cluster(childNodesObj, childEdgesObj, options) {
         var refreshData = arguments.length <= 3 || arguments[3] === undefined ? true : arguments[3];
 
-        // kill condition: no children so cant cluster
-        if (Object.keys(childNodesObj).length === 0) {
+        // kill condition: no children so can't cluster or only one node in the cluster, dont bother
+        if (Object.keys(childNodesObj).length < 2) {
           return;
+        }
+
+        // check if this cluster call is not trying to cluster anything that is in another cluster.
+        for (var nodeId in childNodesObj) {
+          if (childNodesObj.hasOwnProperty(nodeId)) {
+            if (this.clusteredNodes[nodeId] !== undefined) {
+              return;
+            }
+          }
         }
 
         var clusterNodeProperties = util.deepExtend({}, options.clusterNodeProperties);
@@ -35081,17 +35293,21 @@ return /******/ (function(modules) { // webpackBootstrap
           // get the childNode options
           var childNodesOptions = [];
           for (var nodeId in childNodesObj) {
-            var clonedOptions = this._cloneOptions(childNodesObj[nodeId]);
-            childNodesOptions.push(clonedOptions);
+            if (childNodesObj.hasOwnProperty(nodeId)) {
+              var clonedOptions = this._cloneOptions(childNodesObj[nodeId]);
+              childNodesOptions.push(clonedOptions);
+            }
           }
 
           // get clusterproperties based on childNodes
           var childEdgesOptions = [];
           for (var edgeId in childEdgesObj) {
-            // these cluster edges will be removed on creation of the cluster.
-            if (edgeId.substr(0, 12) !== "clusterEdge:") {
-              var clonedOptions = this._cloneOptions(childEdgesObj[edgeId], 'edge');
-              childEdgesOptions.push(clonedOptions);
+            if (childEdgesObj.hasOwnProperty(edgeId)) {
+              // these cluster edges will be removed on creation of the cluster.
+              if (edgeId.substr(0, 12) !== "clusterEdge:") {
+                var clonedOptions = this._cloneOptions(childEdgesObj[edgeId], 'edge');
+                childEdgesOptions.push(clonedOptions);
+              }
             }
           }
 
@@ -35139,27 +35355,15 @@ return /******/ (function(modules) { // webpackBootstrap
         this.body.nodes[clusterNodeProperties.id] = clusterNode;
 
         // create the new edges that will connect to the cluster
-        var newEdges = [];
-        this._createClusterEdges(childNodesObj, childEdgesObj, newEdges, clusterNodeProperties, options.clusterEdgeProperties);
+        this._createClusterEdges(childNodesObj, clusterNodeProperties, options.clusterEdgeProperties);
 
         // disable the childEdges
         for (var edgeId in childEdgesObj) {
           if (childEdgesObj.hasOwnProperty(edgeId)) {
             if (this.body.edges[edgeId] !== undefined) {
               var edge = this.body.edges[edgeId];
-
-              // if this is a cluster edge that is fully encompassed in the cluster, we want to delete it
-              // this check verifies that both of the connected nodes are in this cluster
-              if (edgeId.substr(0, 12) === "clusterEdge:" && childNodesObj[edge.fromId] !== undefined && childNodesObj[edge.toId] !== undefined) {
-                edge.cleanup();
-                // this removes the edge from node.edges, which is why edgeIds is formed
-                edge.disconnect();
-                delete childEdgesObj[edgeId];
-                delete this.body.edges[edgeId];
-              } else {
-                edge.setOptions({ physics: false, hidden: true });
-                //edge.options.hidden = true;
-              }
+              edge.setOptions({ physics: false, hidden: true });
+              edge.hiddenByCluster = true;
             }
           }
         }
@@ -35170,12 +35374,6 @@ return /******/ (function(modules) { // webpackBootstrap
             this.clusteredNodes[nodeId] = { clusterId: clusterNodeProperties.id, node: this.body.nodes[nodeId] };
             this.body.nodes[nodeId].setOptions({ hidden: true, physics: false });
           }
-        }
-
-        // push new edges to global
-        for (var i = 0; i < newEdges.length; i++) {
-          this.body.edges[newEdges[i].id] = newEdges[i];
-          this.body.edges[newEdges[i].id].connect();
         }
 
         // set ID to undefined so no duplicates arise
@@ -35270,8 +35468,8 @@ return /******/ (function(modules) { // webpackBootstrap
             if (containedNodes.hasOwnProperty(nodeId)) {
               var containedNode = this.body.nodes[nodeId];
               if (newPositions[nodeId] !== undefined) {
-                containedNode.x = newPositions[nodeId].x || clusterNode.x;
-                containedNode.y = newPositions[nodeId].y || clusterNode.y;
+                containedNode.x = newPositions[nodeId].x === undefined ? clusterNode.x : newPositions[nodeId].x;
+                containedNode.y = newPositions[nodeId].y === undefined ? clusterNode.y : newPositions[nodeId].y;
               }
             }
           }
@@ -35298,76 +35496,77 @@ return /******/ (function(modules) { // webpackBootstrap
             containedNode.vy = clusterNode.vy;
 
             // we use these methods to avoid reinstantiating the shape, which happens with setOptions.
-            //containedNode.toggleHidden(false);
-            //containedNode.togglePhysics(true);
             containedNode.setOptions({ hidden: false, physics: true });
 
             delete this.clusteredNodes[nodeId];
           }
         }
 
-        // release edges
+        // copy the clusterNode edges because we cannot iterate over an object that we add or remove from.
+        var edgesToBeDeleted = [];
+        for (var i = 0; i < clusterNode.edges.length; i++) {
+          edgesToBeDeleted.push(clusterNode.edges[i]);
+        }
+
+        // actually handling the deleting.
+        for (var i = 0; i < edgesToBeDeleted.length; i++) {
+          var edge = edgesToBeDeleted[i];
+
+          var otherNodeId = this._getConnectedId(edge, clusterNodeId);
+          // if the other node is in another cluster, we transfer ownership of this edge to the other cluster
+          if (this.clusteredNodes[otherNodeId] !== undefined) {
+            // transfer ownership:
+            var otherCluster = this.body.nodes[this.clusteredNodes[otherNodeId].clusterId];
+            var transferEdge = this.body.edges[edge.clusteringEdgeReplacingId];
+            if (transferEdge !== undefined) {
+              otherCluster.containedEdges[transferEdge.id] = transferEdge;
+
+              // delete local reference
+              delete containedEdges[transferEdge.id];
+
+              // create new cluster edge from the otherCluster:
+              // get to and from
+              var fromId = transferEdge.fromId;
+              var toId = transferEdge.toId;
+              if (transferEdge.toId == otherNodeId) {
+                toId = this.clusteredNodes[otherNodeId].clusterId;
+              } else {
+                fromId = this.clusteredNodes[otherNodeId].clusterId;
+              }
+
+              // clone the options and apply the cluster options to them
+              var clonedOptions = this._cloneOptions(transferEdge, 'edge');
+              util.deepExtend(clonedOptions, otherCluster.clusterEdgeProperties);
+
+              // apply the edge specific options to it.
+              var id = 'clusterEdge:' + util.randomUUID();
+              util.deepExtend(clonedOptions, { from: fromId, to: toId, hidden: false, physics: true, id: id });
+
+              // create it
+              var newEdge = this.body.functions.createEdge(clonedOptions);
+              newEdge.clusteringEdgeReplacingId = transferEdge.id;
+              this.body.edges[id] = newEdge;
+              this.body.edges[id].connect();
+            }
+          } else {
+            var replacedEdge = this.body.edges[edge.clusteringEdgeReplacingId];
+            if (replacedEdge !== undefined) {
+              replacedEdge.setOptions({ physics: true, hidden: false });
+              replacedEdge.hiddenByCluster = false;
+            }
+          }
+          edge.cleanup();
+          // this removes the edge from node.edges, which is why edgeIds is formed
+          edge.disconnect();
+          delete this.body.edges[edge.id];
+        }
+
+        // handle the releasing of the edges
         for (var edgeId in containedEdges) {
           if (containedEdges.hasOwnProperty(edgeId)) {
             var edge = containedEdges[edgeId];
-            // if this edge was a temporary edge and it's connected nodes do not exist anymore, we remove it from the data
-            if (this.body.nodes[edge.fromId] === undefined || this.body.nodes[edge.toId] === undefined || edge.toId == clusterNodeId || edge.fromId == clusterNodeId) {
-              edge.cleanup();
-              // this removes the edge from node.edges, which is why edgeIds is formed
-              edge.disconnect();
-              delete this.body.edges[edgeId];
-            } else {
-              // one of the nodes connected to this edge is in a cluster. We give the edge to that cluster so it will be released when that cluster is opened.
-              if (this.clusteredNodes[edge.fromId] !== undefined || this.clusteredNodes[edge.toId] !== undefined) {
-                var fromId = undefined,
-                    toId = undefined;
-                var clusteredNode = this.clusteredNodes[edge.fromId] || this.clusteredNodes[edge.toId];
-                var clusterId = clusteredNode.clusterId;
-                var _clusterNode = this.body.nodes[clusterId];
-                _clusterNode.containedEdges[edgeId] = edge;
-
-                if (this.clusteredNodes[edge.fromId] !== undefined) {
-                  fromId = clusterId;
-                  toId = edge.toId;
-                } else {
-                  fromId = edge.fromId;
-                  toId = clusterId;
-                }
-
-                // if both from and to nodes are visible, we create a new temporary edge
-                if (this.body.nodes[fromId].options.hidden !== true && this.body.nodes[toId].options.hidden !== true) {
-                  var clonedOptions = this._cloneOptions(edge, 'edge');
-                  var id = 'clusterEdge:' + util.randomUUID();
-                  util.deepExtend(clonedOptions, _clusterNode.clusterEdgeProperties);
-                  util.deepExtend(clonedOptions, { from: fromId, to: toId, hidden: false, physics: true, id: id });
-                  var newEdge = this.body.functions.createEdge(clonedOptions);
-
-                  this.body.edges[id] = newEdge;
-                  this.body.edges[id].connect();
-                }
-              } else {
-                edge.setOptions({ physics: true, hidden: false });
-                //edge.options.hidden = false;
-                //edge.togglePhysics(true);
-              }
-            }
+            edge.setOptions({ physics: true, hidden: false });
           }
-        }
-
-        // remove all temporary edges, make an array of ids so we don't remove from the list we're iterating over.
-        var removeIds = [];
-        for (var i = 0; i < clusterNode.edges.length; i++) {
-          var edgeId = clusterNode.edges[i].id;
-          removeIds.push(edgeId);
-        }
-
-        // actually removing the edges
-        for (var i = 0; i < removeIds.length; i++) {
-          var edgeId = removeIds[i];
-          this.body.edges[edgeId].cleanup();
-          // this removes the edge from node.edges, which is why edgeIds is formed
-          this.body.edges[edgeId].disconnect();
-          delete this.body.edges[edgeId];
         }
 
         // remove clusterNode
@@ -35949,6 +36148,7 @@ return /******/ (function(modules) { // webpackBootstrap
       this.pixelRatio = 1;
       this.resizeTimer = undefined;
       this.resizeFunction = this._onResize.bind(this);
+      this.cameraState = {};
 
       this.options = {};
       this.defaultOptions = {
@@ -36020,6 +36220,42 @@ return /******/ (function(modules) { // webpackBootstrap
       value: function _onResize() {
         this.setSize();
         this.body.emitter.emit("_redraw");
+      }
+
+      /**
+       * Get and store the cameraState
+       * @private
+       */
+    }, {
+      key: '_getCameraState',
+      value: function _getCameraState() {
+        this.cameraState.previousWidth = this.frame.canvas.width;
+        this.cameraState.scale = this.body.view.scale;
+        this.cameraState.position = this.DOMtoCanvas({ x: 0.5 * this.frame.canvas.width, y: 0.5 * this.frame.canvas.height });
+      }
+
+      /**
+       * Set the cameraState
+       * @private
+       */
+    }, {
+      key: '_setCameraState',
+      value: function _setCameraState() {
+        if (this.cameraState.scale !== undefined) {
+          this.body.view.scale = this.body.view.scale * (this.frame.canvas.clientWidth / this.cameraState.previousWidth);
+
+          // this comes from the view module.
+          var viewCenter = this.DOMtoCanvas({
+            x: 0.5 * this.frame.canvas.clientWidth,
+            y: 0.5 * this.frame.canvas.clientHeight
+          });
+          var distanceFromCenter = { // offset from view, distance view has to change by these x and y to center the node
+            x: viewCenter.x - this.cameraState.position.x,
+            y: viewCenter.y - this.cameraState.position.y
+          };
+          this.body.view.translation.x += distanceFromCenter.x * this.body.view.scale;
+          this.body.view.translation.y += distanceFromCenter.y * this.body.view.scale;
+        }
       }
     }, {
       key: '_prepareValue',
@@ -36162,6 +36398,7 @@ return /******/ (function(modules) { // webpackBootstrap
         var width = arguments.length <= 0 || arguments[0] === undefined ? this.options.width : arguments[0];
         var height = arguments.length <= 1 || arguments[1] === undefined ? this.options.height : arguments[1];
 
+        this._getCameraState();
         width = this._prepareValue(width);
         height = this._prepareValue(height);
 
@@ -36205,7 +36442,7 @@ return /******/ (function(modules) { // webpackBootstrap
             oldHeight: Math.round(oldHeight / this.pixelRatio)
           });
         }
-
+        this._setCameraState();
         return emitEvent;
       }
     }, {
@@ -38689,6 +38926,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
       this.defaultOptions = {
         randomSeed: undefined,
+        improvedLayout: true,
         hierarchical: {
           enabled: false,
           levelSeparation: 150,
@@ -38711,6 +38949,9 @@ return /******/ (function(modules) { // webpackBootstrap
         this.body.emitter.on('_dataChanged', function () {
           _this.setupHierarchicalLayout();
         });
+        this.body.emitter.on('_dataLoaded', function () {
+          _this.layoutNetwork();
+        });
         this.body.emitter.on('_resetHierarchicalLayout', function () {
           _this.setupHierarchicalLayout();
         });
@@ -38720,7 +38961,7 @@ return /******/ (function(modules) { // webpackBootstrap
       value: function setOptions(options, allOptions) {
         if (options !== undefined) {
           var prevHierarchicalState = this.options.hierarchical.enabled;
-
+          util.selectiveDeepExtend(["randomSeed", "improvedLayout"], this.options, options);
           util.mergeOptions(this.options, options, 'hierarchical');
           if (options.randomSeed !== undefined) {
             this.initialRandomSeed = options.randomSeed;
@@ -38839,6 +39080,80 @@ return /******/ (function(modules) { // webpackBootstrap
             if (node.y === undefined) {
               node.y = radius * Math.sin(angle);
             }
+          }
+        }
+      }
+
+      /**
+       * Use KamadaKawai to position nodes. This is quite a heavy algorithm so if there are a lot of nodes we
+       * cluster them first to reduce the amount.
+       */
+    }, {
+      key: 'layoutNetwork',
+      value: function layoutNetwork() {
+        if (this.options.hierarchical.enabled !== true && this.options.improvedLayout === true) {
+          // first check if we should KamadaKawai to layout. The threshold is if less than half of the visible
+          // nodes have predefined positions we use this.
+          var positionDefined = 0;
+          for (var i = 0; i < this.body.nodeIndices.length; i++) {
+            var node = this.body.nodes[this.body.nodeIndices[i]];
+            if (node.predefinedPosition === true) {
+              positionDefined += 1;
+            }
+          }
+
+          // if less than half of the nodes have a predefined position we continue
+          if (positionDefined < 0.5 * this.body.nodeIndices.length) {
+            var levels = 0;
+            var clusterThreshold = 100;
+            // if there are a lot of nodes, we cluster before we run the algorithm.
+            if (this.body.nodeIndices.length > clusterThreshold) {
+              var startLength = this.body.nodeIndices.length;
+              while (this.body.nodeIndices.length > clusterThreshold) {
+                levels += 1;
+                var before = this.body.nodeIndices.length;
+                // if there are many nodes we do a hubsize cluster
+                if (levels % 3 === 0) {
+                  this.body.modules.clustering.clusterBridges();
+                } else {
+                  this.body.modules.clustering.clusterOutliers();
+                }
+                var after = this.body.nodeIndices.length;
+                if (before == after && levels % 3 !== 0) {
+                  this._declusterAll();
+                  console.info("This network could not be positioned by this version of the improved layout algorithm.");
+                  return;
+                }
+              }
+              // increase the size of the edges
+              this.body.modules.kamadaKawai.setOptions({ springLength: Math.max(150, 2 * startLength) });
+            }
+
+            // position the system for these nodes and edges
+            this.body.modules.kamadaKawai.solve(this.body.nodeIndices, this.body.edgeIndices, true);
+
+            // uncluster all clusters
+            this._declusterAll();
+
+            // reposition all bezier nodes.
+            this.body.emitter.emit("_repositionBezierNodes");
+          }
+        }
+      }
+    }, {
+      key: '_declusterAll',
+      value: function _declusterAll() {
+        var clustersPresent = true;
+        while (clustersPresent === true) {
+          clustersPresent = false;
+          for (var i = 0; i < this.body.nodeIndices.length; i++) {
+            if (this.body.nodes[this.body.nodeIndices[i]].isCluster === true) {
+              clustersPresent = true;
+              this.body.modules.clustering.openCluster(this.body.nodeIndices[i], {}, false);
+            }
+          }
+          if (clustersPresent === true) {
+            this.body.emitter.emit('_dataChanged');
           }
         }
       }
@@ -40516,6 +40831,7 @@ return /******/ (function(modules) { // webpackBootstrap
     },
     layout: {
       randomSeed: { 'undefined': 'undefined', number: number },
+      improvedLayout: { boolean: boolean },
       hierarchical: {
         enabled: { boolean: boolean },
         levelSeparation: { number: number },
@@ -40669,6 +40985,7 @@ return /******/ (function(modules) { // webpackBootstrap
         __type__: { object: object, boolean: boolean }
       },
       timestep: { number: number },
+      adaptiveTimestep: { boolean: boolean },
       __type__: { object: object, boolean: boolean }
     },
 
@@ -40808,6 +41125,7 @@ return /******/ (function(modules) { // webpackBootstrap
     },
     layout: {
       //randomSeed: [0, 0, 500, 1],
+      //improvedLayout: true,
       hierarchical: {
         enabled: false,
         levelSeparation: [150, 20, 500, 5],
@@ -40877,6 +41195,7 @@ return /******/ (function(modules) { // webpackBootstrap
       solver: ['barnesHut', 'forceAtlas2Based', 'repulsion', 'hierarchicalRepulsion'],
       timestep: [0.5, 0.01, 1, 0.01]
     },
+    //adaptiveTimestep: true
     global: {
       locale: ['en', 'nl']
     }
@@ -40887,6 +41206,363 @@ return /******/ (function(modules) { // webpackBootstrap
 
 /***/ },
 /* 111 */
+/***/ function(module, exports, __webpack_require__) {
+
+  /**
+   * Created by Alex on 8/7/2015.
+   */
+
+  // distance finding algorithm
+  "use strict";
+
+  Object.defineProperty(exports, "__esModule", {
+    value: true
+  });
+
+  var _slicedToArray = (function () { function sliceIterator(arr, i) { var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i["return"]) _i["return"](); } finally { if (_d) throw _e; } } return _arr; } return function (arr, i) { if (Array.isArray(arr)) { return arr; } else if (Symbol.iterator in Object(arr)) { return sliceIterator(arr, i); } else { throw new TypeError("Invalid attempt to destructure non-iterable instance"); } }; })();
+
+  var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
+
+  function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { "default": obj }; }
+
+  function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+  var _componentsAlgorithmsFloydWarshallJs = __webpack_require__(112);
+
+  /**
+   * KamadaKawai positions the nodes initially based on
+   *
+   * "AN ALGORITHM FOR DRAWING GENERAL UNDIRECTED GRAPHS"
+   * -- Tomihisa KAMADA and Satoru KAWAI in 1989
+   *
+   * Possible optimizations in the distance calculation can be implemented.
+   */
+
+  var _componentsAlgorithmsFloydWarshallJs2 = _interopRequireDefault(_componentsAlgorithmsFloydWarshallJs);
+
+  var KamadaKawai = (function () {
+    function KamadaKawai(body, edgeLength, edgeStrength) {
+      _classCallCheck(this, KamadaKawai);
+
+      this.body = body;
+      this.springLength = edgeLength;
+      this.springConstant = edgeStrength;
+      this.distanceSolver = new _componentsAlgorithmsFloydWarshallJs2["default"]();
+    }
+
+    /**
+     * Not sure if needed but can be used to update the spring length and spring constant
+     * @param options
+     */
+
+    _createClass(KamadaKawai, [{
+      key: "setOptions",
+      value: function setOptions(options) {
+        if (options) {
+          if (options.springLength) {
+            this.springLength = options.springLength;
+          }
+          if (options.springConstant) {
+            this.springConstant = options.springConstant;
+          }
+        }
+      }
+
+      /**
+       * Position the system
+       * @param nodesArray
+       * @param edgesArray
+       */
+    }, {
+      key: "solve",
+      value: function solve(nodesArray, edgesArray) {
+        var ignoreClusters = arguments.length <= 2 || arguments[2] === undefined ? false : arguments[2];
+
+        // get distance matrix
+        var D_matrix = this.distanceSolver.getDistances(this.body, nodesArray, edgesArray); // distance matrix
+
+        // get the L Matrix
+        this._createL_matrix(D_matrix);
+
+        // get the K Matrix
+        this._createK_matrix(D_matrix);
+
+        // calculate positions
+        var threshold = 0.01;
+        var innerThreshold = 1;
+        var iterations = 0;
+        var maxIterations = Math.max(1000, Math.min(10 * this.body.nodeIndices.length, 6000));
+        var maxInnerIterations = 5;
+
+        var maxEnergy = 1e9;
+        var highE_nodeId = 0,
+            dE_dx = 0,
+            dE_dy = 0,
+            delta_m = 0,
+            subIterations = 0;
+
+        while (maxEnergy > threshold && iterations < maxIterations) {
+          iterations += 1;
+
+          var _getHighestEnergyNode2 = this._getHighestEnergyNode(ignoreClusters);
+
+          var _getHighestEnergyNode22 = _slicedToArray(_getHighestEnergyNode2, 4);
+
+          highE_nodeId = _getHighestEnergyNode22[0];
+          maxEnergy = _getHighestEnergyNode22[1];
+          dE_dx = _getHighestEnergyNode22[2];
+          dE_dy = _getHighestEnergyNode22[3];
+
+          delta_m = maxEnergy;
+          subIterations = 0;
+          while (delta_m > innerThreshold && subIterations < maxInnerIterations) {
+            subIterations += 1;
+            this._moveNode(highE_nodeId, dE_dx, dE_dy);
+
+            var _getEnergy2 = this._getEnergy(highE_nodeId);
+
+            var _getEnergy22 = _slicedToArray(_getEnergy2, 3);
+
+            delta_m = _getEnergy22[0];
+            dE_dx = _getEnergy22[1];
+            dE_dy = _getEnergy22[2];
+          }
+        }
+      }
+
+      /**
+       * get the node with the highest energy
+       * @returns {*[]}
+       * @private
+       */
+    }, {
+      key: "_getHighestEnergyNode",
+      value: function _getHighestEnergyNode(ignoreClusters) {
+        var nodesArray = this.body.nodeIndices;
+        var nodes = this.body.nodes;
+        var maxEnergy = 0;
+        var maxEnergyNodeId = nodesArray[0];
+        var dE_dx_max = 0,
+            dE_dy_max = 0;
+
+        for (var nodeIdx = 0; nodeIdx < nodesArray.length; nodeIdx++) {
+          var m = nodesArray[nodeIdx];
+          // by not evaluating nodes with predefined positions we should only move nodes that have no positions.
+          if (nodes[m].predefinedPosition === false || nodes[m].isCluster === true && ignoreClusters === true || nodes[m].options.fixed.x === true || nodes[m].options.fixed.y === true) {
+            var _getEnergy3 = this._getEnergy(m);
+
+            var _getEnergy32 = _slicedToArray(_getEnergy3, 3);
+
+            var delta_m = _getEnergy32[0];
+            var dE_dx = _getEnergy32[1];
+            var dE_dy = _getEnergy32[2];
+
+            if (maxEnergy < delta_m) {
+              maxEnergy = delta_m;
+              maxEnergyNodeId = m;
+              dE_dx_max = dE_dx;
+              dE_dy_max = dE_dy;
+            }
+          }
+        }
+
+        return [maxEnergyNodeId, maxEnergy, dE_dx_max, dE_dy_max];
+      }
+
+      /**
+       * calculate the energy of a single node
+       * @param m
+       * @returns {*[]}
+       * @private
+       */
+    }, {
+      key: "_getEnergy",
+      value: function _getEnergy(m) {
+        var nodesArray = this.body.nodeIndices;
+        var nodes = this.body.nodes;
+
+        var x_m = nodes[m].x;
+        var y_m = nodes[m].y;
+        var dE_dx = 0;
+        var dE_dy = 0;
+        for (var iIdx = 0; iIdx < nodesArray.length; iIdx++) {
+          var i = nodesArray[iIdx];
+          if (i !== m) {
+            var x_i = nodes[i].x;
+            var y_i = nodes[i].y;
+            var denominator = 1.0 / Math.sqrt(Math.pow(x_m - x_i, 2) + Math.pow(y_m - y_i, 2));
+            dE_dx += this.K_matrix[m][i] * (x_m - x_i - this.L_matrix[m][i] * (x_m - x_i) * denominator);
+            dE_dy += this.K_matrix[m][i] * (y_m - y_i - this.L_matrix[m][i] * (y_m - y_i) * denominator);
+          }
+        }
+
+        var delta_m = Math.sqrt(Math.pow(dE_dx, 2) + Math.pow(dE_dy, 2));
+        return [delta_m, dE_dx, dE_dy];
+      }
+
+      /**
+       * move the node based on it's energy
+       * the dx and dy are calculated from the linear system proposed by Kamada and Kawai
+       * @param m
+       * @param dE_dx
+       * @param dE_dy
+       * @private
+       */
+    }, {
+      key: "_moveNode",
+      value: function _moveNode(m, dE_dx, dE_dy) {
+        var nodesArray = this.body.nodeIndices;
+        var nodes = this.body.nodes;
+        var d2E_dx2 = 0;
+        var d2E_dxdy = 0;
+        var d2E_dy2 = 0;
+
+        var x_m = nodes[m].x;
+        var y_m = nodes[m].y;
+        for (var iIdx = 0; iIdx < nodesArray.length; iIdx++) {
+          var i = nodesArray[iIdx];
+          if (i !== m) {
+            var x_i = nodes[i].x;
+            var y_i = nodes[i].y;
+            var denominator = 1.0 / Math.pow(Math.pow(x_m - x_i, 2) + Math.pow(y_m - y_i, 2), 1.5);
+            d2E_dx2 += this.K_matrix[m][i] * (1 - this.L_matrix[m][i] * Math.pow(y_m - y_i, 2) * denominator);
+            d2E_dxdy += this.K_matrix[m][i] * (this.L_matrix[m][i] * (x_m - x_i) * (y_m - y_i) * denominator);
+            d2E_dy2 += this.K_matrix[m][i] * (1 - this.L_matrix[m][i] * Math.pow(x_m - x_i, 2) * denominator);
+          }
+        }
+        // make the variable names easier to make the solving of the linear system easier to read
+        var A = d2E_dx2,
+            B = d2E_dxdy,
+            C = dE_dx,
+            D = d2E_dy2,
+            E = dE_dy;
+
+        // solve the linear system for dx and dy
+        var dy = (C / A + E / B) / (B / A - D / B);
+        var dx = -(B * dy + C) / A;
+
+        // move the node
+        nodes[m].x += dx;
+        nodes[m].y += dy;
+      }
+
+      /**
+       * Create the L matrix: edge length times shortest path
+       * @param D_matrix
+       * @private
+       */
+    }, {
+      key: "_createL_matrix",
+      value: function _createL_matrix(D_matrix) {
+        var nodesArray = this.body.nodeIndices;
+        var edgeLength = this.springLength;
+
+        this.L_matrix = [];
+        for (var i = 0; i < nodesArray.length; i++) {
+          this.L_matrix[nodesArray[i]] = {};
+          for (var j = 0; j < nodesArray.length; j++) {
+            this.L_matrix[nodesArray[i]][nodesArray[j]] = edgeLength * D_matrix[nodesArray[i]][nodesArray[j]];
+          }
+        }
+      }
+
+      /**
+       * Create the K matrix: spring constants times shortest path
+       * @param D_matrix
+       * @private
+       */
+    }, {
+      key: "_createK_matrix",
+      value: function _createK_matrix(D_matrix) {
+        var nodesArray = this.body.nodeIndices;
+        var edgeStrength = this.springConstant;
+
+        this.K_matrix = [];
+        for (var i = 0; i < nodesArray.length; i++) {
+          this.K_matrix[nodesArray[i]] = {};
+          for (var j = 0; j < nodesArray.length; j++) {
+            this.K_matrix[nodesArray[i]][nodesArray[j]] = edgeStrength * Math.pow(D_matrix[nodesArray[i]][nodesArray[j]], -2);
+          }
+        }
+      }
+    }]);
+
+    return KamadaKawai;
+  })();
+
+  exports["default"] = KamadaKawai;
+  module.exports = exports["default"];
+
+/***/ },
+/* 112 */
+/***/ function(module, exports) {
+
+  /**
+   * Created by Alex on 10-Aug-15.
+   */
+
+  "use strict";
+
+  Object.defineProperty(exports, "__esModule", {
+    value: true
+  });
+
+  var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
+
+  function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+  var FloydWarshall = (function () {
+    function FloydWarshall() {
+      _classCallCheck(this, FloydWarshall);
+    }
+
+    _createClass(FloydWarshall, [{
+      key: "getDistances",
+      value: function getDistances(body, nodesArray, edgesArray) {
+        var D_matrix = {};
+        var edges = body.edges;
+
+        // prepare matrix with large numbers
+        for (var i = 0; i < nodesArray.length; i++) {
+          D_matrix[nodesArray[i]] = {};
+          D_matrix[nodesArray[i]] = {};
+          for (var j = 0; j < nodesArray.length; j++) {
+            D_matrix[nodesArray[i]][nodesArray[j]] = i == j ? 0 : 1e9;
+            D_matrix[nodesArray[i]][nodesArray[j]] = i == j ? 0 : 1e9;
+          }
+        }
+
+        // put the weights for the edges in. This assumes unidirectionality.
+        for (var i = 0; i < edgesArray.length; i++) {
+          var edge = edges[edgesArray[i]];
+          D_matrix[edge.fromId][edge.toId] = 1;
+          D_matrix[edge.toId][edge.fromId] = 1;
+        }
+
+        var nodeCount = nodesArray.length;
+
+        // Adapted FloydWarshall based on unidirectionality to greatly reduce complexity.
+        for (var k = 0; k < nodeCount; k++) {
+          for (var i = 0; i < nodeCount - 1; i++) {
+            for (var j = i + 1; j < nodeCount; j++) {
+              D_matrix[nodesArray[i]][nodesArray[j]] = Math.min(D_matrix[nodesArray[i]][nodesArray[j]], D_matrix[nodesArray[i]][nodesArray[k]] + D_matrix[nodesArray[k]][nodesArray[j]]);
+              D_matrix[nodesArray[j]][nodesArray[i]] = D_matrix[nodesArray[i]][nodesArray[j]];
+            }
+          }
+        }
+
+        return D_matrix;
+      }
+    }]);
+
+    return FloydWarshall;
+  })();
+
+  exports["default"] = FloydWarshall;
+  module.exports = exports["default"];
+
+/***/ },
+/* 113 */
 /***/ function(module, exports) {
 
   /**
@@ -41173,7 +41849,7 @@ return /******/ (function(modules) { // webpackBootstrap
   }
 
 /***/ },
-/* 112 */
+/* 114 */
 /***/ function(module, exports) {
 
   /**
@@ -42071,7 +42747,7 @@ return /******/ (function(modules) { // webpackBootstrap
   exports.DOTToGraph = DOTToGraph;
 
 /***/ },
-/* 113 */
+/* 115 */
 /***/ function(module, exports) {
 
   'use strict';
@@ -42110,6 +42786,8 @@ return /******/ (function(modules) { // webpackBootstrap
       edge['from'] = gEdge.source;
       edge['to'] = gEdge.target;
       edge['attributes'] = gEdge.attributes;
+      edge['label'] = gEdge.label;
+      edge['title'] = gEdge.attributes !== undefined ? gEdge.attributes.title : undefined;
       //    edge['value'] = gEdge.attributes !== undefined ? gEdge.attributes.Weight : undefined;
       //    edge['width'] = edge['value'] !== undefined ? undefined : edgegEdge.size;
       if (gEdge.color && options.inheritColor === false) {
@@ -42127,6 +42805,7 @@ return /******/ (function(modules) { // webpackBootstrap
       node['x'] = gNode.x;
       node['y'] = gNode.y;
       node['label'] = gNode.label;
+      node['title'] = gNode.attributes !== undefined ? gNode.attributes.title : undefined;
       if (options.nodes.parseColor === true) {
         node['color'] = gNode.color;
       } else {
@@ -42143,7 +42822,7 @@ return /******/ (function(modules) { // webpackBootstrap
   exports.parseGephi = parseGephi;
 
 /***/ },
-/* 114 */
+/* 116 */
 /***/ function(module, exports) {
 
   /**
@@ -42269,7 +42948,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports["default"];
 
 /***/ },
-/* 115 */
+/* 117 */
 /***/ function(module, exports) {
 
   // English
