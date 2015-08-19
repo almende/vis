@@ -19,6 +19,10 @@ http://visjs.org
 - Added Adaptive timestep to the physics solvers for increased performance during stabilization.
 - Fixed bugs in clustering algorithm.
 - Greatly improved performance in clustering.
+- Fixed find node return types.
+- Made the network keep its 'view' during a change of the size of the container.
+- Added improvedLayout as experimental option for greatly improved stabilization times.
+- Added adaptiveTimestep as experimental option for greatly improved stabilization times.
 
 ## 2015-07-27, version 4.7.0
 

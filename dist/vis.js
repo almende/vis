@@ -5,7 +5,7 @@
  * A dynamic, browser-based visualization library.
  *
  * @version 4.7.1-SNAPSHOT
- * @date    2015-08-16
+ * @date    2015-08-19
  *
  * @license
  * Copyright (C) 2011-2014 Almende B.V, http://almende.com
@@ -10642,7 +10642,7 @@ return /******/ (function(modules) { // webpackBootstrap
       if (options.valueMax !== undefined) this.defaultValueMax = options.valueMax;
       if (options.backgroundColor !== undefined) this._setBackgroundColor(options.backgroundColor);
 
-      if (options.cameraPosition !== undefined) cameraPosition = options.cameraPosition;
+      if (options.cameraState !== undefined) cameraPosition = options.cameraState;
 
       if (cameraPosition !== undefined) {
         this.camera.setArmRotation(cameraPosition.horizontal, cameraPosition.vertical);
@@ -33079,7 +33079,8 @@ return /******/ (function(modules) { // webpackBootstrap
           onlyDynamicEdges: false,
           fit: true
         },
-        timestep: 0.5
+        timestep: 0.5,
+        adaptiveTimestep: true
       };
       util.extend(this.options, this.defaultOptions);
       this.timestep = 0.5;
@@ -33627,7 +33628,7 @@ return /******/ (function(modules) { // webpackBootstrap
         }
 
         // enable adaptive timesteps
-        this.adaptiveTimestep = true;
+        this.adaptiveTimestep = true && this.options.adaptiveTimestep;
 
         // this sets the width of all nodes initially which could be required for the avoidOverlap
         this.body.emitter.emit("_resizeNodes");
@@ -36147,6 +36148,7 @@ return /******/ (function(modules) { // webpackBootstrap
       this.pixelRatio = 1;
       this.resizeTimer = undefined;
       this.resizeFunction = this._onResize.bind(this);
+      this.cameraState = {};
 
       this.options = {};
       this.defaultOptions = {
@@ -36218,6 +36220,42 @@ return /******/ (function(modules) { // webpackBootstrap
       value: function _onResize() {
         this.setSize();
         this.body.emitter.emit("_redraw");
+      }
+
+      /**
+       * Get and store the cameraState
+       * @private
+       */
+    }, {
+      key: '_getCameraState',
+      value: function _getCameraState() {
+        this.cameraState.previousWidth = this.frame.canvas.width;
+        this.cameraState.scale = this.body.view.scale;
+        this.cameraState.position = this.DOMtoCanvas({ x: 0.5 * this.frame.canvas.width, y: 0.5 * this.frame.canvas.height });
+      }
+
+      /**
+       * Set the cameraState
+       * @private
+       */
+    }, {
+      key: '_setCameraState',
+      value: function _setCameraState() {
+        if (this.cameraState.scale !== undefined) {
+          this.body.view.scale = this.body.view.scale * (this.frame.canvas.clientWidth / this.cameraState.previousWidth);
+
+          // this comes from the view module.
+          var viewCenter = this.DOMtoCanvas({
+            x: 0.5 * this.frame.canvas.clientWidth,
+            y: 0.5 * this.frame.canvas.clientHeight
+          });
+          var distanceFromCenter = { // offset from view, distance view has to change by these x and y to center the node
+            x: viewCenter.x - this.cameraState.position.x,
+            y: viewCenter.y - this.cameraState.position.y
+          };
+          this.body.view.translation.x += distanceFromCenter.x * this.body.view.scale;
+          this.body.view.translation.y += distanceFromCenter.y * this.body.view.scale;
+        }
       }
     }, {
       key: '_prepareValue',
@@ -36360,6 +36398,7 @@ return /******/ (function(modules) { // webpackBootstrap
         var width = arguments.length <= 0 || arguments[0] === undefined ? this.options.width : arguments[0];
         var height = arguments.length <= 1 || arguments[1] === undefined ? this.options.height : arguments[1];
 
+        this._getCameraState();
         width = this._prepareValue(width);
         height = this._prepareValue(height);
 
@@ -36403,7 +36442,7 @@ return /******/ (function(modules) { // webpackBootstrap
             oldHeight: Math.round(oldHeight / this.pixelRatio)
           });
         }
-
+        this._setCameraState();
         return emitEvent;
       }
     }, {
@@ -38887,6 +38926,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
       this.defaultOptions = {
         randomSeed: undefined,
+        improvedLayout: true,
         hierarchical: {
           enabled: false,
           levelSeparation: 150,
@@ -38921,7 +38961,7 @@ return /******/ (function(modules) { // webpackBootstrap
       value: function setOptions(options, allOptions) {
         if (options !== undefined) {
           var prevHierarchicalState = this.options.hierarchical.enabled;
-
+          util.selectiveDeepExtend(["randomSeed", "improvedLayout"], this.options, options);
           util.mergeOptions(this.options, options, 'hierarchical');
           if (options.randomSeed !== undefined) {
             this.initialRandomSeed = options.randomSeed;
@@ -39051,58 +39091,70 @@ return /******/ (function(modules) { // webpackBootstrap
     }, {
       key: 'layoutNetwork',
       value: function layoutNetwork() {
-        // first check if we should KamadaKawai to layout. The threshold is if less than half of the visible
-        // nodes have predefined positions we use this.
-        var positionDefined = 0;
-        for (var i = 0; i < this.body.nodeIndices.length; i++) {
-          var node = this.body.nodes[this.body.nodeIndices[i]];
-          if (node.predefinedPosition === true) {
-            positionDefined += 1;
-          }
-        }
-
-        // if less than half of the nodes have a predefined position we continue
-        if (positionDefined < 0.5 * this.body.nodeIndices.length) {
-          var levels = 0;
-          var clusterThreshold = 100;
-          // if there are a lot of nodes, we cluster before we run the algorithm.
-          if (this.body.nodeIndices.length > clusterThreshold) {
-            var startLength = this.body.nodeIndices.length;
-            while (this.body.nodeIndices.length > clusterThreshold) {
-              levels += 1;
-              // if there are many nodes we do a hubsize cluster
-              if (levels % 3 === 0) {
-                this.body.modules.clustering.clusterBridges();
-              } else {
-                this.body.modules.clustering.clusterOutliers();
-              }
+        if (this.options.hierarchical.enabled !== true && this.options.improvedLayout === true) {
+          // first check if we should KamadaKawai to layout. The threshold is if less than half of the visible
+          // nodes have predefined positions we use this.
+          var positionDefined = 0;
+          for (var i = 0; i < this.body.nodeIndices.length; i++) {
+            var node = this.body.nodes[this.body.nodeIndices[i]];
+            if (node.predefinedPosition === true) {
+              positionDefined += 1;
             }
-            // increase the size of the edges
-            this.body.modules.kamadaKawai.setOptions({ springLength: Math.max(150, 2 * startLength) });
           }
 
-          // position the system for these nodes and edges
-          this.body.modules.kamadaKawai.solve(this.body.nodeIndices, this.body.edgeIndices, true);
-
-          // uncluster all clusters
-          if (levels > 0) {
-            var clustersPresent = true;
-            while (clustersPresent === true) {
-              clustersPresent = false;
-              for (var i = 0; i < this.body.nodeIndices.length; i++) {
-                if (this.body.nodes[this.body.nodeIndices[i]].isCluster === true) {
-                  clustersPresent = true;
-                  this.body.modules.clustering.openCluster(this.body.nodeIndices[i], {}, false);
+          // if less than half of the nodes have a predefined position we continue
+          if (positionDefined < 0.5 * this.body.nodeIndices.length) {
+            var levels = 0;
+            var clusterThreshold = 100;
+            // if there are a lot of nodes, we cluster before we run the algorithm.
+            if (this.body.nodeIndices.length > clusterThreshold) {
+              var startLength = this.body.nodeIndices.length;
+              while (this.body.nodeIndices.length > clusterThreshold) {
+                levels += 1;
+                var before = this.body.nodeIndices.length;
+                // if there are many nodes we do a hubsize cluster
+                if (levels % 3 === 0) {
+                  this.body.modules.clustering.clusterBridges();
+                } else {
+                  this.body.modules.clustering.clusterOutliers();
+                }
+                var after = this.body.nodeIndices.length;
+                if (before == after && levels % 3 !== 0) {
+                  this._declusterAll();
+                  console.info("This network could not be positioned by this version of the improved layout algorithm.");
+                  return;
                 }
               }
-              if (clustersPresent === true) {
-                this.body.emitter.emit('_dataChanged');
-              }
+              // increase the size of the edges
+              this.body.modules.kamadaKawai.setOptions({ springLength: Math.max(150, 2 * startLength) });
+            }
+
+            // position the system for these nodes and edges
+            this.body.modules.kamadaKawai.solve(this.body.nodeIndices, this.body.edgeIndices, true);
+
+            // uncluster all clusters
+            this._declusterAll();
+
+            // reposition all bezier nodes.
+            this.body.emitter.emit("_repositionBezierNodes");
+          }
+        }
+      }
+    }, {
+      key: '_declusterAll',
+      value: function _declusterAll() {
+        var clustersPresent = true;
+        while (clustersPresent === true) {
+          clustersPresent = false;
+          for (var i = 0; i < this.body.nodeIndices.length; i++) {
+            if (this.body.nodes[this.body.nodeIndices[i]].isCluster === true) {
+              clustersPresent = true;
+              this.body.modules.clustering.openCluster(this.body.nodeIndices[i], {}, false);
             }
           }
-
-          // reposition all bezier nodes.
-          this.body.emitter.emit("_repositionBezierNodes");
+          if (clustersPresent === true) {
+            this.body.emitter.emit('_dataChanged');
+          }
         }
       }
     }, {
@@ -40779,6 +40831,7 @@ return /******/ (function(modules) { // webpackBootstrap
     },
     layout: {
       randomSeed: { 'undefined': 'undefined', number: number },
+      improvedLayout: { boolean: boolean },
       hierarchical: {
         enabled: { boolean: boolean },
         levelSeparation: { number: number },
@@ -40932,6 +40985,7 @@ return /******/ (function(modules) { // webpackBootstrap
         __type__: { object: object, boolean: boolean }
       },
       timestep: { number: number },
+      adaptiveTimestep: { boolean: boolean },
       __type__: { object: object, boolean: boolean }
     },
 
@@ -41071,6 +41125,7 @@ return /******/ (function(modules) { // webpackBootstrap
     },
     layout: {
       //randomSeed: [0, 0, 500, 1],
+      //improvedLayout: true,
       hierarchical: {
         enabled: false,
         levelSeparation: [150, 20, 500, 5],
@@ -41140,6 +41195,7 @@ return /******/ (function(modules) { // webpackBootstrap
       solver: ['barnesHut', 'forceAtlas2Based', 'repulsion', 'hierarchicalRepulsion'],
       timestep: [0.5, 0.01, 1, 0.01]
     },
+    //adaptiveTimestep: true
     global: {
       locale: ['en', 'nl']
     }

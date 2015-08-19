@@ -101,6 +101,7 @@
 var options = {
   layout: {
     randomSeed: undefined,
+    improvedLayout:true,
     hierarchical: {
       enabled:false,
       levelSeparation: 150,
@@ -127,6 +128,7 @@ network.setOptions(options);
     <table class="options" id="optionTable">
         <tr><th>Name</th><th>Type</th><th>Default</th><td>Description</td></tr>
         <tr><td>randomSeed</td><td>Number</td><td><code>undefined</code></td>               <td>When NOT using the hierarchical layout, the nodes are randomly positioned initially. This means that the settled result is different every time. If you provide a random seed manually, the layout will be the same every time. Ideally you try with an undefined seed, reload until you are happy with the layout and use the <code>getSeed()</code> method to ascertain the seed.</td></tr>
+        <tr id="layout"><td>improvedLayout</td><td>Boolean</td><td><code>true</code></td>   <td>When enabled, the network will use the Kamada Kawai algorithm for initial layout. For networks larger than 100 nodes, clustering will be performed automatically to reduce the amount of nodes. This can greatly improve the stabilization times. If the network is very interconnected (no or few leaf nodes), this may not work and it will revert back to the old method. Performance will be improved in the future.</td></tr>
         <tr class='toggle collapsible' onclick="toggleTable('optionTable','hierarchical', this);"><td><span parent="repulsion" class="right-caret"></span> hierarchical</td><td>Object or Boolean</td><td><code>Object</code></td>      <td>When true, the layout engine positions the nodes in a hierarchical fashion using default settings. For customization you can supply an object.</td></tr>
         <tr parent="hierarchical" class="hidden"><td class="indent">hierarchical.enabled</td><td>Boolean</td><td><code>false</code></td>        <td>Toggle the usage of the hierarchical layout system. If this option is not defined, it is set to true if any of the properties in this object are defined.</td></tr>
         <tr parent="hierarchical" class="hidden"><td class="indent">hierarchical.levelSeparation</td><td>Number</td><td><code>150</code></td>   <td>The distance between the different levels.</td></tr>
