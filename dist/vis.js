@@ -10642,7 +10642,7 @@ return /******/ (function(modules) { // webpackBootstrap
       if (options.valueMax !== undefined) this.defaultValueMax = options.valueMax;
       if (options.backgroundColor !== undefined) this._setBackgroundColor(options.backgroundColor);
 
-      if (options.cameraState !== undefined) cameraPosition = options.cameraState;
+      if (options.cameraPosition !== undefined) cameraPosition = options.cameraPosition;
 
       if (cameraPosition !== undefined) {
         this.camera.setArmRotation(cameraPosition.horizontal, cameraPosition.vertical);
