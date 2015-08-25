@@ -33432,6 +33432,7 @@ return /******/ (function(modules) { // webpackBootstrap
         var nodeIds = Object.keys(this.previousStates);
         var nodes = this.body.nodes;
         var velocities = this.physicsBody.velocities;
+        this.referenceState = {};
 
         for (var i = 0; i < nodeIds.length; i++) {
           var nodeId = nodeIds[i];
@@ -33465,7 +33466,7 @@ return /******/ (function(modules) { // webpackBootstrap
         var posThreshold = 0.3;
 
         for (var nodeId in this.referenceState) {
-          if (this.referenceState.hasOwnProperty(nodeId)) {
+          if (this.referenceState.hasOwnProperty(nodeId) && nodes[nodeId] !== undefined) {
             dx = nodes[nodeId].x - reference[nodeId].positions.x;
             dy = nodes[nodeId].y - reference[nodeId].positions.y;
 
