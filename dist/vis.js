@@ -5,7 +5,7 @@
  * A dynamic, browser-based visualization library.
  *
  * @version 4.7.1-SNAPSHOT
- * @date    2015-08-19
+ * @date    2015-08-25
  *
  * @license
  * Copyright (C) 2011-2014 Almende B.V, http://almende.com
@@ -21567,7 +21567,7 @@ return /******/ (function(modules) { // webpackBootstrap
         }
 
         this._push();
-        this.colorPicker.insertTo(document.body);
+        this.colorPicker.insertTo(this.container);
       }
 
       /**
@@ -27930,11 +27930,9 @@ return /******/ (function(modules) { // webpackBootstrap
             }
           }
         } else {
-          for (var nodeId in this.body.nodes) {
-            if (this.body.nodes.hasOwnProperty(nodeId)) {
-              var node = this.body.nodes[nodeId];
-              dataArray[nodeId] = { x: Math.round(node.x), y: Math.round(node.y) };
-            }
+          for (var i = 0; i < this.body.nodeIndices.length; i++) {
+            var node = this.body.nodes[this.body.nodeIndices[i]];
+            dataArray[this.body.nodeIndices[i]] = { x: Math.round(node.x), y: Math.round(node.y) };
           }
         }
         return dataArray;
@@ -42788,6 +42786,9 @@ return /******/ (function(modules) { // webpackBootstrap
       edge['attributes'] = gEdge.attributes;
       edge['label'] = gEdge.label;
       edge['title'] = gEdge.attributes !== undefined ? gEdge.attributes.title : undefined;
+      if (gEdge['type'] === 'Directed') {
+        edge['arrows'] = 'to';
+      }
       //    edge['value'] = gEdge.attributes !== undefined ? gEdge.attributes.Weight : undefined;
       //    edge['width'] = edge['value'] !== undefined ? undefined : edgegEdge.size;
       if (gEdge.color && options.inheritColor === false) {

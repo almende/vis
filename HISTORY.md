@@ -24,6 +24,8 @@ http://visjs.org
 - Added improvedLayout as experimental option for greatly improved stabilization times.
 - Added adaptiveTimestep as experimental option for greatly improved stabilization times.
 - Added support for Gephi directed edges, edge labels and titles.
+- Fixed bug where stabilization iterations were counted double. If it looks like the stabilization is slower, its because it is doing twice the amount of steps it did before.
+- Fixed getPositions return values.
 
 ## 2015-07-27, version 4.7.0
 
