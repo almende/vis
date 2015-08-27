@@ -27,6 +27,11 @@ http://visjs.org
 - Fixed bug where stabilization iterations were counted double. If it looks like the stabilization is slower, its because it is doing twice the amount of steps it did before.
 - Fixed getPositions return values.
 
+## Graph2d
+
+- Implemented configuration option `excludeFromLegend`. Thanks @Bernd0.
+
+
 ## 2015-07-27, version 4.7.0
 
 ### Timeline
