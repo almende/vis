@@ -62,13 +62,7 @@ exports.network = {
 exports.network.convertDot   = function (input) {return exports.network.dotparser.DOTToGraph(input)};
 exports.network.convertGephi = function (input,options) {return exports.network.gephiParser.parseGephi(input,options)};
 
-// Deprecated since v3.0.0
-exports.Graph = function () {
-  throw new Error('Graph is renamed to Network. Please create a graph as new vis.Network(...)');
-};
-
 // bundled external libraries
 exports.moment = require('./lib/module/moment');
-exports.hammer = require('./lib/module/hammer'); // TODO: deprecate exports.hammer some day
 exports.Hammer = require('./lib/module/hammer');
 exports.keycharm = require('keycharm');
