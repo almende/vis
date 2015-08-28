@@ -2,7 +2,7 @@
 http://visjs.org
 
 
-## not yet released, version 4.7.1-SNAPSHOT
+## 2015-08-28, version 4.8.0
 
 ### Timeline
 
@@ -10,20 +10,21 @@ http://visjs.org
 
 ### Network
 
-- Fixed #1152, updating images now works.
-- Fixed cleaning up of nodes.
-- Improved the positioning and CSS of the configurator and the color picker.
-- Fixed dynamic updating of label properties.
+- Added Spanish (es) locale. Thanks @gomezgoiri.
 - Added support for labels in edges and titles for both nodes and edges during gephi import.
 - Added KamadaKawai layout engine for improved initial layout.
 - Added Adaptive timestep to the physics solvers for increased performance during stabilization.
-- Fixed bugs in clustering algorithm.
-- Greatly improved performance in clustering.
-- Fixed find node return types.
-- Made the network keep its 'view' during a change of the size of the container.
 - Added improvedLayout as experimental option for greatly improved stabilization times.
 - Added adaptiveTimestep as experimental option for greatly improved stabilization times.
 - Added support for Gephi directed edges, edge labels and titles.
+- Improved the positioning and CSS of the configurator and the color picker.
+- Greatly improved performance in clustering.
+- Made the network keep its 'view' during a change of the size of the container.
+- Fixed #1152, updating images now works.
+- Fixed cleaning up of nodes.
+- Fixed dynamic updating of label properties.
+- Fixed bugs in clustering algorithm.
+- Fixed find node return types.
 - Fixed bug where stabilization iterations were counted double. If it looks like the stabilization is slower, its because it is doing twice the amount of steps it did before.
 - Fixed getPositions return values.
 
