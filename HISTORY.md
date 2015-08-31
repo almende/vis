@@ -2,6 +2,13 @@
 http://visjs.org
 
 
+## not yet released, version 4.8.1-SNAPSHOT
+
+### Network
+
+- Added German (de) locale. Thanks @Tooa.
+
+
 ## 2015-08-28, version 4.8.0
 
 ### Timeline
