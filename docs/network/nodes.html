@@ -133,7 +133,8 @@ var options = {
       background: 'none',
       strokeWidth: 0, // px
       strokeColor: '#ffffff',
-      align: 'horizontal'
+      align: 'horizontal',
+      textAlign: 'center'
     },
     group: undefined,
     hidden: false,
@@ -369,6 +370,13 @@ network.setOptions(options);
             <td>String</td>
             <td><code>'#ffffff'</code></td>
             <td>This is the color of the stroke <i>assuming the value for stroke is higher than 0</i>.</td>
+        </tr>
+        <tr parent="font" class="hidden">
+            <td class="indent">font.textAlign</td>
+            <td>String</td>
+            <td><code>'center'</code></td>
+            <td>If shape is box, this can be set to 'left' to make the label left-aligned. Otherwise,
+                defaults/resets to 'center'.</td>
         </tr>
         <tr>
             <td>group</td>
