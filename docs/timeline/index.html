@@ -939,6 +939,13 @@ function (option, path) {
       <td>A template function used to generate the contents of the items. The function is called by the Timeline with an items data as argument, and must return HTML code as result. When the option template is specified, the items do not need to have a field <code>content</code>. See section <a href="#Templates">Templates</a> for a detailed explanation.</td>
     </tr>
 
+    <tr>
+      <td>throttleRedraw</td>
+      <td>number</td>
+      <td><code>0</code></td>
+      <td>Limit the maximum number of redraws to once every x milliseconds. For example setting throttleRedraw to `100` milliseconds will limit the number of redraws to 10 times per second.</td>
+    </tr>
+
     <tr class='toggle collapsible' onclick="toggleTable('optionTable','timeAxis', this);">
       <td><span parent="timeAxis" class="right-caret"></span> timeAxis</td>
       <td>Object</td>
@@ -954,13 +961,6 @@ function (option, path) {
   timeAxis: {scale: 'minute', step: 5}
 }</pre>
       </td>
-    </tr>
-
-    <tr parent="timeAxis" class="hidden">
-      <td class="indent">throttleRedraw</td>
-      <td>number</td>
-      <td><code>0</code></td>
-      <td>Limit the maximum number of redraws to once every x milliseconds. For example setting throttleRedraw to `100` milliseconds will limit the number of redraws to 10 times per second.</td>
     </tr>
 
     <tr parent="timeAxis" class="hidden">
