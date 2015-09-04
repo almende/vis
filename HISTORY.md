@@ -8,6 +8,11 @@ http://visjs.org
 
 - Added German (de) locale. Thanks @Tooa.
 
+### Timeline
+
+- Fixed #1215: inconsistent types of properties `start` and `end` in callback
+  functions `onMove`, `onMoving`, `onAdd`.
+
 
 ## 2015-08-28, version 4.8.0
 
