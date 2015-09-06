@@ -35946,6 +35946,11 @@ return /******/ (function(modules) { // webpackBootstrap
           var h = this.canvas.frame.canvas.clientHeight;
           ctx.clearRect(0, 0, w, h);
 
+          // if the div is hidden, we stop the redraw here for performance.
+          if (this.canvas.frame.clientWidth === 0) {
+            return;
+          }
+
           // set scaling and translation
           ctx.save();
           ctx.translate(this.body.view.translation.x, this.body.view.translation.y);
@@ -36267,7 +36272,8 @@ return /******/ (function(modules) { // webpackBootstrap
     }, {
       key: '_setCameraState',
       value: function _setCameraState() {
-        if (this.cameraState.scale !== undefined) {
+        if (this.cameraState.scale !== undefined && this.frame.canvas.clientWidth !== 0 && this.frame.canvas.clientHeight !== 0 && this.pixelRatio !== 0 && this.cameraState.previousWidth > 0) {
+
           this.body.view.scale = this.cameraState.scale * (this.frame.canvas.width / this.pixelRatio / this.cameraState.previousWidth);
 
           // this comes from the view module.
