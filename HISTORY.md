@@ -7,6 +7,7 @@ http://visjs.org
 ### Network
 
 - Added German (de) locale. Thanks @Tooa.
+- Fixed critical camera zoom bug #1273.
 
 
 ## 2015-08-28, version 4.8.0
