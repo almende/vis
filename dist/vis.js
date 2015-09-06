@@ -16651,7 +16651,7 @@ return /******/ (function(modules) { // webpackBootstrap
           item: dragLeftItem,
           initialX: event.center.x,
           dragLeft: true,
-          data: util.extend({}, item.data) // clone the items data
+          data: this._cloneItemData(item.data)
         };
 
         this.touchParams.itemProps = [props];
@@ -16660,7 +16660,7 @@ return /******/ (function(modules) { // webpackBootstrap
           item: dragRightItem,
           initialX: event.center.x,
           dragRight: true,
-          data: util.extend({}, item.data) // clone the items data
+          data: this._cloneItemData(item.data)
         };
 
         this.touchParams.itemProps = [props];
@@ -16669,18 +16669,16 @@ return /******/ (function(modules) { // webpackBootstrap
 
         var baseGroupIndex = this._getGroupIndex(item.data.group);
 
-        this.touchParams.itemProps = this.getSelection().map(function (id) {
+        this.touchParams.itemProps = this.getSelection().map((function (id) {
           var item = me.items[id];
           var groupIndex = me._getGroupIndex(item.data.group);
-          var props = {
+          return {
             item: item,
             initialX: event.center.x,
             groupOffset: baseGroupIndex - groupIndex,
-            data: util.extend({}, item.data) // clone the items data
+            data: this._cloneItemData(item.data)
           };
-
-          return props;
-        });
+        }).bind(this));
       }
 
       event.stopPropagation();
@@ -16722,14 +16720,14 @@ return /******/ (function(modules) { // webpackBootstrap
 
     var newItem = new RangeItem(itemData, this.conversion, this.options);
     newItem.id = id; // TODO: not so nice setting id afterwards
-    newItem.data = itemData;
+    newItem.data = this._cloneItemData(itemData);
     this._addItem(newItem);
 
     var props = {
       item: newItem,
       dragRight: true,
       initialX: event.center.x,
-      data: util.extend({}, itemData)
+      data: newItem.data
     };
     this.touchParams.itemProps = [props];
 
@@ -16768,14 +16766,12 @@ return /******/ (function(modules) { // webpackBootstrap
       }
 
       // move
-      this.touchParams.itemProps.forEach(function (props) {
-        var newProps = {};
+      this.touchParams.itemProps.forEach((function (props) {
         var current = me.body.util.toTime(event.center.x - xOffset);
         var initial = me.body.util.toTime(props.initialX - xOffset);
-        var offset = current - initial;
+        var offset = current - initial; // ms
 
-        var itemData = util.extend({}, props.item.data); // clone the data
-
+        var itemData = this._cloneItemData(props.item.data); // clone the data
         if (props.item.editable === false) {
           return;
         }
@@ -16788,6 +16784,7 @@ return /******/ (function(modules) { // webpackBootstrap
             if (itemData.start != undefined) {
               var initialStart = util.convert(props.data.start, 'Date');
               var start = new Date(initialStart.valueOf() + offset);
+              // TODO: pass a Moment instead of a Date to snap(). (Breaking change)
               itemData.start = snap ? snap(start, scale, step) : start;
             }
           } else if (props.dragRight) {
@@ -16795,6 +16792,7 @@ return /******/ (function(modules) { // webpackBootstrap
             if (itemData.end != undefined) {
               var initialEnd = util.convert(props.data.end, 'Date');
               var end = new Date(initialEnd.valueOf() + offset);
+              // TODO: pass a Moment instead of a Date to snap(). (Breaking change)
               itemData.end = snap ? snap(end, scale, step) : end;
             }
           } else {
@@ -16807,9 +16805,11 @@ return /******/ (function(modules) { // webpackBootstrap
                 var initialEnd = util.convert(props.data.end, 'Date');
                 var duration = initialEnd.valueOf() - initialStart.valueOf();
 
+                // TODO: pass a Moment instead of a Date to snap(). (Breaking change)
                 itemData.start = snap ? snap(start, scale, step) : start;
                 itemData.end = new Date(itemData.start.valueOf() + duration);
               } else {
+                // TODO: pass a Moment instead of a Date to snap(). (Breaking change)
                 itemData.start = snap ? snap(start, scale, step) : start;
               }
             }
@@ -16831,12 +16831,13 @@ return /******/ (function(modules) { // webpackBootstrap
         }
 
         // confirm moving the item
+        itemData = this._cloneItemData(itemData); // convert start and end to the correct type
         me.options.onMoving(itemData, function (itemData) {
           if (itemData) {
             props.item.setData(itemData);
           }
         });
-      });
+      }).bind(this));
 
       this.stackDirty = true; // force re-stacking of all items next redraw
       this.body.emitter.emit('change');
@@ -16876,7 +16877,7 @@ return /******/ (function(modules) { // webpackBootstrap
       var itemProps = this.touchParams.itemProps;
       this.touchParams.itemProps = null;
 
-      itemProps.forEach(function (props) {
+      itemProps.forEach((function (props) {
         var id = props.item.id;
         var exists = me.itemsData.get(id, me.itemOptions) != null;
 
@@ -16894,7 +16895,7 @@ return /******/ (function(modules) { // webpackBootstrap
           });
         } else {
           // update existing item
-          var itemData = util.extend({}, props.item.data); // clone the data
+          var itemData = this._cloneItemData(props.item.data); // convert start and end to the correct type
           me.options.onMove(itemData, function (itemData) {
             if (itemData) {
               // apply changes
@@ -16909,7 +16910,7 @@ return /******/ (function(modules) { // webpackBootstrap
             }
           });
         }
-      });
+      }).bind(this));
     }
   };
 
@@ -17150,7 +17151,7 @@ return /******/ (function(modules) { // webpackBootstrap
       var scale = this.body.util.getScale();
       var step = this.body.util.getStep();
 
-      var newItem = {
+      var newItemData = {
         start: snap ? snap(start, scale, step) : start,
         content: 'new item'
       };
@@ -17158,18 +17159,19 @@ return /******/ (function(modules) { // webpackBootstrap
       // when default type is a range, add a default end date to the new item
       if (this.options.type === 'range') {
         var end = this.body.util.toTime(x + this.props.width / 5);
-        newItem.end = snap ? snap(end, scale, step) : end;
+        newItemData.end = snap ? snap(end, scale, step) : end;
       }
 
-      newItem[this.itemsData._fieldId] = util.randomUUID();
+      newItemData[this.itemsData._fieldId] = util.randomUUID();
 
       var group = this.groupFromTarget(event);
       if (group) {
-        newItem.group = group.groupId;
+        newItemData.group = group.groupId;
       }
 
       // execute async handler to customize (or cancel) adding an item
-      this.options.onAdd(newItem, function (item) {
+      newItemData = this._cloneItemData(newItemData); // convert start and end to the correct type
+      this.options.onAdd(newItemData, function (item) {
         if (item) {
           me.itemsData.getDataSet().add(item);
           // TODO: need to trigger a redraw?
@@ -17334,6 +17336,29 @@ return /******/ (function(modules) { // webpackBootstrap
     }
 
     return null;
+  };
+
+  /**
+   * Clone the data of an item, and "normalize" it: convert the start and end date
+   * to the type (Date, Moment, ...) configured in the DataSet. If not configured,
+   * start and end are converted to Date.
+   * @param {Object} itemData, typically `item.data`
+   * @return {Object} The cloned object
+   * @private
+   */
+  ItemSet.prototype._cloneItemData = function (itemData) {
+    var clone = util.extend({}, itemData);
+
+    // convert start and end date to the type (Date, Moment, ...) configured in the DataSet
+    var type = this.itemsData.getDataSet()._options.type;
+    if (clone.start != undefined) {
+      clone.start = util.convert(clone.start, type && type.start || 'Date');
+    }
+    if (clone.end != undefined) {
+      clone.end = util.convert(clone.end, type && type.end || 'Date');
+    }
+
+    return clone;
   };
 
   module.exports = ItemSet;
@@ -27366,7 +27391,8 @@ return /******/ (function(modules) { // webpackBootstrap
     return this.selectionHandler.selectEdges.apply(this.selectionHandler, arguments);
   };
   Network.prototype.unselectAll = function () {
-    return this.selectionHandler.unselectAll.apply(this.selectionHandler, arguments);
+    this.selectionHandler.unselectAll.apply(this.selectionHandler, arguments);
+    this.redraw();
   };
   Network.prototype.redraw = function () {
     return this.renderer.redraw.apply(this.renderer, arguments);

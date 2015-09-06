@@ -8,6 +8,7 @@ http://visjs.org
 
 - Added German (de) locale. Thanks @Tooa.
 - Fixed critical camera zoom bug #1273.
+- Fixed unselectAll method. #1256
 
 ### Timeline
 
