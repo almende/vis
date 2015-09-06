@@ -71,7 +71,9 @@
   }
 
   // create a dataset with items
-  var items = new vis.DataSet();
+  var items = new vis.DataSet({
+    type: {start: 'Moment', end: 'Moment'}
+  });
   for (var i = 0; i < itemCount; i++) {
     var start = now.clone().add(Math.random() * 200, 'hours');
     var end = Math.random() > 0.5 ? start.clone().add(24, 'hours') : undefined;
@@ -117,6 +119,7 @@
     },
 
     onMove: function (item, callback) {
+      console.log('onMove', item)
       if (confirm('Do you really want to move the item to\n' +
           'start: ' + item.start + '\n' +
           'end: ' + item.end + '?')) {
