@@ -28,7 +28,7 @@
 
     <script src="./js/smooth-scroll.min.js"></script>
 
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/vis/4.8.0/vis.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/vis/4.8.1/vis.min.js"></script>
 
     <script language="JavaScript">
         smoothScroll.init();
@@ -36,7 +36,7 @@
         function evalLinks() {
             if (typeof vis === 'undefined') {
                 console.log(document.getElementById("linkStatus"));
-                document.getElementById("linkStatus").innerHTML = "Note: The latest version (4.8.0) is not yet available on cdnjs, <a href='https://cdnjs.com/libraries/vis'>click here</a> to to pick the latest available version.<br />";
+                document.getElementById("linkStatus").innerHTML = "Note: The latest version (4.8.1) is not yet available on cdnjs, <a href='https://cdnjs.com/libraries/vis'>click here</a> to to pick the latest available version.<br />";
                 document.getElementById("cdn_vis").style.color = "rgb(150,150,150)";
                 document.getElementById("cdn_vis_css").style.color = "rgb(150,150,150)";
             }
@@ -196,13 +196,13 @@
                     <pre class="prettyprint">bower install vis</pre>
                     <h3>link from cdnjs.com</h3>
                     <p>
-                        <a id="cdn_vis" href="https://cdnjs.cloudflare.com/ajax/libs/vis/4.8.0/vis.min.js" target="_blank">vis.min.js</a> <br>
-                        <a id="cdn_vis_css" href="https://cdnjs.cloudflare.com/ajax/libs/vis/4.8.0/vis.min.css" target="_blank">vis.min.css</a> <br>
+                        <a id="cdn_vis" href="https://cdnjs.cloudflare.com/ajax/libs/vis/4.8.1/vis.min.js" target="_blank">vis.min.js</a> <br>
+                        <a id="cdn_vis_css" href="https://cdnjs.cloudflare.com/ajax/libs/vis/4.8.1/vis.min.css" target="_blank">vis.min.css</a> <br>
                         <span id="linkStatus"></span>
                     </p>
                     <h3>download</h3>
                     <p>
-                        <a href="download/vis.zip">vis.zip (version <span class="version">4.8.0</span>)</a>
+                        <a href="download/vis.zip">vis.zip (version <span class="version">4.8.1</span>)</a>
                     </p>
                 </div>
             </div>
