@@ -26,53 +26,56 @@
         var network2 = null;
 
         function draw() {
-            var nodes = [];
-            var edges = [];
-            nodes.push({ id: 1, label: 'Node1' });
-            nodes.push({ id: 2, label: 'Node2' });
-            edges.push({ from: 2, to: 1 });
+            // create an array with nodes
+            var nodes = [
+                {id: 1,  label: 'Node 1'},
+                {id: 2,  label: 'Node 2'},
+                {id: 3,  label: 'Node 3'},
+                {id: 4,  label: 'Node 4'},
+                {id: 5,  label: 'Node 5'}
+            ];
 
+            // create an array with edges
+            var edges = [
+                {from: 1, to: 2},
+                {from: 2, to: 3},
+                {from: 3, to: 4},
+                {from: 4, to: 5}
+            ];
+
+            // create a network
+            var container = document.getElementById('mynetwork');
             var data = {
                 nodes: nodes,
                 edges: edges
             };
-
-            // create a network
-            var container = document.getElementById('mynetwork');
-            var options = {
-                layout: {
-                    hierarchical: {
-                        direction: "UD"
-                    }
-                }
-            };
+            var options = {layout:{randomSeed:8}};
             network = new vis.Network(container, data, options);
 
-            $('#divTreemapPopUp').modal('show');
+            setTimeout(function() {
+                var clusterOptionsByData = {
+                    joinCondition:function(childOptions) {
+                        return childOptions.id == 2 || childOptions.id == 3 || childOptions.id == 4;
+                    },
+                    clusterNodeProperties: {id:'cid1', label:'cid1'}
+                }
+                network.cluster(clusterOptionsByData);
+            },100);
 
-//
-//            var nodes2 = [];
-//            var edges2 = [];
-//            nodes2.push({ id: 1, label: 'Node1' });
-//            nodes2.push({ id: 2, label: 'Node2' });
-//            edges2.push({ from: 2, to: 1 });
-//
-//            var data2 = {
-//                nodes: nodes2,
-//                edges: edges2
-//            };
-//
-//            // create a network
-//            var container2 = document.getElementById('mynetwork2');
-//            var options2 = {
-//                layout: {
-//                    hierarchical: {
-//                        direction: "UD"
-//                    }
-//                }
-//            };
-//            network2 = new vis.Network(container2, data2, options2);
-//            setTimeout(function() {console.log('redraw');network.redraw()},1000)
+            setTimeout(function() {
+                var itemId = 'cid1';
+                network.openCluster([itemId]);
+            },300);
+
+            setTimeout(function() {
+                var clusterOptionsByData = {
+                    joinCondition:function(childOptions) {
+                        return childOptions.id == 2 || childOptions.id == 3 || childOptions.id == 4;
+                    },
+                    clusterNodeProperties: {id:'cid2', label:'cid2'}
+                }
+                network.cluster(clusterOptionsByData);
+            },1000);
         }
     </script>
 </head>
@@ -80,15 +83,7 @@
 <body onload="draw();">
 <h2>Popup Example</h2>
 
-<div style='display: none;' class='modal fade' id='divTreemapPopUp' tabindex='-1' role='dialog' aria-labelledby='myModalLabel' aria-hidden='true'>
-    <div class='modal-dialog'><div class='modal-content'><div class='modal-header'>
-        <button type='button' class='close' data-dismiss='modal' aria-hidden='true'>×</button>
-        <h4 class='modal-title'>TreeMap</h4></div>
-        <div class='modal-body'>
-            <div id='mynetwork'></div></div>
-        <div class='modal-footer'><button type='button' class='btn btn-default' data-dismiss='modal'>Close</button></div></div></div></div>
-
-<div id='mynetwork2'></div>
+<div id='mynetwork'></div>
 
 </body>
 </html>

@@ -1,6 +1,11 @@
 # vis.js history
 http://visjs.org
 
+## 2015-09-07, version 4.8.2-SNAPSHOT NOT YET RELEASED
+
+### Network
+
+- Fixed Phantom Edges during clustering.
 
 ## 2015-09-07, version 4.8.1
 
