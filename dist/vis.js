@@ -28584,13 +28584,16 @@ return /******/ (function(modules) { // webpackBootstrap
         }
 
         // handle the font options
-        if (newOptions.font !== undefined) {
+        if (newOptions.font !== undefined && newOptions.font !== null) {
           _sharedLabel2['default'].parseOptions(parentOptions.font, newOptions);
+        } else if (allowDeletion === true && newOptions.font === null) {
+          parentOptions.font = undefined;
+          delete parentOptions.font;
         }
 
         // handle the scaling options, specifically the label part
         if (newOptions.scaling !== undefined) {
-          util.mergeOptions(parentOptions.scaling, newOptions.scaling, 'label');
+          util.mergeOptions(parentOptions.scaling, newOptions.scaling, 'label', allowDeletion);
         }
       }
     }]);
@@ -31458,8 +31461,11 @@ return /******/ (function(modules) { // webpackBootstrap
         }
 
         // handle the font settings
-        if (newOptions.font !== undefined) {
+        if (newOptions.font !== undefined && newOptions.font !== null) {
           _sharedLabel2['default'].parseOptions(parentOptions.font, newOptions);
+        } else if (allowDeletion === true && newOptions.font === null) {
+          parentOptions.font = undefined;
+          delete parentOptions.font;
         }
       }
     }]);
