@@ -29073,8 +29073,9 @@ return /******/ (function(modules) { // webpackBootstrap
       }
     }, {
       key: '_distanceToBorder',
-      value: function _distanceToBorder(angle) {
+      value: function _distanceToBorder(ctx, angle) {
         var borderWidth = 1;
+        this.resize(ctx);
         return Math.min(Math.abs(this.width / 2 / Math.cos(angle)), Math.abs(this.height / 2 / Math.sin(angle))) + borderWidth;
       }
     }, {
@@ -29659,7 +29660,7 @@ return /******/ (function(modules) { // webpackBootstrap
     }, {
       key: 'distanceToBorder',
       value: function distanceToBorder(ctx, angle) {
-        return this._distanceToBorder(angle);
+        return this._distanceToBorder(ctx, angle);
       }
     }]);
 
@@ -29821,6 +29822,7 @@ return /******/ (function(modules) { // webpackBootstrap
     }, {
       key: 'distanceToBorder',
       value: function distanceToBorder(ctx, angle) {
+        this.resize(ctx);
         return this.options.size + this.options.borderWidth;
       }
     }]);
@@ -30197,8 +30199,7 @@ return /******/ (function(modules) { // webpackBootstrap
     }, {
       key: 'distanceToBorder',
       value: function distanceToBorder(ctx, angle) {
-        this.resize();
-        return this._distanceToBorder(angle);
+        return this._distanceToBorder(ctx, angle);
       }
     }]);
 
@@ -30254,7 +30255,7 @@ return /******/ (function(modules) { // webpackBootstrap
     }, {
       key: 'distanceToBorder',
       value: function distanceToBorder(ctx, angle) {
-        return this._distanceToBorder(angle);
+        return this._distanceToBorder(ctx, angle);
       }
     }]);
 
@@ -30397,7 +30398,7 @@ return /******/ (function(modules) { // webpackBootstrap
     }, {
       key: 'distanceToBorder',
       value: function distanceToBorder(ctx, angle) {
-        return this._distanceToBorder(angle);
+        return this._distanceToBorder(ctx, angle);
       }
     }]);
 
@@ -30453,7 +30454,7 @@ return /******/ (function(modules) { // webpackBootstrap
     }, {
       key: 'distanceToBorder',
       value: function distanceToBorder(ctx, angle) {
-        return this._distanceToBorder(angle);
+        return this._distanceToBorder(ctx, angle);
       }
     }]);
 
