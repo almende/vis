@@ -6,6 +6,7 @@ http://visjs.org
 ### Network
 
 - Fixed Phantom Edges during clustering.
+- Fixed scaling not doing anything to edges.
 
 ## 2015-09-07, version 4.8.1
 

@@ -5,7 +5,7 @@
  * A dynamic, browser-based visualization library.
  *
  * @version 4.8.2-SNAPSHOT
- * @date    2015-09-08
+ * @date    2015-09-11
  *
  * @license
  * Copyright (C) 2011-2015 Almende B.V, http://almende.com
@@ -23236,7 +23236,7 @@ return /******/ (function(modules) { // webpackBootstrap
     global: {
       align: ['center', 'left', 'right'],
       autoResize: true,
-      throttleRedraw: 0,
+      throttleRedraw: [10, 0, 1000, 10],
       clickToUse: false,
       // dataAttributes: ['all'], // FIXME: can be 'all' or string[]
       editable: {
@@ -26747,7 +26747,7 @@ return /******/ (function(modules) { // webpackBootstrap
       },
 
       autoResize: true,
-      throttleRedraw: 0,
+      throttleRedraw: [10, 0, 1000, 10],
       clickToUse: false,
       end: '',
       format: {
@@ -31369,7 +31369,7 @@ return /******/ (function(modules) { // webpackBootstrap
       value: function parseOptions(parentOptions, newOptions) {
         var allowDeletion = arguments.length <= 2 || arguments[2] === undefined ? false : arguments[2];
 
-        var fields = ['id', 'from', 'hidden', 'hoverWidth', 'label', 'labelHighlightBold', 'length', 'line', 'opacity', 'physics', 'selectionWidth', 'selfReferenceSize', 'to', 'title', 'value', 'width'];
+        var fields = ['id', 'from', 'hidden', 'hoverWidth', 'label', 'labelHighlightBold', 'length', 'line', 'opacity', 'physics', 'scaling', 'selectionWidth', 'selfReferenceSize', 'to', 'title', 'value', 'width'];
 
         // only deep extend the items in the field array. These do not have shorthand.
         util.selectiveDeepExtend(fields, parentOptions, newOptions, allowDeletion);
