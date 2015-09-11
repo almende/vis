@@ -8,6 +8,7 @@ http://visjs.org
 - Fixed Phantom Edges during clustering.
 - Fixed scaling not doing anything to edges.
 - Fixed setting font to null so the network won't crash anymore.
+- Fixed stabilized event not firing if layout algorithm does very well.
 
 ## 2015-09-07, version 4.8.1
 

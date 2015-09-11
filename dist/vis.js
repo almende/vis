@@ -33323,9 +33323,11 @@ return /******/ (function(modules) { // webpackBootstrap
       value: function _emitStabilized() {
         var _this2 = this;
 
+        var amountOfIterations = arguments.length <= 0 || arguments[0] === undefined ? this.stabilizationIterations : arguments[0];
+
         if (this.stabilizationIterations > 1) {
           setTimeout(function () {
-            _this2.body.emitter.emit('stabilized', { iterations: _this2.stabilizationIterations });
+            _this2.body.emitter.emit('stabilized', { iterations: amountOfIterations });
             _this2.stabilizationIterations = 0;
           }, 0);
         }
@@ -33697,6 +33699,12 @@ return /******/ (function(modules) { // webpackBootstrap
     }, {
       key: '_stabilizationBatch',
       value: function _stabilizationBatch() {
+        // this is here to ensure that there is at least one start event.
+        if (this.startedStabilization === false) {
+          this.body.emitter.emit('startStabilizing');
+          this.startedStabilization = true;
+        }
+
         var count = 0;
         while (this.stabilized === false && count < this.options.stabilization.updateInterval && this.stabilizationIterations < this.targetIterations) {
           this.physicsTick();
@@ -33731,7 +33739,13 @@ return /******/ (function(modules) { // webpackBootstrap
         this.body.emitter.emit('_requestRedraw');
 
         if (this.stabilized === true) {
-          this._emitStabilized();
+          // I want at least one stabilized event if there is nothing to stabilize.
+          if (this.stabilizationIterations < 2) {
+            this.stabilizationIterations = 2;
+            this._emitStabilized(0); // the zero overrules the iterations
+          } else {
+              this._emitStabilized();
+            }
         } else {
           this.startSimulation();
         }
@@ -39261,9 +39275,10 @@ return /******/ (function(modules) { // webpackBootstrap
             this._shiftToCenter();
 
             // perturb the nodes a little bit to force the physics to kick in
+            var offset = 70;
             for (var i = 0; i < this.body.nodeIndices.length; i++) {
-              this.body.nodes[this.body.nodeIndices[i]].x += (0.5 - this.seededRandom()) * 50;
-              this.body.nodes[this.body.nodeIndices[i]].y += (0.5 - this.seededRandom()) * 50;
+              this.body.nodes[this.body.nodeIndices[i]].x += (0.5 - this.seededRandom()) * offset;
+              this.body.nodes[this.body.nodeIndices[i]].y += (0.5 - this.seededRandom()) * offset;
             }
 
             // uncluster all clusters
