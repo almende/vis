@@ -1,661 +1,122 @@
-<!DOCTYPE HTML>
+<!doctype html>
+<!-- saved from url=(0044)http://kenedict.com/networks/worldcup14/vis/ , thanks Andre!-->
 <html>
 <head>
-    <script src="../dist/vis.js"></script>
-    <link href="http://visjs.org/dist/vis.css" rel="stylesheet" type="text/css" />
+    <meta http-equiv="content-type" content="text/html; charset=UTF8">
+    <title>Network | Static smooth curves - World Cup Network</title>
+
+    <script type="text/javascript" src="../dist/vis.js"></script>
+    <link type="text/css" rel="stylesheet" href="../dist/vis.css">
+
+
     <style type="text/css">
-        .graph {
-            width: 600px;
-            height: 500px;
-        }  </style>
+        #mynetwork {
+            width: 800px;
+            height: 800px;
+            border: 1px solid lightgray;
+        }
+    </style>
+    <script src="../../googleAnalytics.js"></script>
 </head>
+
 <body>
 
-Reset causes crash
+<h2>Performance - World Cup Network</h2>
 
-<pre>
+<div style="width:700px; font-size:14px;">
+    This example shows the performance of vis with a larger network. The edges in
+    particular (~9200) are very computationally intensive
+    to draw. Drag and hold the graph to see the performance difference if the
+    edges are hidden.
+    <br/><br/>
+    We use the following physics configuration: <br/>
+    <code>{barnesHut: {gravitationalConstant: -80000, springConstant: 0.001,
+        springLength: 200}}</code>
+    <br/><br/>
+</div>
 
-When you press the button, the nodes dataset will receive an update which shall reset the font and color properties, instead, vis crashes :(
-
-(The browser console shows the details)
-
-</pre>
-
-<button onclick="javascript:action()">Click me!</button>
-
-<div class="graph" id="visualization1"></div>
-
+<div id="mynetwork"></div>
 
 <script type="text/javascript">
+    var network;
 
-    var action = function() {
-        nodes.update([
-            {
-                "id": "35b99ac8-aa07-4834-b508-6e9435f573cb",
-                "label": "Adam",
-                "x": -96,
-                "y": -382,
-                "fixed": {
-                    "x": true,
-                    "y": true
-                },
-                "color": null,
-                "font": null
-            },
-            {
-                "id": "38d37e10-3c8b-487c-9757-1061d2bbbd07",
-                "label": "Betsy",
-                "x": -19,
-                "y": -548,
-                "fixed": {
-                    "x": true,
-                    "y": true
-                },
-                "color": null,
-                "font": null
-            },
-            {
-                "id": "4762501a-6bcb-4d35-acfd-f2e9d6310389",
-                "label": "Carol",
-                "x": -243,
-                "y": -378,
-                "fixed": {
-                    "x": true,
-                    "y": true
-                },
-                "color": null,
-                "font": null
-            },
-            {
-                "id": "7e17b617-b7a4-4f70-937b-f45ec8dc0a9d",
-                "label": "Catherine",
-                "x": -551,
-                "y": -214,
-                "fixed": {
-                    "x": true,
-                    "y": true
-                },
-                "color": null,
-                "font": null
-            },
-            {
-                "id": "e017a09b-4526-4b4d-b097-f70e56f20ab4",
-                "label": "Craig",
-                "x": 155,
-                "y": -381,
-                "fixed": {
-                    "x": true,
-                    "y": true
-                },
-                "color": null,
-                "font": null
-            },
-            {
-                "id": "8ec7f3ee-35f9-4c56-a57b-12d91c0c372e",
-                "label": "George",
-                "x": -302,
-                "y": -536,
-                "fixed": {
-                    "x": true,
-                    "y": true
-                },
-                "color": null,
-                "font": null
-            },
-            {
-                "id": "8d2a0469-bb6a-4e40-ab1f-3d5edc620415",
-                "label": "Jessica",
-                "x": -4,
-                "y": -379,
-                "fixed": {
-                    "x": true,
-                    "y": true
-                },
-                "color": null,
-                "font": null
-            },
-            {
-                "id": "afd75e95-e45a-4dea-848a-e16ca735bc57",
-                "label": "John",
-                "x": -531,
-                "y": -543,
-                "fixed": {
-                    "x": true,
-                    "y": true
-                },
-                "color": null,
-                "font": null
-            },
-            {
-                "id": "9c050064-d805-48b3-80a6-181d3599daff",
-                "label": "Mary",
-                "x": -280,
-                "y": -210,
-                "fixed": {
-                    "x": true,
-                    "y": true
-                },
-                "color": null,
-                "font": null
-            },
-            {
-                "id": "f24ab062-62a1-4555-a57f-dfcd597c3515",
-                "label": "Michael",
-                "x": -98,
-                "y": -211,
-                "fixed": {
-                    "x": true,
-                    "y": true
-                },
-                "color": null,
-                "font": null
-            },
-            {
-                "id": "59d10b18-1c9e-4dcb-ba4f-988ebd7a3efb",
-                "label": "Michelle",
-                "x": -630,
-                "y": -387,
-                "fixed": {
-                    "x": true,
-                    "y": true
-                },
-                "color": null,
-                "font": null
-            },
-            {
-                "id": "b11149a2-9050-4632-b095-d9d233319b91",
-                "label": "Robert",
-                "x": -360,
-                "y": -380,
-                "fixed": {
-                    "x": true,
-                    "y": true
-                },
-                "color": null,
-                "font": null
-            },
-            {
-                "id": "a1485262-99fe-4b1e-a246-cc70fbb1859a",
-                "label": "Sharon",
-                "x": -532,
-                "y": -384,
-                "fixed": {
-                    "x": true,
-                    "y": true
-                },
-                "color": null,
-                "font": null
+    function loadJSON(path, success, error) {
+        var xhr = new XMLHttpRequest();
+        xhr.onreadystatechange = function () {
+            if (xhr.readyState === 4) {
+                if (xhr.status === 200) {
+                    success(JSON.parse(xhr.responseText));
+                }
+                else {
+                    error(xhr);
+                }
             }
-        ]);
+        };
+        xhr.open('GET', path, true);
+        xhr.send();
     }
 
-    var nodes = new vis.DataSet([
-        {
-            "id": "35b99ac8-aa07-4834-b508-6e9435f573cb",
-            "label": "Adam",
-            "color": {
-                "background": "rgba(252,245,170,1)",
-                "border": "rgba(183,148,134,1)"
-            },
-            "x": -96,
-            "y": -382,
-            "fixed": {
-                "x": true,
-                "y": true
-            },
-            "font": {
-                "color": "#000000"
-            }
-        },
-        {
-            "id": "38d37e10-3c8b-487c-9757-1061d2bbbd07",
-            "label": "Betsy",
-            "color": {
-                "background": "rgba(252,245,170,1)",
-                "border": "rgba(183,148,134,1)"
-            },
-            "x": -19,
-            "y": -548,
-            "fixed": {
-                "x": true,
-                "y": true
-            },
-            "font": {
-                "color": "#000000"
-            }
-        },
-        {
-            "id": "4762501a-6bcb-4d35-acfd-f2e9d6310389",
-            "label": "Carol",
-            "color": {
-                "background": "rgba(252,245,170,1)",
-                "border": "rgba(183,148,134,1)"
-            },
-            "x": -243,
-            "y": -378,
-            "fixed": {
-                "x": true,
-                "y": true
-            },
-            "font": {
-                "color": "#000000"
-            }
-        },
-        {
-            "id": "7e17b617-b7a4-4f70-937b-f45ec8dc0a9d",
-            "label": "Catherine",
-            "color": {
-                "background": "rgba(252,245,170,1)",
-                "border": "rgba(183,148,134,1)"
-            },
-            "x": -551,
-            "y": -214,
-            "fixed": {
-                "x": true,
-                "y": true
-            },
-            "font": {
-                "color": "#000000"
-            }
-        },
-        {
-            "id": "e017a09b-4526-4b4d-b097-f70e56f20ab4",
-            "label": "Craig",
-            "color": {
-                "background": "rgba(252,245,170,1)",
-                "border": "rgba(183,148,134,1)"
-            },
-            "x": 155,
-            "y": -381,
-            "fixed": {
-                "x": true,
-                "y": true
-            },
-            "font": {
-                "color": "#000000"
-            }
-        },
-        {
-            "id": "8ec7f3ee-35f9-4c56-a57b-12d91c0c372e",
-            "label": "George",
-            "color": {
-                "background": "rgba(252,245,170,1)",
-                "border": "rgba(183,148,134,1)"
-            },
-            "x": -302,
-            "y": -536,
-            "fixed": {
-                "x": true,
-                "y": true
-            },
-            "font": {
-                "color": "#000000"
-            }
-        },
-        {
-            "id": "8d2a0469-bb6a-4e40-ab1f-3d5edc620415",
-            "label": "Jessica",
-            "color": {
-                "background": "rgba(252,245,170,1)",
-                "border": "rgba(183,148,134,1)"
-            },
-            "x": -4,
-            "y": -379,
-            "fixed": {
-                "x": true,
-                "y": true
-            },
-            "font": {
-                "color": "#000000"
-            }
-        },
-        {
-            "id": "afd75e95-e45a-4dea-848a-e16ca735bc57",
-            "label": "John",
-            "color": {
-                "background": "rgba(252,245,170,1)",
-                "border": "rgba(183,148,134,1)"
-            },
-            "x": -531,
-            "y": -543,
-            "fixed": {
-                "x": true,
-                "y": true
-            },
-            "font": {
-                "color": "#000000"
-            }
-        },
-        {
-            "id": "9c050064-d805-48b3-80a6-181d3599daff",
-            "label": "Mary",
-            "color": {
-                "background": "rgba(252,245,170,1)",
-                "border": "rgba(183,148,134,1)"
-            },
-            "x": -280,
-            "y": -210,
-            "fixed": {
-                "x": true,
-                "y": true
-            },
-            "font": {
-                "color": "#000000"
-            }
-        },
-        {
-            "id": "f24ab062-62a1-4555-a57f-dfcd597c3515",
-            "label": "Michael",
-            "color": {
-                "background": "rgba(252,245,170,1)",
-                "border": "rgba(183,148,134,1)"
-            },
-            "x": -98,
-            "y": -211,
-            "fixed": {
-                "x": true,
-                "y": true
-            },
-            "font": {
-                "color": "#000000"
-            }
-        },
-        {
-            "id": "59d10b18-1c9e-4dcb-ba4f-988ebd7a3efb",
-            "label": "Michelle",
-            "color": {
-                "background": "rgba(252,245,170,1)",
-                "border": "rgba(183,148,134,1)"
-            },
-            "x": -630,
-            "y": -387,
-            "fixed": {
-                "x": true,
-                "y": true
-            },
-            "font": {
-                "color": "#000000"
-            }
-        },
-        {
-            "id": "b11149a2-9050-4632-b095-d9d233319b91",
-            "label": "Robert",
-            "color": {
-                "background": "rgba(252,245,170,1)",
-                "border": "rgba(183,148,134,1)"
-            },
-            "x": -360,
-            "y": -380,
-            "fixed": {
-                "x": true,
-                "y": true
-            },
-            "font": {
-                "color": "#000000"
-            }
-        },
-        {
-            "id": "a1485262-99fe-4b1e-a246-cc70fbb1859a",
-            "label": "Sharon",
-            "color": {
-                "background": "rgba(252,245,170,1)",
-                "border": "rgba(183,148,134,1)"
-            },
-            "x": -532,
-            "y": -384,
-            "fixed": {
-                "x": true,
-                "y": true
-            },
-            "font": {
-                "color": "#000000"
-            }
-        }
-    ]);
 
-    var edges = new vis.DataSet([
-        {
-            "id": "62b28c2f-c6dc-4b6b-b108-722eb47d5972",
-            "from": "35b99ac8-aa07-4834-b508-6e9435f573cb",
-            "to": "f24ab062-62a1-4555-a57f-dfcd597c3515",
-            "type": "family:father of",
-            "label": "father of",
-            "color": "#bc960d",
-            "labelAlignment": "line-above"
-        },
-        {
-            "id": "4ae8de41-ef1a-400a-b51b-05662ce24597",
-            "from": "38d37e10-3c8b-487c-9757-1061d2bbbd07",
-            "to": "e017a09b-4526-4b4d-b097-f70e56f20ab4",
-            "type": "family:mother of",
-            "label": "mother of",
-            "color": "#eec75b",
-            "labelAlignment": "line-above"
-        },
-        {
-            "id": "70f6e36a-ce9a-47b4-97e1-14b2df17d204",
-            "from": "38d37e10-3c8b-487c-9757-1061d2bbbd07",
-            "to": "8d2a0469-bb6a-4e40-ab1f-3d5edc620415",
-            "type": "family:mother of",
-            "label": "mother of",
-            "color": "#eec75b",
-            "labelAlignment": "line-above"
-        },
-        {
-            "id": "c32a86ce-ab9a-49b6-a202-e93a37265fda",
-            "from": "38d37e10-3c8b-487c-9757-1061d2bbbd07",
-            "to": "b11149a2-9050-4632-b095-d9d233319b91",
-            "type": "family:mother of",
-            "label": "mother of",
-            "color": "#eec75b",
-            "labelAlignment": "line-above"
-        },
-        {
-            "id": "bbce9cc0-0353-45cd-bfa6-a13834ff7218",
-            "from": "4762501a-6bcb-4d35-acfd-f2e9d6310389",
-            "to": "f24ab062-62a1-4555-a57f-dfcd597c3515",
-            "type": "family:mother of",
-            "label": "mother of",
-            "color": "#eec75b",
-            "labelAlignment": "line-above"
-        },
-        {
-            "id": "deb7eb05-f667-496b-aeda-205c37b2484b",
-            "from": "8ec7f3ee-35f9-4c56-a57b-12d91c0c372e",
-            "to": "afd75e95-e45a-4dea-848a-e16ca735bc57",
-            "type": "family:brother of",
-            "label": "brother of",
-            "color": "green",
-            "labelAlignment": "line-above"
-        },
-        {
-            "id": "3c8c7947-6c82-4f98-978a-26bbb372bfbb",
-            "from": "afd75e95-e45a-4dea-848a-e16ca735bc57",
-            "to": "a1485262-99fe-4b1e-a246-cc70fbb1859a",
-            "type": "family:father of",
-            "label": "father of",
-            "color": "#bc960d",
-            "labelAlignment": "line-above"
-        },
-        {
-            "id": "cd4e71e7-9735-4a42-8632-e88cc01ab64f",
-            "from": "f24ab062-62a1-4555-a57f-dfcd597c3515",
-            "to": "9c050064-d805-48b3-80a6-181d3599daff",
-            "type": "family:brother of",
-            "label": "brother of",
-            "color": "green",
-            "labelAlignment": "line-above"
-        },
-        {
-            "id": "b4499f60-04f9-4306-9c57-3d73b72f37c0",
-            "from": "59d10b18-1c9e-4dcb-ba4f-988ebd7a3efb",
-            "to": "7e17b617-b7a4-4f70-937b-f45ec8dc0a9d",
-            "type": "family:mother of",
-            "label": "mother of",
-            "color": "#eec75b",
-            "labelAlignment": "line-above"
-        },
-        {
-            "id": "16562853-b597-44f6-9c55-2ce8a1fe4f83",
-            "from": "b11149a2-9050-4632-b095-d9d233319b91",
-            "to": "7e17b617-b7a4-4f70-937b-f45ec8dc0a9d",
-            "type": "family:father of",
-            "label": "father of",
-            "color": "#bc960d",
-            "labelAlignment": "line-above"
-        },
-        {
-            "id": "599dd644-e61f-401e-8b17-dfdd340c125e",
-            "from": "b11149a2-9050-4632-b095-d9d233319b91",
-            "to": "9c050064-d805-48b3-80a6-181d3599daff",
-            "type": "family:father of",
-            "label": "father of",
-            "color": "#bc960d",
-            "labelAlignment": "line-above"
-        },
-        {
-            "id": "961f7f2b-5abe-4036-a155-aa9b30ae1260",
-            "from": "b11149a2-9050-4632-b095-d9d233319b91",
-            "to": "a1485262-99fe-4b1e-a246-cc70fbb1859a",
-            "type": "family:married to",
-            "title": "Does not need to be a christian marriage though...",
-            "label": "married to",
-            "color": "#17bba3",
-            "labelAlignment": "line-above"
-        }
-    ]);
+    function redrawAll(data) {
 
-    var data = {
-        nodes: nodes,
-        edges: edges
-    };
+        // remove positoins
+//        for (var i = 0; i < nodes.length; i++) {
+//            delete nodes[i].x;
+//            delete nodes[i].y;
+//        }
 
-    var options = {
-                "autoResize": true,
-                "height": "100%",
-                "width": "100%",
-                "interaction": {
-                    "dragNodes":true,
-                    "dragView": true,
-                    "hideEdgesOnDrag": false,
-                    "hideNodesOnDrag": false,
-                    "hover": false,
-                    "navigationButtons": true,
-                    "selectable": true,
-                    "selectConnectedEdges": true,
-                    "tooltipDelay": 300,
-                    "zoomView": true,
-                    "keyboard": {
-                        "enabled": false,
-                        "speed": {
-                            "x": 10,
-                            "y": 10,
-                            "zoom": 0.02
-                        },
-                        "bindToWindow": true
-                    }
+        // create a network
+        var container = document.getElementById('mynetwork');
+        console.log(data)
+        var options = {
+            edges:{
+//                smooth:false,
+            },
+            layout:{
+                improvedLayout:false
+            },
+            interaction: {
+                hideEdgesOnDrag: true,
+                keyboard: true,
+                multiselect: true
+            },
+            physics: {
+                enabled: true,
+                solver: 'forceAtlas2Based',
+                forceAtlas2Based: {
+                    gravitationalConstant: -100,
+                    springConstant: 0.40,
+                    springLength: 50,
+                    damping: 0.1,
+                    avoidOverlap: 0
                 },
-                "nodes": {
-                    "shape": "box",
-                    font: {color:"#ff0000"},
-                    "color": {
-                        "border" : "#2B7CE9",
-                        "background" : "#97C2FC",
-                        "highlight": {
-                            "border": "#2B7CE9",
-                            "background": "#D2E5FF"
-                        },
-                        "hover": {
-                            "border": "white",
-                            "background": "white"
-                        }
-                    }
+                stabilization: {
+                    enabled: true,
+                    iterations: 1000,
+                    fit: true
                 },
-                "physics": {
-                    "barnesHut": {
-                        "centralGravity": 0,
-                        "springLength": 240
-                    }
-                },
-                "groups": {
-                    "neighbours": {
-                        "color": "#E6E6E6"
-                    },
-                    "matches": {
-                        "color": "#97C2FC"
-                    }
-                },
-
-                "locale": "en_EN"
+                timestep: 0.5
             }
-            ;
+        };
 
-    var container = document.getElementById("visualization1");
+        // Note: data is coming from ./datasources/WorldCup2014.js
+        network = new vis.Network(container, data, options);
+        network.on("startStabilizing", function (params) {
+            console.log("started")
+        });
+        network.on("stabilizationProgress", function (params) {
+            console.log("progress:",params);
+        });
+        network.on("stabilizationIterationsDone", function (params) {
+            console.log("finished stabilization interations");
+        });
+        network.on("stabilized", function (params) {
+            console.log("stabilized!", params);
+        });
 
-    var network = new vis.Network(container, data, options);
+    }
 
-    var hasNetworkStabilized = false;
-    network.on("stabilized", function(properties) {
-
-        if(!hasNetworkStabilized) {
-            hasNetworkStabilized = true;
-
-            network.storePositions();
-            setNodesMoveable(data.nodes.get(), false);
-
-            network.fit();
-        }
-
-    });
-
-    network.on("dragStart", function(properties) {
-        if(properties.nodes.length) {
-            var node = data.nodes.get(properties.nodes[0]);
-            setNodesMoveable([ node ], true);
-        }
-    });
-
-    network.on("dragEnd", function(properties) {
-        if(properties.nodes.length) {
-            var node = data.nodes.get(properties.nodes[0]);
-            setNodesMoveable([ node ], false);
-        }
-    });
-
-    setNodesMoveable = function(nodes, isMoveable) {
-
-        // first store positions
-        network.storePositions();
-
-        var updates = [];
-        var keys = Object.keys(nodes);
-
-        for(var i = 0; i < keys.length; i++) {
-
-            var id = nodes[keys[i]].id;
-
-            var update = {
-                id: id,
-                fixed: {  // v4: formerly allowToMoveX, allowToMoveY
-                    x: !isMoveable,
-                    y: !isMoveable
-                }
-            };
-
-            updates.push(update);
-
-        }
-
-        data.nodes.update(updates);
-
-        console.log(updates);
-
-    };
-
-
-
-
-
+    loadJSON('./dataTest.json', redrawAll, function(err) {console.log('error')});
 </script>
 </body>
 </html>
