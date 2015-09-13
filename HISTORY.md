@@ -10,6 +10,7 @@ http://visjs.org
 - Fixed setting font to null so the network won't crash anymore.
 - Fixed stabilized event not firing if layout algorithm does very well.
 - Fixed arrows with some shapes when they are selected. #1292
+- Fixed deletion of options by settings them to null.
 
 ## 2015-09-07, version 4.8.1
 

@@ -388,7 +388,11 @@ return /******/ (function(modules) { // webpackBootstrap
           } else if (Array.isArray(b[prop])) {
             throw new TypeError('Arrays are not supported by deepExtend');
           } else {
-            a[prop] = b[prop];
+            if (b[prop] === null && a[prop] !== undefined && allowDeletion === true) {
+              delete a[prop];
+            } else {
+              a[prop] = b[prop];
+            }
           }
         }
       }
@@ -433,7 +437,11 @@ return /******/ (function(modules) { // webpackBootstrap
               a[prop].push(b[prop][i]);
             }
           } else {
-            a[prop] = b[prop];
+            if (b[prop] === null && a[prop] !== undefined && allowDeletion === true) {
+              delete a[prop];
+            } else {
+              a[prop] = b[prop];
+            }
           }
         }
       }
@@ -472,7 +480,11 @@ return /******/ (function(modules) { // webpackBootstrap
             a[prop].push(b[prop][i]);
           }
         } else {
-          a[prop] = b[prop];
+          if (b[prop] === null && a[prop] !== undefined && allowDeletion === true) {
+            delete a[prop];
+          } else {
+            a[prop] = b[prop];
+          }
         }
       }
     }
@@ -1357,10 +1369,10 @@ return /******/ (function(modules) { // webpackBootstrap
    */
   exports.mergeOptions = function (mergeTarget, options, option) {
     var allowDeletion = arguments.length <= 3 || arguments[3] === undefined ? false : arguments[3];
+    var globalOptions = arguments.length <= 4 || arguments[4] === undefined ? {} : arguments[4];
 
     if (options[option] === null) {
-      mergeTarget[option] = undefined;
-      delete mergeTarget[option];
+      mergeTarget[option] = Object.create(globalOptions[option]);
     } else {
       if (options[option] !== undefined) {
         if (typeof options[option] === 'boolean') {
@@ -28193,6 +28205,7 @@ return /******/ (function(modules) { // webpackBootstrap
       _classCallCheck(this, Node);
 
       this.options = util.bridgeObject(globalOptions);
+      this.globalOptions = globalOptions;
       this.body = body;
 
       this.edges = []; // all edges connected to this node
@@ -28294,7 +28307,7 @@ return /******/ (function(modules) { // webpackBootstrap
         }
 
         // this transforms all shorthands into fully defined options
-        Node.parseOptions(this.options, options, true);
+        Node.parseOptions(this.options, options, true, this.globalOptions);
 
         // load the images
         if (this.options.image !== undefined) {
@@ -28552,20 +28565,20 @@ return /******/ (function(modules) { // webpackBootstrap
       key: 'parseOptions',
       value: function parseOptions(parentOptions, newOptions) {
         var allowDeletion = arguments.length <= 2 || arguments[2] === undefined ? false : arguments[2];
+        var globalOptions = arguments.length <= 3 || arguments[3] === undefined ? {} : arguments[3];
 
         var fields = ['color', 'font', 'fixed', 'shadow'];
         util.selectiveNotDeepExtend(fields, parentOptions, newOptions, allowDeletion);
 
         // merge the shadow options into the parent.
-        util.mergeOptions(parentOptions, newOptions, 'shadow');
+        util.mergeOptions(parentOptions, newOptions, 'shadow', allowDeletion, globalOptions);
 
         // individual shape newOptions
         if (newOptions.color !== undefined && newOptions.color !== null) {
           var parsedColor = util.parseColor(newOptions.color);
           util.fillIfDefined(parentOptions.color, parsedColor);
         } else if (allowDeletion === true && newOptions.color === null) {
-          parentOptions.color = undefined;
-          delete parentOptions.color;
+          parentOptions.color = Object.create(globalOptions.color); // this sets the pointer of the option back to the global option.
         }
 
         // handle the fixed options
@@ -28587,13 +28600,12 @@ return /******/ (function(modules) { // webpackBootstrap
         if (newOptions.font !== undefined && newOptions.font !== null) {
           _sharedLabel2['default'].parseOptions(parentOptions.font, newOptions);
         } else if (allowDeletion === true && newOptions.font === null) {
-          parentOptions.font = undefined;
-          delete parentOptions.font;
+          parentOptions.font = Object.create(globalOptions.font); // this sets the pointer of the option back to the global option.
         }
 
         // handle the scaling options, specifically the label part
         if (newOptions.scaling !== undefined) {
-          util.mergeOptions(parentOptions.scaling, newOptions.scaling, 'label', allowDeletion);
+          util.mergeOptions(parentOptions.scaling, newOptions.scaling, 'label', allowDeletion, globalOptions.scaling);
         }
       }
     }]);
@@ -30961,6 +30973,7 @@ return /******/ (function(modules) { // webpackBootstrap
         throw "No body provided";
       }
       this.options = util.bridgeObject(globalOptions);
+      this.globalOptions = globalOptions;
       this.body = body;
 
       // initialize variables
@@ -31001,7 +31014,7 @@ return /******/ (function(modules) { // webpackBootstrap
         }
         this.colorDirty = true;
 
-        Edge.parseOptions(this.options, options, true);
+        Edge.parseOptions(this.options, options, true, this.globalOptions);
 
         if (options.id !== undefined) {
           this.id = options.id;
@@ -31038,6 +31051,7 @@ return /******/ (function(modules) { // webpackBootstrap
       }
     }, {
       key: 'updateLabelModule',
+      // this sets the pointer of the option back to the global option.
 
       /**
        * update the options in the label module
@@ -31370,20 +31384,20 @@ return /******/ (function(modules) { // webpackBootstrap
       key: 'parseOptions',
       value: function parseOptions(parentOptions, newOptions) {
         var allowDeletion = arguments.length <= 2 || arguments[2] === undefined ? false : arguments[2];
+        var globalOptions = arguments.length <= 3 || arguments[3] === undefined ? {} : arguments[3];
 
         var fields = ['id', 'from', 'hidden', 'hoverWidth', 'label', 'labelHighlightBold', 'length', 'line', 'opacity', 'physics', 'scaling', 'selectionWidth', 'selfReferenceSize', 'to', 'title', 'value', 'width'];
 
         // only deep extend the items in the field array. These do not have shorthand.
         util.selectiveDeepExtend(fields, parentOptions, newOptions, allowDeletion);
 
-        util.mergeOptions(parentOptions, newOptions, 'smooth');
-        util.mergeOptions(parentOptions, newOptions, 'shadow');
+        util.mergeOptions(parentOptions, newOptions, 'smooth', allowDeletion, globalOptions);
+        util.mergeOptions(parentOptions, newOptions, 'shadow', allowDeletion, globalOptions);
 
         if (newOptions.dashes !== undefined && newOptions.dashes !== null) {
           parentOptions.dashes = newOptions.dashes;
         } else if (allowDeletion === true && newOptions.dashes === null) {
-          parentOptions.dashes = undefined;
-          delete parentOptions.dashes;
+          parentOptions.dashes = Object.create(globalOptions.dashes); // this sets the pointer of the option back to the global option.
         }
 
         // set the scaling newOptions
@@ -31394,10 +31408,9 @@ return /******/ (function(modules) { // webpackBootstrap
           if (newOptions.scaling.max !== undefined) {
             parentOptions.scaling.max = newOptions.scaling.max;
           }
-          util.mergeOptions(parentOptions.scaling, newOptions.scaling, 'label');
+          util.mergeOptions(parentOptions.scaling, newOptions.scaling, 'label', allowDeletion, globalOptions.scaling);
         } else if (allowDeletion === true && newOptions.scaling === null) {
-          parentOptions.scaling = undefined;
-          delete parentOptions.scaling;
+          parentOptions.scaling = Object.create(globalOptions.scaling); // this sets the pointer of the option back to the global option.
         }
 
         // hanlde multiple input cases for arrows
@@ -31414,15 +31427,14 @@ return /******/ (function(modules) { // webpackBootstrap
               parentOptions.arrows.from.enabled = true;
             }
           } else if (typeof newOptions.arrows === 'object') {
-            util.mergeOptions(parentOptions.arrows, newOptions.arrows, 'to');
-            util.mergeOptions(parentOptions.arrows, newOptions.arrows, 'middle');
-            util.mergeOptions(parentOptions.arrows, newOptions.arrows, 'from');
+            util.mergeOptions(parentOptions.arrows, newOptions.arrows, 'to', allowDeletion, globalOptions.arrows);
+            util.mergeOptions(parentOptions.arrows, newOptions.arrows, 'middle', allowDeletion, globalOptions.arrows);
+            util.mergeOptions(parentOptions.arrows, newOptions.arrows, 'from', allowDeletion, globalOptions.arrows);
           } else {
             throw new Error("The arrow newOptions can only be an object or a string. Refer to the documentation. You used:" + JSON.stringify(newOptions.arrows));
           }
         } else if (allowDeletion === true && newOptions.arrows === null) {
-          parentOptions.arrows = undefined;
-          delete parentOptions.arrows;
+          parentOptions.arrows = Object.create(globalOptions.arrows); // this sets the pointer of the option back to the global option.
         }
 
         // hanlde multiple input cases for color
@@ -31455,16 +31467,14 @@ return /******/ (function(modules) { // webpackBootstrap
             }
           }
         } else if (allowDeletion === true && newOptions.color === null) {
-          parentOptions.color = undefined;
-          delete parentOptions.color;
+          parentOptions.color = Object.create(globalOptions.color); // this sets the pointer of the option back to the global option.
         }
 
         // handle the font settings
         if (newOptions.font !== undefined && newOptions.font !== null) {
           _sharedLabel2['default'].parseOptions(parentOptions.font, newOptions);
         } else if (allowDeletion === true && newOptions.font === null) {
-          parentOptions.font = undefined;
-          delete parentOptions.font;
+          parentOptions.font = Object.create(globalOptions.font);
         }
       }
     }]);
