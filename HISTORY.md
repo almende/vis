@@ -1,7 +1,7 @@
 # vis.js history
 http://visjs.org
 
-## 2015-09-07, version 4.8.2-SNAPSHOT NOT YET RELEASED
+## 2015-09-14, version 4.8.2
 
 ### Network
 

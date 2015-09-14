@@ -4,8 +4,8 @@
  *
  * A dynamic, browser-based visualization library.
  *
- * @version 4.8.2-SNAPSHOT
- * @date    2015-09-13
+ * @version 4.8.2
+ * @date    2015-09-14
  *
  * @license
  * Copyright (C) 2011-2015 Almende B.V, http://almende.com
@@ -29,7 +29,7 @@
 	if(typeof exports === 'object' && typeof module === 'object')
 		module.exports = factory();
 	else if(typeof define === 'function' && define.amd)
-		define(factory);
+		define([], factory);
 	else if(typeof exports === 'object')
 		exports["vis"] = factory();
 	else
@@ -97,8 +97,8 @@ return /******/ (function(modules) { // webpackBootstrap
   exports.graph3d = {
     Camera: __webpack_require__(15),
     Filter: __webpack_require__(16),
-    Point2d: __webpack_require__(12),
-    Point3d: __webpack_require__(14),
+    Point2d: __webpack_require__(14),
+    Point3d: __webpack_require__(13),
     Slider: __webpack_require__(17),
     StepNumber: __webpack_require__(18)
   };
@@ -110,16 +110,16 @@ return /******/ (function(modules) { // webpackBootstrap
     DateUtil: __webpack_require__(27),
     DataStep: __webpack_require__(52),
     Range: __webpack_require__(24),
-    stack: __webpack_require__(31),
-    TimeStep: __webpack_require__(34),
+    stack: __webpack_require__(32),
+    TimeStep: __webpack_require__(30),
 
     components: {
       items: {
-        Item: __webpack_require__(33),
+        Item: __webpack_require__(34),
         BackgroundItem: __webpack_require__(38),
         BoxItem: __webpack_require__(36),
         PointItem: __webpack_require__(37),
-        RangeItem: __webpack_require__(32)
+        RangeItem: __webpack_require__(33)
       },
 
       Component: __webpack_require__(26),
@@ -127,7 +127,7 @@ return /******/ (function(modules) { // webpackBootstrap
       CustomTime: __webpack_require__(42),
       DataAxis: __webpack_require__(51),
       GraphGroup: __webpack_require__(53),
-      Group: __webpack_require__(30),
+      Group: __webpack_require__(31),
       BackgroundGroup: __webpack_require__(35),
       ItemSet: __webpack_require__(29),
       Legend: __webpack_require__(57),
@@ -1559,13 +1559,13 @@ return /******/ (function(modules) { // webpackBootstrap
 /***/ function(module, exports, __webpack_require__) {
 
   /* WEBPACK VAR INJECTION */(function(module) {//! moment.js
-  //! version : 2.10.3
+  //! version : 2.10.6
   //! authors : Tim Wood, Iskren Chernev, Moment.js contributors
   //! license : MIT
   //! momentjs.com
 
   (function (global, factory) {
-      true ? module.exports = factory() :
+       true ? module.exports = factory() :
       typeof define === 'function' && define.amd ? define(factory) :
       global.moment = factory()
   }(this, function () { 'use strict';
@@ -1654,6 +1654,7 @@ return /******/ (function(modules) { // webpackBootstrap
                   flags.overflow < 0 &&
                   !flags.empty &&
                   !flags.invalidMonth &&
+                  !flags.invalidWeekday &&
                   !flags.nullInput &&
                   !flags.invalidFormat &&
                   !flags.userInvalidated;
@@ -1734,7 +1735,7 @@ return /******/ (function(modules) { // webpackBootstrap
       // Moment prototype object
       function Moment(config) {
           copyConfig(this, config);
-          this._d = new Date(+config._d);
+          this._d = new Date(config._d != null ? config._d.getTime() : NaN);
           // Prevent infinite loop in case updateOffset creates new moment
           // objects.
           if (updateInProgress === false) {
@@ -1748,16 +1749,20 @@ return /******/ (function(modules) { // webpackBootstrap
           return obj instanceof Moment || (obj != null && obj._isAMomentObject != null);
       }
 
+      function absFloor (number) {
+          if (number < 0) {
+              return Math.ceil(number);
+          } else {
+              return Math.floor(number);
+          }
+      }
+
       function toInt(argumentForCoercion) {
           var coercedNumber = +argumentForCoercion,
               value = 0;
 
           if (coercedNumber !== 0 && isFinite(coercedNumber)) {
-              if (coercedNumber >= 0) {
-                  value = Math.floor(coercedNumber);
-              } else {
-                  value = Math.ceil(coercedNumber);
-              }
+              value = absFloor(coercedNumber);
           }
 
           return value;
@@ -1855,9 +1860,7 @@ return /******/ (function(modules) { // webpackBootstrap
       function defineLocale (name, values) {
           if (values !== null) {
               values.abbr = name;
-              if (!locales[name]) {
-                  locales[name] = new Locale();
-              }
+              locales[name] = locales[name] || new Locale();
               locales[name].set(values);
 
               // backwards compat for now: also set the locale
@@ -1961,16 +1964,14 @@ return /******/ (function(modules) { // webpackBootstrap
       }
 
       function zeroFill(number, targetLength, forceSign) {
-          var output = '' + Math.abs(number),
+          var absNumber = '' + Math.abs(number),
+              zerosToFill = targetLength - absNumber.length,
               sign = number >= 0;
-
-          while (output.length < targetLength) {
-              output = '0' + output;
-          }
-          return (sign ? (forceSign ? '+' : '') : '-') + output;
+          return (sign ? (forceSign ? '+' : '') : '-') +
+              Math.pow(10, Math.max(0, zerosToFill)).toString().substr(1) + absNumber;
       }
 
-      var formattingTokens = /(\[[^\[]*\])|(\\)?(Mo|MM?M?M?|Do|DDDo|DD?D?D?|ddd?d?|do?|w[o|w]?|W[o|W]?|Q|YYYYYY|YYYYY|YYYY|YY|gg(ggg?)?|GG(GGG?)?|e|E|a|A|hh?|HH?|mm?|ss?|S{1,4}|x|X|zz?|ZZ?|.)/g;
+      var formattingTokens = /(\[[^\[]*\])|(\\)?(Mo|MM?M?M?|Do|DDDo|DD?D?D?|ddd?d?|do?|w[o|w]?|W[o|W]?|Q|YYYYYY|YYYYY|YYYY|YY|gg(ggg?)?|GG(GGG?)?|e|E|a|A|hh?|HH?|mm?|ss?|S{1,9}|x|X|zz?|ZZ?|.)/g;
 
       var localFormattingTokens = /(\[[^\[]*\])|(\\)?(LTS|LT|LL?L?L?|l{1,4})/g;
 
@@ -2038,10 +2039,7 @@ return /******/ (function(modules) { // webpackBootstrap
           }
 
           format = expandFormat(format, m.localeData());
-
-          if (!formatFunctions[format]) {
-              formatFunctions[format] = makeFormatFunction(format);
-          }
+          formatFunctions[format] = formatFunctions[format] || makeFormatFunction(format);
 
           return formatFunctions[format](m);
       }
@@ -2085,8 +2083,15 @@ return /******/ (function(modules) { // webpackBootstrap
 
       var regexes = {};
 
+      function isFunction (sth) {
+          // https://github.com/moment/moment/issues/2325
+          return typeof sth === 'function' &&
+              Object.prototype.toString.call(sth) === '[object Function]';
+      }
+
+
       function addRegexToken (token, regex, strictRegex) {
-          regexes[token] = typeof regex === 'function' ? regex : function (isStrict) {
+          regexes[token] = isFunction(regex) ? regex : function (isStrict) {
               return (isStrict && strictRegex) ? strictRegex : regex;
           };
       }
@@ -2294,12 +2299,11 @@ return /******/ (function(modules) { // webpackBootstrap
       }
 
       function deprecate(msg, fn) {
-          var firstTime = true,
-              msgWithStack = msg + '\n' + (new Error()).stack;
+          var firstTime = true;
 
           return extend(function () {
               if (firstTime) {
-                  warn(msgWithStack);
+                  warn(msg + '\n' + (new Error()).stack);
                   firstTime = false;
               }
               return fn.apply(this, arguments);
@@ -2347,14 +2351,14 @@ return /******/ (function(modules) { // webpackBootstrap
               getParsingFlags(config).iso = true;
               for (i = 0, l = isoDates.length; i < l; i++) {
                   if (isoDates[i][1].exec(string)) {
-                      // match[5] should be 'T' or undefined
-                      config._f = isoDates[i][0] + (match[6] || ' ');
+                      config._f = isoDates[i][0];
                       break;
                   }
               }
               for (i = 0, l = isoTimes.length; i < l; i++) {
                   if (isoTimes[i][1].exec(string)) {
-                      config._f += isoTimes[i][0];
+                      // match[6] should be 'T' or space
+                      config._f += (match[6] || ' ') + isoTimes[i][0];
                       break;
                   }
               }
@@ -2433,7 +2437,10 @@ return /******/ (function(modules) { // webpackBootstrap
       addRegexToken('YYYYY',  match1to6, match6);
       addRegexToken('YYYYYY', match1to6, match6);
 
-      addParseToken(['YYYY', 'YYYYY', 'YYYYYY'], YEAR);
+      addParseToken(['YYYYY', 'YYYYYY'], YEAR);
+      addParseToken('YYYY', function (input, array) {
+          array[YEAR] = input.length === 2 ? utils_hooks__hooks.parseTwoDigitYear(input) : toInt(input);
+      });
       addParseToken('YY', function (input, array) {
           array[YEAR] = utils_hooks__hooks.parseTwoDigitYear(input);
       });
@@ -2560,18 +2567,18 @@ return /******/ (function(modules) { // webpackBootstrap
 
       //http://en.wikipedia.org/wiki/ISO_week_date#Calculating_a_date_given_the_year.2C_week_number_and_weekday
       function dayOfYearFromWeeks(year, week, weekday, firstDayOfWeekOfYear, firstDayOfWeek) {
-          var d = createUTCDate(year, 0, 1).getUTCDay();
-          var daysToAdd;
-          var dayOfYear;
+          var week1Jan = 6 + firstDayOfWeek - firstDayOfWeekOfYear, janX = createUTCDate(year, 0, 1 + week1Jan), d = janX.getUTCDay(), dayOfYear;
+          if (d < firstDayOfWeek) {
+              d += 7;
+          }
 
-          d = d === 0 ? 7 : d;
-          weekday = weekday != null ? weekday : firstDayOfWeek;
-          daysToAdd = firstDayOfWeek - d + (d > firstDayOfWeekOfYear ? 7 : 0) - (d < firstDayOfWeek ? 7 : 0);
-          dayOfYear = 7 * (week - 1) + (weekday - firstDayOfWeek) + daysToAdd + 1;
+          weekday = weekday != null ? 1 * weekday : firstDayOfWeek;
+
+          dayOfYear = 1 + week1Jan + 7 * (week - 1) - d + weekday;
 
           return {
-              year      : dayOfYear > 0 ? year      : year - 1,
-              dayOfYear : dayOfYear > 0 ? dayOfYear : daysInYear(year - 1) + dayOfYear
+              year: dayOfYear > 0 ? year : year - 1,
+              dayOfYear: dayOfYear > 0 ?  dayOfYear : daysInYear(year - 1) + dayOfYear
           };
       }
 
@@ -2857,9 +2864,19 @@ return /******/ (function(modules) { // webpackBootstrap
       }
 
       function createFromConfig (config) {
+          var res = new Moment(checkOverflow(prepareConfig(config)));
+          if (res._nextDay) {
+              // Adding is smart enough around DST
+              res.add(1, 'd');
+              res._nextDay = undefined;
+          }
+
+          return res;
+      }
+
+      function prepareConfig (config) {
           var input = config._i,
-              format = config._f,
-              res;
+              format = config._f;
 
           config._locale = config._locale || locale_locales__getLocale(config._l);
 
@@ -2883,14 +2900,7 @@ return /******/ (function(modules) { // webpackBootstrap
               configFromInput(config);
           }
 
-          res = new Moment(checkOverflow(config));
-          if (res._nextDay) {
-              // Adding is smart enough around DST
-              res.add(1, 'd');
-              res._nextDay = undefined;
-          }
-
-          return res;
+          return config;
       }
 
       function configFromInput(config) {
@@ -2970,7 +2980,7 @@ return /******/ (function(modules) { // webpackBootstrap
           }
           res = moments[0];
           for (i = 1; i < moments.length; ++i) {
-              if (moments[i][fn](res)) {
+              if (!moments[i].isValid() || moments[i][fn](res)) {
                   res = moments[i];
               }
           }
@@ -3082,7 +3092,6 @@ return /******/ (function(modules) { // webpackBootstrap
           } else {
               return local__createLocal(input).local();
           }
-          return model._isUTC ? local__createLocal(input).zone(model._offset || 0) : local__createLocal(input).local();
       }
 
       function getDateOffset (m) {
@@ -3182,12 +3191,7 @@ return /******/ (function(modules) { // webpackBootstrap
       }
 
       function hasAlignedHourOffset (input) {
-          if (!input) {
-              input = 0;
-          }
-          else {
-              input = local__createLocal(input).utcOffset();
-          }
+          input = input ? local__createLocal(input).utcOffset() : 0;
 
           return (this.utcOffset() - input) % 60 === 0;
       }
@@ -3200,12 +3204,24 @@ return /******/ (function(modules) { // webpackBootstrap
       }
 
       function isDaylightSavingTimeShifted () {
-          if (this._a) {
-              var other = this._isUTC ? create_utc__createUTC(this._a) : local__createLocal(this._a);
-              return this.isValid() && compareArrays(this._a, other.toArray()) > 0;
+          if (typeof this._isDSTShifted !== 'undefined') {
+              return this._isDSTShifted;
           }
 
-          return false;
+          var c = {};
+
+          copyConfig(c, this);
+          c = prepareConfig(c);
+
+          if (c._a) {
+              var other = c._isUTC ? create_utc__createUTC(c._a) : local__createLocal(c._a);
+              this._isDSTShifted = this.isValid() &&
+                  compareArrays(c._a, other.toArray()) > 0;
+          } else {
+              this._isDSTShifted = false;
+          }
+
+          return this._isDSTShifted;
       }
 
       function isLocal () {
@@ -3365,7 +3381,7 @@ return /******/ (function(modules) { // webpackBootstrap
       var add_subtract__add      = createAdder(1, 'add');
       var add_subtract__subtract = createAdder(-1, 'subtract');
 
-      function moment_calendar__calendar (time) {
+      function moment_calendar__calendar (time, formats) {
           // We want to compare the start of today, vs this.
           // Getting start-of-today depends on whether we're local/utc/offset or not.
           var now = time || local__createLocal(),
@@ -3377,7 +3393,7 @@ return /******/ (function(modules) { // webpackBootstrap
                   diff < 1 ? 'sameDay' :
                   diff < 2 ? 'nextDay' :
                   diff < 7 ? 'nextWeek' : 'sameElse';
-          return this.format(this.localeData().calendar(format, this, local__createLocal(now)));
+          return this.format(formats && formats[format] || this.localeData().calendar(format, this, local__createLocal(now)));
       }
 
       function clone () {
@@ -3421,14 +3437,6 @@ return /******/ (function(modules) { // webpackBootstrap
           } else {
               inputMs = +local__createLocal(input);
               return +(this.clone().startOf(units)) <= inputMs && inputMs <= +(this.clone().endOf(units));
-          }
-      }
-
-      function absFloor (number) {
-          if (number < 0) {
-              return Math.ceil(number);
-          } else {
-              return Math.floor(number);
           }
       }
 
@@ -3622,6 +3630,19 @@ return /******/ (function(modules) { // webpackBootstrap
           return [m.year(), m.month(), m.date(), m.hour(), m.minute(), m.second(), m.millisecond()];
       }
 
+      function toObject () {
+          var m = this;
+          return {
+              years: m.year(),
+              months: m.month(),
+              date: m.date(),
+              hours: m.hours(),
+              minutes: m.minutes(),
+              seconds: m.seconds(),
+              milliseconds: m.milliseconds()
+          };
+      }
+
       function moment_valid__isValid () {
           return valid__isValid(this);
       }
@@ -3793,18 +3814,20 @@ return /******/ (function(modules) { // webpackBootstrap
       // HELPERS
 
       function parseWeekday(input, locale) {
-          if (typeof input === 'string') {
-              if (!isNaN(input)) {
-                  input = parseInt(input, 10);
-              }
-              else {
-                  input = locale.weekdaysParse(input);
-                  if (typeof input !== 'number') {
-                      return null;
-                  }
-              }
+          if (typeof input !== 'string') {
+              return input;
           }
-          return input;
+
+          if (!isNaN(input)) {
+              return parseInt(input, 10);
+          }
+
+          input = locale.weekdaysParse(input);
+          if (typeof input === 'number') {
+              return input;
+          }
+
+          return null;
       }
 
       // LOCALES
@@ -3827,9 +3850,7 @@ return /******/ (function(modules) { // webpackBootstrap
       function localeWeekdaysParse (weekdayName) {
           var i, mom, regex;
 
-          if (!this._weekdaysParse) {
-              this._weekdaysParse = [];
-          }
+          this._weekdaysParse = this._weekdaysParse || [];
 
           for (i = 0; i < 7; i++) {
               // make the regex if we don't have it already
@@ -3976,12 +3997,26 @@ return /******/ (function(modules) { // webpackBootstrap
           return ~~(this.millisecond() / 10);
       });
 
-      function millisecond__milliseconds (token) {
-          addFormatToken(0, [token, 3], 0, 'millisecond');
-      }
+      addFormatToken(0, ['SSS', 3], 0, 'millisecond');
+      addFormatToken(0, ['SSSS', 4], 0, function () {
+          return this.millisecond() * 10;
+      });
+      addFormatToken(0, ['SSSSS', 5], 0, function () {
+          return this.millisecond() * 100;
+      });
+      addFormatToken(0, ['SSSSSS', 6], 0, function () {
+          return this.millisecond() * 1000;
+      });
+      addFormatToken(0, ['SSSSSSS', 7], 0, function () {
+          return this.millisecond() * 10000;
+      });
+      addFormatToken(0, ['SSSSSSSS', 8], 0, function () {
+          return this.millisecond() * 100000;
+      });
+      addFormatToken(0, ['SSSSSSSSS', 9], 0, function () {
+          return this.millisecond() * 1000000;
+      });
 
-      millisecond__milliseconds('SSS');
-      millisecond__milliseconds('SSSS');
 
       // ALIASES
 
@@ -3992,11 +4027,19 @@ return /******/ (function(modules) { // webpackBootstrap
       addRegexToken('S',    match1to3, match1);
       addRegexToken('SS',   match1to3, match2);
       addRegexToken('SSS',  match1to3, match3);
-      addRegexToken('SSSS', matchUnsigned);
-      addParseToken(['S', 'SS', 'SSS', 'SSSS'], function (input, array) {
-          array[MILLISECOND] = toInt(('0.' + input) * 1000);
-      });
 
+      var token;
+      for (token = 'SSSS'; token.length <= 9; token += 'S') {
+          addRegexToken(token, matchUnsigned);
+      }
+
+      function parseMs(input, array) {
+          array[MILLISECOND] = toInt(('0.' + input) * 1000);
+      }
+
+      for (token = 'S'; token.length <= 9; token += 'S') {
+          addParseToken(token, parseMs);
+      }
       // MOMENTS
 
       var getSetMillisecond = makeGetSet('Milliseconds', false);
@@ -4043,6 +4086,7 @@ return /******/ (function(modules) { // webpackBootstrap
       momentPrototype__proto.startOf      = startOf;
       momentPrototype__proto.subtract     = add_subtract__subtract;
       momentPrototype__proto.toArray      = toArray;
+      momentPrototype__proto.toObject     = toObject;
       momentPrototype__proto.toDate       = toDate;
       momentPrototype__proto.toISOString  = moment_format__toISOString;
       momentPrototype__proto.toJSON       = moment_format__toISOString;
@@ -4142,19 +4186,23 @@ return /******/ (function(modules) { // webpackBootstrap
           LT   : 'h:mm A',
           L    : 'MM/DD/YYYY',
           LL   : 'MMMM D, YYYY',
-          LLL  : 'MMMM D, YYYY LT',
-          LLLL : 'dddd, MMMM D, YYYY LT'
+          LLL  : 'MMMM D, YYYY h:mm A',
+          LLLL : 'dddd, MMMM D, YYYY h:mm A'
       };
 
       function longDateFormat (key) {
-          var output = this._longDateFormat[key];
-          if (!output && this._longDateFormat[key.toUpperCase()]) {
-              output = this._longDateFormat[key.toUpperCase()].replace(/MMMM|MM|DD|dddd/g, function (val) {
-                  return val.slice(1);
-              });
-              this._longDateFormat[key] = output;
+          var format = this._longDateFormat[key],
+              formatUpper = this._longDateFormat[key.toUpperCase()];
+
+          if (format || !formatUpper) {
+              return format;
           }
-          return output;
+
+          this._longDateFormat[key] = formatUpper.replace(/MMMM|MM|DD|dddd/g, function (val) {
+              return val.slice(1);
+          });
+
+          return this._longDateFormat[key];
       }
 
       var defaultInvalidDate = 'Invalid date';
@@ -4363,12 +4411,29 @@ return /******/ (function(modules) { // webpackBootstrap
           return duration_add_subtract__addSubtract(this, input, value, -1);
       }
 
+      function absCeil (number) {
+          if (number < 0) {
+              return Math.floor(number);
+          } else {
+              return Math.ceil(number);
+          }
+      }
+
       function bubble () {
           var milliseconds = this._milliseconds;
           var days         = this._days;
           var months       = this._months;
           var data         = this._data;
-          var seconds, minutes, hours, years = 0;
+          var seconds, minutes, hours, years, monthsFromDays;
+
+          // if we have a mix of positive and negative values, bubble down first
+          // check: https://github.com/moment/moment/issues/2166
+          if (!((milliseconds >= 0 && days >= 0 && months >= 0) ||
+                  (milliseconds <= 0 && days <= 0 && months <= 0))) {
+              milliseconds += absCeil(monthsToDays(months) + days) * 864e5;
+              days = 0;
+              months = 0;
+          }
 
           // The following code bubbles up values, see the tests for
           // examples of what that means.
@@ -4385,17 +4450,13 @@ return /******/ (function(modules) { // webpackBootstrap
 
           days += absFloor(hours / 24);
 
-          // Accurately convert days to years, assume start from year 0.
-          years = absFloor(daysToYears(days));
-          days -= absFloor(yearsToDays(years));
-
-          // 30 days to a month
-          // TODO (iskren): Use anchor date (like 1st Jan) to compute this.
-          months += absFloor(days / 30);
-          days   %= 30;
+          // convert days to months
+          monthsFromDays = absFloor(daysToMonths(days));
+          months += monthsFromDays;
+          days -= absCeil(monthsToDays(monthsFromDays));
 
           // 12 months -> 1 year
-          years  += absFloor(months / 12);
+          years = absFloor(months / 12);
           months %= 12;
 
           data.days   = days;
@@ -4405,15 +4466,15 @@ return /******/ (function(modules) { // webpackBootstrap
           return this;
       }
 
-      function daysToYears (days) {
+      function daysToMonths (days) {
           // 400 years have 146097 days (taking into account leap year rules)
-          return days * 400 / 146097;
+          // 400 years have 12 months === 4800
+          return days * 4800 / 146097;
       }
 
-      function yearsToDays (years) {
-          // years * 365 + absFloor(years / 4) -
-          //     absFloor(years / 100) + absFloor(years / 400);
-          return years * 146097 / 400;
+      function monthsToDays (months) {
+          // the reverse of daysToMonths
+          return months * 146097 / 4800;
       }
 
       function as (units) {
@@ -4425,11 +4486,11 @@ return /******/ (function(modules) { // webpackBootstrap
 
           if (units === 'month' || units === 'year') {
               days   = this._days   + milliseconds / 864e5;
-              months = this._months + daysToYears(days) * 12;
+              months = this._months + daysToMonths(days);
               return units === 'month' ? months : months / 12;
           } else {
               // handle milliseconds separately because of floating point math errors (issue #1867)
-              days = this._days + Math.round(yearsToDays(this._months / 12));
+              days = this._days + Math.round(monthsToDays(this._months));
               switch (units) {
                   case 'week'   : return days / 7     + milliseconds / 6048e5;
                   case 'day'    : return days         + milliseconds / 864e5;
@@ -4479,7 +4540,7 @@ return /******/ (function(modules) { // webpackBootstrap
           };
       }
 
-      var duration_get__milliseconds = makeGetter('milliseconds');
+      var milliseconds = makeGetter('milliseconds');
       var seconds      = makeGetter('seconds');
       var minutes      = makeGetter('minutes');
       var hours        = makeGetter('hours');
@@ -4557,13 +4618,36 @@ return /******/ (function(modules) { // webpackBootstrap
       var iso_string__abs = Math.abs;
 
       function iso_string__toISOString() {
+          // for ISO strings we do not use the normal bubbling rules:
+          //  * milliseconds bubble up until they become hours
+          //  * days do not bubble at all
+          //  * months bubble up until they become years
+          // This is because there is no context-free conversion between hours and days
+          // (think of clock changes)
+          // and also not between days and months (28-31 days per month)
+          var seconds = iso_string__abs(this._milliseconds) / 1000;
+          var days         = iso_string__abs(this._days);
+          var months       = iso_string__abs(this._months);
+          var minutes, hours, years;
+
+          // 3600 seconds -> 60 minutes -> 1 hour
+          minutes           = absFloor(seconds / 60);
+          hours             = absFloor(minutes / 60);
+          seconds %= 60;
+          minutes %= 60;
+
+          // 12 months -> 1 year
+          years  = absFloor(months / 12);
+          months %= 12;
+
+
           // inspired by https://github.com/dordille/moment-isoduration/blob/master/moment.isoduration.js
-          var Y = iso_string__abs(this.years());
-          var M = iso_string__abs(this.months());
-          var D = iso_string__abs(this.days());
-          var h = iso_string__abs(this.hours());
-          var m = iso_string__abs(this.minutes());
-          var s = iso_string__abs(this.seconds() + this.milliseconds() / 1000);
+          var Y = years;
+          var M = months;
+          var D = days;
+          var h = hours;
+          var m = minutes;
+          var s = seconds;
           var total = this.asSeconds();
 
           if (!total) {
@@ -4600,7 +4684,7 @@ return /******/ (function(modules) { // webpackBootstrap
       duration_prototype__proto.valueOf        = duration_as__valueOf;
       duration_prototype__proto._bubble        = bubble;
       duration_prototype__proto.get            = duration_get__get;
-      duration_prototype__proto.milliseconds   = duration_get__milliseconds;
+      duration_prototype__proto.milliseconds   = milliseconds;
       duration_prototype__proto.seconds        = seconds;
       duration_prototype__proto.minutes        = minutes;
       duration_prototype__proto.hours          = hours;
@@ -4638,7 +4722,7 @@ return /******/ (function(modules) { // webpackBootstrap
       // Side effect imports
 
 
-      utils_hooks__hooks.version = '2.10.3';
+      utils_hooks__hooks.version = '2.10.6';
 
       setHookCallback(local__createLocal);
 
@@ -6572,12 +6656,12 @@ return /******/ (function(modules) { // webpackBootstrap
 
   'use strict';
 
-  var Emitter = __webpack_require__(13);
+  var Emitter = __webpack_require__(12);
   var DataSet = __webpack_require__(8);
   var DataView = __webpack_require__(10);
   var util = __webpack_require__(1);
-  var Point3d = __webpack_require__(14);
-  var Point2d = __webpack_require__(12);
+  var Point3d = __webpack_require__(13);
+  var Point2d = __webpack_require__(14);
   var Camera = __webpack_require__(15);
   var Filter = __webpack_require__(16);
   var Slider = __webpack_require__(17);
@@ -8075,39 +8159,39 @@ return /******/ (function(modules) { // webpackBootstrap
         }
       }
     } else {
-      // grid style
-      for (i = 0; i < this.dataPoints.length; i++) {
-        point = this.dataPoints[i];
-        right = this.dataPoints[i].pointRight;
-        top = this.dataPoints[i].pointTop;
+        // grid style
+        for (i = 0; i < this.dataPoints.length; i++) {
+          point = this.dataPoints[i];
+          right = this.dataPoints[i].pointRight;
+          top = this.dataPoints[i].pointTop;
 
-        if (point !== undefined && right !== undefined) {
-          // calculate Hue from the current value. At zMin the hue is 240, at zMax the hue is 0
-          zAvg = (point.point.z + right.point.z) / 2;
-          h = (1 - (zAvg - this.zMin) * this.scale.z / this.verticalRatio) * 240;
+          if (point !== undefined && right !== undefined) {
+            // calculate Hue from the current value. At zMin the hue is 240, at zMax the hue is 0
+            zAvg = (point.point.z + right.point.z) / 2;
+            h = (1 - (zAvg - this.zMin) * this.scale.z / this.verticalRatio) * 240;
 
-          ctx.lineWidth = this._getStrokeWidth(point) * 2;
-          ctx.strokeStyle = this._hsv2rgb(h, 1, 1);
-          ctx.beginPath();
-          ctx.moveTo(point.screen.x, point.screen.y);
-          ctx.lineTo(right.screen.x, right.screen.y);
-          ctx.stroke();
-        }
+            ctx.lineWidth = this._getStrokeWidth(point) * 2;
+            ctx.strokeStyle = this._hsv2rgb(h, 1, 1);
+            ctx.beginPath();
+            ctx.moveTo(point.screen.x, point.screen.y);
+            ctx.lineTo(right.screen.x, right.screen.y);
+            ctx.stroke();
+          }
 
-        if (point !== undefined && top !== undefined) {
-          // calculate Hue from the current value. At zMin the hue is 240, at zMax the hue is 0
-          zAvg = (point.point.z + top.point.z) / 2;
-          h = (1 - (zAvg - this.zMin) * this.scale.z / this.verticalRatio) * 240;
+          if (point !== undefined && top !== undefined) {
+            // calculate Hue from the current value. At zMin the hue is 240, at zMax the hue is 0
+            zAvg = (point.point.z + top.point.z) / 2;
+            h = (1 - (zAvg - this.zMin) * this.scale.z / this.verticalRatio) * 240;
 
-          ctx.lineWidth = this._getStrokeWidth(point) * 2;
-          ctx.strokeStyle = this._hsv2rgb(h, 1, 1);
-          ctx.beginPath();
-          ctx.moveTo(point.screen.x, point.screen.y);
-          ctx.lineTo(top.screen.x, top.screen.y);
-          ctx.stroke();
+            ctx.lineWidth = this._getStrokeWidth(point) * 2;
+            ctx.strokeStyle = this._hsv2rgb(h, 1, 1);
+            ctx.beginPath();
+            ctx.moveTo(point.screen.x, point.screen.y);
+            ctx.lineTo(top.screen.x, top.screen.y);
+            ctx.stroke();
+          }
         }
       }
-    }
   };
 
   Graph3d.prototype._getStrokeWidth = function (point) {
@@ -8818,24 +8902,6 @@ return /******/ (function(modules) { // webpackBootstrap
 /* 12 */
 /***/ function(module, exports) {
 
-  /**
-   * @prototype Point2d
-   * @param {Number} [x]
-   * @param {Number} [y]
-   */
-  "use strict";
-
-  function Point2d(x, y) {
-    this.x = x !== undefined ? x : 0;
-    this.y = y !== undefined ? y : 0;
-  }
-
-  module.exports = Point2d;
-
-/***/ },
-/* 13 */
-/***/ function(module, exports) {
-
   
   /**
    * Expose `Emitter`.
@@ -9003,7 +9069,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 14 */
+/* 13 */
 /***/ function(module, exports) {
 
   /**
@@ -9086,12 +9152,30 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = Point3d;
 
 /***/ },
+/* 14 */
+/***/ function(module, exports) {
+
+  /**
+   * @prototype Point2d
+   * @param {Number} [x]
+   * @param {Number} [y]
+   */
+  "use strict";
+
+  function Point2d(x, y) {
+    this.x = x !== undefined ? x : 0;
+    this.y = y !== undefined ? y : 0;
+  }
+
+  module.exports = Point2d;
+
+/***/ },
 /* 15 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
 
-  var Point3d = __webpack_require__(14);
+  var Point3d = __webpack_require__(13);
 
   /**
    * @class Camera
@@ -9935,7 +10019,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   'use strict';
 
-  var Emitter = __webpack_require__(13);
+  var Emitter = __webpack_require__(12);
   var Hammer = __webpack_require__(20);
   var moment = __webpack_require__(2);
   var util = __webpack_require__(1);
@@ -14494,7 +14578,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   'use strict';
 
-  var Emitter = __webpack_require__(13);
+  var Emitter = __webpack_require__(12);
   var Hammer = __webpack_require__(20);
   var hammerUtil = __webpack_require__(25);
   var util = __webpack_require__(1);
@@ -15496,13 +15580,13 @@ return /******/ (function(modules) { // webpackBootstrap
   var util = __webpack_require__(1);
   var DataSet = __webpack_require__(8);
   var DataView = __webpack_require__(10);
-  var TimeStep = __webpack_require__(34);
+  var TimeStep = __webpack_require__(30);
   var Component = __webpack_require__(26);
-  var Group = __webpack_require__(30);
+  var Group = __webpack_require__(31);
   var BackgroundGroup = __webpack_require__(35);
   var BoxItem = __webpack_require__(36);
   var PointItem = __webpack_require__(37);
-  var RangeItem = __webpack_require__(32);
+  var RangeItem = __webpack_require__(33);
   var BackgroundItem = __webpack_require__(38);
 
   var UNGROUPED = '__ungrouped__'; // reserved group id for ungrouped items
@@ -17231,16 +17315,16 @@ return /******/ (function(modules) { // webpackBootstrap
           }
         }
       } else {
-        // add/remove this item from the current selection
-        var index = selection.indexOf(item.id);
-        if (index == -1) {
-          // item is not yet selected -> select it
-          selection.push(item.id);
-        } else {
-          // item is already selected -> deselect it
-          selection.splice(index, 1);
+          // add/remove this item from the current selection
+          var index = selection.indexOf(item.id);
+          if (index == -1) {
+            // item is not yet selected -> select it
+            selection.push(item.id);
+          } else {
+            // item is already selected -> deselect it
+            selection.splice(index, 1);
+          }
         }
-      }
 
       this.setSelection(selection);
 
@@ -17381,1338 +17465,6 @@ return /******/ (function(modules) { // webpackBootstrap
 
 /***/ },
 /* 30 */
-/***/ function(module, exports, __webpack_require__) {
-
-  'use strict';
-
-  var util = __webpack_require__(1);
-  var stack = __webpack_require__(31);
-  var RangeItem = __webpack_require__(32);
-
-  /**
-   * @constructor Group
-   * @param {Number | String} groupId
-   * @param {Object} data
-   * @param {ItemSet} itemSet
-   */
-  function Group(groupId, data, itemSet) {
-    this.groupId = groupId;
-    this.subgroups = {};
-    this.subgroupIndex = 0;
-    this.subgroupOrderer = data && data.subgroupOrder;
-    this.itemSet = itemSet;
-
-    this.dom = {};
-    this.props = {
-      label: {
-        width: 0,
-        height: 0
-      }
-    };
-    this.className = null;
-
-    this.items = {}; // items filtered by groupId of this group
-    this.visibleItems = []; // items currently visible in window
-    this.orderedItems = {
-      byStart: [],
-      byEnd: []
-    };
-    this.checkRangedItems = false; // needed to refresh the ranged items if the window is programatically changed with NO overlap.
-    var me = this;
-    this.itemSet.body.emitter.on("checkRangedItems", function () {
-      me.checkRangedItems = true;
-    });
-
-    this._create();
-
-    this.setData(data);
-  }
-
-  /**
-   * Create DOM elements for the group
-   * @private
-   */
-  Group.prototype._create = function () {
-    var label = document.createElement('div');
-    if (this.itemSet.options.groupEditable.order) {
-      label.className = 'vis-label draggable';
-    } else {
-      label.className = 'vis-label';
-    }
-    this.dom.label = label;
-
-    var inner = document.createElement('div');
-    inner.className = 'vis-inner';
-    label.appendChild(inner);
-    this.dom.inner = inner;
-
-    var foreground = document.createElement('div');
-    foreground.className = 'vis-group';
-    foreground['timeline-group'] = this;
-    this.dom.foreground = foreground;
-
-    this.dom.background = document.createElement('div');
-    this.dom.background.className = 'vis-group';
-
-    this.dom.axis = document.createElement('div');
-    this.dom.axis.className = 'vis-group';
-
-    // create a hidden marker to detect when the Timelines container is attached
-    // to the DOM, or the style of a parent of the Timeline is changed from
-    // display:none is changed to visible.
-    this.dom.marker = document.createElement('div');
-    this.dom.marker.style.visibility = 'hidden';
-    this.dom.marker.innerHTML = '?';
-    this.dom.background.appendChild(this.dom.marker);
-  };
-
-  /**
-   * Set the group data for this group
-   * @param {Object} data   Group data, can contain properties content and className
-   */
-  Group.prototype.setData = function (data) {
-    // update contents
-    var content;
-    if (this.itemSet.options && this.itemSet.options.groupTemplate) {
-      content = this.itemSet.options.groupTemplate(data);
-    } else {
-      content = data && data.content;
-    }
-
-    if (content instanceof Element) {
-      this.dom.inner.appendChild(content);
-      while (this.dom.inner.firstChild) {
-        this.dom.inner.removeChild(this.dom.inner.firstChild);
-      }
-      this.dom.inner.appendChild(content);
-    } else if (content !== undefined && content !== null) {
-      this.dom.inner.innerHTML = content;
-    } else {
-      this.dom.inner.innerHTML = this.groupId || ''; // groupId can be null
-    }
-
-    // update title
-    this.dom.label.title = data && data.title || '';
-
-    if (!this.dom.inner.firstChild) {
-      util.addClassName(this.dom.inner, 'vis-hidden');
-    } else {
-      util.removeClassName(this.dom.inner, 'vis-hidden');
-    }
-
-    // update className
-    var className = data && data.className || null;
-    if (className != this.className) {
-      if (this.className) {
-        util.removeClassName(this.dom.label, this.className);
-        util.removeClassName(this.dom.foreground, this.className);
-        util.removeClassName(this.dom.background, this.className);
-        util.removeClassName(this.dom.axis, this.className);
-      }
-      util.addClassName(this.dom.label, className);
-      util.addClassName(this.dom.foreground, className);
-      util.addClassName(this.dom.background, className);
-      util.addClassName(this.dom.axis, className);
-      this.className = className;
-    }
-
-    // update style
-    if (this.style) {
-      util.removeCssText(this.dom.label, this.style);
-      this.style = null;
-    }
-    if (data && data.style) {
-      util.addCssText(this.dom.label, data.style);
-      this.style = data.style;
-    }
-  };
-
-  /**
-   * Get the width of the group label
-   * @return {number} width
-   */
-  Group.prototype.getLabelWidth = function () {
-    return this.props.label.width;
-  };
-
-  /**
-   * Repaint this group
-   * @param {{start: number, end: number}} range
-   * @param {{item: {horizontal: number, vertical: number}, axis: number}} margin
-   * @param {boolean} [restack=false]  Force restacking of all items
-   * @return {boolean} Returns true if the group is resized
-   */
-  Group.prototype.redraw = function (range, margin, restack) {
-    var resized = false;
-
-    // force recalculation of the height of the items when the marker height changed
-    // (due to the Timeline being attached to the DOM or changed from display:none to visible)
-    var markerHeight = this.dom.marker.clientHeight;
-    if (markerHeight != this.lastMarkerHeight) {
-      this.lastMarkerHeight = markerHeight;
-
-      util.forEach(this.items, function (item) {
-        item.dirty = true;
-        if (item.displayed) item.redraw();
-      });
-
-      restack = true;
-    }
-
-    // reposition visible items vertically
-    if (typeof this.itemSet.options.order === 'function') {
-      // a custom order function
-
-      if (restack) {
-        // brute force restack of all items
-
-        // show all items
-        var me = this;
-        var limitSize = false;
-        util.forEach(this.items, function (item) {
-          if (!item.displayed) {
-            item.redraw();
-            me.visibleItems.push(item);
-          }
-          item.repositionX(limitSize);
-        });
-
-        // order all items and force a restacking
-        var customOrderedItems = this.orderedItems.byStart.slice().sort(function (a, b) {
-          return me.itemSet.options.order(a.data, b.data);
-        });
-        stack.stack(customOrderedItems, margin, true /* restack=true */);
-      }
-
-      this.visibleItems = this._updateVisibleItems(this.orderedItems, this.visibleItems, range);
-    } else {
-      // no custom order function, lazy stacking
-      this.visibleItems = this._updateVisibleItems(this.orderedItems, this.visibleItems, range);
-
-      if (this.itemSet.options.stack) {
-        // TODO: ugly way to access options...
-        stack.stack(this.visibleItems, margin, restack);
-      } else {
-        // no stacking
-        stack.nostack(this.visibleItems, margin, this.subgroups);
-      }
-    }
-
-    // recalculate the height of the group
-    var height = this._calculateHeight(margin);
-
-    // calculate actual size and position
-    var foreground = this.dom.foreground;
-    this.top = foreground.offsetTop;
-    this.left = foreground.offsetLeft;
-    this.width = foreground.offsetWidth;
-    resized = util.updateProperty(this, 'height', height) || resized;
-
-    // recalculate size of label
-    resized = util.updateProperty(this.props.label, 'width', this.dom.inner.clientWidth) || resized;
-    resized = util.updateProperty(this.props.label, 'height', this.dom.inner.clientHeight) || resized;
-
-    // apply new height
-    this.dom.background.style.height = height + 'px';
-    this.dom.foreground.style.height = height + 'px';
-    this.dom.label.style.height = height + 'px';
-
-    // update vertical position of items after they are re-stacked and the height of the group is calculated
-    for (var i = 0, ii = this.visibleItems.length; i < ii; i++) {
-      var item = this.visibleItems[i];
-      item.repositionY(margin);
-    }
-
-    return resized;
-  };
-
-  /**
-   * recalculate the height of the group
-   * @param {{item: {horizontal: number, vertical: number}, axis: number}} margin
-   * @returns {number} Returns the height
-   * @private
-   */
-  Group.prototype._calculateHeight = function (margin) {
-    // recalculate the height of the group
-    var height;
-    var visibleItems = this.visibleItems;
-    //var visibleSubgroups = [];
-    //this.visibleSubgroups = 0;
-    this.resetSubgroups();
-    var me = this;
-    if (visibleItems.length > 0) {
-      var min = visibleItems[0].top;
-      var max = visibleItems[0].top + visibleItems[0].height;
-      util.forEach(visibleItems, function (item) {
-        min = Math.min(min, item.top);
-        max = Math.max(max, item.top + item.height);
-        if (item.data.subgroup !== undefined) {
-          me.subgroups[item.data.subgroup].height = Math.max(me.subgroups[item.data.subgroup].height, item.height);
-          me.subgroups[item.data.subgroup].visible = true;
-        }
-      });
-      if (min > margin.axis) {
-        // there is an empty gap between the lowest item and the axis
-        var offset = min - margin.axis;
-        max -= offset;
-        util.forEach(visibleItems, function (item) {
-          item.top -= offset;
-        });
-      }
-      height = max + margin.item.vertical / 2;
-    } else {
-      height = 0;
-    }
-    height = Math.max(height, this.props.label.height);
-
-    return height;
-  };
-
-  /**
-   * Show this group: attach to the DOM
-   */
-  Group.prototype.show = function () {
-    if (!this.dom.label.parentNode) {
-      this.itemSet.dom.labelSet.appendChild(this.dom.label);
-    }
-
-    if (!this.dom.foreground.parentNode) {
-      this.itemSet.dom.foreground.appendChild(this.dom.foreground);
-    }
-
-    if (!this.dom.background.parentNode) {
-      this.itemSet.dom.background.appendChild(this.dom.background);
-    }
-
-    if (!this.dom.axis.parentNode) {
-      this.itemSet.dom.axis.appendChild(this.dom.axis);
-    }
-  };
-
-  /**
-   * Hide this group: remove from the DOM
-   */
-  Group.prototype.hide = function () {
-    var label = this.dom.label;
-    if (label.parentNode) {
-      label.parentNode.removeChild(label);
-    }
-
-    var foreground = this.dom.foreground;
-    if (foreground.parentNode) {
-      foreground.parentNode.removeChild(foreground);
-    }
-
-    var background = this.dom.background;
-    if (background.parentNode) {
-      background.parentNode.removeChild(background);
-    }
-
-    var axis = this.dom.axis;
-    if (axis.parentNode) {
-      axis.parentNode.removeChild(axis);
-    }
-  };
-
-  /**
-   * Add an item to the group
-   * @param {Item} item
-   */
-  Group.prototype.add = function (item) {
-    this.items[item.id] = item;
-    item.setParent(this);
-
-    // add to
-    if (item.data.subgroup !== undefined) {
-      if (this.subgroups[item.data.subgroup] === undefined) {
-        this.subgroups[item.data.subgroup] = { height: 0, visible: false, index: this.subgroupIndex, items: [] };
-        this.subgroupIndex++;
-      }
-      this.subgroups[item.data.subgroup].items.push(item);
-    }
-    this.orderSubgroups();
-
-    if (this.visibleItems.indexOf(item) == -1) {
-      var range = this.itemSet.body.range; // TODO: not nice accessing the range like this
-      this._checkIfVisible(item, this.visibleItems, range);
-    }
-  };
-
-  Group.prototype.orderSubgroups = function () {
-    if (this.subgroupOrderer !== undefined) {
-      var sortArray = [];
-      if (typeof this.subgroupOrderer == 'string') {
-        for (var subgroup in this.subgroups) {
-          sortArray.push({ subgroup: subgroup, sortField: this.subgroups[subgroup].items[0].data[this.subgroupOrderer] });
-        }
-        sortArray.sort(function (a, b) {
-          return a.sortField - b.sortField;
-        });
-      } else if (typeof this.subgroupOrderer == 'function') {
-        for (var subgroup in this.subgroups) {
-          sortArray.push(this.subgroups[subgroup].items[0].data);
-        }
-        sortArray.sort(this.subgroupOrderer);
-      }
-
-      if (sortArray.length > 0) {
-        for (var i = 0; i < sortArray.length; i++) {
-          this.subgroups[sortArray[i].subgroup].index = i;
-        }
-      }
-    }
-  };
-
-  Group.prototype.resetSubgroups = function () {
-    for (var subgroup in this.subgroups) {
-      if (this.subgroups.hasOwnProperty(subgroup)) {
-        this.subgroups[subgroup].visible = false;
-      }
-    }
-  };
-
-  /**
-   * Remove an item from the group
-   * @param {Item} item
-   */
-  Group.prototype.remove = function (item) {
-    delete this.items[item.id];
-    item.setParent(null);
-
-    // remove from visible items
-    var index = this.visibleItems.indexOf(item);
-    if (index != -1) this.visibleItems.splice(index, 1);
-
-    if (item.data.subgroup !== undefined) {
-      var subgroup = this.subgroups[item.data.subgroup];
-      if (subgroup) {
-        var itemIndex = subgroup.items.indexOf(item);
-        subgroup.items.splice(itemIndex, 1);
-        if (!subgroup.items.length) {
-          delete this.subgroups[item.data.subgroup];
-          this.subgroupIndex--;
-        }
-        this.orderSubgroups();
-      }
-    }
-  };
-
-  /**
-   * Remove an item from the corresponding DataSet
-   * @param {Item} item
-   */
-  Group.prototype.removeFromDataSet = function (item) {
-    this.itemSet.removeItem(item.id);
-  };
-
-  /**
-   * Reorder the items
-   */
-  Group.prototype.order = function () {
-    var array = util.toArray(this.items);
-    var startArray = [];
-    var endArray = [];
-
-    for (var i = 0; i < array.length; i++) {
-      if (array[i].data.end !== undefined) {
-        endArray.push(array[i]);
-      }
-      startArray.push(array[i]);
-    }
-    this.orderedItems = {
-      byStart: startArray,
-      byEnd: endArray
-    };
-
-    stack.orderByStart(this.orderedItems.byStart);
-    stack.orderByEnd(this.orderedItems.byEnd);
-  };
-
-  /**
-   * Update the visible items
-   * @param {{byStart: Item[], byEnd: Item[]}} orderedItems   All items ordered by start date and by end date
-   * @param {Item[]} visibleItems                             The previously visible items.
-   * @param {{start: number, end: number}} range              Visible range
-   * @return {Item[]} visibleItems                            The new visible items.
-   * @private
-   */
-  Group.prototype._updateVisibleItems = function (orderedItems, oldVisibleItems, range) {
-    var visibleItems = [];
-    var visibleItemsLookup = {}; // we keep this to quickly look up if an item already exists in the list without using indexOf on visibleItems
-    var interval = (range.end - range.start) / 4;
-    var lowerBound = range.start - interval;
-    var upperBound = range.end + interval;
-    var item, i;
-
-    // this function is used to do the binary search.
-    var searchFunction = function searchFunction(value) {
-      if (value < lowerBound) {
-        return -1;
-      } else if (value <= upperBound) {
-        return 0;
-      } else {
-        return 1;
-      }
-    };
-
-    // first check if the items that were in view previously are still in view.
-    // IMPORTANT: this handles the case for the items with startdate before the window and enddate after the window!
-    // also cleans up invisible items.
-    if (oldVisibleItems.length > 0) {
-      for (i = 0; i < oldVisibleItems.length; i++) {
-        this._checkIfVisibleWithReference(oldVisibleItems[i], visibleItems, visibleItemsLookup, range);
-      }
-    }
-
-    // we do a binary search for the items that have only start values.
-    var initialPosByStart = util.binarySearchCustom(orderedItems.byStart, searchFunction, 'data', 'start');
-
-    // trace the visible items from the inital start pos both ways until an invisible item is found, we only look at the start values.
-    this._traceVisible(initialPosByStart, orderedItems.byStart, visibleItems, visibleItemsLookup, function (item) {
-      return item.data.start < lowerBound || item.data.start > upperBound;
-    });
-
-    // if the window has changed programmatically without overlapping the old window, the ranged items with start < lowerBound and end > upperbound are not shown.
-    // We therefore have to brute force check all items in the byEnd list
-    if (this.checkRangedItems == true) {
-      this.checkRangedItems = false;
-      for (i = 0; i < orderedItems.byEnd.length; i++) {
-        this._checkIfVisibleWithReference(orderedItems.byEnd[i], visibleItems, visibleItemsLookup, range);
-      }
-    } else {
-      // we do a binary search for the items that have defined end times.
-      var initialPosByEnd = util.binarySearchCustom(orderedItems.byEnd, searchFunction, 'data', 'end');
-
-      // trace the visible items from the inital start pos both ways until an invisible item is found, we only look at the end values.
-      this._traceVisible(initialPosByEnd, orderedItems.byEnd, visibleItems, visibleItemsLookup, function (item) {
-        return item.data.end < lowerBound || item.data.end > upperBound;
-      });
-    }
-
-    // finally, we reposition all the visible items.
-    for (i = 0; i < visibleItems.length; i++) {
-      item = visibleItems[i];
-      if (!item.displayed) item.show();
-      // reposition item horizontally
-      item.repositionX();
-    }
-
-    // debug
-    //console.log("new line")
-    //if (this.groupId == null) {
-    //  for (i = 0; i < orderedItems.byStart.length; i++) {
-    //    item = orderedItems.byStart[i].data;
-    //    console.log('start',i,initialPosByStart, item.start.valueOf(), item.content, item.start >= lowerBound && item.start <= upperBound,i == initialPosByStart ? "<------------------- HEREEEE" : "")
-    //  }
-    //  for (i = 0; i < orderedItems.byEnd.length; i++) {
-    //    item = orderedItems.byEnd[i].data;
-    //    console.log('rangeEnd',i,initialPosByEnd, item.end.valueOf(), item.content, item.end >= range.start && item.end <= range.end,i == initialPosByEnd ? "<------------------- HEREEEE" : "")
-    //  }
-    //}
-
-    return visibleItems;
-  };
-
-  Group.prototype._traceVisible = function (initialPos, items, visibleItems, visibleItemsLookup, breakCondition) {
-    var item;
-    var i;
-
-    if (initialPos != -1) {
-      for (i = initialPos; i >= 0; i--) {
-        item = items[i];
-        if (breakCondition(item)) {
-          break;
-        } else {
-          if (visibleItemsLookup[item.id] === undefined) {
-            visibleItemsLookup[item.id] = true;
-            visibleItems.push(item);
-          }
-        }
-      }
-
-      for (i = initialPos + 1; i < items.length; i++) {
-        item = items[i];
-        if (breakCondition(item)) {
-          break;
-        } else {
-          if (visibleItemsLookup[item.id] === undefined) {
-            visibleItemsLookup[item.id] = true;
-            visibleItems.push(item);
-          }
-        }
-      }
-    }
-  };
-
-  /**
-   * this function is very similar to the _checkIfInvisible() but it does not
-   * return booleans, hides the item if it should not be seen and always adds to
-   * the visibleItems.
-   * this one is for brute forcing and hiding.
-   *
-   * @param {Item} item
-   * @param {Array} visibleItems
-   * @param {{start:number, end:number}} range
-   * @private
-   */
-  Group.prototype._checkIfVisible = function (item, visibleItems, range) {
-    if (item.isVisible(range)) {
-      if (!item.displayed) item.show();
-      // reposition item horizontally
-      item.repositionX();
-      visibleItems.push(item);
-    } else {
-      if (item.displayed) item.hide();
-    }
-  };
-
-  /**
-   * this function is very similar to the _checkIfInvisible() but it does not
-   * return booleans, hides the item if it should not be seen and always adds to
-   * the visibleItems.
-   * this one is for brute forcing and hiding.
-   *
-   * @param {Item} item
-   * @param {Array} visibleItems
-   * @param {{start:number, end:number}} range
-   * @private
-   */
-  Group.prototype._checkIfVisibleWithReference = function (item, visibleItems, visibleItemsLookup, range) {
-    if (item.isVisible(range)) {
-      if (visibleItemsLookup[item.id] === undefined) {
-        visibleItemsLookup[item.id] = true;
-        visibleItems.push(item);
-      }
-    } else {
-      if (item.displayed) item.hide();
-    }
-  };
-
-  module.exports = Group;
-
-/***/ },
-/* 31 */
-/***/ function(module, exports) {
-
-  // Utility functions for ordering and stacking of items
-  'use strict';
-
-  var EPSILON = 0.001; // used when checking collisions, to prevent round-off errors
-
-  /**
-   * Order items by their start data
-   * @param {Item[]} items
-   */
-  exports.orderByStart = function (items) {
-    items.sort(function (a, b) {
-      return a.data.start - b.data.start;
-    });
-  };
-
-  /**
-   * Order items by their end date. If they have no end date, their start date
-   * is used.
-   * @param {Item[]} items
-   */
-  exports.orderByEnd = function (items) {
-    items.sort(function (a, b) {
-      var aTime = 'end' in a.data ? a.data.end : a.data.start,
-          bTime = 'end' in b.data ? b.data.end : b.data.start;
-
-      return aTime - bTime;
-    });
-  };
-
-  /**
-   * Adjust vertical positions of the items such that they don't overlap each
-   * other.
-   * @param {Item[]} items
-   *            All visible items
-   * @param {{item: {horizontal: number, vertical: number}, axis: number}} margin
-   *            Margins between items and between items and the axis.
-   * @param {boolean} [force=false]
-   *            If true, all items will be repositioned. If false (default), only
-   *            items having a top===null will be re-stacked
-   */
-  exports.stack = function (items, margin, force) {
-    var i, iMax;
-
-    if (force) {
-      // reset top position of all items
-      for (i = 0, iMax = items.length; i < iMax; i++) {
-        items[i].top = null;
-      }
-    }
-
-    // calculate new, non-overlapping positions
-    for (i = 0, iMax = items.length; i < iMax; i++) {
-      var item = items[i];
-      if (item.stack && item.top === null) {
-        // initialize top position
-        item.top = margin.axis;
-
-        do {
-          // TODO: optimize checking for overlap. when there is a gap without items,
-          //       you only need to check for items from the next item on, not from zero
-          var collidingItem = null;
-          for (var j = 0, jj = items.length; j < jj; j++) {
-            var other = items[j];
-            if (other.top !== null && other !== item && other.stack && exports.collision(item, other, margin.item)) {
-              collidingItem = other;
-              break;
-            }
-          }
-
-          if (collidingItem != null) {
-            // There is a collision. Reposition the items above the colliding element
-            item.top = collidingItem.top + collidingItem.height + margin.item.vertical;
-          }
-        } while (collidingItem);
-      }
-    }
-  };
-
-  /**
-   * Adjust vertical positions of the items without stacking them
-   * @param {Item[]} items
-   *            All visible items
-   * @param {{item: {horizontal: number, vertical: number}, axis: number}} margin
-   *            Margins between items and between items and the axis.
-   */
-  exports.nostack = function (items, margin, subgroups) {
-    var i, iMax, newTop;
-
-    // reset top position of all items
-    for (i = 0, iMax = items.length; i < iMax; i++) {
-      if (items[i].data.subgroup !== undefined) {
-        newTop = margin.axis;
-        for (var subgroup in subgroups) {
-          if (subgroups.hasOwnProperty(subgroup)) {
-            if (subgroups[subgroup].visible == true && subgroups[subgroup].index < subgroups[items[i].data.subgroup].index) {
-              newTop += subgroups[subgroup].height + margin.item.vertical;
-            }
-          }
-        }
-        items[i].top = newTop;
-      } else {
-        items[i].top = margin.axis;
-      }
-    }
-  };
-
-  /**
-   * Test if the two provided items collide
-   * The items must have parameters left, width, top, and height.
-   * @param {Item} a          The first item
-   * @param {Item} b          The second item
-   * @param {{horizontal: number, vertical: number}} margin
-   *                          An object containing a horizontal and vertical
-   *                          minimum required margin.
-   * @return {boolean}        true if a and b collide, else false
-   */
-  exports.collision = function (a, b, margin) {
-    return a.left - margin.horizontal + EPSILON < b.left + b.width && a.left + a.width + margin.horizontal - EPSILON > b.left && a.top - margin.vertical + EPSILON < b.top + b.height && a.top + a.height + margin.vertical - EPSILON > b.top;
-  };
-
-/***/ },
-/* 32 */
-/***/ function(module, exports, __webpack_require__) {
-
-  'use strict';
-
-  var Hammer = __webpack_require__(20);
-  var Item = __webpack_require__(33);
-
-  /**
-   * @constructor RangeItem
-   * @extends Item
-   * @param {Object} data             Object containing parameters start, end
-   *                                  content, className.
-   * @param {{toScreen: function, toTime: function}} conversion
-   *                                  Conversion functions from time to screen and vice versa
-   * @param {Object} [options]        Configuration options
-   *                                  // TODO: describe options
-   */
-  function RangeItem(data, conversion, options) {
-    this.props = {
-      content: {
-        width: 0
-      }
-    };
-    this.overflow = false; // if contents can overflow (css styling), this flag is set to true
-
-    // validate data
-    if (data) {
-      if (data.start == undefined) {
-        throw new Error('Property "start" missing in item ' + data.id);
-      }
-      if (data.end == undefined) {
-        throw new Error('Property "end" missing in item ' + data.id);
-      }
-    }
-
-    Item.call(this, data, conversion, options);
-  }
-
-  RangeItem.prototype = new Item(null, null, null);
-
-  RangeItem.prototype.baseClassName = 'vis-item vis-range';
-
-  /**
-   * Check whether this item is visible inside given range
-   * @returns {{start: Number, end: Number}} range with a timestamp for start and end
-   * @returns {boolean} True if visible
-   */
-  RangeItem.prototype.isVisible = function (range) {
-    // determine visibility
-    return this.data.start < range.end && this.data.end > range.start;
-  };
-
-  /**
-   * Repaint the item
-   */
-  RangeItem.prototype.redraw = function () {
-    var dom = this.dom;
-    if (!dom) {
-      // create DOM
-      this.dom = {};
-      dom = this.dom;
-
-      // background box
-      dom.box = document.createElement('div');
-      // className is updated in redraw()
-
-      // frame box (to prevent the item contents from overflowing
-      dom.frame = document.createElement('div');
-      dom.frame.className = 'vis-item-overflow';
-      dom.box.appendChild(dom.frame);
-
-      // contents box
-      dom.content = document.createElement('div');
-      dom.content.className = 'vis-item-content';
-      dom.frame.appendChild(dom.content);
-
-      // attach this item as attribute
-      dom.box['timeline-item'] = this;
-
-      this.dirty = true;
-    }
-
-    // append DOM to parent DOM
-    if (!this.parent) {
-      throw new Error('Cannot redraw item: no parent attached');
-    }
-    if (!dom.box.parentNode) {
-      var foreground = this.parent.dom.foreground;
-      if (!foreground) {
-        throw new Error('Cannot redraw item: parent has no foreground container element');
-      }
-      foreground.appendChild(dom.box);
-    }
-    this.displayed = true;
-
-    // Update DOM when item is marked dirty. An item is marked dirty when:
-    // - the item is not yet rendered
-    // - the item's data is changed
-    // - the item is selected/deselected
-    if (this.dirty) {
-      this._updateContents(this.dom.content);
-      this._updateTitle(this.dom.box);
-      this._updateDataAttributes(this.dom.box);
-      this._updateStyle(this.dom.box);
-
-      var editable = (this.options.editable.updateTime || this.options.editable.updateGroup || this.editable === true) && this.editable !== false;
-
-      // update class
-      var className = (this.data.className ? ' ' + this.data.className : '') + (this.selected ? ' vis-selected' : '') + (editable ? ' vis-editable' : ' vis-readonly');
-      dom.box.className = this.baseClassName + className;
-
-      // determine from css whether this box has overflow
-      this.overflow = window.getComputedStyle(dom.frame).overflow !== 'hidden';
-
-      // recalculate size
-      // turn off max-width to be able to calculate the real width
-      // this causes an extra browser repaint/reflow, but so be it
-      this.dom.content.style.maxWidth = 'none';
-      this.props.content.width = this.dom.content.offsetWidth;
-      this.height = this.dom.box.offsetHeight;
-      this.dom.content.style.maxWidth = '';
-
-      this.dirty = false;
-    }
-
-    this._repaintDeleteButton(dom.box);
-    this._repaintDragLeft();
-    this._repaintDragRight();
-  };
-
-  /**
-   * Show the item in the DOM (when not already visible). The items DOM will
-   * be created when needed.
-   */
-  RangeItem.prototype.show = function () {
-    if (!this.displayed) {
-      this.redraw();
-    }
-  };
-
-  /**
-   * Hide the item from the DOM (when visible)
-   * @return {Boolean} changed
-   */
-  RangeItem.prototype.hide = function () {
-    if (this.displayed) {
-      var box = this.dom.box;
-
-      if (box.parentNode) {
-        box.parentNode.removeChild(box);
-      }
-
-      this.displayed = false;
-    }
-  };
-
-  /**
-   * Reposition the item horizontally
-   * @param {boolean} [limitSize=true] If true (default), the width of the range
-   *                                   item will be limited, as the browser cannot
-   *                                   display very wide divs. This means though
-   *                                   that the applied left and width may
-   *                                   not correspond to the ranges start and end
-   * @Override
-   */
-  RangeItem.prototype.repositionX = function (limitSize) {
-    var parentWidth = this.parent.width;
-    var start = this.conversion.toScreen(this.data.start);
-    var end = this.conversion.toScreen(this.data.end);
-    var contentLeft;
-    var contentWidth;
-
-    // limit the width of the range, as browsers cannot draw very wide divs
-    if (limitSize === undefined || limitSize === true) {
-      if (start < -parentWidth) {
-        start = -parentWidth;
-      }
-      if (end > 2 * parentWidth) {
-        end = 2 * parentWidth;
-      }
-    }
-    var boxWidth = Math.max(end - start, 1);
-
-    if (this.overflow) {
-      this.left = start;
-      this.width = boxWidth + this.props.content.width;
-      contentWidth = this.props.content.width;
-
-      // Note: The calculation of width is an optimistic calculation, giving
-      //       a width which will not change when moving the Timeline
-      //       So no re-stacking needed, which is nicer for the eye;
-    } else {
-        this.left = start;
-        this.width = boxWidth;
-        contentWidth = Math.min(end - start, this.props.content.width);
-      }
-
-    this.dom.box.style.left = this.left + 'px';
-    this.dom.box.style.width = boxWidth + 'px';
-
-    switch (this.options.align) {
-      case 'left':
-        this.dom.content.style.left = '0';
-        break;
-
-      case 'right':
-        this.dom.content.style.left = Math.max(boxWidth - contentWidth, 0) + 'px';
-        break;
-
-      case 'center':
-        this.dom.content.style.left = Math.max((boxWidth - contentWidth) / 2, 0) + 'px';
-        break;
-
-      default:
-        // 'auto'
-        // when range exceeds left of the window, position the contents at the left of the visible area
-        if (this.overflow) {
-          if (end > 0) {
-            contentLeft = Math.max(-start, 0);
-          } else {
-            contentLeft = -contentWidth; // ensure it's not visible anymore
-          }
-        } else {
-            if (start < 0) {
-              contentLeft = -start;
-            } else {
-              contentLeft = 0;
-            }
-          }
-        this.dom.content.style.left = contentLeft + 'px';
-    }
-  };
-
-  /**
-   * Reposition the item vertically
-   * @Override
-   */
-  RangeItem.prototype.repositionY = function () {
-    var orientation = this.options.orientation.item;
-    var box = this.dom.box;
-
-    if (orientation == 'top') {
-      box.style.top = this.top + 'px';
-    } else {
-      box.style.top = this.parent.height - this.top - this.height + 'px';
-    }
-  };
-
-  /**
-   * Repaint a drag area on the left side of the range when the range is selected
-   * @protected
-   */
-  RangeItem.prototype._repaintDragLeft = function () {
-    if (this.selected && this.options.editable.updateTime && !this.dom.dragLeft) {
-      // create and show drag area
-      var dragLeft = document.createElement('div');
-      dragLeft.className = 'vis-drag-left';
-      dragLeft.dragLeftItem = this;
-
-      this.dom.box.appendChild(dragLeft);
-      this.dom.dragLeft = dragLeft;
-    } else if (!this.selected && this.dom.dragLeft) {
-      // delete drag area
-      if (this.dom.dragLeft.parentNode) {
-        this.dom.dragLeft.parentNode.removeChild(this.dom.dragLeft);
-      }
-      this.dom.dragLeft = null;
-    }
-  };
-
-  /**
-   * Repaint a drag area on the right side of the range when the range is selected
-   * @protected
-   */
-  RangeItem.prototype._repaintDragRight = function () {
-    if (this.selected && this.options.editable.updateTime && !this.dom.dragRight) {
-      // create and show drag area
-      var dragRight = document.createElement('div');
-      dragRight.className = 'vis-drag-right';
-      dragRight.dragRightItem = this;
-
-      this.dom.box.appendChild(dragRight);
-      this.dom.dragRight = dragRight;
-    } else if (!this.selected && this.dom.dragRight) {
-      // delete drag area
-      if (this.dom.dragRight.parentNode) {
-        this.dom.dragRight.parentNode.removeChild(this.dom.dragRight);
-      }
-      this.dom.dragRight = null;
-    }
-  };
-
-  module.exports = RangeItem;
-
-/***/ },
-/* 33 */
-/***/ function(module, exports, __webpack_require__) {
-
-  'use strict';
-
-  var Hammer = __webpack_require__(20);
-  var util = __webpack_require__(1);
-
-  /**
-   * @constructor Item
-   * @param {Object} data             Object containing (optional) parameters type,
-   *                                  start, end, content, group, className.
-   * @param {{toScreen: function, toTime: function}} conversion
-   *                                  Conversion functions from time to screen and vice versa
-   * @param {Object} options          Configuration options
-   *                                  // TODO: describe available options
-   */
-  function Item(data, conversion, options) {
-    this.id = null;
-    this.parent = null;
-    this.data = data;
-    this.dom = null;
-    this.conversion = conversion || {};
-    this.options = options || {};
-
-    this.selected = false;
-    this.displayed = false;
-    this.dirty = true;
-
-    this.top = null;
-    this.left = null;
-    this.width = null;
-    this.height = null;
-
-    this.editable = null;
-    if (this.data && this.data.hasOwnProperty('editable') && typeof this.data.editable === 'boolean') {
-      this.editable = data.editable;
-    }
-  }
-
-  Item.prototype.stack = true;
-
-  /**
-   * Select current item
-   */
-  Item.prototype.select = function () {
-    this.selected = true;
-    this.dirty = true;
-    if (this.displayed) this.redraw();
-  };
-
-  /**
-   * Unselect current item
-   */
-  Item.prototype.unselect = function () {
-    this.selected = false;
-    this.dirty = true;
-    if (this.displayed) this.redraw();
-  };
-
-  /**
-   * Set data for the item. Existing data will be updated. The id should not
-   * be changed. When the item is displayed, it will be redrawn immediately.
-   * @param {Object} data
-   */
-  Item.prototype.setData = function (data) {
-    var groupChanged = data.group != undefined && this.data.group != data.group;
-    if (groupChanged) {
-      this.parent.itemSet._moveToGroup(this, data.group);
-    }
-
-    if (data.hasOwnProperty('editable') && typeof data.editable === 'boolean') {
-      this.editable = data.editable;
-    }
-
-    this.data = data;
-    this.dirty = true;
-    if (this.displayed) this.redraw();
-  };
-
-  /**
-   * Set a parent for the item
-   * @param {ItemSet | Group} parent
-   */
-  Item.prototype.setParent = function (parent) {
-    if (this.displayed) {
-      this.hide();
-      this.parent = parent;
-      if (this.parent) {
-        this.show();
-      }
-    } else {
-      this.parent = parent;
-    }
-  };
-
-  /**
-   * Check whether this item is visible inside given range
-   * @returns {{start: Number, end: Number}} range with a timestamp for start and end
-   * @returns {boolean} True if visible
-   */
-  Item.prototype.isVisible = function (range) {
-    // Should be implemented by Item implementations
-    return false;
-  };
-
-  /**
-   * Show the Item in the DOM (when not already visible)
-   * @return {Boolean} changed
-   */
-  Item.prototype.show = function () {
-    return false;
-  };
-
-  /**
-   * Hide the Item from the DOM (when visible)
-   * @return {Boolean} changed
-   */
-  Item.prototype.hide = function () {
-    return false;
-  };
-
-  /**
-   * Repaint the item
-   */
-  Item.prototype.redraw = function () {
-    // should be implemented by the item
-  };
-
-  /**
-   * Reposition the Item horizontally
-   */
-  Item.prototype.repositionX = function () {
-    // should be implemented by the item
-  };
-
-  /**
-   * Reposition the Item vertically
-   */
-  Item.prototype.repositionY = function () {
-    // should be implemented by the item
-  };
-
-  /**
-   * Repaint a delete button on the top right of the item when the item is selected
-   * @param {HTMLElement} anchor
-   * @protected
-   */
-  Item.prototype._repaintDeleteButton = function (anchor) {
-    var editable = (this.options.editable.remove || this.data.editable === true) && this.data.editable !== false;
-
-    if (this.selected && editable && !this.dom.deleteButton) {
-      // create and show button
-      var me = this;
-
-      var deleteButton = document.createElement('div');
-      deleteButton.className = 'vis-delete';
-      deleteButton.title = 'Delete this item';
-
-      // TODO: be able to destroy the delete button
-      new Hammer(deleteButton).on('tap', function (event) {
-        event.stopPropagation();
-        me.parent.removeFromDataSet(me);
-      });
-
-      anchor.appendChild(deleteButton);
-      this.dom.deleteButton = deleteButton;
-    } else if (!this.selected && this.dom.deleteButton) {
-      // remove button
-      if (this.dom.deleteButton.parentNode) {
-        this.dom.deleteButton.parentNode.removeChild(this.dom.deleteButton);
-      }
-      this.dom.deleteButton = null;
-    }
-  };
-
-  /**
-   * Set HTML contents for the item
-   * @param {Element} element   HTML element to fill with the contents
-   * @private
-   */
-  Item.prototype._updateContents = function (element) {
-    var content;
-    if (this.options.template) {
-      var itemData = this.parent.itemSet.itemsData.get(this.id); // get a clone of the data from the dataset
-      content = this.options.template(itemData);
-    } else {
-      content = this.data.content;
-    }
-
-    var changed = this._contentToString(this.content) !== this._contentToString(content);
-    if (changed) {
-      // only replace the content when changed
-      if (content instanceof Element) {
-        element.innerHTML = '';
-        element.appendChild(content);
-      } else if (content != undefined) {
-        element.innerHTML = content;
-      } else {
-        if (!(this.data.type == 'background' && this.data.content === undefined)) {
-          throw new Error('Property "content" missing in item ' + this.id);
-        }
-      }
-
-      this.content = content;
-    }
-  };
-
-  /**
-   * Set HTML contents for the item
-   * @param {Element} element   HTML element to fill with the contents
-   * @private
-   */
-  Item.prototype._updateTitle = function (element) {
-    if (this.data.title != null) {
-      element.title = this.data.title || '';
-    } else {
-      element.removeAttribute('vis-title');
-    }
-  };
-
-  /**
-   * Process dataAttributes timeline option and set as data- attributes on dom.content
-   * @param {Element} element   HTML element to which the attributes will be attached
-   * @private
-   */
-  Item.prototype._updateDataAttributes = function (element) {
-    if (this.options.dataAttributes && this.options.dataAttributes.length > 0) {
-      var attributes = [];
-
-      if (Array.isArray(this.options.dataAttributes)) {
-        attributes = this.options.dataAttributes;
-      } else if (this.options.dataAttributes == 'all') {
-        attributes = Object.keys(this.data);
-      } else {
-        return;
-      }
-
-      for (var i = 0; i < attributes.length; i++) {
-        var name = attributes[i];
-        var value = this.data[name];
-
-        if (value != null) {
-          element.setAttribute('data-' + name, value);
-        } else {
-          element.removeAttribute('data-' + name);
-        }
-      }
-    }
-  };
-
-  /**
-   * Update custom styles of the element
-   * @param element
-   * @private
-   */
-  Item.prototype._updateStyle = function (element) {
-    // remove old styles
-    if (this.style) {
-      util.removeCssText(element, this.style);
-      this.style = null;
-    }
-
-    // append new styles
-    if (this.data.style) {
-      util.addCssText(element, this.data.style);
-      this.style = this.data.style;
-    }
-  };
-
-  /**
-   * Stringify the items contents
-   * @param {string | Element | undefined} content
-   * @returns {string | undefined}
-   * @private
-   */
-  Item.prototype._contentToString = function (content) {
-    if (typeof content === 'string') return content;
-    if (content && 'outerHTML' in content) return content.outerHTML;
-    return content;
-  };
-
-  /**
-   * Return the width of the item left from its start date
-   * @return {number}
-   */
-  Item.prototype.getWidthLeft = function () {
-    return 0;
-  };
-
-  /**
-   * Return the width of the item right from the max of its start and end date
-   * @return {number}
-   */
-  Item.prototype.getWidthRight = function () {
-    return 0;
-  };
-
-  module.exports = Item;
-
-/***/ },
-/* 34 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -19419,13 +18171,1345 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = TimeStep;
 
 /***/ },
+/* 31 */
+/***/ function(module, exports, __webpack_require__) {
+
+  'use strict';
+
+  var util = __webpack_require__(1);
+  var stack = __webpack_require__(32);
+  var RangeItem = __webpack_require__(33);
+
+  /**
+   * @constructor Group
+   * @param {Number | String} groupId
+   * @param {Object} data
+   * @param {ItemSet} itemSet
+   */
+  function Group(groupId, data, itemSet) {
+    this.groupId = groupId;
+    this.subgroups = {};
+    this.subgroupIndex = 0;
+    this.subgroupOrderer = data && data.subgroupOrder;
+    this.itemSet = itemSet;
+
+    this.dom = {};
+    this.props = {
+      label: {
+        width: 0,
+        height: 0
+      }
+    };
+    this.className = null;
+
+    this.items = {}; // items filtered by groupId of this group
+    this.visibleItems = []; // items currently visible in window
+    this.orderedItems = {
+      byStart: [],
+      byEnd: []
+    };
+    this.checkRangedItems = false; // needed to refresh the ranged items if the window is programatically changed with NO overlap.
+    var me = this;
+    this.itemSet.body.emitter.on("checkRangedItems", function () {
+      me.checkRangedItems = true;
+    });
+
+    this._create();
+
+    this.setData(data);
+  }
+
+  /**
+   * Create DOM elements for the group
+   * @private
+   */
+  Group.prototype._create = function () {
+    var label = document.createElement('div');
+    if (this.itemSet.options.groupEditable.order) {
+      label.className = 'vis-label draggable';
+    } else {
+      label.className = 'vis-label';
+    }
+    this.dom.label = label;
+
+    var inner = document.createElement('div');
+    inner.className = 'vis-inner';
+    label.appendChild(inner);
+    this.dom.inner = inner;
+
+    var foreground = document.createElement('div');
+    foreground.className = 'vis-group';
+    foreground['timeline-group'] = this;
+    this.dom.foreground = foreground;
+
+    this.dom.background = document.createElement('div');
+    this.dom.background.className = 'vis-group';
+
+    this.dom.axis = document.createElement('div');
+    this.dom.axis.className = 'vis-group';
+
+    // create a hidden marker to detect when the Timelines container is attached
+    // to the DOM, or the style of a parent of the Timeline is changed from
+    // display:none is changed to visible.
+    this.dom.marker = document.createElement('div');
+    this.dom.marker.style.visibility = 'hidden';
+    this.dom.marker.innerHTML = '?';
+    this.dom.background.appendChild(this.dom.marker);
+  };
+
+  /**
+   * Set the group data for this group
+   * @param {Object} data   Group data, can contain properties content and className
+   */
+  Group.prototype.setData = function (data) {
+    // update contents
+    var content;
+    if (this.itemSet.options && this.itemSet.options.groupTemplate) {
+      content = this.itemSet.options.groupTemplate(data);
+    } else {
+      content = data && data.content;
+    }
+
+    if (content instanceof Element) {
+      this.dom.inner.appendChild(content);
+      while (this.dom.inner.firstChild) {
+        this.dom.inner.removeChild(this.dom.inner.firstChild);
+      }
+      this.dom.inner.appendChild(content);
+    } else if (content !== undefined && content !== null) {
+      this.dom.inner.innerHTML = content;
+    } else {
+      this.dom.inner.innerHTML = this.groupId || ''; // groupId can be null
+    }
+
+    // update title
+    this.dom.label.title = data && data.title || '';
+
+    if (!this.dom.inner.firstChild) {
+      util.addClassName(this.dom.inner, 'vis-hidden');
+    } else {
+      util.removeClassName(this.dom.inner, 'vis-hidden');
+    }
+
+    // update className
+    var className = data && data.className || null;
+    if (className != this.className) {
+      if (this.className) {
+        util.removeClassName(this.dom.label, this.className);
+        util.removeClassName(this.dom.foreground, this.className);
+        util.removeClassName(this.dom.background, this.className);
+        util.removeClassName(this.dom.axis, this.className);
+      }
+      util.addClassName(this.dom.label, className);
+      util.addClassName(this.dom.foreground, className);
+      util.addClassName(this.dom.background, className);
+      util.addClassName(this.dom.axis, className);
+      this.className = className;
+    }
+
+    // update style
+    if (this.style) {
+      util.removeCssText(this.dom.label, this.style);
+      this.style = null;
+    }
+    if (data && data.style) {
+      util.addCssText(this.dom.label, data.style);
+      this.style = data.style;
+    }
+  };
+
+  /**
+   * Get the width of the group label
+   * @return {number} width
+   */
+  Group.prototype.getLabelWidth = function () {
+    return this.props.label.width;
+  };
+
+  /**
+   * Repaint this group
+   * @param {{start: number, end: number}} range
+   * @param {{item: {horizontal: number, vertical: number}, axis: number}} margin
+   * @param {boolean} [restack=false]  Force restacking of all items
+   * @return {boolean} Returns true if the group is resized
+   */
+  Group.prototype.redraw = function (range, margin, restack) {
+    var resized = false;
+
+    // force recalculation of the height of the items when the marker height changed
+    // (due to the Timeline being attached to the DOM or changed from display:none to visible)
+    var markerHeight = this.dom.marker.clientHeight;
+    if (markerHeight != this.lastMarkerHeight) {
+      this.lastMarkerHeight = markerHeight;
+
+      util.forEach(this.items, function (item) {
+        item.dirty = true;
+        if (item.displayed) item.redraw();
+      });
+
+      restack = true;
+    }
+
+    // reposition visible items vertically
+    if (typeof this.itemSet.options.order === 'function') {
+      // a custom order function
+
+      if (restack) {
+        // brute force restack of all items
+
+        // show all items
+        var me = this;
+        var limitSize = false;
+        util.forEach(this.items, function (item) {
+          if (!item.displayed) {
+            item.redraw();
+            me.visibleItems.push(item);
+          }
+          item.repositionX(limitSize);
+        });
+
+        // order all items and force a restacking
+        var customOrderedItems = this.orderedItems.byStart.slice().sort(function (a, b) {
+          return me.itemSet.options.order(a.data, b.data);
+        });
+        stack.stack(customOrderedItems, margin, true /* restack=true */);
+      }
+
+      this.visibleItems = this._updateVisibleItems(this.orderedItems, this.visibleItems, range);
+    } else {
+      // no custom order function, lazy stacking
+      this.visibleItems = this._updateVisibleItems(this.orderedItems, this.visibleItems, range);
+
+      if (this.itemSet.options.stack) {
+        // TODO: ugly way to access options...
+        stack.stack(this.visibleItems, margin, restack);
+      } else {
+        // no stacking
+        stack.nostack(this.visibleItems, margin, this.subgroups);
+      }
+    }
+
+    // recalculate the height of the group
+    var height = this._calculateHeight(margin);
+
+    // calculate actual size and position
+    var foreground = this.dom.foreground;
+    this.top = foreground.offsetTop;
+    this.left = foreground.offsetLeft;
+    this.width = foreground.offsetWidth;
+    resized = util.updateProperty(this, 'height', height) || resized;
+
+    // recalculate size of label
+    resized = util.updateProperty(this.props.label, 'width', this.dom.inner.clientWidth) || resized;
+    resized = util.updateProperty(this.props.label, 'height', this.dom.inner.clientHeight) || resized;
+
+    // apply new height
+    this.dom.background.style.height = height + 'px';
+    this.dom.foreground.style.height = height + 'px';
+    this.dom.label.style.height = height + 'px';
+
+    // update vertical position of items after they are re-stacked and the height of the group is calculated
+    for (var i = 0, ii = this.visibleItems.length; i < ii; i++) {
+      var item = this.visibleItems[i];
+      item.repositionY(margin);
+    }
+
+    return resized;
+  };
+
+  /**
+   * recalculate the height of the group
+   * @param {{item: {horizontal: number, vertical: number}, axis: number}} margin
+   * @returns {number} Returns the height
+   * @private
+   */
+  Group.prototype._calculateHeight = function (margin) {
+    // recalculate the height of the group
+    var height;
+    var visibleItems = this.visibleItems;
+    //var visibleSubgroups = [];
+    //this.visibleSubgroups = 0;
+    this.resetSubgroups();
+    var me = this;
+    if (visibleItems.length > 0) {
+      var min = visibleItems[0].top;
+      var max = visibleItems[0].top + visibleItems[0].height;
+      util.forEach(visibleItems, function (item) {
+        min = Math.min(min, item.top);
+        max = Math.max(max, item.top + item.height);
+        if (item.data.subgroup !== undefined) {
+          me.subgroups[item.data.subgroup].height = Math.max(me.subgroups[item.data.subgroup].height, item.height);
+          me.subgroups[item.data.subgroup].visible = true;
+        }
+      });
+      if (min > margin.axis) {
+        // there is an empty gap between the lowest item and the axis
+        var offset = min - margin.axis;
+        max -= offset;
+        util.forEach(visibleItems, function (item) {
+          item.top -= offset;
+        });
+      }
+      height = max + margin.item.vertical / 2;
+    } else {
+      height = 0;
+    }
+    height = Math.max(height, this.props.label.height);
+
+    return height;
+  };
+
+  /**
+   * Show this group: attach to the DOM
+   */
+  Group.prototype.show = function () {
+    if (!this.dom.label.parentNode) {
+      this.itemSet.dom.labelSet.appendChild(this.dom.label);
+    }
+
+    if (!this.dom.foreground.parentNode) {
+      this.itemSet.dom.foreground.appendChild(this.dom.foreground);
+    }
+
+    if (!this.dom.background.parentNode) {
+      this.itemSet.dom.background.appendChild(this.dom.background);
+    }
+
+    if (!this.dom.axis.parentNode) {
+      this.itemSet.dom.axis.appendChild(this.dom.axis);
+    }
+  };
+
+  /**
+   * Hide this group: remove from the DOM
+   */
+  Group.prototype.hide = function () {
+    var label = this.dom.label;
+    if (label.parentNode) {
+      label.parentNode.removeChild(label);
+    }
+
+    var foreground = this.dom.foreground;
+    if (foreground.parentNode) {
+      foreground.parentNode.removeChild(foreground);
+    }
+
+    var background = this.dom.background;
+    if (background.parentNode) {
+      background.parentNode.removeChild(background);
+    }
+
+    var axis = this.dom.axis;
+    if (axis.parentNode) {
+      axis.parentNode.removeChild(axis);
+    }
+  };
+
+  /**
+   * Add an item to the group
+   * @param {Item} item
+   */
+  Group.prototype.add = function (item) {
+    this.items[item.id] = item;
+    item.setParent(this);
+
+    // add to
+    if (item.data.subgroup !== undefined) {
+      if (this.subgroups[item.data.subgroup] === undefined) {
+        this.subgroups[item.data.subgroup] = { height: 0, visible: false, index: this.subgroupIndex, items: [] };
+        this.subgroupIndex++;
+      }
+      this.subgroups[item.data.subgroup].items.push(item);
+    }
+    this.orderSubgroups();
+
+    if (this.visibleItems.indexOf(item) == -1) {
+      var range = this.itemSet.body.range; // TODO: not nice accessing the range like this
+      this._checkIfVisible(item, this.visibleItems, range);
+    }
+  };
+
+  Group.prototype.orderSubgroups = function () {
+    if (this.subgroupOrderer !== undefined) {
+      var sortArray = [];
+      if (typeof this.subgroupOrderer == 'string') {
+        for (var subgroup in this.subgroups) {
+          sortArray.push({ subgroup: subgroup, sortField: this.subgroups[subgroup].items[0].data[this.subgroupOrderer] });
+        }
+        sortArray.sort(function (a, b) {
+          return a.sortField - b.sortField;
+        });
+      } else if (typeof this.subgroupOrderer == 'function') {
+        for (var subgroup in this.subgroups) {
+          sortArray.push(this.subgroups[subgroup].items[0].data);
+        }
+        sortArray.sort(this.subgroupOrderer);
+      }
+
+      if (sortArray.length > 0) {
+        for (var i = 0; i < sortArray.length; i++) {
+          this.subgroups[sortArray[i].subgroup].index = i;
+        }
+      }
+    }
+  };
+
+  Group.prototype.resetSubgroups = function () {
+    for (var subgroup in this.subgroups) {
+      if (this.subgroups.hasOwnProperty(subgroup)) {
+        this.subgroups[subgroup].visible = false;
+      }
+    }
+  };
+
+  /**
+   * Remove an item from the group
+   * @param {Item} item
+   */
+  Group.prototype.remove = function (item) {
+    delete this.items[item.id];
+    item.setParent(null);
+
+    // remove from visible items
+    var index = this.visibleItems.indexOf(item);
+    if (index != -1) this.visibleItems.splice(index, 1);
+
+    if (item.data.subgroup !== undefined) {
+      var subgroup = this.subgroups[item.data.subgroup];
+      if (subgroup) {
+        var itemIndex = subgroup.items.indexOf(item);
+        subgroup.items.splice(itemIndex, 1);
+        if (!subgroup.items.length) {
+          delete this.subgroups[item.data.subgroup];
+          this.subgroupIndex--;
+        }
+        this.orderSubgroups();
+      }
+    }
+  };
+
+  /**
+   * Remove an item from the corresponding DataSet
+   * @param {Item} item
+   */
+  Group.prototype.removeFromDataSet = function (item) {
+    this.itemSet.removeItem(item.id);
+  };
+
+  /**
+   * Reorder the items
+   */
+  Group.prototype.order = function () {
+    var array = util.toArray(this.items);
+    var startArray = [];
+    var endArray = [];
+
+    for (var i = 0; i < array.length; i++) {
+      if (array[i].data.end !== undefined) {
+        endArray.push(array[i]);
+      }
+      startArray.push(array[i]);
+    }
+    this.orderedItems = {
+      byStart: startArray,
+      byEnd: endArray
+    };
+
+    stack.orderByStart(this.orderedItems.byStart);
+    stack.orderByEnd(this.orderedItems.byEnd);
+  };
+
+  /**
+   * Update the visible items
+   * @param {{byStart: Item[], byEnd: Item[]}} orderedItems   All items ordered by start date and by end date
+   * @param {Item[]} visibleItems                             The previously visible items.
+   * @param {{start: number, end: number}} range              Visible range
+   * @return {Item[]} visibleItems                            The new visible items.
+   * @private
+   */
+  Group.prototype._updateVisibleItems = function (orderedItems, oldVisibleItems, range) {
+    var visibleItems = [];
+    var visibleItemsLookup = {}; // we keep this to quickly look up if an item already exists in the list without using indexOf on visibleItems
+    var interval = (range.end - range.start) / 4;
+    var lowerBound = range.start - interval;
+    var upperBound = range.end + interval;
+    var item, i;
+
+    // this function is used to do the binary search.
+    var searchFunction = function searchFunction(value) {
+      if (value < lowerBound) {
+        return -1;
+      } else if (value <= upperBound) {
+        return 0;
+      } else {
+        return 1;
+      }
+    };
+
+    // first check if the items that were in view previously are still in view.
+    // IMPORTANT: this handles the case for the items with startdate before the window and enddate after the window!
+    // also cleans up invisible items.
+    if (oldVisibleItems.length > 0) {
+      for (i = 0; i < oldVisibleItems.length; i++) {
+        this._checkIfVisibleWithReference(oldVisibleItems[i], visibleItems, visibleItemsLookup, range);
+      }
+    }
+
+    // we do a binary search for the items that have only start values.
+    var initialPosByStart = util.binarySearchCustom(orderedItems.byStart, searchFunction, 'data', 'start');
+
+    // trace the visible items from the inital start pos both ways until an invisible item is found, we only look at the start values.
+    this._traceVisible(initialPosByStart, orderedItems.byStart, visibleItems, visibleItemsLookup, function (item) {
+      return item.data.start < lowerBound || item.data.start > upperBound;
+    });
+
+    // if the window has changed programmatically without overlapping the old window, the ranged items with start < lowerBound and end > upperbound are not shown.
+    // We therefore have to brute force check all items in the byEnd list
+    if (this.checkRangedItems == true) {
+      this.checkRangedItems = false;
+      for (i = 0; i < orderedItems.byEnd.length; i++) {
+        this._checkIfVisibleWithReference(orderedItems.byEnd[i], visibleItems, visibleItemsLookup, range);
+      }
+    } else {
+      // we do a binary search for the items that have defined end times.
+      var initialPosByEnd = util.binarySearchCustom(orderedItems.byEnd, searchFunction, 'data', 'end');
+
+      // trace the visible items from the inital start pos both ways until an invisible item is found, we only look at the end values.
+      this._traceVisible(initialPosByEnd, orderedItems.byEnd, visibleItems, visibleItemsLookup, function (item) {
+        return item.data.end < lowerBound || item.data.end > upperBound;
+      });
+    }
+
+    // finally, we reposition all the visible items.
+    for (i = 0; i < visibleItems.length; i++) {
+      item = visibleItems[i];
+      if (!item.displayed) item.show();
+      // reposition item horizontally
+      item.repositionX();
+    }
+
+    // debug
+    //console.log("new line")
+    //if (this.groupId == null) {
+    //  for (i = 0; i < orderedItems.byStart.length; i++) {
+    //    item = orderedItems.byStart[i].data;
+    //    console.log('start',i,initialPosByStart, item.start.valueOf(), item.content, item.start >= lowerBound && item.start <= upperBound,i == initialPosByStart ? "<------------------- HEREEEE" : "")
+    //  }
+    //  for (i = 0; i < orderedItems.byEnd.length; i++) {
+    //    item = orderedItems.byEnd[i].data;
+    //    console.log('rangeEnd',i,initialPosByEnd, item.end.valueOf(), item.content, item.end >= range.start && item.end <= range.end,i == initialPosByEnd ? "<------------------- HEREEEE" : "")
+    //  }
+    //}
+
+    return visibleItems;
+  };
+
+  Group.prototype._traceVisible = function (initialPos, items, visibleItems, visibleItemsLookup, breakCondition) {
+    var item;
+    var i;
+
+    if (initialPos != -1) {
+      for (i = initialPos; i >= 0; i--) {
+        item = items[i];
+        if (breakCondition(item)) {
+          break;
+        } else {
+          if (visibleItemsLookup[item.id] === undefined) {
+            visibleItemsLookup[item.id] = true;
+            visibleItems.push(item);
+          }
+        }
+      }
+
+      for (i = initialPos + 1; i < items.length; i++) {
+        item = items[i];
+        if (breakCondition(item)) {
+          break;
+        } else {
+          if (visibleItemsLookup[item.id] === undefined) {
+            visibleItemsLookup[item.id] = true;
+            visibleItems.push(item);
+          }
+        }
+      }
+    }
+  };
+
+  /**
+   * this function is very similar to the _checkIfInvisible() but it does not
+   * return booleans, hides the item if it should not be seen and always adds to
+   * the visibleItems.
+   * this one is for brute forcing and hiding.
+   *
+   * @param {Item} item
+   * @param {Array} visibleItems
+   * @param {{start:number, end:number}} range
+   * @private
+   */
+  Group.prototype._checkIfVisible = function (item, visibleItems, range) {
+    if (item.isVisible(range)) {
+      if (!item.displayed) item.show();
+      // reposition item horizontally
+      item.repositionX();
+      visibleItems.push(item);
+    } else {
+      if (item.displayed) item.hide();
+    }
+  };
+
+  /**
+   * this function is very similar to the _checkIfInvisible() but it does not
+   * return booleans, hides the item if it should not be seen and always adds to
+   * the visibleItems.
+   * this one is for brute forcing and hiding.
+   *
+   * @param {Item} item
+   * @param {Array} visibleItems
+   * @param {{start:number, end:number}} range
+   * @private
+   */
+  Group.prototype._checkIfVisibleWithReference = function (item, visibleItems, visibleItemsLookup, range) {
+    if (item.isVisible(range)) {
+      if (visibleItemsLookup[item.id] === undefined) {
+        visibleItemsLookup[item.id] = true;
+        visibleItems.push(item);
+      }
+    } else {
+      if (item.displayed) item.hide();
+    }
+  };
+
+  module.exports = Group;
+
+/***/ },
+/* 32 */
+/***/ function(module, exports) {
+
+  // Utility functions for ordering and stacking of items
+  'use strict';
+
+  var EPSILON = 0.001; // used when checking collisions, to prevent round-off errors
+
+  /**
+   * Order items by their start data
+   * @param {Item[]} items
+   */
+  exports.orderByStart = function (items) {
+    items.sort(function (a, b) {
+      return a.data.start - b.data.start;
+    });
+  };
+
+  /**
+   * Order items by their end date. If they have no end date, their start date
+   * is used.
+   * @param {Item[]} items
+   */
+  exports.orderByEnd = function (items) {
+    items.sort(function (a, b) {
+      var aTime = 'end' in a.data ? a.data.end : a.data.start,
+          bTime = 'end' in b.data ? b.data.end : b.data.start;
+
+      return aTime - bTime;
+    });
+  };
+
+  /**
+   * Adjust vertical positions of the items such that they don't overlap each
+   * other.
+   * @param {Item[]} items
+   *            All visible items
+   * @param {{item: {horizontal: number, vertical: number}, axis: number}} margin
+   *            Margins between items and between items and the axis.
+   * @param {boolean} [force=false]
+   *            If true, all items will be repositioned. If false (default), only
+   *            items having a top===null will be re-stacked
+   */
+  exports.stack = function (items, margin, force) {
+    var i, iMax;
+
+    if (force) {
+      // reset top position of all items
+      for (i = 0, iMax = items.length; i < iMax; i++) {
+        items[i].top = null;
+      }
+    }
+
+    // calculate new, non-overlapping positions
+    for (i = 0, iMax = items.length; i < iMax; i++) {
+      var item = items[i];
+      if (item.stack && item.top === null) {
+        // initialize top position
+        item.top = margin.axis;
+
+        do {
+          // TODO: optimize checking for overlap. when there is a gap without items,
+          //       you only need to check for items from the next item on, not from zero
+          var collidingItem = null;
+          for (var j = 0, jj = items.length; j < jj; j++) {
+            var other = items[j];
+            if (other.top !== null && other !== item && other.stack && exports.collision(item, other, margin.item)) {
+              collidingItem = other;
+              break;
+            }
+          }
+
+          if (collidingItem != null) {
+            // There is a collision. Reposition the items above the colliding element
+            item.top = collidingItem.top + collidingItem.height + margin.item.vertical;
+          }
+        } while (collidingItem);
+      }
+    }
+  };
+
+  /**
+   * Adjust vertical positions of the items without stacking them
+   * @param {Item[]} items
+   *            All visible items
+   * @param {{item: {horizontal: number, vertical: number}, axis: number}} margin
+   *            Margins between items and between items and the axis.
+   */
+  exports.nostack = function (items, margin, subgroups) {
+    var i, iMax, newTop;
+
+    // reset top position of all items
+    for (i = 0, iMax = items.length; i < iMax; i++) {
+      if (items[i].data.subgroup !== undefined) {
+        newTop = margin.axis;
+        for (var subgroup in subgroups) {
+          if (subgroups.hasOwnProperty(subgroup)) {
+            if (subgroups[subgroup].visible == true && subgroups[subgroup].index < subgroups[items[i].data.subgroup].index) {
+              newTop += subgroups[subgroup].height + margin.item.vertical;
+            }
+          }
+        }
+        items[i].top = newTop;
+      } else {
+        items[i].top = margin.axis;
+      }
+    }
+  };
+
+  /**
+   * Test if the two provided items collide
+   * The items must have parameters left, width, top, and height.
+   * @param {Item} a          The first item
+   * @param {Item} b          The second item
+   * @param {{horizontal: number, vertical: number}} margin
+   *                          An object containing a horizontal and vertical
+   *                          minimum required margin.
+   * @return {boolean}        true if a and b collide, else false
+   */
+  exports.collision = function (a, b, margin) {
+    return a.left - margin.horizontal + EPSILON < b.left + b.width && a.left + a.width + margin.horizontal - EPSILON > b.left && a.top - margin.vertical + EPSILON < b.top + b.height && a.top + a.height + margin.vertical - EPSILON > b.top;
+  };
+
+/***/ },
+/* 33 */
+/***/ function(module, exports, __webpack_require__) {
+
+  'use strict';
+
+  var Hammer = __webpack_require__(20);
+  var Item = __webpack_require__(34);
+
+  /**
+   * @constructor RangeItem
+   * @extends Item
+   * @param {Object} data             Object containing parameters start, end
+   *                                  content, className.
+   * @param {{toScreen: function, toTime: function}} conversion
+   *                                  Conversion functions from time to screen and vice versa
+   * @param {Object} [options]        Configuration options
+   *                                  // TODO: describe options
+   */
+  function RangeItem(data, conversion, options) {
+    this.props = {
+      content: {
+        width: 0
+      }
+    };
+    this.overflow = false; // if contents can overflow (css styling), this flag is set to true
+
+    // validate data
+    if (data) {
+      if (data.start == undefined) {
+        throw new Error('Property "start" missing in item ' + data.id);
+      }
+      if (data.end == undefined) {
+        throw new Error('Property "end" missing in item ' + data.id);
+      }
+    }
+
+    Item.call(this, data, conversion, options);
+  }
+
+  RangeItem.prototype = new Item(null, null, null);
+
+  RangeItem.prototype.baseClassName = 'vis-item vis-range';
+
+  /**
+   * Check whether this item is visible inside given range
+   * @returns {{start: Number, end: Number}} range with a timestamp for start and end
+   * @returns {boolean} True if visible
+   */
+  RangeItem.prototype.isVisible = function (range) {
+    // determine visibility
+    return this.data.start < range.end && this.data.end > range.start;
+  };
+
+  /**
+   * Repaint the item
+   */
+  RangeItem.prototype.redraw = function () {
+    var dom = this.dom;
+    if (!dom) {
+      // create DOM
+      this.dom = {};
+      dom = this.dom;
+
+      // background box
+      dom.box = document.createElement('div');
+      // className is updated in redraw()
+
+      // frame box (to prevent the item contents from overflowing
+      dom.frame = document.createElement('div');
+      dom.frame.className = 'vis-item-overflow';
+      dom.box.appendChild(dom.frame);
+
+      // contents box
+      dom.content = document.createElement('div');
+      dom.content.className = 'vis-item-content';
+      dom.frame.appendChild(dom.content);
+
+      // attach this item as attribute
+      dom.box['timeline-item'] = this;
+
+      this.dirty = true;
+    }
+
+    // append DOM to parent DOM
+    if (!this.parent) {
+      throw new Error('Cannot redraw item: no parent attached');
+    }
+    if (!dom.box.parentNode) {
+      var foreground = this.parent.dom.foreground;
+      if (!foreground) {
+        throw new Error('Cannot redraw item: parent has no foreground container element');
+      }
+      foreground.appendChild(dom.box);
+    }
+    this.displayed = true;
+
+    // Update DOM when item is marked dirty. An item is marked dirty when:
+    // - the item is not yet rendered
+    // - the item's data is changed
+    // - the item is selected/deselected
+    if (this.dirty) {
+      this._updateContents(this.dom.content);
+      this._updateTitle(this.dom.box);
+      this._updateDataAttributes(this.dom.box);
+      this._updateStyle(this.dom.box);
+
+      var editable = (this.options.editable.updateTime || this.options.editable.updateGroup || this.editable === true) && this.editable !== false;
+
+      // update class
+      var className = (this.data.className ? ' ' + this.data.className : '') + (this.selected ? ' vis-selected' : '') + (editable ? ' vis-editable' : ' vis-readonly');
+      dom.box.className = this.baseClassName + className;
+
+      // determine from css whether this box has overflow
+      this.overflow = window.getComputedStyle(dom.frame).overflow !== 'hidden';
+
+      // recalculate size
+      // turn off max-width to be able to calculate the real width
+      // this causes an extra browser repaint/reflow, but so be it
+      this.dom.content.style.maxWidth = 'none';
+      this.props.content.width = this.dom.content.offsetWidth;
+      this.height = this.dom.box.offsetHeight;
+      this.dom.content.style.maxWidth = '';
+
+      this.dirty = false;
+    }
+
+    this._repaintDeleteButton(dom.box);
+    this._repaintDragLeft();
+    this._repaintDragRight();
+  };
+
+  /**
+   * Show the item in the DOM (when not already visible). The items DOM will
+   * be created when needed.
+   */
+  RangeItem.prototype.show = function () {
+    if (!this.displayed) {
+      this.redraw();
+    }
+  };
+
+  /**
+   * Hide the item from the DOM (when visible)
+   * @return {Boolean} changed
+   */
+  RangeItem.prototype.hide = function () {
+    if (this.displayed) {
+      var box = this.dom.box;
+
+      if (box.parentNode) {
+        box.parentNode.removeChild(box);
+      }
+
+      this.displayed = false;
+    }
+  };
+
+  /**
+   * Reposition the item horizontally
+   * @param {boolean} [limitSize=true] If true (default), the width of the range
+   *                                   item will be limited, as the browser cannot
+   *                                   display very wide divs. This means though
+   *                                   that the applied left and width may
+   *                                   not correspond to the ranges start and end
+   * @Override
+   */
+  RangeItem.prototype.repositionX = function (limitSize) {
+    var parentWidth = this.parent.width;
+    var start = this.conversion.toScreen(this.data.start);
+    var end = this.conversion.toScreen(this.data.end);
+    var contentLeft;
+    var contentWidth;
+
+    // limit the width of the range, as browsers cannot draw very wide divs
+    if (limitSize === undefined || limitSize === true) {
+      if (start < -parentWidth) {
+        start = -parentWidth;
+      }
+      if (end > 2 * parentWidth) {
+        end = 2 * parentWidth;
+      }
+    }
+    var boxWidth = Math.max(end - start, 1);
+
+    if (this.overflow) {
+      this.left = start;
+      this.width = boxWidth + this.props.content.width;
+      contentWidth = this.props.content.width;
+
+      // Note: The calculation of width is an optimistic calculation, giving
+      //       a width which will not change when moving the Timeline
+      //       So no re-stacking needed, which is nicer for the eye;
+    } else {
+        this.left = start;
+        this.width = boxWidth;
+        contentWidth = Math.min(end - start, this.props.content.width);
+      }
+
+    this.dom.box.style.left = this.left + 'px';
+    this.dom.box.style.width = boxWidth + 'px';
+
+    switch (this.options.align) {
+      case 'left':
+        this.dom.content.style.left = '0';
+        break;
+
+      case 'right':
+        this.dom.content.style.left = Math.max(boxWidth - contentWidth, 0) + 'px';
+        break;
+
+      case 'center':
+        this.dom.content.style.left = Math.max((boxWidth - contentWidth) / 2, 0) + 'px';
+        break;
+
+      default:
+        // 'auto'
+        // when range exceeds left of the window, position the contents at the left of the visible area
+        if (this.overflow) {
+          if (end > 0) {
+            contentLeft = Math.max(-start, 0);
+          } else {
+            contentLeft = -contentWidth; // ensure it's not visible anymore
+          }
+        } else {
+            if (start < 0) {
+              contentLeft = -start;
+            } else {
+              contentLeft = 0;
+            }
+          }
+        this.dom.content.style.left = contentLeft + 'px';
+    }
+  };
+
+  /**
+   * Reposition the item vertically
+   * @Override
+   */
+  RangeItem.prototype.repositionY = function () {
+    var orientation = this.options.orientation.item;
+    var box = this.dom.box;
+
+    if (orientation == 'top') {
+      box.style.top = this.top + 'px';
+    } else {
+      box.style.top = this.parent.height - this.top - this.height + 'px';
+    }
+  };
+
+  /**
+   * Repaint a drag area on the left side of the range when the range is selected
+   * @protected
+   */
+  RangeItem.prototype._repaintDragLeft = function () {
+    if (this.selected && this.options.editable.updateTime && !this.dom.dragLeft) {
+      // create and show drag area
+      var dragLeft = document.createElement('div');
+      dragLeft.className = 'vis-drag-left';
+      dragLeft.dragLeftItem = this;
+
+      this.dom.box.appendChild(dragLeft);
+      this.dom.dragLeft = dragLeft;
+    } else if (!this.selected && this.dom.dragLeft) {
+      // delete drag area
+      if (this.dom.dragLeft.parentNode) {
+        this.dom.dragLeft.parentNode.removeChild(this.dom.dragLeft);
+      }
+      this.dom.dragLeft = null;
+    }
+  };
+
+  /**
+   * Repaint a drag area on the right side of the range when the range is selected
+   * @protected
+   */
+  RangeItem.prototype._repaintDragRight = function () {
+    if (this.selected && this.options.editable.updateTime && !this.dom.dragRight) {
+      // create and show drag area
+      var dragRight = document.createElement('div');
+      dragRight.className = 'vis-drag-right';
+      dragRight.dragRightItem = this;
+
+      this.dom.box.appendChild(dragRight);
+      this.dom.dragRight = dragRight;
+    } else if (!this.selected && this.dom.dragRight) {
+      // delete drag area
+      if (this.dom.dragRight.parentNode) {
+        this.dom.dragRight.parentNode.removeChild(this.dom.dragRight);
+      }
+      this.dom.dragRight = null;
+    }
+  };
+
+  module.exports = RangeItem;
+
+/***/ },
+/* 34 */
+/***/ function(module, exports, __webpack_require__) {
+
+  'use strict';
+
+  var Hammer = __webpack_require__(20);
+  var util = __webpack_require__(1);
+
+  /**
+   * @constructor Item
+   * @param {Object} data             Object containing (optional) parameters type,
+   *                                  start, end, content, group, className.
+   * @param {{toScreen: function, toTime: function}} conversion
+   *                                  Conversion functions from time to screen and vice versa
+   * @param {Object} options          Configuration options
+   *                                  // TODO: describe available options
+   */
+  function Item(data, conversion, options) {
+    this.id = null;
+    this.parent = null;
+    this.data = data;
+    this.dom = null;
+    this.conversion = conversion || {};
+    this.options = options || {};
+
+    this.selected = false;
+    this.displayed = false;
+    this.dirty = true;
+
+    this.top = null;
+    this.left = null;
+    this.width = null;
+    this.height = null;
+
+    this.editable = null;
+    if (this.data && this.data.hasOwnProperty('editable') && typeof this.data.editable === 'boolean') {
+      this.editable = data.editable;
+    }
+  }
+
+  Item.prototype.stack = true;
+
+  /**
+   * Select current item
+   */
+  Item.prototype.select = function () {
+    this.selected = true;
+    this.dirty = true;
+    if (this.displayed) this.redraw();
+  };
+
+  /**
+   * Unselect current item
+   */
+  Item.prototype.unselect = function () {
+    this.selected = false;
+    this.dirty = true;
+    if (this.displayed) this.redraw();
+  };
+
+  /**
+   * Set data for the item. Existing data will be updated. The id should not
+   * be changed. When the item is displayed, it will be redrawn immediately.
+   * @param {Object} data
+   */
+  Item.prototype.setData = function (data) {
+    var groupChanged = data.group != undefined && this.data.group != data.group;
+    if (groupChanged) {
+      this.parent.itemSet._moveToGroup(this, data.group);
+    }
+
+    if (data.hasOwnProperty('editable') && typeof data.editable === 'boolean') {
+      this.editable = data.editable;
+    }
+
+    this.data = data;
+    this.dirty = true;
+    if (this.displayed) this.redraw();
+  };
+
+  /**
+   * Set a parent for the item
+   * @param {ItemSet | Group} parent
+   */
+  Item.prototype.setParent = function (parent) {
+    if (this.displayed) {
+      this.hide();
+      this.parent = parent;
+      if (this.parent) {
+        this.show();
+      }
+    } else {
+      this.parent = parent;
+    }
+  };
+
+  /**
+   * Check whether this item is visible inside given range
+   * @returns {{start: Number, end: Number}} range with a timestamp for start and end
+   * @returns {boolean} True if visible
+   */
+  Item.prototype.isVisible = function (range) {
+    // Should be implemented by Item implementations
+    return false;
+  };
+
+  /**
+   * Show the Item in the DOM (when not already visible)
+   * @return {Boolean} changed
+   */
+  Item.prototype.show = function () {
+    return false;
+  };
+
+  /**
+   * Hide the Item from the DOM (when visible)
+   * @return {Boolean} changed
+   */
+  Item.prototype.hide = function () {
+    return false;
+  };
+
+  /**
+   * Repaint the item
+   */
+  Item.prototype.redraw = function () {
+    // should be implemented by the item
+  };
+
+  /**
+   * Reposition the Item horizontally
+   */
+  Item.prototype.repositionX = function () {
+    // should be implemented by the item
+  };
+
+  /**
+   * Reposition the Item vertically
+   */
+  Item.prototype.repositionY = function () {
+    // should be implemented by the item
+  };
+
+  /**
+   * Repaint a delete button on the top right of the item when the item is selected
+   * @param {HTMLElement} anchor
+   * @protected
+   */
+  Item.prototype._repaintDeleteButton = function (anchor) {
+    var editable = (this.options.editable.remove || this.data.editable === true) && this.data.editable !== false;
+
+    if (this.selected && editable && !this.dom.deleteButton) {
+      // create and show button
+      var me = this;
+
+      var deleteButton = document.createElement('div');
+      deleteButton.className = 'vis-delete';
+      deleteButton.title = 'Delete this item';
+
+      // TODO: be able to destroy the delete button
+      new Hammer(deleteButton).on('tap', function (event) {
+        event.stopPropagation();
+        me.parent.removeFromDataSet(me);
+      });
+
+      anchor.appendChild(deleteButton);
+      this.dom.deleteButton = deleteButton;
+    } else if (!this.selected && this.dom.deleteButton) {
+      // remove button
+      if (this.dom.deleteButton.parentNode) {
+        this.dom.deleteButton.parentNode.removeChild(this.dom.deleteButton);
+      }
+      this.dom.deleteButton = null;
+    }
+  };
+
+  /**
+   * Set HTML contents for the item
+   * @param {Element} element   HTML element to fill with the contents
+   * @private
+   */
+  Item.prototype._updateContents = function (element) {
+    var content;
+    if (this.options.template) {
+      var itemData = this.parent.itemSet.itemsData.get(this.id); // get a clone of the data from the dataset
+      content = this.options.template(itemData);
+    } else {
+      content = this.data.content;
+    }
+
+    var changed = this._contentToString(this.content) !== this._contentToString(content);
+    if (changed) {
+      // only replace the content when changed
+      if (content instanceof Element) {
+        element.innerHTML = '';
+        element.appendChild(content);
+      } else if (content != undefined) {
+        element.innerHTML = content;
+      } else {
+        if (!(this.data.type == 'background' && this.data.content === undefined)) {
+          throw new Error('Property "content" missing in item ' + this.id);
+        }
+      }
+
+      this.content = content;
+    }
+  };
+
+  /**
+   * Set HTML contents for the item
+   * @param {Element} element   HTML element to fill with the contents
+   * @private
+   */
+  Item.prototype._updateTitle = function (element) {
+    if (this.data.title != null) {
+      element.title = this.data.title || '';
+    } else {
+      element.removeAttribute('vis-title');
+    }
+  };
+
+  /**
+   * Process dataAttributes timeline option and set as data- attributes on dom.content
+   * @param {Element} element   HTML element to which the attributes will be attached
+   * @private
+   */
+  Item.prototype._updateDataAttributes = function (element) {
+    if (this.options.dataAttributes && this.options.dataAttributes.length > 0) {
+      var attributes = [];
+
+      if (Array.isArray(this.options.dataAttributes)) {
+        attributes = this.options.dataAttributes;
+      } else if (this.options.dataAttributes == 'all') {
+        attributes = Object.keys(this.data);
+      } else {
+        return;
+      }
+
+      for (var i = 0; i < attributes.length; i++) {
+        var name = attributes[i];
+        var value = this.data[name];
+
+        if (value != null) {
+          element.setAttribute('data-' + name, value);
+        } else {
+          element.removeAttribute('data-' + name);
+        }
+      }
+    }
+  };
+
+  /**
+   * Update custom styles of the element
+   * @param element
+   * @private
+   */
+  Item.prototype._updateStyle = function (element) {
+    // remove old styles
+    if (this.style) {
+      util.removeCssText(element, this.style);
+      this.style = null;
+    }
+
+    // append new styles
+    if (this.data.style) {
+      util.addCssText(element, this.data.style);
+      this.style = this.data.style;
+    }
+  };
+
+  /**
+   * Stringify the items contents
+   * @param {string | Element | undefined} content
+   * @returns {string | undefined}
+   * @private
+   */
+  Item.prototype._contentToString = function (content) {
+    if (typeof content === 'string') return content;
+    if (content && 'outerHTML' in content) return content.outerHTML;
+    return content;
+  };
+
+  /**
+   * Return the width of the item left from its start date
+   * @return {number}
+   */
+  Item.prototype.getWidthLeft = function () {
+    return 0;
+  };
+
+  /**
+   * Return the width of the item right from the max of its start and end date
+   * @return {number}
+   */
+  Item.prototype.getWidthRight = function () {
+    return 0;
+  };
+
+  module.exports = Item;
+
+/***/ },
 /* 35 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
 
   var util = __webpack_require__(1);
-  var Group = __webpack_require__(30);
+  var Group = __webpack_require__(31);
 
   /**
    * @constructor BackgroundGroup
@@ -19488,7 +19572,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   'use strict';
 
-  var Item = __webpack_require__(33);
+  var Item = __webpack_require__(34);
   var util = __webpack_require__(1);
 
   /**
@@ -19728,7 +19812,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   'use strict';
 
-  var Item = __webpack_require__(33);
+  var Item = __webpack_require__(34);
 
   /**
    * @constructor PointItem
@@ -19934,9 +20018,9 @@ return /******/ (function(modules) { // webpackBootstrap
   'use strict';
 
   var Hammer = __webpack_require__(20);
-  var Item = __webpack_require__(33);
+  var Item = __webpack_require__(34);
   var BackgroundGroup = __webpack_require__(35);
-  var RangeItem = __webpack_require__(32);
+  var RangeItem = __webpack_require__(33);
 
   /**
    * @constructor BackgroundItem
@@ -20130,19 +20214,19 @@ return /******/ (function(modules) { // webpackBootstrap
     }
     // and in the case of no subgroups:
     else {
-      // we want backgrounds with groups to only show in groups.
-      if (this.parent instanceof BackgroundGroup) {
-        // if the item is not in a group:
-        height = Math.max(this.parent.height, this.parent.itemSet.body.domProps.center.height, this.parent.itemSet.body.domProps.centerContainer.height);
-        this.dom.box.style.top = onTop ? '0' : '';
-        this.dom.box.style.bottom = onTop ? '' : '0';
-      } else {
-        height = this.parent.height;
-        // same alignment for items when orientation is top or bottom
-        this.dom.box.style.top = this.parent.top + 'px';
-        this.dom.box.style.bottom = '';
+        // we want backgrounds with groups to only show in groups.
+        if (this.parent instanceof BackgroundGroup) {
+          // if the item is not in a group:
+          height = Math.max(this.parent.height, this.parent.itemSet.body.domProps.center.height, this.parent.itemSet.body.domProps.centerContainer.height);
+          this.dom.box.style.top = onTop ? '0' : '';
+          this.dom.box.style.bottom = onTop ? '' : '0';
+        } else {
+          height = this.parent.height;
+          // same alignment for items when orientation is top or bottom
+          this.dom.box.style.top = this.parent.top + 'px';
+          this.dom.box.style.bottom = '';
+        }
       }
-    }
     this.dom.box.style.height = height + 'px';
   };
 
@@ -20156,7 +20240,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   var util = __webpack_require__(1);
   var Component = __webpack_require__(26);
-  var TimeStep = __webpack_require__(34);
+  var TimeStep = __webpack_require__(30);
   var DateUtil = __webpack_require__(27);
   var moment = __webpack_require__(2);
 
@@ -20617,7 +20701,7 @@ return /******/ (function(modules) { // webpackBootstrap
   'use strict';
 
   var keycharm = __webpack_require__(41);
-  var Emitter = __webpack_require__(13);
+  var Emitter = __webpack_require__(12);
   var Hammer = __webpack_require__(20);
   var util = __webpack_require__(1);
 
@@ -21423,6 +21507,8 @@ return /******/ (function(modules) { // webpackBootstrap
 
   var _ColorPicker = __webpack_require__(46);
 
+  var _ColorPicker2 = _interopRequireDefault(_ColorPicker);
+
   /**
    * The way this works is for all properties of this.possible options, you can supply the property name in any form to list the options.
    * Boolean options are recognised as Boolean
@@ -21437,9 +21523,6 @@ return /******/ (function(modules) { // webpackBootstrap
    * @param configureOptions    | the fully configured and predefined options set found in allOptions.js
    * @param pixelRatio          | canvas pixel ratio
    */
-
-  var _ColorPicker2 = _interopRequireDefault(_ColorPicker);
-
   var util = __webpack_require__(1);
 
   var Configurator = (function () {
@@ -23339,7 +23422,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   'use strict';
 
-  var Emitter = __webpack_require__(13);
+  var Emitter = __webpack_require__(12);
   var Hammer = __webpack_require__(20);
   var moment = __webpack_require__(2);
   var util = __webpack_require__(1);
@@ -26877,6 +26960,8 @@ return /******/ (function(modules) { // webpackBootstrap
 
   var _modulesKamadaKawaiJs = __webpack_require__(112);
 
+  var _modulesKamadaKawaiJs2 = _interopRequireDefault(_modulesKamadaKawaiJs);
+
   /**
    * @constructor Network
    * Create a network visualization, displaying nodes and edges.
@@ -26888,12 +26973,9 @@ return /******/ (function(modules) { // webpackBootstrap
    *                              {Array} edges
    * @param {Object} options      Options
    */
-
-  var _modulesKamadaKawaiJs2 = _interopRequireDefault(_modulesKamadaKawaiJs);
-
   __webpack_require__(114);
 
-  var Emitter = __webpack_require__(13);
+  var Emitter = __webpack_require__(12);
   var Hammer = __webpack_require__(20);
   var util = __webpack_require__(1);
   var DataSet = __webpack_require__(8);
@@ -28955,7 +29037,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
 
-  function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; }
+  function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
 
   var _utilNodeBase = __webpack_require__(65);
 
@@ -29164,7 +29246,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
 
-  function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; }
+  function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
 
   var _utilCircleImageBase = __webpack_require__(67);
 
@@ -29254,7 +29336,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
 
-  function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; }
+  function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
 
   var _utilNodeBase = __webpack_require__(65);
 
@@ -29425,7 +29507,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
 
-  function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; }
+  function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
 
   var _utilCircleImageBase = __webpack_require__(67);
 
@@ -29531,7 +29613,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
 
-  function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; }
+  function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
 
   var _utilNodeBase = __webpack_require__(65);
 
@@ -29644,7 +29726,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
 
-  function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; }
+  function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
 
   var _utilShapeBase = __webpack_require__(71);
 
@@ -29700,7 +29782,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
 
-  function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; }
+  function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
 
   var _utilNodeBase = __webpack_require__(65);
 
@@ -29806,7 +29888,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
 
-  function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; }
+  function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
 
   var _utilShapeBase = __webpack_require__(71);
 
@@ -29863,7 +29945,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
 
-  function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; }
+  function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
 
   var _utilNodeBase = __webpack_require__(65);
 
@@ -29979,7 +30061,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
 
-  function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; }
+  function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
 
   var _utilNodeBase = __webpack_require__(65);
 
@@ -30094,7 +30176,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
 
-  function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; }
+  function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
 
   var _utilCircleImageBase = __webpack_require__(67);
 
@@ -30182,7 +30264,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
 
-  function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; }
+  function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
 
   var _utilShapeBase = __webpack_require__(71);
 
@@ -30238,7 +30320,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
 
-  function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; }
+  function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
 
   var _utilShapeBase = __webpack_require__(71);
 
@@ -30294,7 +30376,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
 
-  function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; }
+  function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
 
   var _utilNodeBase = __webpack_require__(65);
 
@@ -30380,7 +30462,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
 
-  function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; }
+  function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
 
   var _utilShapeBase = __webpack_require__(71);
 
@@ -30436,7 +30518,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
 
-  function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; }
+  function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
 
   var _utilShapeBase = __webpack_require__(71);
 
@@ -30931,19 +31013,21 @@ return /******/ (function(modules) { // webpackBootstrap
 
   var _sharedLabel2 = _interopRequireDefault(_sharedLabel);
 
-  var _edgesCubicBezierEdge = __webpack_require__(86);
+  var _edgesCubicBezierEdge = __webpack_require__(83);
 
   var _edgesCubicBezierEdge2 = _interopRequireDefault(_edgesCubicBezierEdge);
 
-  var _edgesBezierEdgeDynamic = __webpack_require__(88);
+  var _edgesBezierEdgeDynamic = __webpack_require__(87);
 
   var _edgesBezierEdgeDynamic2 = _interopRequireDefault(_edgesBezierEdgeDynamic);
 
-  var _edgesBezierEdgeStatic = __webpack_require__(83);
+  var _edgesBezierEdgeStatic = __webpack_require__(88);
 
   var _edgesBezierEdgeStatic2 = _interopRequireDefault(_edgesBezierEdgeStatic);
 
   var _edgesStraightEdge = __webpack_require__(89);
+
+  var _edgesStraightEdge2 = _interopRequireDefault(_edgesStraightEdge);
 
   /**
    * @class Edge
@@ -30960,9 +31044,6 @@ return /******/ (function(modules) { // webpackBootstrap
    * @param {Object} constants      An object with default values for
    *                                example for the color
    */
-
-  var _edgesStraightEdge2 = _interopRequireDefault(_edgesStraightEdge);
-
   var util = __webpack_require__(1);
 
   var Edge = (function () {
@@ -31495,27 +31576,29 @@ return /******/ (function(modules) { // webpackBootstrap
     value: true
   });
 
+  var _slicedToArray = (function () { function sliceIterator(arr, i) { var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i['return']) _i['return'](); } finally { if (_d) throw _e; } } return _arr; } return function (arr, i) { if (Array.isArray(arr)) { return arr; } else if (Symbol.iterator in Object(arr)) { return sliceIterator(arr, i); } else { throw new TypeError('Invalid attempt to destructure non-iterable instance'); } }; })();
+
   var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
 
-  var _get = function get(_x4, _x5, _x6) { var _again = true; _function: while (_again) { var object = _x4, property = _x5, receiver = _x6; desc = parent = getter = undefined; _again = false; if (object === null) object = Function.prototype; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { _x4 = parent; _x5 = property; _x6 = receiver; _again = true; continue _function; } } else if ('value' in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } } };
+  var _get = function get(_x3, _x4, _x5) { var _again = true; _function: while (_again) { var object = _x3, property = _x4, receiver = _x5; desc = parent = getter = undefined; _again = false; if (object === null) object = Function.prototype; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { _x3 = parent; _x4 = property; _x5 = receiver; _again = true; continue _function; } } else if ('value' in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } } };
 
   function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
 
   function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
 
-  function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; }
+  function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
 
-  var _utilBezierEdgeBase = __webpack_require__(84);
+  var _utilCubicBezierEdgeBase = __webpack_require__(84);
 
-  var _utilBezierEdgeBase2 = _interopRequireDefault(_utilBezierEdgeBase);
+  var _utilCubicBezierEdgeBase2 = _interopRequireDefault(_utilCubicBezierEdgeBase);
 
-  var BezierEdgeStatic = (function (_BezierEdgeBase) {
-    _inherits(BezierEdgeStatic, _BezierEdgeBase);
+  var CubicBezierEdge = (function (_CubicBezierEdgeBase) {
+    _inherits(CubicBezierEdge, _CubicBezierEdgeBase);
 
-    function BezierEdgeStatic(options, body, labelModule) {
-      _classCallCheck(this, BezierEdgeStatic);
+    function CubicBezierEdge(options, body, labelModule) {
+      _classCallCheck(this, CubicBezierEdge);
 
-      _get(Object.getPrototypeOf(BezierEdgeStatic.prototype), 'constructor', this).call(this, options, body, labelModule);
+      _get(Object.getPrototypeOf(CubicBezierEdge.prototype), 'constructor', this).call(this, options, body, labelModule);
     }
 
     /**
@@ -31524,21 +31607,30 @@ return /******/ (function(modules) { // webpackBootstrap
      * @private
      */
 
-    _createClass(BezierEdgeStatic, [{
+    _createClass(CubicBezierEdge, [{
       key: '_line',
       value: function _line(ctx) {
-        // draw a straight line
+        // get the coordinates of the support points.
+
+        var _getViaCoordinates2 = this._getViaCoordinates();
+
+        var _getViaCoordinates22 = _slicedToArray(_getViaCoordinates2, 2);
+
+        var via1 = _getViaCoordinates22[0];
+        var via2 = _getViaCoordinates22[1];
+
+        var returnValue = [via1, via2];
+
+        // start drawing the line.
         ctx.beginPath();
         ctx.moveTo(this.from.x, this.from.y);
-        var via = this._getViaCoordinates();
-        var returnValue = via;
 
         // fallback to normal straight edges
-        if (via.x === undefined) {
+        if (via1.x === undefined) {
           ctx.lineTo(this.to.x, this.to.y);
           returnValue = undefined;
         } else {
-          ctx.quadraticCurveTo(via.x, via.y, this.to.x, this.to.y);
+          ctx.bezierCurveTo(via1.x, via1.y, via2.x, via2.y, this.to.x, this.to.y);
         }
         // draw shadow if enabled
         this.enableShadow(ctx);
@@ -31549,173 +31641,46 @@ return /******/ (function(modules) { // webpackBootstrap
     }, {
       key: '_getViaCoordinates',
       value: function _getViaCoordinates() {
-        var xVia = undefined;
-        var yVia = undefined;
-        var factor = this.options.smooth.roundness;
-        var type = this.options.smooth.type;
-        var dx = Math.abs(this.from.x - this.to.x);
-        var dy = Math.abs(this.from.y - this.to.y);
-        if (type === 'discrete' || type === 'diagonalCross') {
-          if (Math.abs(this.from.x - this.to.x) <= Math.abs(this.from.y - this.to.y)) {
-            if (this.from.y >= this.to.y) {
-              if (this.from.x <= this.to.x) {
-                xVia = this.from.x + factor * dy;
-                yVia = this.from.y - factor * dy;
-              } else if (this.from.x > this.to.x) {
-                xVia = this.from.x - factor * dy;
-                yVia = this.from.y - factor * dy;
-              }
-            } else if (this.from.y < this.to.y) {
-              if (this.from.x <= this.to.x) {
-                xVia = this.from.x + factor * dy;
-                yVia = this.from.y + factor * dy;
-              } else if (this.from.x > this.to.x) {
-                xVia = this.from.x - factor * dy;
-                yVia = this.from.y + factor * dy;
-              }
-            }
-            if (type === "discrete") {
-              xVia = dx < factor * dy ? this.from.x : xVia;
-            }
-          } else if (Math.abs(this.from.x - this.to.x) > Math.abs(this.from.y - this.to.y)) {
-            if (this.from.y >= this.to.y) {
-              if (this.from.x <= this.to.x) {
-                xVia = this.from.x + factor * dx;
-                yVia = this.from.y - factor * dx;
-              } else if (this.from.x > this.to.x) {
-                xVia = this.from.x - factor * dx;
-                yVia = this.from.y - factor * dx;
-              }
-            } else if (this.from.y < this.to.y) {
-              if (this.from.x <= this.to.x) {
-                xVia = this.from.x + factor * dx;
-                yVia = this.from.y + factor * dx;
-              } else if (this.from.x > this.to.x) {
-                xVia = this.from.x - factor * dx;
-                yVia = this.from.y + factor * dx;
-              }
-            }
-            if (type === "discrete") {
-              yVia = dy < factor * dx ? this.from.y : yVia;
-            }
-          }
-        } else if (type === "straightCross") {
-          if (Math.abs(this.from.x - this.to.x) <= Math.abs(this.from.y - this.to.y)) {
-            // up - down
-            xVia = this.from.x;
-            if (this.from.y < this.to.y) {
-              yVia = this.to.y - (1 - factor) * dy;
-            } else {
-              yVia = this.to.y + (1 - factor) * dy;
-            }
-          } else if (Math.abs(this.from.x - this.to.x) > Math.abs(this.from.y - this.to.y)) {
-            // left - right
-            if (this.from.x < this.to.x) {
-              xVia = this.to.x - (1 - factor) * dx;
-            } else {
-              xVia = this.to.x + (1 - factor) * dx;
-            }
-            yVia = this.from.y;
-          }
-        } else if (type === 'horizontal') {
-          if (this.from.x < this.to.x) {
-            xVia = this.to.x - (1 - factor) * dx;
-          } else {
-            xVia = this.to.x + (1 - factor) * dx;
-          }
-          yVia = this.from.y;
-        } else if (type === 'vertical') {
-          xVia = this.from.x;
-          if (this.from.y < this.to.y) {
-            yVia = this.to.y - (1 - factor) * dy;
-          } else {
-            yVia = this.to.y + (1 - factor) * dy;
-          }
-        } else if (type === 'curvedCW') {
-          dx = this.to.x - this.from.x;
-          dy = this.from.y - this.to.y;
-          var radius = Math.sqrt(dx * dx + dy * dy);
-          var pi = Math.PI;
+        var dx = this.from.x - this.to.x;
+        var dy = this.from.y - this.to.y;
 
-          var originalAngle = Math.atan2(dy, dx);
-          var myAngle = (originalAngle + (factor * 0.5 + 0.5) * pi) % (2 * pi);
+        var x1 = undefined,
+            y1 = undefined,
+            x2 = undefined,
+            y2 = undefined;
+        var roundness = this.options.smooth.roundness;;
 
-          xVia = this.from.x + (factor * 0.5 + 0.5) * radius * Math.sin(myAngle);
-          yVia = this.from.y + (factor * 0.5 + 0.5) * radius * Math.cos(myAngle);
-        } else if (type === 'curvedCCW') {
-          dx = this.to.x - this.from.x;
-          dy = this.from.y - this.to.y;
-          var radius = Math.sqrt(dx * dx + dy * dy);
-          var pi = Math.PI;
-
-          var originalAngle = Math.atan2(dy, dx);
-          var myAngle = (originalAngle + (-factor * 0.5 + 0.5) * pi) % (2 * pi);
-
-          xVia = this.from.x + (factor * 0.5 + 0.5) * radius * Math.sin(myAngle);
-          yVia = this.from.y + (factor * 0.5 + 0.5) * radius * Math.cos(myAngle);
+        // horizontal if x > y or if direction is forced or if direction is horizontal
+        if ((Math.abs(dx) > Math.abs(dy) || this.options.smooth.forceDirection === true || this.options.smooth.forceDirection === 'horizontal') && this.options.smooth.forceDirection !== 'vertical') {
+          y1 = this.from.y;
+          y2 = this.to.y;
+          x1 = this.from.x - roundness * dx;
+          x2 = this.to.x + roundness * dx;
         } else {
-          // continuous
-          if (Math.abs(this.from.x - this.to.x) <= Math.abs(this.from.y - this.to.y)) {
-            if (this.from.y >= this.to.y) {
-              if (this.from.x <= this.to.x) {
-                xVia = this.from.x + factor * dy;
-                yVia = this.from.y - factor * dy;
-                xVia = this.to.x < xVia ? this.to.x : xVia;
-              } else if (this.from.x > this.to.x) {
-                xVia = this.from.x - factor * dy;
-                yVia = this.from.y - factor * dy;
-                xVia = this.to.x > xVia ? this.to.x : xVia;
-              }
-            } else if (this.from.y < this.to.y) {
-              if (this.from.x <= this.to.x) {
-                xVia = this.from.x + factor * dy;
-                yVia = this.from.y + factor * dy;
-                xVia = this.to.x < xVia ? this.to.x : xVia;
-              } else if (this.from.x > this.to.x) {
-                xVia = this.from.x - factor * dy;
-                yVia = this.from.y + factor * dy;
-                xVia = this.to.x > xVia ? this.to.x : xVia;
-              }
-            }
-          } else if (Math.abs(this.from.x - this.to.x) > Math.abs(this.from.y - this.to.y)) {
-            if (this.from.y >= this.to.y) {
-              if (this.from.x <= this.to.x) {
-                xVia = this.from.x + factor * dx;
-                yVia = this.from.y - factor * dx;
-                yVia = this.to.y > yVia ? this.to.y : yVia;
-              } else if (this.from.x > this.to.x) {
-                xVia = this.from.x - factor * dx;
-                yVia = this.from.y - factor * dx;
-                yVia = this.to.y > yVia ? this.to.y : yVia;
-              }
-            } else if (this.from.y < this.to.y) {
-              if (this.from.x <= this.to.x) {
-                xVia = this.from.x + factor * dx;
-                yVia = this.from.y + factor * dx;
-                yVia = this.to.y < yVia ? this.to.y : yVia;
-              } else if (this.from.x > this.to.x) {
-                xVia = this.from.x - factor * dx;
-                yVia = this.from.y + factor * dx;
-                yVia = this.to.y < yVia ? this.to.y : yVia;
-              }
-            }
-          }
+          y1 = this.from.y - roundness * dy;
+          y2 = this.to.y + roundness * dy;
+          x1 = this.from.x;
+          x2 = this.to.x;
         }
-        return { x: xVia, y: yVia };
+
+        return [{ x: x1, y: y1 }, { x: x2, y: y2 }];
       }
     }, {
       key: '_findBorderPosition',
       value: function _findBorderPosition(nearNode, ctx) {
-        var options = arguments.length <= 2 || arguments[2] === undefined ? {} : arguments[2];
-
-        return this._findBorderPositionBezier(nearNode, ctx, options.via);
+        return this._findBorderPositionBezier(nearNode, ctx);
       }
     }, {
       key: '_getDistanceToEdge',
       value: function _getDistanceToEdge(x1, y1, x2, y2, x3, y3) {
-        var via = arguments.length <= 6 || arguments[6] === undefined ? this._getViaCoordinates() : arguments[6];
+        var _ref = arguments.length <= 6 || arguments[6] === undefined ? this._getViaCoordinates() : arguments[6];
+
+        var _ref2 = _slicedToArray(_ref, 2);
+
+        var via1 = _ref2[0];
+        var via2 = _ref2[1];
         // x3,y3 is the point
-        return this._getDistanceToBezierEdge(x1, y1, x2, y2, x3, y3, via);
+        return this._getDistanceToBezierEdge(x1, y1, x2, y2, x3, y3, via1, via2);
       }
 
       /**
@@ -31728,24 +31693,120 @@ return /******/ (function(modules) { // webpackBootstrap
     }, {
       key: 'getPoint',
       value: function getPoint(percentage) {
-        var via = arguments.length <= 1 || arguments[1] === undefined ? this._getViaCoordinates() : arguments[1];
+        var _ref3 = arguments.length <= 1 || arguments[1] === undefined ? this._getViaCoordinates() : arguments[1];
+
+        var _ref32 = _slicedToArray(_ref3, 2);
+
+        var via1 = _ref32[0];
+        var via2 = _ref32[1];
 
         var t = percentage;
-        var x = Math.pow(1 - t, 2) * this.from.x + 2 * t * (1 - t) * via.x + Math.pow(t, 2) * this.to.x;
-        var y = Math.pow(1 - t, 2) * this.from.y + 2 * t * (1 - t) * via.y + Math.pow(t, 2) * this.to.y;
+        var vec = [];
+        vec[0] = Math.pow(1 - t, 3);
+        vec[1] = 3 * t * Math.pow(1 - t, 2);
+        vec[2] = 3 * Math.pow(t, 2) * (1 - t);
+        vec[3] = Math.pow(t, 3);
+        var x = vec[0] * this.from.x + vec[1] * via1.x + vec[2] * via2.x + vec[3] * this.to.x;
+        var y = vec[0] * this.from.y + vec[1] * via1.y + vec[2] * via2.y + vec[3] * this.to.y;
 
         return { x: x, y: y };
       }
     }]);
 
-    return BezierEdgeStatic;
-  })(_utilBezierEdgeBase2['default']);
+    return CubicBezierEdge;
+  })(_utilCubicBezierEdgeBase2['default']);
 
-  exports['default'] = BezierEdgeStatic;
+  exports['default'] = CubicBezierEdge;
   module.exports = exports['default'];
 
 /***/ },
 /* 84 */
+/***/ function(module, exports, __webpack_require__) {
+
+  'use strict';
+
+  Object.defineProperty(exports, '__esModule', {
+    value: true
+  });
+
+  var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
+
+  var _get = function get(_x, _x2, _x3) { var _again = true; _function: while (_again) { var object = _x, property = _x2, receiver = _x3; desc = parent = getter = undefined; _again = false; if (object === null) object = Function.prototype; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { _x = parent; _x2 = property; _x3 = receiver; _again = true; continue _function; } } else if ('value' in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } } };
+
+  function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
+
+  function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
+
+  function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
+  var _BezierEdgeBase2 = __webpack_require__(85);
+
+  var _BezierEdgeBase3 = _interopRequireDefault(_BezierEdgeBase2);
+
+  var CubicBezierEdgeBase = (function (_BezierEdgeBase) {
+    _inherits(CubicBezierEdgeBase, _BezierEdgeBase);
+
+    function CubicBezierEdgeBase(options, body, labelModule) {
+      _classCallCheck(this, CubicBezierEdgeBase);
+
+      _get(Object.getPrototypeOf(CubicBezierEdgeBase.prototype), 'constructor', this).call(this, options, body, labelModule);
+    }
+
+    /**
+     * Calculate the distance between a point (x3,y3) and a line segment from
+     * (x1,y1) to (x2,y2).
+     * http://stackoverflow.com/questions/849211/shortest-distancae-between-a-point-and-a-line-segment
+     * https://en.wikipedia.org/wiki/B%C3%A9zier_curve
+     * @param {number} x1 from x
+     * @param {number} y1 from y
+     * @param {number} x2 to x
+     * @param {number} y2 to y
+     * @param {number} x3 point to check x
+     * @param {number} y3 point to check y
+     * @private
+     */
+
+    _createClass(CubicBezierEdgeBase, [{
+      key: '_getDistanceToBezierEdge',
+      value: function _getDistanceToBezierEdge(x1, y1, x2, y2, x3, y3, via1, via2) {
+        // x3,y3 is the point
+        var minDistance = 1e9;
+        var distance = undefined;
+        var i = undefined,
+            t = undefined,
+            x = undefined,
+            y = undefined;
+        var lastX = x1;
+        var lastY = y1;
+        var vec = [0, 0, 0, 0];
+        for (i = 1; i < 10; i++) {
+          t = 0.1 * i;
+          vec[0] = Math.pow(1 - t, 3);
+          vec[1] = 3 * t * Math.pow(1 - t, 2);
+          vec[2] = 3 * Math.pow(t, 2) * (1 - t);
+          vec[3] = Math.pow(t, 3);
+          x = vec[0] * x1 + vec[1] * via1.x + vec[2] * via2.x + vec[3] * x2;
+          y = vec[0] * y1 + vec[1] * via1.y + vec[2] * via2.y + vec[3] * y2;
+          if (i > 0) {
+            distance = this._getDistanceToLine(lastX, lastY, x, y, x3, y3);
+            minDistance = distance < minDistance ? distance : minDistance;
+          }
+          lastX = x;
+          lastY = y;
+        }
+
+        return minDistance;
+      }
+    }]);
+
+    return CubicBezierEdgeBase;
+  })(_BezierEdgeBase3['default']);
+
+  exports['default'] = CubicBezierEdgeBase;
+  module.exports = exports['default'];
+
+/***/ },
+/* 85 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -31762,9 +31823,9 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
 
-  function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; }
+  function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
 
-  var _EdgeBase2 = __webpack_require__(85);
+  var _EdgeBase2 = __webpack_require__(86);
 
   var _EdgeBase3 = _interopRequireDefault(_EdgeBase2);
 
@@ -31888,7 +31949,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 85 */
+/* 86 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -32476,246 +32537,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 86 */
-/***/ function(module, exports, __webpack_require__) {
-
-  'use strict';
-
-  Object.defineProperty(exports, '__esModule', {
-    value: true
-  });
-
-  var _slicedToArray = (function () { function sliceIterator(arr, i) { var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i['return']) _i['return'](); } finally { if (_d) throw _e; } } return _arr; } return function (arr, i) { if (Array.isArray(arr)) { return arr; } else if (Symbol.iterator in Object(arr)) { return sliceIterator(arr, i); } else { throw new TypeError('Invalid attempt to destructure non-iterable instance'); } }; })();
-
-  var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
-
-  var _get = function get(_x3, _x4, _x5) { var _again = true; _function: while (_again) { var object = _x3, property = _x4, receiver = _x5; desc = parent = getter = undefined; _again = false; if (object === null) object = Function.prototype; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { _x3 = parent; _x4 = property; _x5 = receiver; _again = true; continue _function; } } else if ('value' in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } } };
-
-  function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
-
-  function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
-
-  function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; }
-
-  var _utilCubicBezierEdgeBase = __webpack_require__(87);
-
-  var _utilCubicBezierEdgeBase2 = _interopRequireDefault(_utilCubicBezierEdgeBase);
-
-  var CubicBezierEdge = (function (_CubicBezierEdgeBase) {
-    _inherits(CubicBezierEdge, _CubicBezierEdgeBase);
-
-    function CubicBezierEdge(options, body, labelModule) {
-      _classCallCheck(this, CubicBezierEdge);
-
-      _get(Object.getPrototypeOf(CubicBezierEdge.prototype), 'constructor', this).call(this, options, body, labelModule);
-    }
-
-    /**
-     * Draw a line between two nodes
-     * @param {CanvasRenderingContext2D} ctx
-     * @private
-     */
-
-    _createClass(CubicBezierEdge, [{
-      key: '_line',
-      value: function _line(ctx) {
-        var _getViaCoordinates2 = this._getViaCoordinates();
-
-        var _getViaCoordinates22 = _slicedToArray(_getViaCoordinates2, 2);
-
-        var via1 = _getViaCoordinates22[0];
-        var via2 = _getViaCoordinates22[1];
-
-        var returnValue = [via1, via2];
-
-        // start drawing the line.
-        ctx.beginPath();
-        ctx.moveTo(this.from.x, this.from.y);
-
-        // fallback to normal straight edges
-        if (via1.x === undefined) {
-          ctx.lineTo(this.to.x, this.to.y);
-          returnValue = undefined;
-        } else {
-          ctx.bezierCurveTo(via1.x, via1.y, via2.x, via2.y, this.to.x, this.to.y);
-        }
-        // draw shadow if enabled
-        this.enableShadow(ctx);
-        ctx.stroke();
-        this.disableShadow(ctx);
-        return returnValue;
-      }
-    }, {
-      key: '_getViaCoordinates',
-      value: function _getViaCoordinates() {
-        var dx = this.from.x - this.to.x;
-        var dy = this.from.y - this.to.y;
-
-        var x1 = undefined,
-            y1 = undefined,
-            x2 = undefined,
-            y2 = undefined;
-        var roundness = this.options.smooth.roundness;;
-
-        // horizontal if x > y or if direction is forced or if direction is horizontal
-        if ((Math.abs(dx) > Math.abs(dy) || this.options.smooth.forceDirection === true || this.options.smooth.forceDirection === 'horizontal') && this.options.smooth.forceDirection !== 'vertical') {
-          y1 = this.from.y;
-          y2 = this.to.y;
-          x1 = this.from.x - roundness * dx;
-          x2 = this.to.x + roundness * dx;
-        } else {
-          y1 = this.from.y - roundness * dy;
-          y2 = this.to.y + roundness * dy;
-          x1 = this.from.x;
-          x2 = this.to.x;
-        }
-
-        return [{ x: x1, y: y1 }, { x: x2, y: y2 }];
-      }
-    }, {
-      key: '_findBorderPosition',
-      value: function _findBorderPosition(nearNode, ctx) {
-        return this._findBorderPositionBezier(nearNode, ctx);
-      }
-    }, {
-      key: '_getDistanceToEdge',
-      value: function _getDistanceToEdge(x1, y1, x2, y2, x3, y3) {
-        var _ref = arguments.length <= 6 || arguments[6] === undefined ? this._getViaCoordinates() : arguments[6];
-
-        var _ref2 = _slicedToArray(_ref, 2);
-
-        var via1 = _ref2[0];
-        var via2 = _ref2[1];
-        // x3,y3 is the point
-        return this._getDistanceToBezierEdge(x1, y1, x2, y2, x3, y3, via1, via2);
-      }
-
-      /**
-       * Combined function of pointOnLine and pointOnBezier. This gives the coordinates of a point on the line at a certain percentage of the way
-       * @param percentage
-       * @param via
-       * @returns {{x: number, y: number}}
-       * @private
-       */
-    }, {
-      key: 'getPoint',
-      value: function getPoint(percentage) {
-        var _ref3 = arguments.length <= 1 || arguments[1] === undefined ? this._getViaCoordinates() : arguments[1];
-
-        var _ref32 = _slicedToArray(_ref3, 2);
-
-        var via1 = _ref32[0];
-        var via2 = _ref32[1];
-
-        var t = percentage;
-        var vec = [];
-        vec[0] = Math.pow(1 - t, 3);
-        vec[1] = 3 * t * Math.pow(1 - t, 2);
-        vec[2] = 3 * Math.pow(t, 2) * (1 - t);
-        vec[3] = Math.pow(t, 3);
-        var x = vec[0] * this.from.x + vec[1] * via1.x + vec[2] * via2.x + vec[3] * this.to.x;
-        var y = vec[0] * this.from.y + vec[1] * via1.y + vec[2] * via2.y + vec[3] * this.to.y;
-
-        return { x: x, y: y };
-      }
-    }]);
-
-    return CubicBezierEdge;
-  })(_utilCubicBezierEdgeBase2['default']);
-
-  exports['default'] = CubicBezierEdge;
-  module.exports = exports['default'];
-
-  // get the coordinates of the support points.
-
-/***/ },
 /* 87 */
-/***/ function(module, exports, __webpack_require__) {
-
-  'use strict';
-
-  Object.defineProperty(exports, '__esModule', {
-    value: true
-  });
-
-  var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
-
-  var _get = function get(_x, _x2, _x3) { var _again = true; _function: while (_again) { var object = _x, property = _x2, receiver = _x3; desc = parent = getter = undefined; _again = false; if (object === null) object = Function.prototype; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { _x = parent; _x2 = property; _x3 = receiver; _again = true; continue _function; } } else if ('value' in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } } };
-
-  function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
-
-  function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
-
-  function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; }
-
-  var _BezierEdgeBase2 = __webpack_require__(84);
-
-  var _BezierEdgeBase3 = _interopRequireDefault(_BezierEdgeBase2);
-
-  var CubicBezierEdgeBase = (function (_BezierEdgeBase) {
-    _inherits(CubicBezierEdgeBase, _BezierEdgeBase);
-
-    function CubicBezierEdgeBase(options, body, labelModule) {
-      _classCallCheck(this, CubicBezierEdgeBase);
-
-      _get(Object.getPrototypeOf(CubicBezierEdgeBase.prototype), 'constructor', this).call(this, options, body, labelModule);
-    }
-
-    /**
-     * Calculate the distance between a point (x3,y3) and a line segment from
-     * (x1,y1) to (x2,y2).
-     * http://stackoverflow.com/questions/849211/shortest-distancae-between-a-point-and-a-line-segment
-     * https://en.wikipedia.org/wiki/B%C3%A9zier_curve
-     * @param {number} x1 from x
-     * @param {number} y1 from y
-     * @param {number} x2 to x
-     * @param {number} y2 to y
-     * @param {number} x3 point to check x
-     * @param {number} y3 point to check y
-     * @private
-     */
-
-    _createClass(CubicBezierEdgeBase, [{
-      key: '_getDistanceToBezierEdge',
-      value: function _getDistanceToBezierEdge(x1, y1, x2, y2, x3, y3, via1, via2) {
-        // x3,y3 is the point
-        var minDistance = 1e9;
-        var distance = undefined;
-        var i = undefined,
-            t = undefined,
-            x = undefined,
-            y = undefined;
-        var lastX = x1;
-        var lastY = y1;
-        var vec = [0, 0, 0, 0];
-        for (i = 1; i < 10; i++) {
-          t = 0.1 * i;
-          vec[0] = Math.pow(1 - t, 3);
-          vec[1] = 3 * t * Math.pow(1 - t, 2);
-          vec[2] = 3 * Math.pow(t, 2) * (1 - t);
-          vec[3] = Math.pow(t, 3);
-          x = vec[0] * x1 + vec[1] * via1.x + vec[2] * via2.x + vec[3] * x2;
-          y = vec[0] * y1 + vec[1] * via1.y + vec[2] * via2.y + vec[3] * y2;
-          if (i > 0) {
-            distance = this._getDistanceToLine(lastX, lastY, x, y, x3, y3);
-            minDistance = distance < minDistance ? distance : minDistance;
-          }
-          lastX = x;
-          lastY = y;
-        }
-
-        return minDistance;
-      }
-    }]);
-
-    return CubicBezierEdgeBase;
-  })(_BezierEdgeBase3['default']);
-
-  exports['default'] = CubicBezierEdgeBase;
-  module.exports = exports['default'];
-
-/***/ },
-/* 88 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
@@ -32732,9 +32554,9 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
-  function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; }
+  function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
 
-  var _utilBezierEdgeBase = __webpack_require__(84);
+  var _utilBezierEdgeBase = __webpack_require__(85);
 
   var _utilBezierEdgeBase2 = _interopRequireDefault(_utilBezierEdgeBase);
 
@@ -32892,6 +32714,265 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports["default"];
 
 /***/ },
+/* 88 */
+/***/ function(module, exports, __webpack_require__) {
+
+  'use strict';
+
+  Object.defineProperty(exports, '__esModule', {
+    value: true
+  });
+
+  var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
+
+  var _get = function get(_x4, _x5, _x6) { var _again = true; _function: while (_again) { var object = _x4, property = _x5, receiver = _x6; desc = parent = getter = undefined; _again = false; if (object === null) object = Function.prototype; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { _x4 = parent; _x5 = property; _x6 = receiver; _again = true; continue _function; } } else if ('value' in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } } };
+
+  function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
+
+  function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
+
+  function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
+  var _utilBezierEdgeBase = __webpack_require__(85);
+
+  var _utilBezierEdgeBase2 = _interopRequireDefault(_utilBezierEdgeBase);
+
+  var BezierEdgeStatic = (function (_BezierEdgeBase) {
+    _inherits(BezierEdgeStatic, _BezierEdgeBase);
+
+    function BezierEdgeStatic(options, body, labelModule) {
+      _classCallCheck(this, BezierEdgeStatic);
+
+      _get(Object.getPrototypeOf(BezierEdgeStatic.prototype), 'constructor', this).call(this, options, body, labelModule);
+    }
+
+    /**
+     * Draw a line between two nodes
+     * @param {CanvasRenderingContext2D} ctx
+     * @private
+     */
+
+    _createClass(BezierEdgeStatic, [{
+      key: '_line',
+      value: function _line(ctx) {
+        // draw a straight line
+        ctx.beginPath();
+        ctx.moveTo(this.from.x, this.from.y);
+        var via = this._getViaCoordinates();
+        var returnValue = via;
+
+        // fallback to normal straight edges
+        if (via.x === undefined) {
+          ctx.lineTo(this.to.x, this.to.y);
+          returnValue = undefined;
+        } else {
+          ctx.quadraticCurveTo(via.x, via.y, this.to.x, this.to.y);
+        }
+        // draw shadow if enabled
+        this.enableShadow(ctx);
+        ctx.stroke();
+        this.disableShadow(ctx);
+        return returnValue;
+      }
+    }, {
+      key: '_getViaCoordinates',
+      value: function _getViaCoordinates() {
+        var xVia = undefined;
+        var yVia = undefined;
+        var factor = this.options.smooth.roundness;
+        var type = this.options.smooth.type;
+        var dx = Math.abs(this.from.x - this.to.x);
+        var dy = Math.abs(this.from.y - this.to.y);
+        if (type === 'discrete' || type === 'diagonalCross') {
+          if (Math.abs(this.from.x - this.to.x) <= Math.abs(this.from.y - this.to.y)) {
+            if (this.from.y >= this.to.y) {
+              if (this.from.x <= this.to.x) {
+                xVia = this.from.x + factor * dy;
+                yVia = this.from.y - factor * dy;
+              } else if (this.from.x > this.to.x) {
+                xVia = this.from.x - factor * dy;
+                yVia = this.from.y - factor * dy;
+              }
+            } else if (this.from.y < this.to.y) {
+              if (this.from.x <= this.to.x) {
+                xVia = this.from.x + factor * dy;
+                yVia = this.from.y + factor * dy;
+              } else if (this.from.x > this.to.x) {
+                xVia = this.from.x - factor * dy;
+                yVia = this.from.y + factor * dy;
+              }
+            }
+            if (type === "discrete") {
+              xVia = dx < factor * dy ? this.from.x : xVia;
+            }
+          } else if (Math.abs(this.from.x - this.to.x) > Math.abs(this.from.y - this.to.y)) {
+            if (this.from.y >= this.to.y) {
+              if (this.from.x <= this.to.x) {
+                xVia = this.from.x + factor * dx;
+                yVia = this.from.y - factor * dx;
+              } else if (this.from.x > this.to.x) {
+                xVia = this.from.x - factor * dx;
+                yVia = this.from.y - factor * dx;
+              }
+            } else if (this.from.y < this.to.y) {
+              if (this.from.x <= this.to.x) {
+                xVia = this.from.x + factor * dx;
+                yVia = this.from.y + factor * dx;
+              } else if (this.from.x > this.to.x) {
+                xVia = this.from.x - factor * dx;
+                yVia = this.from.y + factor * dx;
+              }
+            }
+            if (type === "discrete") {
+              yVia = dy < factor * dx ? this.from.y : yVia;
+            }
+          }
+        } else if (type === "straightCross") {
+          if (Math.abs(this.from.x - this.to.x) <= Math.abs(this.from.y - this.to.y)) {
+            // up - down
+            xVia = this.from.x;
+            if (this.from.y < this.to.y) {
+              yVia = this.to.y - (1 - factor) * dy;
+            } else {
+              yVia = this.to.y + (1 - factor) * dy;
+            }
+          } else if (Math.abs(this.from.x - this.to.x) > Math.abs(this.from.y - this.to.y)) {
+            // left - right
+            if (this.from.x < this.to.x) {
+              xVia = this.to.x - (1 - factor) * dx;
+            } else {
+              xVia = this.to.x + (1 - factor) * dx;
+            }
+            yVia = this.from.y;
+          }
+        } else if (type === 'horizontal') {
+          if (this.from.x < this.to.x) {
+            xVia = this.to.x - (1 - factor) * dx;
+          } else {
+            xVia = this.to.x + (1 - factor) * dx;
+          }
+          yVia = this.from.y;
+        } else if (type === 'vertical') {
+          xVia = this.from.x;
+          if (this.from.y < this.to.y) {
+            yVia = this.to.y - (1 - factor) * dy;
+          } else {
+            yVia = this.to.y + (1 - factor) * dy;
+          }
+        } else if (type === 'curvedCW') {
+          dx = this.to.x - this.from.x;
+          dy = this.from.y - this.to.y;
+          var radius = Math.sqrt(dx * dx + dy * dy);
+          var pi = Math.PI;
+
+          var originalAngle = Math.atan2(dy, dx);
+          var myAngle = (originalAngle + (factor * 0.5 + 0.5) * pi) % (2 * pi);
+
+          xVia = this.from.x + (factor * 0.5 + 0.5) * radius * Math.sin(myAngle);
+          yVia = this.from.y + (factor * 0.5 + 0.5) * radius * Math.cos(myAngle);
+        } else if (type === 'curvedCCW') {
+          dx = this.to.x - this.from.x;
+          dy = this.from.y - this.to.y;
+          var radius = Math.sqrt(dx * dx + dy * dy);
+          var pi = Math.PI;
+
+          var originalAngle = Math.atan2(dy, dx);
+          var myAngle = (originalAngle + (-factor * 0.5 + 0.5) * pi) % (2 * pi);
+
+          xVia = this.from.x + (factor * 0.5 + 0.5) * radius * Math.sin(myAngle);
+          yVia = this.from.y + (factor * 0.5 + 0.5) * radius * Math.cos(myAngle);
+        } else {
+          // continuous
+          if (Math.abs(this.from.x - this.to.x) <= Math.abs(this.from.y - this.to.y)) {
+            if (this.from.y >= this.to.y) {
+              if (this.from.x <= this.to.x) {
+                xVia = this.from.x + factor * dy;
+                yVia = this.from.y - factor * dy;
+                xVia = this.to.x < xVia ? this.to.x : xVia;
+              } else if (this.from.x > this.to.x) {
+                xVia = this.from.x - factor * dy;
+                yVia = this.from.y - factor * dy;
+                xVia = this.to.x > xVia ? this.to.x : xVia;
+              }
+            } else if (this.from.y < this.to.y) {
+              if (this.from.x <= this.to.x) {
+                xVia = this.from.x + factor * dy;
+                yVia = this.from.y + factor * dy;
+                xVia = this.to.x < xVia ? this.to.x : xVia;
+              } else if (this.from.x > this.to.x) {
+                xVia = this.from.x - factor * dy;
+                yVia = this.from.y + factor * dy;
+                xVia = this.to.x > xVia ? this.to.x : xVia;
+              }
+            }
+          } else if (Math.abs(this.from.x - this.to.x) > Math.abs(this.from.y - this.to.y)) {
+            if (this.from.y >= this.to.y) {
+              if (this.from.x <= this.to.x) {
+                xVia = this.from.x + factor * dx;
+                yVia = this.from.y - factor * dx;
+                yVia = this.to.y > yVia ? this.to.y : yVia;
+              } else if (this.from.x > this.to.x) {
+                xVia = this.from.x - factor * dx;
+                yVia = this.from.y - factor * dx;
+                yVia = this.to.y > yVia ? this.to.y : yVia;
+              }
+            } else if (this.from.y < this.to.y) {
+              if (this.from.x <= this.to.x) {
+                xVia = this.from.x + factor * dx;
+                yVia = this.from.y + factor * dx;
+                yVia = this.to.y < yVia ? this.to.y : yVia;
+              } else if (this.from.x > this.to.x) {
+                xVia = this.from.x - factor * dx;
+                yVia = this.from.y + factor * dx;
+                yVia = this.to.y < yVia ? this.to.y : yVia;
+              }
+            }
+          }
+        }
+        return { x: xVia, y: yVia };
+      }
+    }, {
+      key: '_findBorderPosition',
+      value: function _findBorderPosition(nearNode, ctx) {
+        var options = arguments.length <= 2 || arguments[2] === undefined ? {} : arguments[2];
+
+        return this._findBorderPositionBezier(nearNode, ctx, options.via);
+      }
+    }, {
+      key: '_getDistanceToEdge',
+      value: function _getDistanceToEdge(x1, y1, x2, y2, x3, y3) {
+        var via = arguments.length <= 6 || arguments[6] === undefined ? this._getViaCoordinates() : arguments[6];
+        // x3,y3 is the point
+        return this._getDistanceToBezierEdge(x1, y1, x2, y2, x3, y3, via);
+      }
+
+      /**
+       * Combined function of pointOnLine and pointOnBezier. This gives the coordinates of a point on the line at a certain percentage of the way
+       * @param percentage
+       * @param via
+       * @returns {{x: number, y: number}}
+       * @private
+       */
+    }, {
+      key: 'getPoint',
+      value: function getPoint(percentage) {
+        var via = arguments.length <= 1 || arguments[1] === undefined ? this._getViaCoordinates() : arguments[1];
+
+        var t = percentage;
+        var x = Math.pow(1 - t, 2) * this.from.x + 2 * t * (1 - t) * via.x + Math.pow(t, 2) * this.to.x;
+        var y = Math.pow(1 - t, 2) * this.from.y + 2 * t * (1 - t) * via.y + Math.pow(t, 2) * this.to.y;
+
+        return { x: x, y: y };
+      }
+    }]);
+
+    return BezierEdgeStatic;
+  })(_utilBezierEdgeBase2['default']);
+
+  exports['default'] = BezierEdgeStatic;
+  module.exports = exports['default'];
+
+/***/ },
 /* 89 */
 /***/ function(module, exports, __webpack_require__) {
 
@@ -32909,9 +32990,9 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
 
-  function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; }
+  function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
 
-  var _utilEdgeBase = __webpack_require__(85);
+  var _utilEdgeBase = __webpack_require__(86);
 
   var _utilEdgeBase2 = _interopRequireDefault(_utilEdgeBase);
 
@@ -33334,9 +33415,10 @@ return /******/ (function(modules) { // webpackBootstrap
 
         var amountOfIterations = arguments.length <= 0 || arguments[0] === undefined ? this.stabilizationIterations : arguments[0];
 
-        if (this.stabilizationIterations > 1) {
+        if (this.stabilizationIterations > 1 || this.startedStabilization === true) {
           setTimeout(function () {
             _this2.body.emitter.emit('stabilized', { iterations: amountOfIterations });
+            _this2.startedStabilization = false;
             _this2.stabilizationIterations = 0;
           }, 0);
         }
@@ -33350,6 +33432,12 @@ return /******/ (function(modules) { // webpackBootstrap
     }, {
       key: 'physicsTick',
       value: function physicsTick() {
+        // this is here to ensure that there is no start event when the network is already stable.
+        if (this.startedStabilization === false) {
+          this.body.emitter.emit('startStabilizing');
+          this.startedStabilization = true;
+        }
+
         if (this.stabilized === false) {
           // adaptivity means the timestep adapts to the situation, only applicable for stabilization
           if (this.adaptiveTimestep === true && this.adaptiveTimestepEnabled === true) {
@@ -33408,12 +33496,6 @@ return /******/ (function(modules) { // webpackBootstrap
           // determine if the network has stabilzied
           if (this.stabilized === true) {
             this.revert();
-          } else {
-            // this is here to ensure that there is no start event when the network is already stable.
-            if (this.startedStabilization === false) {
-              this.body.emitter.emit('startStabilizing');
-              this.startedStabilization = true;
-            }
           }
 
           this.stabilizationIterations++;
@@ -33748,13 +33830,7 @@ return /******/ (function(modules) { // webpackBootstrap
         this.body.emitter.emit('_requestRedraw');
 
         if (this.stabilized === true) {
-          // I want at least one stabilized event if there is nothing to stabilize.
-          if (this.stabilizationIterations < 2) {
-            this.stabilizationIterations = 2;
-            this._emitStabilized(0); // the zero overrules the iterations
-          } else {
-              this._emitStabilized();
-            }
+          this._emitStabilized();
         } else {
           this.startSimulation();
         }
@@ -34780,7 +34856,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
-  function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; }
+  function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
 
   var _BarnesHutSolver2 = __webpack_require__(91);
 
@@ -34854,7 +34930,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
-  function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; }
+  function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
 
   var _CentralGravitySolver2 = __webpack_require__(96);
 
@@ -35756,15 +35832,15 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
 
-  function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) subClass.__proto__ = superClass; }
+  function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
 
   var _Node2 = __webpack_require__(62);
+
+  var _Node3 = _interopRequireDefault(_Node2);
 
   /**
    *
    */
-
-  var _Node3 = _interopRequireDefault(_Node2);
 
   var Cluster = (function (_Node) {
     _inherits(Cluster, _Node);
@@ -41405,6 +41481,8 @@ return /******/ (function(modules) { // webpackBootstrap
 
   var _componentsAlgorithmsFloydWarshallJs = __webpack_require__(113);
 
+  var _componentsAlgorithmsFloydWarshallJs2 = _interopRequireDefault(_componentsAlgorithmsFloydWarshallJs);
+
   /**
    * KamadaKawai positions the nodes initially based on
    *
@@ -41413,8 +41491,6 @@ return /******/ (function(modules) { // webpackBootstrap
    *
    * Possible optimizations in the distance calculation can be implemented.
    */
-
-  var _componentsAlgorithmsFloydWarshallJs2 = _interopRequireDefault(_componentsAlgorithmsFloydWarshallJs);
 
   var KamadaKawai = (function () {
     function KamadaKawai(body, edgeLength, edgeStrength) {
