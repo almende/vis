@@ -76,7 +76,7 @@ This generates the vis.js library in the folder `./dist`.
 
 - Update the library version number in the index.html page.
 
-- Update the CDN links at the download section of index.html AND the CDN link at the top.
+- Update the CDN links at the download section of index.html AND the CDN link at the top. (replace all)
 
 - Commit the changes in the `gh-pages` branch.
 
