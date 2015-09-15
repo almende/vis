@@ -35,6 +35,13 @@ div.wall {
     margin-top:5px;
 }
 
+div.wallKickstarter {
+    background-image: url("../images/wallKickstarter.png");
+    background-repeat: no-repeat;
+    background-size:cover;
+    margin-top:5px;
+}
+
 div.trans {
     background-color: rgba(0,0,0,0);
 }
