@@ -4,8 +4,8 @@
  *
  * A dynamic, browser-based visualization library.
  *
- * @version 4.8.2
- * @date    2015-09-14
+ * @version 4.8.3-SNAPSHOT
+ * @date    2015-09-17
  *
  * @license
  * Copyright (C) 2011-2015 Almende B.V, http://almende.com
@@ -41787,8 +41787,11 @@ return /******/ (function(modules) { // webpackBootstrap
         // put the weights for the edges in. This assumes unidirectionality.
         for (var i = 0; i < edgesArray.length; i++) {
           var edge = edges[edgesArray[i]];
-          D_matrix[edge.fromId][edge.toId] = 1;
-          D_matrix[edge.toId][edge.fromId] = 1;
+          if (edge.connected === true) {
+            // edge has to be connected if it counts to the distances.
+            D_matrix[edge.fromId][edge.toId] = 1;
+            D_matrix[edge.toId][edge.fromId] = 1;
+          }
         }
 
         var nodeCount = nodesArray.length;

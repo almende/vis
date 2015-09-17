@@ -3,6 +3,10 @@ http://visjs.org
 
 ## NOT YET RELEASED, version 4.8.3
 
+### Network
+
+- Fixed bug where an edge that was not connected would crash the layout algorithms.
+
 ## 2015-09-14, version 4.8.2
 
 ### Network
