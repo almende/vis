@@ -36374,6 +36374,7 @@ return /******/ (function(modules) { // webpackBootstrap
         var pixelRatio = arguments.length <= 0 || arguments[0] === undefined ? this.pixelRatio : arguments[0];
 
         this.cameraState.previousWidth = this.frame.canvas.width / pixelRatio;
+        this.cameraState.previousHeight = this.frame.canvas.height / pixelRatio;
         this.cameraState.scale = this.body.view.scale;
         this.cameraState.position = this.DOMtoCanvas({ x: 0.5 * this.frame.canvas.width / pixelRatio, y: 0.5 * this.frame.canvas.height / pixelRatio });
       }
@@ -36387,7 +36388,7 @@ return /******/ (function(modules) { // webpackBootstrap
       value: function _setCameraState() {
         if (this.cameraState.scale !== undefined && this.frame.canvas.clientWidth !== 0 && this.frame.canvas.clientHeight !== 0 && this.pixelRatio !== 0 && this.cameraState.previousWidth > 0) {
 
-          this.body.view.scale = this.cameraState.scale * (this.frame.canvas.width / this.pixelRatio / this.cameraState.previousWidth);
+          this.body.view.scale = this.cameraState.scale * Math.min(this.frame.canvas.width / this.pixelRatio / this.cameraState.previousWidth, this.frame.canvas.height / this.pixelRatio / this.cameraState.previousHeight);
 
           // this comes from the view module.
           var currentViewCenter = this.DOMtoCanvas({
