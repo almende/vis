@@ -35104,7 +35104,7 @@ return /******/ (function(modules) { // webpackBootstrap
             edges = undefined,
             node = undefined,
             nodeId = undefined,
-            visibleEdges = undefined;
+            relevantEdgeCount = undefined;
         // collect the nodes that will be in the cluster
         for (var i = 0; i < this.body.nodeIndices.length; i++) {
           var childNodesObj = {};
@@ -35113,46 +35113,42 @@ return /******/ (function(modules) { // webpackBootstrap
 
           // if this node is already used in another cluster this session, we do not have to re-evaluate it.
           if (usedNodes[nodeId] === undefined) {
-            visibleEdges = 0;
+            relevantEdgeCount = 0;
             node = this.body.nodes[nodeId];
             edges = [];
             for (var j = 0; j < node.edges.length; j++) {
               edge = node.edges[j];
               if (edge.hiddenByCluster !== true) {
+                if (edge.toId !== edge.fromId) {
+                  relevantEdgeCount++;
+                }
                 edges.push(edge);
               }
             }
 
             // this node qualifies, we collect its neighbours to start the clustering process.
-            if (edges.length === edgeCount) {
+            if (relevantEdgeCount === edgeCount) {
               var gatheringSuccessful = true;
               for (var j = 0; j < edges.length; j++) {
                 edge = edges[j];
                 var childNodeId = this._getConnectedId(edge, nodeId);
-                // if unused and if not referencing itself
-                if (childNodeId !== nodeId && usedNodes[nodeId] === undefined) {
-                  // add the nodes to the list by the join condition.
-                  if (options.joinCondition === undefined) {
+                // add the nodes to the list by the join condition.
+                if (options.joinCondition === undefined) {
+                  childEdgesObj[edge.id] = edge;
+                  childNodesObj[nodeId] = this.body.nodes[nodeId];
+                  childNodesObj[childNodeId] = this.body.nodes[childNodeId];
+                  usedNodes[nodeId] = true;
+                } else {
+                  var clonedOptions = this._cloneOptions(this.body.nodes[nodeId]);
+                  if (options.joinCondition(clonedOptions) === true) {
                     childEdgesObj[edge.id] = edge;
                     childNodesObj[nodeId] = this.body.nodes[nodeId];
-                    childNodesObj[childNodeId] = this.body.nodes[childNodeId];
                     usedNodes[nodeId] = true;
                   } else {
-                    var clonedOptions = this._cloneOptions(this.body.nodes[nodeId]);
-                    if (options.joinCondition(clonedOptions) === true) {
-                      childEdgesObj[edge.id] = edge;
-                      childNodesObj[nodeId] = this.body.nodes[nodeId];
-                      usedNodes[nodeId] = true;
-                    } else {
-                      // this node does not qualify after all.
-                      gatheringSuccessful = false;
-                      break;
-                    }
+                    // this node does not qualify after all.
+                    gatheringSuccessful = false;
+                    break;
                   }
-                } else {
-                  // this node does not qualify after all.
-                  gatheringSuccessful = false;
-                  break;
                 }
               }
 
@@ -35302,7 +35298,7 @@ return /******/ (function(modules) { // webpackBootstrap
       */
     }, {
       key: '_createClusterEdges',
-      value: function _createClusterEdges(childNodesObj, clusterNodeProperties, clusterEdgeProperties) {
+      value: function _createClusterEdges(childNodesObj, childEdgesObj, clusterNodeProperties, clusterEdgeProperties) {
         var edge = undefined,
             childNodeId = undefined,
             childNode = undefined,
@@ -35323,16 +35319,21 @@ return /******/ (function(modules) { // webpackBootstrap
             edge = childNode.edges[j];
             // we only handle edges that are visible to the system, not the disabled ones from the clustering process.
             if (edge.hiddenByCluster !== true) {
-              // set up the from and to.
-              if (edge.toId == childNodeId) {
-                // this is a double equals because ints and strings can be interchanged here.
-                toId = clusterNodeProperties.id;
-                fromId = edge.fromId;
-                otherNodeId = fromId;
+              // self-referencing edges will be added to the "hidden" list
+              if (edge.toId == edge.fromId) {
+                childEdgesObj[edge.id] = edge;
               } else {
-                toId = edge.toId;
-                fromId = clusterNodeProperties.id;
-                otherNodeId = toId;
+                // set up the from and to.
+                if (edge.toId == childNodeId) {
+                  // this is a double equals because ints and strings can be interchanged here.
+                  toId = clusterNodeProperties.id;
+                  fromId = edge.fromId;
+                  otherNodeId = fromId;
+                } else {
+                  toId = edge.toId;
+                  fromId = clusterNodeProperties.id;
+                  otherNodeId = toId;
+                }
               }
 
               // Only edges from the cluster outwards are being replaced.
@@ -35489,8 +35490,8 @@ return /******/ (function(modules) { // webpackBootstrap
         // finally put the cluster node into global
         this.body.nodes[clusterNodeProperties.id] = clusterNode;
 
-        // create the new edges that will connect to the cluster
-        this._createClusterEdges(childNodesObj, clusterNodeProperties, options.clusterEdgeProperties);
+        // create the new edges that will connect to the cluster, all self-referencing edges will be added to childEdgesObject here.
+        this._createClusterEdges(childNodesObj, childEdgesObj, clusterNodeProperties, options.clusterEdgeProperties);
 
         // disable the childEdges
         for (var edgeId in childEdgesObj) {
