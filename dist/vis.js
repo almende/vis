@@ -29099,12 +29099,13 @@ return /******/ (function(modules) { // webpackBootstrap
         this.disableBorderDashes(ctx);
         ctx.restore();
 
-        this.updateBoundingBox(x, y);
+        this.updateBoundingBox(x, y, ctx, selected);
         this.labelModule.draw(ctx, x, y, selected);
       }
     }, {
       key: 'updateBoundingBox',
-      value: function updateBoundingBox(x, y) {
+      value: function updateBoundingBox(x, y, ctx, selected) {
+        this.resize(ctx, selected);
         this.left = x - this.width * 0.5;
         this.top = y - this.height * 0.5;
 
