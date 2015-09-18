@@ -7,6 +7,7 @@ http://visjs.org
 
 - Fixed bug where an edge that was not connected would crash the layout algorithms.
 - Fixed bug where a box shape could not be drawn outside of the viewable area.
+- Fixed bug where dragging a node that is not a control node during edit edge mode would throw an error.
 
 ## 2015-09-14, version 4.8.2
 

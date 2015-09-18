@@ -40709,6 +40709,11 @@ return /******/ (function(modules) { // webpackBootstrap
         var pointerObj = this.selectionHandler._pointerToPositionObject(pointer);
         var edge = this.body.edges[this.edgeBeingEditedId];
 
+        // if the node that was dragged is not a control node, return
+        if (this.selectedControlNode === undefined) {
+          return;
+        }
+
         var overlappingNodeIds = this.selectionHandler._getAllNodesOverlappingWith(pointerObj);
         var node = undefined;
         for (var i = overlappingNodeIds.length - 1; i >= 0; i--) {
