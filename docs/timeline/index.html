@@ -1197,6 +1197,15 @@ document.getElementById('myTimeline').onclick = function (event) {
     </tr>
 
     <tr>
+      <td>setCustomTimeTitle(title [, id])</td>
+      <td>none</td>
+      <td>Adjust the title attribute of a custom time bar.
+        Parameter <code>title</code> is the string to be set as title. Use empty string to hide the title completely.
+        Parameter <code>id</code> is the id of the custom time bar, and is <code>undefined</code> by default.
+      </td>
+    </tr>
+
+    <tr>
       <td>setData({<br>&nbsp;&nbsp;groups: groups,<br>&nbsp;&nbsp;items: items<br>})</td>
       <td>none</td>
       <td>Set both groups and items at once. Both properties are optional. This is a convenience method for individually calling both <code>setItems(items)</code> and <code>setGroups(groups)</code>.
