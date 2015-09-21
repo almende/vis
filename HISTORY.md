@@ -1,7 +1,7 @@
 # vis.js history
 http://visjs.org
 
-## NOT YET RELEASED, version 4.8.3
+## NOT YET RELEASED, version 4.9.0
 
 ### Network
 
@@ -9,6 +9,8 @@ http://visjs.org
 - Fixed bug where a box shape could not be drawn outside of the viewable area.
 - Fixed bug where dragging a node that is not a control node during edit edge mode would throw an error.
 - Made autoscaling on container size change pick the lowest between delta height and delta width.
+- Added images with borders option (useBorderWithImage)
+- Updated the manipulation css to fix offset if there is no seperator.
 
 ## 2015-09-14, version 4.8.2
 

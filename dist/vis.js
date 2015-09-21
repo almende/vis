@@ -14981,6 +14981,24 @@ return /******/ (function(modules) { // webpackBootstrap
   };
 
   /**
+   * Set a custom title for the custom time bar.
+   * @param {String} [title] Custom title
+   * @param {number} [id=undefined]    Id of the custom time bar.
+   */
+  Core.prototype.setCustomTimeTitle = function (title, id) {
+    var customTimes = this.customTimes.filter(function (component) {
+      return component.options.id === id;
+    });
+
+    if (customTimes.length === 0) {
+      throw new Error('No custom time bar found with id ' + JSON.stringify(id));
+    }
+    if (customTimes.length > 0) {
+      return customTimes[0].setCustomTitle(title);
+    }
+  };
+
+  /**
    * Retrieve meta information from an event.
    * Should be overridden by classes extending Core
    * @param {Event} event
@@ -21083,7 +21101,8 @@ return /******/ (function(modules) { // webpackBootstrap
       moment: moment,
       locales: locales,
       locale: 'en',
-      id: undefined
+      id: undefined,
+      title: undefined
     };
     this.options = util.extend({}, this.defaultOptions);
 
@@ -21183,8 +21202,12 @@ return /******/ (function(modules) { // webpackBootstrap
       locale = this.options.locales['en']; // fall back on english when not available
     }
 
-    var title = locale.time + ': ' + this.options.moment(this.customTime).format('dddd, MMMM Do YYYY, H:mm:ss');
-    title = title.charAt(0).toUpperCase() + title.substring(1);
+    var title = this.options.title;
+    // To hide the title completely use empty string ''.
+    if (title === undefined) {
+      title = locale.time + ': ' + this.options.moment(this.customTime).format('dddd, MMMM Do YYYY, H:mm:ss');
+      title = title.charAt(0).toUpperCase() + title.substring(1);
+    }
 
     this.bar.style.left = x + 'px';
     this.bar.title = title;
@@ -21217,6 +21240,14 @@ return /******/ (function(modules) { // webpackBootstrap
    */
   CustomTime.prototype.getCustomTime = function () {
     return new Date(this.customTime.valueOf());
+  };
+
+  /**
+    * Set custom title.
+    * @param {Date | number | string} title
+    */
+  CustomTime.prototype.setCustomTitle = function (title) {
+    this.options.title = title;
   };
 
   /**
