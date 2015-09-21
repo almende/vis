@@ -19,129 +19,42 @@
 <p>
     Create a simple network with some nodes and edges.
 </p>
-<div id="tools"><button onclick="addNodeFunc();">Add node</button></div>
+
 <div id="mynetwork"></div>
 
 <script type="text/javascript">
     // create an array with nodes
-    var network = null;
-    var nodes = null;
-    var edges = null;
-    var _counter = 0;
+    var nodes = new vis.DataSet([
+        {id: 1, label: 'Node 1'},
+        {id: 2, label: 'Node 2'},
+        {id: 3, label: 'Node 3'},
+        {id: 4, label: 'Node 4'},
+        {id: 5, label: 'Node 5'}
+    ]);
 
-    var initTest = function() {
-        console.log('initialized...');
+    // create an array with edges
+    var edges = new vis.DataSet([
+        {from: 1, to: 3},
+        {from: 1, to: 2},
+        {from: 2, to: 4},
+        {from: 2, to: 5}
+    ]);
 
-        var test = document.getElementById('mynetwork');
-        nodes = new vis.DataSet([
-            {id: 1, label: 'Node 1'},
-            {id: 2, label: 'Node 2'},
-            {id: 3, label: 'Node 3'},
-            {id: 4, label: 'Node 4'},
-            {id: 5, label: 'Node 5'}
-        ]);
-
-        // create an array with edges
-        edges = new vis.DataSet([
-            {from: 1, to: 3},
-            {from: 1, to: 2},
-            {from: 2, to: 4},
-            {from: 2, to: 5}
-        ]);
-
-        var data = {
-            nodes: nodes,
-            edges: edges
-        };
-
-        var config = {
-            locale: 'pl',
-            edges: {
-                labelHighlightBold: false,
-                smooth: {type: 'horizontal'},
-                arrows: {
-                    to: {enabled: true, scaleFactor: 0.5}
-                },
-                font: {
-                    color: 'black',
-                    strokeColor: 'white',
-                    size: 11,
-                    face: 'tahoma',
-                    strokeWidth: 2,
-                    align: 'top'
-                },
-                color: {
-                    highlight: '#EDB100'
-                }
-            },
-            nodes: {
-                borderWidth: 1,
-                shape: 'box',
-                shapeProperties: {borderRadius: 3},
-                color: {
-                    border: '#C10600',
-                    background: '#600300',
-                    highlight: {
-                        border: '#EDB100',
-                        background: '#A57400'
-                    }
-                },
-                font: '11px tahoma white',
-                scaling: {
-                    min: 2,
-                    max: 1,
-                    label: {enabled: false}
-                }
-            },
-            manipulation: {
-                enabled: false,
-                initiallyActive: false,
-                deleteEdge: false,
-                controlNodeStyle: {
-                    fixed: true,
-                    color: {
-                        border: '#000C7C',
-                        background: '#7280FF'
-                    }
-                }
-            },
-            interaction: {
-                zoomView: false,
-                selectConnectedEdges: false
-            },
-            physics: {
-                enabled: false, //propably this is problem, on true is ok o.o
-                adaptiveTimestep: false,
-                stabilization: {
-                    enabled: true,
-                    updateInterval: 10
-                },
-                barnesHut: {
-                    gravitationalConstant: -20000,
-                    centralGravity: 0.25,
-                    springLength: 50
-                }
-            }
-        };
-
-        network = new vis.Network(test, data, config);
-        _nodes = new vis.DataSet();
-        _triples = new vis.DataSet();
+    // create a network
+    var container = document.getElementById('mynetwork');
+    var data = {
+        nodes: nodes,
+        edges: edges
     };
-
-    var addNodeFunc = function() {
-        var pos = network.getViewPosition();
-        console.log(pos);
-
-        nodes.add(
-                {
-                    x: pos.x,
-                    y: pos.y
-                });
-    };
-
-    initTest()
+    var options = {manipulation:{
+        initiallyActive:true,
+        addNode: false,
+//        addEdge: false
+//        editNode: true
+    }};
+    var network = new vis.Network(container, data, options);
 </script>
 
+<script src="../googleAnalytics.js"></script>
 </body>
 </html>

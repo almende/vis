@@ -5,7 +5,7 @@
  * A dynamic, browser-based visualization library.
  *
  * @version 4.8.3-SNAPSHOT
- * @date    2015-09-18
+ * @date    2015-09-21
  *
  * @license
  * Copyright (C) 2011-2015 Almende B.V, http://almende.com
@@ -27792,7 +27792,8 @@ return /******/ (function(modules) { // webpackBootstrap
         shapeProperties: {
           borderDashes: false, // only for borders
           borderRadius: 6, // only for box shape
-          useImageSize: false // only for image and circularImage shapes
+          useImageSize: false, // only for image and circularImage shapes
+          useBorderWithImage: false // only for image shape
         },
         size: 25,
         title: undefined,
@@ -30204,6 +30205,38 @@ return /******/ (function(modules) { // webpackBootstrap
         this.resize();
         this.left = x - this.width / 2;
         this.top = y - this.height / 2;
+
+        if (this.options.shapeProperties.useBorderWithImage === true) {
+          var borderWidth = this.options.borderWidth;
+
+          var selectionLineWidth = this.options.borderWidthSelected || 2 * this.options.borderWidth;
+
+          ctx.beginPath();
+
+          // setup the line properties.
+          ctx.strokeStyle = selected ? this.options.color.highlight.border : hover ? this.options.color.hover.border : this.options.color.border;
+          ctx.lineWidth = selected ? selectionLineWidth : borderWidth;
+          ctx.lineWidth /= this.body.view.scale;
+          ctx.lineWidth = Math.min(this.width, ctx.lineWidth);
+
+          // set a fillstyle
+          ctx.fillStyle = selected ? this.options.color.highlight.background : hover ? this.options.color.hover.background : this.options.color.background;
+
+          // draw a rectangle to form the border around. This rectangle is filled so the opacity of a picture (in future vis releases?) can be used to tint the image
+          ctx.rect(this.left - 0.5 * ctx.lineWidth, this.top - 0.5 * ctx.lineWidth, this.width + ctx.lineWidth, this.height + ctx.lineWidth);
+          ctx.fill();
+
+          //draw dashed border if enabled, save and restore is required for firefox not to crash on unix.
+          ctx.save();
+          this.enableBorderDashes(ctx);
+          //draw the border
+          ctx.stroke();
+          //disable dashed border for other elements
+          this.disableBorderDashes(ctx);
+          ctx.restore();
+
+          ctx.closePath();
+        }
 
         this._drawImageAtPosition(ctx);
 
@@ -41188,6 +41221,7 @@ return /******/ (function(modules) { // webpackBootstrap
         borderDashes: { boolean: boolean, array: array },
         borderRadius: { number: number },
         useImageSize: { boolean: boolean },
+        useBorderWithImage: { boolean: boolean },
         __type__: { object: object }
       },
       size: { number: number },
