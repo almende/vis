@@ -1,6 +1,7 @@
 # vis.js history
 http://visjs.org
 
+
 ## NOT YET RELEASED, version 4.9.0
 
 ### Network
@@ -8,13 +9,14 @@ http://visjs.org
 - Fixed bug where an edge that was not connected would crash the layout algorithms.
 - Fixed bug where a box shape could not be drawn outside of the viewable area.
 - Fixed bug where dragging a node that is not a control node during edit edge mode would throw an error.
-- Made autoscaling on container size change pick the lowest between delta height and delta width.
+- Made auto scaling on container size change pick the lowest between delta height and delta width.
 - Added images with borders option (useBorderWithImage)
-- Updated the manipulation css to fix offset if there is no seperator.
+- Updated the manipulation css to fix offset if there is no separator.
 
 ### Timeline
 
 - Fixed #1326: wrongly positioned dot of PointItems.
+- Fixed #1249: option `hiddenDates` not accepting a single hidden date.
 - Fixed a bug when pinching and using hidden dates. Thanks @lauzierj.
 
 
@@ -28,6 +30,7 @@ http://visjs.org
 - Fixed stabilized event not firing if layout algorithm does very well.
 - Fixed arrows with some shapes when they are selected. #1292
 - Fixed deletion of options by settings them to null.
+
 
 ## 2015-09-07, version 4.8.1
 

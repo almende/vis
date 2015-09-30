@@ -14117,11 +14117,15 @@ return /******/ (function(modules) { // webpackBootstrap
    * 
    * @param {function} moment
    * @param {Object} body
-   * @param {Array} hiddenDates
+   * @param {Array | Object} hiddenDates
    */
   "use strict";
 
   exports.convertHiddenOptions = function (moment, body, hiddenDates) {
+    if (hiddenDates && !Array.isArray(hiddenDates)) {
+      return exports.convertHiddenOptions(moment, body, [hiddenDates]);
+    }
+
     body.hiddenDates = [];
     if (hiddenDates) {
       if (Array.isArray(hiddenDates) == true) {
@@ -14144,9 +14148,13 @@ return /******/ (function(modules) { // webpackBootstrap
    * create new entrees for the repeating hidden dates
    * @param {function} moment
    * @param {Object} body
-   * @param {Array} hiddenDates
+   * @param {Array | Object} hiddenDates
    */
   exports.updateHiddenDates = function (moment, body, hiddenDates) {
+    if (hiddenDates && !Array.isArray(hiddenDates)) {
+      return exports.updateHiddenDates(moment, body, [hiddenDates]);
+    }
+
     if (hiddenDates && body.domProps.centerContainer.width !== undefined) {
       exports.convertHiddenOptions(moment, body, hiddenDates);
 
@@ -17535,8 +17543,11 @@ return /******/ (function(modules) { // webpackBootstrap
     this.switchedDay = false;
     this.switchedMonth = false;
     this.switchedYear = false;
-    this.hiddenDates = hiddenDates;
-    if (hiddenDates === undefined) {
+    if (Array.isArray(hiddenDates)) {
+      this.hiddenDates = hiddenDates;
+    } else if (hiddenDates != undefined) {
+      this.hiddenDates = [hiddenDates];
+    } else {
       this.hiddenDates = [];
     }
 
@@ -23300,10 +23311,14 @@ return /******/ (function(modules) { // webpackBootstrap
     },
     groupOrderSwap: { 'function': 'function' },
     height: { string: string, number: number },
-    hiddenDates: { object: object, array: array },
+    hiddenDates: {
+      start: { date: date, number: number, string: string, moment: moment },
+      end: { date: date, number: number, string: string, moment: moment },
+      repeat: { string: string },
+      __type__: { object: object, array: array }
+    },
     locale: { string: string },
     locales: {
-      __any__: { any: any },
       __type__: { object: object }
     },
     margin: {
@@ -26789,7 +26804,12 @@ return /******/ (function(modules) { // webpackBootstrap
     },
     moment: { 'function': 'function' },
     height: { string: string, number: number },
-    hiddenDates: { object: object, array: array },
+    hiddenDates: {
+      start: { date: date, number: number, string: string, moment: moment },
+      end: { date: date, number: number, string: string, moment: moment },
+      repeat: { string: string },
+      __type__: { object: object, array: array }
+    },
     locale: { string: string },
     locales: {
       __any__: { any: any },
