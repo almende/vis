@@ -14,6 +14,7 @@ http://visjs.org
 
 ### Timeline
 
+- Fixed #1326: wrongly positioned dot of PointItems.
 - Fixed a bug when pinching and using hidden dates. Thanks @lauzierj.
 
 
