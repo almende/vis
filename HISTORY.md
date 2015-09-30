@@ -12,6 +12,11 @@ http://visjs.org
 - Added images with borders option (useBorderWithImage)
 - Updated the manipulation css to fix offset if there is no seperator.
 
+### Timeline
+
+- Fixed a bug when pinching and using hidden dates. Thanks @lauzierj.
+
+
 ## 2015-09-14, version 4.8.2
 
 ### Network
