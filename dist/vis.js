@@ -4,8 +4,8 @@
  *
  * A dynamic, browser-based visualization library.
  *
- * @version 4.8.1
- * @date    2015-09-07
+ * @version 4.9.0
+ * @date    2015-10-01
  *
  * @license
  * Copyright (C) 2011-2015 Almende B.V, http://almende.com
@@ -388,7 +388,11 @@ return /******/ (function(modules) { // webpackBootstrap
           } else if (Array.isArray(b[prop])) {
             throw new TypeError('Arrays are not supported by deepExtend');
           } else {
-            a[prop] = b[prop];
+            if (b[prop] === null && a[prop] !== undefined && allowDeletion === true) {
+              delete a[prop];
+            } else {
+              a[prop] = b[prop];
+            }
           }
         }
       }
@@ -433,7 +437,11 @@ return /******/ (function(modules) { // webpackBootstrap
               a[prop].push(b[prop][i]);
             }
           } else {
-            a[prop] = b[prop];
+            if (b[prop] === null && a[prop] !== undefined && allowDeletion === true) {
+              delete a[prop];
+            } else {
+              a[prop] = b[prop];
+            }
           }
         }
       }
@@ -472,7 +480,11 @@ return /******/ (function(modules) { // webpackBootstrap
             a[prop].push(b[prop][i]);
           }
         } else {
-          a[prop] = b[prop];
+          if (b[prop] === null && a[prop] !== undefined && allowDeletion === true) {
+            delete a[prop];
+          } else {
+            a[prop] = b[prop];
+          }
         }
       }
     }
@@ -1357,10 +1369,10 @@ return /******/ (function(modules) { // webpackBootstrap
    */
   exports.mergeOptions = function (mergeTarget, options, option) {
     var allowDeletion = arguments.length <= 3 || arguments[3] === undefined ? false : arguments[3];
+    var globalOptions = arguments.length <= 4 || arguments[4] === undefined ? {} : arguments[4];
 
     if (options[option] === null) {
-      mergeTarget[option] = undefined;
-      delete mergeTarget[option];
+      mergeTarget[option] = Object.create(globalOptions[option]);
     } else {
       if (options[option] !== undefined) {
         if (typeof options[option] === 'boolean') {
@@ -5136,8 +5148,8 @@ return /******/ (function(modules) { // webpackBootstrap
       point.setAttributeNS(null, 'height', groupTemplate.size);
     }
 
-    if (groupTemplate.style !== undefined) {
-      point.setAttributeNS(null, 'style', groupTemplate.style);
+    if (groupTemplate.styles !== undefined) {
+      point.setAttributeNS(null, 'style', groupTemplate.styles);
     }
     point.setAttributeNS(null, 'class', groupTemplate.className + ' vis-point');
     //handle label
@@ -13805,7 +13817,7 @@ return /******/ (function(modules) { // webpackBootstrap
     var scale = 1 / (event.scale + this.scaleOffset);
     var centerDate = this._pointerToDate(this.props.touch.center);
 
-    var hiddenDuration = DateUtil.getHiddenDurationBetween(this.options.moment, this.body.hiddenDates, this.start, this.end);
+    var hiddenDuration = DateUtil.getHiddenDurationBetween(this.body.hiddenDates, this.start, this.end);
     var hiddenDurationBefore = DateUtil.getHiddenDurationBefore(this.options.moment, this.body.hiddenDates, this, centerDate);
     var hiddenDurationAfter = hiddenDuration - hiddenDurationBefore;
 
@@ -14105,11 +14117,15 @@ return /******/ (function(modules) { // webpackBootstrap
    * 
    * @param {function} moment
    * @param {Object} body
-   * @param {Array} hiddenDates
+   * @param {Array | Object} hiddenDates
    */
   "use strict";
 
   exports.convertHiddenOptions = function (moment, body, hiddenDates) {
+    if (hiddenDates && !Array.isArray(hiddenDates)) {
+      return exports.convertHiddenOptions(moment, body, [hiddenDates]);
+    }
+
     body.hiddenDates = [];
     if (hiddenDates) {
       if (Array.isArray(hiddenDates) == true) {
@@ -14132,9 +14148,13 @@ return /******/ (function(modules) { // webpackBootstrap
    * create new entrees for the repeating hidden dates
    * @param {function} moment
    * @param {Object} body
-   * @param {Array} hiddenDates
+   * @param {Array | Object} hiddenDates
    */
   exports.updateHiddenDates = function (moment, body, hiddenDates) {
+    if (hiddenDates && !Array.isArray(hiddenDates)) {
+      return exports.updateHiddenDates(moment, body, [hiddenDates]);
+    }
+
     if (hiddenDates && body.domProps.centerContainer.width !== undefined) {
       exports.convertHiddenOptions(moment, body, hiddenDates);
 
@@ -14965,6 +14985,24 @@ return /******/ (function(modules) { // webpackBootstrap
       throw new Error('No custom time bar found with id ' + JSON.stringify(id));
     }
     return customTimes[0].getCustomTime();
+  };
+
+  /**
+   * Set a custom title for the custom time bar.
+   * @param {String} [title] Custom title
+   * @param {number} [id=undefined]    Id of the custom time bar.
+   */
+  Core.prototype.setCustomTimeTitle = function (title, id) {
+    var customTimes = this.customTimes.filter(function (component) {
+      return component.options.id === id;
+    });
+
+    if (customTimes.length === 0) {
+      throw new Error('No custom time bar found with id ' + JSON.stringify(id));
+    }
+    if (customTimes.length > 0) {
+      return customTimes[0].setCustomTitle(title);
+    }
   };
 
   /**
@@ -17505,8 +17543,11 @@ return /******/ (function(modules) { // webpackBootstrap
     this.switchedDay = false;
     this.switchedMonth = false;
     this.switchedYear = false;
-    this.hiddenDates = hiddenDates;
-    if (hiddenDates === undefined) {
+    if (Array.isArray(hiddenDates)) {
+      this.hiddenDates = hiddenDates;
+    } else if (hiddenDates != undefined) {
+      this.hiddenDates = [hiddenDates];
+    } else {
       this.hiddenDates = [];
     }
 
@@ -19916,12 +19957,13 @@ return /******/ (function(modules) { // webpackBootstrap
       dom.content.style.marginLeft = 2 * this.props.dot.width + 'px';
       //dom.content.style.marginRight = ... + 'px'; // TODO: margin right
 
-      dom.dot.style.top = (this.height - this.props.dot.height) / 2 + 'px';
-      dom.dot.style.left = this.props.dot.width / 2 + 'px';
-
       // recalculate size
       this.width = dom.point.offsetWidth;
       this.height = dom.point.offsetHeight;
+
+      // reposition the dot
+      dom.dot.style.top = (this.height - this.props.dot.height) / 2 + 'px';
+      dom.dot.style.left = this.props.dot.width / 2 + 'px';
 
       this.dirty = false;
     }
@@ -21070,7 +21112,8 @@ return /******/ (function(modules) { // webpackBootstrap
       moment: moment,
       locales: locales,
       locale: 'en',
-      id: undefined
+      id: undefined,
+      title: undefined
     };
     this.options = util.extend({}, this.defaultOptions);
 
@@ -21170,8 +21213,12 @@ return /******/ (function(modules) { // webpackBootstrap
       locale = this.options.locales['en']; // fall back on english when not available
     }
 
-    var title = locale.time + ': ' + this.options.moment(this.customTime).format('dddd, MMMM Do YYYY, H:mm:ss');
-    title = title.charAt(0).toUpperCase() + title.substring(1);
+    var title = this.options.title;
+    // To hide the title completely use empty string ''.
+    if (title === undefined) {
+      title = locale.time + ': ' + this.options.moment(this.customTime).format('dddd, MMMM Do YYYY, H:mm:ss');
+      title = title.charAt(0).toUpperCase() + title.substring(1);
+    }
 
     this.bar.style.left = x + 'px';
     this.bar.title = title;
@@ -21204,6 +21251,14 @@ return /******/ (function(modules) { // webpackBootstrap
    */
   CustomTime.prototype.getCustomTime = function () {
     return new Date(this.customTime.valueOf());
+  };
+
+  /**
+    * Set custom title.
+    * @param {Date | number | string} title
+    */
+  CustomTime.prototype.setCustomTitle = function (title) {
+    this.options.title = title;
   };
 
   /**
@@ -23256,10 +23311,14 @@ return /******/ (function(modules) { // webpackBootstrap
     },
     groupOrderSwap: { 'function': 'function' },
     height: { string: string, number: number },
-    hiddenDates: { object: object, array: array },
+    hiddenDates: {
+      start: { date: date, number: number, string: string, moment: moment },
+      end: { date: date, number: number, string: string, moment: moment },
+      repeat: { string: string },
+      __type__: { object: object, array: array }
+    },
     locale: { string: string },
     locales: {
-      __any__: { any: any },
       __type__: { object: object }
     },
     margin: {
@@ -23319,7 +23378,7 @@ return /******/ (function(modules) { // webpackBootstrap
     global: {
       align: ['center', 'left', 'right'],
       autoResize: true,
-      throttleRedraw: 0,
+      throttleRedraw: [10, 0, 1000, 10],
       clickToUse: false,
       // dataAttributes: ['all'], // FIXME: can be 'all' or string[]
       editable: {
@@ -25716,6 +25775,7 @@ return /******/ (function(modules) { // webpackBootstrap
       if (this.options.drawPoints.enabled == true) {
         var groupTemplate = {
           style: this.options.drawPoints.style,
+          styles: this.options.drawPoints.styles,
           size: this.options.drawPoints.size,
           className: this.className
         };
@@ -26111,6 +26171,7 @@ return /******/ (function(modules) { // webpackBootstrap
       callbackResult = typeof callbackResult === 'undefined' ? {} : callbackResult;
       return {
         style: callbackResult.style || group.options.drawPoints.style,
+        styles: callbackResult.styles || group.options.drawPoints.styles,
         size: callbackResult.size || group.options.drawPoints.size,
         className: callbackResult.className || group.className
       };
@@ -26743,7 +26804,12 @@ return /******/ (function(modules) { // webpackBootstrap
     },
     moment: { 'function': 'function' },
     height: { string: string, number: number },
-    hiddenDates: { object: object, array: array },
+    hiddenDates: {
+      start: { date: date, number: number, string: string, moment: moment },
+      end: { date: date, number: number, string: string, moment: moment },
+      repeat: { string: string },
+      __type__: { object: object, array: array }
+    },
     locale: { string: string },
     locales: {
       __any__: { any: any },
@@ -26830,7 +26896,7 @@ return /******/ (function(modules) { // webpackBootstrap
       },
 
       autoResize: true,
-      throttleRedraw: 0,
+      throttleRedraw: [10, 0, 1000, 10],
       clickToUse: false,
       end: '',
       format: {
@@ -27780,7 +27846,8 @@ return /******/ (function(modules) { // webpackBootstrap
         shapeProperties: {
           borderDashes: false, // only for borders
           borderRadius: 6, // only for box shape
-          useImageSize: false // only for image and circularImage shapes
+          useImageSize: false, // only for image and circularImage shapes
+          useBorderWithImage: false // only for image shape
         },
         size: 25,
         title: undefined,
@@ -28275,6 +28342,7 @@ return /******/ (function(modules) { // webpackBootstrap
       _classCallCheck(this, Node);
 
       this.options = util.bridgeObject(globalOptions);
+      this.globalOptions = globalOptions;
       this.body = body;
 
       this.edges = []; // all edges connected to this node
@@ -28376,7 +28444,7 @@ return /******/ (function(modules) { // webpackBootstrap
         }
 
         // this transforms all shorthands into fully defined options
-        Node.parseOptions(this.options, options, true);
+        Node.parseOptions(this.options, options, true, this.globalOptions);
 
         // load the images
         if (this.options.image !== undefined) {
@@ -28634,20 +28702,20 @@ return /******/ (function(modules) { // webpackBootstrap
        */
       value: function parseOptions(parentOptions, newOptions) {
         var allowDeletion = arguments.length <= 2 || arguments[2] === undefined ? false : arguments[2];
+        var globalOptions = arguments.length <= 3 || arguments[3] === undefined ? {} : arguments[3];
 
         var fields = ['color', 'font', 'fixed', 'shadow'];
         util.selectiveNotDeepExtend(fields, parentOptions, newOptions, allowDeletion);
 
         // merge the shadow options into the parent.
-        util.mergeOptions(parentOptions, newOptions, 'shadow');
+        util.mergeOptions(parentOptions, newOptions, 'shadow', allowDeletion, globalOptions);
 
         // individual shape newOptions
         if (newOptions.color !== undefined && newOptions.color !== null) {
           var parsedColor = util.parseColor(newOptions.color);
           util.fillIfDefined(parentOptions.color, parsedColor);
         } else if (allowDeletion === true && newOptions.color === null) {
-          parentOptions.color = undefined;
-          delete parentOptions.color;
+          parentOptions.color = Object.create(globalOptions.color); // this sets the pointer of the option back to the global option.
         }
 
         // handle the fixed options
@@ -28666,13 +28734,15 @@ return /******/ (function(modules) { // webpackBootstrap
         }
 
         // handle the font options
-        if (newOptions.font !== undefined) {
+        if (newOptions.font !== undefined && newOptions.font !== null) {
           _sharedLabel2['default'].parseOptions(parentOptions.font, newOptions);
+        } else if (allowDeletion === true && newOptions.font === null) {
+          parentOptions.font = Object.create(globalOptions.font); // this sets the pointer of the option back to the global option.
         }
 
         // handle the scaling options, specifically the label part
         if (newOptions.scaling !== undefined) {
-          util.mergeOptions(parentOptions.scaling, newOptions.scaling, 'label');
+          util.mergeOptions(parentOptions.scaling, newOptions.scaling, 'label', allowDeletion, globalOptions.scaling);
         }
       }
     }]);
@@ -29084,12 +29154,13 @@ return /******/ (function(modules) { // webpackBootstrap
         this.disableBorderDashes(ctx);
         ctx.restore();
 
-        this.updateBoundingBox(x, y);
+        this.updateBoundingBox(x, y, ctx, selected);
         this.labelModule.draw(ctx, x, y, selected);
       }
     }, {
       key: 'updateBoundingBox',
-      value: function updateBoundingBox(x, y) {
+      value: function updateBoundingBox(x, y, ctx, selected) {
+        this.resize(ctx, selected);
         this.left = x - this.width * 0.5;
         this.top = y - this.height * 0.5;
 
@@ -29152,8 +29223,9 @@ return /******/ (function(modules) { // webpackBootstrap
       }
     }, {
       key: '_distanceToBorder',
-      value: function _distanceToBorder(angle) {
+      value: function _distanceToBorder(ctx, angle) {
         var borderWidth = 1;
+        this.resize(ctx);
         return Math.min(Math.abs(this.width / 2 / Math.cos(angle)), Math.abs(this.height / 2 / Math.sin(angle))) + borderWidth;
       }
     }, {
@@ -29569,7 +29641,7 @@ return /******/ (function(modules) { // webpackBootstrap
       key: 'distanceToBorder',
       value: function distanceToBorder(ctx, angle) {
         this.resize(ctx);
-        return this._distanceToBorder(angle);
+        return this._distanceToBorder(ctx, angle);
       }
     }]);
 
@@ -29738,7 +29810,7 @@ return /******/ (function(modules) { // webpackBootstrap
     }, {
       key: 'distanceToBorder',
       value: function distanceToBorder(ctx, angle) {
-        return this._distanceToBorder(angle);
+        return this._distanceToBorder(ctx, angle);
       }
     }]);
 
@@ -29900,6 +29972,7 @@ return /******/ (function(modules) { // webpackBootstrap
     }, {
       key: 'distanceToBorder',
       value: function distanceToBorder(ctx, angle) {
+        this.resize(ctx);
         return this.options.size + this.options.borderWidth;
       }
     }]);
@@ -30131,8 +30204,7 @@ return /******/ (function(modules) { // webpackBootstrap
     }, {
       key: 'distanceToBorder',
       value: function distanceToBorder(ctx, angle) {
-        this.resize(ctx);
-        return this._distanceToBorder(angle);
+        return this._distanceToBorder(ctx, angle);
       }
     }]);
 
@@ -30187,6 +30259,38 @@ return /******/ (function(modules) { // webpackBootstrap
         this.resize();
         this.left = x - this.width / 2;
         this.top = y - this.height / 2;
+
+        if (this.options.shapeProperties.useBorderWithImage === true) {
+          var borderWidth = this.options.borderWidth;
+
+          var selectionLineWidth = this.options.borderWidthSelected || 2 * this.options.borderWidth;
+
+          ctx.beginPath();
+
+          // setup the line properties.
+          ctx.strokeStyle = selected ? this.options.color.highlight.border : hover ? this.options.color.hover.border : this.options.color.border;
+          ctx.lineWidth = selected ? selectionLineWidth : borderWidth;
+          ctx.lineWidth /= this.body.view.scale;
+          ctx.lineWidth = Math.min(this.width, ctx.lineWidth);
+
+          // set a fillstyle
+          ctx.fillStyle = selected ? this.options.color.highlight.background : hover ? this.options.color.hover.background : this.options.color.background;
+
+          // draw a rectangle to form the border around. This rectangle is filled so the opacity of a picture (in future vis releases?) can be used to tint the image
+          ctx.rect(this.left - 0.5 * ctx.lineWidth, this.top - 0.5 * ctx.lineWidth, this.width + ctx.lineWidth, this.height + ctx.lineWidth);
+          ctx.fill();
+
+          //draw dashed border if enabled, save and restore is required for firefox not to crash on unix.
+          ctx.save();
+          this.enableBorderDashes(ctx);
+          //draw the border
+          ctx.stroke();
+          //disable dashed border for other elements
+          this.disableBorderDashes(ctx);
+          ctx.restore();
+
+          ctx.closePath();
+        }
 
         this._drawImageAtPosition(ctx);
 
@@ -30276,8 +30380,7 @@ return /******/ (function(modules) { // webpackBootstrap
     }, {
       key: 'distanceToBorder',
       value: function distanceToBorder(ctx, angle) {
-        this.resize();
-        return this._distanceToBorder(angle);
+        return this._distanceToBorder(ctx, angle);
       }
     }]);
 
@@ -30333,7 +30436,7 @@ return /******/ (function(modules) { // webpackBootstrap
     }, {
       key: 'distanceToBorder',
       value: function distanceToBorder(ctx, angle) {
-        return this._distanceToBorder(angle);
+        return this._distanceToBorder(ctx, angle);
       }
     }]);
 
@@ -30419,8 +30522,7 @@ return /******/ (function(modules) { // webpackBootstrap
     }, {
       key: 'distanceToBorder',
       value: function distanceToBorder(ctx, angle) {
-        this.resize(ctx);
-        return this._distanceToBorder(angle);
+        return this._distanceToBorder(ctx, angle);
       }
     }]);
 
@@ -30476,7 +30578,7 @@ return /******/ (function(modules) { // webpackBootstrap
     }, {
       key: 'distanceToBorder',
       value: function distanceToBorder(ctx, angle) {
-        return this._distanceToBorder(angle);
+        return this._distanceToBorder(ctx, angle);
       }
     }]);
 
@@ -30532,7 +30634,7 @@ return /******/ (function(modules) { // webpackBootstrap
     }, {
       key: 'distanceToBorder',
       value: function distanceToBorder(ctx, angle) {
-        return this._distanceToBorder(angle);
+        return this._distanceToBorder(ctx, angle);
       }
     }]);
 
@@ -31041,6 +31143,7 @@ return /******/ (function(modules) { // webpackBootstrap
         throw 'No body provided';
       }
       this.options = util.bridgeObject(globalOptions);
+      this.globalOptions = globalOptions;
       this.body = body;
 
       // initialize variables
@@ -31081,7 +31184,7 @@ return /******/ (function(modules) { // webpackBootstrap
         }
         this.colorDirty = true;
 
-        Edge.parseOptions(this.options, options, true);
+        Edge.parseOptions(this.options, options, true, this.globalOptions);
 
         if (options.id !== undefined) {
           this.id = options.id;
@@ -31450,20 +31553,20 @@ return /******/ (function(modules) { // webpackBootstrap
       key: 'parseOptions',
       value: function parseOptions(parentOptions, newOptions) {
         var allowDeletion = arguments.length <= 2 || arguments[2] === undefined ? false : arguments[2];
+        var globalOptions = arguments.length <= 3 || arguments[3] === undefined ? {} : arguments[3];
 
-        var fields = ['id', 'from', 'hidden', 'hoverWidth', 'label', 'labelHighlightBold', 'length', 'line', 'opacity', 'physics', 'selectionWidth', 'selfReferenceSize', 'to', 'title', 'value', 'width'];
+        var fields = ['id', 'from', 'hidden', 'hoverWidth', 'label', 'labelHighlightBold', 'length', 'line', 'opacity', 'physics', 'scaling', 'selectionWidth', 'selfReferenceSize', 'to', 'title', 'value', 'width'];
 
         // only deep extend the items in the field array. These do not have shorthand.
         util.selectiveDeepExtend(fields, parentOptions, newOptions, allowDeletion);
 
-        util.mergeOptions(parentOptions, newOptions, 'smooth');
-        util.mergeOptions(parentOptions, newOptions, 'shadow');
+        util.mergeOptions(parentOptions, newOptions, 'smooth', allowDeletion, globalOptions);
+        util.mergeOptions(parentOptions, newOptions, 'shadow', allowDeletion, globalOptions);
 
         if (newOptions.dashes !== undefined && newOptions.dashes !== null) {
           parentOptions.dashes = newOptions.dashes;
         } else if (allowDeletion === true && newOptions.dashes === null) {
-          parentOptions.dashes = undefined;
-          delete parentOptions.dashes;
+          parentOptions.dashes = Object.create(globalOptions.dashes); // this sets the pointer of the option back to the global option.
         }
 
         // set the scaling newOptions
@@ -31474,10 +31577,9 @@ return /******/ (function(modules) { // webpackBootstrap
           if (newOptions.scaling.max !== undefined) {
             parentOptions.scaling.max = newOptions.scaling.max;
           }
-          util.mergeOptions(parentOptions.scaling, newOptions.scaling, 'label');
+          util.mergeOptions(parentOptions.scaling, newOptions.scaling, 'label', allowDeletion, globalOptions.scaling);
         } else if (allowDeletion === true && newOptions.scaling === null) {
-          parentOptions.scaling = undefined;
-          delete parentOptions.scaling;
+          parentOptions.scaling = Object.create(globalOptions.scaling); // this sets the pointer of the option back to the global option.
         }
 
         // hanlde multiple input cases for arrows
@@ -31494,15 +31596,14 @@ return /******/ (function(modules) { // webpackBootstrap
               parentOptions.arrows.from.enabled = true;
             }
           } else if (typeof newOptions.arrows === 'object') {
-            util.mergeOptions(parentOptions.arrows, newOptions.arrows, 'to');
-            util.mergeOptions(parentOptions.arrows, newOptions.arrows, 'middle');
-            util.mergeOptions(parentOptions.arrows, newOptions.arrows, 'from');
+            util.mergeOptions(parentOptions.arrows, newOptions.arrows, 'to', allowDeletion, globalOptions.arrows);
+            util.mergeOptions(parentOptions.arrows, newOptions.arrows, 'middle', allowDeletion, globalOptions.arrows);
+            util.mergeOptions(parentOptions.arrows, newOptions.arrows, 'from', allowDeletion, globalOptions.arrows);
           } else {
             throw new Error('The arrow newOptions can only be an object or a string. Refer to the documentation. You used:' + JSON.stringify(newOptions.arrows));
           }
         } else if (allowDeletion === true && newOptions.arrows === null) {
-          parentOptions.arrows = undefined;
-          delete parentOptions.arrows;
+          parentOptions.arrows = Object.create(globalOptions.arrows); // this sets the pointer of the option back to the global option.
         }
 
         // hanlde multiple input cases for color
@@ -31535,13 +31636,14 @@ return /******/ (function(modules) { // webpackBootstrap
             }
           }
         } else if (allowDeletion === true && newOptions.color === null) {
-          parentOptions.color = undefined;
-          delete parentOptions.color;
+          parentOptions.color = Object.create(globalOptions.color); // this sets the pointer of the option back to the global option.
         }
 
         // handle the font settings
-        if (newOptions.font !== undefined) {
+        if (newOptions.font !== undefined && newOptions.font !== null) {
           _sharedLabel2['default'].parseOptions(parentOptions.font, newOptions);
+        } else if (allowDeletion === true && newOptions.font === null) {
+          parentOptions.font = Object.create(globalOptions.font); // this sets the pointer of the option back to the global option.
         }
       }
     }]);
@@ -33399,9 +33501,12 @@ return /******/ (function(modules) { // webpackBootstrap
       value: function _emitStabilized() {
         var _this2 = this;
 
-        if (this.stabilizationIterations > 1) {
+        var amountOfIterations = arguments.length <= 0 || arguments[0] === undefined ? this.stabilizationIterations : arguments[0];
+
+        if (this.stabilizationIterations > 1 || this.startedStabilization === true) {
           setTimeout(function () {
-            _this2.body.emitter.emit('stabilized', { iterations: _this2.stabilizationIterations });
+            _this2.body.emitter.emit('stabilized', { iterations: amountOfIterations });
+            _this2.startedStabilization = false;
             _this2.stabilizationIterations = 0;
           }, 0);
         }
@@ -33415,6 +33520,12 @@ return /******/ (function(modules) { // webpackBootstrap
        * @private
        */
       value: function physicsTick() {
+        // this is here to ensure that there is no start event when the network is already stable.
+        if (this.startedStabilization === false) {
+          this.body.emitter.emit('startStabilizing');
+          this.startedStabilization = true;
+        }
+
         if (this.stabilized === false) {
           // adaptivity means the timestep adapts to the situation, only applicable for stabilization
           if (this.adaptiveTimestep === true && this.adaptiveTimestepEnabled === true) {
@@ -33473,12 +33584,6 @@ return /******/ (function(modules) { // webpackBootstrap
           // determine if the network has stabilzied
           if (this.stabilized === true) {
             this.revert();
-          } else {
-            // this is here to ensure that there is no start event when the network is already stable.
-            if (this.startedStabilization === false) {
-              this.body.emitter.emit('startStabilizing');
-              this.startedStabilization = true;
-            }
           }
 
           this.stabilizationIterations++;
@@ -33773,6 +33878,12 @@ return /******/ (function(modules) { // webpackBootstrap
        * @private
        */
       value: function _stabilizationBatch() {
+        // this is here to ensure that there is at least one start event.
+        if (this.startedStabilization === false) {
+          this.body.emitter.emit('startStabilizing');
+          this.startedStabilization = true;
+        }
+
         var count = 0;
         while (this.stabilized === false && count < this.options.stabilization.updateInterval && this.stabilizationIterations < this.targetIterations) {
           this.physicsTick();
@@ -35081,7 +35192,7 @@ return /******/ (function(modules) { // webpackBootstrap
             edges = undefined,
             node = undefined,
             nodeId = undefined,
-            visibleEdges = undefined;
+            relevantEdgeCount = undefined;
         // collect the nodes that will be in the cluster
         for (var i = 0; i < this.body.nodeIndices.length; i++) {
           var childNodesObj = {};
@@ -35090,46 +35201,42 @@ return /******/ (function(modules) { // webpackBootstrap
 
           // if this node is already used in another cluster this session, we do not have to re-evaluate it.
           if (usedNodes[nodeId] === undefined) {
-            visibleEdges = 0;
+            relevantEdgeCount = 0;
             node = this.body.nodes[nodeId];
             edges = [];
             for (var j = 0; j < node.edges.length; j++) {
               edge = node.edges[j];
               if (edge.hiddenByCluster !== true) {
+                if (edge.toId !== edge.fromId) {
+                  relevantEdgeCount++;
+                }
                 edges.push(edge);
               }
             }
 
             // this node qualifies, we collect its neighbours to start the clustering process.
-            if (edges.length === edgeCount) {
+            if (relevantEdgeCount === edgeCount) {
               var gatheringSuccessful = true;
               for (var j = 0; j < edges.length; j++) {
                 edge = edges[j];
                 var childNodeId = this._getConnectedId(edge, nodeId);
-                // if unused and if not referencing itself
-                if (childNodeId !== nodeId && usedNodes[nodeId] === undefined) {
-                  // add the nodes to the list by the join condition.
-                  if (options.joinCondition === undefined) {
+                // add the nodes to the list by the join condition.
+                if (options.joinCondition === undefined) {
+                  childEdgesObj[edge.id] = edge;
+                  childNodesObj[nodeId] = this.body.nodes[nodeId];
+                  childNodesObj[childNodeId] = this.body.nodes[childNodeId];
+                  usedNodes[nodeId] = true;
+                } else {
+                  var clonedOptions = this._cloneOptions(this.body.nodes[nodeId]);
+                  if (options.joinCondition(clonedOptions) === true) {
                     childEdgesObj[edge.id] = edge;
                     childNodesObj[nodeId] = this.body.nodes[nodeId];
-                    childNodesObj[childNodeId] = this.body.nodes[childNodeId];
                     usedNodes[nodeId] = true;
                   } else {
-                    var clonedOptions = this._cloneOptions(this.body.nodes[nodeId]);
-                    if (options.joinCondition(clonedOptions) === true) {
-                      childEdgesObj[edge.id] = edge;
-                      childNodesObj[nodeId] = this.body.nodes[nodeId];
-                      usedNodes[nodeId] = true;
-                    } else {
-                      // this node does not qualify after all.
-                      gatheringSuccessful = false;
-                      break;
-                    }
+                    // this node does not qualify after all.
+                    gatheringSuccessful = false;
+                    break;
                   }
-                } else {
-                  // this node does not qualify after all.
-                  gatheringSuccessful = false;
-                  break;
                 }
               }
 
@@ -35279,7 +35386,7 @@ return /******/ (function(modules) { // webpackBootstrap
       * @param options
       * @private
       */
-      value: function _createClusterEdges(childNodesObj, clusterNodeProperties, clusterEdgeProperties) {
+      value: function _createClusterEdges(childNodesObj, childEdgesObj, clusterNodeProperties, clusterEdgeProperties) {
         var edge = undefined,
             childNodeId = undefined,
             childNode = undefined,
@@ -35300,16 +35407,21 @@ return /******/ (function(modules) { // webpackBootstrap
             edge = childNode.edges[j];
             // we only handle edges that are visible to the system, not the disabled ones from the clustering process.
             if (edge.hiddenByCluster !== true) {
-              // set up the from and to.
-              if (edge.toId == childNodeId) {
-                // this is a double equals because ints and strings can be interchanged here.
-                toId = clusterNodeProperties.id;
-                fromId = edge.fromId;
-                otherNodeId = fromId;
+              // self-referencing edges will be added to the "hidden" list
+              if (edge.toId == edge.fromId) {
+                childEdgesObj[edge.id] = edge;
               } else {
-                toId = edge.toId;
-                fromId = clusterNodeProperties.id;
-                otherNodeId = toId;
+                // set up the from and to.
+                if (edge.toId == childNodeId) {
+                  // this is a double equals because ints and strings can be interchanged here.
+                  toId = clusterNodeProperties.id;
+                  fromId = edge.fromId;
+                  otherNodeId = fromId;
+                } else {
+                  toId = edge.toId;
+                  fromId = clusterNodeProperties.id;
+                  otherNodeId = toId;
+                }
               }
 
               // Only edges from the cluster outwards are being replaced.
@@ -35466,8 +35578,8 @@ return /******/ (function(modules) { // webpackBootstrap
         // finally put the cluster node into global
         this.body.nodes[clusterNodeProperties.id] = clusterNode;
 
-        // create the new edges that will connect to the cluster
-        this._createClusterEdges(childNodesObj, clusterNodeProperties, options.clusterEdgeProperties);
+        // create the new edges that will connect to the cluster, all self-referencing edges will be added to childEdgesObject here.
+        this._createClusterEdges(childNodesObj, childEdgesObj, clusterNodeProperties, options.clusterEdgeProperties);
 
         // disable the childEdges
         for (var edgeId in childEdgesObj) {
@@ -35678,6 +35790,8 @@ return /******/ (function(modules) { // webpackBootstrap
           if (containedEdges.hasOwnProperty(edgeId)) {
             var edge = containedEdges[edgeId];
             edge.setOptions({ physics: true, hidden: false });
+            edge.hiddenByCluster = undefined;
+            delete edge.hiddenByCluster;
           }
         }
 
@@ -36347,6 +36461,7 @@ return /******/ (function(modules) { // webpackBootstrap
         var pixelRatio = arguments.length <= 0 || arguments[0] === undefined ? this.pixelRatio : arguments[0];
 
         this.cameraState.previousWidth = this.frame.canvas.width / pixelRatio;
+        this.cameraState.previousHeight = this.frame.canvas.height / pixelRatio;
         this.cameraState.scale = this.body.view.scale;
         this.cameraState.position = this.DOMtoCanvas({ x: 0.5 * this.frame.canvas.width / pixelRatio, y: 0.5 * this.frame.canvas.height / pixelRatio });
       }
@@ -36360,7 +36475,7 @@ return /******/ (function(modules) { // webpackBootstrap
       value: function _setCameraState() {
         if (this.cameraState.scale !== undefined && this.frame.canvas.clientWidth !== 0 && this.frame.canvas.clientHeight !== 0 && this.pixelRatio !== 0 && this.cameraState.previousWidth > 0) {
 
-          this.body.view.scale = this.cameraState.scale * (this.frame.canvas.width / this.pixelRatio / this.cameraState.previousWidth);
+          this.body.view.scale = this.cameraState.scale * Math.min(this.frame.canvas.width / this.pixelRatio / this.cameraState.previousWidth, this.frame.canvas.height / this.pixelRatio / this.cameraState.previousHeight);
 
           // this comes from the view module.
           var currentViewCenter = this.DOMtoCanvas({
@@ -39301,28 +39416,31 @@ return /******/ (function(modules) { // webpackBootstrap
 
           // if less than half of the nodes have a predefined position we continue
           if (positionDefined < 0.5 * this.body.nodeIndices.length) {
-            var MAX_LEVELS = 200;
-            var levels = 0;
+            var MAX_LEVELS = 10;
+            var level = 0;
             var clusterThreshold = 100;
             // if there are a lot of nodes, we cluster before we run the algorithm.
             if (this.body.nodeIndices.length > clusterThreshold) {
               var startLength = this.body.nodeIndices.length;
               while (this.body.nodeIndices.length > clusterThreshold) {
-                levels += 1;
+                //console.time("clustering")
+                level += 1;
                 var before = this.body.nodeIndices.length;
                 // if there are many nodes we do a hubsize cluster
-                if (levels % 3 === 0) {
+                if (level % 3 === 0) {
                   this.body.modules.clustering.clusterBridges();
                 } else {
                   this.body.modules.clustering.clusterOutliers();
                 }
                 var after = this.body.nodeIndices.length;
-                if (before == after && levels % 3 !== 0 || levels > MAX_LEVELS) {
+                if (before == after && level % 3 !== 0 || level > MAX_LEVELS) {
                   this._declusterAll();
                   this.body.emitter.emit('_layoutFailed');
-                  console.info('This network could not be positioned by this version of the improved layout algorithm.');
+                  console.info('This network could not be positioned by this version of the improved layout algorithm. Please disable improvedLayout for better performance.');
                   return;
                 }
+                //console.timeEnd("clustering")
+                //console.log(level,after)
               }
               // increase the size of the edges
               this.body.modules.kamadaKawai.setOptions({ springLength: Math.max(150, 2 * startLength) });
@@ -39335,9 +39453,10 @@ return /******/ (function(modules) { // webpackBootstrap
             this._shiftToCenter();
 
             // perturb the nodes a little bit to force the physics to kick in
+            var offset = 70;
             for (var i = 0; i < this.body.nodeIndices.length; i++) {
-              this.body.nodes[this.body.nodeIndices[i]].x += (0.5 - this.seededRandom()) * 50;
-              this.body.nodes[this.body.nodeIndices[i]].y += (0.5 - this.seededRandom()) * 50;
+              this.body.nodes[this.body.nodeIndices[i]].x += (0.5 - this.seededRandom()) * offset;
+              this.body.nodes[this.body.nodeIndices[i]].y += (0.5 - this.seededRandom()) * offset;
             }
 
             // uncluster all clusters
@@ -40678,6 +40797,11 @@ return /******/ (function(modules) { // webpackBootstrap
         var pointerObj = this.selectionHandler._pointerToPositionObject(pointer);
         var edge = this.body.edges[this.edgeBeingEditedId];
 
+        // if the node that was dragged is not a control node, return
+        if (this.selectedControlNode === undefined) {
+          return;
+        }
+
         var overlappingNodeIds = this.selectionHandler._getAllNodesOverlappingWith(pointerObj);
         var node = undefined;
         for (var i = overlappingNodeIds.length - 1; i >= 0; i--) {
@@ -41151,6 +41275,7 @@ return /******/ (function(modules) { // webpackBootstrap
         borderDashes: { boolean: boolean, array: array },
         borderRadius: { number: number },
         useImageSize: { boolean: boolean },
+        useBorderWithImage: { boolean: boolean },
         __type__: { object: object }
       },
       size: { number: number },
@@ -41758,8 +41883,11 @@ return /******/ (function(modules) { // webpackBootstrap
         // put the weights for the edges in. This assumes unidirectionality.
         for (var i = 0; i < edgesArray.length; i++) {
           var edge = edges[edgesArray[i]];
-          D_matrix[edge.fromId][edge.toId] = 1;
-          D_matrix[edge.toId][edge.fromId] = 1;
+          if (edge.connected === true) {
+            // edge has to be connected if it counts to the distances.
+            D_matrix[edge.fromId][edge.toId] = 1;
+            D_matrix[edge.toId][edge.fromId] = 1;
+          }
         }
 
         var nodeCount = nodesArray.length;

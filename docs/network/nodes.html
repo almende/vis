@@ -177,8 +177,10 @@ var options = {
     },
     shape: 'ellipse',
     shapeProperties: {
-      borderDashes: false, // only for shapes with a border
-      borderRadius: 6 // only for box shape
+      borderDashes: false, // only for borders
+      borderRadius: 6,     // only for box shape
+      useImageSize: false,  // only for image and circularImage shapes
+      useBorderWithImage: false  // only for image shape
     }
     size: 25,
     title: undefined,
@@ -642,6 +644,15 @@ mySize = minSize + diff * scale;
             <td><code>false</code></td>
             <td>This property only applies to the <code>image</code> and <code>circularImage</code> shapes. When false, the size option is used, when true, the size of the image is used. <br><i><b>Important</b>:
                 if this is set to true, the image cannot be scaled with the value option!</i>
+            </td>
+        </tr>
+        <tr parent="shapeProperties" class="hidden">
+            <td class="indent">shapeProperties.useBorderWithImage</td>
+            <td>Boolean</td>
+            <td><code>false</code></td>
+            <td>This property only applies to the <code>image</code> shape.
+                When true, the color object is used. A rectangle with the background color is
+                drawn behind it and it has a border. This means all border options are taken into account.
             </td>
         </tr>
         <tr>
