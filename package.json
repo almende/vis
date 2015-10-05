@@ -34,7 +34,8 @@
     "keycharm": "^0.2.0",
     "moment": "^2.10.2",
     "propagating-hammerjs": "^1.4.3",
-    "uuid": "^2.0.1"
+    "uuid": "^2.0.1",
+    "worker-loader": "^0.6.0"
   },
   "devDependencies": {
     "babel": "^5.1.11",
