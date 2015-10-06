@@ -4,7 +4,9 @@ http://visjs.org
 
 ## not yet released, version 4.9.1-SNAPSHOT
 
+### Network
 
+- Fixed #1343: Connected edges are now deselected too when deselecting a node.
 
 
 

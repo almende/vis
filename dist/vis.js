@@ -4,8 +4,8 @@
  *
  * A dynamic, browser-based visualization library.
  *
- * @version 4.9.0
- * @date    2015-10-01
+ * @version 4.9.1-SNAPSHOT
+ * @date    2015-10-06
  *
  * @license
  * Copyright (C) 2011-2015 Almende B.V, http://almende.com
@@ -38771,6 +38771,7 @@ return /******/ (function(modules) { // webpackBootstrap
       value: function _removeFromSelection(obj) {
         if (obj instanceof Node) {
           delete this.selectionObj.nodes[obj.id];
+          this._unselectConnectedEdges(obj);
         } else {
           delete this.selectionObj.edges[obj.id];
         }
