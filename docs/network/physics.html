@@ -210,7 +210,8 @@ network.setOptions(options);
               path resolution.  If the worker fails for any reason, the system will fall back to standard
               physics calculations.
            WorkInProgress: This has only been tested with default physics selections and does not attempt to optimize
-              stabilization.
+              stabilization.  Has not been optimized for small changes to underlying dataset, so each change will
+              cause all data to be recopied to the worker thread.
            </td></tr>
     </table>
 
