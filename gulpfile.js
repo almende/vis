@@ -52,9 +52,15 @@ var webpackConfig = {
     wrappedContextRegExp: /$^/
   },
   plugins: [ bannerPlugin ],
-  cache: true
+  cache: true,
   //debug: true,
   //bail: true
+  worker: {
+    path: DIST,
+    output: {
+      filename: "vis.physics.worker.js"
+    }
+  }
 };
 
 var uglifyConfig = {
