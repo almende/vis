@@ -8,7 +8,9 @@ http://visjs.org
 
 - Fixed #1343: Connected edges are now deselected too when deselecting a node.
 
+### Timeline
 
+- Implemented option `multiselectPerGroup`. Thanks @hansmaulwurf23.
 
 
 ## 2015-01-01, version 4.9.0
