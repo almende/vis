@@ -29,6 +29,7 @@
     "watch-dev": "gulp watch --bundle"
   },
   "dependencies": {
+    "babelify": "^6.0.2",
     "emitter-component": "^1.1.1",
     "hammerjs": "^2.0.4",
     "keycharm": "^0.2.0",
@@ -39,7 +40,6 @@
   "devDependencies": {
     "babel": "^5.1.11",
     "babel-loader": "^5.0.0",
-    "babelify": "^6.0.2",
     "clean-css": "^3.2.1",
     "gulp": "^3.8.11",
     "gulp-concat": "^2.5.2",
