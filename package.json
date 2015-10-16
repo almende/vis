@@ -28,15 +28,14 @@
     "watch": "gulp watch",
     "watch-dev": "gulp watch --bundle"
   },
-  "dependencies": {
+  "dependencies": {},
+  "devDependencies": {
     "emitter-component": "^1.1.1",
     "hammerjs": "^2.0.4",
     "keycharm": "^0.2.0",
     "moment": "^2.10.2",
     "propagating-hammerjs": "^1.4.3",
-    "uuid": "^2.0.1"
-  },
-  "devDependencies": {
+    "uuid": "^2.0.1",
     "babel": "^5.1.11",
     "babel-loader": "^5.0.0",
     "babelify": "^6.0.2",
@@ -52,10 +51,5 @@
     "uglify-js": "^2.4.20",
     "webpack": "^1.8.5",
     "yargs": "^3.7.2"
-  },
-  "browserify": {
-    "transform": [
-      "babelify"
-    ]
   }
 }

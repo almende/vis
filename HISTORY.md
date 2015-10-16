@@ -4,6 +4,11 @@ http://visjs.org
 
 ## not yet released, version 4.9.1-SNAPSHOT
 
+### General
+
+- Fixed #1353: Custom bundling with browserify requiring manual installation
+  of `babelify`.  
+
 ### Network
 
 - Fixed #1343: Connected edges are now deselected too when deselecting a node.
