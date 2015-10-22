@@ -17,6 +17,10 @@ http://visjs.org
 
 - Implemented option `multiselectPerGroup`. Thanks @hansmaulwurf23.
 
+### Graph2d
+
+- Fixed #1385: Draw lines on top of bars.
+
 
 ## 2015-01-01, version 4.9.0
 
