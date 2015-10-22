@@ -21,6 +21,10 @@ http://visjs.org
 
 - Fixed #1385: Draw lines on top of bars.
 
+### DataSet/DataView
+
+- Performance improvements (see #1381). Thanks @phimimms.
+
 
 ## 2015-01-01, version 4.9.0
 
