@@ -12,6 +12,7 @@ http://visjs.org
 ### Network
 
 - Fixed #1343: Connected edges are now deselected too when deselecting a node.
+- Fixed #1398: Support nodes start with the correct positions.
 
 ### Timeline
 
