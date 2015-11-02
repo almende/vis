@@ -28672,6 +28672,8 @@ return /******/ (function(modules) { // webpackBootstrap
           this.options.size = this.baseSize;
           this.options.font.size = this.baseFontSize;
         }
+
+        this.updateLabelModule();
       }
 
       /**
@@ -31410,6 +31412,7 @@ return /******/ (function(modules) { // webpackBootstrap
         }
 
         this._setInteractionWidths();
+        this.updateLabelModule();
       }
     }, {
       key: '_setInteractionWidths',

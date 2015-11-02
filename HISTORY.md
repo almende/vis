@@ -13,6 +13,7 @@ http://visjs.org
 
 - Fixed #1343: Connected edges are now deselected too when deselecting a node.
 - Fixed #1398: Support nodes start with the correct positions.
+- Fixed #1324: Labels now scale again.
 
 ### Timeline
 
