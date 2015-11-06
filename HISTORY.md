@@ -12,10 +12,21 @@ http://visjs.org
 ### Network
 
 - Fixed #1343: Connected edges are now deselected too when deselecting a node.
+- Fixed #1398: Support nodes start with the correct positions.
+- Fixed #1324: Labels now scale again.
 
 ### Timeline
 
 - Implemented option `multiselectPerGroup`. Thanks @hansmaulwurf23.
+- Expose `vis.timeline.Core` for customization purposes.
+
+### Graph2d
+
+- Fixed #1385: Draw lines on top of bars.
+
+### DataSet/DataView
+
+- Performance improvements (see #1381). Thanks @phimimms.
 
 
 ## 2015-01-01, version 4.9.0
