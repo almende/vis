@@ -16,6 +16,7 @@ http://visjs.org
 ### Timeline
 
 - Implemented option `multiselectPerGroup`. Thanks @hansmaulwurf23.
+- Expose `vis.timeline.Core` for customization purposes.
 
 ### Graph2d
 
