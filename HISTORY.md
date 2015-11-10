@@ -17,6 +17,7 @@ http://visjs.org
 
 ### Timeline
 
+- Implemented option `itemsAlwaysDraggable`, See #1395. Thanks @liuqingc.
 - Implemented option `multiselectPerGroup`. Thanks @hansmaulwurf23.
 - Expose `vis.timeline.Core` for customization purposes.
 
