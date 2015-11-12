@@ -19,6 +19,9 @@ http://visjs.org
 
 - Implemented option `itemsAlwaysDraggable`, See #1395. Thanks @liuqingc.
 - Implemented option `multiselectPerGroup`. Thanks @hansmaulwurf23.
+- Implemented property `oldData` on change events of the DataSet, and
+  deprecated the `data` property which wrongly contained new data instead of
+  old data. Thanks @hansmaulwurf23.
 - Expose `vis.timeline.Core` for customization purposes.
 
 ### Graph2d

@@ -598,9 +598,10 @@ function (event, properties, senderId) {
         <code>update</code>, and <code>remove</code>,
         <code>properties</code> is always an object containing a property
         <code>items</code>, which contains an array with the ids of the affected
-        items. The <code>update</code> event has an extra field <code>data</code>
-        containing the original data of the updated items, i.e. the gives the
-        changed fields of the changed items.
+        items. The <code>update</code> event has an extra field <code>oldData</code>
+        containing the original data of the updated items, which allows to
+        determine the changed fields of the changed items when comparing to
+        the new item properties.
       </td>
     </tr>
     <tr>
