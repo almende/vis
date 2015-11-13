@@ -11,6 +11,8 @@ http://visjs.org
 
 ### Network
 
+- Implemented new method `setSelection({nodes:[...], edges: [...]})`.
+  Thanks @zefrog.
 - Fixed #1343: Connected edges are now deselected too when deselecting a node.
 - Fixed #1398: Support nodes start with the correct positions.
 - Fixed #1324: Labels now scale again.
