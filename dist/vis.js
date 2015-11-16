@@ -27312,7 +27312,6 @@ return /******/ (function(modules) { // webpackBootstrap
     this.body.emitter.on("_dataChanged", function () {
       // update shortcut lists
       _this3._updateVisibleIndices();
-      _this3.physics.updatePhysicsData();
       _this3.body.emitter.emit("_requestRedraw");
       // call the dataUpdated event because the only difference between the two is the updating of the indices
       _this3.body.emitter.emit("_dataUpdated");
@@ -33394,6 +33393,11 @@ return /******/ (function(modules) { // webpackBootstrap
           _this.stopSimulation(false);
           _this.body.emitter.off();
         });
+        // this event will trigger a rebuilding of the cache everything. Used when nodes or edges have been added or removed.
+        this.body.emitter.on("_dataChanged", function () {
+          // update shortcut lists
+          _this.updatePhysicsData();
+        });
       }
 
       /**
@@ -33886,7 +33890,6 @@ return /******/ (function(modules) { // webpackBootstrap
 
       /**
        * Find a stable position for all nodes
-       * @private
        */
     }, {
       key: 'stabilize',
@@ -35887,7 +35890,6 @@ return /******/ (function(modules) { // webpackBootstrap
       * Get the stack clusterId's that a certain node resides in. cluster A -> cluster B -> cluster C -> node
       * @param nodeId
       * @returns {Array}
-      * @private
       */
     }, {
       key: 'findNode',
@@ -38711,7 +38713,6 @@ return /******/ (function(modules) { // webpackBootstrap
        *
        * @param {{x: Number, y: Number}} pointer
        * @return {Node | undefined} node
-       * @private
        */
     }, {
       key: "getNodeAt",
@@ -38772,7 +38773,6 @@ return /******/ (function(modules) { // webpackBootstrap
        *
        * @param pointer
        * @returns {undefined}
-       * @private
        */
     }, {
       key: "getEdgeAt",
@@ -38844,8 +38844,6 @@ return /******/ (function(modules) { // webpackBootstrap
 
       /**
        * Unselect all. The selectionObj is useful for this.
-       *
-       * @private
        */
     }, {
       key: "unselectAll",
@@ -40167,8 +40165,6 @@ return /******/ (function(modules) { // webpackBootstrap
 
       /**
        * Create the toolbar for adding Nodes
-       *
-       * @private
        */
     }, {
       key: 'addNodeMode',
@@ -40198,8 +40194,6 @@ return /******/ (function(modules) { // webpackBootstrap
 
       /**
        * call the bound function to handle the editing of the node. The node has to be selected.
-       *
-       * @private
        */
     }, {
       key: 'editNode',
@@ -40246,8 +40240,6 @@ return /******/ (function(modules) { // webpackBootstrap
 
       /**
        * create the toolbar to connect nodes
-       *
-       * @private
        */
     }, {
       key: 'addEdgeMode',
@@ -40284,8 +40276,6 @@ return /******/ (function(modules) { // webpackBootstrap
 
       /**
        * create the toolbar to edit edges
-       *
-       * @private
        */
     }, {
       key: 'editEdgeMode',
@@ -40361,8 +40351,6 @@ return /******/ (function(modules) { // webpackBootstrap
 
       /**
        * delete everything in the selection
-       *
-       * @private
        */
     }, {
       key: 'deleteSelected',

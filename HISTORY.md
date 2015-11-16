@@ -19,6 +19,7 @@ http://visjs.org
 - Fixed #1362: Layout of hierarchicaly systems no longer overlaps NODES.
 - Fixed #1414: Fixed color references for nodes and edges.
 - Fixed #1408: Unclustering without release function respects fixed positions now.
+- Fixed #1358: Fixed example for clustering on zoom.
 
 ### Timeline
 
