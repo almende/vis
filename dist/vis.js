@@ -35765,8 +35765,12 @@ return /******/ (function(modules) { // webpackBootstrap
               var containedNode = this.body.nodes[nodeId];
               containedNode = containedNodes[nodeId];
               // inherit position
-              containedNode.x = clusterNode.x;
-              containedNode.y = clusterNode.y;
+              if (containedNode.options.fixed.x === false) {
+                containedNode.x = clusterNode.x;
+              }
+              if (containedNode.options.fixed.y === false) {
+                containedNode.y = clusterNode.y;
+              }
             }
           }
         }

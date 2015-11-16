@@ -18,6 +18,7 @@ http://visjs.org
 - Fixed #1324: Labels now scale again.
 - Fixed #1362: Layout of hierarchicaly systems no longer overlaps NODES.
 - Fixed #1414: Fixed color references for nodes and edges.
+- Fixed #1408: Unclustering without release function respects fixed positions now.
 
 ### Timeline
 
