@@ -28756,6 +28756,8 @@ return /******/ (function(modules) { // webpackBootstrap
 
         // individual shape newOptions
         if (newOptions.color !== undefined && newOptions.color !== null) {
+          // make a copy of the parent object in case this is referring to the global one (due to object create once, then update)
+          parentOptions.color = util.deepExtend({}, parentOptions.color, true);
           var parsedColor = util.parseColor(newOptions.color);
           util.fillIfDefined(parentOptions.color, parsedColor);
         } else if (allowDeletion === true && newOptions.color === null) {
@@ -31653,6 +31655,8 @@ return /******/ (function(modules) { // webpackBootstrap
 
         // hanlde multiple input cases for color
         if (newOptions.color !== undefined && newOptions.color !== null) {
+          // make a copy of the parent object in case this is referring to the global one (due to object create once, then update)
+          parentOptions.color = util.deepExtend({}, parentOptions.color, true);
           if (util.isString(newOptions.color)) {
             parentOptions.color.color = newOptions.color;
             parentOptions.color.highlight = newOptions.color;

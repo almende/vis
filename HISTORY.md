@@ -17,6 +17,7 @@ http://visjs.org
 - Fixed #1398: Support nodes start with the correct positions.
 - Fixed #1324: Labels now scale again.
 - Fixed #1362: Layout of hierarchicaly systems no longer overlaps NODES.
+- Fixed #1414: Fixed color references for nodes and edges.
 
 ### Timeline
 

@@ -17,59 +17,27 @@
 <div id="mynetwork"></div>
 <script>
     function draw() {
-        nodes = [];
-        edges = [];
+        // create an array with nodes
+        nodes = new vis.DataSet([
+            {id: 1, label: 'N1', color:"#FF0000"},
+            {id: 2, label: 'N2'}
+        ]);
 
-        // create a network
+        edges = new vis.DataSet([
+            {id: '1%2', from: 1, to: 2},
+            {id: '2%1',from: 2, to: 1}
+        ]);
+
         var container = document.getElementById('mynetwork');
         var data = {
             nodes: nodes,
             edges: edges
         };
-
-
-        nodes.push({id: 0, label: 'Root'});
-        nodes.push({id: 1, label: 'Child 1'});
-        nodes.push({id: 2, label: 'Child 2'});
-        nodes.push({id: 3, label: 'Child 3'});
-        nodes.push({id: 4, label: 'Child 2.1'});
-        nodes.push({id: 5, label: 'Child 2.1.1'});
-        nodes.push({id: 6, label: 'Child 2.1.2'});
-        nodes.push({id: 7, label: 'Child 2.1.1.1'});
-
-        edges.push({from: 0, to: 1});
-        edges.push({from: 0, to: 2});
-        edges.push({from: 0, to: 3});
-        edges.push({from: 2, to: 4});
-        edges.push({from: 4, to: 5});
-        edges.push({from: 4, to: 6});
-        edges.push({from: 5, to: 7});
-
-        nodes[7].level = 0;
-        nodes[6].level = 1;
-        nodes[5].level = 1;
-        nodes[4].level = 2;
-        nodes[3].level = 3;
-        nodes[2].level = 3;
-        nodes[1].level = 3;
-        nodes[0].level = 4;
-
-        var options = {
-            edges: {
-                smooth: {
-                    type: 'cubicBezier',
-                    forceDirection: 'horizontal',
-                    roundness: 0.4
-                }
-            },
-            layout: {
-                hierarchical: {
-                    direction: 'LR'
-                }
-            }
-        };
-
+        var options = {edges:{arrows:'to'}};
         network = new vis.Network(container, data, options);
+
+        nodes.update({id: '1', color: null});
+        nodes.update({id: '1', color: "#FF00FF"});
     }
 
     var network, nodes, edges;
