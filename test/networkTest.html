@@ -12,82 +12,67 @@
         }
     </style>
 </head>
-<body onload="draw();">
+<body onload="draw()">
 <script src="https://rawgit.com/Tooa/6e17f2d7b8e34ef94719/raw/a10096a6b88c992c57d032b1ed3079d7cc4b1f51/data.js"></script>
 <div id="mynetwork"></div>
 <script>
+    function draw() {
+        nodes = [];
+        edges = [];
 
-    for (var i = 0; i < nodes.length; i++) {
-        nodes[i].mass = Math.ceil(2000* nodes[i].value);
-    }
-
-    var nodesDataset = new vis.DataSet(nodes);
-    var edgesDataset = new vis.DataSet(edges);
-
-    function redrawAll() {
+        // create a network
         var container = document.getElementById('mynetwork');
-        var options = {
-            nodes: {
-                borderWidth:4,
-                color: {
-                    border: '#406897',
-                    background: '#6AAFFF'
-                },
-                scaling: {
-                    min: 10,
-                    max: 200,
-                    label: {
-                        min: 50,
-                        max: 100,
-                        drawThreshold: 10,
-                        maxVisible: 60
-                    }
-                },
-                font: {
-                    size: 20,
-                    color:'#000000'
-                },
-                shapeProperties: {
-                    useBorderWithImage: true
-                },
-            },
-            edges: {
-                scaling: {
-                    min: 2,
-                    max: 50
-                },
-                color: { inherit: 'from' },
-                smooth: {
-                    type: 'continuous'
-                }
-            },
-            physics: {
-                    "barnesHut": {
-                        "gravitationalConstant": -19050,
-                        "centralGravity": 1.3,
-                        "springLength": 170,
-                        "springConstant": 0.035,
-                        "damping": 0.23
-                    },
-                    "minVelocity": 0.75,
-                stabilization: {
-                    enabled: false,
-                    iterations: 2000,
-                    updateInterval: 25
-                }
-            },
-            configure:'physics',
-            interaction: {
-                tooltipDelay: 200,
-                hideEdgesOnDrag: true
-            },
-            layout:{improvedLayout:false}
+        var data = {
+            nodes: nodes,
+            edges: edges
         };
 
-        network = new vis.Network(container, {nodes: nodesDataset, edges: edgesDataset}, options);
 
+        nodes.push({id: 0, label: 'Root'});
+        nodes.push({id: 1, label: 'Child 1'});
+        nodes.push({id: 2, label: 'Child 2'});
+        nodes.push({id: 3, label: 'Child 3'});
+        nodes.push({id: 4, label: 'Child 2.1'});
+        nodes.push({id: 5, label: 'Child 2.1.1'});
+        nodes.push({id: 6, label: 'Child 2.1.2'});
+        nodes.push({id: 7, label: 'Child 2.1.1.1'});
+
+        edges.push({from: 0, to: 1});
+        edges.push({from: 0, to: 2});
+        edges.push({from: 0, to: 3});
+        edges.push({from: 2, to: 4});
+        edges.push({from: 4, to: 5});
+        edges.push({from: 4, to: 6});
+        edges.push({from: 5, to: 7});
+
+        nodes[7].level = 0;
+        nodes[6].level = 1;
+        nodes[5].level = 1;
+        nodes[4].level = 2;
+        nodes[3].level = 3;
+        nodes[2].level = 3;
+        nodes[1].level = 3;
+        nodes[0].level = 4;
+
+        var options = {
+            edges: {
+                smooth: {
+                    type: 'cubicBezier',
+                    forceDirection: 'horizontal',
+                    roundness: 0.4
+                }
+            },
+            layout: {
+                hierarchical: {
+                    direction: 'LR'
+                }
+            }
+        };
+
+        network = new vis.Network(container, data, options);
     }
-    redrawAll();
+
+    var network, nodes, edges;
 
 
 </script>

@@ -5,7 +5,7 @@
  * A dynamic, browser-based visualization library.
  *
  * @version 4.9.1-SNAPSHOT
- * @date    2015-11-02
+ * @date    2015-11-16
  *
  * @license
  * Copyright (C) 2011-2015 Almende B.V, http://almende.com
@@ -107,8 +107,9 @@ return /******/ (function(modules) { // webpackBootstrap
   exports.Timeline = __webpack_require__(19);
   exports.Graph2d = __webpack_require__(49);
   exports.timeline = {
-    DateUtil: __webpack_require__(27),
+    Core: __webpack_require__(28),
     DataStep: __webpack_require__(52),
+    DateUtil: __webpack_require__(27),
     Range: __webpack_require__(24),
     stack: __webpack_require__(32),
     TimeStep: __webpack_require__(30),
@@ -122,13 +123,13 @@ return /******/ (function(modules) { // webpackBootstrap
         RangeItem: __webpack_require__(33)
       },
 
+      BackgroundGroup: __webpack_require__(35),
       Component: __webpack_require__(26),
       CurrentTime: __webpack_require__(44),
       CustomTime: __webpack_require__(42),
       DataAxis: __webpack_require__(51),
       GraphGroup: __webpack_require__(53),
       Group: __webpack_require__(31),
-      BackgroundGroup: __webpack_require__(35),
       ItemSet: __webpack_require__(29),
       Legend: __webpack_require__(57),
       LineGraph: __webpack_require__(50),
@@ -5451,10 +5452,11 @@ return /******/ (function(modules) { // webpackBootstrap
     var addOrUpdate = function addOrUpdate(item) {
       var id = item[fieldId];
       if (me._data[id]) {
+        var oldData = util.extend({}, me._data[id]);
         // update item
         id = me._updateItem(item);
         updatedIds.push(id);
-        updatedData.push(item);
+        updatedData.push(oldData);
       } else {
         // add new item
         id = me._addItem(item);
@@ -5478,7 +5480,15 @@ return /******/ (function(modules) { // webpackBootstrap
       this._trigger('add', { items: addedIds }, senderId);
     }
     if (updatedIds.length) {
-      this._trigger('update', { items: updatedIds, data: updatedData }, senderId);
+      var props = { items: updatedIds, oldData: updatedData };
+      // TODO: remove deprecated property 'data' some day
+      Object.defineProperty(props, 'data', {
+        'get': (function () {
+          console.warn('Property data is deprecated. Use DataSet.get(ids) to retrieve the new data, use the oldData property on this object to get the old data');
+          return this.get(updatedIds);
+        }).bind(this)
+      });
+      this._trigger('update', props, senderId);
     }
 
     return addedIds.concat(updatedIds);
@@ -5712,7 +5722,7 @@ return /******/ (function(modules) { // webpackBootstrap
     var filter = options && options.filter,
         type = options && options.type || this._options.type,
         data = this._data,
-        itemIds = Object.key(data),
+        itemIds = Object.keys(data),
         i,
         len,
         item,
@@ -15658,6 +15668,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
       selectable: true,
       multiselect: false,
+      itemsAlwaysDraggable: false,
 
       editable: {
         updateTime: false,
@@ -15922,7 +15933,7 @@ return /******/ (function(modules) { // webpackBootstrap
   ItemSet.prototype.setOptions = function (options) {
     if (options) {
       // copy all options that we know
-      var fields = ['type', 'align', 'order', 'stack', 'selectable', 'multiselect', 'multiselectPerGroup', 'groupOrder', 'dataAttributes', 'template', 'groupTemplate', 'hide', 'snap', 'groupOrderSwap'];
+      var fields = ['type', 'align', 'order', 'stack', 'selectable', 'multiselect', 'itemsAlwaysDraggable', 'multiselectPerGroup', 'groupOrder', 'dataAttributes', 'template', 'groupTemplate', 'hide', 'snap', 'groupOrderSwap'];
       util.selectiveExtend(fields, this.options, options);
 
       if ('orientation' in options) {
@@ -16766,7 +16777,7 @@ return /******/ (function(modules) { // webpackBootstrap
     var me = this;
     var props;
 
-    if (item && item.selected) {
+    if (item && (item.selected || this.options.itemsAlwaysDraggable)) {
 
       if (!this.options.editable.updateTime && !this.options.editable.updateGroup && !item.editable) {
         return;
@@ -16803,7 +16814,9 @@ return /******/ (function(modules) { // webpackBootstrap
 
         var baseGroupIndex = this._getGroupIndex(item.data.group);
 
-        this.touchParams.itemProps = this.getSelection().map((function (id) {
+        var itemsToDrag = this.options.itemsAlwaysDraggable && !item.selected ? [item.id] : this.getSelection();
+
+        this.touchParams.itemProps = itemsToDrag.map((function (id) {
           var item = me.items[id];
           var groupIndex = me._getGroupIndex(item.data.group);
           return {
@@ -21479,7 +21492,7 @@ return /******/ (function(modules) { // webpackBootstrap
       var locale = this.options.locales[this.options.locale];
       if (!locale) {
         if (!this.warned) {
-          console.log('WARNING: options.locales[\'' + this.options.locale + '\'] not found. See http://visjs.org/docs/timeline.html#Localization');
+          console.log('WARNING: options.locales[\'' + this.options.locale + '\'] not found. See http://visjs.org/docs/timeline/#Localization');
           this.warned = true;
         }
         locale = this.options.locales['en']; // fall back on english when not available
@@ -23342,6 +23355,7 @@ return /******/ (function(modules) { // webpackBootstrap
       repeat: { string: string },
       __type__: { object: object, array: array }
     },
+    itemsAlwaysDraggable: { boolean: boolean },
     locale: { string: string },
     locales: {
       __any__: { any: any },
@@ -39159,6 +39173,51 @@ return /******/ (function(modules) { // webpackBootstrap
       }
 
       /**
+       * Updates the current selection
+       * @param {{nodes: Array.<String>, edges: Array.<String>}} Selection
+       * @param {Object} options                                 Options
+       */
+    }, {
+      key: "setSelection",
+      value: function setSelection(selection) {
+        var options = arguments.length <= 1 || arguments[1] === undefined ? {} : arguments[1];
+
+        var i = undefined,
+            id = undefined;
+
+        if (!selection || !selection.nodes && !selection.edges) throw 'Selection must be an object with nodes and/or edges properties';
+        // first unselect any selected node, if option is true or undefined
+        if (options.unselectAll || options.unselectAll === undefined) {
+          this.unselectAll();
+        }
+        if (selection.nodes) {
+          for (i = 0; i < selection.nodes.length; i++) {
+            id = selection.nodes[i];
+
+            var node = this.body.nodes[id];
+            if (!node) {
+              throw new RangeError('Node with id "' + id + '" not found');
+            }
+            // don't select edges with it
+            this.selectObject(node, options.highlightEdges);
+          }
+        }
+
+        if (selection.edges) {
+          for (i = 0; i < selection.edges.length; i++) {
+            id = selection.edges[i];
+
+            var edge = this.body.edges[id];
+            if (!edge) {
+              throw new RangeError('Edge with id "' + id + '" not found');
+            }
+            this.selectObject(edge);
+          }
+        }
+        this.body.emitter.emit('_requestRedraw');
+      }
+
+      /**
        * select zero or more nodes with the option to highlight edges
        * @param {Number[] | String[]} selection     An array with the ids of the
        *                                            selected nodes.
@@ -39169,24 +39228,9 @@ return /******/ (function(modules) { // webpackBootstrap
       value: function selectNodes(selection) {
         var highlightEdges = arguments.length <= 1 || arguments[1] === undefined ? true : arguments[1];
 
-        var i = undefined,
-            id = undefined;
-
         if (!selection || selection.length === undefined) throw 'Selection must be an array with ids';
 
-        // first unselect any selected node
-        this.unselectAll();
-
-        for (i = 0; i < selection.length; i++) {
-          id = selection[i];
-
-          var node = this.body.nodes[id];
-          if (!node) {
-            throw new RangeError('Node with id "' + id + '" not found');
-          }
-          this.selectObject(node, highlightEdges);
-        }
-        this.body.emitter.emit('_requestRedraw');
+        this.setSelection({ nodes: selection }, { highlightEdges: highlightEdges });
       }
 
       /**
@@ -39197,24 +39241,9 @@ return /******/ (function(modules) { // webpackBootstrap
     }, {
       key: "selectEdges",
       value: function selectEdges(selection) {
-        var i = undefined,
-            id = undefined;
-
         if (!selection || selection.length === undefined) throw 'Selection must be an array with ids';
 
-        // first unselect any selected objects
-        this.unselectAll();
-
-        for (i = 0; i < selection.length; i++) {
-          id = selection[i];
-
-          var edge = this.body.edges[id];
-          if (!edge) {
-            throw new RangeError('Edge with id "' + id + '" not found');
-          }
-          this.selectObject(edge);
-        }
-        this.body.emitter.emit('_requestRedraw');
+        this.setSelection({ edges: selection });
       }
 
       /**
@@ -39629,12 +39658,14 @@ return /******/ (function(modules) { // webpackBootstrap
                   if (node.x === undefined) {
                     node.x = distribution[level].distance;
                   }
-                  distribution[level].distance = node.x + this.nodeSpacing;
+                  // since the placeBranchNodes can make this process not exactly sequential, we have to avoid overlap by either spacing from the node, or simply adding distance.
+                  distribution[level].distance = Math.max(distribution[level].distance + this.nodeSpacing, node.x + this.nodeSpacing);
                 } else {
                   if (node.y === undefined) {
                     node.y = distribution[level].distance;
                   }
-                  distribution[level].distance = node.y + this.nodeSpacing;
+                  // since the placeBranchNodes can make this process not exactly sequential, we have to avoid overlap by either spacing from the node, or simply adding distance.
+                  distribution[level].distance = Math.max(distribution[level].distance + this.nodeSpacing, node.y + this.nodeSpacing);
                 }
 
                 this.positionedNodes[nodeId] = true;
