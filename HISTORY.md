@@ -20,6 +20,8 @@ http://visjs.org
 - Fixed #1414: Fixed color references for nodes and edges.
 - Fixed #1408: Unclustering without release function respects fixed positions now.
 - Fixed #1358: Fixed example for clustering on zoom.
+- Fixed #1416: Fixed error in improvedLayout.
+
 
 ### Timeline
 

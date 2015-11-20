@@ -5,7 +5,7 @@
  * A dynamic, browser-based visualization library.
  *
  * @version 4.9.1-SNAPSHOT
- * @date    2015-11-16
+ * @date    2015-11-20
  *
  * @license
  * Copyright (C) 2011-2015 Almende B.V, http://almende.com
@@ -41954,8 +41954,8 @@ return /******/ (function(modules) { // webpackBootstrap
         // put the weights for the edges in. This assumes unidirectionality.
         for (var i = 0; i < edgesArray.length; i++) {
           var edge = edges[edgesArray[i]];
-          if (edge.connected === true) {
-            // edge has to be connected if it counts to the distances.
+          // edge has to be connected if it counts to the distances. If it is connected to inner clusters it will crash so we also check if it is in the D_matrix
+          if (edge.connected === true && D_matrix[edge.fromId] !== undefined && D_matrix[edge.toId] !== undefined) {
             D_matrix[edge.fromId][edge.toId] = 1;
             D_matrix[edge.toId][edge.fromId] = 1;
           }
