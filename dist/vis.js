@@ -5,7 +5,7 @@
  * A dynamic, browser-based visualization library.
  *
  * @version 4.9.1-SNAPSHOT
- * @date    2015-11-20
+ * @date    2015-11-26
  *
  * @license
  * Copyright (C) 2011-2015 Almende B.V, http://almende.com
@@ -5043,6 +5043,16 @@ return /******/ (function(modules) { // webpackBootstrap
         }
       }
     }
+  };
+
+  /**
+   * Ensures that all elements are removed first up so they can be recreated cleanly
+   * @param JSONcontainer
+   */
+  exports.resetElements = function (JSONcontainer) {
+    exports.prepareElements(JSONcontainer);
+    exports.cleanupElements(JSONcontainer);
+    exports.prepareElements(JSONcontainer);
   };
 
   /**
@@ -26684,7 +26694,9 @@ return /******/ (function(modules) { // webpackBootstrap
         return a < b ? -1 : 1;
       });
 
-      DOMutil.prepareElements(this.svgElements);
+      // this resets the elements so the order is maintained
+      DOMutil.resetElements(this.svgElements);
+
       var padding = window.getComputedStyle(this.dom.frame).paddingTop;
       var iconOffset = Number(padding.replace('px', ''));
       var x = iconOffset;
@@ -26701,8 +26713,6 @@ return /******/ (function(modules) { // webpackBootstrap
           y += iconHeight + this.options.iconSpacing;
         }
       }
-
-      DOMutil.cleanupElements(this.svgElements);
     }
   };
 
