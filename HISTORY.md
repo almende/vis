@@ -35,7 +35,7 @@ http://visjs.org
 ### Graph2d
 
 - Fixed #1385: Draw lines on top of bars.
-- Fixed #1461: Reset order of SVG elements in legend icons.
+- Fixed #1461 and #1345: Reset order of SVG elements in legend icons.
 
 ### DataSet/DataView
 
