@@ -115,7 +115,7 @@
   <h2 id="Example">Example</h2>
   <p>
     The following code shows how to create a Timeline and provide it with data.
-    More examples can be found in the <a href="../examples">examples</a> directory.
+    More examples can be found in the <a href="../../timeline_examples.html">timeline examples</a> page.
   </p>
 
 <pre class="prettyprint lang-html">&lt;!DOCTYPE HTML&gt;
@@ -666,6 +666,14 @@ function (option, path) {
         and set repeat to weekly.
       </td>
     </tr>
+
+    <tr>
+      <td>itemsAlwaysDraggable</td>
+      <td>boolean</td>
+      <td><code>false</code></td>
+      <td>If true, all items in the Timeline are draggable without being selected. If false, only the selected item(s) are draggable.</td>
+    </tr>
+
     <tr>
       <td>locale</td>
       <td>String</td>
@@ -735,6 +743,16 @@ function (option, path) {
     </tr>
 
     <tr>
+      <td>maxMinorChars</td>
+      <td>number</td>
+      <td>7</td>
+      <td>
+        Specifies the maximum number of characters that should fit in minor grid labels.
+        If larger, less and wider grids will be drawn.
+      </td>
+    </tr>
+
+    <tr>
       <td>min</td>
       <td>Date or Number or String or Moment</td>
       <td>none</td>
@@ -767,6 +785,16 @@ function (option, path) {
       <td>
         If true, multiple items can be selected using ctrl+click, shift+click, or by holding items.
         Only applicable when option <code>selectable</code> is <code>true</code>.
+      </td>
+    </tr>
+    
+    <tr>
+      <td style="font-size: 0.9em">multiselectPerGroup</td>
+      <td>boolean</td>
+      <td><code>false</code></td>
+      <td>
+        If true, selecting multiple items using shift+click will only select items residing in the same group as the <i>first</i> selected item.
+        Only applicable when option <code>selectable</code> and <code>multiselect</code> are <code>true</code>.
       </td>
     </tr>
 

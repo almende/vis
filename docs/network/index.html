@@ -940,6 +940,28 @@ function releaseFunction (clusterPosition, containedNodesPositions) {
                     before selecting its own objects. <i>Does not fire events</i>.
                 </td>
             </tr>
+            <tr class="collapsible toggle" onclick="toggleTable('methodTable','setSelection', this);">
+                <td colspan="2"><span parent="setSelection" class="right-caret" id="method_setSelection"></span> setSelection(
+                  <code>Object selection</code>, 
+                  <code>[Object options]</code>)</td>
+            </tr>
+            <tr class="hidden" parent="setSelection">
+                <td class="midMethods">Returns: none</td>
+                <td>Sets the selection, wich must be an object like this:
+            <pre class="code">
+{
+  nodes: [Array of nodeIds],
+  edges: [Array of edgeIds]
+}</pre>
+                  You can also pass only <code>nodes</code> or <code>edges</code> in <code>selection</code> object.
+                  Available options are:
+                  <pre class="code">
+{
+  unselectAll: Boolean,
+  highlightEdges: Boolean
+}</pre>
+                </td>
+            </tr>
             <tr class="collapsible toggle" onclick="toggleTable('methodTable','unselectAll', this);">
                 <td colspan="2"><span parent="unselectAll" class="right-caret" id="method_unselectAll"></span> unselectAll()</td>
             </tr>
