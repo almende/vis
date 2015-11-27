@@ -5,7 +5,7 @@
  * A dynamic, browser-based visualization library.
  *
  * @version 4.9.1-SNAPSHOT
- * @date    2015-11-26
+ * @date    2015-11-27
  *
  * @license
  * Copyright (C) 2011-2015 Almende B.V, http://almende.com
@@ -39644,8 +39644,41 @@ return /******/ (function(modules) { // webpackBootstrap
             // check the distribution of the nodes per level.
             var distribution = this._getDistribution();
 
+            // add offset to distribution
+            this._addOffsetsToDistribution(distribution);
+
             // place the nodes on the canvas.
             this._placeNodesByHierarchy(distribution);
+          }
+        }
+      }
+
+      /**
+       * center align the nodes in the hierarchy for quicker display.
+       * @param distribution
+       * @private
+       */
+    }, {
+      key: '_addOffsetsToDistribution',
+      value: function _addOffsetsToDistribution(distribution) {
+        var maxDistances = 0;
+        // get the maximum amount of distances between nodes over all levels
+        for (var level in distribution) {
+          if (distribution.hasOwnProperty(level)) {
+            if (maxDistances < distribution[level].amount) {
+              maxDistances = distribution[level].amount;
+            }
+          }
+        }
+        // o---o---o : 3 nodes, 2 disances. hence -1
+        maxDistances -= 1;
+
+        // set the distances for all levels but normalize on the first level (0)
+        var zeroLevelDistance = distribution[0].amount - 1 - maxDistances;
+        for (var level in distribution) {
+          if (distribution.hasOwnProperty(level)) {
+            var distances = distribution[level].amount - 1 - zeroLevelDistance;
+            distribution[level].distance = (maxDistances - distances) * 0.5 * this.nodeSpacing;
           }
         }
       }
@@ -39674,6 +39707,7 @@ return /******/ (function(modules) { // webpackBootstrap
                   if (node.x === undefined) {
                     node.x = distribution[level].distance;
                   }
+
                   // since the placeBranchNodes can make this process not exactly sequential, we have to avoid overlap by either spacing from the node, or simply adding distance.
                   distribution[level].distance = Math.max(distribution[level].distance + this.nodeSpacing, node.x + this.nodeSpacing);
                 } else {
@@ -39896,13 +39930,13 @@ return /******/ (function(modules) { // webpackBootstrap
             if (childNodeLevel > parentLevel) {
               if (this.options.hierarchical.direction === 'UD' || this.options.hierarchical.direction === 'DU') {
                 if (childNode.x === undefined) {
-                  childNode.x = Math.max(distribution[childNodeLevel].distance, parentNode.x);
+                  childNode.x = Math.max(distribution[childNodeLevel].distance);
                 }
                 distribution[childNodeLevel].distance = childNode.x + this.nodeSpacing;
                 this.positionedNodes[childNode.id] = true;
               } else {
                 if (childNode.y === undefined) {
-                  childNode.y = Math.max(distribution[childNodeLevel].distance, parentNode.y);
+                  childNode.y = Math.max(distribution[childNodeLevel].distance);
                 }
                 distribution[childNodeLevel].distance = childNode.y + this.nodeSpacing;
               }
