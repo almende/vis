@@ -177,15 +177,27 @@ describe('DataView', function () {
     // make a change not affecting the DataView
     data.update({id: 1, title: 'Item 1 (changed)'});
     assert.deepEqual(dataUpdates, [
-      ['update', {items: [1], data: [{id: 1, title: 'Item 1 (changed)'}]}]
+      ['update', {
+        items: [1],
+        data: [{id: 1, title: 'Item 1 (changed)'}],
+        oldData: [{"group": 1, "id": 1, "title": "Item 1"}]
+  }]
     ]);
     assert.deepEqual(viewUpdates, []);
 
     // make a change affecting the DataView
     data.update({id: 2, title: 'Item 2 (changed)'});
     assert.deepEqual(dataUpdates, [
-      ['update', {items: [1], data: [{id: 1, title: 'Item 1 (changed)'}]}],
-      ['update', {items: [2], data: [{id: 2, title: 'Item 2 (changed)'}]}]
+      ['update', {
+        items: [1],
+        data: [{id: 1, title: 'Item 1 (changed)'}],
+        oldData: [{"group": 1, "id": 1, "title": "Item 1"}]
+      }],
+      ['update', {
+        items: [2],
+        data: [{id: 2, title: 'Item 2 (changed)'}],
+        oldData: [{"group": 2, "id": 2, "title": "Item 2"}]
+      }]
     ]);
     assert.deepEqual(viewUpdates, [
       ['update', {items: [2], data: [{id: 2, title: 'Item 2 (changed)'}]}]

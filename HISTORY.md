@@ -2,7 +2,12 @@
 http://visjs.org
 
 
-## not yet released, version 4.9.1-SNAPSHOT
+## not yet released, version 4.10.1-SNAPSHOT
+
+
+
+
+## 2015-11-27, version 4.10.0
 
 ### General
 
@@ -23,7 +28,6 @@ http://visjs.org
 - Fixed #1416: Fixed error in improvedLayout.
 - Improvements on hierarchical layout.
 
-
 ### Timeline
 
 - Implemented option `itemsAlwaysDraggable`, See #1395. Thanks @liuqingc.
@@ -31,7 +35,9 @@ http://visjs.org
 - Implemented property `oldData` on change events of the DataSet, and
   deprecated the `data` property which wrongly contained new data instead of
   old data. Thanks @hansmaulwurf23.
+- Implemented option `maxMinorChars` to customize the width of the grid.
 - Expose `vis.timeline.Core` for customization purposes.
+- Fixed #1449, #1393: text of minor grids sometimes not being drawn.
 
 ### Graph2d
 
@@ -43,7 +49,7 @@ http://visjs.org
 - Performance improvements (see #1381). Thanks @phimimms.
 
 
-## 2015-01-01, version 4.9.0
+## 2015-10-01, version 4.9.0
 
 ### Network
 
