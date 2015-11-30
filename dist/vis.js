@@ -39338,6 +39338,8 @@ return /******/ (function(modules) { // webpackBootstrap
       util.extend(this.options, this.defaultOptions);
 
       this.hierarchicalLevels = {};
+      this.hierarchicalParents = {};
+      this.hierarchicalChildren = {};
 
       this.bindEventListeners();
     }
@@ -39647,8 +39649,23 @@ return /******/ (function(modules) { // webpackBootstrap
             // add offset to distribution
             this._addOffsetsToDistribution(distribution);
 
+            this._addChildNodeWidths(distribution);
+
             // place the nodes on the canvas.
             this._placeNodesByHierarchy(distribution);
+          }
+        }
+      }
+    }, {
+      key: '_addChildNodeWidths',
+      value: function _addChildNodeWidths(distribution) {
+        var levels = Object.keys(distribution);
+        for (var i = levels.length - 1; i > levels[0]; i--) {
+          for (var node in distribution[levels[i]].nodes) {
+            if (this.hierarchicalChildren[node] !== undefined) {
+              var _parent = this.hierarchicalChildren[node].parents[0];
+              this.hierarchicalParents[_parent].amount += 1;
+            }
           }
         }
       }
@@ -39883,8 +39900,13 @@ return /******/ (function(modules) { // webpackBootstrap
        */
     }, {
       key: '_setLevelDirected',
-      value: function _setLevelDirected(level, node) {
+      value: function _setLevelDirected(level, node, parentId) {
         if (this.hierarchicalLevels[node.id] !== undefined) return;
+
+        // set the references.
+        if (parentId !== undefined) {
+          this._updateReferences(parentId, node.id);
+        }
 
         var childNode = undefined;
         this.hierarchicalLevels[node.id] = level;
@@ -39892,12 +39914,31 @@ return /******/ (function(modules) { // webpackBootstrap
         for (var i = 0; i < node.edges.length; i++) {
           if (node.edges[i].toId === node.id) {
             childNode = node.edges[i].from;
-            this._setLevelDirected(level - 1, childNode);
+            this._setLevelDirected(level - 1, childNode, node.id);
           } else {
             childNode = node.edges[i].to;
-            this._setLevelDirected(level + 1, childNode);
+            this._setLevelDirected(level + 1, childNode, node.id);
           }
         }
+      }
+
+      /**
+       * Update the bookkeeping of parent and child.
+       * @param parentNodeId
+       * @param childNodeId
+       * @private
+       */
+    }, {
+      key: '_updateReferences',
+      value: function _updateReferences(parentNodeId, childNodeId) {
+        if (this.hierarchicalParents[parentNodeId] === undefined) {
+          this.hierarchicalParents[parentNodeId] = { children: [], width: 0, amount: 0 };
+        }
+        this.hierarchicalParents[parentNodeId].children.push(childNodeId);
+        if (this.hierarchicalChildren[childNodeId] === undefined) {
+          this.hierarchicalChildren[childNodeId] = { parents: [], width: 0, amount: 0 };
+        }
+        this.hierarchicalChildren[childNodeId].parents.push(parentNodeId);
       }
 
       /**
