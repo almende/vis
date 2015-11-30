@@ -79,6 +79,7 @@ function getScaleFreeNetworkSeeded(nodeCount) {
   var nodes = [];
   var edges = [];
   var connectionCount = [];
+  randomSeed = 764;
 
   // randomly create some nodes and edges
   for (var i = 0; i < nodeCount; i++) {

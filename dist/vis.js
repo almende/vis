@@ -5,7 +5,7 @@
  * A dynamic, browser-based visualization library.
  *
  * @version 4.10.1-SNAPSHOT
- * @date    2015-11-27
+ * @date    2015-11-30
  *
  * @license
  * Copyright (C) 2011-2015 Almende B.V, http://almende.com
@@ -39358,7 +39358,7 @@ return /******/ (function(modules) { // webpackBootstrap
       };
       util.extend(this.options, this.defaultOptions);
 
-      this.hierarchicalLevels = {};
+      this.lastNodeOnLevel = {};
       this.hierarchicalParents = {};
       this.hierarchicalChildren = {};
 
@@ -39410,7 +39410,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
             this.body.emitter.emit('_resetHierarchicalLayout');
             // because the hierarchical system needs it's own physics and smooth curve settings, we adapt the other options if needed.
-            return this.adaptAllOptions(allOptions);
+            return this.adaptAllOptionsForHierarchicalLayout(allOptions);
           } else {
             if (prevHierarchicalState === true) {
               // refresh the overridden options for nodes and edges.
@@ -39422,8 +39422,8 @@ return /******/ (function(modules) { // webpackBootstrap
         return allOptions;
       }
     }, {
-      key: 'adaptAllOptions',
-      value: function adaptAllOptions(allOptions) {
+      key: 'adaptAllOptionsForHierarchicalLayout',
+      value: function adaptAllOptionsForHierarchicalLayout(allOptions) {
         if (this.options.hierarchical.enabled === true) {
           // set the physics
           if (allOptions.physics === undefined || allOptions.physics === true) {
@@ -39652,9 +39652,6 @@ return /******/ (function(modules) { // webpackBootstrap
             throw new Error('To use the hierarchical layout, nodes require either no predefined levels or levels have to be defined for all nodes.');
             return;
           } else {
-            // setup the system to use hierarchical method.
-            //this._changeConstants();
-
             // define levels if undefined by the users. Based on hubsize
             if (undefinedLevel === true) {
               if (this.options.hierarchical.sortMethod === 'hubsize') {
@@ -39667,59 +39664,28 @@ return /******/ (function(modules) { // webpackBootstrap
             // check the distribution of the nodes per level.
             var distribution = this._getDistribution();
 
-            // add offset to distribution
-            this._addOffsetsToDistribution(distribution);
-
-            this._addChildNodeWidths(distribution);
+            // get the parent children relations.
+            this._generateMap();
 
             // place the nodes on the canvas.
             this._placeNodesByHierarchy(distribution);
-          }
-        }
-      }
-    }, {
-      key: '_addChildNodeWidths',
-      value: function _addChildNodeWidths(distribution) {
-        var levels = Object.keys(distribution);
-        for (var i = levels.length - 1; i > levels[0]; i--) {
-          for (var node in distribution[levels[i]].nodes) {
-            if (this.hierarchicalChildren[node] !== undefined) {
-              var _parent = this.hierarchicalChildren[node].parents[0];
-              this.hierarchicalParents[_parent].amount += 1;
-            }
+
+            // Todo: condense the whitespace.
+            this._condenseHierarchy();
+
+            // shift to center so gravity does not have to do much
+            this._shiftToCenter();
           }
         }
       }
 
       /**
-       * center align the nodes in the hierarchy for quicker display.
-       * @param distribution
+       * TODO: implement. Clear whitespace after positioning.
        * @private
        */
     }, {
-      key: '_addOffsetsToDistribution',
-      value: function _addOffsetsToDistribution(distribution) {
-        var maxDistances = 0;
-        // get the maximum amount of distances between nodes over all levels
-        for (var level in distribution) {
-          if (distribution.hasOwnProperty(level)) {
-            if (maxDistances < distribution[level].amount) {
-              maxDistances = distribution[level].amount;
-            }
-          }
-        }
-        // o---o---o : 3 nodes, 2 disances. hence -1
-        maxDistances -= 1;
-
-        // set the distances for all levels but normalize on the first level (0)
-        var zeroLevelDistance = distribution[0].amount - 1 - maxDistances;
-        for (var level in distribution) {
-          if (distribution.hasOwnProperty(level)) {
-            var distances = distribution[level].amount - 1 - zeroLevelDistance;
-            distribution[level].distance = (maxDistances - distances) * 0.5 * this.nodeSpacing;
-          }
-        }
-      }
+      key: '_condenseHierarchy',
+      value: function _condenseHierarchy() {}
 
       /**
        * This function places the nodes on the canvas based on the hierarchial distribution.
@@ -39736,28 +39702,17 @@ return /******/ (function(modules) { // webpackBootstrap
         // start placing all the level 0 nodes first. Then recursively position their branches.
         for (var level in distribution) {
           if (distribution.hasOwnProperty(level)) {
-            for (nodeId in distribution[level].nodes) {
-              if (distribution[level].nodes.hasOwnProperty(nodeId)) {
+            // sort nodes in level by position:
+            var nodeArray = Object.keys(distribution[level]);
+            this._sortNodeArray(nodeArray);
 
-                node = distribution[level].nodes[nodeId];
-
-                if (this.options.hierarchical.direction === 'UD' || this.options.hierarchical.direction === 'DU') {
-                  if (node.x === undefined) {
-                    node.x = distribution[level].distance;
-                  }
-
-                  // since the placeBranchNodes can make this process not exactly sequential, we have to avoid overlap by either spacing from the node, or simply adding distance.
-                  distribution[level].distance = Math.max(distribution[level].distance + this.nodeSpacing, node.x + this.nodeSpacing);
-                } else {
-                  if (node.y === undefined) {
-                    node.y = distribution[level].distance;
-                  }
-                  // since the placeBranchNodes can make this process not exactly sequential, we have to avoid overlap by either spacing from the node, or simply adding distance.
-                  distribution[level].distance = Math.max(distribution[level].distance + this.nodeSpacing, node.y + this.nodeSpacing);
-                }
-
+            for (var i = 0; i < nodeArray.length; i++) {
+              nodeId = nodeArray[i];
+              node = distribution[level][nodeId];
+              if (this.positionedNodes[nodeId] === undefined) {
+                this._setPositionForHierarchy(node, this.nodeSpacing * i);
                 this.positionedNodes[nodeId] = true;
-                this._placeBranchNodes(node.edges, node.id, distribution, level);
+                this._placeBranchNodes(nodeId, level);
               }
             }
           }
@@ -39791,10 +39746,9 @@ return /******/ (function(modules) { // webpackBootstrap
               node.options.fixed.x = true;
             }
             if (distribution[level] === undefined) {
-              distribution[level] = { amount: 0, nodes: {}, distance: 0 };
+              distribution[level] = {};
             }
-            distribution[level].amount += 1;
-            distribution[level].nodes[nodeId] = node;
+            distribution[level][nodeId] = node;
           }
         }
         return distribution;
@@ -39871,7 +39825,7 @@ return /******/ (function(modules) { // webpackBootstrap
           } else {
             childNode = node.edges[i].to;
           }
-          this._setLevelByHubsize(level + 1, childNode);
+          this._setLevelByHubsize(level + 1, childNode, node.id);
         }
       }
 
@@ -39899,7 +39853,7 @@ return /******/ (function(modules) { // webpackBootstrap
         // get the minimum level
         for (nodeId in this.body.nodes) {
           if (this.body.nodes.hasOwnProperty(nodeId)) {
-            minLevel = this.hierarchicalLevels[nodeId] < minLevel ? this.hierarchicalLevels[nodeId] : minLevel;
+            minLevel = Math.min(this.hierarchicalLevels[nodeId], minLevel);
           }
         }
 
@@ -39924,11 +39878,6 @@ return /******/ (function(modules) { // webpackBootstrap
       value: function _setLevelDirected(level, node, parentId) {
         if (this.hierarchicalLevels[node.id] !== undefined) return;
 
-        // set the references.
-        if (parentId !== undefined) {
-          this._updateReferences(parentId, node.id);
-        }
-
         var childNode = undefined;
         this.hierarchicalLevels[node.id] = level;
 
@@ -39950,16 +39899,56 @@ return /******/ (function(modules) { // webpackBootstrap
        * @private
        */
     }, {
-      key: '_updateReferences',
-      value: function _updateReferences(parentNodeId, childNodeId) {
-        if (this.hierarchicalParents[parentNodeId] === undefined) {
-          this.hierarchicalParents[parentNodeId] = { children: [], width: 0, amount: 0 };
+      key: '_generateMap',
+      value: function _generateMap() {
+        var _this2 = this;
+
+        var fillInRelations = function fillInRelations(parentNode, childNode) {
+          if (_this2.hierarchicalLevels[childNode.id] > _this2.hierarchicalLevels[parentNode.id]) {
+            var parentNodeId = parentNode.id;
+            var childNodeId = childNode.id;
+            if (_this2.hierarchicalParents[parentNodeId] === undefined) {
+              _this2.hierarchicalParents[parentNodeId] = { children: [], amount: 0 };
+            }
+            _this2.hierarchicalParents[parentNodeId].children.push(childNodeId);
+            if (_this2.hierarchicalChildren[childNodeId] === undefined) {
+              _this2.hierarchicalChildren[childNodeId] = { parents: [], amount: 0 };
+            }
+            _this2.hierarchicalChildren[childNodeId].parents.push(parentNodeId);
+          }
+        };
+
+        this._crawlNetwork(fillInRelations);
+      }
+    }, {
+      key: '_crawlNetwork',
+      value: function _crawlNetwork() {
+        var callback = arguments.length <= 0 || arguments[0] === undefined ? function () {} : arguments[0];
+
+        var progress = {};
+        var crawler = function crawler(node) {
+          if (progress[node.id] === undefined) {
+            progress[node.id] = true;
+            var childNode = undefined;
+            for (var i = 0; i < node.edges.length; i++) {
+              if (node.edges[i].toId === node.id) {
+                childNode = node.edges[i].from;
+              } else {
+                childNode = node.edges[i].to;
+              }
+
+              if (node.id !== childNode.id) {
+                callback(node, childNode);
+                crawler(childNode);
+              }
+            }
+          }
+        };
+
+        for (var i = 0; i < this.body.nodeIndices.length; i++) {
+          var node = this.body.nodes[this.body.nodeIndices[i]];
+          crawler(node);
         }
-        this.hierarchicalParents[parentNodeId].children.push(childNodeId);
-        if (this.hierarchicalChildren[childNodeId] === undefined) {
-          this.hierarchicalChildren[childNodeId] = { parents: [], width: 0, amount: 0 };
-        }
-        this.hierarchicalChildren[childNodeId].parents.push(parentNodeId);
       }
 
       /**
@@ -39974,41 +39963,189 @@ return /******/ (function(modules) { // webpackBootstrap
        */
     }, {
       key: '_placeBranchNodes',
-      value: function _placeBranchNodes(edges, parentId, distribution, parentLevel) {
-        for (var i = 0; i < edges.length; i++) {
-          var childNode = undefined;
-          var parentNode = undefined;
-          if (edges[i].toId === parentId) {
-            childNode = edges[i].from;
-            parentNode = edges[i].to;
-          } else {
-            childNode = edges[i].to;
-            parentNode = edges[i].from;
-          }
+      value: function _placeBranchNodes(parentId, parentLevel) {
+        if (this.hierarchicalParents[parentId] === undefined) {
+          return;
+        }
+
+        // get a list of childNodes
+        var childNodes = [];
+        for (var i = 0; i < this.hierarchicalParents[parentId].children.length; i++) {
+          childNodes.push(this.body.nodes[this.hierarchicalParents[parentId].children[i]]);
+        }
+
+        // use the positions to order the nodes.
+        this._sortNodeArray(childNodes);
+
+        // position the childNodes
+        for (var i = 0; i < childNodes.length; i++) {
+          var childNode = childNodes[i];
           var childNodeLevel = this.hierarchicalLevels[childNode.id];
+          // check if the childnode is below the parent node and if it has already been positioned.
+          if (childNodeLevel > parentLevel && this.positionedNodes[childNode.id] === undefined) {
+            // get the amount of space required for this node. If parent the width is based on the amount of children.
+            var pos = undefined;
 
-          if (this.positionedNodes[childNode.id] === undefined) {
-            // if a node is conneceted to another node on the same level (or higher (means lower level))!, this is not handled here.
-            if (childNodeLevel > parentLevel) {
-              if (this.options.hierarchical.direction === 'UD' || this.options.hierarchical.direction === 'DU') {
-                if (childNode.x === undefined) {
-                  childNode.x = Math.max(distribution[childNodeLevel].distance);
-                }
-                distribution[childNodeLevel].distance = childNode.x + this.nodeSpacing;
-                this.positionedNodes[childNode.id] = true;
-              } else {
-                if (childNode.y === undefined) {
-                  childNode.y = Math.max(distribution[childNodeLevel].distance);
-                }
-                distribution[childNodeLevel].distance = childNode.y + this.nodeSpacing;
-              }
-              this.positionedNodes[childNode.id] = true;
+            // we get the X or Y values we need and store them in pos and previousPos. The get and set make sure we get X or Y
+            if (i === 0) {
+              pos = this._getPositionForHierarchy(this.body.nodes[parentId]);
+            } else {
+              pos = this._getPositionForHierarchy(childNodes[i - 1]) + this.nodeSpacing;
+            }
+            this._setPositionForHierarchy(childNode, pos);
 
-              if (childNode.edges.length > 1) {
-                this._placeBranchNodes(childNode.edges, childNode.id, distribution, childNodeLevel);
+            // if overlap has been detected, we shift the branch
+            if (this.lastNodeOnLevel[childNodeLevel] !== undefined) {
+              var previousPos = this._getPositionForHierarchy(this.body.nodes[this.lastNodeOnLevel[childNodeLevel]]);
+              if (pos - previousPos < this.nodeSpacing) {
+                var diff = previousPos + this.nodeSpacing - pos;
+                var sharedParent = this._findCommonParent(this.lastNodeOnLevel[childNodeLevel], childNode.id);
+                this._shiftBlock(sharedParent.withChild, diff);
               }
             }
+
+            // store change in position.
+            this.lastNodeOnLevel[childNodeLevel] = childNode.id;
+
+            this.positionedNodes[childNode.id] = true;
+
+            this._placeBranchNodes(childNode.id, childNodeLevel);
+          } else {
+            return;
           }
+        }
+
+        // center the parent nodes.
+        var minPos = 1e9;
+        var maxPos = -1e9;
+        for (var i = 0; i < childNodes.length; i++) {
+          var childNodeId = childNodes[i].id;
+          minPos = Math.min(minPos, this._getPositionForHierarchy(this.body.nodes[childNodeId]));
+          maxPos = Math.max(maxPos, this._getPositionForHierarchy(this.body.nodes[childNodeId]));
+        }
+        this._setPositionForHierarchy(this.body.nodes[parentId], 0.5 * (minPos + maxPos));
+      }
+
+      /**
+       * Shift a branch a certain distance
+       * @param parentId
+       * @param diff
+       * @private
+       */
+    }, {
+      key: '_shiftBlock',
+      value: function _shiftBlock(parentId, diff) {
+        if (this.options.hierarchical.direction === 'UD' || this.options.hierarchical.direction === 'DU') {
+          this.body.nodes[parentId].x += diff;
+        } else {
+          this.body.nodes[parentId].y += diff;
+        }
+        if (this.hierarchicalParents[parentId] !== undefined) {
+          for (var i = 0; i < this.hierarchicalParents[parentId].children.length; i++) {
+            this._shiftBlock(this.hierarchicalParents[parentId].children[i], diff);
+          }
+        }
+      }
+
+      /**
+       * Find a common parent between branches.
+       * @param childA
+       * @param childB
+       * @returns {{foundParent, withChild}}
+       * @private
+       */
+    }, {
+      key: '_findCommonParent',
+      value: function _findCommonParent(childA, childB) {
+        var _this3 = this;
+
+        var parents = {};
+        var iterateParents = function iterateParents(parents, child) {
+          if (_this3.hierarchicalChildren[child] !== undefined) {
+            for (var i = 0; i < _this3.hierarchicalChildren[child].parents.length; i++) {
+              var _parent = _this3.hierarchicalChildren[child].parents[i];
+              parents[_parent] = true;
+              iterateParents(parents, _parent);
+            }
+          }
+        };
+        var findParent = function findParent(_x2, _x3) {
+          var _again = true;
+
+          _function: while (_again) {
+            var parents = _x2,
+                child = _x3;
+            _again = false;
+
+            if (_this3.hierarchicalChildren[child] !== undefined) {
+              for (var i = 0; i < _this3.hierarchicalChildren[child].parents.length; i++) {
+                var _parent2 = _this3.hierarchicalChildren[child].parents[i];
+                if (parents[_parent2] !== undefined) {
+                  return { foundParent: _parent2, withChild: child };
+                }
+                _x2 = parents;
+                _x3 = _parent2;
+                _again = true;
+                i = _parent2 = undefined;
+                continue _function;
+              }
+            }
+            return { foundParent: null, withChild: child };
+          }
+        };
+
+        iterateParents(parents, childA);
+        return findParent(parents, childB);
+      }
+
+      /**
+       * Abstract the getting of the position so we won't have to repeat the check for direction all the time
+       * @param node
+       * @param position
+       * @private
+       */
+    }, {
+      key: '_setPositionForHierarchy',
+      value: function _setPositionForHierarchy(node, position) {
+        if (this.options.hierarchical.direction === 'UD' || this.options.hierarchical.direction === 'DU') {
+          node.x = position;
+        } else {
+          node.y = position;
+        }
+      }
+
+      /**
+       * Abstract the getting of the position of a node so we do not have to repeat the direction check all the time.
+       * @param node
+       * @returns {number|*}
+       * @private
+       */
+    }, {
+      key: '_getPositionForHierarchy',
+      value: function _getPositionForHierarchy(node) {
+        if (this.options.hierarchical.direction === 'UD' || this.options.hierarchical.direction === 'DU') {
+          return node.x;
+        } else {
+          return node.y;
+        }
+      }
+
+      /**
+       * Use the x or y value to sort the array, allowing users to specify order.
+       * @param nodeArray
+       * @private
+       */
+    }, {
+      key: '_sortNodeArray',
+      value: function _sortNodeArray(nodeArray) {
+        if (this.options.hierarchical.direction === 'UD' || this.options.hierarchical.direction === 'DU') {
+          nodeArray.sort(function (a, b) {
+            return a.x - b.x;
+          });
+        } else {
+          nodeArray.sort(function (a, b) {
+            return a.y - b.y;
+          });
         }
       }
     }]);
