@@ -159,7 +159,8 @@ describe('DataView', function () {
     var view = new DataView(data, {
       filter: function (item) {
         return item.group === 2;
-      }
+      },
+      fields:["id","title"]
     });
 
     var dataUpdates = [];
