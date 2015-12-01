@@ -5,7 +5,7 @@
  * A dynamic, browser-based visualization library.
  *
  * @version 4.10.1-SNAPSHOT
- * @date    2015-11-30
+ * @date    2015-12-01
  *
  * @license
  * Copyright (C) 2011-2015 Almende B.V, http://almende.com
@@ -18429,6 +18429,9 @@ return /******/ (function(modules) { // webpackBootstrap
       restack = true;
     }
 
+    // recalculate the height of the subgroups
+    this._calculateSubGroupHeights();
+
     // reposition visible items vertically
     if (typeof this.itemSet.options.order === 'function') {
       // a custom order function
@@ -18497,6 +18500,25 @@ return /******/ (function(modules) { // webpackBootstrap
   };
 
   /**
+   * recalculate the height of the subgroups
+   * @private
+   */
+  Group.prototype._calculateSubGroupHeights = function () {
+    if (Object.keys(this.subgroups).length > 0) {
+      var me = this;
+
+      this.resetSubgroups();
+
+      util.forEach(this.visibleItems, function (item) {
+        if (item.data.subgroup !== undefined) {
+          me.subgroups[item.data.subgroup].height = Math.max(me.subgroups[item.data.subgroup].height, item.height);
+          me.subgroups[item.data.subgroup].visible = true;
+        }
+      });
+    }
+  };
+
+  /**
    * recalculate the height of the group
    * @param {{item: {horizontal: number, vertical: number}, axis: number}} margin
    * @returns {number} Returns the height
@@ -18506,20 +18528,12 @@ return /******/ (function(modules) { // webpackBootstrap
     // recalculate the height of the group
     var height;
     var visibleItems = this.visibleItems;
-    //var visibleSubgroups = [];
-    //this.visibleSubgroups = 0;
-    this.resetSubgroups();
-    var me = this;
     if (visibleItems.length > 0) {
       var min = visibleItems[0].top;
       var max = visibleItems[0].top + visibleItems[0].height;
       util.forEach(visibleItems, function (item) {
         min = Math.min(min, item.top);
         max = Math.max(max, item.top + item.height);
-        if (item.data.subgroup !== undefined) {
-          me.subgroups[item.data.subgroup].height = Math.max(me.subgroups[item.data.subgroup].height, item.height);
-          me.subgroups[item.data.subgroup].visible = true;
-        }
       });
       if (min > margin.axis) {
         // there is an empty gap between the lowest item and the axis
@@ -27047,15 +27061,15 @@ return /******/ (function(modules) { // webpackBootstrap
 
   var _modulesClustering2 = _interopRequireDefault(_modulesClustering);
 
-  var _modulesCanvasRenderer = __webpack_require__(101);
+  var _modulesCanvasRenderer = __webpack_require__(102);
 
   var _modulesCanvasRenderer2 = _interopRequireDefault(_modulesCanvasRenderer);
 
-  var _modulesCanvas = __webpack_require__(102);
+  var _modulesCanvas = __webpack_require__(103);
 
   var _modulesCanvas2 = _interopRequireDefault(_modulesCanvas);
 
-  var _modulesView = __webpack_require__(103);
+  var _modulesView = __webpack_require__(104);
 
   var _modulesView2 = _interopRequireDefault(_modulesView);
 
@@ -35167,7 +35181,11 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
 
-  var _componentsNodesCluster = __webpack_require__(100);
+  var _NetworkUtil = __webpack_require__(100);
+
+  var _NetworkUtil2 = _interopRequireDefault(_NetworkUtil);
+
+  var _componentsNodesCluster = __webpack_require__(101);
 
   var _componentsNodesCluster2 = _interopRequireDefault(_componentsNodesCluster);
 
@@ -35252,7 +35270,7 @@ return /******/ (function(modules) { // webpackBootstrap
         for (var i = 0; i < this.body.nodeIndices.length; i++) {
           var nodeId = this.body.nodeIndices[i];
           var node = this.body.nodes[nodeId];
-          var clonedOptions = this._cloneOptions(node);
+          var clonedOptions = _NetworkUtil2['default']._cloneOptions(node);
           if (options.joinCondition(clonedOptions) === true) {
             childNodesObj[nodeId] = this.body.nodes[nodeId];
 
@@ -35322,7 +35340,7 @@ return /******/ (function(modules) { // webpackBootstrap
                   childNodesObj[childNodeId] = this.body.nodes[childNodeId];
                   usedNodes[nodeId] = true;
                 } else {
-                  var clonedOptions = this._cloneOptions(this.body.nodes[nodeId]);
+                  var clonedOptions = _NetworkUtil2['default']._cloneOptions(this.body.nodes[nodeId]);
                   if (options.joinCondition(clonedOptions) === true) {
                     childEdgesObj[edge.id] = edge;
                     childNodesObj[nodeId] = this.body.nodes[nodeId];
@@ -35414,7 +35432,7 @@ return /******/ (function(modules) { // webpackBootstrap
         var childNodesObj = {};
         var childEdgesObj = {};
         var parentNodeId = node.id;
-        var parentClonedOptions = this._cloneOptions(node);
+        var parentClonedOptions = _NetworkUtil2['default']._cloneOptions(node);
         childNodesObj[parentNodeId] = node;
 
         // collect the nodes that will be in the cluster
@@ -35431,7 +35449,7 @@ return /******/ (function(modules) { // webpackBootstrap
                   childNodesObj[childNodeId] = this.body.nodes[childNodeId];
                 } else {
                   // clone the options and insert some additional parameters that could be interesting.
-                  var childClonedOptions = this._cloneOptions(this.body.nodes[childNodeId]);
+                  var childClonedOptions = _NetworkUtil2['default']._cloneOptions(this.body.nodes[childNodeId]);
                   if (options.joinCondition(parentClonedOptions, childClonedOptions) === true) {
                     childEdgesObj[edge.id] = edge;
                     childNodesObj[childNodeId] = this.body.nodes[childNodeId];
@@ -35446,28 +35464,6 @@ return /******/ (function(modules) { // webpackBootstrap
         }
 
         this._cluster(childNodesObj, childEdgesObj, options, refreshData);
-      }
-
-      /**
-      * This returns a clone of the options or options of the edge or node to be used for construction of new edges or check functions for new nodes.
-      * @param objId
-      * @param type
-      * @returns {{}}
-      * @private
-      */
-    }, {
-      key: '_cloneOptions',
-      value: function _cloneOptions(item, type) {
-        var clonedOptions = {};
-        if (type === undefined || type === 'node') {
-          util.deepExtend(clonedOptions, item.options, true);
-          clonedOptions.x = item.x;
-          clonedOptions.y = item.y;
-          clonedOptions.amountOfConnections = item.edges.length;
-        } else {
-          util.deepExtend(clonedOptions, item.options, true);
-        }
-        return clonedOptions;
       }
 
       /**
@@ -35532,7 +35528,7 @@ return /******/ (function(modules) { // webpackBootstrap
         for (var j = 0; j < createEdges.length; j++) {
           var _edge = createEdges[j].edge;
           // copy the options of the edge we will replace
-          var clonedOptions = this._cloneOptions(_edge, 'edge');
+          var clonedOptions = _NetworkUtil2['default']._cloneOptions(_edge, 'edge');
           // make sure the properties of clusterEdges are superimposed on it
           util.deepExtend(clonedOptions, clusterEdgeProperties);
 
@@ -35613,7 +35609,7 @@ return /******/ (function(modules) { // webpackBootstrap
           var childNodesOptions = [];
           for (var nodeId in childNodesObj) {
             if (childNodesObj.hasOwnProperty(nodeId)) {
-              var clonedOptions = this._cloneOptions(childNodesObj[nodeId]);
+              var clonedOptions = _NetworkUtil2['default']._cloneOptions(childNodesObj[nodeId]);
               childNodesOptions.push(clonedOptions);
             }
           }
@@ -35624,7 +35620,7 @@ return /******/ (function(modules) { // webpackBootstrap
             if (childEdgesObj.hasOwnProperty(edgeId)) {
               // these cluster edges will be removed on creation of the cluster.
               if (edgeId.substr(0, 12) !== "clusterEdge:") {
-                var clonedOptions = this._cloneOptions(childEdgesObj[edgeId], 'edge');
+                var clonedOptions = _NetworkUtil2['default']._cloneOptions(childEdgesObj[edgeId], 'edge');
                 childEdgesOptions.push(clonedOptions);
               }
             }
@@ -35858,7 +35854,7 @@ return /******/ (function(modules) { // webpackBootstrap
               }
 
               // clone the options and apply the cluster options to them
-              var clonedOptions = this._cloneOptions(transferEdge, 'edge');
+              var clonedOptions = _NetworkUtil2['default']._cloneOptions(transferEdge, 'edge');
               util.deepExtend(clonedOptions, otherCluster.clusterEdgeProperties);
 
               // apply the edge specific options to it.
@@ -36007,6 +36003,145 @@ return /******/ (function(modules) { // webpackBootstrap
 /* 100 */
 /***/ function(module, exports, __webpack_require__) {
 
+  "use strict";
+
+  Object.defineProperty(exports, "__esModule", {
+    value: true
+  });
+
+  var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
+
+  function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+  var util = __webpack_require__(1);
+
+  var NetworkUtil = (function () {
+    function NetworkUtil() {
+      _classCallCheck(this, NetworkUtil);
+    }
+
+    /**
+     * Find the center position of the network considering the bounding boxes
+     * @private
+     */
+
+    _createClass(NetworkUtil, null, [{
+      key: "_getRange",
+      value: function _getRange(allNodes) {
+        var specificNodes = arguments.length <= 1 || arguments[1] === undefined ? [] : arguments[1];
+
+        var minY = 1e9,
+            maxY = -1e9,
+            minX = 1e9,
+            maxX = -1e9,
+            node;
+        if (specificNodes.length > 0) {
+          for (var i = 0; i < specificNodes.length; i++) {
+            node = allNodes[specificNodes[i]];
+            if (minX > node.shape.boundingBox.left) {
+              minX = node.shape.boundingBox.left;
+            }
+            if (maxX < node.shape.boundingBox.right) {
+              maxX = node.shape.boundingBox.right;
+            }
+            if (minY > node.shape.boundingBox.top) {
+              minY = node.shape.boundingBox.top;
+            } // top is negative, bottom is positive
+            if (maxY < node.shape.boundingBox.bottom) {
+              maxY = node.shape.boundingBox.bottom;
+            } // top is negative, bottom is positive
+          }
+        }
+
+        if (minX === 1e9 && maxX === -1e9 && minY === 1e9 && maxY === -1e9) {
+          minY = 0, maxY = 0, minX = 0, maxX = 0;
+        }
+        return { minX: minX, maxX: maxX, minY: minY, maxY: maxY };
+      }
+
+      /**
+       * Find the center position of the network
+       * @private
+       */
+    }, {
+      key: "_getRangeCore",
+      value: function _getRangeCore(allNodes) {
+        var specificNodes = arguments.length <= 1 || arguments[1] === undefined ? [] : arguments[1];
+
+        var minY = 1e9,
+            maxY = -1e9,
+            minX = 1e9,
+            maxX = -1e9,
+            node;
+        if (specificNodes.length > 0) {
+          for (var i = 0; i < specificNodes.length; i++) {
+            node = allNodes[specificNodes[i]];
+            if (minX > node.x) {
+              minX = node.x;
+            }
+            if (maxX < node.x) {
+              maxX = node.x;
+            }
+            if (minY > node.y) {
+              minY = node.y;
+            } // top is negative, bottom is positive
+            if (maxY < node.y) {
+              maxY = node.y;
+            } // top is negative, bottom is positive
+          }
+        }
+
+        if (minX === 1e9 && maxX === -1e9 && minY === 1e9 && maxY === -1e9) {
+          minY = 0, maxY = 0, minX = 0, maxX = 0;
+        }
+        return { minX: minX, maxX: maxX, minY: minY, maxY: maxY };
+      }
+
+      /**
+       * @param {object} range = {minX: minX, maxX: maxX, minY: minY, maxY: maxY};
+       * @returns {{x: number, y: number}}
+       * @private
+       */
+    }, {
+      key: "_findCenter",
+      value: function _findCenter(range) {
+        return { x: 0.5 * (range.maxX + range.minX),
+          y: 0.5 * (range.maxY + range.minY) };
+      }
+
+      /**
+       * This returns a clone of the options or options of the edge or node to be used for construction of new edges or check functions for new nodes.
+       * @param item
+       * @param type
+       * @returns {{}}
+       * @private
+       */
+    }, {
+      key: "_cloneOptions",
+      value: function _cloneOptions(item, type) {
+        var clonedOptions = {};
+        if (type === undefined || type === 'node') {
+          util.deepExtend(clonedOptions, item.options, true);
+          clonedOptions.x = item.x;
+          clonedOptions.y = item.y;
+          clonedOptions.amountOfConnections = item.edges.length;
+        } else {
+          util.deepExtend(clonedOptions, item.options, true);
+        }
+        return clonedOptions;
+      }
+    }]);
+
+    return NetworkUtil;
+  })();
+
+  exports["default"] = NetworkUtil;
+  module.exports = exports["default"];
+
+/***/ },
+/* 101 */
+/***/ function(module, exports, __webpack_require__) {
+
   'use strict';
 
   Object.defineProperty(exports, '__esModule', {
@@ -36049,7 +36184,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 101 */
+/* 102 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -36441,7 +36576,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 102 */
+/* 103 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -36876,7 +37011,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = exports['default'];
 
 /***/ },
-/* 103 */
+/* 104 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -36891,7 +37026,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
 
-  var _NetworkUtil = __webpack_require__(104);
+  var _NetworkUtil = __webpack_require__(100);
 
   var _NetworkUtil2 = _interopRequireDefault(_NetworkUtil);
 
@@ -37219,121 +37354,6 @@ return /******/ (function(modules) { // webpackBootstrap
 
   exports['default'] = View;
   module.exports = exports['default'];
-
-/***/ },
-/* 104 */
-/***/ function(module, exports) {
-
-  "use strict";
-
-  Object.defineProperty(exports, "__esModule", {
-    value: true
-  });
-
-  var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
-
-  function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-
-  var NetworkUtil = (function () {
-    function NetworkUtil() {
-      _classCallCheck(this, NetworkUtil);
-    }
-
-    /**
-     * Find the center position of the network considering the bounding boxes
-     * @private
-     */
-
-    _createClass(NetworkUtil, null, [{
-      key: "_getRange",
-      value: function _getRange(allNodes) {
-        var specificNodes = arguments.length <= 1 || arguments[1] === undefined ? [] : arguments[1];
-
-        var minY = 1e9,
-            maxY = -1e9,
-            minX = 1e9,
-            maxX = -1e9,
-            node;
-        if (specificNodes.length > 0) {
-          for (var i = 0; i < specificNodes.length; i++) {
-            node = allNodes[specificNodes[i]];
-            if (minX > node.shape.boundingBox.left) {
-              minX = node.shape.boundingBox.left;
-            }
-            if (maxX < node.shape.boundingBox.right) {
-              maxX = node.shape.boundingBox.right;
-            }
-            if (minY > node.shape.boundingBox.top) {
-              minY = node.shape.boundingBox.top;
-            } // top is negative, bottom is positive
-            if (maxY < node.shape.boundingBox.bottom) {
-              maxY = node.shape.boundingBox.bottom;
-            } // top is negative, bottom is positive
-          }
-        }
-
-        if (minX === 1e9 && maxX === -1e9 && minY === 1e9 && maxY === -1e9) {
-          minY = 0, maxY = 0, minX = 0, maxX = 0;
-        }
-        return { minX: minX, maxX: maxX, minY: minY, maxY: maxY };
-      }
-
-      /**
-       * Find the center position of the network
-       * @private
-       */
-    }, {
-      key: "_getRangeCore",
-      value: function _getRangeCore(allNodes) {
-        var specificNodes = arguments.length <= 1 || arguments[1] === undefined ? [] : arguments[1];
-
-        var minY = 1e9,
-            maxY = -1e9,
-            minX = 1e9,
-            maxX = -1e9,
-            node;
-        if (specificNodes.length > 0) {
-          for (var i = 0; i < specificNodes.length; i++) {
-            node = allNodes[specificNodes[i]];
-            if (minX > node.x) {
-              minX = node.x;
-            }
-            if (maxX < node.x) {
-              maxX = node.x;
-            }
-            if (minY > node.y) {
-              minY = node.y;
-            } // top is negative, bottom is positive
-            if (maxY < node.y) {
-              maxY = node.y;
-            } // top is negative, bottom is positive
-          }
-        }
-
-        if (minX === 1e9 && maxX === -1e9 && minY === 1e9 && maxY === -1e9) {
-          minY = 0, maxY = 0, minX = 0, maxX = 0;
-        }
-        return { minX: minX, maxX: maxX, minY: minY, maxY: maxY };
-      }
-
-      /**
-       * @param {object} range = {minX: minX, maxX: maxX, minY: minY, maxY: maxY};
-       * @returns {{x: number, y: number}}
-       * @private
-       */
-    }, {
-      key: "_findCenter",
-      value: function _findCenter(range) {
-        return { x: 0.5 * (range.maxX + range.minX),
-          y: 0.5 * (range.maxY + range.minY) };
-      }
-    }]);
-
-    return NetworkUtil;
-  })();
-
-  exports["default"] = NetworkUtil;
-  module.exports = exports["default"];
 
 /***/ },
 /* 105 */
@@ -39329,7 +39349,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
 
-  var _NetworkUtil = __webpack_require__(104);
+  var _NetworkUtil = __webpack_require__(100);
 
   var _NetworkUtil2 = _interopRequireDefault(_NetworkUtil);
 
@@ -39656,8 +39676,10 @@ return /******/ (function(modules) { // webpackBootstrap
             if (undefinedLevel === true) {
               if (this.options.hierarchical.sortMethod === 'hubsize') {
                 this._determineLevelsByHubsize();
-              } else if (this.options.hierarchical.sortMethod === 'directed' || 'direction') {
+              } else if (this.options.hierarchical.sortMethod === 'directed') {
                 this._determineLevelsDirected();
+              } else if (this.options.hierarchical.sortMethod === 'custom') {
+                this._determineLevelsCustomCallback();
               }
             }
 
@@ -39784,20 +39806,31 @@ return /******/ (function(modules) { // webpackBootstrap
     }, {
       key: '_determineLevelsByHubsize',
       value: function _determineLevelsByHubsize() {
-        var nodeId = undefined,
-            node = undefined;
+        var _this2 = this;
+
         var hubSize = 1;
+
+        var levelDownstream = function levelDownstream(nodeA, nodeB) {
+          if (_this2.hierarchicalLevels[nodeB.id] === undefined) {
+            // set initial level
+            if (_this2.hierarchicalLevels[nodeA.id] === undefined) {
+              _this2.hierarchicalLevels[nodeA.id] = 0;
+            }
+            // set level
+            _this2.hierarchicalLevels[nodeB.id] = _this2.hierarchicalLevels[nodeA.id] + 1;
+          }
+        };
 
         while (hubSize > 0) {
           // determine hubs
           hubSize = this._getHubSize();
           if (hubSize === 0) break;
 
-          for (nodeId in this.body.nodes) {
+          for (var nodeId in this.body.nodes) {
             if (this.body.nodes.hasOwnProperty(nodeId)) {
-              node = this.body.nodes[nodeId];
+              var node = this.body.nodes[nodeId];
               if (node.edges.length === hubSize) {
-                this._setLevelByHubsize(0, node);
+                this._crawlNetwork(levelDownstream, nodeId);
               }
             }
           }
@@ -39805,28 +39838,33 @@ return /******/ (function(modules) { // webpackBootstrap
       }
 
       /**
-       * this function is called recursively to enumerate the barnches of the largest hubs and give each node a level.
-       *
-       * @param level
-       * @param edges
-       * @param parentId
+       * TODO: release feature
        * @private
        */
     }, {
-      key: '_setLevelByHubsize',
-      value: function _setLevelByHubsize(level, node) {
-        if (this.hierarchicalLevels[node.id] !== undefined) return;
+      key: '_determineLevelsCustomCallback',
+      value: function _determineLevelsCustomCallback() {
+        var _this3 = this;
 
-        var childNode = undefined;
-        this.hierarchicalLevels[node.id] = level;
-        for (var i = 0; i < node.edges.length; i++) {
-          if (node.edges[i].toId === node.id) {
-            childNode = node.edges[i].from;
-          } else {
-            childNode = node.edges[i].to;
+        var minLevel = 100000;
+
+        // TODO: this should come from options.
+        var customCallback = function customCallback(nodeA, nodeB, edge) {};
+
+        var levelByDirection = function levelByDirection(nodeA, nodeB, edge) {
+          var levelA = _this3.hierarchicalLevels[nodeA.id];
+          // set initial level
+          if (levelA === undefined) {
+            _this3.hierarchicalLevels[nodeA.id] = minLevel;
           }
-          this._setLevelByHubsize(level + 1, childNode, node.id);
-        }
+
+          var diff = customCallback(_NetworkUtil2['default']._cloneOptions(nodeA, 'node'), _NetworkUtil2['default']._cloneOptions(nodeB, 'node'), _NetworkUtil2['default']._cloneOptions(edge, 'edge'));
+
+          _this3.hierarchicalLevels[nodeB.id] = _this3.hierarchicalLevels[nodeA.id] + diff;
+        };
+
+        this._crawlNetwork(levelByDirection);
+        this._setMinLevelToZero();
       }
 
       /**
@@ -39838,56 +39876,39 @@ return /******/ (function(modules) { // webpackBootstrap
     }, {
       key: '_determineLevelsDirected',
       value: function _determineLevelsDirected() {
-        var nodeId = undefined,
-            node = undefined;
+        var _this4 = this;
+
         var minLevel = 10000;
-
-        // set first node to source
-        for (nodeId in this.body.nodes) {
-          if (this.body.nodes.hasOwnProperty(nodeId)) {
-            node = this.body.nodes[nodeId];
-            this._setLevelDirected(minLevel, node);
+        var levelByDirection = function levelByDirection(nodeA, nodeB, edge) {
+          var levelA = _this4.hierarchicalLevels[nodeA.id];
+          // set initial level
+          if (levelA === undefined) {
+            _this4.hierarchicalLevels[nodeA.id] = minLevel;
           }
-        }
-
+          if (edge.toId == nodeB.id) {
+            _this4.hierarchicalLevels[nodeB.id] = _this4.hierarchicalLevels[nodeA.id] + 1;
+          } else {
+            _this4.hierarchicalLevels[nodeB.id] = _this4.hierarchicalLevels[nodeA.id] - 1;
+          }
+        };
+        this._crawlNetwork(levelByDirection);
+        this._setMinLevelToZero();
+      }
+    }, {
+      key: '_setMinLevelToZero',
+      value: function _setMinLevelToZero() {
+        var minLevel = undefined;
         // get the minimum level
-        for (nodeId in this.body.nodes) {
+        for (var nodeId in this.body.nodes) {
           if (this.body.nodes.hasOwnProperty(nodeId)) {
             minLevel = Math.min(this.hierarchicalLevels[nodeId], minLevel);
           }
         }
 
         // subtract the minimum from the set so we have a range starting from 0
-        for (nodeId in this.body.nodes) {
+        for (var nodeId in this.body.nodes) {
           if (this.body.nodes.hasOwnProperty(nodeId)) {
             this.hierarchicalLevels[nodeId] -= minLevel;
-          }
-        }
-      }
-
-      /**
-       * this function is called recursively to enumerate the branched of the first node and give each node a level based on edge direction
-       *
-       * @param level
-       * @param edges
-       * @param parentId
-       * @private
-       */
-    }, {
-      key: '_setLevelDirected',
-      value: function _setLevelDirected(level, node, parentId) {
-        if (this.hierarchicalLevels[node.id] !== undefined) return;
-
-        var childNode = undefined;
-        this.hierarchicalLevels[node.id] = level;
-
-        for (var i = 0; i < node.edges.length; i++) {
-          if (node.edges[i].toId === node.id) {
-            childNode = node.edges[i].from;
-            this._setLevelDirected(level - 1, childNode, node.id);
-          } else {
-            childNode = node.edges[i].to;
-            this._setLevelDirected(level + 1, childNode, node.id);
           }
         }
       }
@@ -39901,29 +39922,36 @@ return /******/ (function(modules) { // webpackBootstrap
     }, {
       key: '_generateMap',
       value: function _generateMap() {
-        var _this2 = this;
+        var _this5 = this;
 
         var fillInRelations = function fillInRelations(parentNode, childNode) {
-          if (_this2.hierarchicalLevels[childNode.id] > _this2.hierarchicalLevels[parentNode.id]) {
+          if (_this5.hierarchicalLevels[childNode.id] > _this5.hierarchicalLevels[parentNode.id]) {
             var parentNodeId = parentNode.id;
             var childNodeId = childNode.id;
-            if (_this2.hierarchicalParents[parentNodeId] === undefined) {
-              _this2.hierarchicalParents[parentNodeId] = { children: [], amount: 0 };
+            if (_this5.hierarchicalParents[parentNodeId] === undefined) {
+              _this5.hierarchicalParents[parentNodeId] = { children: [], amount: 0 };
             }
-            _this2.hierarchicalParents[parentNodeId].children.push(childNodeId);
-            if (_this2.hierarchicalChildren[childNodeId] === undefined) {
-              _this2.hierarchicalChildren[childNodeId] = { parents: [], amount: 0 };
+            _this5.hierarchicalParents[parentNodeId].children.push(childNodeId);
+            if (_this5.hierarchicalChildren[childNodeId] === undefined) {
+              _this5.hierarchicalChildren[childNodeId] = { parents: [], amount: 0 };
             }
-            _this2.hierarchicalChildren[childNodeId].parents.push(parentNodeId);
+            _this5.hierarchicalChildren[childNodeId].parents.push(parentNodeId);
           }
         };
 
         this._crawlNetwork(fillInRelations);
       }
+
+      /**
+       * Crawl over the entire network and use a callback on each node couple that is connected to eachother.
+       * @param callback          | will receive nodeA nodeB and the connecting edge. A and B are unique.
+       * @param startingNodeId
+       * @private
+       */
     }, {
       key: '_crawlNetwork',
-      value: function _crawlNetwork() {
-        var callback = arguments.length <= 0 || arguments[0] === undefined ? function () {} : arguments[0];
+      value: function _crawlNetwork(callback, startingNodeId) {
+        if (callback === undefined) callback = function () {};
 
         var progress = {};
         var crawler = function crawler(node) {
@@ -39938,15 +39966,25 @@ return /******/ (function(modules) { // webpackBootstrap
               }
 
               if (node.id !== childNode.id) {
-                callback(node, childNode);
+                callback(node, childNode, node.edges[i]);
                 crawler(childNode);
               }
             }
           }
         };
 
-        for (var i = 0; i < this.body.nodeIndices.length; i++) {
-          var node = this.body.nodes[this.body.nodeIndices[i]];
+        // we can crawl from a specific node or over all nodes.
+        if (startingNodeId === undefined) {
+          for (var i = 0; i < this.body.nodeIndices.length; i++) {
+            var node = this.body.nodes[this.body.nodeIndices[i]];
+            crawler(node);
+          }
+        } else {
+          var node = this.body.nodes[startingNodeId];
+          if (node === undefined) {
+            console.error("Node not found:", startingNodeId);
+            return;
+          }
           crawler(node);
         }
       }
@@ -40057,34 +40095,34 @@ return /******/ (function(modules) { // webpackBootstrap
     }, {
       key: '_findCommonParent',
       value: function _findCommonParent(childA, childB) {
-        var _this3 = this;
+        var _this6 = this;
 
         var parents = {};
         var iterateParents = function iterateParents(parents, child) {
-          if (_this3.hierarchicalChildren[child] !== undefined) {
-            for (var i = 0; i < _this3.hierarchicalChildren[child].parents.length; i++) {
-              var _parent = _this3.hierarchicalChildren[child].parents[i];
+          if (_this6.hierarchicalChildren[child] !== undefined) {
+            for (var i = 0; i < _this6.hierarchicalChildren[child].parents.length; i++) {
+              var _parent = _this6.hierarchicalChildren[child].parents[i];
               parents[_parent] = true;
               iterateParents(parents, _parent);
             }
           }
         };
-        var findParent = function findParent(_x2, _x3) {
+        var findParent = function findParent(_x, _x2) {
           var _again = true;
 
           _function: while (_again) {
-            var parents = _x2,
-                child = _x3;
+            var parents = _x,
+                child = _x2;
             _again = false;
 
-            if (_this3.hierarchicalChildren[child] !== undefined) {
-              for (var i = 0; i < _this3.hierarchicalChildren[child].parents.length; i++) {
-                var _parent2 = _this3.hierarchicalChildren[child].parents[i];
+            if (_this6.hierarchicalChildren[child] !== undefined) {
+              for (var i = 0; i < _this6.hierarchicalChildren[child].parents.length; i++) {
+                var _parent2 = _this6.hierarchicalChildren[child].parents[i];
                 if (parents[_parent2] !== undefined) {
                   return { foundParent: _parent2, withChild: child };
                 }
-                _x2 = parents;
-                _x3 = _parent2;
+                _x = parents;
+                _x2 = _parent2;
                 _again = true;
                 i = _parent2 = undefined;
                 continue _function;
