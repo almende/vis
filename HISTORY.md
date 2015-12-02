@@ -4,6 +4,10 @@ http://visjs.org
 
 ## not yet released, version 4.10.1-SNAPSHOT
 
+### Network
+
+- Expose `setSelection` method. Thanks @zefrog.
+
 ### Timeline
 
 - Fixed #1441: Height of subgroups not immediately updated after updating
