@@ -5,7 +5,7 @@
  * A dynamic, browser-based visualization library.
  *
  * @version 4.10.1-SNAPSHOT
- * @date    2015-12-01
+ * @date    2015-12-02
  *
  * @license
  * Copyright (C) 2011-2015 Almende B.V, http://almende.com
@@ -23583,7 +23583,7 @@ return /******/ (function(modules) { // webpackBootstrap
    */
   function Graph2d(container, items, groups, options) {
     // if the third element is options, the forth is groups (optionally);
-    if (!(Array.isArray(groups) || groups instanceof DataSet) && groups instanceof Object) {
+    if (!(Array.isArray(groups) || groups instanceof DataSet || groups instanceof DataView) && groups instanceof Object) {
       var forthArgument = options;
       options = groups;
       groups = forthArgument;
@@ -24198,8 +24198,6 @@ return /******/ (function(modules) { // webpackBootstrap
       ids = this.itemsData.getIds();
       this._onAdd(ids);
     }
-    this._updateUngrouped();
-    //this._updateGraph();
     this.redraw(true);
   };
 
@@ -24252,9 +24250,7 @@ return /******/ (function(modules) { // webpackBootstrap
    * @private
    */
   LineGraph.prototype._onUpdate = function (ids) {
-    this._updateUngrouped();
     this._updateAllGroupData();
-    //this._updateGraph();
     this.redraw(true);
   };
   LineGraph.prototype._onAdd = function (ids) {
@@ -24268,8 +24264,6 @@ return /******/ (function(modules) { // webpackBootstrap
       var group = this.groupsData.get(groupIds[i]);
       this._updateGroup(group, groupIds[i]);
     }
-
-    //this._updateGraph();
     this.redraw(true);
   };
   LineGraph.prototype._onAddGroups = function (groupIds) {
@@ -24296,8 +24290,6 @@ return /******/ (function(modules) { // webpackBootstrap
         delete this.groups[groupIds[i]];
       }
     }
-    this._updateUngrouped();
-    //this._updateGraph();
     this.redraw(true);
   };
 
@@ -24340,74 +24332,38 @@ return /******/ (function(modules) { // webpackBootstrap
   LineGraph.prototype._updateAllGroupData = function () {
     if (this.itemsData != null) {
       var groupsContent = {};
-      var groupId;
-      for (groupId in this.groups) {
-        if (this.groups.hasOwnProperty(groupId)) {
+      this.itemsData.get().forEach(function (item) {
+        var groupId = item.group;
+        if (groupId === null || groupId === undefined) {
+          groupId = UNGROUPED;
+        }
+        if (groupsContent[groupId] === undefined) {
           groupsContent[groupId] = [];
         }
-      }
-      for (var itemId in this.itemsData._data) {
-        if (this.itemsData._data.hasOwnProperty(itemId)) {
-          var item = this.itemsData._data[itemId];
-          if (groupsContent[item.group] === undefined) {
-            throw new Error('Cannot find referenced group ' + item.group + '. Possible reason: items added before groups? Groups need to be added before items, as items refer to groups.');
-          }
-          item.x = util.convert(item.x, 'Date');
-          groupsContent[item.group].push(item);
-        }
-      }
-      for (groupId in this.groups) {
-        if (this.groups.hasOwnProperty(groupId)) {
-          this.groups[groupId].setItems(groupsContent[groupId]);
-        }
-      }
-    }
-  };
-
-  /**
-   * Create or delete the group holding all ungrouped items. This group is used when
-   * there are no groups specified. This anonymous group is called 'graph'.
-   * @protected
-   */
-  LineGraph.prototype._updateUngrouped = function () {
-    if (this.itemsData && this.itemsData != null) {
-      var ungroupedCounter = 0;
-      for (var itemId in this.itemsData._data) {
-        if (this.itemsData._data.hasOwnProperty(itemId)) {
-          var item = this.itemsData._data[itemId];
-          if (item != undefined) {
-            if (item.hasOwnProperty('group')) {
-              if (item.group === undefined) {
-                item.group = UNGROUPED;
-              }
-            } else {
-              item.group = UNGROUPED;
+        var extended = Object.create(item);
+        extended.x = util.convert(item.x, 'Date');
+        groupsContent[groupId].push(extended);
+      });
+      //Update legendas and axis
+      for (var groupId in groupsContent) {
+        if (groupsContent.hasOwnProperty(groupId)) {
+          if (groupsContent[groupId].length == 0) {
+            if (this.groups.hasOwnProperty(groupId)) {
+              this._onRemoveGroups([groupId]);
             }
-            ungroupedCounter = item.group == UNGROUPED ? ungroupedCounter + 1 : ungroupedCounter;
+          } else {
+            if (!this.groups.hasOwnProperty(groupId)) {
+              var group = { id: groupId, content: this.options.defaultGroup };
+              if (this.groupsData && this.groupsData.hasOwnProperty(groupId)) {
+                group = this.groupsData[groupId];
+              }
+              this._updateGroup(group, groupId);
+            }
+            this.groups[groupId].setItems(groupsContent[groupId]);
           }
         }
       }
-
-      if (ungroupedCounter == 0) {
-        delete this.groups[UNGROUPED];
-        this.legendLeft.removeGroup(UNGROUPED);
-        this.legendRight.removeGroup(UNGROUPED);
-        this.yAxisLeft.removeGroup(UNGROUPED);
-        this.yAxisRight.removeGroup(UNGROUPED);
-      } else {
-        var group = { id: UNGROUPED, content: this.options.defaultGroup };
-        this._updateGroup(group, UNGROUPED);
-      }
-    } else {
-      delete this.groups[UNGROUPED];
-      this.legendLeft.removeGroup(UNGROUPED);
-      this.legendRight.removeGroup(UNGROUPED);
-      this.yAxisLeft.removeGroup(UNGROUPED);
-      this.yAxisRight.removeGroup(UNGROUPED);
     }
-
-    this.legendLeft.redraw();
-    this.legendRight.redraw();
   };
 
   /**
@@ -26041,12 +25997,15 @@ return /******/ (function(modules) { // webpackBootstrap
         // append with points for fill and finalize the path
         if (group.options.shaded.enabled == true) {
           var fillPath = DOMutil.getSVGElement('path', framework.svgElements, framework.svg);
-          var dFill;
+          var zero = 0;
           if (group.options.shaded.orientation == 'top') {
-            dFill = 'M' + dataset[0].x + ',' + 0 + ' ' + d + 'L' + dataset[dataset.length - 1].x + ',' + 0;
+            zero = 0;
+          } else if (group.options.shaded.orientation == 'bottom') {
+            zero = svgHeight;
           } else {
-            dFill = 'M' + dataset[0].x + ',' + svgHeight + ' ' + d + 'L' + dataset[dataset.length - 1].x + ',' + svgHeight;
+            zero = Math.min(Math.max(0, group.zeroPosition), svgHeight);
           }
+          var dFill = 'M' + dataset[0].x + ',' + zero + ' ' + d + 'L' + dataset[dataset.length - 1].x + ',' + zero;
           fillPath.setAttributeNS(null, 'class', group.className + ' vis-fill');
           if (group.options.shaded.style !== undefined) {
             fillPath.setAttributeNS(null, 'style', group.options.shaded.style);
@@ -26794,7 +26753,7 @@ return /******/ (function(modules) { // webpackBootstrap
     graphHeight: { string: string, number: number },
     shaded: {
       enabled: { boolean: boolean },
-      orientation: { string: ['bottom', 'top'] }, // top, bottom
+      orientation: { string: ['bottom', 'top', 'zero'] }, // top, bottom, zero
       __type__: { boolean: boolean, object: object }
     },
     style: { string: ['line', 'bar', 'points'] }, // line, bar
@@ -26933,7 +26892,7 @@ return /******/ (function(modules) { // webpackBootstrap
       stack: false,
       shaded: {
         enabled: false,
-        orientation: ['top', 'bottom'] // top, bottom
+        orientation: ['zero', 'top', 'bottom'] // zero, top, bottom
       },
       style: ['line', 'bar', 'points'], // line, bar
       barChart: {
@@ -28800,12 +28759,10 @@ return /******/ (function(modules) { // webpackBootstrap
 
         // individual shape newOptions
         if (newOptions.color !== undefined && newOptions.color !== null) {
-          // make a copy of the parent object in case this is referring to the global one (due to object create once, then update)
-          parentOptions.color = util.deepExtend({}, parentOptions.color, true);
           var parsedColor = util.parseColor(newOptions.color);
           util.fillIfDefined(parentOptions.color, parsedColor);
         } else if (allowDeletion === true && newOptions.color === null) {
-          parentOptions.color = Object.create(globalOptions.color); // this sets the pointer of the option back to the global option.
+          parentOptions.color = util.bridgeObject(globalOptions.color); // set the object back to the global options
         }
 
         // handle the fixed options
@@ -28827,7 +28784,7 @@ return /******/ (function(modules) { // webpackBootstrap
         if (newOptions.font !== undefined && newOptions.font !== null) {
           _sharedLabel2['default'].parseOptions(parentOptions.font, newOptions);
         } else if (allowDeletion === true && newOptions.font === null) {
-          parentOptions.font = Object.create(globalOptions.font); // this sets the pointer of the option back to the global option.
+          parentOptions.font = util.bridgeObject(globalOptions.font); // set the object back to the global options
         }
 
         // handle the scaling options, specifically the label part
@@ -31310,7 +31267,7 @@ return /******/ (function(modules) { // webpackBootstrap
       }
     }, {
       key: 'updateLabelModule',
-      // this sets the pointer of the option back to the global option.
+      // set the object back to the global options
 
       /**
        * update the options in the label module
@@ -31729,14 +31686,14 @@ return /******/ (function(modules) { // webpackBootstrap
             }
           }
         } else if (allowDeletion === true && newOptions.color === null) {
-          parentOptions.color = Object.create(globalOptions.color); // this sets the pointer of the option back to the global option.
+          parentOptions.color = util.bridgeObject(globalOptions.color); // set the object back to the global options
         }
 
         // handle the font settings
         if (newOptions.font !== undefined && newOptions.font !== null) {
           _sharedLabel2['default'].parseOptions(parentOptions.font, newOptions);
         } else if (allowDeletion === true && newOptions.font === null) {
-          parentOptions.font = Object.create(globalOptions.font);
+          parentOptions.font = util.bridgeObject(globalOptions.font);
         }
       }
     }]);
@@ -39894,10 +39851,15 @@ return /******/ (function(modules) { // webpackBootstrap
         this._crawlNetwork(levelByDirection);
         this._setMinLevelToZero();
       }
+
+      /**
+       * Small util method to set the minimum levels of the nodes to zero.
+       * @private
+       */
     }, {
       key: '_setMinLevelToZero',
       value: function _setMinLevelToZero() {
-        var minLevel = undefined;
+        var minLevel = 1e9;
         // get the minimum level
         for (var nodeId in this.body.nodes) {
           if (this.body.nodes.hasOwnProperty(nodeId)) {
@@ -39993,15 +39955,14 @@ return /******/ (function(modules) { // webpackBootstrap
        * This is a recursively called function to enumerate the branches from the largest hubs and place the nodes
        * on a X position that ensures there will be no overlap.
        *
-       * @param edges
        * @param parentId
-       * @param distribution
        * @param parentLevel
        * @private
        */
     }, {
       key: '_placeBranchNodes',
       value: function _placeBranchNodes(parentId, parentLevel) {
+        // if this is not a parent, cancel the placing. This can happen with multiple parents to one child.
         if (this.hierarchicalParents[parentId] === undefined) {
           return;
         }
