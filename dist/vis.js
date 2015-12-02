@@ -39650,7 +39650,7 @@ return /******/ (function(modules) { // webpackBootstrap
             this._placeNodesByHierarchy(distribution);
 
             // Todo: condense the whitespace.
-            this._condenseHierarchy();
+            this._condenseHierarchy(distribution);
 
             // shift to center so gravity does not have to do much
             this._shiftToCenter();
@@ -39664,7 +39664,56 @@ return /******/ (function(modules) { // webpackBootstrap
        */
     }, {
       key: '_condenseHierarchy',
-      value: function _condenseHierarchy() {}
+      value: function _condenseHierarchy(distribution) {
+        var maxRatio = 2;
+
+        //let checkLength = (parentId, childId) => {
+        //  let dx = this.body.nodes[parentId].x - this.body.nodes[childId].x;
+        //  let dy = this.body.nodes[parentId].y - this.body.nodes[childId].y;
+        //  return Math.sqrt(Math.pow(dx,2) + Math.pow(dy,2));
+        //}
+        //let checkLengths = (parentId, childIdArray) => {
+        //  let average = 0;
+        //  for (let i = 0; i < childIdArray.length; i++) {
+        //    average += checkLength(parentId, childIdArray[i]);
+        //  }
+        //  return average / childIdArray.length;
+        //}
+
+        //let levels = Object.keys(distribution);
+        //
+        //for (let i = 0; i < levels.length; i++) {
+        //  // sort nodes in level by position:
+        //  let nodesArray = Object.keys(distribution[levels[i]]);
+        //  nodesArray = this._indexArrayToNodes(nodesArray);
+        //  this._sortNodeArray(nodesArray);
+        //
+        //  for (let j = 0; j < nodesArray.length; j++) {
+        //    let node = nodesArray[j];
+        //    if (this.hierarchicalParents[node.id] === undefined) {
+        //      let diff = 0;
+        //      if (j == 0 && nodesArray.length > 1) {
+        //        diff = nodesArray[j+1].x - this.nodeSpacing - node.x;
+        //      }
+        //      else if (j == nodesArray.length - 1 && nodesArray.length > 1) {
+        //        diff = nodesArray[j-1].x + this.nodeSpacing - node.x;
+        //      }
+        //      else if (nodesArray.length > 3) {
+        //        diff = 0.5*(nodesArray[j-1].x + nodesArray[j+1].x) - node.x
+        //      }
+        //
+        //      node.x += diff;
+        //
+        //      let parentId = this.hierarchicalChildren[node.id].parents[0];
+        //      if (this.hierarchicalChildren[node.id].parents.length == 1 && this.hierarchicalParents[parentId].children.length == 1) {
+        //        //this.body.nodes[parentId].x += diff;
+        //      }
+        //    }
+        //  }
+        //  //return
+        //
+        //}
+      }
 
       /**
        * This function places the nodes on the canvas based on the hierarchial distribution.
@@ -39675,27 +39724,34 @@ return /******/ (function(modules) { // webpackBootstrap
     }, {
       key: '_placeNodesByHierarchy',
       value: function _placeNodesByHierarchy(distribution) {
-        var nodeId = undefined,
-            node = undefined;
         this.positionedNodes = {};
         // start placing all the level 0 nodes first. Then recursively position their branches.
         for (var level in distribution) {
           if (distribution.hasOwnProperty(level)) {
             // sort nodes in level by position:
             var nodeArray = Object.keys(distribution[level]);
+            nodeArray = this._indexArrayToNodes(nodeArray);
             this._sortNodeArray(nodeArray);
 
             for (var i = 0; i < nodeArray.length; i++) {
-              nodeId = nodeArray[i];
-              node = distribution[level][nodeId];
-              if (this.positionedNodes[nodeId] === undefined) {
+              var node = nodeArray[i];
+              if (this.positionedNodes[node.id] === undefined) {
                 this._setPositionForHierarchy(node, this.nodeSpacing * i);
-                this.positionedNodes[nodeId] = true;
-                this._placeBranchNodes(nodeId, level);
+                this.positionedNodes[node.id] = true;
+                this._placeBranchNodes(node.id, level);
               }
             }
           }
         }
+      }
+    }, {
+      key: '_indexArrayToNodes',
+      value: function _indexArrayToNodes(idArray) {
+        var array = [];
+        for (var i = 0; i < idArray.length; i++) {
+          array.push(this.body.nodes[idArray[i]]);
+        }
+        return array;
       }
 
       /**
@@ -40068,29 +40124,20 @@ return /******/ (function(modules) { // webpackBootstrap
             }
           }
         };
-        var findParent = function findParent(_x, _x2) {
-          var _again = true;
-
-          _function: while (_again) {
-            var parents = _x,
-                child = _x2;
-            _again = false;
-
-            if (_this6.hierarchicalChildren[child] !== undefined) {
-              for (var i = 0; i < _this6.hierarchicalChildren[child].parents.length; i++) {
-                var _parent2 = _this6.hierarchicalChildren[child].parents[i];
-                if (parents[_parent2] !== undefined) {
-                  return { foundParent: _parent2, withChild: child };
-                }
-                _x = parents;
-                _x2 = _parent2;
-                _again = true;
-                i = _parent2 = undefined;
-                continue _function;
+        var findParent = function findParent(parents, child) {
+          if (_this6.hierarchicalChildren[child] !== undefined) {
+            for (var i = 0; i < _this6.hierarchicalChildren[child].parents.length; i++) {
+              var _parent2 = _this6.hierarchicalChildren[child].parents[i];
+              if (parents[_parent2] !== undefined) {
+                return { foundParent: _parent2, withChild: child };
+              }
+              var branch = findParent(parents, _parent2);
+              if (branch.foundParent !== null) {
+                return branch;
               }
             }
-            return { foundParent: null, withChild: child };
           }
+          return { foundParent: null, withChild: child };
         };
 
         iterateParents(parents, childA);
@@ -40137,14 +40184,16 @@ return /******/ (function(modules) { // webpackBootstrap
     }, {
       key: '_sortNodeArray',
       value: function _sortNodeArray(nodeArray) {
-        if (this.options.hierarchical.direction === 'UD' || this.options.hierarchical.direction === 'DU') {
-          nodeArray.sort(function (a, b) {
-            return a.x - b.x;
-          });
-        } else {
-          nodeArray.sort(function (a, b) {
-            return a.y - b.y;
-          });
+        if (nodeArray.length > 1) {
+          if (this.options.hierarchical.direction === 'UD' || this.options.hierarchical.direction === 'DU') {
+            nodeArray.sort(function (a, b) {
+              return a.x - b.x;
+            });
+          } else {
+            nodeArray.sort(function (a, b) {
+              return a.y - b.y;
+            });
+          }
         }
       }
     }]);
