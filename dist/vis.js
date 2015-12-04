@@ -5,7 +5,7 @@
  * A dynamic, browser-based visualization library.
  *
  * @version 4.10.1-SNAPSHOT
- * @date    2015-12-02
+ * @date    2015-12-04
  *
  * @license
  * Copyright (C) 2011-2015 Almende B.V, http://almende.com
@@ -27561,6 +27561,9 @@ return /******/ (function(modules) { // webpackBootstrap
   Network.prototype.getSelection = function () {
     return this.selectionHandler.getSelection.apply(this.selectionHandler, arguments);
   };
+  Network.prototype.setSelection = function () {
+    return this.selectionHandler.setSelection.apply(this.selectionHandler, arguments);
+  };
   Network.prototype.getSelectedNodes = function () {
     return this.selectionHandler.getSelectedNodes.apply(this.selectionHandler, arguments);
   };
@@ -33400,6 +33403,9 @@ return /******/ (function(modules) { // webpackBootstrap
           // update shortcut lists
           _this.updatePhysicsData();
         });
+
+        // debug: show forces
+        // this.body.emitter.on("afterDrawing", (ctx) => {this._drawForces(ctx);});
       }
 
       /**
@@ -33991,6 +33997,34 @@ return /******/ (function(modules) { // webpackBootstrap
 
         this.ready = true;
       }
+    }, {
+      key: '_drawForces',
+      value: function _drawForces(ctx) {
+        for (var i = 0; i < this.physicsBody.physicsNodeIndices.length; i++) {
+          var node = this.body.nodes[this.physicsBody.physicsNodeIndices[i]];
+          var force = this.physicsBody.forces[this.physicsBody.physicsNodeIndices[i]];
+          var factor = 20;
+          var colorFactor = 0.03;
+          var forceSize = Math.sqrt(Math.pow(force.x, 2) + Math.pow(force.x, 2));
+
+          var size = Math.min(Math.max(5, forceSize), 15);
+          var arrowSize = 3 * size;
+
+          var color = util.HSVToHex((180 - Math.min(1, Math.max(0, colorFactor * forceSize)) * 180) / 360, 1, 1);
+
+          ctx.lineWidth = size;
+          ctx.strokeStyle = color;
+          ctx.beginPath();
+          ctx.moveTo(node.x, node.y);
+          ctx.lineTo(node.x + factor * force.x, node.y + factor * force.y);
+          ctx.stroke();
+
+          var angle = Math.atan2(force.y, force.x);
+          ctx.fillStyle = color;
+          ctx.arrow(node.x + factor * force.x + Math.cos(angle) * arrowSize, node.y + factor * force.y + Math.sin(angle) * arrowSize, angle, arrowSize);
+          ctx.fill();
+        }
+      }
     }]);
 
     return PhysicsEngine;
@@ -34022,6 +34056,9 @@ return /******/ (function(modules) { // webpackBootstrap
       this.barnesHutTree;
       this.setOptions(options);
       this.randomSeed = 5;
+
+      // debug: show grid
+      //this.body.emitter.on("afterDrawing", (ctx) => {this._debug(ctx,'#ff0000')})
     }
 
     _createClass(BarnesHutSolver, [{
@@ -34317,7 +34354,7 @@ return /******/ (function(modules) { // webpackBootstrap
           case 1:
             // convert into children
             // if there are two nodes exactly overlapping (on init, on opening of cluster etc.)
-            // we move one node a pixel and we do not put it in the tree.
+            // we move one node a little bit and we do not put it in the tree.
             if (parentBranch.children[region].children.data.x === node.x && parentBranch.children[region].children.data.y === node.y) {
               node.x += this.seededRandom();
               node.y += this.seededRandom();
@@ -36365,12 +36402,11 @@ return /******/ (function(modules) { // webpackBootstrap
           }
 
           ctx.beginPath();
-          //this.physics.nodesSolver._debug(ctx,"#F00F0F");
           this.body.emitter.emit("afterDrawing", ctx);
           ctx.closePath();
+
           // restore original scaling and translation
           ctx.restore();
-
           if (hidden === true) {
             ctx.clearRect(0, 0, w, h);
           }
@@ -39664,56 +39700,7 @@ return /******/ (function(modules) { // webpackBootstrap
        */
     }, {
       key: '_condenseHierarchy',
-      value: function _condenseHierarchy(distribution) {
-        var maxRatio = 2;
-
-        //let checkLength = (parentId, childId) => {
-        //  let dx = this.body.nodes[parentId].x - this.body.nodes[childId].x;
-        //  let dy = this.body.nodes[parentId].y - this.body.nodes[childId].y;
-        //  return Math.sqrt(Math.pow(dx,2) + Math.pow(dy,2));
-        //}
-        //let checkLengths = (parentId, childIdArray) => {
-        //  let average = 0;
-        //  for (let i = 0; i < childIdArray.length; i++) {
-        //    average += checkLength(parentId, childIdArray[i]);
-        //  }
-        //  return average / childIdArray.length;
-        //}
-
-        //let levels = Object.keys(distribution);
-        //
-        //for (let i = 0; i < levels.length; i++) {
-        //  // sort nodes in level by position:
-        //  let nodesArray = Object.keys(distribution[levels[i]]);
-        //  nodesArray = this._indexArrayToNodes(nodesArray);
-        //  this._sortNodeArray(nodesArray);
-        //
-        //  for (let j = 0; j < nodesArray.length; j++) {
-        //    let node = nodesArray[j];
-        //    if (this.hierarchicalParents[node.id] === undefined) {
-        //      let diff = 0;
-        //      if (j == 0 && nodesArray.length > 1) {
-        //        diff = nodesArray[j+1].x - this.nodeSpacing - node.x;
-        //      }
-        //      else if (j == nodesArray.length - 1 && nodesArray.length > 1) {
-        //        diff = nodesArray[j-1].x + this.nodeSpacing - node.x;
-        //      }
-        //      else if (nodesArray.length > 3) {
-        //        diff = 0.5*(nodesArray[j-1].x + nodesArray[j+1].x) - node.x
-        //      }
-        //
-        //      node.x += diff;
-        //
-        //      let parentId = this.hierarchicalChildren[node.id].parents[0];
-        //      if (this.hierarchicalChildren[node.id].parents.length == 1 && this.hierarchicalParents[parentId].children.length == 1) {
-        //        //this.body.nodes[parentId].x += diff;
-        //      }
-        //    }
-        //  }
-        //  //return
-        //
-        //}
-      }
+      value: function _condenseHierarchy(distribution) {}
 
       /**
        * This function places the nodes on the canvas based on the hierarchial distribution.
@@ -39744,6 +39731,12 @@ return /******/ (function(modules) { // webpackBootstrap
           }
         }
       }
+
+      /**
+       * Receives an array with node indices and returns an array with the actual node references. Used for sorting based on
+       * node properties.
+       * @param idArray
+       */
     }, {
       key: '_indexArrayToNodes',
       value: function _indexArrayToNodes(idArray) {
