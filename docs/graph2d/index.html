@@ -741,7 +741,7 @@ onRender: function(item, group, graph2d) {
             <td>stack</td>
             <td>Boolean</td>
             <td>true</td>
-            <td>If stack is enabled, the graphs will be stacked upon eachother when applicable. This currently only works with bar graphs but linegraph support is being worked on.</td>
+            <td>If stack is enabled, the graphs will be stacked upon each-other when applicable. A group can opt-out of stacking through the "excludeFromStacking" option.</td>
         </tr>
         <tr class='toggle collapsible' onclick="toggleTable('g2dOptions','shaded', this);">
             <td class="greenField"><span parent="shaded" class="right-caret"></span> shaded</td>
@@ -794,7 +794,13 @@ onRender: function(item, group, graph2d) {
             <td class="greenField">excludeFromLegend</td>
             <td>Boolean</td>
             <td>false</td>
-            <td>Group option only. Excludes the the group from beeing listed in the legend.</td>
+            <td>Group option only. Excludes the group from being listed in the legend.</td>
+        </tr>
+        <tr>
+            <td class="greenField">excludeFromStacking</td>
+            <td>Boolean</td>
+            <td>false</td>
+            <td>Group option only. Excludes the group from being included in the stacking.</td>
         </tr>
     </table>
 
