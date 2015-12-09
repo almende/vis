@@ -12,7 +12,9 @@ http://visjs.org
 
 - Fixed #1441: Height of subgroups not immediately updated after updating
   data in a DataSet or DataView.
-  
+- Fixed #1491: Problem using ctrl+drag in combination with using a `DataView`,
+  and an issue with ctrl+drag when using `snap: null`.
+
 ### Graph2d
 
 - Implemented a new option for `shaded.orientation` to always shade towards zero.
