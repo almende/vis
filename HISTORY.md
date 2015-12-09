@@ -21,6 +21,9 @@ http://visjs.org
   Thanks @ludost.
 - Fixed support for using a `DataView` in Graph2d. Thanks @ludost.
 
+### DataSet
+- Fixed #1487: DataSet cannot remove an item with id `0` correctly.
+
 
 ## 2015-11-27, version 4.10.0
 
