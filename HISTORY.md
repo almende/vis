@@ -17,12 +17,19 @@ http://visjs.org
 
 ### Graph2d
 
-- Implemented a new option for `shaded.orientation` to always shade towards zero.
-  Thanks @ludost.
-- Fixed support for using a `DataView` in Graph2d. Thanks @ludost.
+- Large refactoring of Graph2d code base:
+  - Implemented a new option for `shaded.orientation` to always shade towards zero.
+  - Implemented a new option for `shaded.orientation` to follow another group (fill in between)
+  - Implemented line-graph stacking
+  - Fixed support for using a `DataView` in Graph2d.
+  - Implemented a new zindex option for controlling svg rendering order.
+  - Performance updates and fixes
 
 ### DataSet
 - Fixed #1487: DataSet cannot remove an item with id `0` correctly.
+
+### DataView
+- Added the map() function from DataSet.
 
 
 ## 2015-11-27, version 4.10.0
