@@ -148,7 +148,7 @@ gulp.task('minify', ['bundle-js'], function (cb) {
   //       any issues when concatenating the file downstream (the file ends
   //       with a comment).
   fs.writeFileSync(DIST + '/' + VIS_MIN_JS, result.code + '\n');
-  fs.writeFileSync(DIST + '/' + VIS_MAP, result.map);
+  fs.writeFileSync(DIST + '/' + VIS_MAP, result.map.replace(/"\.\/dist\//g, '"'));
 
   cb();
 });
