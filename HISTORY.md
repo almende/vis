@@ -14,6 +14,7 @@ http://visjs.org
   data in a DataSet or DataView.
 - Fixed #1491: Problem using ctrl+drag in combination with using a `DataView`,
   and an issue with ctrl+drag when using `snap: null`.
+- Fixed #1486: Item range sometimes wrongly calculated on IE in case of old dates.
 
 ### Graph2d
 

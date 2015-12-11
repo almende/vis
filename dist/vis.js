@@ -5,7 +5,7 @@
  * A dynamic, browser-based visualization library.
  *
  * @version 4.10.1-SNAPSHOT
- * @date    2015-12-04
+ * @date    2015-12-11
  *
  * @license
  * Copyright (C) 2011-2015 Almende B.V, http://almende.com
@@ -5575,7 +5575,7 @@ return /******/ (function(modules) { // webpackBootstrap
     if (id != undefined) {
       // return a single item
       item = me._getItem(id, type);
-      if (filter && !filter(item)) {
+      if (item && filter && !filter(item)) {
         item = null;
       }
     } else if (ids != undefined) {
@@ -5913,7 +5913,7 @@ return /******/ (function(modules) { // webpackBootstrap
       }
     } else if (id instanceof Object) {
       var itemId = id[this._fieldId];
-      if (itemId && this._data[itemId]) {
+      if (itemId !== undefined && this._data[itemId]) {
         delete this._data[itemId];
         this.length--;
         return itemId;
@@ -10430,8 +10430,8 @@ return /******/ (function(modules) { // webpackBootstrap
 
     // get a rough approximation for the range based on the items start and end dates
     var range = this.getDataRange();
-    var min = range.min;
-    var max = range.max;
+    var min = range.min.valueOf();
+    var max = range.max.valueOf();
     var minItem = null;
     var maxItem = null;
 
@@ -10467,8 +10467,8 @@ return /******/ (function(modules) { // webpackBootstrap
           var start = getStart(item);
           var end = getEnd(item);
 
-          var left = new Date(start - (item.getWidthLeft() + 10) * factor);
-          var right = new Date(end + (item.getWidthRight() + 10) * factor);
+          var left = start - (item.getWidthLeft() + 10) * factor;
+          var right = end + (item.getWidthRight() + 10) * factor;
 
           if (left < min) {
             min = left;
@@ -16859,7 +16859,7 @@ return /******/ (function(modules) { // webpackBootstrap
     var time = this.body.util.toTime(x);
     var scale = this.body.util.getScale();
     var step = this.body.util.getStep();
-    var start = snap ? snap(time, scale, step) : start;
+    var start = snap ? snap(time, scale, step) : time;
     var end = start;
 
     var itemData = {
@@ -23770,7 +23770,7 @@ return /******/ (function(modules) { // webpackBootstrap
     if (this.linegraph.groups[groupId] !== undefined) {
       return this.linegraph.groups[groupId].getLegend(width, height);
     } else {
-      return "cannot find group:" + groupId;
+      return "cannot find group:'" + groupId + "'";
     }
   };
 
@@ -23901,8 +23901,9 @@ return /******/ (function(modules) { // webpackBootstrap
   var DataAxis = __webpack_require__(51);
   var GraphGroup = __webpack_require__(53);
   var Legend = __webpack_require__(57);
-  var BarFunctions = __webpack_require__(56);
-  var LineFunctions = __webpack_require__(54);
+  var Bars = __webpack_require__(54);
+  var Lines = __webpack_require__(56);
+  var Points = __webpack_require__(55);
 
   var UNGROUPED = '__ungrouped__'; // reserved group id for ungrouped items
 
@@ -23926,7 +23927,7 @@ return /******/ (function(modules) { // webpackBootstrap
       graphHeight: '400px',
       shaded: {
         enabled: false,
-        orientation: 'bottom' // top, bottom
+        orientation: 'bottom' // top, bottom, zero
       },
       style: 'line', // line, bar
       barChart: {
@@ -23983,7 +23984,7 @@ return /******/ (function(modules) { // webpackBootstrap
       }
     };
 
-    // options is shared by this ItemSet and all its items
+    // options is shared by this lineGraph and all its items
     this.options = util.extend({}, this.defaultOptions);
     this.dom = {};
     this.props = {};
@@ -24244,11 +24245,6 @@ return /******/ (function(modules) { // webpackBootstrap
     this._onUpdate();
   };
 
-  /**
-   * Update the data
-   * @param [ids]
-   * @private
-   */
   LineGraph.prototype._onUpdate = function (ids) {
     this._updateAllGroupData();
     this.redraw(true);
@@ -24260,10 +24256,7 @@ return /******/ (function(modules) { // webpackBootstrap
     this._onUpdate(ids);
   };
   LineGraph.prototype._onUpdateGroups = function (groupIds) {
-    for (var i = 0; i < groupIds.length; i++) {
-      var group = this.groupsData.get(groupIds[i]);
-      this._updateGroup(group, groupIds[i]);
-    }
+    this._updateAllGroupData();
     this.redraw(true);
   };
   LineGraph.prototype._onAddGroups = function (groupIds) {
@@ -24277,20 +24270,29 @@ return /******/ (function(modules) { // webpackBootstrap
    */
   LineGraph.prototype._onRemoveGroups = function (groupIds) {
     for (var i = 0; i < groupIds.length; i++) {
-      if (this.groups.hasOwnProperty(groupIds[i])) {
-        if (this.groups[groupIds[i]].options.yAxisOrientation == 'right') {
-          this.yAxisRight.removeGroup(groupIds[i]);
-          this.legendRight.removeGroup(groupIds[i]);
-          this.legendRight.redraw();
-        } else {
-          this.yAxisLeft.removeGroup(groupIds[i]);
-          this.legendLeft.removeGroup(groupIds[i]);
-          this.legendLeft.redraw();
-        }
-        delete this.groups[groupIds[i]];
-      }
+      this._removeGroup(groupIds[i]);
     }
     this.redraw(true);
+  };
+
+  /**
+   * this cleans the group out off the legends and the dataaxis
+   * @param groupId
+   * @private
+   */
+  LineGraph.prototype._removeGroup = function (groupId) {
+    if (this.groups.hasOwnProperty(groupId)) {
+      if (this.groups[groupId].options.yAxisOrientation == 'right') {
+        this.yAxisRight.removeGroup(groupId);
+        this.legendRight.removeGroup(groupId);
+        this.legendRight.redraw();
+      } else {
+        this.yAxisLeft.removeGroup(groupId);
+        this.legendLeft.removeGroup(groupId);
+        this.legendLeft.redraw();
+      }
+      delete this.groups[groupId];
+    }
   };
 
   /**
@@ -24332,33 +24334,63 @@ return /******/ (function(modules) { // webpackBootstrap
   LineGraph.prototype._updateAllGroupData = function () {
     if (this.itemsData != null) {
       var groupsContent = {};
-      this.itemsData.get().forEach(function (item) {
+      var items = this.itemsData.get();
+      //pre-Determine array sizes, for more efficient memory claim
+      var groupCounts = {};
+      for (var i = 0; i < items.length; i++) {
+        var item = items[i];
         var groupId = item.group;
         if (groupId === null || groupId === undefined) {
           groupId = UNGROUPED;
         }
-        if (groupsContent[groupId] === undefined) {
-          groupsContent[groupId] = [];
+        groupCounts.hasOwnProperty(groupId) ? groupCounts[groupId]++ : groupCounts[groupId] = 1;
+      }
+      //Now insert data into the arrays.
+      for (var i = 0; i < items.length; i++) {
+        var item = items[i];
+        var groupId = item.group;
+        if (groupId === null || groupId === undefined) {
+          groupId = UNGROUPED;
         }
-        var extended = Object.create(item);
+        if (!groupsContent.hasOwnProperty(groupId)) {
+          groupsContent[groupId] = new Array(groupCounts[groupId]);
+        }
+        //Copy data (because of unmodifiable DataView input.
+        var extended = util.bridgeObject(item);
         extended.x = util.convert(item.x, 'Date');
-        groupsContent[groupId].push(extended);
-      });
-      //Update legendas and axis
+        extended.orginalY = item.y; //real Y
+        // typecast all items to numbers. Takes around 10ms for 500.000 items
+        extended.y = Number(item.y);
+
+        var index = groupsContent[groupId].length - groupCounts[groupId]--;
+        groupsContent[groupId][index] = extended;
+      }
+
+      //Make sure all groups are present, to allow removal of old groups
+      for (var groupId in this.groups) {
+        if (this.groups.hasOwnProperty(groupId)) {
+          if (!groupsContent.hasOwnProperty(groupId)) {
+            groupsContent[groupId] = new Array(0);
+          }
+        }
+      }
+
+      //Update legendas, style and axis
       for (var groupId in groupsContent) {
         if (groupsContent.hasOwnProperty(groupId)) {
           if (groupsContent[groupId].length == 0) {
             if (this.groups.hasOwnProperty(groupId)) {
-              this._onRemoveGroups([groupId]);
+              this._removeGroup(groupId);
             }
           } else {
-            if (!this.groups.hasOwnProperty(groupId)) {
-              var group = { id: groupId, content: this.options.defaultGroup };
-              if (this.groupsData && this.groupsData.hasOwnProperty(groupId)) {
-                group = this.groupsData[groupId];
-              }
-              this._updateGroup(group, groupId);
+            var group = undefined;
+            if (this.groupsData != undefined) {
+              group = this.groupsData.get(groupId);
             }
+            if (group == undefined) {
+              group = { id: groupId, content: this.options.defaultGroup + groupId };
+            }
+            this._updateGroup(group, groupId);
             this.groups[groupId].setItems(groupsContent[groupId]);
           }
         }
@@ -24443,10 +24475,11 @@ return /******/ (function(modules) { // webpackBootstrap
     DOMutil.prepareElements(this.svgElements);
     if (this.props.width != 0 && this.itemsData != null) {
       var group, i;
-      var preprocessedGroupData = {};
-      var processedGroupData = {};
       var groupRanges = {};
       var changeCalled = false;
+      // this is the range of the SVG canvas
+      var minDate = this.body.util.toGlobalTime(-this.body.domProps.root.width);
+      var maxDate = this.body.util.toGlobalTime(2 * this.body.domProps.root.width);
 
       // getting group Ids
       var groupIds = [];
@@ -24459,10 +24492,8 @@ return /******/ (function(modules) { // webpackBootstrap
         }
       }
       if (groupIds.length > 0) {
-        // this is the range of the SVG canvas
-        var minDate = this.body.util.toGlobalTime(-this.body.domProps.root.width);
-        var maxDate = this.body.util.toGlobalTime(2 * this.body.domProps.root.width);
         var groupsData = {};
+
         // fill groups data, this only loads the data we require based on the timewindow
         this._getRelevantData(groupIds, groupsData, minDate, maxDate);
 
@@ -24471,11 +24502,11 @@ return /******/ (function(modules) { // webpackBootstrap
 
         // we transform the X coordinates to detect collisions
         for (i = 0; i < groupIds.length; i++) {
-          preprocessedGroupData[groupIds[i]] = this._convertXcoordinates(groupsData[groupIds[i]]);
+          this._convertXcoordinates(groupsData[groupIds[i]]);
         }
 
         // now all needed data has been collected we start the processing.
-        this._getYRanges(groupIds, preprocessedGroupData, groupRanges);
+        this._getYRanges(groupIds, groupsData, groupRanges);
 
         // update the Y axis first, we use this data to draw at the correct Y points
         // changeCalled is required to clean the SVG on a change emit.
@@ -24495,18 +24526,77 @@ return /******/ (function(modules) { // webpackBootstrap
           this.abortedGraphUpdate = false;
 
           // With the yAxis scaled correctly, use this to get the Y values of the points.
+          var below = undefined;
           for (i = 0; i < groupIds.length; i++) {
             group = this.groups[groupIds[i]];
-            processedGroupData[groupIds[i]] = this._convertYcoordinates(groupsData[groupIds[i]], group);
+            if (this.options.stack === true && this.options.style === 'line') {
+              if (group.options.excludeFromStacking == undefined || !group.options.excludeFromStacking) {
+                if (below != undefined) {
+                  this._stack(groupsData[group.id], groupsData[below.id]);
+                  if (group.options.shaded.enabled == true && group.options.shaded.orientation !== "group") {
+                    if (group.options.shaded.orientation == "top" && below.options.shaded.orientation !== "group") {
+                      below.options.shaded.orientation = "group";
+                      below.options.shaded.groupId = group.id;
+                    } else {
+                      group.options.shaded.orientation = "group";
+                      group.options.shaded.groupId = below.id;
+                    }
+                  }
+                }
+                below = group;
+              }
+            }
+            this._convertYcoordinates(groupsData[groupIds[i]], group);
           }
 
-          // draw the groups
-          BarFunctions.draw(groupIds, processedGroupData, this.framework);
+          //Precalculate paths and draw shading if appropriate. This will make sure the shading is always behind any lines.
+          var paths = {};
           for (i = 0; i < groupIds.length; i++) {
             group = this.groups[groupIds[i]];
-            if (group.options.style != 'bar') {
-              // bar needs to be drawn enmasse
-              group.draw(processedGroupData[groupIds[i]], group, this.framework);
+            if (group.options.style === 'line' && group.options.shaded.enabled == true) {
+              var dataset = groupsData[groupIds[i]];
+              if (!paths.hasOwnProperty(groupIds[i])) {
+                paths[groupIds[i]] = Lines.calcPath(dataset, group);
+              }
+              if (group.options.shaded.orientation === "group") {
+                var subGroupId = group.options.shaded.groupId;
+                if (groupIds.indexOf(subGroupId) === -1) {
+                  console.log(group.id + ": Unknown shading group target given:" + subGroupId);
+                  continue;
+                }
+                if (!paths.hasOwnProperty(subGroupId)) {
+                  paths[subGroupId] = Lines.calcPath(groupsData[subGroupId], this.groups[subGroupId]);
+                }
+                Lines.drawShading(paths[groupIds[i]], group, paths[subGroupId], this.framework);
+              } else {
+                Lines.drawShading(paths[groupIds[i]], group, undefined, this.framework);
+              }
+            }
+          }
+
+          // draw the groups, calculating paths if still necessary.
+          Bars.draw(groupIds, groupsData, this.framework);
+          for (i = 0; i < groupIds.length; i++) {
+            group = this.groups[groupIds[i]];
+            if (groupsData[groupIds[i]].length > 0) {
+              switch (group.options.style) {
+                case "line":
+                  if (!paths.hasOwnProperty(groupIds[i])) {
+                    paths[groupIds[i]] = Lines.calcPath(groupsData[groupIds[i]], group);
+                  }
+                  Lines.draw(paths[groupIds[i]], group, this.framework);
+                //explicit no break;
+                case "points":
+                  if (group.options.style == "points" || group.options.drawPoints.enabled == true) {
+                    Points.draw(groupsData[groupIds[i]], group, this.framework);
+                  }
+                  break;
+                case "bar":
+                // bar needs to be drawn enmasse
+                //explicit no break
+                default:
+                //do nothing...
+              }
             }
           }
         }
@@ -24516,6 +24606,49 @@ return /******/ (function(modules) { // webpackBootstrap
     // cleanup unused svg elements
     DOMutil.cleanupElements(this.svgElements);
     return false;
+  };
+
+  LineGraph.prototype._stack = function (data, subData) {
+    var index, dx, dy, subPrevPoint, subNextPoint;
+    index = 0;
+    // for each data point we look for a matching on in the set below
+    for (var j = 0; j < data.length; j++) {
+      subPrevPoint = undefined;
+      subNextPoint = undefined;
+      // we look for time matches or a before-after point
+      for (var k = index; k < subData.length; k++) {
+        // if times match exactly
+        if (subData[k].x === data[j].x) {
+          subPrevPoint = subData[k];
+          subNextPoint = subData[k];
+          index = k;
+          break;
+        } else if (subData[k].x > data[j].x) {
+          // overshoot
+          subNextPoint = subData[k];
+          if (k == 0) {
+            subPrevPoint = subNextPoint;
+          } else {
+            subPrevPoint = subData[k - 1];
+          }
+          index = k;
+          break;
+        }
+      }
+      // in case the last data point has been used, we assume it stays like this.
+      if (subNextPoint === undefined) {
+        subPrevPoint = subData[subData.length - 1];
+        subNextPoint = subData[subData.length - 1];
+      }
+      // linear interpolation
+      dx = subNextPoint.x - subPrevPoint.x;
+      dy = subNextPoint.y - subPrevPoint.y;
+      if (dx == 0) {
+        data[j].y = data[j].orginalY + subNextPoint.y;
+      } else {
+        data[j].y = data[j].orginalY + dy / dx * (data[j].x - subPrevPoint.x) + subPrevPoint.y; // ax + b where b is data[j].y
+      }
+    }
   };
 
   /**
@@ -24536,31 +24669,23 @@ return /******/ (function(modules) { // webpackBootstrap
     if (groupIds.length > 0) {
       for (i = 0; i < groupIds.length; i++) {
         group = this.groups[groupIds[i]];
-        groupsData[groupIds[i]] = [];
-        var dataContainer = groupsData[groupIds[i]];
+        var itemsData = group.getItems();
         // optimization for sorted data
         if (group.options.sort == true) {
-          var guess = Math.max(0, util.binarySearchValue(group.itemsData, minDate, 'x', 'before'));
-          for (j = guess; j < group.itemsData.length; j++) {
-            item = group.itemsData[j];
-            if (item !== undefined) {
-              if (item.x > maxDate) {
-                dataContainer.push(item);
-                break;
-              } else {
-                dataContainer.push(item);
-              }
-            }
+          var first = Math.max(0, util.binarySearchValue(itemsData, minDate, 'x', 'before'));
+          var last = Math.min(itemsData.length, util.binarySearchValue(itemsData, maxDate, 'x', 'after') + 1);
+          if (last <= 0) {
+            last = itemsData.length;
           }
+          var dataContainer = new Array(last - first);
+          for (j = first; j < last; j++) {
+            item = group.itemsData[j];
+            dataContainer[j - first] = item;
+          }
+          groupsData[groupIds[i]] = dataContainer;
         } else {
-          for (j = 0; j < group.itemsData.length; j++) {
-            item = group.itemsData[j];
-            if (item !== undefined) {
-              if (item.x > minDate && item.x < maxDate) {
-                dataContainer.push(item);
-              }
-            }
-          }
+          // If unsorted data, all data is relevant, just returning entire structure
+          groupsData[groupIds[i]] = group.itemsData;
         }
       }
     }
@@ -24589,11 +24714,12 @@ return /******/ (function(modules) { // webpackBootstrap
             var pointsPerPixel = amountOfPoints / xDistance;
             increment = Math.min(Math.ceil(0.2 * amountOfPoints), Math.max(1, Math.round(pointsPerPixel)));
 
-            var sampledData = [];
+            var sampledData = new Array(amountOfPoints);
             for (var j = 0; j < amountOfPoints; j += increment) {
-              sampledData.push(dataContainer[j]);
+              var idx = Math.round(j / increment);
+              sampledData[idx] = dataContainer[j];
             }
-            groupsData[groupIds[i]] = sampledData;
+            groupsData[groupIds[i]] = sampledData.splice(0, Math.round(amountOfPoints / increment));
           }
         }
       }
@@ -24622,9 +24748,9 @@ return /******/ (function(modules) { // webpackBootstrap
           // if bar graphs are stacked, their range need to be handled differently and accumulated over all groups.
           if (options.stack === true && options.style === 'bar') {
             if (options.yAxisOrientation === 'left') {
-              combinedDataLeft = combinedDataLeft.concat(group.getData(groupData));
+              combinedDataLeft = combinedDataLeft.concat(group.getItems());
             } else {
-              combinedDataRight = combinedDataRight.concat(group.getData(groupData));
+              combinedDataRight = combinedDataRight.concat(group.getItems());
             }
           } else {
             groupRanges[groupIds[i]] = group.getYRange(groupData, groupIds[i]);
@@ -24633,11 +24759,8 @@ return /******/ (function(modules) { // webpackBootstrap
       }
 
       // if bar graphs are stacked, their range need to be handled differently and accumulated over all groups.
-      BarFunctions.getStackedYRange(combinedDataLeft, groupRanges, groupIds, '__barStackLeft', 'left');
-      BarFunctions.getStackedYRange(combinedDataRight, groupRanges, groupIds, '__barStackRight', 'right');
-      // if line graphs are stacked, their range need to be handled differently and accumulated over all groups.
-      //LineFunctions.getStackedYRange(combinedDataLeft , groupRanges, groupIds, '__lineStackLeft' , 'left' );
-      //LineFunctions.getStackedYRange(combinedDataRight, groupRanges, groupIds, '__lineStackRight', 'right');
+      Bars.getStackedYRange(combinedDataLeft, groupRanges, groupIds, '__barStackLeft', 'left');
+      Bars.getStackedYRange(combinedDataRight, groupRanges, groupIds, '__barStackRight', 'right');
     }
   };
 
@@ -24772,17 +24895,11 @@ return /******/ (function(modules) { // webpackBootstrap
    * @private
    */
   LineGraph.prototype._convertXcoordinates = function (datapoints) {
-    var extractedData = [];
-    var xValue, yValue;
     var toScreen = this.body.util.toScreen;
-
     for (var i = 0; i < datapoints.length; i++) {
-      xValue = toScreen(datapoints[i].x) + this.props.width;
-      yValue = datapoints[i].y;
-      extractedData.push({ x: xValue, y: yValue });
+      datapoints[i].screen_x = toScreen(datapoints[i].x) + this.props.width;
+      datapoints[i].screen_y = datapoints[i].y; //starting point for range calculations
     }
-
-    return extractedData;
   };
 
   /**
@@ -24796,25 +24913,15 @@ return /******/ (function(modules) { // webpackBootstrap
    * @private
    */
   LineGraph.prototype._convertYcoordinates = function (datapoints, group) {
-    var extractedData = [];
-    var xValue, yValue;
-    var toScreen = this.body.util.toScreen;
     var axis = this.yAxisLeft;
     var svgHeight = Number(this.svg.style.height.replace('px', ''));
     if (group.options.yAxisOrientation == 'right') {
       axis = this.yAxisRight;
     }
-
     for (var i = 0; i < datapoints.length; i++) {
-      var labelValue = datapoints[i].label ? datapoints[i].label : null;
-      xValue = toScreen(datapoints[i].x) + this.props.width;
-      yValue = Math.round(axis.convertValue(datapoints[i].y));
-      extractedData.push({ x: xValue, y: yValue, label: labelValue });
+      datapoints[i].screen_y = Math.round(axis.convertValue(datapoints[i].y));
     }
-
     group.setZeroPosition(Math.min(svgHeight, axis.convertValue(0)));
-
-    return extractedData;
   };
 
   module.exports = LineGraph;
@@ -24907,6 +25014,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
     // create the HTML DOM
     this._create();
+    this.framework = { svg: this.svg, svgElements: this.svgElements, options: this.options, groups: this.groups };
 
     var me = this;
     this.body.emitter.on("verticalDrag", function () {
@@ -24998,7 +25106,7 @@ return /******/ (function(modules) { // webpackBootstrap
     for (var i = 0; i < groupArray.length; i++) {
       var groupId = groupArray[i];
       if (this.groups[groupId].visible === true && (this.linegraphOptions.visibility[groupId] === undefined || this.linegraphOptions.visibility[groupId] === true)) {
-        this.groups[groupId].drawIcon(x, y, this.svgElements, this.svg, iconWidth, iconHeight);
+        this.groups[groupId].getLegend(iconWidth, iconHeight, this.framework, x, y);
         y += iconHeight + iconOffset;
       }
     }
@@ -25658,8 +25766,8 @@ return /******/ (function(modules) { // webpackBootstrap
 
   var util = __webpack_require__(1);
   var DOMutil = __webpack_require__(7);
-  var Line = __webpack_require__(54);
-  var Bar = __webpack_require__(56);
+  var Bars = __webpack_require__(54);
+  var Lines = __webpack_require__(56);
   var Points = __webpack_require__(55);
 
   /**
@@ -25687,6 +25795,17 @@ return /******/ (function(modules) { // webpackBootstrap
     this.visible = group.visible === undefined ? true : group.visible;
   }
 
+  function insertionSort(a, compare) {
+    for (var i = 0; i < a.length; i++) {
+      var k = a[i];
+      for (var j = i; j > 0 && compare(k, a[j - 1]) < 0; j--) {
+        a[j] = a[j - 1];
+      }
+      a[j] = k;
+    }
+    return a;
+  }
+
   /**
    * this loads a reference to all items in this group into this group.
    * @param {array} items
@@ -25695,21 +25814,21 @@ return /******/ (function(modules) { // webpackBootstrap
     if (items != null) {
       this.itemsData = items;
       if (this.options.sort == true) {
-        this.itemsData.sort(function (a, b) {
-          return a.x - b.x;
+        insertionSort(this.itemsData, function (a, b) {
+          return a.x > b.x ? 1 : -1;
         });
-      }
-      // typecast all items to numbers. Takes around 10ms for 500.000 items
-      for (var i = 0; i < this.itemsData.length; i++) {
-        this.itemsData[i].y = Number(this.itemsData[i].y);
       }
     } else {
       this.itemsData = [];
     }
   };
 
+  GraphGroup.prototype.getItems = function () {
+    return this.itemsData;
+  };
+
   /**
-   * this is used for plotting barcharts, this way, we only have to calculate it once.
+   * this is used for barcharts and shading, this way, we only have to calculate it once.
    * @param pos
    */
   GraphGroup.prototype.setZeroPosition = function (pos) {
@@ -25722,7 +25841,7 @@ return /******/ (function(modules) { // webpackBootstrap
    */
   GraphGroup.prototype.setOptions = function (options) {
     if (options !== undefined) {
-      var fields = ['sampling', 'style', 'sort', 'yAxisOrientation', 'barChart', 'excludeFromLegend'];
+      var fields = ['sampling', 'style', 'sort', 'yAxisOrientation', 'barChart', 'excludeFromLegend', 'excludeFromStacking'];
       util.selectiveDeepExtend(fields, this.options, options);
 
       // if the group's drawPoints is a function delegate the callback to the onRender property
@@ -25751,14 +25870,6 @@ return /******/ (function(modules) { // webpackBootstrap
         }
       }
     }
-
-    if (this.options.style == 'line') {
-      this.type = new Line(this.id, this.options);
-    } else if (this.options.style == 'bar') {
-      this.type = new Bar(this.id, this.options);
-    } else if (this.options.style == 'points') {
-      this.type = new Points(this.id, this.options);
-    }
   };
 
   /**
@@ -25775,88 +25886,45 @@ return /******/ (function(modules) { // webpackBootstrap
   };
 
   /**
-   * draw the icon for the legend.
-   *
-   * @param x
-   * @param y
-   * @param JSONcontainer
-   * @param SVGcontainer
-   * @param iconWidth
-   * @param iconHeight
-   */
-  GraphGroup.prototype.drawIcon = function (x, y, JSONcontainer, SVGcontainer, iconWidth, iconHeight) {
-    var fillHeight = iconHeight * 0.5;
-    var path, fillPath;
-
-    var outline = DOMutil.getSVGElement("rect", JSONcontainer, SVGcontainer);
-    outline.setAttributeNS(null, "x", x);
-    outline.setAttributeNS(null, "y", y - fillHeight);
-    outline.setAttributeNS(null, "width", iconWidth);
-    outline.setAttributeNS(null, "height", 2 * fillHeight);
-    outline.setAttributeNS(null, "class", "vis-outline");
-
-    if (this.options.style == 'line') {
-      path = DOMutil.getSVGElement("path", JSONcontainer, SVGcontainer);
-      path.setAttributeNS(null, "class", this.className);
-      if (this.style !== undefined) {
-        path.setAttributeNS(null, "style", this.style);
-      }
-
-      path.setAttributeNS(null, "d", "M" + x + "," + y + " L" + (x + iconWidth) + "," + y + "");
-      if (this.options.shaded.enabled == true) {
-        fillPath = DOMutil.getSVGElement("path", JSONcontainer, SVGcontainer);
-        if (this.options.shaded.orientation == 'top') {
-          fillPath.setAttributeNS(null, "d", "M" + x + ", " + (y - fillHeight) + "L" + x + "," + y + " L" + (x + iconWidth) + "," + y + " L" + (x + iconWidth) + "," + (y - fillHeight));
-        } else {
-          fillPath.setAttributeNS(null, "d", "M" + x + "," + y + " " + "L" + x + "," + (y + fillHeight) + " " + "L" + (x + iconWidth) + "," + (y + fillHeight) + "L" + (x + iconWidth) + "," + y);
-        }
-        fillPath.setAttributeNS(null, "class", this.className + " vis-icon-fill");
-      }
-
-      if (this.options.drawPoints.enabled == true) {
-        var groupTemplate = {
-          style: this.options.drawPoints.style,
-          styles: this.options.drawPoints.styles,
-          size: this.options.drawPoints.size,
-          className: this.className
-        };
-        DOMutil.drawPoint(x + 0.5 * iconWidth, y, groupTemplate, JSONcontainer, SVGcontainer);
-      }
-    } else {
-      var barWidth = Math.round(0.3 * iconWidth);
-      var bar1Height = Math.round(0.4 * iconHeight);
-      var bar2Height = Math.round(0.75 * iconHeight);
-
-      var offset = Math.round((iconWidth - 2 * barWidth) / 3);
-
-      DOMutil.drawBar(x + 0.5 * barWidth + offset, y + fillHeight - bar1Height - 1, barWidth, bar1Height, this.className + ' vis-bar', JSONcontainer, SVGcontainer, this.style);
-      DOMutil.drawBar(x + 1.5 * barWidth + offset + 2, y + fillHeight - bar2Height - 1, barWidth, bar2Height, this.className + ' vis-bar', JSONcontainer, SVGcontainer, this.style);
-    }
-  };
-
-  /**
    * return the legend entree for this group.
    *
    * @param iconWidth
    * @param iconHeight
    * @returns {{icon: HTMLElement, label: (group.content|*|string), orientation: (.options.yAxisOrientation|*)}}
    */
-  GraphGroup.prototype.getLegend = function (iconWidth, iconHeight) {
-    var svg = document.createElementNS('http://www.w3.org/2000/svg', "svg");
-    this.drawIcon(0, 0.5 * iconHeight, [], svg, iconWidth, iconHeight);
-    return { icon: svg, label: this.content, orientation: this.options.yAxisOrientation };
+  GraphGroup.prototype.getLegend = function (iconWidth, iconHeight, framework, x, y) {
+    if (framework == undefined || framework == null) {
+      var svg = document.createElementNS('http://www.w3.org/2000/svg', "svg");
+      framework = { svg: svg, svgElements: {}, options: this.options, groups: [this] };
+    }
+    if (x == undefined || x == null) {
+      x = 0;
+    }
+    if (y == undefined || y == null) {
+      y = 0.5 * iconHeight;
+    }
+    switch (this.options.style) {
+      case "line":
+        Lines.drawIcon(this, x, y, iconWidth, iconHeight, framework);
+        break;
+      case "points":
+        Points.drawIcon(this, x, y, iconWidth, iconHeight, framework);
+        break;
+      case "bar":
+        Bars.drawIcon(this, x, y, iconWidth, iconHeight, framework);
+        break;
+    }
+    return { icon: framework.svg, label: this.content, orientation: this.options.yAxisOrientation };
   };
 
   GraphGroup.prototype.getYRange = function (groupData) {
-    return this.type.getYRange(groupData);
-  };
-
-  GraphGroup.prototype.getData = function (groupData) {
-    return this.type.getData(groupData);
-  };
-
-  GraphGroup.prototype.draw = function (dataset, group, framework) {
-    this.type.draw(dataset, group, framework);
+    var yMin = groupData[0].y;
+    var yMax = groupData[0].y;
+    for (var j = 0; j < groupData.length; j++) {
+      yMin = yMin > groupData[j].y ? groupData[j].y : yMin;
+      yMax = yMax < groupData[j].y ? groupData[j].y : yMax;
+    }
+    return { min: yMin, max: yMax, yAxisOrientation: this.options.yAxisOrientation };
   };
 
   module.exports = GraphGroup;
@@ -25870,409 +25938,38 @@ return /******/ (function(modules) { // webpackBootstrap
   var DOMutil = __webpack_require__(7);
   var Points = __webpack_require__(55);
 
-  function Line(groupId, options) {
-    this.groupId = groupId;
-    this.options = options;
-  }
+  function Bargraph(groupId, options) {}
 
-  Line.prototype.getData = function (groupData) {
-    var combinedData = [];
-    for (var j = 0; j < groupData.length; j++) {
-      combinedData.push({
-        x: groupData[j].x,
-        y: groupData[j].y,
-        groupId: this.groupId
-      });
-    }
-    return combinedData;
-  };
+  Bargraph.drawIcon = function (group, x, y, iconWidth, iconHeight, framework) {
+    var fillHeight = iconHeight * 0.5;
+    var path, fillPath;
 
-  Line.prototype.getYRange = function (groupData) {
-    var yMin = groupData[0].y;
-    var yMax = groupData[0].y;
-    for (var j = 0; j < groupData.length; j++) {
-      yMin = yMin > groupData[j].y ? groupData[j].y : yMin;
-      yMax = yMax < groupData[j].y ? groupData[j].y : yMax;
-    }
-    return { min: yMin, max: yMax, yAxisOrientation: this.options.yAxisOrientation };
-  };
+    var outline = DOMutil.getSVGElement("rect", framework.svgElements, framework.svg);
+    outline.setAttributeNS(null, "x", x);
+    outline.setAttributeNS(null, "y", y - fillHeight);
+    outline.setAttributeNS(null, "width", iconWidth);
+    outline.setAttributeNS(null, "height", 2 * fillHeight);
+    outline.setAttributeNS(null, "class", "vis-outline");
 
-  Line.getStackedYRange = function (combinedData, groupRanges, groupIds, groupLabel, orientation) {
-    if (combinedData.length > 0) {
-      // sort by time and by group
-      combinedData.sort(function (a, b) {
-        if (a.x === b.x) {
-          return a.groupId < b.groupId ? -1 : 1;
-        } else {
-          return a.x - b.x;
-        }
-      });
-      var intersections = {};
+    var barWidth = Math.round(0.3 * iconWidth);
+    var bar1Height = Math.round(0.4 * iconHeight);
+    var bar2Height = Math.round(0.75 * iconHeight);
 
-      Line._getDataIntersections(intersections, combinedData);
-      groupRanges[groupLabel] = Line._getStackedYRange(intersections, combinedData);
-      groupRanges[groupLabel].yAxisOrientation = orientation;
-      groupIds.push(groupLabel);
-    }
-  };
+    var offset = Math.round((iconWidth - 2 * barWidth) / 3);
 
-  Line._getStackedYRange = function (intersections, combinedData) {
-    var key;
-    var yMin = combinedData[0].y;
-    var yMax = combinedData[0].y;
-    for (var i = 0; i < combinedData.length; i++) {
-      key = combinedData[i].x;
-      if (intersections[key] === undefined) {
-        yMin = yMin > combinedData[i].y ? combinedData[i].y : yMin;
-        yMax = yMax < combinedData[i].y ? combinedData[i].y : yMax;
-      } else {
-        if (combinedData[i].y < 0) {
-          intersections[key].accumulatedNegative += combinedData[i].y;
-        } else {
-          intersections[key].accumulatedPositive += combinedData[i].y;
-        }
-      }
-    }
-    for (var xpos in intersections) {
-      if (intersections.hasOwnProperty(xpos)) {
-        yMin = yMin > intersections[xpos].accumulatedNegative ? intersections[xpos].accumulatedNegative : yMin;
-        yMin = yMin > intersections[xpos].accumulatedPositive ? intersections[xpos].accumulatedPositive : yMin;
-        yMax = yMax < intersections[xpos].accumulatedNegative ? intersections[xpos].accumulatedNegative : yMax;
-        yMax = yMax < intersections[xpos].accumulatedPositive ? intersections[xpos].accumulatedPositive : yMax;
-      }
-    }
+    DOMutil.drawBar(x + 0.5 * barWidth + offset, y + fillHeight - bar1Height - 1, barWidth, bar1Height, group.className + ' vis-bar', framework.svgElements, framework.svg, group.style);
+    DOMutil.drawBar(x + 1.5 * barWidth + offset + 2, y + fillHeight - bar2Height - 1, barWidth, bar2Height, group.className + ' vis-bar', framework.svgElements, framework.svg, group.style);
 
-    return { min: yMin, max: yMax };
-  };
-
-  /**
-   * Fill the intersections object with counters of how many datapoints share the same x coordinates
-   * @param intersections
-   * @param combinedData
-   * @private
-   */
-  Line._getDataIntersections = function (intersections, combinedData) {
-    // get intersections
-    var coreDistance;
-    for (var i = 0; i < combinedData.length; i++) {
-      if (i + 1 < combinedData.length) {
-        coreDistance = Math.abs(combinedData[i + 1].x - combinedData[i].x);
-      }
-      if (i > 0) {
-        coreDistance = Math.min(coreDistance, Math.abs(combinedData[i - 1].x - combinedData[i].x));
-      }
-      if (coreDistance === 0) {
-        if (intersections[combinedData[i].x] === undefined) {
-          intersections[combinedData[i].x] = { amount: 0, resolved: 0, accumulatedPositive: 0, accumulatedNegative: 0 };
-        }
-        intersections[combinedData[i].x].amount += 1;
-      }
-    }
-  };
-
-  /**
-   * draw a line graph
-   *
-   * @param dataset
-   * @param group
-   */
-  Line.prototype.draw = function (dataset, group, framework) {
-    if (dataset != null) {
-      if (dataset.length > 0) {
-        var path, d;
-        var svgHeight = Number(framework.svg.style.height.replace('px', ''));
-        path = DOMutil.getSVGElement('path', framework.svgElements, framework.svg);
-        path.setAttributeNS(null, "class", group.className);
-        if (group.style !== undefined) {
-          path.setAttributeNS(null, "style", group.style);
-        }
-
-        // construct path from dataset
-        if (group.options.interpolation.enabled == true) {
-          d = Line._catmullRom(dataset, group);
-        } else {
-          d = Line._linear(dataset);
-        }
-
-        // append with points for fill and finalize the path
-        if (group.options.shaded.enabled == true) {
-          var fillPath = DOMutil.getSVGElement('path', framework.svgElements, framework.svg);
-          var zero = 0;
-          if (group.options.shaded.orientation == 'top') {
-            zero = 0;
-          } else if (group.options.shaded.orientation == 'bottom') {
-            zero = svgHeight;
-          } else {
-            zero = Math.min(Math.max(0, group.zeroPosition), svgHeight);
-          }
-          var dFill = 'M' + dataset[0].x + ',' + zero + ' ' + d + 'L' + dataset[dataset.length - 1].x + ',' + zero;
-          fillPath.setAttributeNS(null, 'class', group.className + ' vis-fill');
-          if (group.options.shaded.style !== undefined) {
-            fillPath.setAttributeNS(null, 'style', group.options.shaded.style);
-          }
-          fillPath.setAttributeNS(null, 'd', dFill);
-        }
-        // copy properties to path for drawing.
-        path.setAttributeNS(null, 'd', 'M' + d);
-
-        // draw points
-        if (group.options.drawPoints.enabled == true) {
-          Points.draw(dataset, group, framework);
-        }
-      }
-    }
-  };
-
-  /**
-   * This uses an uniform parametrization of the interpolation algorithm:
-   * 'On the Parameterization of Catmull-Rom Curves' by Cem Yuksel et al.
-   * @param data
-   * @returns {string}
-   * @private
-   */
-  Line._catmullRomUniform = function (data) {
-    // catmull rom
-    var p0, p1, p2, p3, bp1, bp2;
-    var d = Math.round(data[0].x) + ',' + Math.round(data[0].y) + ' ';
-    var normalization = 1 / 6;
-    var length = data.length;
-    for (var i = 0; i < length - 1; i++) {
-
-      p0 = i == 0 ? data[0] : data[i - 1];
-      p1 = data[i];
-      p2 = data[i + 1];
-      p3 = i + 2 < length ? data[i + 2] : p2;
-
-      // Catmull-Rom to Cubic Bezier conversion matrix
-      //    0       1       0       0
-      //  -1/6      1      1/6      0
-      //    0      1/6      1     -1/6
-      //    0       0       1       0
-
-      //    bp0 = { x: p1.x,                               y: p1.y };
-      bp1 = { x: (-p0.x + 6 * p1.x + p2.x) * normalization, y: (-p0.y + 6 * p1.y + p2.y) * normalization };
-      bp2 = { x: (p1.x + 6 * p2.x - p3.x) * normalization, y: (p1.y + 6 * p2.y - p3.y) * normalization };
-      //    bp0 = { x: p2.x,                               y: p2.y };
-
-      d += 'C' + bp1.x + ',' + bp1.y + ' ' + bp2.x + ',' + bp2.y + ' ' + p2.x + ',' + p2.y + ' ';
-    }
-
-    return d;
-  };
-
-  /**
-   * This uses either the chordal or centripetal parameterization of the catmull-rom algorithm.
-   * By default, the centripetal parameterization is used because this gives the nicest results.
-   * These parameterizations are relatively heavy because the distance between 4 points have to be calculated.
-   *
-   * One optimization can be used to reuse distances since this is a sliding window approach.
-   * @param data
-   * @param group
-   * @returns {string}
-   * @private
-   */
-  Line._catmullRom = function (data, group) {
-    var alpha = group.options.interpolation.alpha;
-    if (alpha == 0 || alpha === undefined) {
-      return this._catmullRomUniform(data);
-    } else {
-      var p0, p1, p2, p3, bp1, bp2, d1, d2, d3, A, B, N, M;
-      var d3powA, d2powA, d3pow2A, d2pow2A, d1pow2A, d1powA;
-      var d = Math.round(data[0].x) + ',' + Math.round(data[0].y) + ' ';
-      var length = data.length;
-      for (var i = 0; i < length - 1; i++) {
-
-        p0 = i == 0 ? data[0] : data[i - 1];
-        p1 = data[i];
-        p2 = data[i + 1];
-        p3 = i + 2 < length ? data[i + 2] : p2;
-
-        d1 = Math.sqrt(Math.pow(p0.x - p1.x, 2) + Math.pow(p0.y - p1.y, 2));
-        d2 = Math.sqrt(Math.pow(p1.x - p2.x, 2) + Math.pow(p1.y - p2.y, 2));
-        d3 = Math.sqrt(Math.pow(p2.x - p3.x, 2) + Math.pow(p2.y - p3.y, 2));
-
-        // Catmull-Rom to Cubic Bezier conversion matrix
-
-        // A = 2d1^2a + 3d1^a * d2^a + d3^2a
-        // B = 2d3^2a + 3d3^a * d2^a + d2^2a
-
-        // [   0             1            0          0          ]
-        // [   -d2^2a /N     A/N          d1^2a /N   0          ]
-        // [   0             d3^2a /M     B/M        -d2^2a /M  ]
-        // [   0             0            1          0          ]
-
-        d3powA = Math.pow(d3, alpha);
-        d3pow2A = Math.pow(d3, 2 * alpha);
-        d2powA = Math.pow(d2, alpha);
-        d2pow2A = Math.pow(d2, 2 * alpha);
-        d1powA = Math.pow(d1, alpha);
-        d1pow2A = Math.pow(d1, 2 * alpha);
-
-        A = 2 * d1pow2A + 3 * d1powA * d2powA + d2pow2A;
-        B = 2 * d3pow2A + 3 * d3powA * d2powA + d2pow2A;
-        N = 3 * d1powA * (d1powA + d2powA);
-        if (N > 0) {
-          N = 1 / N;
-        }
-        M = 3 * d3powA * (d3powA + d2powA);
-        if (M > 0) {
-          M = 1 / M;
-        }
-
-        bp1 = { x: (-d2pow2A * p0.x + A * p1.x + d1pow2A * p2.x) * N,
-          y: (-d2pow2A * p0.y + A * p1.y + d1pow2A * p2.y) * N };
-
-        bp2 = { x: (d3pow2A * p1.x + B * p2.x - d2pow2A * p3.x) * M,
-          y: (d3pow2A * p1.y + B * p2.y - d2pow2A * p3.y) * M };
-
-        if (bp1.x == 0 && bp1.y == 0) {
-          bp1 = p1;
-        }
-        if (bp2.x == 0 && bp2.y == 0) {
-          bp2 = p2;
-        }
-        d += 'C' + bp1.x + ',' + bp1.y + ' ' + bp2.x + ',' + bp2.y + ' ' + p2.x + ',' + p2.y + ' ';
-      }
-
-      return d;
-    }
-  };
-
-  /**
-   * this generates the SVG path for a linear drawing between datapoints.
-   * @param data
-   * @returns {string}
-   * @private
-   */
-  Line._linear = function (data) {
-    // linear
-    var d = '';
-    for (var i = 0; i < data.length; i++) {
-      if (i == 0) {
-        d += data[i].x + ',' + data[i].y;
-      } else {
-        d += ' ' + data[i].x + ',' + data[i].y;
-      }
-    }
-    return d;
-  };
-
-  module.exports = Line;
-
-/***/ },
-/* 55 */
-/***/ function(module, exports, __webpack_require__) {
-
-  'use strict';
-
-  var DOMutil = __webpack_require__(7);
-
-  function Points(groupId, options) {
-    this.groupId = groupId;
-    this.options = options;
-  }
-
-  Points.prototype.getYRange = function (groupData) {
-    var yMin = groupData[0].y;
-    var yMax = groupData[0].y;
-    for (var j = 0; j < groupData.length; j++) {
-      yMin = yMin > groupData[j].y ? groupData[j].y : yMin;
-      yMax = yMax < groupData[j].y ? groupData[j].y : yMax;
-    }
-    return { min: yMin, max: yMax, yAxisOrientation: this.options.yAxisOrientation };
-  };
-
-  Points.prototype.draw = function (dataset, group, framework, offset) {
-    Points.draw(dataset, group, framework, offset);
-  };
-
-  /**
-   * draw the data points
-   *
-   * @param {Array} dataset
-   * @param {Object} JSONcontainer
-   * @param {Object} svg            | SVG DOM element
-   * @param {GraphGroup} group
-   * @param {Number} [offset]
-   */
-  Points.draw = function (dataset, group, framework, offset) {
-    offset = offset || 0;
-    var callback = getCallback();
-
-    for (var i = 0; i < dataset.length; i++) {
-      if (!callback) {
-        // draw the point the simple way.
-        DOMutil.drawPoint(dataset[i].x + offset, dataset[i].y, getGroupTemplate(), framework.svgElements, framework.svg, dataset[i].label);
-      } else {
-        var callbackResult = callback(dataset[i], group, framework); // result might be true, false or an object
-        if (callbackResult === true || typeof callbackResult === 'object') {
-          DOMutil.drawPoint(dataset[i].x + offset, dataset[i].y, getGroupTemplate(callbackResult), framework.svgElements, framework.svg, dataset[i].label);
-        }
-      }
-    }
-
-    function getGroupTemplate(callbackResult) {
-      callbackResult = typeof callbackResult === 'undefined' ? {} : callbackResult;
-      return {
-        style: callbackResult.style || group.options.drawPoints.style,
-        styles: callbackResult.styles || group.options.drawPoints.styles,
-        size: callbackResult.size || group.options.drawPoints.size,
-        className: callbackResult.className || group.className
+    if (group.options.drawPoints.enabled == true) {
+      var groupTemplate = {
+        style: group.options.drawPoints.style,
+        styles: group.options.drawPoints.styles,
+        size: Math.max(barWidth / 5, group.options.drawPoints.size),
+        className: group.className
       };
+      DOMutil.drawPoint(x + 0.5 * barWidth + offset, y + fillHeight - bar1Height - 1, groupTemplate, framework.svgElements, framework.svg);
+      DOMutil.drawPoint(x + 1.5 * barWidth + offset + 2, y + fillHeight - bar2Height - 1, groupTemplate, framework.svgElements, framework.svg);
     }
-
-    function getCallback() {
-      var callback = undefined;
-      // check for the graph2d onRender
-      if (framework.options.drawPoints.onRender && typeof framework.options.drawPoints.onRender == 'function') {
-        callback = framework.options.drawPoints.onRender;
-      }
-
-      // override it with the group onRender if defined
-      if (group.group.options && group.group.options.drawPoints && group.group.options.drawPoints.onRender && typeof group.group.options.drawPoints.onRender == 'function') {
-        callback = group.group.options.drawPoints.onRender;
-      }
-
-      return callback;
-    }
-  };
-
-  module.exports = Points;
-
-/***/ },
-/* 56 */
-/***/ function(module, exports, __webpack_require__) {
-
-  'use strict';
-
-  var DOMutil = __webpack_require__(7);
-  var Points = __webpack_require__(55);
-
-  function Bargraph(groupId, options) {
-    this.groupId = groupId;
-    this.options = options;
-  }
-
-  Bargraph.prototype.getYRange = function (groupData) {
-    var yMin = groupData[0].y;
-    var yMax = groupData[0].y;
-    for (var j = 0; j < groupData.length; j++) {
-      yMin = yMin > groupData[j].y ? groupData[j].y : yMin;
-      yMax = yMax < groupData[j].y ? groupData[j].y : yMax;
-    }
-    return { min: yMin, max: yMax, yAxisOrientation: this.options.yAxisOrientation };
-  };
-
-  Bargraph.prototype.getData = function (groupData) {
-    var combinedData = [];
-    for (var j = 0; j < groupData.length; j++) {
-      combinedData.push({
-        x: groupData[j].x,
-        y: groupData[j].y,
-        groupId: this.groupId
-      });
-    }
-    return combinedData;
   };
 
   /**
@@ -26297,8 +25994,8 @@ return /******/ (function(modules) { // webpackBootstrap
         if (group.visible === true && (framework.options.groups.visibility[groupIds[i]] === undefined || framework.options.groups.visibility[groupIds[i]] === true)) {
           for (j = 0; j < processedGroupData[groupIds[i]].length; j++) {
             combinedData.push({
-              x: processedGroupData[groupIds[i]][j].x,
-              y: processedGroupData[groupIds[i]][j].y,
+              screen_x: processedGroupData[groupIds[i]][j].screen_x,
+              screen_y: processedGroupData[groupIds[i]][j].screen_y,
               groupId: groupIds[i],
               label: processedGroupData[groupIds[i]][j].label
             });
@@ -26314,10 +26011,10 @@ return /******/ (function(modules) { // webpackBootstrap
 
     // sort by time and by group
     combinedData.sort(function (a, b) {
-      if (a.x === b.x) {
+      if (a.screen_x === b.screen_x) {
         return a.groupId < b.groupId ? -1 : 1;
       } else {
-        return a.x - b.x;
+        return a.screen_x - b.screen_x;
       }
     });
 
@@ -26329,35 +26026,35 @@ return /******/ (function(modules) { // webpackBootstrap
       group = framework.groups[combinedData[i].groupId];
       var minWidth = 0.1 * group.options.barChart.width;
 
-      key = combinedData[i].x;
+      key = combinedData[i].screen_x;
       var heightOffset = 0;
       if (intersections[key] === undefined) {
         if (i + 1 < combinedData.length) {
-          coreDistance = Math.abs(combinedData[i + 1].x - key);
+          coreDistance = Math.abs(combinedData[i + 1].screen_x - key);
         }
         if (i > 0) {
-          coreDistance = Math.min(coreDistance, Math.abs(combinedData[i - 1].x - key));
+          coreDistance = Math.min(coreDistance, Math.abs(combinedData[i - 1].screen_x - key));
         }
         drawData = Bargraph._getSafeDrawData(coreDistance, group, minWidth);
       } else {
         var nextKey = i + (intersections[key].amount - intersections[key].resolved);
         var prevKey = i - (intersections[key].resolved + 1);
         if (nextKey < combinedData.length) {
-          coreDistance = Math.abs(combinedData[nextKey].x - key);
+          coreDistance = Math.abs(combinedData[nextKey].screen_x - key);
         }
         if (prevKey > 0) {
-          coreDistance = Math.min(coreDistance, Math.abs(combinedData[prevKey].x - key));
+          coreDistance = Math.min(coreDistance, Math.abs(combinedData[prevKey].screen_x - key));
         }
         drawData = Bargraph._getSafeDrawData(coreDistance, group, minWidth);
         intersections[key].resolved += 1;
 
         if (group.options.stack === true) {
-          if (combinedData[i].y < group.zeroPosition) {
+          if (combinedData[i].screen_y < group.zeroPosition) {
             heightOffset = intersections[key].accumulatedNegative;
-            intersections[key].accumulatedNegative += group.zeroPosition - combinedData[i].y;
+            intersections[key].accumulatedNegative += group.zeroPosition - combinedData[i].screen_y;
           } else {
             heightOffset = intersections[key].accumulatedPositive;
-            intersections[key].accumulatedPositive += group.zeroPosition - combinedData[i].y;
+            intersections[key].accumulatedPositive += group.zeroPosition - combinedData[i].screen_y;
           }
         } else if (group.options.barChart.sideBySide === true) {
           drawData.width = drawData.width / intersections[key].amount;
@@ -26369,12 +26066,12 @@ return /******/ (function(modules) { // webpackBootstrap
           }
         }
       }
-      DOMutil.drawBar(combinedData[i].x + drawData.offset, combinedData[i].y - heightOffset, drawData.width, group.zeroPosition - combinedData[i].y, group.className + ' vis-bar', framework.svgElements, framework.svg, group.style);
+      DOMutil.drawBar(combinedData[i].screen_x + drawData.offset, combinedData[i].screen_y - heightOffset, drawData.width, group.zeroPosition - combinedData[i].screen_y, group.className + ' vis-bar', framework.svgElements, framework.svg, group.style);
       // draw points
       if (group.options.drawPoints.enabled === true) {
         var pointData = {
-          x: combinedData[i].x + drawData.offset,
-          y: combinedData[i].y - heightOffset,
+          screen_x: combinedData[i].screen_x,
+          screen_y: combinedData[i].screen_y - heightOffset,
           groupId: combinedData[i].groupId,
           label: combinedData[i].label
         };
@@ -26395,16 +26092,16 @@ return /******/ (function(modules) { // webpackBootstrap
     var coreDistance;
     for (var i = 0; i < combinedData.length; i++) {
       if (i + 1 < combinedData.length) {
-        coreDistance = Math.abs(combinedData[i + 1].x - combinedData[i].x);
+        coreDistance = Math.abs(combinedData[i + 1].screen_x - combinedData[i].screen_x);
       }
       if (i > 0) {
-        coreDistance = Math.min(coreDistance, Math.abs(combinedData[i - 1].x - combinedData[i].x));
+        coreDistance = Math.min(coreDistance, Math.abs(combinedData[i - 1].screen_x - combinedData[i].screen_x));
       }
       if (coreDistance === 0) {
-        if (intersections[combinedData[i].x] === undefined) {
-          intersections[combinedData[i].x] = { amount: 0, resolved: 0, accumulatedPositive: 0, accumulatedNegative: 0 };
+        if (intersections[combinedData[i].screen_x] === undefined) {
+          intersections[combinedData[i].screen_x] = { amount: 0, resolved: 0, accumulatedPositive: 0, accumulatedNegative: 0 };
         }
-        intersections[combinedData[i].x].amount += 1;
+        intersections[combinedData[i].screen_x].amount += 1;
       }
     }
   };
@@ -26447,10 +26144,10 @@ return /******/ (function(modules) { // webpackBootstrap
     if (combinedData.length > 0) {
       // sort by time and by group
       combinedData.sort(function (a, b) {
-        if (a.x === b.x) {
+        if (a.screen_x === b.screen_x) {
           return a.groupId < b.groupId ? -1 : 1;
         } else {
-          return a.x - b.x;
+          return a.screen_x - b.screen_x;
         }
       });
       var intersections = {};
@@ -26464,18 +26161,18 @@ return /******/ (function(modules) { // webpackBootstrap
 
   Bargraph._getStackedYRange = function (intersections, combinedData) {
     var key;
-    var yMin = combinedData[0].y;
-    var yMax = combinedData[0].y;
+    var yMin = combinedData[0].screen_y;
+    var yMax = combinedData[0].screen_y;
     for (var i = 0; i < combinedData.length; i++) {
-      key = combinedData[i].x;
+      key = combinedData[i].screen_x;
       if (intersections[key] === undefined) {
-        yMin = yMin > combinedData[i].y ? combinedData[i].y : yMin;
-        yMax = yMax < combinedData[i].y ? combinedData[i].y : yMax;
+        yMin = yMin > combinedData[i].screen_y ? combinedData[i].screen_y : yMin;
+        yMax = yMax < combinedData[i].screen_y ? combinedData[i].screen_y : yMax;
       } else {
-        if (combinedData[i].y < 0) {
-          intersections[key].accumulatedNegative += combinedData[i].y;
+        if (combinedData[i].screen_y < 0) {
+          intersections[key].accumulatedNegative += combinedData[i].screen_y;
         } else {
-          intersections[key].accumulatedPositive += combinedData[i].y;
+          intersections[key].accumulatedPositive += combinedData[i].screen_y;
         }
       }
     }
@@ -26492,6 +26189,373 @@ return /******/ (function(modules) { // webpackBootstrap
   };
 
   module.exports = Bargraph;
+
+/***/ },
+/* 55 */
+/***/ function(module, exports, __webpack_require__) {
+
+  'use strict';
+
+  var DOMutil = __webpack_require__(7);
+
+  function Points(groupId, options) {}
+
+  /**
+   * draw the data points
+   *
+   * @param {Array} dataset
+   * @param {Object} JSONcontainer
+   * @param {Object} svg            | SVG DOM element
+   * @param {GraphGroup} group
+   * @param {Number} [offset]
+   */
+  Points.draw = function (dataset, group, framework, offset) {
+    offset = offset || 0;
+    var callback = getCallback(framework, group);
+
+    for (var i = 0; i < dataset.length; i++) {
+      if (!callback) {
+        // draw the point the simple way.
+        DOMutil.drawPoint(dataset[i].screen_x + offset, dataset[i].screen_y, getGroupTemplate(group), framework.svgElements, framework.svg, dataset[i].label);
+      } else {
+        var callbackResult = callback(dataset[i], group); // result might be true, false or an object
+        if (callbackResult === true || typeof callbackResult === 'object') {
+          DOMutil.drawPoint(dataset[i].screen_x + offset, dataset[i].screen_y, getGroupTemplate(group, callbackResult), framework.svgElements, framework.svg, dataset[i].label);
+        }
+      }
+    }
+  };
+
+  Points.drawIcon = function (group, x, y, iconWidth, iconHeight, framework) {
+    var fillHeight = iconHeight * 0.5;
+    var path, fillPath;
+
+    var outline = DOMutil.getSVGElement("rect", framework.svgElements, framework.svg);
+    outline.setAttributeNS(null, "x", x);
+    outline.setAttributeNS(null, "y", y - fillHeight);
+    outline.setAttributeNS(null, "width", iconWidth);
+    outline.setAttributeNS(null, "height", 2 * fillHeight);
+    outline.setAttributeNS(null, "class", "vis-outline");
+
+    //Don't call callback on icon
+    DOMutil.drawPoint(x + 0.5 * iconWidth, y, getGroupTemplate(group), framework.svgElements, framework.svg);
+  };
+
+  function getGroupTemplate(group, callbackResult) {
+    callbackResult = typeof callbackResult === 'undefined' ? {} : callbackResult;
+    return {
+      style: callbackResult.style || group.options.drawPoints.style,
+      styles: callbackResult.styles || group.options.drawPoints.styles,
+      size: callbackResult.size || group.options.drawPoints.size,
+      className: callbackResult.className || group.className
+    };
+  }
+
+  function getCallback(framework, group) {
+    var callback = undefined;
+    // check for the graph2d onRender
+    if (framework.options && framework.options.drawPoints && framework.options.drawPoints.onRender && typeof framework.options.drawPoints.onRender == 'function') {
+      callback = framework.options.drawPoints.onRender;
+    }
+
+    // override it with the group onRender if defined
+    if (group.group.options && group.group.options.drawPoints && group.group.options.drawPoints.onRender && typeof group.group.options.drawPoints.onRender == 'function') {
+      callback = group.group.options.drawPoints.onRender;
+    }
+
+    return callback;
+  }
+
+  module.exports = Points;
+
+/***/ },
+/* 56 */
+/***/ function(module, exports, __webpack_require__) {
+
+  "use strict";
+
+  var DOMutil = __webpack_require__(7);
+
+  function Line(groupId, options) {}
+
+  Line.calcPath = function (dataset, group) {
+      if (dataset != null) {
+          if (dataset.length > 0) {
+              var d = [];
+
+              // construct path from dataset
+              if (group.options.interpolation.enabled == true) {
+                  d = Line._catmullRom(dataset, group);
+              } else {
+                  d = Line._linear(dataset);
+              }
+              return d;
+          }
+      }
+  };
+
+  Line.drawIcon = function (group, x, y, iconWidth, iconHeight, framework) {
+      var fillHeight = iconHeight * 0.5;
+      var path, fillPath;
+
+      var outline = DOMutil.getSVGElement("rect", framework.svgElements, framework.svg);
+      outline.setAttributeNS(null, "x", x);
+      outline.setAttributeNS(null, "y", y - fillHeight);
+      outline.setAttributeNS(null, "width", iconWidth);
+      outline.setAttributeNS(null, "height", 2 * fillHeight);
+      outline.setAttributeNS(null, "class", "vis-outline");
+
+      path = DOMutil.getSVGElement("path", framework.svgElements, framework.svg);
+      path.setAttributeNS(null, "class", group.className);
+      if (group.style !== undefined) {
+          path.setAttributeNS(null, "style", group.style);
+      }
+
+      path.setAttributeNS(null, "d", "M" + x + "," + y + " L" + (x + iconWidth) + "," + y + "");
+      if (group.options.shaded.enabled == true) {
+          fillPath = DOMutil.getSVGElement("path", framework.svgElements, framework.svg);
+          if (group.options.shaded.orientation == 'top') {
+              fillPath.setAttributeNS(null, "d", "M" + x + ", " + (y - fillHeight) + "L" + x + "," + y + " L" + (x + iconWidth) + "," + y + " L" + (x + iconWidth) + "," + (y - fillHeight));
+          } else {
+              fillPath.setAttributeNS(null, "d", "M" + x + "," + y + " " + "L" + x + "," + (y + fillHeight) + " " + "L" + (x + iconWidth) + "," + (y + fillHeight) + "L" + (x + iconWidth) + "," + y);
+          }
+          fillPath.setAttributeNS(null, "class", group.className + " vis-icon-fill");
+          if (group.options.shaded.style !== undefined && group.options.shaded.style !== "") {
+              fillPath.setAttributeNS(null, "style", group.options.shaded.style);
+          }
+      }
+
+      if (group.options.drawPoints.enabled == true) {
+          var groupTemplate = {
+              style: group.options.drawPoints.style,
+              styles: group.options.drawPoints.styles,
+              size: group.options.drawPoints.size,
+              className: group.className
+          };
+          DOMutil.drawPoint(x + 0.5 * iconWidth, y, groupTemplate, framework.svgElements, framework.svg);
+      }
+  };
+
+  Line.drawShading = function (pathArray, group, subPathArray, framework) {
+      // append shading to the path
+      if (group.options.shaded.enabled == true) {
+          var svgHeight = Number(framework.svg.style.height.replace('px', ''));
+          var fillPath = DOMutil.getSVGElement('path', framework.svgElements, framework.svg);
+          var type = "L";
+          if (group.options.interpolation.enabled == true) {
+              type = "C";
+          }
+          var dFill;
+          var zero = 0;
+          if (group.options.shaded.orientation == 'top') {
+              zero = 0;
+          } else if (group.options.shaded.orientation == 'bottom') {
+              zero = svgHeight;
+          } else {
+              zero = Math.min(Math.max(0, group.zeroPosition), svgHeight);
+          }
+          if (group.options.shaded.orientation == 'group' && subPathArray != null && subPathArray != undefined) {
+              dFill = 'M' + pathArray[0][0] + "," + pathArray[0][1] + " " + this.serializePath(pathArray, type, false) + ' L' + subPathArray[subPathArray.length - 1][0] + "," + subPathArray[subPathArray.length - 1][1] + " " + this.serializePath(subPathArray, type, true) + subPathArray[0][0] + "," + subPathArray[0][1] + " Z";
+          } else {
+              dFill = 'M' + pathArray[0][0] + "," + pathArray[0][1] + " " + this.serializePath(pathArray, type, false) + ' V' + zero + ' H' + pathArray[0][0] + " Z";
+          }
+
+          fillPath.setAttributeNS(null, 'class', group.className + ' vis-fill');
+          if (group.options.shaded.style !== undefined) {
+              fillPath.setAttributeNS(null, 'style', group.options.shaded.style);
+          }
+          fillPath.setAttributeNS(null, 'd', dFill);
+      }
+  };
+
+  /**
+   * draw a line graph
+   *
+   * @param dataset
+   * @param group
+   */
+  Line.draw = function (pathArray, group, framework) {
+      if (pathArray != null && pathArray != undefined) {
+          var path = DOMutil.getSVGElement('path', framework.svgElements, framework.svg);
+          path.setAttributeNS(null, "class", group.className);
+          if (group.style !== undefined) {
+              path.setAttributeNS(null, "style", group.style);
+          }
+
+          var type = "L";
+          if (group.options.interpolation.enabled == true) {
+              type = "C";
+          }
+          // copy properties to path for drawing.
+          path.setAttributeNS(null, 'd', 'M' + pathArray[0][0] + "," + pathArray[0][1] + " " + this.serializePath(pathArray, type, false));
+      }
+  };
+
+  Line.serializePath = function (pathArray, type, inverse) {
+      if (pathArray.length < 2) {
+          //Too little data to create a path.
+          return "";
+      }
+      var d = type;
+      if (inverse) {
+          for (var i = pathArray.length - 2; i > 0; i--) {
+              d += pathArray[i][0] + "," + pathArray[i][1] + " ";
+          }
+      } else {
+          for (var i = 1; i < pathArray.length; i++) {
+              d += pathArray[i][0] + "," + pathArray[i][1] + " ";
+          }
+      }
+      return d;
+  };
+
+  /**
+   * This uses an uniform parametrization of the interpolation algorithm:
+   * 'On the Parameterization of Catmull-Rom Curves' by Cem Yuksel et al.
+   * @param data
+   * @returns {string}
+   * @private
+   */
+  Line._catmullRomUniform = function (data) {
+      // catmull rom
+      var p0, p1, p2, p3, bp1, bp2;
+      var d = [];
+      d.push([Math.round(data[0].screen_x), Math.round(data[0].screen_y)]);
+      var normalization = 1 / 6;
+      var length = data.length;
+      for (var i = 0; i < length - 1; i++) {
+
+          p0 = i == 0 ? data[0] : data[i - 1];
+          p1 = data[i];
+          p2 = data[i + 1];
+          p3 = i + 2 < length ? data[i + 2] : p2;
+
+          // Catmull-Rom to Cubic Bezier conversion matrix
+          //    0       1       0       0
+          //  -1/6      1      1/6      0
+          //    0      1/6      1     -1/6
+          //    0       0       1       0
+
+          //    bp0 = { x: p1.x,                               y: p1.y };
+          bp1 = {
+              screen_x: (-p0.screen_x + 6 * p1.screen_x + p2.screen_x) * normalization,
+              screen_y: (-p0.screen_y + 6 * p1.screen_y + p2.screen_y) * normalization
+          };
+          bp2 = {
+              screen_x: (p1.screen_x + 6 * p2.screen_x - p3.screen_x) * normalization,
+              screen_y: (p1.screen_y + 6 * p2.screen_y - p3.screen_y) * normalization
+          };
+          //    bp0 = { x: p2.x,                               y: p2.y };
+
+          d.push([bp1.screen_x, bp1.screen_y]);
+          d.push([bp2.screen_x, bp2.screen_y]);
+          d.push([p2.screen_x, p2.screen_y]);
+      }
+
+      return d;
+  };
+
+  /**
+   * This uses either the chordal or centripetal parameterization of the catmull-rom algorithm.
+   * By default, the centripetal parameterization is used because this gives the nicest results.
+   * These parameterizations are relatively heavy because the distance between 4 points have to be calculated.
+   *
+   * One optimization can be used to reuse distances since this is a sliding window approach.
+   * @param data
+   * @param group
+   * @returns {string}
+   * @private
+   */
+  Line._catmullRom = function (data, group) {
+      var alpha = group.options.interpolation.alpha;
+      if (alpha == 0 || alpha === undefined) {
+          return this._catmullRomUniform(data);
+      } else {
+          var p0, p1, p2, p3, bp1, bp2, d1, d2, d3, A, B, N, M;
+          var d3powA, d2powA, d3pow2A, d2pow2A, d1pow2A, d1powA;
+          var d = [];
+          d.push([Math.round(data[0].screen_x), Math.round(data[0].screen_y)]);
+          var length = data.length;
+          for (var i = 0; i < length - 1; i++) {
+
+              p0 = i == 0 ? data[0] : data[i - 1];
+              p1 = data[i];
+              p2 = data[i + 1];
+              p3 = i + 2 < length ? data[i + 2] : p2;
+
+              d1 = Math.sqrt(Math.pow(p0.screen_x - p1.screen_x, 2) + Math.pow(p0.screen_y - p1.screen_y, 2));
+              d2 = Math.sqrt(Math.pow(p1.screen_x - p2.screen_x, 2) + Math.pow(p1.screen_y - p2.screen_y, 2));
+              d3 = Math.sqrt(Math.pow(p2.screen_x - p3.screen_x, 2) + Math.pow(p2.screen_y - p3.screen_y, 2));
+
+              // Catmull-Rom to Cubic Bezier conversion matrix
+
+              // A = 2d1^2a + 3d1^a * d2^a + d3^2a
+              // B = 2d3^2a + 3d3^a * d2^a + d2^2a
+
+              // [   0             1            0          0          ]
+              // [   -d2^2a /N     A/N          d1^2a /N   0          ]
+              // [   0             d3^2a /M     B/M        -d2^2a /M  ]
+              // [   0             0            1          0          ]
+
+              d3powA = Math.pow(d3, alpha);
+              d3pow2A = Math.pow(d3, 2 * alpha);
+              d2powA = Math.pow(d2, alpha);
+              d2pow2A = Math.pow(d2, 2 * alpha);
+              d1powA = Math.pow(d1, alpha);
+              d1pow2A = Math.pow(d1, 2 * alpha);
+
+              A = 2 * d1pow2A + 3 * d1powA * d2powA + d2pow2A;
+              B = 2 * d3pow2A + 3 * d3powA * d2powA + d2pow2A;
+              N = 3 * d1powA * (d1powA + d2powA);
+              if (N > 0) {
+                  N = 1 / N;
+              }
+              M = 3 * d3powA * (d3powA + d2powA);
+              if (M > 0) {
+                  M = 1 / M;
+              }
+
+              bp1 = {
+                  screen_x: (-d2pow2A * p0.screen_x + A * p1.screen_x + d1pow2A * p2.screen_x) * N,
+                  screen_y: (-d2pow2A * p0.screen_y + A * p1.screen_y + d1pow2A * p2.screen_y) * N
+              };
+
+              bp2 = {
+                  screen_x: (d3pow2A * p1.screen_x + B * p2.screen_x - d2pow2A * p3.screen_x) * M,
+                  screen_y: (d3pow2A * p1.screen_y + B * p2.screen_y - d2pow2A * p3.screen_y) * M
+              };
+
+              if (bp1.screen_x == 0 && bp1.screen_y == 0) {
+                  bp1 = p1;
+              }
+              if (bp2.screen_x == 0 && bp2.screen_y == 0) {
+                  bp2 = p2;
+              }
+              d.push([bp1.screen_x, bp1.screen_y]);
+              d.push([bp2.screen_x, bp2.screen_y]);
+              d.push([p2.screen_x, p2.screen_y]);
+          }
+
+          return d;
+      }
+  };
+
+  /**
+   * this generates the SVG path for a linear drawing between datapoints.
+   * @param data
+   * @returns {string}
+   * @private
+   */
+  Line._linear = function (data) {
+      // linear
+      var d = [];
+      for (var i = 0; i < data.length; i++) {
+          d.push([data[i].screen_x, data[i].screen_y]);
+      }
+      return d;
+  };
+
+  module.exports = Line;
 
 /***/ },
 /* 57 */
@@ -26531,6 +26595,7 @@ return /******/ (function(modules) { // webpackBootstrap
     this.groups = {};
     this.amountOfGroups = 0;
     this._create();
+    this.framework = { svg: this.svg, svgElements: this.svgElements, options: this.options, groups: this.groups };
 
     this.setOptions(options);
   }
@@ -26701,7 +26766,7 @@ return /******/ (function(modules) { // webpackBootstrap
       for (var i = 0; i < groupArray.length; i++) {
         var groupId = groupArray[i];
         if (this.groups[groupId].visible == true && (this.linegraphOptions.visibility[groupId] === undefined || this.linegraphOptions.visibility[groupId] == true)) {
-          this.groups[groupId].drawIcon(x, y, this.svgElements, this.svg, iconWidth, iconHeight);
+          this.groups[groupId].getLegend(iconWidth, iconHeight, this.framework, x, y);
           y += iconHeight + this.options.iconSpacing;
         }
       }
@@ -26753,7 +26818,8 @@ return /******/ (function(modules) { // webpackBootstrap
     graphHeight: { string: string, number: number },
     shaded: {
       enabled: { boolean: boolean },
-      orientation: { string: ['bottom', 'top', 'zero'] }, // top, bottom, zero
+      orientation: { string: ['bottom', 'top', 'zero', 'group'] }, // top, bottom, zero, group
+      groupId: { object: object },
       __type__: { boolean: boolean, object: object }
     },
     style: { string: ['line', 'bar', 'points'] }, // line, bar
@@ -26892,7 +26958,7 @@ return /******/ (function(modules) { // webpackBootstrap
       stack: false,
       shaded: {
         enabled: false,
-        orientation: ['zero', 'top', 'bottom'] // zero, top, bottom
+        orientation: ['zero', 'top', 'bottom', 'group'] // zero, top, bottom
       },
       style: ['line', 'bar', 'points'], // line, bar
       barChart: {
