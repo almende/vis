@@ -15,6 +15,7 @@ http://visjs.org
 - Fixed #1491: Problem using ctrl+drag in combination with using a `DataView`,
   and an issue with ctrl+drag when using `snap: null`.
 - Fixed #1486: Item range sometimes wrongly calculated on IE in case of old dates.
+- Fixed #1523: end of data range wrongly determined.
 
 ### Graph2d
 
