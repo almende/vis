@@ -4,8 +4,8 @@
  *
  * A dynamic, browser-based visualization library.
  *
- * @version 4.10.1-SNAPSHOT
- * @date    2015-12-11
+ * @version 4.11.0
+ * @date    2015-12-18
  *
  * @license
  * Copyright (C) 2011-2015 Almende B.V, http://almende.com
@@ -1357,6 +1357,24 @@ return /******/ (function(modules) { // webpackBootstrap
     } else {
       return null;
     }
+  };
+
+  /**
+   * This method provides a stable sort implementation, very fast for presorted data
+   *
+   * @param a the array
+   * @param a order comparator
+   * @returns {the array}
+   */
+  exports.insertSort = function (a, compare) {
+    for (var i = 0; i < a.length; i++) {
+      var k = a[i];
+      for (var j = i; j > 0 && compare(k, a[j - 1]) < 0; j--) {
+        a[j] = a[j - 1];
+      }
+      a[j] = k;
+    }
+    return a;
   };
 
   /**
@@ -5479,7 +5497,11 @@ return /******/ (function(modules) { // webpackBootstrap
     if (Array.isArray(data)) {
       // Array
       for (var i = 0, len = data.length; i < len; i++) {
-        addOrUpdate(data[i]);
+        if (data[i] instanceof Object) {
+          addOrUpdate(data[i]);
+        } else {
+          console.warn("Ignoring input item, which is not an object at index" + i);
+        }
       }
     } else if (data instanceof Object) {
       // Single item
@@ -6571,6 +6593,46 @@ return /******/ (function(modules) { // webpackBootstrap
     }
 
     return ids;
+  };
+
+  /**
+   * Map every item in the dataset.
+   * @param {function} callback
+   * @param {Object} [options]    Available options:
+   *                              {Object.<String, String>} [type]
+   *                              {String[]} [fields] filter fields
+   *                              {function} [filter] filter items
+   *                              {String | function} [order] Order the items by
+   *                                  a field name or custom sort function.
+   * @return {Object[]} mappedItems
+   */
+  DataView.prototype.map = function (callback, options) {
+    var mappedItems = [];
+    if (this._data) {
+      var defaultFilter = this._options.filter;
+      var filter;
+
+      if (options && options.filter) {
+        if (defaultFilter) {
+          filter = function (item) {
+            return defaultFilter(item) && options.filter(item);
+          };
+        } else {
+          filter = options.filter;
+        }
+      } else {
+        filter = defaultFilter;
+      }
+
+      mappedItems = this._data.map(callback, {
+        filter: filter,
+        order: options && options.order
+      });
+    } else {
+      mappedItems = [];
+    }
+
+    return mappedItems;
   };
 
   /**
@@ -10517,7 +10579,7 @@ return /******/ (function(modules) { // webpackBootstrap
           min = start;
         }
         if (max === null || end > max) {
-          max = start;
+          max = end;
         }
       });
     }
@@ -24199,7 +24261,6 @@ return /******/ (function(modules) { // webpackBootstrap
       ids = this.itemsData.getIds();
       this._onAdd(ids);
     }
-    this.redraw(true);
   };
 
   /**
@@ -24219,7 +24280,9 @@ return /******/ (function(modules) { // webpackBootstrap
       // remove all drawn groups
       ids = this.groupsData.getIds();
       this.groupsData = null;
-      this._onRemoveGroups(ids); // note: this will cause a redraw
+      for (var i = 0; i < ids.length; i++) {
+        this._removeGroup(ids[i]);
+      }
     }
 
     // replace the dataset
@@ -24242,7 +24305,6 @@ return /******/ (function(modules) { // webpackBootstrap
       ids = this.groupsData.getIds();
       this._onAddGroups(ids);
     }
-    this._onUpdate();
   };
 
   LineGraph.prototype._onUpdate = function (ids) {
@@ -24466,6 +24528,31 @@ return /******/ (function(modules) { // webpackBootstrap
     return resized;
   };
 
+  LineGraph.prototype._getSortedGroupIds = function () {
+    // getting group Ids
+    var grouplist = [];
+    for (var groupId in this.groups) {
+      if (this.groups.hasOwnProperty(groupId)) {
+        var group = this.groups[groupId];
+        if (group.visible == true && (this.options.groups.visibility[groupId] === undefined || this.options.groups.visibility[groupId] == true)) {
+          grouplist.push({ id: groupId, zIndex: group.options.zIndex });
+        }
+      }
+    }
+    util.insertSort(grouplist, function (a, b) {
+      var az = a.zIndex;
+      var bz = b.zIndex;
+      if (az === undefined) az = 0;
+      if (bz === undefined) bz = 0;
+      return az == bz ? 0 : az < bz ? -1 : 1;
+    });
+    var groupIds = new Array(grouplist.length);
+    for (var i = 0; i < grouplist.length; i++) {
+      groupIds[i] = grouplist[i].id;
+    }
+    return groupIds;
+  };
+
   /**
    * Update and redraw the graph.
    *
@@ -24482,15 +24569,7 @@ return /******/ (function(modules) { // webpackBootstrap
       var maxDate = this.body.util.toGlobalTime(2 * this.body.domProps.root.width);
 
       // getting group Ids
-      var groupIds = [];
-      for (var groupId in this.groups) {
-        if (this.groups.hasOwnProperty(groupId)) {
-          group = this.groups[groupId];
-          if (group.visible == true && (this.options.groups.visibility[groupId] === undefined || this.options.groups.visibility[groupId] == true)) {
-            groupIds.push(groupId);
-          }
-        }
-      }
+      var groupIds = this._getSortedGroupIds();
       if (groupIds.length > 0) {
         var groupsData = {};
 
@@ -24586,8 +24665,10 @@ return /******/ (function(modules) { // webpackBootstrap
                   }
                   Lines.draw(paths[groupIds[i]], group, this.framework);
                 //explicit no break;
+                case "point":
+                //explicit no break;
                 case "points":
-                  if (group.options.style == "points" || group.options.drawPoints.enabled == true) {
+                  if (group.options.style == "point" || group.options.style == "points" || group.options.drawPoints.enabled == true) {
                     Points.draw(groupsData[groupIds[i]], group, this.framework);
                   }
                   break;
@@ -24997,7 +25078,7 @@ return /******/ (function(modules) { // webpackBootstrap
     this.setOptions(options);
     this.width = Number(('' + this.options.width).replace("px", ""));
     this.minWidth = this.width;
-    this.height = this.linegraphSVG.offsetHeight;
+    this.height = this.linegraphSVG.getBoundingClientRect().height;
     this.hidden = false;
 
     this.stepPixels = 25;
@@ -25782,7 +25863,7 @@ return /******/ (function(modules) { // webpackBootstrap
    */
   function GraphGroup(group, groupId, options, groupsUsingDefaultStyles) {
     this.id = groupId;
-    var fields = ['sampling', 'style', 'sort', 'yAxisOrientation', 'barChart', 'drawPoints', 'shaded', 'interpolation'];
+    var fields = ['sampling', 'style', 'sort', 'yAxisOrientation', 'barChart', 'drawPoints', 'shaded', 'interpolation', 'zIndex'];
     this.options = util.selectiveBridgeObject(fields, options);
     this.usingDefaultStyle = group.className === undefined;
     this.groupsUsingDefaultStyles = groupsUsingDefaultStyles;
@@ -25795,17 +25876,6 @@ return /******/ (function(modules) { // webpackBootstrap
     this.visible = group.visible === undefined ? true : group.visible;
   }
 
-  function insertionSort(a, compare) {
-    for (var i = 0; i < a.length; i++) {
-      var k = a[i];
-      for (var j = i; j > 0 && compare(k, a[j - 1]) < 0; j--) {
-        a[j] = a[j - 1];
-      }
-      a[j] = k;
-    }
-    return a;
-  }
-
   /**
    * this loads a reference to all items in this group into this group.
    * @param {array} items
@@ -25814,7 +25884,7 @@ return /******/ (function(modules) { // webpackBootstrap
     if (items != null) {
       this.itemsData = items;
       if (this.options.sort == true) {
-        insertionSort(this.itemsData, function (a, b) {
+        util.insertSort(this.itemsData, function (a, b) {
           return a.x > b.x ? 1 : -1;
         });
       }
@@ -25841,7 +25911,7 @@ return /******/ (function(modules) { // webpackBootstrap
    */
   GraphGroup.prototype.setOptions = function (options) {
     if (options !== undefined) {
-      var fields = ['sampling', 'style', 'sort', 'yAxisOrientation', 'barChart', 'excludeFromLegend', 'excludeFromStacking'];
+      var fields = ['sampling', 'style', 'sort', 'yAxisOrientation', 'barChart', 'excludeFromLegend', 'excludeFromStacking', 'zIndex'];
       util.selectiveDeepExtend(fields, this.options, options);
 
       // if the group's drawPoints is a function delegate the callback to the onRender property
@@ -25907,7 +25977,8 @@ return /******/ (function(modules) { // webpackBootstrap
       case "line":
         Lines.drawIcon(this, x, y, iconWidth, iconHeight, framework);
         break;
-      case "points":
+      case "points": //explicit no break
+      case "point":
         Points.drawIcon(this, x, y, iconWidth, iconHeight, framework);
         break;
       case "bar":
@@ -25952,6 +26023,8 @@ return /******/ (function(modules) { // webpackBootstrap
     outline.setAttributeNS(null, "class", "vis-outline");
 
     var barWidth = Math.round(0.3 * iconWidth);
+    var originalWidth = group.options.barChart.width;
+    var scale = originalWidth / barWidth;
     var bar1Height = Math.round(0.4 * iconHeight);
     var bar2Height = Math.round(0.75 * iconHeight);
 
@@ -25964,7 +26037,7 @@ return /******/ (function(modules) { // webpackBootstrap
       var groupTemplate = {
         style: group.options.drawPoints.style,
         styles: group.options.drawPoints.styles,
-        size: Math.max(barWidth / 5, group.options.drawPoints.size),
+        size: group.options.drawPoints.size / scale,
         className: group.className
       };
       DOMutil.drawPoint(x + 0.5 * barWidth + offset, y + fillHeight - bar1Height - 1, groupTemplate, framework.svgElements, framework.svg);
@@ -25996,6 +26069,8 @@ return /******/ (function(modules) { // webpackBootstrap
             combinedData.push({
               screen_x: processedGroupData[groupIds[i]][j].screen_x,
               screen_y: processedGroupData[groupIds[i]][j].screen_y,
+              x: processedGroupData[groupIds[i]][j].x,
+              y: processedGroupData[groupIds[i]][j].y,
               groupId: groupIds[i],
               label: processedGroupData[groupIds[i]][j].label
             });
@@ -26072,6 +26147,8 @@ return /******/ (function(modules) { // webpackBootstrap
         var pointData = {
           screen_x: combinedData[i].screen_x,
           screen_y: combinedData[i].screen_y - heightOffset,
+          x: combinedData[i].x,
+          y: combinedData[i].y,
           groupId: combinedData[i].groupId,
           label: combinedData[i].label
         };
@@ -26099,7 +26176,12 @@ return /******/ (function(modules) { // webpackBootstrap
       }
       if (coreDistance === 0) {
         if (intersections[combinedData[i].screen_x] === undefined) {
-          intersections[combinedData[i].screen_x] = { amount: 0, resolved: 0, accumulatedPositive: 0, accumulatedNegative: 0 };
+          intersections[combinedData[i].screen_x] = {
+            amount: 0,
+            resolved: 0,
+            accumulatedPositive: 0,
+            accumulatedNegative: 0
+          };
         }
         intersections[combinedData[i].screen_x].amount += 1;
       }
@@ -26262,7 +26344,6 @@ return /******/ (function(modules) { // webpackBootstrap
     if (group.group.options && group.group.options.drawPoints && group.group.options.drawPoints.onRender && typeof group.group.options.drawPoints.onRender == 'function') {
       callback = group.group.options.drawPoints.onRender;
     }
-
     return callback;
   }
 
@@ -26947,6 +27028,7 @@ return /******/ (function(modules) { // webpackBootstrap
     zoomKey: { string: ['ctrlKey', 'altKey', 'metaKey', ''] },
     zoomMax: { number: number },
     zoomMin: { number: number },
+    zIndex: { number: number },
     __type__: { object: object }
   };
 
@@ -27050,7 +27132,8 @@ return /******/ (function(modules) { // webpackBootstrap
       zoomable: true,
       zoomKey: ['ctrlKey', 'altKey', 'metaKey', ''],
       zoomMax: [315360000000000, 10, 315360000000000, 1],
-      zoomMin: [10, 10, 315360000000000, 1]
+      zoomMin: [10, 10, 315360000000000, 1],
+      zIndex: 0
     }
   };
 
