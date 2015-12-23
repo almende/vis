@@ -4,8 +4,9 @@ http://visjs.org
 
 ## not yet released, version 4.11.1-SNAPSHOT
 
+### Timeline
 
-
+- Fixed #1527: error when creating/updating a Timeline without data.
 
 
 ## 2015-12-18, version 4.11.0
