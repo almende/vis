@@ -18,121 +18,62 @@
 <div id="network"></div>
 <script>
     var nodes = new vis.DataSet([
-        {"id":317,"label":"Start - BTN\n317\nSection","x":-817,"y":-24,"group":"Section"},
-        {"id":318,"label":"End Call\n318\nHangup","x":-933,"y":-175,"group":"Hangup"},
-        {"id":319,"label":"Call Error\n319\nSpeak","x":-727,"y":-175,"group":"Speak"},            {"id":320,"label":"Welcome\n320\nSpeak","x":-563,"y":-14,"group":"Speak"},
-        {"id":321,"label":"Enter TN\n321\nPrompt","x":-326,"y":-7,"group":"Prompt"},
-        {"id":322,"label":"CheckIsTenDigits\n322\nWebService","x":-84,"y":-5,"group":"WebService"},
-        {"id":323,"label":"VerifyIsTenDigits\n323\nCase","x":207,"y":-4,"group":"Case"},
-        {"id":324,"label":"CheckIsValidTN\n324\nWebService","x":492,"y":-10,"group":"WebService"},
-        {"id":325,"label":"Not Ten Digits\n325\nSpeak","x":-76,"y":-274,"group":"Speak"},
-        {"id":326,"label":"VerifyIsValidTN\n326\nCase","x":821,"y":-9,"group":"Case"},
-        {"id":327,"label":"Verify TN Is Correct\n327\nPrompt","x":812,"y":265,"group":"Prompt"},
-        {"id":328,"label":"Not Valid TN\n328\nSpeak","x":499,"y":-210,"group":"Speak"},
-        {"id":329,"label":"BTN Is Valid\n329\nSpeak","x":812,"y":397,"group":"Speak"},
-        {"id":330,"label":"Validate TPV ID\n330\nSection","x":708,"y":592,"group":"Section"},
-        {"id":331,"label":"End Section End Call\n331\nHangup","x":1040,"y":478,"group":"Hangup"},
-        {"id":332,"label":"Say BTN\n332\nSpeak","x":820,"y":113,"group":"Speak"},
-        {"id":333,"label":"Get TPV ID\n333\nWebService","x":800,"y":824,"group":"WebService"},
-        {"id":334,"label":"TPV ID Error\n334\nSpeak","x":1037,"y":682,"group":"Speak"},
-        {"id":335,"label":"Verify TPV ID Is Valid\n335\nCase","x":798,"y":1059,"group":"Case"},
-        {"id":336,"label":"TPV ID Is valid\n336\nSpeak","x":802,"y":1304,"group":"Speak"},
-        {"id":337,"label":"End Call\n337\nSection","x":828,"y":1605,"group":"Section"},
-        {"id":338,"label":"TPV ID Not Found\n338\nSpeak","x":1211,"y":1055,"group":"Speak"},
-        {"id":339,"label":"TPV ID End Call\n339\nHangup","x":1074,"y":1616,"group":"Hangup"}
+        {id: 1, label: '1'},
+        {id: 2, label: '2'},
+        {id: 3, label: '3'},
+        {id: 4, label: '4'},
+        {id: 5, label: '5'},
+        {id: 6, label: '6'},
+        {id: 7, label: '7'},
     ]);
-
     var edges = new vis.DataSet([
-        {"id":353,"from":317,"to":318,"label":"Hangup"},{"id":354,"from":317,"to":318,"label":"CcHangup"},{"id":355,"from":317,"to":319,"label":"Error"},{"id":356,"from":319,"to":318,"label":"Continue"},{"id":357,"from":319,"to":318,"label":"Error"},{"id":358,"from":319,"to":318,"label":"Hangup"},{"id":359,"from":317,"to":320,"label":"Continue"},{"id":360,"from":320,"to":321,"label":"Continue"},{"id":361,"from":321,"to":322,"label":"1"},{"id":362,"from":322,"to":323,"label":"Continue"},{"id":363,"from":323,"to":324,"label":"1"},{"id":364,"from":323,"to":325,"label":"2"},{"id":365,"from":325,"to":321,"label":"Continue"},{"id":366,"from":324,"to":326,"label":"Continue"},{"id":367,"from":326,"to":332,"label":"1"},{"id":368,"from":326,"to":328,"label":"2"},{"id":369,"from":327,"to":332,"label":"3"},{"id":370,"from":327,"to":321,"label":"2"},{"id":371,"from":328,"to":321,"label":"Continue"},{"id":372,"from":327,"to":329,"label":"1"},{"id":373,"from":329,"to":330,"label":"Continue"},{"id":374,"from":330,"to":333,"label":"Continue"},{"id":375,"from":330,"to":331,"label":"Hangup"},{"id":376,"from":332,"to":327,"label":"Continue"},{"id":377,"from":330,"to":334,"label":"Error"},{"id":378,"from":334,"to":331,"label":"Continue"},{"id":379,"from":333,"to":335,"label":"Continue"},{"id":380,"from":335,"to":336,"label":"1"},{"id":381,"from":336,"to":337,"label":"Continue"},{"id":382,"from":335,"to":338,"label":"0"},{"id":383,"from":338,"to":337,"label":"Continue"},{"id":384,"from":337,"to":339,"label":"Continue"}
+        {id: "e1", from: 2, to: 1, label: "e1"},
+        {id: "e2", from: 3, to: 1, label: "e2"},
+        {id: "e3", from: 4, to: 1, label: "e3"},
+        {id: "e4", from: 5, to: 1, label: "e4"},
+        {id: "e5", from: 6, to: 1, label: "e5"},
+        {id: "e6", from: 2, to: 7, label: "e6"},
+        {id: "e7", from: 3, to: 7, label: "e7"},
+        {id: "e8", from: 4, to: 7, label: "e8"},
+        {id: "e9", from: 5, to: 7, label: "e9"},
+        {id: "e10", from: 6, to: 7, label: "e10"},
     ]);
 
+    // create a network
     var container = document.getElementById('network');
     var data = {
-        edges: edges,
-        nodes: nodes
+        nodes: nodes,
+        edges: edges
     };
     var options = {
-        manipulation: {
-            initiallyActive: true,
-            addNode: true,
-            addEdge: true,
-            editEdge: true,
-            deleteNode: true,
-            deleteEdge: true
-        },
-        nodes: {
-            physics: false,
-        },
+        layout: {randomSeed: 8},
         edges: {
-            physics: false,
-            arrows: 'to',
-            smooth: {
-                enabled: true,
-                type: 'continuous'
-            }
-        },
-        interaction: {
-            dragNodes: true,
-            dragView: true,
-            hover: true,
-            keyboard: {
-                enabled: true,
-                bindToWindow: false
+            arrows: {
+                to: {
+                    scaleFactor: 0.5
+                }
             },
-            navigationButtons: true,
-            selectable: true,
-            selectConnectedEdges: true,
-            hoverConnectedEdges: true,
-            zoomView: true
-        },
-        groups: {
-            Assignment: {
-                shape: 'box',
-                color: '#6699ff'
-            },
-            Hangup: {
-                shape: 'box',
-                color: '#b8b8b8'
-            },
-            Prompt: {
-                shape: 'box',
-                color: '#00ffff'
-            },
-            Section: {
-                shape: 'circle',
-                color: '#66ff66'
-            },
-            Speak: {
-                shape: 'box',
-                color: '#ffff66'
-            },
-            StartRecording: {
-                shape: 'box',
-                color: '#ff5050'
-            },
-            StopRecording: {
-                shape: 'box',
-                color: '#ff5050'
-            },
-            Transfer: {
-                shape: 'box',
-                color: '#ff66ff'
-            },
-            TransferAgent: {
-                shape: 'box',
-                color: '#ff9900'
-            },
-            Case: {
-                shape: 'box',
-                color: '#33cccc'
-            },
-            WebService: {
-                shape: 'box',
-                color: '#33cc33'
+            font: {
+                align: "middle"
             }
         }
     };
     var network = new vis.Network(container, data, options);
+
+        var clusterOptionsByData = {
+            joinCondition: function(node) {
+                if (node.id > 1 && node.id < 7)
+                    return true;
+                return false;
+            },
+            clusterNodeProperties: {id:"c1", label:'c1'}
+        };
+        network.cluster(clusterOptionsByData);
+
+
+    setTimeout(function() {
+        network.setOptions({layout: { hierarchical: { direction: "LR" }}});
+    },2000)
 </script>
 </body>
 </html>

@@ -1384,7 +1384,6 @@ return /******/ (function(modules) { // webpackBootstrap
    * @param [object] mergeTarget | this is either this.options or the options used for the groups.
    * @param [object] options     | options
    * @param [String] option      | this is the option key in the options argument
-   * @private
    */
   exports.mergeOptions = function (mergeTarget, options, option) {
     var allowDeletion = arguments.length <= 3 || arguments[3] === undefined ? false : arguments[3];
@@ -27861,7 +27860,7 @@ return /******/ (function(modules) { // webpackBootstrap
     for (var nodeId in nodes) {
       if (nodes.hasOwnProperty(nodeId)) {
         if (nodes[nodeId].options.hidden === false) {
-          this.body.nodeIndices.push(nodeId);
+          this.body.nodeIndices.push(nodes[nodeId].id);
         }
       }
     }
@@ -27869,7 +27868,7 @@ return /******/ (function(modules) { // webpackBootstrap
     for (var edgeId in edges) {
       if (edges.hasOwnProperty(edgeId)) {
         if (edges[edgeId].options.hidden === false) {
-          this.body.edgeIndices.push(edgeId);
+          this.body.edgeIndices.push(edges[edgeId].id);
         }
       }
     }
@@ -28455,6 +28454,7 @@ return /******/ (function(modules) { // webpackBootstrap
         },
         shadow: {
           enabled: false,
+          color: 'rgba(0,0,0,0.5)',
           size: 10,
           x: 5,
           y: 5
@@ -28745,7 +28745,7 @@ return /******/ (function(modules) { // webpackBootstrap
           if (dataset._data.hasOwnProperty(nodeId)) {
             var node = this.body.nodes[nodeId];
             if (dataset._data[nodeId].x != Math.round(node.x) || dataset._data[nodeId].y != Math.round(node.y)) {
-              dataArray.push({ id: nodeId, x: Math.round(node.x), y: Math.round(node.y) });
+              dataArray.push({ id: node.id, x: Math.round(node.x), y: Math.round(node.y) });
             }
           }
         }
@@ -28779,13 +28779,13 @@ return /******/ (function(modules) { // webpackBootstrap
           var nodeObj = {}; // used to quickly check if node already exists
           for (var i = 0; i < node.edges.length; i++) {
             var edge = node.edges[i];
-            if (edge.toId == nodeId) {
+            if (edge.toId == node.id) {
               // these are double equals since ids can be numeric or string
               if (nodeObj[edge.fromId] === undefined) {
                 nodeList.push(edge.fromId);
                 nodeObj[edge.fromId] = true;
               }
-            } else if (edge.fromId == nodeId) {
+            } else if (edge.fromId == node.id) {
               // these are double equals since ids can be numeric or string
               if (nodeObj[edge.toId] === undefined) {
                 nodeList.push(edge.toId);
@@ -29086,6 +29086,8 @@ return /******/ (function(modules) { // webpackBootstrap
        * Static so it can also be used by the handler.
        * @param parentOptions
        * @param newOptions
+       * @param allowDeletion
+       * @param globalOptions
        */
     }, {
       key: 'updateLabelModule',
@@ -29809,15 +29811,15 @@ return /******/ (function(modules) { // webpackBootstrap
 /* 64 */
 /***/ function(module, exports) {
 
-  'use strict';
+  "use strict";
 
-  Object.defineProperty(exports, '__esModule', {
+  Object.defineProperty(exports, "__esModule", {
     value: true
   });
 
-  var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
+  var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
 
-  function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
+  function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
   var NodeBase = (function () {
     function NodeBase(options, body, labelModule) {
@@ -29835,29 +29837,29 @@ return /******/ (function(modules) { // webpackBootstrap
     }
 
     _createClass(NodeBase, [{
-      key: 'setOptions',
+      key: "setOptions",
       value: function setOptions(options) {
         this.options = options;
       }
     }, {
-      key: '_distanceToBorder',
+      key: "_distanceToBorder",
       value: function _distanceToBorder(ctx, angle) {
         var borderWidth = this.options.borderWidth;
         this.resize(ctx);
         return Math.min(Math.abs(this.width / 2 / Math.cos(angle)), Math.abs(this.height / 2 / Math.sin(angle))) + borderWidth;
       }
     }, {
-      key: 'enableShadow',
+      key: "enableShadow",
       value: function enableShadow(ctx) {
         if (this.options.shadow.enabled === true) {
-          ctx.shadowColor = 'rgba(0,0,0,0.5)';
+          ctx.shadowColor = this.options.shadow.color;
           ctx.shadowBlur = this.options.shadow.size;
           ctx.shadowOffsetX = this.options.shadow.x;
           ctx.shadowOffsetY = this.options.shadow.y;
         }
       }
     }, {
-      key: 'disableShadow',
+      key: "disableShadow",
       value: function disableShadow(ctx) {
         if (this.options.shadow.enabled === true) {
           ctx.shadowColor = 'rgba(0,0,0,0)';
@@ -29867,7 +29869,7 @@ return /******/ (function(modules) { // webpackBootstrap
         }
       }
     }, {
-      key: 'enableBorderDashes',
+      key: "enableBorderDashes",
       value: function enableBorderDashes(ctx) {
         if (this.options.shapeProperties.borderDashes !== false) {
           if (ctx.setLineDash !== undefined) {
@@ -29883,7 +29885,7 @@ return /******/ (function(modules) { // webpackBootstrap
         }
       }
     }, {
-      key: 'disableBorderDashes',
+      key: "disableBorderDashes",
       value: function disableBorderDashes(ctx) {
         if (this.options.shapeProperties.borderDashes !== false) {
           if (ctx.setLineDash !== undefined) {
@@ -29899,8 +29901,8 @@ return /******/ (function(modules) { // webpackBootstrap
     return NodeBase;
   })();
 
-  exports['default'] = NodeBase;
-  module.exports = exports['default'];
+  exports["default"] = NodeBase;
+  module.exports = exports["default"];
 
 /***/ },
 /* 65 */
@@ -31359,6 +31361,7 @@ return /******/ (function(modules) { // webpackBootstrap
         selfReferenceSize: 20,
         shadow: {
           enabled: false,
+          color: 'rgba(0,0,0,0.5)',
           size: 10,
           x: 5,
           y: 5
@@ -31395,7 +31398,7 @@ return /******/ (function(modules) { // webpackBootstrap
               var edge = _this2.body.edges[edgeId];
               var edgeData = _this2.body.data.edges._data[edgeId];
 
-              // only forcilby remove the smooth curve if the data has been set of the edge has the smooth curves defined.
+              // only forcibly remove the smooth curve if the data has been set of the edge has the smooth curves defined.
               // this is because a change in the global would not affect these curves.
               if (edgeData !== undefined) {
                 var edgeOptions = edgeData.smooth;
@@ -31441,7 +31444,7 @@ return /******/ (function(modules) { // webpackBootstrap
           // use the parser from the Edge class to fill in all shorthand notations
           _componentsEdge2['default'].parseOptions(this.options, options);
 
-          // hanlde multiple input cases for color
+          // handle multiple input cases for color
           if (options.color !== undefined) {
             this.markAllEdgesAsDirty();
           }
@@ -32192,7 +32195,7 @@ return /******/ (function(modules) { // webpackBootstrap
           parentOptions.scaling = Object.create(globalOptions.scaling); // this sets the pointer of the option back to the global option.
         }
 
-        // hanlde multiple input cases for arrows
+        // handle multiple input cases for arrows
         if (newOptions.arrows !== undefined && newOptions.arrows !== null) {
           if (typeof newOptions.arrows === 'string') {
             var arrows = newOptions.arrows.toLowerCase();
@@ -32216,7 +32219,7 @@ return /******/ (function(modules) { // webpackBootstrap
           parentOptions.arrows = Object.create(globalOptions.arrows); // this sets the pointer of the option back to the global option.
         }
 
-        // hanlde multiple input cases for color
+        // handle multiple input cases for color
         if (newOptions.color !== undefined && newOptions.color !== null) {
           // make a copy of the parent object in case this is referring to the global one (due to object create once, then update)
           parentOptions.color = util.deepExtend({}, parentOptions.color, true);
@@ -33213,7 +33216,7 @@ return /******/ (function(modules) { // webpackBootstrap
       key: 'enableShadow',
       value: function enableShadow(ctx) {
         if (this.options.shadow.enabled === true) {
-          ctx.shadowColor = 'rgba(0,0,0,0.5)';
+          ctx.shadowColor = this.options.shadow.color;
           ctx.shadowBlur = this.options.shadow.size;
           ctx.shadowOffsetX = this.options.shadow.x;
           ctx.shadowOffsetY = this.options.shadow.y;
@@ -33310,7 +33313,7 @@ return /******/ (function(modules) { // webpackBootstrap
         if (this.from === undefined || this.to === undefined || this.options.physics === false) {
           this.via.setOptions({ physics: false });
         } else {
-          // fix weird behaviour where a selfreferencing node has physics enabled
+          // fix weird behaviour where a self referencing node has physics enabled
           if (this.from.id === this.to.id) {
             this.via.setOptions({ physics: false });
           } else {
@@ -34100,7 +34103,7 @@ return /******/ (function(modules) { // webpackBootstrap
       }
 
       /**
-       * The viewFunction inserts this step into each renderloop. It calls the physics tick and handles the cleanup at stabilized.
+       * The viewFunction inserts this step into each render loop. It calls the physics tick and handles the cleanup at stabilized.
        *
        */
     }, {
@@ -34240,7 +34243,7 @@ return /******/ (function(modules) { // webpackBootstrap
         for (var nodeId in nodes) {
           if (nodes.hasOwnProperty(nodeId)) {
             if (nodes[nodeId].options.physics === true) {
-              this.physicsBody.physicsNodeIndices.push(nodeId);
+              this.physicsBody.physicsNodeIndices.push(nodes[nodeId].id);
             }
           }
         }
@@ -34249,7 +34252,7 @@ return /******/ (function(modules) { // webpackBootstrap
         for (var edgeId in edges) {
           if (edges.hasOwnProperty(edgeId)) {
             if (edges[edgeId].options.physics === true) {
-              this.physicsBody.physicsEdgeIndices.push(edgeId);
+              this.physicsBody.physicsEdgeIndices.push(edges[edgeId].id);
             }
           }
         }
@@ -34331,7 +34334,7 @@ return /******/ (function(modules) { // webpackBootstrap
       }
 
       /**
-       * move the nodes one timestap and check if they are stabilized
+       * move the nodes one timestep and check if they are stabilized
        * @returns {boolean}
        */
     }, {
@@ -36474,7 +36477,7 @@ return /******/ (function(modules) { // webpackBootstrap
           var containedNodes = this.body.nodes[clusterId].containedNodes;
           for (var nodeId in containedNodes) {
             if (containedNodes.hasOwnProperty(nodeId)) {
-              nodesArray.push(nodeId);
+              nodesArray.push(this.body.nodes[nodeId].id);
             }
           }
         }
@@ -36495,11 +36498,11 @@ return /******/ (function(modules) { // webpackBootstrap
         var counter = 0;
 
         while (this.clusteredNodes[nodeId] !== undefined && counter < max) {
-          stack.push(nodeId);
+          stack.push(this.body.nodes[nodeId].id);
           nodeId = this.clusteredNodes[nodeId].clusterId;
           counter++;
         }
-        stack.push(nodeId);
+        stack.push(this.body.nodes[nodeId].id);
         stack.reverse();
 
         return stack;
@@ -39745,7 +39748,7 @@ return /******/ (function(modules) { // webpackBootstrap
         if (this.options.selectable === true) {
           for (var nodeId in this.selectionObj.nodes) {
             if (this.selectionObj.nodes.hasOwnProperty(nodeId)) {
-              idArray.push(nodeId);
+              idArray.push(this.selectionObj.nodes[nodeId].id);
             }
           }
         }
@@ -39765,7 +39768,7 @@ return /******/ (function(modules) { // webpackBootstrap
         if (this.options.selectable === true) {
           for (var edgeId in this.selectionObj.edges) {
             if (this.selectionObj.edges.hasOwnProperty(edgeId)) {
-              idArray.push(edgeId);
+              idArray.push(this.selectionObj.edges[edgeId].id);
             }
           }
         }
@@ -42042,6 +42045,7 @@ return /******/ (function(modules) { // webpackBootstrap
       selfReferenceSize: { number: number },
       shadow: {
         enabled: { boolean: boolean },
+        color: { string: string },
         size: { number: number },
         x: { number: number },
         y: { number: number },
@@ -42174,6 +42178,7 @@ return /******/ (function(modules) { // webpackBootstrap
       },
       shadow: {
         enabled: { boolean: boolean },
+        color: { string: string },
         size: { number: number },
         x: { number: number },
         y: { number: number },

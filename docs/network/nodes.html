@@ -171,6 +171,7 @@ var options = {
     },
     shadow:{
       enabled: false,
+      color: 'rgba(0,0,0,0.5)',
       size:10,
       x:5,
       y:5
@@ -584,6 +585,12 @@ mySize = minSize + diff * scale;
             <td>Toggle the casting of shadows. If this option is not defined, it is set to true if any of the properties
                 in this object are defined.
             </td>
+        </tr>
+        <tr parent="shadow" class="hidden">
+            <td class="indent">shadow.color</td>
+            <td>String</td>
+            <td><code>'rgba(0,0,0,0.5)'</code></td>
+            <td>The color size of the shadow as a string. Supported formats are 'rgb(255,255,255)', 'rgba(255,255,255,1)' and '#FFFFFF'.</td>
         </tr>
         <tr parent="shadow" class="hidden">
             <td class="indent">shadow.size</td>
