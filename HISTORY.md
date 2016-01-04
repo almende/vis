@@ -7,6 +7,7 @@ http://visjs.org
 ### Timeline
 
 - Fixed #1527: error when creating/updating a Timeline without data.
+- Fixed #1127: `doubleClick` event not being fired.
 
 
 ## 2015-12-18, version 4.11.0
