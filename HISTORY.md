@@ -9,6 +9,9 @@ http://visjs.org
 - Fixed #1527: error when creating/updating a Timeline without data.
 - Fixed #1127: `doubleClick` event not being fired.
 
+### Network
+
+- Fixed #1531 , #1335:  border distances for arrow positioning
 
 ## 2015-12-18, version 4.11.0
 
