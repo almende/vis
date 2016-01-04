@@ -35752,13 +35752,14 @@ return /******/ (function(modules) { // webpackBootstrap
 
       this.body = body;
       this.clusteredNodes = {};
+      this.clusteredEdges = {};
 
       this.options = {};
       this.defaultOptions = {};
       util.extend(this.options, this.defaultOptions);
 
       this.body.emitter.on('_resetData', function () {
-        _this.clusteredNodes = {};
+        _this.clusteredNodes = {};_this.clusteredEdges = {};
       });
     }
 
@@ -35823,14 +35824,14 @@ return /******/ (function(modules) { // webpackBootstrap
         for (var i = 0; i < this.body.nodeIndices.length; i++) {
           var nodeId = this.body.nodeIndices[i];
           var node = this.body.nodes[nodeId];
-          var clonedOptions = _NetworkUtil2['default']._cloneOptions(node);
+          var clonedOptions = _NetworkUtil2['default'].cloneOptions(node);
           if (options.joinCondition(clonedOptions) === true) {
             childNodesObj[nodeId] = this.body.nodes[nodeId];
 
             // collect the nodes that will be in the cluster
             for (var _i = 0; _i < node.edges.length; _i++) {
               var edge = node.edges[_i];
-              if (edge.hiddenByCluster !== true) {
+              if (this.clusteredEdges[edge.id] === undefined) {
                 childEdgesObj[edge.id] = edge;
               }
             }
@@ -35872,7 +35873,7 @@ return /******/ (function(modules) { // webpackBootstrap
             edges = [];
             for (var j = 0; j < node.edges.length; j++) {
               edge = node.edges[j];
-              if (edge.hiddenByCluster !== true) {
+              if (this.clusteredEdges[edge.id] === undefined) {
                 if (edge.toId !== edge.fromId) {
                   relevantEdgeCount++;
                 }
@@ -35893,7 +35894,7 @@ return /******/ (function(modules) { // webpackBootstrap
                   childNodesObj[childNodeId] = this.body.nodes[childNodeId];
                   usedNodes[nodeId] = true;
                 } else {
-                  var clonedOptions = _NetworkUtil2['default']._cloneOptions(this.body.nodes[nodeId]);
+                  var clonedOptions = _NetworkUtil2['default'].cloneOptions(this.body.nodes[nodeId]);
                   if (options.joinCondition(clonedOptions) === true) {
                     childEdgesObj[edge.id] = edge;
                     childNodesObj[nodeId] = this.body.nodes[nodeId];
@@ -35985,16 +35986,16 @@ return /******/ (function(modules) { // webpackBootstrap
         var childNodesObj = {};
         var childEdgesObj = {};
         var parentNodeId = node.id;
-        var parentClonedOptions = _NetworkUtil2['default']._cloneOptions(node);
+        var parentClonedOptions = _NetworkUtil2['default'].cloneOptions(node);
         childNodesObj[parentNodeId] = node;
 
         // collect the nodes that will be in the cluster
         for (var i = 0; i < node.edges.length; i++) {
           var edge = node.edges[i];
-          if (edge.hiddenByCluster !== true) {
+          if (this.clusteredEdges[edge.id] === undefined) {
             var childNodeId = this._getConnectedId(edge, parentNodeId);
 
-            // if the child node is not in a cluster (may not be needed now with the edge.hiddenByCluster check)
+            // if the child node is not in a cluster
             if (this.clusteredNodes[childNodeId] === undefined) {
               if (childNodeId !== parentNodeId) {
                 if (options.joinCondition === undefined) {
@@ -36002,7 +36003,7 @@ return /******/ (function(modules) { // webpackBootstrap
                   childNodesObj[childNodeId] = this.body.nodes[childNodeId];
                 } else {
                   // clone the options and insert some additional parameters that could be interesting.
-                  var childClonedOptions = _NetworkUtil2['default']._cloneOptions(this.body.nodes[childNodeId]);
+                  var childClonedOptions = _NetworkUtil2['default'].cloneOptions(this.body.nodes[childNodeId]);
                   if (options.joinCondition(parentClonedOptions, childClonedOptions) === true) {
                     childEdgesObj[edge.id] = edge;
                     childNodesObj[childNodeId] = this.body.nodes[childNodeId];
@@ -36024,8 +36025,9 @@ return /******/ (function(modules) { // webpackBootstrap
       * It looks for edges that are connected to the nodes from the "outside' of the cluster.
       *
       * @param childNodesObj
-      * @param newEdges
-      * @param options
+      * @param childEdgesObj
+      * @param clusterNodeProperties
+      * @param clusterEdgeProperties
       * @private
       */
     }, {
@@ -36050,7 +36052,7 @@ return /******/ (function(modules) { // webpackBootstrap
           for (var j = 0; j < childNode.edges.length; j++) {
             edge = childNode.edges[j];
             // we only handle edges that are visible to the system, not the disabled ones from the clustering process.
-            if (edge.hiddenByCluster !== true) {
+            if (this.clusteredEdges[edge.id] === undefined) {
               // self-referencing edges will be added to the "hidden" list
               if (edge.toId == edge.fromId) {
                 childEdgesObj[edge.id] = edge;
@@ -36081,7 +36083,7 @@ return /******/ (function(modules) { // webpackBootstrap
         for (var j = 0; j < createEdges.length; j++) {
           var _edge = createEdges[j].edge;
           // copy the options of the edge we will replace
-          var clonedOptions = _NetworkUtil2['default']._cloneOptions(_edge, 'edge');
+          var clonedOptions = _NetworkUtil2['default'].cloneOptions(_edge, 'edge');
           // make sure the properties of clusterEdges are superimposed on it
           util.deepExtend(clonedOptions, clusterEdgeProperties);
 
@@ -36100,8 +36102,8 @@ return /******/ (function(modules) { // webpackBootstrap
           newEdge.connect();
 
           // hide the replaced edge
+          this._backupEdgeOptions(_edge);
           _edge.setOptions({ physics: false, hidden: true });
-          _edge.hiddenByCluster = true;
         }
       }
 
@@ -36140,7 +36142,7 @@ return /******/ (function(modules) { // webpackBootstrap
       value: function _cluster(childNodesObj, childEdgesObj, options) {
         var refreshData = arguments.length <= 3 || arguments[3] === undefined ? true : arguments[3];
 
-        // kill condition: no children so can't cluster or only one node in the cluster, dont bother
+        // kill condition: no children so can't cluster or only one node in the cluster, don't bother
         if (Object.keys(childNodesObj).length < 2) {
           return;
         }
@@ -36162,18 +36164,18 @@ return /******/ (function(modules) { // webpackBootstrap
           var childNodesOptions = [];
           for (var nodeId in childNodesObj) {
             if (childNodesObj.hasOwnProperty(nodeId)) {
-              var clonedOptions = _NetworkUtil2['default']._cloneOptions(childNodesObj[nodeId]);
+              var clonedOptions = _NetworkUtil2['default'].cloneOptions(childNodesObj[nodeId]);
               childNodesOptions.push(clonedOptions);
             }
           }
 
-          // get clusterproperties based on childNodes
+          // get cluster properties based on childNodes
           var childEdgesOptions = [];
           for (var edgeId in childEdgesObj) {
             if (childEdgesObj.hasOwnProperty(edgeId)) {
               // these cluster edges will be removed on creation of the cluster.
               if (edgeId.substr(0, 12) !== "clusterEdge:") {
-                var clonedOptions = _NetworkUtil2['default']._cloneOptions(childEdgesObj[edgeId], 'edge');
+                var clonedOptions = _NetworkUtil2['default'].cloneOptions(childEdgesObj[edgeId], 'edge');
                 childEdgesOptions.push(clonedOptions);
               }
             }
@@ -36195,7 +36197,7 @@ return /******/ (function(modules) { // webpackBootstrap
           clusterNodeProperties.label = 'cluster';
         }
 
-        // give the clusterNode a postion if it does not have one.
+        // give the clusterNode a position if it does not have one.
         var pos = undefined;
         if (clusterNodeProperties.x === undefined) {
           pos = this._getClusterPosition(childNodesObj);
@@ -36230,8 +36232,10 @@ return /******/ (function(modules) { // webpackBootstrap
           if (childEdgesObj.hasOwnProperty(edgeId)) {
             if (this.body.edges[edgeId] !== undefined) {
               var edge = this.body.edges[edgeId];
+              // cache the options before changing
+              this._backupEdgeOptions(edge);
+              // disable physics and hide the edge
               edge.setOptions({ physics: false, hidden: true });
-              edge.hiddenByCluster = true;
             }
           }
         }
@@ -36250,6 +36254,22 @@ return /******/ (function(modules) { // webpackBootstrap
         // wrap up
         if (refreshData === true) {
           this.body.emitter.emit('_dataChanged');
+        }
+      }
+    }, {
+      key: '_backupEdgeOptions',
+      value: function _backupEdgeOptions(edge) {
+        if (this.clusteredEdges[edge.id] === undefined) {
+          this.clusteredEdges[edge.id] = { physics: edge.options.physics, hidden: edge.options.hidden };
+        }
+      }
+    }, {
+      key: '_restoreEdge',
+      value: function _restoreEdge(edge) {
+        var originalOptions = this.clusteredEdges[edge.id];
+        if (originalOptions !== undefined) {
+          edge.setOptions({ physics: originalOptions.physics, hidden: originalOptions.hidden });
+          delete this.clusteredEdges[edge.id];
         }
       }
 
@@ -36367,7 +36387,7 @@ return /******/ (function(modules) { // webpackBootstrap
             containedNode.vx = clusterNode.vx;
             containedNode.vy = clusterNode.vy;
 
-            // we use these methods to avoid reinstantiating the shape, which happens with setOptions.
+            // we use these methods to avoid re-instantiating the shape, which happens with setOptions.
             containedNode.setOptions({ hidden: false, physics: true });
 
             delete this.clusteredNodes[nodeId];
@@ -36407,7 +36427,7 @@ return /******/ (function(modules) { // webpackBootstrap
               }
 
               // clone the options and apply the cluster options to them
-              var clonedOptions = _NetworkUtil2['default']._cloneOptions(transferEdge, 'edge');
+              var clonedOptions = _NetworkUtil2['default'].cloneOptions(transferEdge, 'edge');
               util.deepExtend(clonedOptions, otherCluster.clusterEdgeProperties);
 
               // apply the edge specific options to it.
@@ -36423,8 +36443,7 @@ return /******/ (function(modules) { // webpackBootstrap
           } else {
             var replacedEdge = this.body.edges[edge.clusteringEdgeReplacingId];
             if (replacedEdge !== undefined) {
-              replacedEdge.setOptions({ physics: true, hidden: false });
-              replacedEdge.hiddenByCluster = false;
+              this._restoreEdge(replacedEdge);
             }
           }
           edge.cleanup();
@@ -36436,10 +36455,7 @@ return /******/ (function(modules) { // webpackBootstrap
         // handle the releasing of the edges
         for (var edgeId in containedEdges) {
           if (containedEdges.hasOwnProperty(edgeId)) {
-            var edge = containedEdges[edgeId];
-            edge.setOptions({ physics: true, hidden: false });
-            edge.hiddenByCluster = undefined;
-            delete edge.hiddenByCluster;
+            this._restoreEdge(containedEdges[edgeId]);
           }
         }
 
@@ -36575,12 +36591,11 @@ return /******/ (function(modules) { // webpackBootstrap
 
     /**
      * Find the center position of the network considering the bounding boxes
-     * @private
      */
 
     _createClass(NetworkUtil, null, [{
-      key: "_getRange",
-      value: function _getRange(allNodes) {
+      key: "getRange",
+      value: function getRange(allNodes) {
         var specificNodes = arguments.length <= 1 || arguments[1] === undefined ? [] : arguments[1];
 
         var minY = 1e9,
@@ -36614,11 +36629,10 @@ return /******/ (function(modules) { // webpackBootstrap
 
       /**
        * Find the center position of the network
-       * @private
        */
     }, {
-      key: "_getRangeCore",
-      value: function _getRangeCore(allNodes) {
+      key: "getRangeCore",
+      value: function getRangeCore(allNodes) {
         var specificNodes = arguments.length <= 1 || arguments[1] === undefined ? [] : arguments[1];
 
         var minY = 1e9,
@@ -36653,11 +36667,10 @@ return /******/ (function(modules) { // webpackBootstrap
       /**
        * @param {object} range = {minX: minX, maxX: maxX, minY: minY, maxY: maxY};
        * @returns {{x: number, y: number}}
-       * @private
        */
     }, {
-      key: "_findCenter",
-      value: function _findCenter(range) {
+      key: "findCenter",
+      value: function findCenter(range) {
         return { x: 0.5 * (range.maxX + range.minX),
           y: 0.5 * (range.maxY + range.minY) };
       }
@@ -36667,11 +36680,10 @@ return /******/ (function(modules) { // webpackBootstrap
        * @param item
        * @param type
        * @returns {{}}
-       * @private
        */
     }, {
-      key: "_cloneOptions",
-      value: function _cloneOptions(item, type) {
+      key: "cloneOptions",
+      value: function cloneOptions(item, type) {
         var clonedOptions = {};
         if (type === undefined || type === 'node') {
           util.deepExtend(clonedOptions, item.options, true);
@@ -37654,7 +37666,7 @@ return /******/ (function(modules) { // webpackBootstrap
             return;
           }
 
-          range = _NetworkUtil2['default']._getRange(this.body.nodes, options.nodes);
+          range = _NetworkUtil2['default'].getRange(this.body.nodes, options.nodes);
 
           var numberOfNodes = this.body.nodeIndices.length;
           zoomLevel = 12.662 / (numberOfNodes + 7.4147) + 0.0964822; // this is obtained from fitting a dataset from 5 points with scale levels that looked good.
@@ -37664,7 +37676,7 @@ return /******/ (function(modules) { // webpackBootstrap
           zoomLevel *= factor;
         } else {
           this.body.emitter.emit("_resizeNodes");
-          range = _NetworkUtil2['default']._getRange(this.body.nodes, options.nodes);
+          range = _NetworkUtil2['default'].getRange(this.body.nodes, options.nodes);
 
           var xDistance = Math.abs(range.maxX - range.minX) * 1.1;
           var yDistance = Math.abs(range.maxY - range.minY) * 1.1;
@@ -37681,7 +37693,7 @@ return /******/ (function(modules) { // webpackBootstrap
           zoomLevel = 1.0;
         }
 
-        var center = _NetworkUtil2['default']._findCenter(range);
+        var center = _NetworkUtil2['default'].findCenter(range);
         var animationOptions = { position: center, scale: zoomLevel, animation: options.animation };
         this.moveTo(animationOptions);
       }
@@ -40159,8 +40171,8 @@ return /******/ (function(modules) { // webpackBootstrap
     }, {
       key: '_shiftToCenter',
       value: function _shiftToCenter() {
-        var range = _NetworkUtil2['default']._getRangeCore(this.body.nodes, this.body.nodeIndices);
-        var center = _NetworkUtil2['default']._findCenter(range);
+        var range = _NetworkUtil2['default'].getRangeCore(this.body.nodes, this.body.nodeIndices);
+        var center = _NetworkUtil2['default'].findCenter(range);
         for (var i = 0; i < this.body.nodeIndices.length; i++) {
           this.body.nodes[this.body.nodeIndices[i]].x -= center.x;
           this.body.nodes[this.body.nodeIndices[i]].y -= center.y;
@@ -40423,7 +40435,7 @@ return /******/ (function(modules) { // webpackBootstrap
             _this3.hierarchicalLevels[nodeA.id] = minLevel;
           }
 
-          var diff = customCallback(_NetworkUtil2['default']._cloneOptions(nodeA, 'node'), _NetworkUtil2['default']._cloneOptions(nodeB, 'node'), _NetworkUtil2['default']._cloneOptions(edge, 'edge'));
+          var diff = customCallback(_NetworkUtil2['default'].cloneOptions(nodeA, 'node'), _NetworkUtil2['default'].cloneOptions(nodeB, 'node'), _NetworkUtil2['default'].cloneOptions(edge, 'edge'));
 
           _this3.hierarchicalLevels[nodeB.id] = _this3.hierarchicalLevels[nodeA.id] + diff;
         };
