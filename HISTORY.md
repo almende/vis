@@ -12,6 +12,7 @@ http://visjs.org
 ### Network
 
 - Fixed #1531 , #1335:  border distances for arrow positioning
+- Fixed findNode method. It now does not return internal objects anymore.
 
 ## 2015-12-18, version 4.11.0
 

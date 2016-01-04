@@ -36479,11 +36479,11 @@ return /******/ (function(modules) { // webpackBootstrap
         var counter = 0;
 
         while (this.clusteredNodes[nodeId] !== undefined && counter < max) {
-          stack.push(this.clusteredNodes[nodeId].node);
+          stack.push(nodeId);
           nodeId = this.clusteredNodes[nodeId].clusterId;
           counter++;
         }
-        stack.push(this.body.nodes[nodeId]);
+        stack.push(nodeId);
         return stack;
       }
 
