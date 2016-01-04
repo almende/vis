@@ -36968,10 +36968,6 @@ return /******/ (function(modules) { // webpackBootstrap
             this._drawNodes(ctx, hidden);
           }
 
-          if (this.controlNodesActive === true) {
-            this._drawControlNodes(ctx);
-          }
-
           ctx.beginPath();
           this.body.emitter.emit("afterDrawing", ctx);
           ctx.closePath();
@@ -37085,25 +37081,6 @@ return /******/ (function(modules) { // webpackBootstrap
           if (edge.connected === true) {
             edge.draw(ctx);
           }
-        }
-      }
-
-      /**
-       * Redraw all edges
-       * The 2d context of a HTML canvas can be retrieved by canvas.getContext('2d');
-       * @param {CanvasRenderingContext2D}   ctx
-       * @private
-       */
-    }, {
-      key: '_drawControlNodes',
-      value: function _drawControlNodes(ctx) {
-        var edges = this.body.edges;
-        var edgeIndices = this.body.edgeIndices;
-        var edge = undefined;
-
-        for (var i = 0; i < edgeIndices.length; i++) {
-          edge = edges[edgeIndices[i]];
-          edge._drawControlNodes(ctx);
         }
       }
 
@@ -41137,7 +41114,7 @@ return /******/ (function(modules) { // webpackBootstrap
       value: function editEdgeMode() {
         var _this3 = this;
 
-        // when using the gui, enable edit mode if it wasnt already.
+        // when using the gui, enable edit mode if it wasn't already.
         if (this.editMode !== true) {
           this.enableEditMode();
         }
@@ -41352,7 +41329,11 @@ return /******/ (function(modules) { // webpackBootstrap
         controlNodeStyle.x = x;
         controlNodeStyle.y = y;
 
-        return this.body.functions.createNode(controlNodeStyle);
+        // we have to define the bounding box in order for the nodes to be drawn immediately
+        var node = this.body.functions.createNode(controlNodeStyle);
+        node.shape.boundingBox = { left: x, right: x, top: y, bottom: y };
+
+        return node;
       }
 
       /**

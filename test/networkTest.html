@@ -1,69 +1,138 @@
-<!doctype html>
+<!DOCTYPE html>
 <html>
 <head>
-    <style type="text/css">
-            body {
-        font: 10pt sans;
-    }
-    #mynetwork {
-        width: 1600px;
-        height: 900px;
-        border: 1px solid lightgray;
-    }
-    </style>
-    <script type="text/javascript" src="../dist/vis.js"></script>
-    <!--<script type="text/javascript" src="http://www.visjs.org/dist/vis.js"></script>-->
-    <!--<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/vis/4.9.0/vis.min.js"></script>-->
+    <meta charset="utf-8">
+    <title>JS Bin</title>
+    <script type="text/javascript" src="../dist/vis.js"></script> <!-- network handling framework -->
     <link href="../dist/vis.css" rel="stylesheet" type="text/css"/>
+    <style type="text/css">
+        #network{
+            width: 1200px;
+            height: 800px;
+            border: 1px solid lightgray;
+        }
+    </style>
 </head>
-<body onload="draw();">
-<div id="status"></div>
-<div id="mynetwork"></div>
-
+<body>
+<h1>Network Test</h1>
+<div id="network"></div>
 <script>
-    var nodes = null;
-    var edges = null;
-    var network = null;
-    function destroy() {
-        if (network !== null) {
-            network.destroy();
-            network = null;
-        }
-    }
-    function draw() {
-        destroy();
-        // randomly create some nodes and edges
-        var data = {
-            nodes: JSON.parse('[{"id":"king"},{"id":"10:98:25"},{"id":"11:28:e8"},{"id":"11:28:ea"},{"id":"11:28:f6"},{"id":"11:28:fa"},{"id":"11:28:fd"},{"id":"11:29:01"},{"id":"11:29:05"},{"id":"11:29:07"},{"id":"11:29:11"},{"id":"11:29:14"},{"id":"11:29:15"},{"id":"11:29:1b"},{"id":"11:29:1c"},{"id":"11:29:1f"},{"id":"11:29:20"},{"id":"11:a0:bf"},{"id":"11:a0:c0"},{"id":"11:a0:c1"},{"id":"11:a0:c3"},{"id":"11:a0:c4"},{"id":"11:a0:c5"},{"id":"11:a0:c6"},{"id":"11:a0:c7"},{"id":"11:a0:c8"},{"id":"11:a0:c9"},{"id":"11:a0:cb"},{"id":"11:a0:cc"},{"id":"11:a0:ce"},{"id":"11:a0:d0"},{"id":"11:a0:d1"},{"id":"11:a0:d2"},{"id":"11:a0:d3"},{"id":"11:a0:d4"},{"id":"11:a0:d6"},{"id":"11:a0:d7"},{"id":"11:a0:d8"},{"id":"11:a0:d9"},{"id":"11:a0:da"},{"id":"11:a0:db"},{"id":"11:a0:dc"},{"id":"11:a0:dd"},{"id":"11:a0:de"},{"id":"11:a0:df"},{"id":"11:a0:e1"},{"id":"11:a0:e2"},{"id":"11:a0:e4"},{"id":"11:a0:e5"},{"id":"11:a0:e6"},{"id":"11:a0:e7"},{"id":"11:a0:e9"},{"id":"11:a0:ea"},{"id":"11:a0:ed"},{"id":"11:a0:ee"},{"id":"11:a0:ef"},{"id":"11:a0:f1"},{"id":"11:a0:f2"},{"id":"11:a0:f4"},{"id":"11:a0:f5"},{"id":"11:a0:f6"},{"id":"11:a0:f7"},{"id":"11:a0:f8"},{"id":"11:a0:f9"},{"id":"11:a0:fa"},{"id":"11:a0:fb"},{"id":"11:a0:fc"},{"id":"11:a0:fd"},{"id":"11:a0:fe"},{"id":"11:a0:ff"},{"id":"11:a1:00"},{"id":"11:a1:02"},{"id":"11:a1:04"},{"id":"11:a1:07"},{"id":"11:a1:09"},{"id":"11:a1:0a"},{"id":"11:a1:0b"},{"id":"11:a1:0c"},{"id":"11:a1:0d"},{"id":"11:a1:0e"},{"id":"11:a1:0f"},{"id":"11:a1:10"},{"id":"11:a1:11"},{"id":"11:a1:13"},{"id":"11:a1:16"},{"id":"11:a1:18"},{"id":"11:a1:19"},{"id":"11:a1:1a"},{"id":"11:a1:1d"},{"id":"11:a1:1e"},{"id":"11:a1:20"},{"id":"11:a1:21"},{"id":"11:a1:23"},{"id":"11:a1:24"},{"id":"11:a1:26"},{"id":"11:a1:27"},{"id":"11:a1:29"},{"id":"11:a1:2a"},{"id":"11:a1:2c"},{"id":"11:a1:2e"},{"id":"11:a1:2f"},{"id":"11:a1:31"},{"id":"11:a1:32"},{"id":"11:a1:34"},{"id":"11:a1:35"},{"id":"11:a1:36"},{"id":"11:a1:38"},{"id":"11:a1:39"},{"id":"11:a1:3a"},{"id":"11:a1:3c"},{"id":"11:a1:3e"},{"id":"11:a1:40"},{"id":"11:a1:44"},{"id":"11:a1:45"},{"id":"11:a1:46"},{"id":"11:a1:49"},{"id":"11:a1:4b"},{"id":"11:a1:4c"},{"id":"11:a1:4d"},{"id":"11:a1:4e"},{"id":"11:a1:4f"},{"id":"11:a1:50"},{"id":"11:a1:52"},{"id":"11:a1:53"},{"id":"11:a1:56"},{"id":"11:a1:58"},{"id":"11:a1:5a"},{"id":"11:a1:5b"},{"id":"11:a1:5c"},{"id":"11:a1:5d"},{"id":"11:a1:5e"},{"id":"11:a1:5f"},{"id":"11:a1:60"},{"id":"11:a1:61"},{"id":"11:a1:62"},{"id":"11:a1:63"},{"id":"11:a1:64"},{"id":"11:a1:65"},{"id":"11:a1:67"},{"id":"11:a1:68"},{"id":"11:a1:69"},{"id":"11:a1:6a"},{"id":"11:a1:6b"},{"id":"11:a1:6c"},{"id":"11:a1:6e"},{"id":"11:a1:6f"},{"id":"11:a1:70"},{"id":"11:a1:71"},{"id":"11:a1:72"},{"id":"11:a1:73"},{"id":"11:a1:75"},{"id":"11:a1:77"},{"id":"11:a1:78"},{"id":"11:a1:79"},{"id":"11:a1:7a"},{"id":"11:a1:7b"},{"id":"11:a1:7c"},{"id":"11:a1:7d"},{"id":"11:a1:80"},{"id":"11:a1:83"},{"id":"11:a1:84"},{"id":"11:a1:85"},{"id":"11:a1:86"},{"id":"11:a1:87"},{"id":"11:a1:88"},{"id":"11:a1:8a"},{"id":"11:a1:8b"},{"id":"11:a1:8c"},{"id":"11:a1:8e"},{"id":"11:a1:8f"},{"id":"11:a1:90"},{"id":"11:a1:91"},{"id":"11:a1:92"},{"id":"11:a1:93"},{"id":"11:a1:94"},{"id":"11:a1:95"},{"id":"11:a1:96"},{"id":"11:a1:98"},{"id":"11:a1:99"},{"id":"11:a1:9a"},{"id":"11:a1:9b"},{"id":"11:a1:9e"},{"id":"11:a1:9f"},{"id":"11:a1:a0"},{"id":"11:a1:a1"},{"id":"11:a1:a2"},{"id":"11:a1:a3"},{"id":"11:a1:a4"},{"id":"11:a1:a7"},{"id":"11:a1:a9"},{"id":"11:a1:aa"},{"id":"11:a1:ab"},{"id":"11:a1:ac"},{"id":"11:a1:ad"},{"id":"11:a1:ae"},{"id":"11:a1:af"},{"id":"11:a1:b1"},{"id":"11:a1:b3"},{"id":"11:a1:b7"},{"id":"11:a1:b8"},{"id":"11:a1:b9"},{"id":"11:a1:ba"},{"id":"11:a1:bb"},{"id":"11:a1:bc"},{"id":"11:a1:bd"},{"id":"11:a1:be"},{"id":"11:a1:bf"},{"id":"11:a1:c0"},{"id":"11:a1:c1"},{"id":"11:a1:c3"},{"id":"11:a1:c4"},{"id":"11:a1:c5"},{"id":"11:a1:c6"},{"id":"11:a1:c7"},{"id":"11:a1:c9"},{"id":"11:a1:ca"},{"id":"11:a1:cb"},{"id":"11:a1:cd"},{"id":"11:a1:ce"},{"id":"11:a1:cf"},{"id":"11:a1:d1"},{"id":"11:a1:d2"},{"id":"11:a1:d3"},{"id":"11:a1:d4"},{"id":"11:a1:d6"},{"id":"11:a1:d7"},{"id":"11:a1:d8"},{"id":"11:a1:da"},{"id":"11:a1:db"},{"id":"11:a1:dc"},{"id":"11:a1:dd"},{"id":"11:a1:de"},{"id":"11:a1:df"},{"id":"11:a1:e0"},{"id":"11:a1:e1"},{"id":"11:a1:e2"},{"id":"11:a1:e3"},{"id":"11:a1:e4"},{"id":"11:a1:e6"},{"id":"11:a1:e7"},{"id":"11:a1:e8"},{"id":"11:a1:e9"},{"id":"11:a1:ea"},{"id":"11:a1:ee"},{"id":"11:a1:ef"},{"id":"11:a1:f0"},{"id":"11:a1:f3"},{"id":"11:a1:f4"},{"id":"11:a1:f5"},{"id":"11:a1:f6"},{"id":"11:a1:f7"},{"id":"11:a1:f9"},{"id":"11:a1:fa"},{"id":"11:a1:fb"},{"id":"11:a1:fc"},{"id":"11:a1:fd"},{"id":"11:a1:ff"},{"id":"11:a2:01"},{"id":"11:a2:02"},{"id":"11:a2:03"},{"id":"11:a2:06"},{"id":"11:a2:09"},{"id":"11:a2:0a"},{"id":"11:a2:0c"},{"id":"11:a2:0f"},{"id":"11:a2:10"},{"id":"11:a2:11"},{"id":"11:a2:12"},{"id":"11:a2:13"},{"id":"11:a2:14"},{"id":"11:a2:15"},{"id":"11:a2:17"},{"id":"11:a2:1b"},{"id":"11:a2:1c"},{"id":"11:a2:1f"},{"id":"11:a2:20"},{"id":"11:a2:21"},{"id":"11:a2:22"},{"id":"11:a2:24"},{"id":"11:a2:28"},{"id":"11:a2:29"},{"id":"11:a2:2a"},{"id":"11:a2:2e"},{"id":"11:a2:33"},{"id":"11:a2:35"},{"id":"11:a2:36"},{"id":"11:a2:37"},{"id":"11:a2:38"},{"id":"11:a2:3a"},{"id":"11:a2:3c"},{"id":"11:a2:3e"},{"id":"11:a2:3f"},{"id":"11:a2:40"},{"id":"11:a2:41"},{"id":"11:a2:44"},{"id":"11:a2:48"},{"id":"11:a2:49"},{"id":"11:a2:4b"},{"id":"11:a2:4c"},{"id":"11:a2:4d"},{"id":"11:a2:4e"},{"id":"11:a2:51"},{"id":"11:a2:52"},{"id":"11:a2:55"},{"id":"11:a2:56"},{"id":"11:a2:57"},{"id":"11:a2:58"},{"id":"11:a2:5b"},{"id":"11:a2:5e"},{"id":"11:a2:5f"},{"id":"11:a2:60"},{"id":"11:a2:61"},{"id":"11:a2:65"},{"id":"11:a2:66"},{"id":"11:a2:6a"},{"id":"11:a2:6b"},{"id":"11:a2:6c"},{"id":"11:a2:6d"},{"id":"11:a2:6e"},{"id":"11:a2:6f"},{"id":"11:a2:71"},{"id":"11:a2:ab"},{"id":"11:a2:b1"},{"id":"11:a2:b9"},{"id":"11:a2:cf"},{"id":"11:a2:da"},{"id":"11:a3:2b"},{"id":"11:a3:3e"},{"id":"11:a3:4b"},{"id":"11:a3:8e"},{"id":"11:a4:15"},{"id":"26:82:72"},{"id":"11:28:f0"},{"id":"11:29:16"},{"id":"11:a0:f0"},{"id":"11:a1:7f"},{"id":"11:a1:89"},{"id":"11:a1:9d"},{"id":"11:a1:b2"},{"id":"11:a1:b4"},{"id":"11:a1:b5"},{"id":"11:a1:cc"},{"id":"11:a1:d5"},{"id":"11:a1:fe"},{"id":"11:a2:1e"},{"id":"11:a2:2c"},{"id":"11:a2:68"},{"id":"40:7f:0d"}]'),
-            edges: JSON.parse('[{"from":"26:82:72","to":"king"},{"from":"26:82:72","to":"10:98:25"},{"from":"11:a2:52","to":"11:28:e8"},{"from":"11:a2:ab","to":"11:28:ea"},{"from":"11:a2:b9","to":"11:28:f6"},{"from":"11:a3:2b","to":"11:28:fa"},{"from":"11:a0:c7","to":"11:28:fd"},{"from":"11:a3:3e","to":"11:29:01"},{"from":"11:a0:e7","to":"11:29:05"},{"from":"11:a2:20","to":"11:29:07"},{"from":"11:a3:3e","to":"11:29:11"},{"from":"11:a0:d0","to":"11:29:14"},{"from":"11:a3:3e","to":"11:29:15"},{"from":"11:a2:15","to":"11:29:1b"},{"from":"11:a1:bd","to":"11:29:1c"},{"from":"11:a0:dd","to":"11:29:1f"},{"from":"11:a1:69","to":"11:29:20"},{"from":"11:a3:3e","to":"11:a0:bf"},{"from":"11:a1:0f","to":"11:a0:c0"},{"from":"11:a0:c7","to":"11:a0:c1"},{"from":"11:a0:f6","to":"11:a0:c3"},{"from":"11:a2:b9","to":"11:a0:c4"},{"from":"11:a3:4b","to":"11:a0:c5"},{"from":"11:a0:f4","to":"11:a0:c6"},{"from":"king","to":"11:a0:c7"},{"from":"11:a0:e7","to":"11:a0:c8"},{"from":"11:a0:e7","to":"11:a0:c9"},{"from":"11:a0:d7","to":"11:a0:cb"},{"from":"11:a0:d7","to":"11:a0:cc"},{"from":"11:a2:55","to":"11:a0:ce"},{"from":"10:98:25","to":"11:a0:d0"},{"from":"11:a3:2b","to":"11:a0:d1"},{"from":"11:a1:10","to":"11:a0:d2"},{"from":"11:a0:f6","to":"11:a0:d3"},{"from":"11:a0:f8","to":"11:a0:d4"},{"from":"11:a0:c7","to":"11:a0:d6"},{"from":"11:a2:6f","to":"11:a0:d7"},{"from":"11:a0:f4","to":"11:a0:d8"},{"from":"11:a0:f4","to":"11:a0:d9"},{"from":"11:a1:0f","to":"11:a0:da"},{"from":"11:a0:d6","to":"11:a0:db"},{"from":"11:a1:07","to":"11:a0:dc"},{"from":"11:a3:3e","to":"11:a0:dd"},{"from":"11:a2:51","to":"11:a0:de"},{"from":"11:a0:d7","to":"11:a0:df"},{"from":"11:a2:b1","to":"11:a0:e1"},{"from":"11:a0:ff","to":"11:a0:e2"},{"from":"11:a3:8e","to":"11:a0:e4"},{"from":"11:a1:b8","to":"11:a0:e5"},{"from":"11:a2:ab","to":"11:a0:e6"},{"from":"26:82:72","to":"11:a0:e7"},{"from":"11:a1:00","to":"11:a0:e9"},{"from":"11:a3:8e","to":"11:a0:ea"},{"from":"11:a1:69","to":"11:a0:ed"},{"from":"10:98:25","to":"11:a0:ee"},{"from":"11:a4:15","to":"11:a0:ef"},{"from":"11:a2:56","to":"11:a0:f1"},{"from":"11:a1:c9","to":"11:a0:f2"},{"from":"11:a1:16","to":"11:a0:f4"},{"from":"11:a1:6a","to":"11:a0:f5"},{"from":"11:a0:d7","to":"11:a0:f6"},{"from":"11:a2:b9","to":"11:a0:f7"},{"from":"11:a3:2b","to":"11:a0:f8"},{"from":"11:a2:b9","to":"11:a0:f9"},{"from":"11:a3:4b","to":"11:a0:fa"},{"from":"26:82:72","to":"11:a0:fb"},{"from":"11:a1:69","to":"11:a0:fc"},{"from":"11:a0:c7","to":"11:a0:fd"},{"from":"11:a2:cf","to":"11:a0:fe"},{"from":"11:a3:2b","to":"11:a0:ff"},{"from":"11:a2:b9","to":"11:a1:00"},{"from":"11:a2:33","to":"11:a1:02"},{"from":"11:a0:cb","to":"11:a1:04"},{"from":"11:a0:e7","to":"11:a1:07"},{"from":"11:a2:da","to":"11:a1:09"},{"from":"11:a0:f4","to":"11:a1:0a"},{"from":"11:a2:b9","to":"11:a1:0b"},{"from":"11:29:1f","to":"11:a1:0c"},{"from":"11:a1:00","to":"11:a1:0d"},{"from":"11:a0:c5","to":"11:a1:0e"},{"from":"11:a3:4b","to":"11:a1:0f"},{"from":"king","to":"11:a1:10"},{"from":"11:a2:b1","to":"11:a1:11"},{"from":"11:a3:2b","to":"11:a1:13"},{"from":"11:a2:da","to":"11:a1:16"},{"from":"26:82:72","to":"11:a1:18"},{"from":"11:a1:a1","to":"11:a1:19"},{"from":"11:a1:f7","to":"11:a1:1a"},{"from":"11:a2:ab","to":"11:a1:1d"},{"from":"11:a2:b1","to":"11:a1:1e"},{"from":"11:a3:2b","to":"11:a1:20"},{"from":"11:a1:86","to":"11:a1:21"},{"from":"11:a1:86","to":"11:a1:23"},{"from":"11:a1:2e","to":"11:a1:24"},{"from":"11:a2:71","to":"11:a1:26"},{"from":"11:a3:2b","to":"11:a1:27"},{"from":"king","to":"11:a1:29"},{"from":"11:a3:2b","to":"11:a1:2a"},{"from":"11:a3:3e","to":"11:a1:2c"},{"from":"king","to":"11:a1:2e"},{"from":"11:a3:3e","to":"11:a1:2f"},{"from":"king","to":"11:a1:31"},{"from":"king","to":"11:a1:32"},{"from":"11:a3:4b","to":"11:a1:34"},{"from":"11:a1:ff","to":"11:a1:35"},{"from":"11:a3:2b","to":"11:a1:36"},{"from":"11:a1:10","to":"11:a1:38"},{"from":"11:a2:b1","to":"11:a1:39"},{"from":"11:a3:2b","to":"11:a1:3a"},{"from":"11:29:05","to":"11:a1:3c"},{"from":"11:a1:bd","to":"11:a1:3e"},{"from":"11:a1:87","to":"11:a1:40"},{"from":"11:a4:15","to":"11:a1:44"},{"from":"11:a4:15","to":"11:a1:45"},{"from":"11:a2:cf","to":"11:a1:46"},{"from":"11:a0:dd","to":"11:a1:49"},{"from":"11:a3:4b","to":"11:a1:4b"},{"from":"26:82:72","to":"11:a1:4c"},{"from":"11:a2:ab","to":"11:a1:4d"},{"from":"11:a1:6a","to":"11:a1:4e"},{"from":"11:a2:ab","to":"11:a1:4f"},{"from":"11:a4:15","to":"11:a1:50"},{"from":"11:a2:cf","to":"11:a1:52"},{"from":"11:a1:b8","to":"11:a1:53"},{"from":"11:a2:52","to":"11:a1:56"},{"from":"11:a3:4b","to":"11:a1:58"},{"from":"11:a2:5b","to":"11:a1:5a"},{"from":"11:a2:ab","to":"11:a1:5b"},{"from":"11:a3:8e","to":"11:a1:5c"},{"from":"king","to":"11:a1:5d"},{"from":"26:82:72","to":"11:a1:5e"},{"from":"11:a2:38","to":"11:a1:5f"},{"from":"11:a2:b1","to":"11:a1:60"},{"from":"10:98:25","to":"11:a1:61"},{"from":"11:a2:56","to":"11:a1:62"},{"from":"11:a2:48","to":"11:a1:63"},{"from":"11:a0:dd","to":"11:a1:64"},{"from":"11:a1:35","to":"11:a1:65"},{"from":"11:a2:ab","to":"11:a1:67"},{"from":"11:a1:bd","to":"11:a1:68"},{"from":"11:a1:3c","to":"11:a1:69"},{"from":"11:a2:cf","to":"11:a1:6a"},{"from":"11:a1:00","to":"11:a1:6b"},{"from":"11:a1:07","to":"11:a1:6c"},{"from":"11:a2:56","to":"11:a1:6e"},{"from":"king","to":"11:a1:6f"},{"from":"king","to":"11:a1:70"},{"from":"11:a3:3e","to":"11:a1:71"},{"from":"11:a1:6a","to":"11:a1:72"},{"from":"11:a2:b9","to":"11:a1:73"},{"from":"11:a1:a1","to":"11:a1:75"},{"from":"11:a2:cf","to":"11:a1:77"},{"from":"11:a4:15","to":"11:a1:78"},{"from":"11:a1:0a","to":"11:a1:79"},{"from":"11:a3:4b","to":"11:a1:7a"},{"from":"11:a0:f6","to":"11:a1:7b"},{"from":"26:82:72","to":"11:a1:7c"},{"from":"11:a1:79","to":"11:a1:7d"},{"from":"11:a1:c9","to":"11:a1:80"},{"from":"11:a1:5d","to":"11:a1:83"},{"from":"26:82:72","to":"11:a1:84"},{"from":"11:a2:cf","to":"11:a1:85"},{"from":"11:a2:b1","to":"11:a1:86"},{"from":"11:a1:af","to":"11:a1:87"},{"from":"11:a2:b9","to":"11:a1:88"},{"from":"11:a2:20","to":"11:a1:8a"},{"from":"11:a0:f4","to":"11:a1:8b"},{"from":"11:a2:ab","to":"11:a1:8c"},{"from":"11:a2:da","to":"11:a1:8e"},{"from":"11:a2:cf","to":"11:a1:8f"},{"from":"11:a4:15","to":"11:a1:90"},{"from":"11:a4:15","to":"11:a1:91"},{"from":"26:82:72","to":"11:a1:92"},{"from":"10:98:25","to":"11:a1:93"},{"from":"11:a0:e7","to":"11:a1:94"},{"from":"11:a3:3e","to":"11:a1:95"},{"from":"26:82:72","to":"11:a1:96"},{"from":"11:a2:cf","to":"11:a1:98"},{"from":"11:a1:bd","to":"11:a1:99"},{"from":"11:a4:15","to":"11:a1:9a"},{"from":"11:a4:15","to":"11:a1:9b"},{"from":"11:a0:e7","to":"11:a1:9e"},{"from":"11:a2:b9","to":"11:a1:9f"},{"from":"11:a1:38","to":"11:a1:a0"},{"from":"11:a1:00","to":"11:a1:a1"},{"from":"11:a0:f4","to":"11:a1:a2"},{"from":"king","to":"11:a1:a3"},{"from":"11:a2:ab","to":"11:a1:a4"},{"from":"11:a2:56","to":"11:a1:a7"},{"from":"11:a2:5b","to":"11:a1:a9"},{"from":"11:a1:69","to":"11:a1:aa"},{"from":"11:a1:35","to":"11:a1:ab"},{"from":"11:a0:e7","to":"11:a1:ac"},{"from":"11:a0:f6","to":"11:a1:ad"},{"from":"11:a0:cb","to":"11:a1:ae"},{"from":"11:a2:4b","to":"11:a1:af"},{"from":"11:a2:ab","to":"11:a1:b1"},{"from":"11:a0:cb","to":"11:a1:b3"},{"from":"10:98:25","to":"11:a1:b7"},{"from":"11:a2:ab","to":"11:a1:b8"},{"from":"11:a1:0a","to":"11:a1:b9"},{"from":"11:a0:d0","to":"11:a1:ba"},{"from":"11:a0:e7","to":"11:a1:bb"},{"from":"11:a2:da","to":"11:a1:bc"},{"from":"11:a1:93","to":"11:a1:bd"},{"from":"11:a2:5b","to":"11:a1:be"},{"from":"11:a2:20","to":"11:a1:bf"},{"from":"11:a2:20","to":"11:a1:c0"},{"from":"26:82:72","to":"11:a1:c1"},{"from":"11:a1:3c","to":"11:a1:c3"},{"from":"king","to":"11:a1:c4"},{"from":"11:a3:3e","to":"11:a1:c5"},{"from":"11:a2:20","to":"11:a1:c6"},{"from":"11:a2:56","to":"11:a1:c7"},{"from":"11:a1:35","to":"11:a1:c9"},{"from":"11:a3:3e","to":"11:a1:ca"},{"from":"11:a0:ed","to":"11:a1:cb"},{"from":"11:a0:f6","to":"11:a1:cd"},{"from":"11:a0:f6","to":"11:a1:ce"},{"from":"11:a1:3c","to":"11:a1:cf"},{"from":"11:a1:ac","to":"11:a1:d1"},{"from":"11:a2:20","to":"11:a1:d2"},{"from":"11:a3:2b","to":"11:a1:d3"},{"from":"11:a1:f7","to":"11:a1:d4"},{"from":"11:a2:da","to":"11:a1:d6"},{"from":"11:a2:ab","to":"11:a1:d7"},{"from":"10:98:25","to":"11:a1:d8"},{"from":"11:a2:b9","to":"11:a1:da"},{"from":"11:a2:b1","to":"11:a1:db"},{"from":"11:a3:3e","to":"11:a1:dc"},{"from":"11:a1:ff","to":"11:a1:dd"},{"from":"11:a1:f7","to":"11:a1:de"},{"from":"11:a4:15","to":"11:a1:df"},{"from":"11:a0:d7","to":"11:a1:e0"},{"from":"11:a3:4b","to":"11:a1:e1"},{"from":"11:a2:b9","to":"11:a1:e2"},{"from":"11:a3:3e","to":"11:a1:e3"},{"from":"11:a3:4b","to":"11:a1:e4"},{"from":"11:a1:f7","to":"11:a1:e6"},{"from":"11:a3:2b","to":"11:a1:e7"},{"from":"11:a3:3e","to":"11:a1:e8"},{"from":"11:a3:8e","to":"11:a1:e9"},{"from":"11:a3:8e","to":"11:a1:ea"},{"from":"11:a1:3c","to":"11:a1:ee"},{"from":"11:a2:b9","to":"11:a1:ef"},{"from":"11:a1:d1","to":"11:a1:f0"},{"from":"11:a3:2b","to":"11:a1:f3"},{"from":"11:a2:12","to":"11:a1:f4"},{"from":"11:a1:f7","to":"11:a1:f5"},{"from":"11:a1:ff","to":"11:a1:f6"},{"from":"11:a2:b1","to":"11:a1:f7"},{"from":"11:a2:b1","to":"11:a1:f9"},{"from":"11:a2:b1","to":"11:a1:fa"},{"from":"11:a1:3c","to":"11:a1:fb"},{"from":"11:a1:31","to":"11:a1:fc"},{"from":"11:a3:4b","to":"11:a1:fd"},{"from":"26:82:72","to":"11:a1:ff"},{"from":"11:a3:3e","to":"11:a2:01"},{"from":"11:a0:c7","to":"11:a2:02"},{"from":"11:a1:56","to":"11:a2:03"},{"from":"11:a2:cf","to":"11:a2:06"},{"from":"11:a2:b1","to":"11:a2:09"},{"from":"11:a2:b1","to":"11:a2:0a"},{"from":"11:a2:ab","to":"11:a2:0c"},{"from":"11:a2:33","to":"11:a2:0f"},{"from":"11:a2:6e","to":"11:a2:10"},{"from":"11:a0:d0","to":"11:a2:11"},{"from":"11:29:05","to":"11:a2:12"},{"from":"11:a1:69","to":"11:a2:13"},{"from":"11:a2:b1","to":"11:a2:14"},{"from":"11:a0:c7","to":"11:a2:15"},{"from":"11:29:07","to":"11:a2:17"},{"from":"11:a2:b1","to":"11:a2:1b"},{"from":"11:a1:2e","to":"11:a2:1c"},{"from":"11:a0:c7","to":"11:a2:1f"},{"from":"11:a2:2e","to":"11:a2:20"},{"from":"11:a1:f7","to":"11:a2:21"},{"from":"11:a1:00","to":"11:a2:22"},{"from":"11:a3:4b","to":"11:a2:24"},{"from":"11:a1:f7","to":"11:a2:28"},{"from":"11:a0:e7","to":"11:a2:29"},{"from":"11:a1:f7","to":"11:a2:2a"},{"from":"11:a1:93","to":"11:a2:2e"},{"from":"11:a2:71","to":"11:a2:33"},{"from":"11:a2:71","to":"11:a2:35"},{"from":"11:a1:f7","to":"11:a2:36"},{"from":"11:a2:da","to":"11:a2:37"},{"from":"10:98:25","to":"11:a2:38"},{"from":"10:98:25","to":"11:a2:3a"},{"from":"11:a1:3c","to":"11:a2:3c"},{"from":"11:a0:e7","to":"11:a2:3e"},{"from":"11:a1:f7","to":"11:a2:3f"},{"from":"11:a1:af","to":"11:a2:40"},{"from":"11:a2:71","to":"11:a2:41"},{"from":"26:82:72","to":"11:a2:44"},{"from":"26:82:72","to":"11:a2:48"},{"from":"11:a1:31","to":"11:a2:49"},{"from":"11:a0:f4","to":"11:a2:4b"},{"from":"11:a0:c7","to":"11:a2:4c"},{"from":"11:a2:3f","to":"11:a2:4d"},{"from":"11:a2:52","to":"11:a2:4e"},{"from":"11:a2:b9","to":"11:a2:51"},{"from":"11:a1:d8","to":"11:a2:52"},{"from":"11:a0:ed","to":"11:a2:55"},{"from":"11:a1:3e","to":"11:a2:56"},{"from":"11:a1:87","to":"11:a2:57"},{"from":"11:a2:cf","to":"11:a2:58"},{"from":"11:a2:56","to":"11:a2:5b"},{"from":"11:a2:b1","to":"11:a2:5e"},{"from":"11:a1:69","to":"11:a2:5f"},{"from":"11:a2:b9","to":"11:a2:60"},{"from":"king","to":"11:a2:61"},{"from":"11:a1:f7","to":"11:a2:65"},{"from":"11:a0:d0","to":"11:a2:66"},{"from":"11:a0:f4","to":"11:a2:6a"},{"from":"11:a1:35","to":"11:a2:6b"},{"from":"11:a1:0a","to":"11:a2:6c"},{"from":"11:a2:b9","to":"11:a2:6d"},{"from":"11:a2:ab","to":"11:a2:6e"},{"from":"11:a1:ff","to":"11:a2:6f"},{"from":"11:a1:f7","to":"11:a2:71"},{"from":"11:a4:15","to":"11:a2:ab"},{"from":"11:a3:3e","to":"11:a2:b1"},{"from":"11:a3:2b","to":"11:a2:b9"},{"from":"11:a3:4b","to":"11:a2:cf"},{"from":"11:a3:4b","to":"11:a2:da"},{"from":"11:a3:3e","to":"11:a3:2b"},{"from":"king","to":"11:a3:3e"},{"from":"11:a1:00","to":"11:a3:4b"},{"from":"11:a3:3e","to":"11:a3:8e"},{"from":"11:a2:cf","to":"11:a4:15"},{"from":"11:a0:ff","to":"11:28:f0"},{"from":"11:a2:68","to":"11:29:16"},{"from":"11:a2:68","to":"11:a0:f0"},{"from":"11:a1:9d","to":"11:a1:7f"},{"from":"11:a1:38","to":"11:a1:89"},{"from":"11:a1:cc","to":"11:a1:9d"},{"from":"11:a1:cc","to":"11:a1:b2"},{"from":"11:a2:68","to":"11:a1:b4"},{"from":"11:a1:9d","to":"11:a1:b5"},{"from":"11:a0:f0","to":"11:a1:cc"},{"from":"11:a0:f0","to":"11:a1:d5"},{"from":"11:a0:f0","to":"11:a1:fe"},{"from":"11:a0:f0","to":"11:a2:1e"},{"from":"11:a1:16","to":"11:a2:2c"},{"from":"11:29:1c","to":"11:a2:68"},{"from":"26:82:72","to":"40:7f:0d"}]')
-        };
+    var nodes = new vis.DataSet([
+        {"id":317,"label":"Start - BTN\n317\nSection","x":-817,"y":-24,"group":"Section"},
+        {"id":318,"label":"End Call\n318\nHangup","x":-933,"y":-175,"group":"Hangup"},
+        {"id":319,"label":"Call Error\n319\nSpeak","x":-727,"y":-175,"group":"Speak"},            {"id":320,"label":"Welcome\n320\nSpeak","x":-563,"y":-14,"group":"Speak"},
+        {"id":321,"label":"Enter TN\n321\nPrompt","x":-326,"y":-7,"group":"Prompt"},
+        {"id":322,"label":"CheckIsTenDigits\n322\nWebService","x":-84,"y":-5,"group":"WebService"},
+        {"id":323,"label":"VerifyIsTenDigits\n323\nCase","x":207,"y":-4,"group":"Case"},
+        {"id":324,"label":"CheckIsValidTN\n324\nWebService","x":492,"y":-10,"group":"WebService"},
+        {"id":325,"label":"Not Ten Digits\n325\nSpeak","x":-76,"y":-274,"group":"Speak"},
+        {"id":326,"label":"VerifyIsValidTN\n326\nCase","x":821,"y":-9,"group":"Case"},
+        {"id":327,"label":"Verify TN Is Correct\n327\nPrompt","x":812,"y":265,"group":"Prompt"},
+        {"id":328,"label":"Not Valid TN\n328\nSpeak","x":499,"y":-210,"group":"Speak"},
+        {"id":329,"label":"BTN Is Valid\n329\nSpeak","x":812,"y":397,"group":"Speak"},
+        {"id":330,"label":"Validate TPV ID\n330\nSection","x":708,"y":592,"group":"Section"},
+        {"id":331,"label":"End Section End Call\n331\nHangup","x":1040,"y":478,"group":"Hangup"},
+        {"id":332,"label":"Say BTN\n332\nSpeak","x":820,"y":113,"group":"Speak"},
+        {"id":333,"label":"Get TPV ID\n333\nWebService","x":800,"y":824,"group":"WebService"},
+        {"id":334,"label":"TPV ID Error\n334\nSpeak","x":1037,"y":682,"group":"Speak"},
+        {"id":335,"label":"Verify TPV ID Is Valid\n335\nCase","x":798,"y":1059,"group":"Case"},
+        {"id":336,"label":"TPV ID Is valid\n336\nSpeak","x":802,"y":1304,"group":"Speak"},
+        {"id":337,"label":"End Call\n337\nSection","x":828,"y":1605,"group":"Section"},
+        {"id":338,"label":"TPV ID Not Found\n338\nSpeak","x":1211,"y":1055,"group":"Speak"},
+        {"id":339,"label":"TPV ID End Call\n339\nHangup","x":1074,"y":1616,"group":"Hangup"}
+    ]);
 
-        for (var i = 0 ; i < data.nodes.length; i++) {
-            data.nodes[i].label = data.nodes[i].id
-        }
-        // create a network
-        var status = document.getElementById('status');
-        var container = document.getElementById('mynetwork');
-        var options = {
-            layout: {
-                hierarchical: {
-                    direction: "UD",
-                    sortMethod: "directed"
-                }
+    var edges = new vis.DataSet([
+        {"id":353,"from":317,"to":318,"label":"Hangup"},{"id":354,"from":317,"to":318,"label":"CcHangup"},{"id":355,"from":317,"to":319,"label":"Error"},{"id":356,"from":319,"to":318,"label":"Continue"},{"id":357,"from":319,"to":318,"label":"Error"},{"id":358,"from":319,"to":318,"label":"Hangup"},{"id":359,"from":317,"to":320,"label":"Continue"},{"id":360,"from":320,"to":321,"label":"Continue"},{"id":361,"from":321,"to":322,"label":"1"},{"id":362,"from":322,"to":323,"label":"Continue"},{"id":363,"from":323,"to":324,"label":"1"},{"id":364,"from":323,"to":325,"label":"2"},{"id":365,"from":325,"to":321,"label":"Continue"},{"id":366,"from":324,"to":326,"label":"Continue"},{"id":367,"from":326,"to":332,"label":"1"},{"id":368,"from":326,"to":328,"label":"2"},{"id":369,"from":327,"to":332,"label":"3"},{"id":370,"from":327,"to":321,"label":"2"},{"id":371,"from":328,"to":321,"label":"Continue"},{"id":372,"from":327,"to":329,"label":"1"},{"id":373,"from":329,"to":330,"label":"Continue"},{"id":374,"from":330,"to":333,"label":"Continue"},{"id":375,"from":330,"to":331,"label":"Hangup"},{"id":376,"from":332,"to":327,"label":"Continue"},{"id":377,"from":330,"to":334,"label":"Error"},{"id":378,"from":334,"to":331,"label":"Continue"},{"id":379,"from":333,"to":335,"label":"Continue"},{"id":380,"from":335,"to":336,"label":"1"},{"id":381,"from":336,"to":337,"label":"Continue"},{"id":382,"from":335,"to":338,"label":"0"},{"id":383,"from":338,"to":337,"label":"Continue"},{"id":384,"from":337,"to":339,"label":"Continue"}
+    ]);
+
+    var container = document.getElementById('network');
+    var data = {
+        edges: edges,
+        nodes: nodes
+    };
+    var options = {
+        manipulation: {
+            initiallyActive: true,
+            addNode: true,
+            addEdge: true,
+            editEdge: true,
+            deleteNode: true,
+            deleteEdge: true
+        },
+        nodes: {
+            physics: false,
+        },
+        edges: {
+            physics: false,
+            arrows: 'to',
+            smooth: {
+                enabled: true,
+                type: 'continuous'
+            }
+        },
+        interaction: {
+            dragNodes: true,
+            dragView: true,
+            hover: true,
+            keyboard: {
+                enabled: true,
+                bindToWindow: false
             },
-            physics: false, //{stabilization:false},
-            configure:"layout, physics"
-        };
-        network = new vis.Network(container, data, options);
-        network.on("stabilizationProgress", function(params) {
-            var prog = params.iterations/params.total;
-            status.innerText = Math.round(prog*100)+'%';
-        });
-        network.on("stabilizationIterationsDone", function() {
-            status.innerText = "stabilized";
-        });
-    }
-
+            navigationButtons: true,
+            selectable: true,
+            selectConnectedEdges: true,
+            hoverConnectedEdges: true,
+            zoomView: true
+        },
+        groups: {
+            Assignment: {
+                shape: 'box',
+                color: '#6699ff'
+            },
+            Hangup: {
+                shape: 'box',
+                color: '#b8b8b8'
+            },
+            Prompt: {
+                shape: 'box',
+                color: '#00ffff'
+            },
+            Section: {
+                shape: 'circle',
+                color: '#66ff66'
+            },
+            Speak: {
+                shape: 'box',
+                color: '#ffff66'
+            },
+            StartRecording: {
+                shape: 'box',
+                color: '#ff5050'
+            },
+            StopRecording: {
+                shape: 'box',
+                color: '#ff5050'
+            },
+            Transfer: {
+                shape: 'box',
+                color: '#ff66ff'
+            },
+            TransferAgent: {
+                shape: 'box',
+                color: '#ff9900'
+            },
+            Case: {
+                shape: 'box',
+                color: '#33cccc'
+            },
+            WebService: {
+                shape: 'box',
+                color: '#33cc33'
+            }
+        }
+    };
+    var network = new vis.Network(container, data, options);
 </script>
 </body>
 </html>
