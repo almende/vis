@@ -36500,6 +36500,8 @@ return /******/ (function(modules) { // webpackBootstrap
           counter++;
         }
         stack.push(nodeId);
+        stack.reverse();
+
         return stack;
       }
 

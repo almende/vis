@@ -15,6 +15,7 @@ http://visjs.org
 - Fixed findNode method. It now does not return internal objects anymore.
 - Fixed #1529, clustering and declustering now respects the original settings of the edges for physics and hidden.
 - Fixed #1406, control nodes are now drawn immediately without a second redraw.
+- Fixed #1404, made the array returned by findNode match the docs.
 
 ## 2015-12-18, version 4.11.0
 
