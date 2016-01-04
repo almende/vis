@@ -1,14 +1,17 @@
 
 div.vis-color-picker {
   position:absolute;
+  top: 0px;
+  left: 30px;
   margin-top:-140px;
   margin-left:30px;
-  width:293px;
-  height:425px;
+  width:310px;
+  height:444px;
+  z-index: 1;
   padding: 10px;
   border-radius:15px;
   background-color:#ffffff;
-  display:none;
+  display: none;
   box-shadow: rgba(0,0,0,0.5) 0px 0px 10px 0px;
 }
 
@@ -18,8 +21,8 @@ div.vis-color-picker div.vis-arrow {
   left:5px;
 }
 
-div.vis-color-picker div.vis-arrow:after,
-div.vis-color-picker div.vis-arrow:before {
+div.vis-color-picker div.vis-arrow::after,
+div.vis-color-picker div.vis-arrow::before {
   right: 100%;
   top: 50%;
   border: solid transparent;
