@@ -18,6 +18,9 @@ http://visjs.org
 - Fixed #1404, made the array returned by findNode match the docs.
 - Added #1138, enable the user to define the color of the shadows for nodes and edges.
 - Fixed #1528, #1278, avoided ID's being cast to string for methods that return ID's as well as storePositions casting to string.
+- Fixed upscaling when the window size increases.
+- Accepted pull request #1544, thanks @felixhayashi!
+- Fixed documented bug in #1544.
 
 ## 2015-12-18, version 4.11.0
 
