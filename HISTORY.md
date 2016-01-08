@@ -2,7 +2,7 @@
 http://visjs.org
 
 
-## not yet released, version 4.11.1-SNAPSHOT
+## 2016-01-08, version 4.12.0
 
 ### Timeline
 
@@ -22,6 +22,7 @@ http://visjs.org
 - Fixed upscaling when the window size increases.
 - Accepted pull request #1544, thanks @felixhayashi!
 - Fixed documented bug in #1544.
+
 
 ## 2015-12-18, version 4.11.0
 

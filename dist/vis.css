@@ -584,6 +584,11 @@ input.vis-configuration.vis-config-range:focus::-ms-fill-upper {
   cursor: e-resize;
 }
 
+.vis-range.vis-item.vis-readonly .vis-drag-left,
+.vis-range.vis-item.vis-readonly .vis-drag-right {
+  cursor: auto;
+}
+
 .vis-time-axis {
   position: relative;
   overflow: hidden;
