@@ -80,7 +80,7 @@ Click any of the buttons below to cluster the network. On every push the network
               network.openCluster(params.nodes[0]);
           }
       }
-  })
+  });
 
   function clusterByCid() {
       network.setData(data);
@@ -89,7 +89,7 @@ Click any of the buttons below to cluster the network. On every push the network
               return childOptions.cid == 1;
           },
           clusterNodeProperties: {id:'cidCluster', borderWidth:3, shape:'database'}
-      }
+      };
       network.cluster(clusterOptionsByData);
   }
   function clusterByColor() {
@@ -111,7 +111,7 @@ Click any of the buttons below to cluster the network. On every push the network
                   return clusterOptions;
               },
               clusterNodeProperties: {id: 'cluster:' + color, borderWidth: 3, shape: 'database', color:color, label:'color:' + color}
-          }
+          };
           network.cluster(clusterOptionsByData);
       }
   }
@@ -131,7 +131,7 @@ Click any of the buttons below to cluster the network. On every push the network
             return clusterOptions;
           },
           clusterNodeProperties: {borderWidth:3, shape:'box', font:{size:30}}
-      }
+      };
       network.clusterByHubsize(undefined, clusterOptionsByData);
   }
 
