@@ -5,7 +5,7 @@
  * A dynamic, browser-based visualization library.
  *
  * @version 4.11.1-SNAPSHOT
- * @date    2016-01-04
+ * @date    2016-01-05
  *
  * @license
  * Copyright (C) 2011-2015 Almende B.V, http://almende.com
@@ -22257,7 +22257,7 @@ return /******/ (function(modules) { // webpackBootstrap
               // a header for the category
               this._makeHeader(option);
 
-              // get the suboptions
+              // get the sub options
               this._handleObject(this.configureOptions[option], [option]);
             }
             counter++;
@@ -22288,7 +22288,7 @@ return /******/ (function(modules) { // webpackBootstrap
         }
 
         this._push();
-        this.colorPicker.insertTo(this.container);
+        //~ this.colorPicker.insertTo(this.container);
       }
 
       /**
@@ -22702,16 +22702,24 @@ return /******/ (function(modules) { // webpackBootstrap
       value: function _showColorPicker(value, div, path) {
         var _this6 = this;
 
-        var rect = div.getBoundingClientRect();
-        var bodyRect = document.body.getBoundingClientRect();
-        var pickerX = rect.left + rect.width + 5;
-        var pickerY = rect.top - bodyRect.top + rect.height + 2;
-        this.colorPicker.show(pickerX, pickerY);
+        // clear the callback from this div
+        div.onclick = function () {};
+
+        this.colorPicker.insertTo(div);
+        this.colorPicker.show();
+
         this.colorPicker.setColor(value);
-        this.colorPicker.setCallback(function (color) {
+        this.colorPicker.setUpdateCallback(function (color) {
           var colorString = 'rgba(' + color.r + ',' + color.g + ',' + color.b + ',' + color.a + ')';
           div.style.backgroundColor = colorString;
           _this6._update(colorString, path);
+        });
+
+        // on close of the colorpicker, restore the callback.
+        this.colorPicker.setCloseCallback(function () {
+          div.onclick = function () {
+            _this6._showColorPicker(value, div, path);
+          };
         });
       }
 
@@ -22924,6 +22932,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
       // bound by
       this.updateCallback = function () {};
+      this.closeCallback = function () {};
 
       // create all DOM elements
       this._create();
@@ -22953,12 +22962,26 @@ return /******/ (function(modules) { // webpackBootstrap
        * @param callback
        */
     }, {
-      key: 'setCallback',
-      value: function setCallback(callback) {
+      key: 'setUpdateCallback',
+      value: function setUpdateCallback(callback) {
         if (typeof callback === 'function') {
           this.updateCallback = callback;
         } else {
-          throw new Error("Function attempted to set as colorPicker callback is not a function.");
+          throw new Error("Function attempted to set as colorPicker update callback is not a function.");
+        }
+      }
+
+      /**
+       * the callback is executed on apply and save. Bind it to the application
+       * @param callback
+       */
+    }, {
+      key: 'setCloseCallback',
+      value: function setCloseCallback(callback) {
+        if (typeof callback === 'function') {
+          this.closeCallback = callback;
+        } else {
+          throw new Error("Function attempted to set as colorPicker closing callback is not a function.");
         }
       }
     }, {
@@ -23029,17 +23052,19 @@ return /******/ (function(modules) { // webpackBootstrap
       }
 
       /**
-       * this shows the color picker at a location. The hue circle is constructed once and stored.
-       * @param x
-       * @param y
+       * this shows the color picker.
+       * The hue circle is constructed once and stored.
        */
     }, {
       key: 'show',
-      value: function show(x, y) {
+      value: function show() {
+        if (this.closeCallback !== undefined) {
+          this.closeCallback();
+          this.closeCallback = undefined;
+        }
+
         this.applied = false;
         this.frame.style.display = 'block';
-        this.frame.style.top = y + 'px';
-        this.frame.style.left = x + 'px';
         this._generateHueCircle();
       }
 
@@ -23066,6 +23091,12 @@ return /******/ (function(modules) { // webpackBootstrap
         }
 
         this.frame.style.display = 'none';
+
+        // call the closing callback, restoring the onclick method.
+        if (this.closeCallback !== undefined) {
+          this.closeCallback();
+          this.closeCallback = undefined;
+        }
       }
 
       /**
@@ -23165,7 +23196,7 @@ return /******/ (function(modules) { // webpackBootstrap
       }
 
       /**
-       * update the colorpicker. A black circle overlays the hue circle to mimic the brightness decreasing.
+       * update the color picker. A black circle overlays the hue circle to mimic the brightness decreasing.
        * @param rgba
        * @private
        */
@@ -30365,12 +30396,7 @@ return /******/ (function(modules) { // webpackBootstrap
     }, {
       key: 'distanceToBorder',
       value: function distanceToBorder(ctx, angle) {
-        this.resize(ctx);
-        var a = this.width / 2;
-        var b = this.height / 2;
-        var w = Math.sin(angle) * a;
-        var h = Math.cos(angle) * b;
-        return a * b / Math.sqrt(w * w + h * h);
+        return this._distanceToBorder(ctx, angle);
       }
     }]);
 
@@ -37254,8 +37280,19 @@ return /******/ (function(modules) { // webpackBootstrap
       value: function _setCameraState() {
         if (this.cameraState.scale !== undefined && this.frame.canvas.clientWidth !== 0 && this.frame.canvas.clientHeight !== 0 && this.pixelRatio !== 0 && this.cameraState.previousWidth > 0) {
 
-          this.body.view.scale = this.cameraState.scale * Math.min(this.frame.canvas.width / this.pixelRatio / this.cameraState.previousWidth, this.frame.canvas.height / this.pixelRatio / this.cameraState.previousHeight);
+          var widthRatio = this.frame.canvas.width / this.pixelRatio / this.cameraState.previousWidth;
+          var heightRatio = this.frame.canvas.height / this.pixelRatio / this.cameraState.previousHeight;
+          var newScale = this.cameraState.scale;
 
+          if (widthRatio != 1 && heightRatio != 1) {
+            newScale = this.cameraState.scale * 0.5 * (widthRatio + heightRatio);
+          } else if (widthRatio != 1) {
+            newScale = this.cameraState.scale * widthRatio;
+          } else if (heightRatio != 1) {
+            newScale = this.cameraState.scale * heightRatio;
+          }
+
+          this.body.view.scale = newScale;
           // this comes from the view module.
           var currentViewCenter = this.DOMtoCanvas({
             x: 0.5 * this.frame.canvas.clientWidth,
@@ -37418,13 +37455,13 @@ return /******/ (function(modules) { // webpackBootstrap
         var oldWidth = this.frame.canvas.width;
         var oldHeight = this.frame.canvas.height;
 
-        // update the pixelratio
+        // update the pixel ratio
         var ctx = this.frame.canvas.getContext("2d");
-        var previousRation = this.pixelRatio; // we cache this because the camera state storage needs the old value
+        var previousRatio = this.pixelRatio; // we cache this because the camera state storage needs the old value
         this.pixelRatio = (window.devicePixelRatio || 1) / (ctx.webkitBackingStorePixelRatio || ctx.mozBackingStorePixelRatio || ctx.msBackingStorePixelRatio || ctx.oBackingStorePixelRatio || ctx.backingStorePixelRatio || 1);
 
         if (width != this.options.width || height != this.options.height || this.frame.style.width != width || this.frame.style.height != height) {
-          this._getCameraState(previousRation);
+          this._getCameraState(previousRatio);
 
           this.frame.style.width = width;
           this.frame.style.height = height;
@@ -37445,7 +37482,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
           // store the camera if there is a change in size.
           if (this.frame.canvas.width != Math.round(this.frame.canvas.clientWidth * this.pixelRatio) || this.frame.canvas.height != Math.round(this.frame.canvas.clientHeight * this.pixelRatio)) {
-            this._getCameraState(previousRation);
+            this._getCameraState(previousRatio);
           }
 
           if (this.frame.canvas.width != Math.round(this.frame.canvas.clientWidth * this.pixelRatio)) {
@@ -40929,7 +40966,7 @@ return /******/ (function(modules) { // webpackBootstrap
         // restore the state of any bound functions or events, remove control nodes, restore physics
         this._clean();
 
-        // reset global letiables
+        // reset global variables
         this.manipulationDOM = {};
 
         // if the gui is enabled, draw all elements.
