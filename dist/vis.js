@@ -4,11 +4,11 @@
  *
  * A dynamic, browser-based visualization library.
  *
- * @version 4.11.1-SNAPSHOT
- * @date    2016-01-05
+ * @version 4.12.0
+ * @date    2016-01-08
  *
  * @license
- * Copyright (C) 2011-2015 Almende B.V, http://almende.com
+ * Copyright (C) 2011-2016 Almende B.V, http://almende.com
  *
  * Vis.js is dual licensed under both
  *
@@ -11047,14 +11047,14 @@ return /******/ (function(modules) { // webpackBootstrap
 
         var PropagatingHammer = function(element, options) {
           var o = Object.create(_options);
-          if (options) Hammer.extend(o, options);
+          if (options) Hammer.assign(o, options);
           return propagating(new Hammer(element, o), o);
         };
-        Hammer.extend(PropagatingHammer, Hammer);
+        Hammer.assign(PropagatingHammer, Hammer);
 
         PropagatingHammer.Manager = function (element, options) {
           var o = Object.create(_options);
-          if (options) Hammer.extend(o, options);
+          if (options) Hammer.assign(o, options);
           return propagating(new Hammer.Manager(element, o), o);
         };
 
@@ -11067,7 +11067,9 @@ return /******/ (function(modules) { // webpackBootstrap
 
       // attach to DOM element
       var element = hammer.element;
-      element.hammer = wrapper;
+
+      if(!element.hammer) element.hammer = [];
+      element.hammer.push(wrapper);
 
       // register an event to catch the start of a gesture and store the
       // target in a singleton
@@ -11148,7 +11150,10 @@ return /******/ (function(modules) { // webpackBootstrap
 
       wrapper.destroy = function () {
         // Detach from DOM element
-        delete hammer.element.hammer;
+        var hammers = hammer.element.hammer;
+        var idx = hammers.indexOf(wrapper);
+        if(idx !== -1) hammers.splice(idx,1);
+        if(!hammers.length) delete hammer.element.hammer;
 
         // clear all handlers
         wrapper._handlers = {};
@@ -11189,19 +11194,30 @@ return /******/ (function(modules) { // webpackBootstrap
           stopped = true;
         };
 
+        //wrap the srcEvent's stopPropagation to also stop hammer propagation:
+        var srcStop = event.srcEvent.stopPropagation;
+        if(typeof srcStop == "function") {
+          event.srcEvent.stopPropagation = function(){
+            srcStop();
+            event.stopPropagation();
+          }
+        }
+
         // attach firstTarget property to the event
         event.firstTarget = _firstTarget;
 
         // propagate over all elements (until stopped)
         var elem = _firstTarget;
         while (elem && !stopped) {
-          var _handlers = elem.hammer && elem.hammer._handlers[event.type];
-          if (_handlers) {
-            for (var i = 0; i < _handlers.length && !stopped; i++) {
-              _handlers[i](event);
+          if(elem.hammer){
+            var _handlers;
+            for(var k = 0; k < elem.hammer.length; k++){
+              _handlers = elem.hammer[k]._handlers[event.type];
+              if(_handlers) for (var i = 0; i < _handlers.length && !stopped; i++) {
+                _handlers[i](event);
+              }
             }
           }
-
           elem = elem.parentNode;
         }
       }
@@ -42506,10 +42522,6 @@ return /******/ (function(modules) { // webpackBootstrap
 /***/ },
 /* 111 */
 /***/ function(module, exports, __webpack_require__) {
-
-  /**
-   * Created by Alex on 8/7/2015.
-   */
 
   // distance finding algorithm
   "use strict";
