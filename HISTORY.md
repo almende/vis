@@ -8,6 +8,7 @@ http://visjs.org
 
 - Fixed #1527: error when creating/updating a Timeline without data.
 - Fixed #1127: `doubleClick` event not being fired.
+- Fixed #1554: wrong cursor on readonly range items.
 
 ### Network
 
