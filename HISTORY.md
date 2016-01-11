@@ -4,7 +4,9 @@ http://visjs.org
 
 ## not yet released, version 4.12.1-SNAPSHOT
 
+### Network
 
+- Altered edges for arrows and added the arrowStrikethrough option.
 
 
 ## 2016-01-08, version 4.12.0

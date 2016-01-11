@@ -4,8 +4,8 @@
  *
  * A dynamic, browser-based visualization library.
  *
- * @version 4.12.0
- * @date    2016-01-08
+ * @version 4.12.1-SNAPSHOT
+ * @date    2016-01-11
  *
  * @license
  * Copyright (C) 2011-2016 Almende B.V, http://almende.com
@@ -11047,14 +11047,14 @@ return /******/ (function(modules) { // webpackBootstrap
 
         var PropagatingHammer = function(element, options) {
           var o = Object.create(_options);
-          if (options) Hammer.assign(o, options);
+          if (options) Hammer.extend(o, options);
           return propagating(new Hammer(element, o), o);
         };
-        Hammer.assign(PropagatingHammer, Hammer);
+        Hammer.extend(PropagatingHammer, Hammer);
 
         PropagatingHammer.Manager = function (element, options) {
           var o = Object.create(_options);
-          if (options) Hammer.assign(o, options);
+          if (options) Hammer.extend(o, options);
           return propagating(new Hammer.Manager(element, o), o);
         };
 
@@ -11067,9 +11067,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
       // attach to DOM element
       var element = hammer.element;
-
-      if(!element.hammer) element.hammer = [];
-      element.hammer.push(wrapper);
+      element.hammer = wrapper;
 
       // register an event to catch the start of a gesture and store the
       // target in a singleton
@@ -11150,10 +11148,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
       wrapper.destroy = function () {
         // Detach from DOM element
-        var hammers = hammer.element.hammer;
-        var idx = hammers.indexOf(wrapper);
-        if(idx !== -1) hammers.splice(idx,1);
-        if(!hammers.length) delete hammer.element.hammer;
+        delete hammer.element.hammer;
 
         // clear all handlers
         wrapper._handlers = {};
@@ -11194,30 +11189,19 @@ return /******/ (function(modules) { // webpackBootstrap
           stopped = true;
         };
 
-        //wrap the srcEvent's stopPropagation to also stop hammer propagation:
-        var srcStop = event.srcEvent.stopPropagation;
-        if(typeof srcStop == "function") {
-          event.srcEvent.stopPropagation = function(){
-            srcStop();
-            event.stopPropagation();
-          }
-        }
-
         // attach firstTarget property to the event
         event.firstTarget = _firstTarget;
 
         // propagate over all elements (until stopped)
         var elem = _firstTarget;
         while (elem && !stopped) {
-          if(elem.hammer){
-            var _handlers;
-            for(var k = 0; k < elem.hammer.length; k++){
-              _handlers = elem.hammer[k]._handlers[event.type];
-              if(_handlers) for (var i = 0; i < _handlers.length && !stopped; i++) {
-                _handlers[i](event);
-              }
+          var _handlers = elem.hammer && elem.hammer._handlers[event.type];
+          if (_handlers) {
+            for (var i = 0; i < _handlers.length && !stopped; i++) {
+              _handlers[i](event);
             }
           }
+
           elem = elem.parentNode;
         }
       }
@@ -30631,7 +30615,7 @@ return /******/ (function(modules) { // webpackBootstrap
       key: 'distanceToBorder',
       value: function distanceToBorder(ctx, angle) {
         this.resize(ctx);
-        return this.options.size + this.options.borderWidth;
+        return this.options.size;
       }
     }]);
 
@@ -31357,6 +31341,7 @@ return /******/ (function(modules) { // webpackBootstrap
           middle: { enabled: false, scaleFactor: 1 },
           from: { enabled: false, scaleFactor: 1 }
         },
+        arrowStrikethrough: false,
         color: {
           color: '#848484',
           highlight: '#848484',
@@ -32063,21 +32048,45 @@ return /******/ (function(modules) { // webpackBootstrap
     }, {
       key: 'draw',
       value: function draw(ctx) {
-        var via = this.edgeType.drawLine(ctx, this.selected, this.hover);
-        this.drawArrows(ctx, via);
-        this.drawLabel(ctx, via);
+        // get the via node from the edge type
+        var viaNode = this.edgeType.getViaNode();
+        var arrowData = {};
+
+        // restore edge targets to defaults
+        this.edgeType.fromPoint = this.from;
+        this.edgeType.toPoint = this.to;
+
+        // from and to arrows give a different end point for edges. we set them here
+        if (this.options.arrows.from.enabled === true) {
+          arrowData.from = this.edgeType.getArrowData(ctx, 'from', viaNode, this.selected, this.hover);
+          if (this.options.arrowStrikethrough === true) this.edgeType.fromPoint = arrowData.from.core;
+        }
+        if (this.options.arrows.to.enabled === true) {
+          arrowData.to = this.edgeType.getArrowData(ctx, 'to', viaNode, this.selected, this.hover);
+          if (this.options.arrowStrikethrough === true) this.edgeType.toPoint = arrowData.to.core;
+        }
+
+        // the middle arrow depends on the line, which can depend on the to and from arrows so we do this one lastly.
+        if (this.options.arrows.middle.enabled === true) {
+          arrowData.middle = this.edgeType.getArrowData(ctx, 'middle', viaNode, this.selected, this.hover);
+        }
+
+        // draw everything
+        this.edgeType.drawLine(ctx, this.selected, this.hover, viaNode);
+        this.drawArrows(ctx, arrowData);
+        this.drawLabel(ctx, viaNode);
       }
     }, {
       key: 'drawArrows',
-      value: function drawArrows(ctx, viaNode) {
+      value: function drawArrows(ctx, arrowData) {
         if (this.options.arrows.from.enabled === true) {
-          this.edgeType.drawArrowHead(ctx, 'from', viaNode, this.selected, this.hover);
+          this.edgeType.drawArrowHead(ctx, this.selected, this.hover, arrowData.from);
         }
         if (this.options.arrows.middle.enabled === true) {
-          this.edgeType.drawArrowHead(ctx, 'middle', viaNode, this.selected, this.hover);
+          this.edgeType.drawArrowHead(ctx, this.selected, this.hover, arrowData.middle);
         }
         if (this.options.arrows.to.enabled === true) {
-          this.edgeType.drawArrowHead(ctx, 'to', viaNode, this.selected, this.hover);
+          this.edgeType.drawArrowHead(ctx, this.selected, this.hover, arrowData.to);
         }
       }
     }, {
@@ -32210,7 +32219,7 @@ return /******/ (function(modules) { // webpackBootstrap
         var allowDeletion = arguments.length <= 2 || arguments[2] === undefined ? false : arguments[2];
         var globalOptions = arguments.length <= 3 || arguments[3] === undefined ? {} : arguments[3];
 
-        var fields = ['id', 'from', 'hidden', 'hoverWidth', 'label', 'labelHighlightBold', 'length', 'line', 'opacity', 'physics', 'scaling', 'selectionWidth', 'selfReferenceSize', 'to', 'title', 'value', 'width'];
+        var fields = ['arrowStrikethrough', 'id', 'from', 'hidden', 'hoverWidth', 'label', 'labelHighlightBold', 'length', 'line', 'opacity', 'physics', 'scaling', 'selectionWidth', 'selfReferenceSize', 'to', 'title', 'value', 'width'];
 
         // only deep extend the items in the field array. These do not have shorthand.
         util.selectiveDeepExtend(fields, parentOptions, newOptions, allowDeletion);
@@ -32354,34 +32363,25 @@ return /******/ (function(modules) { // webpackBootstrap
 
     _createClass(CubicBezierEdge, [{
       key: '_line',
-      value: function _line(ctx) {
+      value: function _line(ctx, viaNodes) {
         // get the coordinates of the support points.
-
-        var _getViaCoordinates2 = this._getViaCoordinates();
-
-        var _getViaCoordinates22 = _slicedToArray(_getViaCoordinates2, 2);
-
-        var via1 = _getViaCoordinates22[0];
-        var via2 = _getViaCoordinates22[1];
-
-        var returnValue = [via1, via2];
+        var via1 = viaNodes[0];
+        var via2 = viaNodes[1];
 
         // start drawing the line.
         ctx.beginPath();
-        ctx.moveTo(this.from.x, this.from.y);
+        ctx.moveTo(this.fromPoint.x, this.fromPoint.y);
 
         // fallback to normal straight edges
-        if (via1.x === undefined) {
-          ctx.lineTo(this.to.x, this.to.y);
-          returnValue = undefined;
+        if (viaNodes === undefined || via1.x === undefined) {
+          ctx.lineTo(this.toPoint.x, this.toPoint.y);
         } else {
-          ctx.bezierCurveTo(via1.x, via1.y, via2.x, via2.y, this.to.x, this.to.y);
+          ctx.bezierCurveTo(via1.x, via1.y, via2.x, via2.y, this.toPoint.x, this.toPoint.y);
         }
         // draw shadow if enabled
         this.enableShadow(ctx);
         ctx.stroke();
         this.disableShadow(ctx);
-        return returnValue;
       }
     }, {
       key: '_getViaCoordinates',
@@ -32393,7 +32393,7 @@ return /******/ (function(modules) { // webpackBootstrap
             y1 = undefined,
             x2 = undefined,
             y2 = undefined;
-        var roundness = this.options.smooth.roundness;;
+        var roundness = this.options.smooth.roundness;
 
         // horizontal if x > y or if direction is forced or if direction is horizontal
         if ((Math.abs(dx) > Math.abs(dy) || this.options.smooth.forceDirection === true || this.options.smooth.forceDirection === 'horizontal') && this.options.smooth.forceDirection !== 'vertical') {
@@ -32409,6 +32409,11 @@ return /******/ (function(modules) { // webpackBootstrap
         }
 
         return [{ x: x1, y: y1 }, { x: x2, y: y2 }];
+      }
+    }, {
+      key: 'getViaNode',
+      value: function getViaNode() {
+        return this._getViaCoordinates();
       }
     }, {
       key: '_findBorderPosition',
@@ -32451,8 +32456,8 @@ return /******/ (function(modules) { // webpackBootstrap
         vec[1] = 3 * t * Math.pow(1 - t, 2);
         vec[2] = 3 * Math.pow(t, 2) * (1 - t);
         vec[3] = Math.pow(t, 3);
-        var x = vec[0] * this.from.x + vec[1] * via1.x + vec[2] * via2.x + vec[3] * this.to.x;
-        var y = vec[0] * this.from.y + vec[1] * via1.y + vec[2] * via2.y + vec[3] * this.to.y;
+        var x = vec[0] * this.fromPoint.x + vec[1] * via1.x + vec[2] * via2.x + vec[3] * this.toPoint.x;
+        var y = vec[0] * this.fromPoint.y + vec[1] * via1.y + vec[2] * via2.y + vec[3] * this.toPoint.y;
 
         return { x: x, y: y };
       }
@@ -32723,6 +32728,8 @@ return /******/ (function(modules) { // webpackBootstrap
       this.color = {};
       this.selectionWidth = 2;
       this.hoverWidth = 1.5;
+      this.fromPoint = this.from;
+      this.toPoint = this.to;
     }
 
     _createClass(EdgeBase, [{
@@ -32754,25 +32761,23 @@ return /******/ (function(modules) { // webpackBootstrap
        */
     }, {
       key: 'drawLine',
-      value: function drawLine(ctx, selected, hover) {
+      value: function drawLine(ctx, selected, hover, viaNode) {
         // set style
         ctx.strokeStyle = this.getColor(ctx, selected, hover);
         ctx.lineWidth = this.getLineWidth(selected, hover);
-        var via = undefined;
+
         if (this.options.dashes !== false) {
-          via = this._drawDashedLine(ctx);
+          this._drawDashedLine(ctx, viaNode);
         } else {
-          via = this._drawLine(ctx);
+          this._drawLine(ctx, viaNode);
         }
-        return via;
       }
     }, {
       key: '_drawLine',
-      value: function _drawLine(ctx) {
-        var via = undefined;
+      value: function _drawLine(ctx, viaNode, fromPoint, toPoint) {
         if (this.from != this.to) {
           // draw line
-          via = this._line(ctx);
+          this._line(ctx, viaNode, fromPoint, toPoint);
         } else {
           var _getCircleData2 = this._getCircleData(ctx);
 
@@ -32784,12 +32789,10 @@ return /******/ (function(modules) { // webpackBootstrap
 
           this._circle(ctx, x, y, radius);
         }
-        return via;
       }
     }, {
       key: '_drawDashedLine',
-      value: function _drawDashedLine(ctx) {
-        var via = undefined;
+      value: function _drawDashedLine(ctx, viaNode, fromPoint, toPoint) {
         ctx.lineCap = 'round';
         var pattern = [5, 5];
         if (Array.isArray(this.options.dashes) === true) {
@@ -32807,7 +32810,7 @@ return /******/ (function(modules) { // webpackBootstrap
           // draw the line
           if (this.from != this.to) {
             // draw line
-            via = this._line(ctx);
+            this._line(ctx, viaNode);
           } else {
             var _getCircleData3 = this._getCircleData(ctx);
 
@@ -32848,7 +32851,6 @@ return /******/ (function(modules) { // webpackBootstrap
           // disable shadows for other elements.
           this.disableShadow(ctx);
         }
-        return via;
       }
     }, {
       key: 'findBorderPosition',
@@ -33158,21 +33160,16 @@ return /******/ (function(modules) { // webpackBootstrap
        * @param viaNode
        */
     }, {
-      key: 'drawArrowHead',
-      value: function drawArrowHead(ctx, position, viaNode, selected, hover) {
-        // set style
-        ctx.strokeStyle = this.getColor(ctx, selected, hover);
-        ctx.fillStyle = ctx.strokeStyle;
-        ctx.lineWidth = this.getLineWidth(selected, hover);
-
+      key: 'getArrowData',
+      value: function getArrowData(ctx, position, viaNode, selected, hover) {
         // set lets
         var angle = undefined;
-        var length = undefined;
-        var arrowPos = undefined;
+        var arrowPoint = undefined;
         var node1 = undefined;
         var node2 = undefined;
         var guideOffset = undefined;
         var scaleFactor = undefined;
+        var lineWidth = this.getLineWidth(selected, hover);
 
         if (position === 'from') {
           node1 = this.from;
@@ -33195,64 +33192,70 @@ return /******/ (function(modules) { // webpackBootstrap
           if (position !== 'middle') {
             // draw arrow head
             if (this.options.smooth.enabled === true) {
-              arrowPos = this.findBorderPosition(node1, ctx, { via: viaNode });
-              var guidePos = this.getPoint(Math.max(0.0, Math.min(1.0, arrowPos.t + guideOffset)), viaNode);
-              angle = Math.atan2(arrowPos.y - guidePos.y, arrowPos.x - guidePos.x);
+              arrowPoint = this.findBorderPosition(node1, ctx, { via: viaNode });
+              var guidePos = this.getPoint(Math.max(0.0, Math.min(1.0, arrowPoint.t + guideOffset)), viaNode);
+              angle = Math.atan2(arrowPoint.y - guidePos.y, arrowPoint.x - guidePos.x);
             } else {
               angle = Math.atan2(node1.y - node2.y, node1.x - node2.x);
-              arrowPos = this.findBorderPosition(node1, ctx);
+              arrowPoint = this.findBorderPosition(node1, ctx);
             }
           } else {
             angle = Math.atan2(node1.y - node2.y, node1.x - node2.x);
-            arrowPos = this.getPoint(0.6, viaNode); // this is 0.6 to account for the size of the arrow.
+            arrowPoint = this.getPoint(0.5, viaNode); // this is 0.6 to account for the size of the arrow.
           }
-          // draw arrow at the end of the line
-          length = (10 + 5 * this.options.width) * scaleFactor;
-          ctx.arrow(arrowPos.x, arrowPos.y, angle, length);
-
-          // draw shadow if enabled
-          this.enableShadow(ctx);
-          ctx.fill();
-
-          // disable shadows for other elements.
-          this.disableShadow(ctx);
-          ctx.stroke();
         } else {
-          // draw circle
-          var _angle = undefined,
-              point = undefined;
+            var _getCircleData7 = this._getCircleData(ctx);
 
-          var _getCircleData7 = this._getCircleData(ctx);
+            var _getCircleData72 = _slicedToArray(_getCircleData7, 3);
 
-          var _getCircleData72 = _slicedToArray(_getCircleData7, 3);
+            var x = _getCircleData72[0];
+            var y = _getCircleData72[1];
+            var radius = _getCircleData72[2];
 
-          var x = _getCircleData72[0];
-          var y = _getCircleData72[1];
-          var radius = _getCircleData72[2];
-
-          if (position === 'from') {
-            point = this.findBorderPosition(this.from, ctx, { x: x, y: y, low: 0.25, high: 0.6, direction: -1 });
-            _angle = point.t * -2 * Math.PI + 1.5 * Math.PI + 0.1 * Math.PI;
-          } else if (position === 'to') {
-            point = this.findBorderPosition(this.from, ctx, { x: x, y: y, low: 0.6, high: 1.0, direction: 1 });
-            _angle = point.t * -2 * Math.PI + 1.5 * Math.PI - 1.1 * Math.PI;
-          } else {
-            point = this._pointOnCircle(x, y, radius, 0.175);
-            _angle = 3.9269908169872414; // === 0.175 * -2 * Math.PI + 1.5 * Math.PI + 0.1 * Math.PI;
+            if (position === 'from') {
+              arrowPoint = this.findBorderPosition(this.from, ctx, { x: x, y: y, low: 0.25, high: 0.6, direction: -1 });
+              angle = point.t * -2 * Math.PI + 1.5 * Math.PI + 0.1 * Math.PI;
+            } else if (position === 'to') {
+              arrowPoint = this.findBorderPosition(this.from, ctx, { x: x, y: y, low: 0.6, high: 1.0, direction: 1 });
+              angle = point.t * -2 * Math.PI + 1.5 * Math.PI - 1.1 * Math.PI;
+            } else {
+              arrowPoint = this._pointOnCircle(x, y, radius, 0.175);
+              angle = 3.9269908169872414; // === 0.175 * -2 * Math.PI + 1.5 * Math.PI + 0.1 * Math.PI;
+            }
           }
 
-          // draw the arrowhead
-          var _length = (10 + 5 * this.options.width) * scaleFactor;
-          ctx.arrow(point.x, point.y, _angle, _length);
+        var length = 15 * scaleFactor + 3 * lineWidth; // 3* lineWidth is the width of the edge.
 
-          // draw shadow if enabled
-          this.enableShadow(ctx);
-          ctx.fill();
+        var xi = arrowPoint.x - length * 0.9 * Math.cos(angle);
+        var yi = arrowPoint.y - length * 0.9 * Math.sin(angle);
+        var arrowCore = { x: xi, y: yi };
 
-          // disable shadows for other elements.
-          this.disableShadow(ctx);
-          ctx.stroke();
-        }
+        return { point: arrowPoint, core: arrowCore, angle: angle, length: length };
+      }
+
+      /**
+       *
+       * @param ctx
+       * @param selected
+       * @param hover
+       * @param arrowData
+       */
+    }, {
+      key: 'drawArrowHead',
+      value: function drawArrowHead(ctx, selected, hover, arrowData) {
+        // set style
+        ctx.strokeStyle = this.getColor(ctx, selected, hover);
+        ctx.fillStyle = ctx.strokeStyle;
+        ctx.lineWidth = this.getLineWidth(selected, hover);
+
+        // draw arrow at the end of the line
+        ctx.arrow(arrowData.point.x, arrowData.point.y, arrowData.angle, arrowData.length);
+
+        // draw shadow if enabled
+        this.enableShadow(ctx);
+        ctx.fill();
+        // disable shadows for other elements.
+        this.disableShadow(ctx);
       }
     }, {
       key: 'enableShadow',
@@ -33282,6 +33285,8 @@ return /******/ (function(modules) { // webpackBootstrap
   exports['default'] = EdgeBase;
   module.exports = exports['default'];
 
+  // draw circle
+
 /***/ },
 /* 86 */
 /***/ function(module, exports, __webpack_require__) {
@@ -33294,7 +33299,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
 
-  var _get = function get(_x, _x2, _x3) { var _again = true; _function: while (_again) { var object = _x, property = _x2, receiver = _x3; _again = false; if (object === null) object = Function.prototype; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { _x = parent; _x2 = property; _x3 = receiver; _again = true; desc = parent = undefined; continue _function; } } else if ("value" in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } } };
+  var _get = function get(_x2, _x3, _x4) { var _again = true; _function: while (_again) { var object = _x2, property = _x3, receiver = _x4; _again = false; if (object === null) object = Function.prototype; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { _x2 = parent; _x3 = property; _x4 = receiver; _again = true; desc = parent = undefined; continue _function; } } else if ("value" in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } } };
 
   function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { "default": obj }; }
 
@@ -33423,31 +33428,42 @@ return /******/ (function(modules) { // webpackBootstrap
        */
     }, {
       key: "_line",
-      value: function _line(ctx) {
+      value: function _line(ctx, viaNode) {
         // draw a straight line
         ctx.beginPath();
-        ctx.moveTo(this.from.x, this.from.y);
-        ctx.quadraticCurveTo(this.via.x, this.via.y, this.to.x, this.to.y);
+        ctx.moveTo(this.fromPoint.x, this.fromPoint.y);
+        // fallback to normal straight edges
+        if (viaNode.x === undefined) {
+          ctx.lineTo(this.toPoint.x, this.toPoint.y);
+        } else {
+          ctx.quadraticCurveTo(viaNode.x, viaNode.y, this.toPoint.x, this.toPoint.y);
+        }
         // draw shadow if enabled
         this.enableShadow(ctx);
         ctx.stroke();
         this.disableShadow(ctx);
+      }
+    }, {
+      key: "getViaNode",
+      value: function getViaNode() {
         return this.via;
       }
 
       /**
        * Combined function of pointOnLine and pointOnBezier. This gives the coordinates of a point on the line at a certain percentage of the way
        * @param percentage
-       * @param via
+       * @param viaNode
        * @returns {{x: number, y: number}}
        * @private
        */
     }, {
       key: "getPoint",
       value: function getPoint(percentage) {
+        var viaNode = arguments.length <= 1 || arguments[1] === undefined ? this.via : arguments[1];
+
         var t = percentage;
-        var x = Math.pow(1 - t, 2) * this.from.x + 2 * t * (1 - t) * this.via.x + Math.pow(t, 2) * this.to.x;
-        var y = Math.pow(1 - t, 2) * this.from.y + 2 * t * (1 - t) * this.via.y + Math.pow(t, 2) * this.to.y;
+        var x = Math.pow(1 - t, 2) * this.fromPoint.x + 2 * t * (1 - t) * viaNode.x + Math.pow(t, 2) * this.toPoint.x;
+        var y = Math.pow(1 - t, 2) * this.fromPoint.y + 2 * t * (1 - t) * viaNode.y + Math.pow(t, 2) * this.toPoint.y;
 
         return { x: x, y: y };
       }
@@ -33511,26 +33527,33 @@ return /******/ (function(modules) { // webpackBootstrap
 
     _createClass(BezierEdgeStatic, [{
       key: '_line',
-      value: function _line(ctx) {
+      value: function _line(ctx, viaNode) {
         // draw a straight line
         ctx.beginPath();
-        ctx.moveTo(this.from.x, this.from.y);
-        var via = this._getViaCoordinates();
-        var returnValue = via;
+        ctx.moveTo(this.fromPoint.x, this.fromPoint.y);
 
         // fallback to normal straight edges
-        if (via.x === undefined) {
-          ctx.lineTo(this.to.x, this.to.y);
-          returnValue = undefined;
+        if (viaNode.x === undefined) {
+          ctx.lineTo(this.toPoint.x, this.toPoint.y);
         } else {
-          ctx.quadraticCurveTo(via.x, via.y, this.to.x, this.to.y);
+          ctx.quadraticCurveTo(viaNode.x, viaNode.y, this.toPoint.x, this.toPoint.y);
         }
         // draw shadow if enabled
         this.enableShadow(ctx);
         ctx.stroke();
         this.disableShadow(ctx);
-        return returnValue;
       }
+    }, {
+      key: 'getViaNode',
+      value: function getViaNode() {
+        return this._getViaCoordinates();
+      }
+
+      /**
+       * We do not use the to and fromPoints here to make the via nodes the same as edges without arrows.
+       * @returns {{x: undefined, y: undefined}}
+       * @private
+       */
     }, {
       key: '_getViaCoordinates',
       value: function _getViaCoordinates() {
@@ -33698,26 +33721,26 @@ return /******/ (function(modules) { // webpackBootstrap
     }, {
       key: '_getDistanceToEdge',
       value: function _getDistanceToEdge(x1, y1, x2, y2, x3, y3) {
-        var via = arguments.length <= 6 || arguments[6] === undefined ? this._getViaCoordinates() : arguments[6];
+        var viaNode = arguments.length <= 6 || arguments[6] === undefined ? this._getViaCoordinates() : arguments[6];
         // x3,y3 is the point
-        return this._getDistanceToBezierEdge(x1, y1, x2, y2, x3, y3, via);
+        return this._getDistanceToBezierEdge(x1, y1, x2, y2, x3, y3, viaNode);
       }
 
       /**
        * Combined function of pointOnLine and pointOnBezier. This gives the coordinates of a point on the line at a certain percentage of the way
        * @param percentage
-       * @param via
+       * @param viaNode
        * @returns {{x: number, y: number}}
        * @private
        */
     }, {
       key: 'getPoint',
       value: function getPoint(percentage) {
-        var via = arguments.length <= 1 || arguments[1] === undefined ? this._getViaCoordinates() : arguments[1];
+        var viaNode = arguments.length <= 1 || arguments[1] === undefined ? this._getViaCoordinates() : arguments[1];
 
         var t = percentage;
-        var x = Math.pow(1 - t, 2) * this.from.x + 2 * t * (1 - t) * via.x + Math.pow(t, 2) * this.to.x;
-        var y = Math.pow(1 - t, 2) * this.from.y + 2 * t * (1 - t) * via.y + Math.pow(t, 2) * this.to.y;
+        var x = Math.pow(1 - t, 2) * this.fromPoint.x + 2 * t * (1 - t) * viaNode.x + Math.pow(t, 2) * this.toPoint.x;
+        var y = Math.pow(1 - t, 2) * this.fromPoint.y + 2 * t * (1 - t) * viaNode.y + Math.pow(t, 2) * this.toPoint.y;
 
         return { x: x, y: y };
       }
@@ -33773,12 +33796,16 @@ return /******/ (function(modules) { // webpackBootstrap
       value: function _line(ctx) {
         // draw a straight line
         ctx.beginPath();
-        ctx.moveTo(this.from.x, this.from.y);
-        ctx.lineTo(this.to.x, this.to.y);
+        ctx.moveTo(this.fromPoint.x, this.fromPoint.y);
+        ctx.lineTo(this.toPoint.x, this.toPoint.y);
         // draw shadow if enabled
         this.enableShadow(ctx);
         ctx.stroke();
         this.disableShadow(ctx);
+      }
+    }, {
+      key: 'getViaNode',
+      value: function getViaNode() {
         return undefined;
       }
 
@@ -33793,8 +33820,8 @@ return /******/ (function(modules) { // webpackBootstrap
       key: 'getPoint',
       value: function getPoint(percentage) {
         return {
-          x: (1 - percentage) * this.from.x + percentage * this.to.x,
-          y: (1 - percentage) * this.from.y + percentage * this.to.y
+          x: (1 - percentage) * this.fromPoint.x + percentage * this.toPoint.x,
+          y: (1 - percentage) * this.fromPoint.y + percentage * this.toPoint.y
         };
       }
     }, {
@@ -39980,7 +40007,8 @@ return /******/ (function(modules) { // webpackBootstrap
       this.lastNodeOnLevel = {};
       this.hierarchicalParents = {};
       this.hierarchicalChildren = {};
-
+      this.distributionOrdering = {};
+      this.distributionOrderingPresence = {};
       this.bindEventListeners();
     }
 
@@ -40016,7 +40044,7 @@ return /******/ (function(modules) { // webpackBootstrap
               this.body.emitter.emit('refresh', true);
             }
 
-            // make sure the level seperation is the right way up
+            // make sure the level separation is the right way up
             if (this.options.hierarchical.direction === 'RL' || this.options.hierarchical.direction === 'DU') {
               if (this.options.hierarchical.levelSeparation > 0) {
                 this.options.hierarchical.levelSeparation *= -1;
@@ -40128,14 +40156,14 @@ return /******/ (function(modules) { // webpackBootstrap
       }
 
       /**
-       * Use KamadaKawai to position nodes. This is quite a heavy algorithm so if there are a lot of nodes we
+       * Use Kamada Kawai to position nodes. This is quite a heavy algorithm so if there are a lot of nodes we
        * cluster them first to reduce the amount.
        */
     }, {
       key: 'layoutNetwork',
       value: function layoutNetwork() {
         if (this.options.hierarchical.enabled !== true && this.options.improvedLayout === true) {
-          // first check if we should KamadaKawai to layout. The threshold is if less than half of the visible
+          // first check if we should Kamada Kawai to layout. The threshold is if less than half of the visible
           // nodes have predefined positions we use this.
           var positionDefined = 0;
           for (var i = 0; i < this.body.nodeIndices.length; i++) {
@@ -40271,7 +40299,7 @@ return /******/ (function(modules) { // webpackBootstrap
             throw new Error('To use the hierarchical layout, nodes require either no predefined levels or levels have to be defined for all nodes.');
             return;
           } else {
-            // define levels if undefined by the users. Based on hubsize
+            // define levels if undefined by the users. Based on hubsize.
             if (undefinedLevel === true) {
               if (this.options.hierarchical.sortMethod === 'hubsize') {
                 this._determineLevelsByHubsize();
@@ -40301,12 +40329,21 @@ return /******/ (function(modules) { // webpackBootstrap
       }
 
       /**
-       * TODO: implement. Clear whitespace after positioning.
        * @private
        */
     }, {
       key: '_condenseHierarchy',
-      value: function _condenseHierarchy(distribution) {}
+      value: function _condenseHierarchy(distribution) {
+        //console.log(this.distributionOrdering);
+
+        //let iterations = 10;
+        //for (let i = 0; i < iterations; i++) {
+
+        //}
+      }
+    }, {
+      key: '_removeWhiteSpace',
+      value: function _removeWhiteSpace(distribution) {}
 
       /**
        * This function places the nodes on the canvas based on the hierarchial distribution.
@@ -40329,7 +40366,7 @@ return /******/ (function(modules) { // webpackBootstrap
             for (var i = 0; i < nodeArray.length; i++) {
               var node = nodeArray[i];
               if (this.positionedNodes[node.id] === undefined) {
-                this._setPositionForHierarchy(node, this.nodeSpacing * i);
+                this._setPositionForHierarchy(node, this.nodeSpacing * i, level);
                 this.positionedNodes[node.id] = true;
                 this._placeBranchNodes(node.id, level);
               }
@@ -40635,7 +40672,7 @@ return /******/ (function(modules) { // webpackBootstrap
         for (var i = 0; i < childNodes.length; i++) {
           var childNode = childNodes[i];
           var childNodeLevel = this.hierarchicalLevels[childNode.id];
-          // check if the childnode is below the parent node and if it has already been positioned.
+          // check if the child node is below the parent node and if it has already been positioned.
           if (childNodeLevel > parentLevel && this.positionedNodes[childNode.id] === undefined) {
             // get the amount of space required for this node. If parent the width is based on the amount of children.
             var pos = undefined;
@@ -40646,7 +40683,7 @@ return /******/ (function(modules) { // webpackBootstrap
             } else {
               pos = this._getPositionForHierarchy(childNodes[i - 1]) + this.nodeSpacing;
             }
-            this._setPositionForHierarchy(childNode, pos);
+            this._setPositionForHierarchy(childNode, pos, childNodeLevel);
 
             // if overlap has been detected, we shift the branch
             if (this.lastNodeOnLevel[childNodeLevel] !== undefined) {
@@ -40677,7 +40714,7 @@ return /******/ (function(modules) { // webpackBootstrap
           minPos = Math.min(minPos, this._getPositionForHierarchy(this.body.nodes[childNodeId]));
           maxPos = Math.max(maxPos, this._getPositionForHierarchy(this.body.nodes[childNodeId]));
         }
-        this._setPositionForHierarchy(this.body.nodes[parentId], 0.5 * (minPos + maxPos));
+        this._setPositionForHierarchy(this.body.nodes[parentId], 0.5 * (minPos + maxPos), parentLevel);
       }
 
       /**
@@ -40747,11 +40784,22 @@ return /******/ (function(modules) { // webpackBootstrap
        * Abstract the getting of the position so we won't have to repeat the check for direction all the time
        * @param node
        * @param position
+       * @param level
        * @private
        */
     }, {
       key: '_setPositionForHierarchy',
-      value: function _setPositionForHierarchy(node, position) {
+      value: function _setPositionForHierarchy(node, position, level) {
+        if (this.distributionOrdering[level] === undefined) {
+          this.distributionOrdering[level] = [];
+          this.distributionOrderingPresence[level] = {};
+        }
+
+        if (this.distributionOrderingPresence[level][node.id] === undefined) {
+          this.distributionOrdering[level].push(node);
+        }
+        this.distributionOrderingPresence[level][node.id] = true;
+
         if (this.options.hierarchical.direction === 'UD' || this.options.hierarchical.direction === 'DU') {
           node.x = position;
         } else {
@@ -42055,6 +42103,7 @@ return /******/ (function(modules) { // webpackBootstrap
         from: { enabled: { boolean: boolean }, scaleFactor: { number: number }, __type__: { object: object, boolean: boolean } },
         __type__: { string: ['from', 'to', 'middle'], object: object }
       },
+      arrowStrikethrough: { boolean: boolean },
       color: {
         color: { string: string },
         highlight: { string: string },
@@ -42372,6 +42421,7 @@ return /******/ (function(modules) { // webpackBootstrap
       },
       shadow: {
         enabled: false,
+        color: 'rgba(0,0,0,0.5)',
         size: [10, 0, 20, 1],
         x: [5, -30, 30, 1],
         y: [5, -30, 30, 1]
@@ -42390,6 +42440,7 @@ return /******/ (function(modules) { // webpackBootstrap
         middle: { enabled: false, scaleFactor: [1, 0, 3, 0.05] },
         from: { enabled: false, scaleFactor: [1, 0, 3, 0.05] }
       },
+      arrowStrikethrough: false,
       color: {
         color: ['color', '#848484'],
         highlight: ['color', '#848484'],
@@ -42426,6 +42477,7 @@ return /******/ (function(modules) { // webpackBootstrap
       selfReferenceSize: [20, 0, 200, 1],
       shadow: {
         enabled: false,
+        color: 'rgba(0,0,0,0.5)',
         size: [10, 0, 20, 1],
         x: [5, -30, 30, 1],
         y: [5, -30, 30, 1]
