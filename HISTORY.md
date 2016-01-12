@@ -8,6 +8,9 @@ http://visjs.org
 
 - Altered edges for arrows and added the arrowStrikethrough option.
 
+### Graph2d
+
+- Fixes #1557: Fix default axis formatting function.
 
 ## 2016-01-08, version 4.12.0
 
