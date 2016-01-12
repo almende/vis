@@ -470,12 +470,11 @@ var options = {
             <td>Function</td>
             <td></td>
             <td>Insert a custom function on how to format the label. The function will receive a numeric value and has to return a string. Default function is:
-            <pre class="code">
+            <pre class="prettyprint lang-js">
 function (value) {
-  return value;
-}
-            </pre>
-            which does nothing to it.</td>
+  return ''+value.toPrecision(3);
+}</pre>
+            </td>
         </tr>
         <tr parent="dataAxis" class="hidden">
             <td class="indent2">dataAxis.left.range.min</td>
