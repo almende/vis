@@ -7,6 +7,7 @@ http://visjs.org
 ### Network
 
 - Altered edges for arrows and added the arrowStrikethrough option.
+- Improved the hierarchical layout algorithm by adding a condensing method to remove whitespace.
 
 
 ## 2016-01-08, version 4.12.0

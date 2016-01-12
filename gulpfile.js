@@ -132,13 +132,13 @@ gulp.task('bundle-css', ['clean'], function () {
 });
 
 gulp.task('copy', ['clean'], function () {
-  var network = gulp.src('./lib/network/img/**/*')
+    var network = gulp.src('./lib/network/img/**/*')
       .pipe(gulp.dest(DIST + '/img/network'));
 
-  var timeline = gulp.src('./lib/timeline/img/**/*')
+    var timeline = gulp.src('./lib/timeline/img/**/*')
       .pipe(gulp.dest(DIST + '/img/timeline'));
 
-  return merge(network, timeline);
+    return merge(network, timeline);
 });
 
 gulp.task('minify', ['bundle-js'], function (cb) {

@@ -5,7 +5,7 @@
  * A dynamic, browser-based visualization library.
  *
  * @version 4.12.1-SNAPSHOT
- * @date    2016-01-11
+ * @date    2016-01-12
  *
  * @license
  * Copyright (C) 2011-2016 Almende B.V, http://almende.com
@@ -1577,7 +1577,7 @@ return /******/ (function(modules) { // webpackBootstrap
 /***/ function(module, exports, __webpack_require__) {
 
   /* WEBPACK VAR INJECTION */(function(module) {//! moment.js
-  //! version : 2.11.0
+  //! version : 2.11.1
   //! authors : Tim Wood, Iskren Chernev, Moment.js contributors
   //! license : MIT
   //! momentjs.com
@@ -1848,7 +1848,7 @@ return /******/ (function(modules) { // webpackBootstrap
       function loadLocale(name) {
           var oldLocale = null;
           // TODO: Find a better way to register and load all the locales in Node
-          if (!locales[name] && !isUndefined(module) &&
+          if (!locales[name] && (typeof module !== 'undefined') &&
                   module && module.exports) {
               try {
                   oldLocale = globalLocale._abbr;
@@ -2116,13 +2116,13 @@ return /******/ (function(modules) { // webpackBootstrap
 
       // any word (or two) characters or numbers including two/three word month in arabic.
       // includes scottish gaelic two word and hyphenated months
-      var matchWord = /[0-9]*(a[mn]\s?)?['a-z\u00A0-\u05FF\u0700-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF\-]+|[\u0600-\u06FF\/]+(\s*?[\u0600-\u06FF]+){1,2}/i;
+      var matchWord = /[0-9]*['a-z\u00A0-\u05FF\u0700-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF]+|[\u0600-\u06FF\/]+(\s*?[\u0600-\u06FF]+){1,2}/i;
 
 
       var regexes = {};
 
       function addRegexToken (token, regex, strictRegex) {
-          regexes[token] = isFunction(regex) ? regex : function (isStrict) {
+          regexes[token] = isFunction(regex) ? regex : function (isStrict, localeData) {
               return (isStrict && strictRegex) ? strictRegex : regex;
           };
       }
@@ -2137,9 +2137,13 @@ return /******/ (function(modules) { // webpackBootstrap
 
       // Code from http://stackoverflow.com/questions/3561493/is-there-a-regexp-escape-function-in-javascript
       function unescapeFormat(s) {
-          return s.replace('\\', '').replace(/\\(\[)|\\(\])|\[([^\]\[]*)\]|\\(.)/g, function (matched, p1, p2, p3, p4) {
+          return regexEscape(s.replace('\\', '').replace(/\\(\[)|\\(\])|\[([^\]\[]*)\]|\\(.)/g, function (matched, p1, p2, p3, p4) {
               return p1 || p2 || p3 || p4;
-          }).replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
+          }));
+      }
+
+      function regexEscape(s) {
+          return s.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
       }
 
       var tokens = {};
@@ -2208,8 +2212,12 @@ return /******/ (function(modules) { // webpackBootstrap
 
       addRegexToken('M',    match1to2);
       addRegexToken('MM',   match1to2, match2);
-      addRegexToken('MMM',  matchWord);
-      addRegexToken('MMMM', matchWord);
+      addRegexToken('MMM',  function (isStrict, locale) {
+          return locale.monthsShortRegex(isStrict);
+      });
+      addRegexToken('MMMM', function (isStrict, locale) {
+          return locale.monthsRegex(isStrict);
+      });
 
       addParseToken(['M', 'MM'], function (input, array) {
           array[MONTH] = toInt(input) - 1;
@@ -2234,7 +2242,7 @@ return /******/ (function(modules) { // webpackBootstrap
               this._months[MONTHS_IN_FORMAT.test(format) ? 'format' : 'standalone'][m.month()];
       }
 
-      var defaultLocaleMonthsShort = 'Jan_Feb_Mar_Apr_May_Jun_Jul_Aug_Sept_Oct_Nov_Dec'.split('_');
+      var defaultLocaleMonthsShort = 'Jan_Feb_Mar_Apr_May_Jun_Jul_Aug_Sep_Oct_Nov_Dec'.split('_');
       function localeMonthsShort (m, format) {
           return isArray(this._monthsShort) ? this._monthsShort[m.month()] :
               this._monthsShort[MONTHS_IN_FORMAT.test(format) ? 'format' : 'standalone'][m.month()];
@@ -2309,6 +2317,72 @@ return /******/ (function(modules) { // webpackBootstrap
           return daysInMonth(this.year(), this.month());
       }
 
+      var defaultMonthsShortRegex = matchWord;
+      function monthsShortRegex (isStrict) {
+          if (this._monthsParseExact) {
+              if (!hasOwnProp(this, '_monthsRegex')) {
+                  computeMonthsParse.call(this);
+              }
+              if (isStrict) {
+                  return this._monthsShortStrictRegex;
+              } else {
+                  return this._monthsShortRegex;
+              }
+          } else {
+              return this._monthsShortStrictRegex && isStrict ?
+                  this._monthsShortStrictRegex : this._monthsShortRegex;
+          }
+      }
+
+      var defaultMonthsRegex = matchWord;
+      function monthsRegex (isStrict) {
+          if (this._monthsParseExact) {
+              if (!hasOwnProp(this, '_monthsRegex')) {
+                  computeMonthsParse.call(this);
+              }
+              if (isStrict) {
+                  return this._monthsStrictRegex;
+              } else {
+                  return this._monthsRegex;
+              }
+          } else {
+              return this._monthsStrictRegex && isStrict ?
+                  this._monthsStrictRegex : this._monthsRegex;
+          }
+      }
+
+      function computeMonthsParse () {
+          function cmpLenRev(a, b) {
+              return b.length - a.length;
+          }
+
+          var shortPieces = [], longPieces = [], mixedPieces = [],
+              i, mom;
+          for (i = 0; i < 12; i++) {
+              // make the regex if we don't have it already
+              mom = create_utc__createUTC([2000, i]);
+              shortPieces.push(this.monthsShort(mom, ''));
+              longPieces.push(this.months(mom, ''));
+              mixedPieces.push(this.months(mom, ''));
+              mixedPieces.push(this.monthsShort(mom, ''));
+          }
+          // Sorting makes sure if one month (or abbr) is a prefix of another it
+          // will match the longer piece.
+          shortPieces.sort(cmpLenRev);
+          longPieces.sort(cmpLenRev);
+          mixedPieces.sort(cmpLenRev);
+          for (i = 0; i < 12; i++) {
+              shortPieces[i] = regexEscape(shortPieces[i]);
+              longPieces[i] = regexEscape(longPieces[i]);
+              mixedPieces[i] = regexEscape(mixedPieces[i]);
+          }
+
+          this._monthsRegex = new RegExp('^(' + mixedPieces.join('|') + ')', 'i');
+          this._monthsShortRegex = this._monthsRegex;
+          this._monthsStrictRegex = new RegExp('^(' + longPieces.join('|') + ')$', 'i');
+          this._monthsShortStrictRegex = new RegExp('^(' + shortPieces.join('|') + ')$', 'i');
+      }
+
       function checkOverflow (m) {
           var overflow;
           var a = m._a;
@@ -2340,7 +2414,8 @@ return /******/ (function(modules) { // webpackBootstrap
       }
 
       function warn(msg) {
-          if (utils_hooks__hooks.suppressDeprecationWarnings === false && !isUndefined(console) && console.warn) {
+          if (utils_hooks__hooks.suppressDeprecationWarnings === false &&
+                  (typeof console !==  'undefined') && console.warn) {
               console.warn('Deprecation warning: ' + msg);
           }
       }
@@ -2508,6 +2583,11 @@ return /******/ (function(modules) { // webpackBootstrap
 
       // FORMATTING
 
+      addFormatToken('Y', 0, 0, function () {
+          var y = this.year();
+          return y <= 9999 ? '' + y : '+' + y;
+      });
+
       addFormatToken(0, ['YY', 2], 0, function () {
           return this.year() % 100;
       });
@@ -2534,6 +2614,9 @@ return /******/ (function(modules) { // webpackBootstrap
       });
       addParseToken('YY', function (input, array) {
           array[YEAR] = utils_hooks__hooks.parseTwoDigitYear(input);
+      });
+      addParseToken('Y', function (input, array) {
+          array[YEAR] = parseInt(input, 10);
       });
 
       // HELPERS
@@ -2786,6 +2869,8 @@ return /******/ (function(modules) { // webpackBootstrap
           for (i = 0; i < tokens.length; i++) {
               token = tokens[i];
               parsedInput = (string.match(getParseRegexForToken(token, config)) || [])[0];
+              // console.log('token', token, 'parsedInput', parsedInput,
+              //         'regex', getParseRegexForToken(token, config));
               if (parsedInput) {
                   skipped = string.substr(0, string.indexOf(parsedInput));
                   if (skipped.length > 0) {
@@ -3061,8 +3146,8 @@ return /******/ (function(modules) { // webpackBootstrap
           return pickBy('isAfter', args);
       }
 
-      var now = Date.now || function () {
-          return +(new Date());
+      var now = function () {
+          return Date.now ? Date.now() : +(new Date());
       };
 
       function Duration (duration) {
@@ -4620,11 +4705,15 @@ return /******/ (function(modules) { // webpackBootstrap
       prototype__proto.set             = locale_set__set;
 
       // Month
-      prototype__proto.months       =        localeMonths;
-      prototype__proto._months      = defaultLocaleMonths;
-      prototype__proto.monthsShort  =        localeMonthsShort;
-      prototype__proto._monthsShort = defaultLocaleMonthsShort;
-      prototype__proto.monthsParse  =        localeMonthsParse;
+      prototype__proto.months            =        localeMonths;
+      prototype__proto._months           = defaultLocaleMonths;
+      prototype__proto.monthsShort       =        localeMonthsShort;
+      prototype__proto._monthsShort      = defaultLocaleMonthsShort;
+      prototype__proto.monthsParse       =        localeMonthsParse;
+      prototype__proto._monthsRegex      = defaultMonthsRegex;
+      prototype__proto.monthsRegex       = monthsRegex;
+      prototype__proto._monthsShortRegex = defaultMonthsShortRegex;
+      prototype__proto.monthsShortRegex  = monthsShortRegex;
 
       // Week
       prototype__proto.week = localeWeek;
@@ -4693,9 +4782,6 @@ return /******/ (function(modules) { // webpackBootstrap
       }
 
       locale_locales__getSetGlobalLocale('en', {
-          monthsParse : [/^jan/i, /^feb/i, /^mar/i, /^apr/i, /^may/i, /^jun/i, /^jul/i, /^aug/i, /^sep/i, /^oct/i, /^nov/i, /^dec/i],
-          longMonthsParse : [/^january$/i, /^february$/i, /^march$/i, /^april$/i, /^may$/i, /^june$/i, /^july$/i, /^august$/i, /^september$/i, /^october$/i, /^november$/i, /^december$/i],
-          shortMonthsParse : [/^jan$/i, /^feb$/i, /^mar$/i, /^apr$/i, /^may$/i, /^jun$/i, /^jul$/i, /^aug/i, /^sept?$/i, /^oct$/i, /^nov$/i, /^dec$/i],
           ordinalParse: /\d{1,2}(th|st|nd|rd)/,
           ordinal : function (number) {
               var b = number % 10,
@@ -5063,7 +5149,7 @@ return /******/ (function(modules) { // webpackBootstrap
       // Side effect imports
 
 
-      utils_hooks__hooks.version = '2.11.0';
+      utils_hooks__hooks.version = '2.11.1';
 
       setHookCallback(local__createLocal);
 
@@ -11047,14 +11133,14 @@ return /******/ (function(modules) { // webpackBootstrap
 
         var PropagatingHammer = function(element, options) {
           var o = Object.create(_options);
-          if (options) Hammer.extend(o, options);
+          if (options) Hammer.assign(o, options);
           return propagating(new Hammer(element, o), o);
         };
-        Hammer.extend(PropagatingHammer, Hammer);
+        Hammer.assign(PropagatingHammer, Hammer);
 
         PropagatingHammer.Manager = function (element, options) {
           var o = Object.create(_options);
-          if (options) Hammer.extend(o, options);
+          if (options) Hammer.assign(o, options);
           return propagating(new Hammer.Manager(element, o), o);
         };
 
@@ -11067,7 +11153,9 @@ return /******/ (function(modules) { // webpackBootstrap
 
       // attach to DOM element
       var element = hammer.element;
-      element.hammer = wrapper;
+
+      if(!element.hammer) element.hammer = [];
+      element.hammer.push(wrapper);
 
       // register an event to catch the start of a gesture and store the
       // target in a singleton
@@ -11148,7 +11236,10 @@ return /******/ (function(modules) { // webpackBootstrap
 
       wrapper.destroy = function () {
         // Detach from DOM element
-        delete hammer.element.hammer;
+        var hammers = hammer.element.hammer;
+        var idx = hammers.indexOf(wrapper);
+        if(idx !== -1) hammers.splice(idx,1);
+        if(!hammers.length) delete hammer.element.hammer;
 
         // clear all handlers
         wrapper._handlers = {};
@@ -11189,19 +11280,30 @@ return /******/ (function(modules) { // webpackBootstrap
           stopped = true;
         };
 
+        //wrap the srcEvent's stopPropagation to also stop hammer propagation:
+        var srcStop = event.srcEvent.stopPropagation;
+        if(typeof srcStop == "function") {
+          event.srcEvent.stopPropagation = function(){
+            srcStop();
+            event.stopPropagation();
+          }
+        }
+
         // attach firstTarget property to the event
         event.firstTarget = _firstTarget;
 
         // propagate over all elements (until stopped)
         var elem = _firstTarget;
         while (elem && !stopped) {
-          var _handlers = elem.hammer && elem.hammer._handlers[event.type];
-          if (_handlers) {
-            for (var i = 0; i < _handlers.length && !stopped; i++) {
-              _handlers[i](event);
+          if(elem.hammer){
+            var _handlers;
+            for(var k = 0; k < elem.hammer.length; k++){
+              _handlers = elem.hammer[k]._handlers[event.type];
+              if(_handlers) for (var i = 0; i < _handlers.length && !stopped; i++) {
+                _handlers[i](event);
+              }
             }
           }
-
           elem = elem.parentNode;
         }
       }
@@ -31341,7 +31443,7 @@ return /******/ (function(modules) { // webpackBootstrap
           middle: { enabled: false, scaleFactor: 1 },
           from: { enabled: false, scaleFactor: 1 }
         },
-        arrowStrikethrough: false,
+        arrowStrikethrough: true,
         color: {
           color: '#848484',
           highlight: '#848484',
@@ -32059,11 +32161,11 @@ return /******/ (function(modules) { // webpackBootstrap
         // from and to arrows give a different end point for edges. we set them here
         if (this.options.arrows.from.enabled === true) {
           arrowData.from = this.edgeType.getArrowData(ctx, 'from', viaNode, this.selected, this.hover);
-          if (this.options.arrowStrikethrough === true) this.edgeType.fromPoint = arrowData.from.core;
+          if (this.options.arrowStrikethrough === false) this.edgeType.fromPoint = arrowData.from.core;
         }
         if (this.options.arrows.to.enabled === true) {
           arrowData.to = this.edgeType.getArrowData(ctx, 'to', viaNode, this.selected, this.hover);
-          if (this.options.arrowStrikethrough === true) this.edgeType.toPoint = arrowData.to.core;
+          if (this.options.arrowStrikethrough === false) this.edgeType.toPoint = arrowData.to.core;
         }
 
         // the middle arrow depends on the line, which can depend on the to and from arrows so we do this one lastly.
@@ -39969,6 +40071,8 @@ return /******/ (function(modules) { // webpackBootstrap
     value: true
   });
 
+  var _slicedToArray = (function () { function sliceIterator(arr, i) { var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i['return']) _i['return'](); } finally { if (_d) throw _e; } } return _arr; } return function (arr, i) { if (Array.isArray(arr)) { return arr; } else if (Symbol.iterator in Object(arr)) { return sliceIterator(arr, i); } else { throw new TypeError('Invalid attempt to destructure non-iterable instance'); } }; })();
+
   var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
 
   function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
@@ -40003,12 +40107,6 @@ return /******/ (function(modules) { // webpackBootstrap
         }
       };
       util.extend(this.options, this.defaultOptions);
-
-      this.lastNodeOnLevel = {};
-      this.hierarchicalParents = {};
-      this.hierarchicalChildren = {};
-      this.distributionOrdering = {};
-      this.distributionOrderingPresence = {};
       this.bindEventListeners();
     }
 
@@ -40280,7 +40378,19 @@ return /******/ (function(modules) { // webpackBootstrap
           var definedLevel = false;
           var undefinedLevel = false;
           this.hierarchicalLevels = {};
+          this.lastNodeOnLevel = {};
+          this.hierarchicalParents = {};
+          this.hierarchicalChildren = {};
+          this.hierarchicalTrees = {};
+          this.treeIndex = -1;
+
+          this.whiteSpaceReductionFactor = 0.5;
           this.nodeSpacing = 100;
+          this.treeSpacing = 2 * this.nodeSpacing;
+
+          this.distributionOrdering = {};
+          this.distributionIndex = {};
+          this.distributionOrderingPresence = {};
 
           for (nodeId in this.body.nodes) {
             if (this.body.nodes.hasOwnProperty(nodeId)) {
@@ -40319,11 +40429,12 @@ return /******/ (function(modules) { // webpackBootstrap
             // place the nodes on the canvas.
             this._placeNodesByHierarchy(distribution);
 
-            // Todo: condense the whitespace.
+            // condense the whitespace.
+            console.time("bla");
             this._condenseHierarchy(distribution);
-
+            console.timeEnd("bla");
             // shift to center so gravity does not have to do much
-            this._shiftToCenter();
+            //this._shiftToCenter();
           }
         }
       }
@@ -40334,16 +40445,349 @@ return /******/ (function(modules) { // webpackBootstrap
     }, {
       key: '_condenseHierarchy',
       value: function _condenseHierarchy(distribution) {
-        //console.log(this.distributionOrdering);
+        var _this2 = this;
 
-        //let iterations = 10;
-        //for (let i = 0; i < iterations; i++) {
+        var shiftTrees = function shiftTrees() {
+          var treeSizes = getTreeSizes();
+          for (var i = 0; i < treeSizes.length - 1; i++) {
+            var diff = treeSizes[i].max - treeSizes[i + 1].min;
+            if (diff !== _this2.treeSpacing) {
+              shiftTree(i + 1, diff - _this2.treeSpacing);
+            }
+          }
+        };
 
-        //}
+        var shiftTree = function shiftTree(index, offset) {
+          for (var nodeId in _this2.hierarchicalTrees) {
+            if (_this2.hierarchicalTrees.hasOwnProperty(nodeId)) {
+              if (_this2.hierarchicalTrees[nodeId] === index) {
+                _this2._setPositionForHierarchy(_this2.body.nodes[nodeId], offset, undefined, true);
+              }
+            }
+          }
+        };
+
+        var getTreeSize = function getTreeSize(index) {
+          var min = 1e9;
+          var max = -1e9;
+          for (var nodeId in _this2.hierarchicalTrees) {
+            if (_this2.hierarchicalTrees.hasOwnProperty(nodeId)) {
+              if (_this2.hierarchicalTrees[nodeId] === index) {
+                var pos = _this2._getPositionForHierarchy(_this2.body.nodes[nodeId]);
+                min = Math.min(pos, min);
+                max = Math.max(pos, max);
+              }
+            }
+          }
+          return [min, max];
+        };
+
+        var getTreeSizes = function getTreeSizes() {
+          var treeWidths = [];
+          for (var i = 0; i < _this2.treeIndex; i++) {
+            treeWidths.push(getTreeSize(i));
+          }
+          return treeWidths;
+        };
+
+        var nodeInBranch = function nodeInBranch(source, target) {
+          if (source.id == target.id) {
+            return true;
+          }
+          var match = false;
+          if (_this2.hierarchicalParents[source.id]) {
+            var children = _this2.hierarchicalParents[source.id].children;
+            if (children.length > 0) {
+              for (var i = 0; i < children.length; i++) {
+                match = nodeInBranch(_this2.body.nodes[children[i]], target);
+                if (match == true) return match;
+              }
+            }
+          }
+          return match;
+        };
+
+        var getBranchNodes = function getBranchNodes(source, map) {
+          map[source.id] = true;
+          if (_this2.hierarchicalParents[source.id]) {
+            var children = _this2.hierarchicalParents[source.id].children;
+            if (children.length > 0) {
+              for (var i = 0; i < children.length; i++) {
+                getBranchNodes(_this2.body.nodes[children[i]], map);
+              }
+            }
+          }
+        };
+
+        var getBranchBoundary = function getBranchBoundary(branchMap) {
+          var maxLevel = arguments.length <= 1 || arguments[1] === undefined ? 1e9 : arguments[1];
+
+          var minSpace = 1e9;
+          var maxSpace = -1e9;
+          var min = 1e9;
+          var max = -1e9;
+          for (var branchNode in branchMap) {
+            if (branchMap.hasOwnProperty(branchNode)) {
+              var node = _this2.body.nodes[branchNode];
+              var level = _this2.hierarchicalLevels[node.id];
+              var index = _this2.distributionIndex[node.id];
+              var position = _this2._getPositionForHierarchy(_this2.body.nodes[node.id]);
+
+              if (index != 0) {
+                var prevNode = _this2.distributionOrdering[level][index - 1];
+                if (branchMap[prevNode.id] === undefined) {
+                  var prevPos = _this2._getPositionForHierarchy(prevNode);
+                  minSpace = Math.min(minSpace, position - prevPos);
+                }
+              }
+
+              if (index != _this2.distributionOrdering[level].length - 1) {
+                var nextNode = _this2.distributionOrdering[level][index + 1];
+                if (branchMap[nextNode.id] === undefined) {
+                  var nextPos = _this2._getPositionForHierarchy(nextNode);
+                  maxSpace = Math.max(maxSpace, nextPos - position);
+                }
+              }
+
+              if (level <= maxLevel) {
+                min = Math.min(position, min);
+                max = Math.max(position, max);
+              }
+            }
+          }
+
+          return [min, max, minSpace, maxSpace];
+        };
+
+        var getMaxLevel = function getMaxLevel(nodeId) {
+          var level = _this2.hierarchicalLevels[nodeId];
+          if (_this2.hierarchicalParents[nodeId]) {
+            var children = _this2.hierarchicalParents[nodeId].children;
+            if (children.length > 0) {
+              for (var i = 0; i < children.length; i++) {
+                level = Math.max(level, getMaxLevel(children[i]));
+              }
+            }
+          }
+          return level;
+        };
+
+        var getCollisionLevel = function getCollisionLevel(node1, node2) {
+          var maxLevel1 = getMaxLevel(node1.id);
+          var maxLevel2 = getMaxLevel(node2.id);
+          return Math.min(maxLevel1, maxLevel2);
+        };
+
+        var hasSameParent = function hasSameParent(node1, node2) {
+          var parents1 = _this2.hierarchicalChildren[node1.id];
+          var parents2 = _this2.hierarchicalChildren[node2.id];
+          if (parents1 === undefined || parents2 === undefined) {
+            return false;
+          }
+          parents1 = parents1.parents;
+          parents2 = parents2.parents;
+          for (var i = 0; i < parents1.length; i++) {
+            for (var j = 0; j < parents2.length; j++) {
+              if (parents1[i] == parents2[j]) {
+                return true;
+              }
+            }
+          }
+          return false;
+        };
+
+        var shiftElementsCloser = function shiftElementsCloser(callback, levels, centerParents) {
+          for (var i = 0; i < levels.length; i++) {
+            var level = levels[i];
+            var levelNodes = _this2.distributionOrdering[level];
+            if (levelNodes.length > 1) {
+              for (var _i = 0; _i < levelNodes.length - 1; _i++) {
+                if (hasSameParent(levelNodes[_i], levelNodes[_i + 1]) === true) {
+                  if (_this2.hierarchicalTrees[levelNodes[_i].id] === _this2.hierarchicalTrees[levelNodes[_i + 1].id]) {
+                    callback(levelNodes[_i], levelNodes[_i + 1], centerParents);
+                  }
+                }
+              }
+            }
+          }
+        };
+
+        var stillShifting = false;
+        var blockShiftCallback = function blockShiftCallback(node1, node2) {
+          var centerParent = arguments.length <= 2 || arguments[2] === undefined ? false : arguments[2];
+
+          //window.CALLBACKS.push(() => {
+          var pos1 = _this2._getPositionForHierarchy(node1);
+          var pos2 = _this2._getPositionForHierarchy(node2);
+          var diffAbs = Math.abs(pos2 - pos1);
+          //console.log("NOW CHEcKING:", node1.id, node2.id, diffAbs);
+          if (diffAbs > _this2.nodeSpacing) {
+            var branchNodes1 = {};branchNodes1[node1.id] = true;
+            var branchNodes2 = {};branchNodes2[node2.id] = true;
+
+            getBranchNodes(node1, branchNodes1);
+            getBranchNodes(node2, branchNodes2);
+
+            // check the largest distance between the branches
+            var maxLevel = getCollisionLevel(node1, node2);
+
+            var _getBranchBoundary = getBranchBoundary(branchNodes1, maxLevel);
+
+            var _getBranchBoundary2 = _slicedToArray(_getBranchBoundary, 4);
+
+            var min1 = _getBranchBoundary2[0];
+            var max1 = _getBranchBoundary2[1];
+            var minSpace1 = _getBranchBoundary2[2];
+            var maxSpace1 = _getBranchBoundary2[3];
+
+            var _getBranchBoundary3 = getBranchBoundary(branchNodes2, maxLevel);
+
+            var _getBranchBoundary32 = _slicedToArray(_getBranchBoundary3, 4);
+
+            var min2 = _getBranchBoundary32[0];
+            var max2 = _getBranchBoundary32[1];
+            var minSpace2 = _getBranchBoundary32[2];
+            var maxSpace2 = _getBranchBoundary32[3];
+
+            //console.log(node1.id, getBranchBoundary(branchNodes1, maxLevel), node2.id, getBranchBoundary(branchNodes2, maxLevel), maxLevel);
+            var diffBranch = Math.abs(max1 - min2);
+            if (diffBranch > _this2.nodeSpacing) {
+              var offset = max1 - min2 + _this2.nodeSpacing;
+              if (offset < -minSpace2 + _this2.nodeSpacing) {
+                offset = -minSpace2 + _this2.nodeSpacing;
+                //console.log("RESETTING OFFSET", max1 - min2 + this.nodeSpacing, -minSpace2, offset);
+              }
+              if (offset < 0) {
+                //console.log("SHIFTING", node2.id, offset);
+                _this2._shiftBlock(node2.id, offset);
+                stillShifting = true;
+
+                if (centerParent === true) _this2._centerParent(node2);
+              }
+            }
+          }
+          //this.body.emitter.emit("_redraw");})
+        };
+
+        var unitShiftCallback = function unitShiftCallback(node1, node2, centerParent) {
+          var pos1 = _this2._getPositionForHierarchy(node1);
+          var pos2 = _this2._getPositionForHierarchy(node2);
+          var diffAbs = Math.abs(pos2 - pos1);
+          //console.log("NOW CHEcKING:", node1.id, node2.id, diffAbs);
+          if (diffAbs > _this2.nodeSpacing) {
+            var diff = (pos1 + _this2.nodeSpacing - pos2) * _this2.whiteSpaceReductionFactor;
+            if (diff != 0) {
+              stillShifting = true;
+            }
+            var factor = node2.edges.length / (node1.edges.length + node2.edges.length);
+            _this2._setPositionForHierarchy(node2, pos2 + factor * diff, undefined, true);
+            _this2._setPositionForHierarchy(node1, pos1 - (1 - factor) * diff, undefined, true);
+            if (centerParent === true) {
+              _this2._centerParent(node2);
+            }
+          }
+        };
+
+        var shiftUnitsCloser = function shiftUnitsCloser(iterations) {
+          var levels = Object.keys(_this2.distributionOrdering);
+          for (var i = 0; i < iterations; i++) {
+            stillShifting = false;
+            shiftElementsCloser(unitShiftCallback, levels, false);
+            if (stillShifting !== true) {
+              console.log("FINISHED shiftUnitsCloser IN " + i);
+              break;
+            }
+          }
+          console.log("FINISHED shiftUnitsCloser IN " + iterations);
+        };
+
+        var shiftBranchesCloserBottomUp = function shiftBranchesCloserBottomUp(iterations) {
+          var levels = Object.keys(_this2.distributionOrdering);
+          levels = levels.reverse();
+          for (var i = 0; i < iterations; i++) {
+            stillShifting = false;
+            shiftElementsCloser(blockShiftCallback, levels, true);
+            if (stillShifting !== true) {
+              console.log("FINISHED shiftBranchesCloserBottomUp IN " + i);
+              break;
+            }
+          }
+        };
+
+        var shiftBranchesCloserTopDown = function shiftBranchesCloserTopDown(iterations) {
+          var levels = Object.keys(_this2.distributionOrdering);
+          for (var i = 0; i < iterations; i++) {
+            stillShifting = false;
+            shiftElementsCloser(blockShiftCallback, levels, true);
+            if (stillShifting !== true) {
+              console.log("FINISHED shiftBranchesCloserBottomUp IN " + i);
+              break;
+            }
+          }
+        };
+
+        var centerAllParents = function centerAllParents() {
+          for (var node in _this2.body.nodes) {
+            _this2._centerParent(_this2.body.nodes[node]);
+          }
+        };
+
+        shiftBranchesCloserBottomUp(5);
+        centerAllParents();
+        shiftUnitsCloser(2);
+        //centerAllParents();
+        shiftTrees();
       }
     }, {
-      key: '_removeWhiteSpace',
-      value: function _removeWhiteSpace(distribution) {}
+      key: '_centerParent',
+      value: function _centerParent(node) {
+        //console.log("CENTERING DADDY:", node.id)
+        if (this.hierarchicalChildren[node.id]) {
+          var parents = this.hierarchicalChildren[node.id].parents;
+          //console.log(parents)
+          for (var i = 0; i < parents.length; i++) {
+            var parentId = parents[i];
+            var parentNode = this.body.nodes[parentId];
+            if (this.hierarchicalParents[parentId]) {
+              var minPos = 1e9;
+              var maxPos = -1e9;
+              var children = this.hierarchicalParents[parentId].children;
+              //console.log(children)
+              if (children.length > 0) {
+                for (var _i2 = 0; _i2 < children.length; _i2++) {
+                  var childNode = this.body.nodes[children[_i2]];
+                  minPos = Math.min(minPos, this._getPositionForHierarchy(childNode));
+                  maxPos = Math.max(maxPos, this._getPositionForHierarchy(childNode));
+                }
+              }
+
+              var level = this.hierarchicalLevels[parentId];
+              var index = this.distributionIndex[parentId];
+              var position = this._getPositionForHierarchy(parentNode);
+              var minSpace = 1e9;
+              var maxSpace = 1e9;
+              if (index != 0) {
+                var prevNode = this.distributionOrdering[level][index - 1];
+                var prevPos = this._getPositionForHierarchy(prevNode);
+                minSpace = position - prevPos;
+              }
+
+              if (index != this.distributionOrdering[level].length - 1) {
+                var nextNode = this.distributionOrdering[level][index + 1];
+                var nextPos = this._getPositionForHierarchy(nextNode);
+                maxSpace = Math.min(maxSpace, nextPos - position);
+              }
+
+              var newPosition = 0.5 * (minPos + maxPos);
+              if (newPosition < position + maxSpace && newPosition > position - minSpace) {
+                this._setPositionForHierarchy(parentNode, newPosition, undefined, true);
+              } else {
+                //console.log("CANNOT CENTER:", parentId, minSpace, maxSpace, newPosition);
+              }
+            }
+          }
+        }
+      }
 
       /**
        * This function places the nodes on the canvas based on the hierarchial distribution.
@@ -40455,18 +40899,18 @@ return /******/ (function(modules) { // webpackBootstrap
     }, {
       key: '_determineLevelsByHubsize',
       value: function _determineLevelsByHubsize() {
-        var _this2 = this;
+        var _this3 = this;
 
         var hubSize = 1;
 
         var levelDownstream = function levelDownstream(nodeA, nodeB) {
-          if (_this2.hierarchicalLevels[nodeB.id] === undefined) {
+          if (_this3.hierarchicalLevels[nodeB.id] === undefined) {
             // set initial level
-            if (_this2.hierarchicalLevels[nodeA.id] === undefined) {
-              _this2.hierarchicalLevels[nodeA.id] = 0;
+            if (_this3.hierarchicalLevels[nodeA.id] === undefined) {
+              _this3.hierarchicalLevels[nodeA.id] = 0;
             }
             // set level
-            _this2.hierarchicalLevels[nodeB.id] = _this2.hierarchicalLevels[nodeA.id] + 1;
+            _this3.hierarchicalLevels[nodeB.id] = _this3.hierarchicalLevels[nodeA.id] + 1;
           }
         };
 
@@ -40493,7 +40937,7 @@ return /******/ (function(modules) { // webpackBootstrap
     }, {
       key: '_determineLevelsCustomCallback',
       value: function _determineLevelsCustomCallback() {
-        var _this3 = this;
+        var _this4 = this;
 
         var minLevel = 100000;
 
@@ -40501,15 +40945,15 @@ return /******/ (function(modules) { // webpackBootstrap
         var customCallback = function customCallback(nodeA, nodeB, edge) {};
 
         var levelByDirection = function levelByDirection(nodeA, nodeB, edge) {
-          var levelA = _this3.hierarchicalLevels[nodeA.id];
+          var levelA = _this4.hierarchicalLevels[nodeA.id];
           // set initial level
           if (levelA === undefined) {
-            _this3.hierarchicalLevels[nodeA.id] = minLevel;
+            _this4.hierarchicalLevels[nodeA.id] = minLevel;
           }
 
           var diff = customCallback(_NetworkUtil2['default'].cloneOptions(nodeA, 'node'), _NetworkUtil2['default'].cloneOptions(nodeB, 'node'), _NetworkUtil2['default'].cloneOptions(edge, 'edge'));
 
-          _this3.hierarchicalLevels[nodeB.id] = _this3.hierarchicalLevels[nodeA.id] + diff;
+          _this4.hierarchicalLevels[nodeB.id] = _this4.hierarchicalLevels[nodeA.id] + diff;
         };
 
         this._crawlNetwork(levelByDirection);
@@ -40525,19 +40969,19 @@ return /******/ (function(modules) { // webpackBootstrap
     }, {
       key: '_determineLevelsDirected',
       value: function _determineLevelsDirected() {
-        var _this4 = this;
+        var _this5 = this;
 
         var minLevel = 10000;
         var levelByDirection = function levelByDirection(nodeA, nodeB, edge) {
-          var levelA = _this4.hierarchicalLevels[nodeA.id];
+          var levelA = _this5.hierarchicalLevels[nodeA.id];
           // set initial level
           if (levelA === undefined) {
-            _this4.hierarchicalLevels[nodeA.id] = minLevel;
+            _this5.hierarchicalLevels[nodeA.id] = minLevel;
           }
           if (edge.toId == nodeB.id) {
-            _this4.hierarchicalLevels[nodeB.id] = _this4.hierarchicalLevels[nodeA.id] + 1;
+            _this5.hierarchicalLevels[nodeB.id] = _this5.hierarchicalLevels[nodeA.id] + 1;
           } else {
-            _this4.hierarchicalLevels[nodeB.id] = _this4.hierarchicalLevels[nodeA.id] - 1;
+            _this5.hierarchicalLevels[nodeB.id] = _this5.hierarchicalLevels[nodeA.id] - 1;
           }
         };
         this._crawlNetwork(levelByDirection);
@@ -40576,20 +41020,20 @@ return /******/ (function(modules) { // webpackBootstrap
     }, {
       key: '_generateMap',
       value: function _generateMap() {
-        var _this5 = this;
+        var _this6 = this;
 
         var fillInRelations = function fillInRelations(parentNode, childNode) {
-          if (_this5.hierarchicalLevels[childNode.id] > _this5.hierarchicalLevels[parentNode.id]) {
+          if (_this6.hierarchicalLevels[childNode.id] > _this6.hierarchicalLevels[parentNode.id]) {
             var parentNodeId = parentNode.id;
             var childNodeId = childNode.id;
-            if (_this5.hierarchicalParents[parentNodeId] === undefined) {
-              _this5.hierarchicalParents[parentNodeId] = { children: [], amount: 0 };
+            if (_this6.hierarchicalParents[parentNodeId] === undefined) {
+              _this6.hierarchicalParents[parentNodeId] = { children: [], amount: 0 };
             }
-            _this5.hierarchicalParents[parentNodeId].children.push(childNodeId);
-            if (_this5.hierarchicalChildren[childNodeId] === undefined) {
-              _this5.hierarchicalChildren[childNodeId] = { parents: [], amount: 0 };
+            _this6.hierarchicalParents[parentNodeId].children.push(childNodeId);
+            if (_this6.hierarchicalChildren[childNodeId] === undefined) {
+              _this6.hierarchicalChildren[childNodeId] = { parents: [], amount: 0 };
             }
-            _this5.hierarchicalChildren[childNodeId].parents.push(parentNodeId);
+            _this6.hierarchicalChildren[childNodeId].parents.push(parentNodeId);
           }
         };
 
@@ -40597,7 +41041,7 @@ return /******/ (function(modules) { // webpackBootstrap
       }
 
       /**
-       * Crawl over the entire network and use a callback on each node couple that is connected to eachother.
+       * Crawl over the entire network and use a callback on each node couple that is connected to each other.
        * @param callback          | will receive nodeA nodeB and the connecting edge. A and B are unique.
        * @param startingNodeId
        * @private
@@ -40748,22 +41192,22 @@ return /******/ (function(modules) { // webpackBootstrap
     }, {
       key: '_findCommonParent',
       value: function _findCommonParent(childA, childB) {
-        var _this6 = this;
+        var _this7 = this;
 
         var parents = {};
         var iterateParents = function iterateParents(parents, child) {
-          if (_this6.hierarchicalChildren[child] !== undefined) {
-            for (var i = 0; i < _this6.hierarchicalChildren[child].parents.length; i++) {
-              var _parent = _this6.hierarchicalChildren[child].parents[i];
+          if (_this7.hierarchicalChildren[child] !== undefined) {
+            for (var i = 0; i < _this7.hierarchicalChildren[child].parents.length; i++) {
+              var _parent = _this7.hierarchicalChildren[child].parents[i];
               parents[_parent] = true;
               iterateParents(parents, _parent);
             }
           }
         };
         var findParent = function findParent(parents, child) {
-          if (_this6.hierarchicalChildren[child] !== undefined) {
-            for (var i = 0; i < _this6.hierarchicalChildren[child].parents.length; i++) {
-              var _parent2 = _this6.hierarchicalChildren[child].parents[i];
+          if (_this7.hierarchicalChildren[child] !== undefined) {
+            for (var i = 0; i < _this7.hierarchicalChildren[child].parents.length; i++) {
+              var _parent2 = _this7.hierarchicalChildren[child].parents[i];
               if (parents[_parent2] !== undefined) {
                 return { foundParent: _parent2, withChild: child };
               }
@@ -40790,16 +41234,41 @@ return /******/ (function(modules) { // webpackBootstrap
     }, {
       key: '_setPositionForHierarchy',
       value: function _setPositionForHierarchy(node, position, level) {
-        if (this.distributionOrdering[level] === undefined) {
-          this.distributionOrdering[level] = [];
-          this.distributionOrderingPresence[level] = {};
-        }
+        var doNotUpdate = arguments.length <= 3 || arguments[3] === undefined ? false : arguments[3];
 
-        if (this.distributionOrderingPresence[level][node.id] === undefined) {
-          this.distributionOrdering[level].push(node);
-        }
-        this.distributionOrderingPresence[level][node.id] = true;
+        if (doNotUpdate !== true) {
+          if (this.distributionOrdering[level] === undefined) {
+            this.distributionOrdering[level] = [];
+            this.distributionOrderingPresence[level] = {};
+          }
 
+          if (this.distributionOrderingPresence[level][node.id] === undefined) {
+            this.distributionOrdering[level].push(node);
+            this.distributionIndex[node.id] = this.distributionOrdering[level].length - 1;
+          }
+          this.distributionOrderingPresence[level][node.id] = true;
+
+          if (this.hierarchicalTrees[node.id] === undefined) {
+            if (this.hierarchicalChildren[node.id] !== undefined) {
+              var tree = 1;
+              // get the lowest tree denominator.
+              for (var i = 0; i < this.hierarchicalChildren[node.id].parents.length; i++) {
+                var parentId = this.hierarchicalChildren[node.id].parents[i];
+                if (this.hierarchicalTrees[parentId] !== undefined) {
+                  //tree = Math.min(tree,this.hierarchicalTrees[parentId]);
+                  tree = this.hierarchicalTrees[parentId];
+                }
+              }
+              //for (let i = 0; i < this.hierarchicalChildren.parents.length; i++) {
+              //  let parentId = this.hierarchicalChildren.parents[i];
+              //  this.hierarchicalTrees[parentId] = tree;
+              //}
+              this.hierarchicalTrees[node.id] = tree;
+            } else {
+              this.hierarchicalTrees[node.id] = ++this.treeIndex;
+            }
+          }
+        }
         if (this.options.hierarchical.direction === 'UD' || this.options.hierarchical.direction === 'DU') {
           node.x = position;
         } else {
@@ -42440,7 +42909,7 @@ return /******/ (function(modules) { // webpackBootstrap
         middle: { enabled: false, scaleFactor: [1, 0, 3, 0.05] },
         from: { enabled: false, scaleFactor: [1, 0, 3, 0.05] }
       },
-      arrowStrikethrough: false,
+      arrowStrikethrough: true,
       color: {
         color: ['color', '#848484'],
         highlight: ['color', '#848484'],
