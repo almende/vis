@@ -40430,11 +40430,10 @@ return /******/ (function(modules) { // webpackBootstrap
             this._placeNodesByHierarchy(distribution);
 
             // condense the whitespace.
-            console.time("bla");
             this._condenseHierarchy(distribution);
-            console.timeEnd("bla");
+
             // shift to center so gravity does not have to do much
-            //this._shiftToCenter();
+            this._shiftToCenter();
           }
         }
       }
@@ -40447,6 +40446,8 @@ return /******/ (function(modules) { // webpackBootstrap
       value: function _condenseHierarchy(distribution) {
         var _this2 = this;
 
+        // first we have some methods to help shifting trees around.
+        // the main method to shift the trees
         var shiftTrees = function shiftTrees() {
           var treeSizes = getTreeSizes();
           for (var i = 0; i < treeSizes.length - 1; i++) {
@@ -40457,6 +40458,7 @@ return /******/ (function(modules) { // webpackBootstrap
           }
         };
 
+        // shift a single tree by an offset
         var shiftTree = function shiftTree(index, offset) {
           for (var nodeId in _this2.hierarchicalTrees) {
             if (_this2.hierarchicalTrees.hasOwnProperty(nodeId)) {
@@ -40467,6 +40469,7 @@ return /******/ (function(modules) { // webpackBootstrap
           }
         };
 
+        // get the width of a tree
         var getTreeSize = function getTreeSize(index) {
           var min = 1e9;
           var max = -1e9;
@@ -40482,6 +40485,7 @@ return /******/ (function(modules) { // webpackBootstrap
           return [min, max];
         };
 
+        // get the width of all trees
         var getTreeSizes = function getTreeSizes() {
           var treeWidths = [];
           for (var i = 0; i < _this2.treeIndex; i++) {
@@ -40490,23 +40494,7 @@ return /******/ (function(modules) { // webpackBootstrap
           return treeWidths;
         };
 
-        var nodeInBranch = function nodeInBranch(source, target) {
-          if (source.id == target.id) {
-            return true;
-          }
-          var match = false;
-          if (_this2.hierarchicalParents[source.id]) {
-            var children = _this2.hierarchicalParents[source.id].children;
-            if (children.length > 0) {
-              for (var i = 0; i < children.length; i++) {
-                match = nodeInBranch(_this2.body.nodes[children[i]], target);
-                if (match == true) return match;
-              }
-            }
-          }
-          return match;
-        };
-
+        // get a map of all nodes in this branch
         var getBranchNodes = function getBranchNodes(source, map) {
           map[source.id] = true;
           if (_this2.hierarchicalParents[source.id]) {
@@ -40519,6 +40507,8 @@ return /******/ (function(modules) { // webpackBootstrap
           }
         };
 
+        // get a min max width as well as the maximum movement space it has on either sides
+        // we use min max terminology because width and height can interchange depending on the direction of the layout
         var getBranchBoundary = function getBranchBoundary(branchMap) {
           var maxLevel = arguments.length <= 1 || arguments[1] === undefined ? 1e9 : arguments[1];
 
@@ -40533,6 +40523,7 @@ return /******/ (function(modules) { // webpackBootstrap
               var index = _this2.distributionIndex[node.id];
               var position = _this2._getPositionForHierarchy(_this2.body.nodes[node.id]);
 
+              // if this is the node at the side, there is no previous node
               if (index != 0) {
                 var prevNode = _this2.distributionOrdering[level][index - 1];
                 if (branchMap[prevNode.id] === undefined) {
@@ -40541,6 +40532,7 @@ return /******/ (function(modules) { // webpackBootstrap
                 }
               }
 
+              // if this is the node at the end there is no next node
               if (index != _this2.distributionOrdering[level].length - 1) {
                 var nextNode = _this2.distributionOrdering[level][index + 1];
                 if (branchMap[nextNode.id] === undefined) {
@@ -40549,6 +40541,7 @@ return /******/ (function(modules) { // webpackBootstrap
                 }
               }
 
+              // the width is only relevant for the levels two nodes have in common. This is why we filter on this.
               if (level <= maxLevel) {
                 min = Math.min(position, min);
                 max = Math.max(position, max);
@@ -40556,9 +40549,13 @@ return /******/ (function(modules) { // webpackBootstrap
             }
           }
 
+          // if there was no next node, the max space is infinite (1e9 ~ close enough)
+          maxSpace = maxSpace < 0 ? 1e9 : maxSpace;
+
           return [min, max, minSpace, maxSpace];
         };
 
+        // get the maximum level of a branch.
         var getMaxLevel = function getMaxLevel(nodeId) {
           var level = _this2.hierarchicalLevels[nodeId];
           if (_this2.hierarchicalParents[nodeId]) {
@@ -40572,12 +40569,14 @@ return /******/ (function(modules) { // webpackBootstrap
           return level;
         };
 
+        // check what the maximum level is these nodes have in common.
         var getCollisionLevel = function getCollisionLevel(node1, node2) {
           var maxLevel1 = getMaxLevel(node1.id);
           var maxLevel2 = getMaxLevel(node2.id);
           return Math.min(maxLevel1, maxLevel2);
         };
 
+        // check if two nodes have the same parent(s)
         var hasSameParent = function hasSameParent(node1, node2) {
           var parents1 = _this2.hierarchicalChildren[node1.id];
           var parents2 = _this2.hierarchicalChildren[node2.id];
@@ -40596,6 +40595,7 @@ return /******/ (function(modules) { // webpackBootstrap
           return false;
         };
 
+        // condense elements. These can be nodes or branches depending on the callback.
         var shiftElementsCloser = function shiftElementsCloser(callback, levels, centerParents) {
           for (var i = 0; i < levels.length; i++) {
             var level = levels[i];
@@ -40612,8 +40612,11 @@ return /******/ (function(modules) { // webpackBootstrap
           }
         };
 
+        // Global var in this scope to define when the movement has stopped.
         var stillShifting = false;
-        var blockShiftCallback = function blockShiftCallback(node1, node2) {
+
+        // callback for shifting branches
+        var branchShiftCallback = function branchShiftCallback(node1, node2) {
           var centerParent = arguments.length <= 2 || arguments[2] === undefined ? false : arguments[2];
 
           //window.CALLBACKS.push(() => {
@@ -40669,6 +40672,7 @@ return /******/ (function(modules) { // webpackBootstrap
           //this.body.emitter.emit("_redraw");})
         };
 
+        // callback for shifting individual nodes
         var unitShiftCallback = function unitShiftCallback(node1, node2, centerParent) {
           var pos1 = _this2._getPositionForHierarchy(node1);
           var pos2 = _this2._getPositionForHierarchy(node2);
@@ -40688,71 +40692,66 @@ return /******/ (function(modules) { // webpackBootstrap
           }
         };
 
+        // method to shift all nodes closer together iteratively
         var shiftUnitsCloser = function shiftUnitsCloser(iterations) {
           var levels = Object.keys(_this2.distributionOrdering);
           for (var i = 0; i < iterations; i++) {
             stillShifting = false;
             shiftElementsCloser(unitShiftCallback, levels, false);
             if (stillShifting !== true) {
-              console.log("FINISHED shiftUnitsCloser IN " + i);
+              //console.log("FINISHED shiftUnitsCloser IN " + i);
               break;
             }
           }
-          console.log("FINISHED shiftUnitsCloser IN " + iterations);
+          //console.log("FINISHED shiftUnitsCloser IN " + iterations);
         };
 
+        // method to remove whitespace between branches. Because we do bottom up, we can center the parents.
         var shiftBranchesCloserBottomUp = function shiftBranchesCloserBottomUp(iterations) {
           var levels = Object.keys(_this2.distributionOrdering);
           levels = levels.reverse();
           for (var i = 0; i < iterations; i++) {
             stillShifting = false;
-            shiftElementsCloser(blockShiftCallback, levels, true);
+            shiftElementsCloser(branchShiftCallback, levels, true);
             if (stillShifting !== true) {
-              console.log("FINISHED shiftBranchesCloserBottomUp IN " + i);
+              //console.log("FINISHED shiftBranchesCloserBottomUp IN " + i);
               break;
             }
           }
         };
 
-        var shiftBranchesCloserTopDown = function shiftBranchesCloserTopDown(iterations) {
-          var levels = Object.keys(_this2.distributionOrdering);
-          for (var i = 0; i < iterations; i++) {
-            stillShifting = false;
-            shiftElementsCloser(blockShiftCallback, levels, true);
-            if (stillShifting !== true) {
-              console.log("FINISHED shiftBranchesCloserBottomUp IN " + i);
-              break;
-            }
-          }
-        };
-
+        // center all parents
         var centerAllParents = function centerAllParents() {
           for (var node in _this2.body.nodes) {
             _this2._centerParent(_this2.body.nodes[node]);
           }
         };
 
+        // the actual work is done here.
         shiftBranchesCloserBottomUp(5);
         centerAllParents();
         shiftUnitsCloser(2);
-        //centerAllParents();
         shiftTrees();
       }
+
+      /**
+       * We use this method to center a parent node and check if it does not cross other nodes when it does.
+       * @param node
+       * @private
+       */
     }, {
       key: '_centerParent',
       value: function _centerParent(node) {
-        //console.log("CENTERING DADDY:", node.id)
         if (this.hierarchicalChildren[node.id]) {
           var parents = this.hierarchicalChildren[node.id].parents;
-          //console.log(parents)
           for (var i = 0; i < parents.length; i++) {
             var parentId = parents[i];
             var parentNode = this.body.nodes[parentId];
             if (this.hierarchicalParents[parentId]) {
+              // get the range of the children
               var minPos = 1e9;
               var maxPos = -1e9;
               var children = this.hierarchicalParents[parentId].children;
-              //console.log(children)
               if (children.length > 0) {
                 for (var _i2 = 0; _i2 < children.length; _i2++) {
                   var childNode = this.body.nodes[children[_i2]];
@@ -40781,8 +40780,6 @@ return /******/ (function(modules) { // webpackBootstrap
               var newPosition = 0.5 * (minPos + maxPos);
               if (newPosition < position + maxSpace && newPosition > position - minSpace) {
                 this._setPositionForHierarchy(parentNode, newPosition, undefined, true);
-              } else {
-                //console.log("CANNOT CENTER:", parentId, minSpace, maxSpace, newPosition);
               }
             }
           }
