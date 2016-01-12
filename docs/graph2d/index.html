@@ -434,7 +434,7 @@ var options = {
             <td class="greenField indent">barChart.sideBySide</td>
             <td>Boolean</td>
             <td>false</td>
-            <td>If two datapoints of a barchart overlap, they are drawn over eachother by default. If sideBySide is set to true, they will be drawn side by side.
+            <td>If two datapoints of a barchart overlap, they are drawn over eachother by default. If sideBySide is set to true, they will be drawn side by side, within the same width as a single bar..
                 See <a href="../../examples/graph2d/10_barsSideBySide.html">example 10</a> for more information.
                 When using groups, see <a href="../../examples/graph2d/11_barsSideBySideGroups.html">example 11</a>.
             </td>
@@ -445,7 +445,12 @@ var options = {
             <td>50</td>
             <td>The width of the bars.</td>
         </tr>
-
+        <tr parent="barChart" class="hidden">
+            <td class="greenField indent">barChart.minWidth</td>
+            <td>Number</td>
+            <td></td>
+            <td>The minimum width of the bars in pixels: by default the bars get smaller while zooming out to prevent overlap, this value is the minimum width of the bar. Default behavior (when minWidth is not set) is 10% of the bar width.</td>
+        </tr>
         <tr class='toggle collapsible' onclick="toggleTable('g2dOptions','dataAxis', this);">
             <td><span parent="dataAxis" class="right-caret"></span> dataAxis</td>
             <td>Object</td>
