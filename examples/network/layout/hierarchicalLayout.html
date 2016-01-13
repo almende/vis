@@ -9,8 +9,8 @@
         }
 
         #mynetwork {
-            width: 1700px;
-            height: 800px;
+            width: 600px;
+            height: 600px;
             border: 1px solid lightgray;
         }
     </style>
@@ -34,75 +34,27 @@
 
         function draw() {
             destroy();
-
-            nodes = [];
-            edges = [];
             // randomly create some nodes and edges
             var nodeCount = document.getElementById('nodeCount').value;
-            for (var i = 0; i < 19; i++) {
-                nodes.push({id: i, label: String(i)});
-            }
-            edges.push({from: 0, to: 1});
-            edges.push({from: 0, to: 6});
-            edges.push({from: 0, to: 13});
-            edges.push({from: 0, to: 11});
-            edges.push({from: 1, to: 2});
-            edges.push({from: 2, to: 3});
-            edges.push({from: 2, to: 4});
-            edges.push({from: 3, to: 5});
-            edges.push({from: 1, to: 10});
-            edges.push({from: 1, to: 7});
-            edges.push({from: 2, to: 8});
-            edges.push({from: 2, to: 9});
-            edges.push({from: 3, to: 14});
-            edges.push({from: 1, to: 12});
-            edges.push({from: 16, to: 15});
-            edges.push({from: 15, to: 17});
-            edges.push({from: 18, to: 17});
+            var data = getScaleFreeNetwork(nodeCount)
 
+            // create a network
             var container = document.getElementById('mynetwork');
-            var data = {
-                nodes: nodes,
-                edges: edges
-            };
             var directionInput = document.getElementById("direction").value;
             var options = {
                 layout: {
                     hierarchical: {
-                        sortMethod: 'hubsize',
                         direction: directionInput
                     }
-                },
-                physics:false
+                }
             };
             network = new vis.Network(container, data, options);
-            fireall()
+
             // add event listeners
             network.on('select', function (params) {
                 document.getElementById('selection').innerHTML = 'Selection: ' + params.nodes;
             });
         }
-
-        function fireall() {
-            if (callbackIndex < CALLBACKS.length -1) {
-                CALLBACKS[callbackIndex]();
-                callbackIndex++;
-                fireall()
-            }
-        }
-        function fireCallback() {
-            if (callbackIndex < CALLBACKS.length -1) {
-                CALLBACKS[callbackIndex]();
-                callbackIndex++;
-            }
-            else {
-                alert("no more callbacks");
-            }
-
-        }
-
-        var callbackIndex = 0;
-        var CALLBACKS = [];
 
     </script>
     <script src="../../googleAnalytics.js"></script>
