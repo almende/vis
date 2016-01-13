@@ -11295,10 +11295,11 @@ return /******/ (function(modules) { // webpackBootstrap
         // propagate over all elements (until stopped)
         var elem = _firstTarget;
         while (elem && !stopped) {
-          if(elem.hammer){
+          var elemHammer = elem.hammer;
+          if(elemHammer){
             var _handlers;
-            for(var k = 0; k < elem.hammer.length; k++){
-              _handlers = elem.hammer[k]._handlers[event.type];
+            for(var k = 0; k < elemHammer.length; k++){
+              _handlers = elemHammer[k]._handlers[event.type];
               if(_handlers) for (var i = 0; i < _handlers.length && !stopped; i++) {
                 _handlers[i](event);
               }

@@ -8,6 +8,8 @@ http://visjs.org
 
 - Altered edges for arrows and added the arrowStrikethrough option.
 - Improved the hierarchical layout algorithm by adding a condensing method to remove whitespace.
+- Fixed #1556: Network throwing an error when clicking the "Edit" button
+  on the manipulation toolbar.
 
 ### Graph2d
 
