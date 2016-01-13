@@ -108,7 +108,7 @@
 var options = {
   nodes:{
     borderWidth: 1,
-    borderWidthSelected: undefined,
+    borderWidthSelected: 2,
     brokenImage:undefined,
     color: {
       border: '#2B7CE9',
@@ -227,8 +227,8 @@ network.setOptions(options);
         <tr>
             <td>borderWidthSelected</td>
             <td>Number</td>
-            <td><code>undefined</code></td>
-            <td>The width of the border of the node when it is selected. When undefined, the borderWidth is used</td>
+            <td><code>2</code></td>
+            <td>The width of the border of the node when it is selected. When undefined, the borderWidth * 2 is used.</td>
         </tr>
         <tr>
             <td>brokenImage</td>

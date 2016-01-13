@@ -5,7 +5,7 @@
  * A dynamic, browser-based visualization library.
  *
  * @version 4.12.1-SNAPSHOT
- * @date    2016-01-12
+ * @date    2016-01-13
  *
  * @license
  * Copyright (C) 2011-2016 Almende B.V, http://almende.com
@@ -24559,40 +24559,8 @@ return /******/ (function(modules) { // webpackBootstrap
         size: 6,
         style: 'square' // square, circle
       },
-      dataAxis: {
-        showMinorLabels: true,
-        showMajorLabels: true,
-        icons: false,
-        width: '40px',
-        visible: true,
-        alignZeros: true,
-        left: {
-          range: { min: undefined, max: undefined },
-          format: function format(value) {
-            return value;
-          },
-          title: { text: undefined, style: undefined }
-        },
-        right: {
-          range: { min: undefined, max: undefined },
-          format: function format(value) {
-            return value;
-          },
-          title: { text: undefined, style: undefined }
-        }
-      },
-      legend: {
-        enabled: false,
-        icons: true,
-        left: {
-          visible: true,
-          position: 'top-left' // top/bottom - left,right
-        },
-        right: {
-          visible: true,
-          position: 'top-right' // top/bottom - left,right
-        }
-      },
+      dataAxis: {}, //Defaults are done on DataAxis level
+      legend: {}, //Defaults are done on Legend level
       groups: {
         visibility: {}
       }
@@ -25586,7 +25554,7 @@ return /******/ (function(modules) { // webpackBootstrap
       orientation: 'left', // supported: 'left', 'right'
       showMinorLabels: true,
       showMajorLabels: true,
-      icons: true,
+      icons: false,
       majorLinesOffset: 7,
       minorLinesOffset: 4,
       labelOffsetX: 10,
@@ -25598,14 +25566,14 @@ return /******/ (function(modules) { // webpackBootstrap
       left: {
         range: { min: undefined, max: undefined },
         format: function format(value) {
-          return value;
+          return '' + value.toPrecision(3);
         },
         title: { text: undefined, style: undefined }
       },
       right: {
         range: { min: undefined, max: undefined },
         format: function format(value) {
-          return value;
+          return '' + value.toPrecision(3);
         },
         title: { text: undefined, style: undefined }
       }
@@ -26354,18 +26322,11 @@ return /******/ (function(modules) { // webpackBootstrap
   DataStep.prototype.getCurrent = function () {
     // prevent round-off errors when close to zero
     var current = Math.abs(this.current) < this.step / 2 ? 0 : this.current;
-    var returnValue = current.toPrecision(5);
+    var returnValue = current;
     if (typeof this.formattingFunction === 'function') {
-      returnValue = this.formattingFunction(current);
+      return this.formattingFunction(current);
     }
-
-    if (typeof returnValue === 'number') {
-      return '' + returnValue;
-    } else if (typeof returnValue === 'string') {
-      return returnValue;
-    } else {
-      return current.toPrecision(5);
-    }
+    return '' + returnValue.toPrecision(3);
   };
 
   /**
@@ -26651,7 +26612,7 @@ return /******/ (function(modules) { // webpackBootstrap
     // plot barchart
     for (i = 0; i < combinedData.length; i++) {
       group = framework.groups[combinedData[i].groupId];
-      var minWidth = 0.1 * group.options.barChart.width;
+      var minWidth = group.options.barChart.minWidth != undefined ? group.options.barChart.minWidth : 0.1 * group.options.barChart.width;
 
       key = combinedData[i].screen_x;
       var heightOffset = 0;
@@ -26659,18 +26620,12 @@ return /******/ (function(modules) { // webpackBootstrap
         if (i + 1 < combinedData.length) {
           coreDistance = Math.abs(combinedData[i + 1].screen_x - key);
         }
-        if (i > 0) {
-          coreDistance = Math.min(coreDistance, Math.abs(combinedData[i - 1].screen_x - key));
-        }
         drawData = Bargraph._getSafeDrawData(coreDistance, group, minWidth);
       } else {
         var nextKey = i + (intersections[key].amount - intersections[key].resolved);
         var prevKey = i - (intersections[key].resolved + 1);
         if (nextKey < combinedData.length) {
           coreDistance = Math.abs(combinedData[nextKey].screen_x - key);
-        }
-        if (prevKey > 0) {
-          coreDistance = Math.min(coreDistance, Math.abs(combinedData[prevKey].screen_x - key));
         }
         drawData = Bargraph._getSafeDrawData(coreDistance, group, minWidth);
         intersections[key].resolved += 1;
@@ -26686,11 +26641,6 @@ return /******/ (function(modules) { // webpackBootstrap
         } else if (group.options.barChart.sideBySide === true) {
           drawData.width = drawData.width / intersections[key].amount;
           drawData.offset += intersections[key].resolved * drawData.width - 0.5 * drawData.width * (intersections[key].amount + 1);
-          if (group.options.barChart.align === 'left') {
-            drawData.offset -= 0.5 * drawData.width;
-          } else if (group.options.barChart.align === 'right') {
-            drawData.offset += 0.5 * drawData.width;
-          }
         }
       }
       DOMutil.drawBar(combinedData[i].screen_x + drawData.offset, combinedData[i].screen_y - heightOffset, drawData.width, group.zeroPosition - combinedData[i].screen_y, group.className + ' vis-bar', framework.svgElements, framework.svg, group.style);
@@ -27206,7 +27156,7 @@ return /******/ (function(modules) { // webpackBootstrap
   function Legend(body, options, side, linegraphOptions) {
     this.body = body;
     this.defaultOptions = {
-      enabled: true,
+      enabled: false,
       icons: true,
       iconSize: 20,
       iconSpacing: 6,
@@ -27219,6 +27169,7 @@ return /******/ (function(modules) { // webpackBootstrap
         position: 'top-left' // top/bottom - left,center,right
       }
     };
+
     this.side = side;
     this.options = util.extend({}, this.defaultOptions);
     this.linegraphOptions = linegraphOptions;
@@ -27458,6 +27409,7 @@ return /******/ (function(modules) { // webpackBootstrap
     style: { string: ['line', 'bar', 'points'] }, // line, bar
     barChart: {
       width: { number: number },
+      minWidth: { number: number },
       sideBySide: { boolean: boolean },
       align: { string: ['left', 'center', 'right'] },
       __type__: { object: object }
@@ -27597,6 +27549,7 @@ return /******/ (function(modules) { // webpackBootstrap
       style: ['line', 'bar', 'points'], // line, bar
       barChart: {
         width: [50, 5, 100, 5],
+        minWidth: [50, 5, 100, 5],
         sideBySide: false,
         align: ['left', 'center', 'right'] // left, center, right
       },
@@ -40619,77 +40572,82 @@ return /******/ (function(modules) { // webpackBootstrap
         var branchShiftCallback = function branchShiftCallback(node1, node2) {
           var centerParent = arguments.length <= 2 || arguments[2] === undefined ? false : arguments[2];
 
-          //window.CALLBACKS.push(() => {
-          var pos1 = _this2._getPositionForHierarchy(node1);
-          var pos2 = _this2._getPositionForHierarchy(node2);
-          var diffAbs = Math.abs(pos2 - pos1);
-          //console.log("NOW CHEcKING:", node1.id, node2.id, diffAbs);
-          if (diffAbs > _this2.nodeSpacing) {
-            var branchNodes1 = {};branchNodes1[node1.id] = true;
-            var branchNodes2 = {};branchNodes2[node2.id] = true;
+          window.CALLBACKS.push(function () {
+            var pos1 = _this2._getPositionForHierarchy(node1);
+            var pos2 = _this2._getPositionForHierarchy(node2);
+            var diffAbs = Math.abs(pos2 - pos1);
+            //console.log("NOW CHEcKING:", node1.id, node2.id, diffAbs);
+            if (diffAbs > _this2.nodeSpacing) {
+              var branchNodes1 = {};branchNodes1[node1.id] = true;
+              var branchNodes2 = {};branchNodes2[node2.id] = true;
 
-            getBranchNodes(node1, branchNodes1);
-            getBranchNodes(node2, branchNodes2);
+              getBranchNodes(node1, branchNodes1);
+              getBranchNodes(node2, branchNodes2);
 
-            // check the largest distance between the branches
-            var maxLevel = getCollisionLevel(node1, node2);
+              // check the largest distance between the branches
+              var maxLevel = getCollisionLevel(node1, node2);
 
-            var _getBranchBoundary = getBranchBoundary(branchNodes1, maxLevel);
+              var _getBranchBoundary = getBranchBoundary(branchNodes1, maxLevel);
 
-            var _getBranchBoundary2 = _slicedToArray(_getBranchBoundary, 4);
+              var _getBranchBoundary2 = _slicedToArray(_getBranchBoundary, 4);
 
-            var min1 = _getBranchBoundary2[0];
-            var max1 = _getBranchBoundary2[1];
-            var minSpace1 = _getBranchBoundary2[2];
-            var maxSpace1 = _getBranchBoundary2[3];
+              var min1 = _getBranchBoundary2[0];
+              var max1 = _getBranchBoundary2[1];
+              var minSpace1 = _getBranchBoundary2[2];
+              var maxSpace1 = _getBranchBoundary2[3];
 
-            var _getBranchBoundary3 = getBranchBoundary(branchNodes2, maxLevel);
+              var _getBranchBoundary3 = getBranchBoundary(branchNodes2, maxLevel);
 
-            var _getBranchBoundary32 = _slicedToArray(_getBranchBoundary3, 4);
+              var _getBranchBoundary32 = _slicedToArray(_getBranchBoundary3, 4);
 
-            var min2 = _getBranchBoundary32[0];
-            var max2 = _getBranchBoundary32[1];
-            var minSpace2 = _getBranchBoundary32[2];
-            var maxSpace2 = _getBranchBoundary32[3];
+              var min2 = _getBranchBoundary32[0];
+              var max2 = _getBranchBoundary32[1];
+              var minSpace2 = _getBranchBoundary32[2];
+              var maxSpace2 = _getBranchBoundary32[3];
 
-            //console.log(node1.id, getBranchBoundary(branchNodes1, maxLevel), node2.id, getBranchBoundary(branchNodes2, maxLevel), maxLevel);
-            var diffBranch = Math.abs(max1 - min2);
-            if (diffBranch > _this2.nodeSpacing) {
-              var offset = max1 - min2 + _this2.nodeSpacing;
-              if (offset < -minSpace2 + _this2.nodeSpacing) {
-                offset = -minSpace2 + _this2.nodeSpacing;
-                //console.log("RESETTING OFFSET", max1 - min2 + this.nodeSpacing, -minSpace2, offset);
-              }
-              if (offset < 0) {
-                //console.log("SHIFTING", node2.id, offset);
-                _this2._shiftBlock(node2.id, offset);
-                stillShifting = true;
+              //console.log(node1.id, getBranchBoundary(branchNodes1, maxLevel), node2.id, getBranchBoundary(branchNodes2, maxLevel), maxLevel);
+              var diffBranch = Math.abs(max1 - min2);
+              if (diffBranch > _this2.nodeSpacing) {
+                var offset = max1 - min2 + _this2.nodeSpacing;
+                if (offset < -minSpace2 + _this2.nodeSpacing) {
+                  offset = -minSpace2 + _this2.nodeSpacing;
+                  //console.log("RESETTING OFFSET", max1 - min2 + this.nodeSpacing, -minSpace2, offset);
+                }
+                if (offset < 0) {
+                  //console.log("SHIFTING", node2.id, offset);
+                  _this2._shiftBlock(node2.id, offset);
+                  stillShifting = true;
 
-                if (centerParent === true) _this2._centerParent(node2);
+                  if (centerParent === true) _this2._centerParent(node2);
+                }
               }
             }
-          }
-          //this.body.emitter.emit("_redraw");})
+            _this2.body.emitter.emit("_redraw");
+          });
         };
 
         // callback for shifting individual nodes
         var unitShiftCallback = function unitShiftCallback(node1, node2, centerParent) {
-          var pos1 = _this2._getPositionForHierarchy(node1);
-          var pos2 = _this2._getPositionForHierarchy(node2);
-          var diffAbs = Math.abs(pos2 - pos1);
-          //console.log("NOW CHEcKING:", node1.id, node2.id, diffAbs);
-          if (diffAbs > _this2.nodeSpacing) {
-            var diff = (pos1 + _this2.nodeSpacing - pos2) * _this2.whiteSpaceReductionFactor;
-            if (diff != 0) {
-              stillShifting = true;
+          window.CALLBACKS.push(function () {
+            var pos1 = _this2._getPositionForHierarchy(node1);
+            var pos2 = _this2._getPositionForHierarchy(node2);
+            var diffAbs = Math.abs(pos2 - pos1);
+            //console.log("NOW CHEcKING:", node1.id, node2.id, diffAbs);
+            if (diffAbs > _this2.nodeSpacing) {
+              var diff = (pos1 + _this2.nodeSpacing - pos2) * _this2.whiteSpaceReductionFactor;
+              if (diff != 0) {
+                stillShifting = true;
+              }
+              var factor = node2.edges.length / (node1.edges.length + node2.edges.length);
+              _this2._setPositionForHierarchy(node2, pos2 + factor * diff, undefined, true);
+              _this2._setPositionForHierarchy(node1, pos1 - (1 - factor) * diff, undefined, true);
+              if (centerParent === true) {
+                _this2._centerParent(node2);
+              }
             }
-            var factor = node2.edges.length / (node1.edges.length + node2.edges.length);
-            _this2._setPositionForHierarchy(node2, pos2 + factor * diff, undefined, true);
-            _this2._setPositionForHierarchy(node1, pos1 - (1 - factor) * diff, undefined, true);
-            if (centerParent === true) {
-              _this2._centerParent(node2);
-            }
-          }
+            _this2.body.emitter.emit("_redraw");
+          });
+          console.log(window.CALLBACKS.length);
         };
 
         // method to shift all nodes closer together iteratively
