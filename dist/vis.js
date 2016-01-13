@@ -5,7 +5,7 @@
  * A dynamic, browser-based visualization library.
  *
  * @version 4.12.1-SNAPSHOT
- * @date    2016-01-12
+ * @date    2016-01-13
  *
  * @license
  * Copyright (C) 2011-2016 Almende B.V, http://almende.com
@@ -11295,10 +11295,11 @@ return /******/ (function(modules) { // webpackBootstrap
         // propagate over all elements (until stopped)
         var elem = _firstTarget;
         while (elem && !stopped) {
-          if(elem.hammer){
+          var elemHammer = elem.hammer;
+          if(elemHammer){
             var _handlers;
-            for(var k = 0; k < elem.hammer.length; k++){
-              _handlers = elem.hammer[k]._handlers[event.type];
+            for(var k = 0; k < elemHammer.length; k++){
+              _handlers = elemHammer[k]._handlers[event.type];
               if(_handlers) for (var i = 0; i < _handlers.length && !stopped; i++) {
                 _handlers[i](event);
               }
@@ -24559,40 +24560,8 @@ return /******/ (function(modules) { // webpackBootstrap
         size: 6,
         style: 'square' // square, circle
       },
-      dataAxis: {
-        showMinorLabels: true,
-        showMajorLabels: true,
-        icons: false,
-        width: '40px',
-        visible: true,
-        alignZeros: true,
-        left: {
-          range: { min: undefined, max: undefined },
-          format: function format(value) {
-            return value;
-          },
-          title: { text: undefined, style: undefined }
-        },
-        right: {
-          range: { min: undefined, max: undefined },
-          format: function format(value) {
-            return value;
-          },
-          title: { text: undefined, style: undefined }
-        }
-      },
-      legend: {
-        enabled: false,
-        icons: true,
-        left: {
-          visible: true,
-          position: 'top-left' // top/bottom - left,right
-        },
-        right: {
-          visible: true,
-          position: 'top-right' // top/bottom - left,right
-        }
-      },
+      dataAxis: {}, //Defaults are done on DataAxis level
+      legend: {}, //Defaults are done on Legend level
       groups: {
         visibility: {}
       }
@@ -25586,7 +25555,7 @@ return /******/ (function(modules) { // webpackBootstrap
       orientation: 'left', // supported: 'left', 'right'
       showMinorLabels: true,
       showMajorLabels: true,
-      icons: true,
+      icons: false,
       majorLinesOffset: 7,
       minorLinesOffset: 4,
       labelOffsetX: 10,
@@ -25598,14 +25567,14 @@ return /******/ (function(modules) { // webpackBootstrap
       left: {
         range: { min: undefined, max: undefined },
         format: function format(value) {
-          return value;
+          return '' + value.toPrecision(3);
         },
         title: { text: undefined, style: undefined }
       },
       right: {
         range: { min: undefined, max: undefined },
         format: function format(value) {
-          return value;
+          return '' + value.toPrecision(3);
         },
         title: { text: undefined, style: undefined }
       }
@@ -26354,18 +26323,11 @@ return /******/ (function(modules) { // webpackBootstrap
   DataStep.prototype.getCurrent = function () {
     // prevent round-off errors when close to zero
     var current = Math.abs(this.current) < this.step / 2 ? 0 : this.current;
-    var returnValue = current.toPrecision(5);
+    var returnValue = current;
     if (typeof this.formattingFunction === 'function') {
-      returnValue = this.formattingFunction(current);
+      return this.formattingFunction(current);
     }
-
-    if (typeof returnValue === 'number') {
-      return '' + returnValue;
-    } else if (typeof returnValue === 'string') {
-      return returnValue;
-    } else {
-      return current.toPrecision(5);
-    }
+    return '' + returnValue.toPrecision(3);
   };
 
   /**
@@ -26651,7 +26613,7 @@ return /******/ (function(modules) { // webpackBootstrap
     // plot barchart
     for (i = 0; i < combinedData.length; i++) {
       group = framework.groups[combinedData[i].groupId];
-      var minWidth = 0.1 * group.options.barChart.width;
+      var minWidth = group.options.barChart.minWidth != undefined ? group.options.barChart.minWidth : 0.1 * group.options.barChart.width;
 
       key = combinedData[i].screen_x;
       var heightOffset = 0;
@@ -26659,18 +26621,12 @@ return /******/ (function(modules) { // webpackBootstrap
         if (i + 1 < combinedData.length) {
           coreDistance = Math.abs(combinedData[i + 1].screen_x - key);
         }
-        if (i > 0) {
-          coreDistance = Math.min(coreDistance, Math.abs(combinedData[i - 1].screen_x - key));
-        }
         drawData = Bargraph._getSafeDrawData(coreDistance, group, minWidth);
       } else {
         var nextKey = i + (intersections[key].amount - intersections[key].resolved);
         var prevKey = i - (intersections[key].resolved + 1);
         if (nextKey < combinedData.length) {
           coreDistance = Math.abs(combinedData[nextKey].screen_x - key);
-        }
-        if (prevKey > 0) {
-          coreDistance = Math.min(coreDistance, Math.abs(combinedData[prevKey].screen_x - key));
         }
         drawData = Bargraph._getSafeDrawData(coreDistance, group, minWidth);
         intersections[key].resolved += 1;
@@ -26686,11 +26642,6 @@ return /******/ (function(modules) { // webpackBootstrap
         } else if (group.options.barChart.sideBySide === true) {
           drawData.width = drawData.width / intersections[key].amount;
           drawData.offset += intersections[key].resolved * drawData.width - 0.5 * drawData.width * (intersections[key].amount + 1);
-          if (group.options.barChart.align === 'left') {
-            drawData.offset -= 0.5 * drawData.width;
-          } else if (group.options.barChart.align === 'right') {
-            drawData.offset += 0.5 * drawData.width;
-          }
         }
       }
       DOMutil.drawBar(combinedData[i].screen_x + drawData.offset, combinedData[i].screen_y - heightOffset, drawData.width, group.zeroPosition - combinedData[i].screen_y, group.className + ' vis-bar', framework.svgElements, framework.svg, group.style);
@@ -27206,7 +27157,7 @@ return /******/ (function(modules) { // webpackBootstrap
   function Legend(body, options, side, linegraphOptions) {
     this.body = body;
     this.defaultOptions = {
-      enabled: true,
+      enabled: false,
       icons: true,
       iconSize: 20,
       iconSpacing: 6,
@@ -27219,6 +27170,7 @@ return /******/ (function(modules) { // webpackBootstrap
         position: 'top-left' // top/bottom - left,center,right
       }
     };
+
     this.side = side;
     this.options = util.extend({}, this.defaultOptions);
     this.linegraphOptions = linegraphOptions;
@@ -27458,6 +27410,7 @@ return /******/ (function(modules) { // webpackBootstrap
     style: { string: ['line', 'bar', 'points'] }, // line, bar
     barChart: {
       width: { number: number },
+      minWidth: { number: number },
       sideBySide: { boolean: boolean },
       align: { string: ['left', 'center', 'right'] },
       __type__: { object: object }
@@ -27597,6 +27550,7 @@ return /******/ (function(modules) { // webpackBootstrap
       style: ['line', 'bar', 'points'], // line, bar
       barChart: {
         width: [50, 5, 100, 5],
+        minWidth: [50, 5, 100, 5],
         sideBySide: false,
         align: ['left', 'center', 'right'] // left, center, right
       },
