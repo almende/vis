@@ -10,6 +10,11 @@ div.vis-configuration-wrapper {
     width:700px;
 }
 
+div.vis-configuration-wrapper::after {
+  clear: both;
+  content: "";
+  display: block;
+}
 
 div.vis-configuration.vis-config-option-container{
     display:block;
