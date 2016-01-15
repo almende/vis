@@ -10,6 +10,7 @@ http://visjs.org
 - Improved the hierarchical layout algorithm by adding a condensing method to remove whitespace.
 - Fixed #1556: Network throwing an error when clicking the "Edit" button
   on the manipulation toolbar.
+= Fixed #1334 (again): Network now ignores scroll when interaction:zoomView is false.
 
 ### Graph2d
 

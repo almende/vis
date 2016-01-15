@@ -5,7 +5,7 @@
  * A dynamic, browser-based visualization library.
  *
  * @version 4.12.1-SNAPSHOT
- * @date    2016-01-13
+ * @date    2016-01-15
  *
  * @license
  * Copyright (C) 2011-2016 Almende B.V, http://almende.com
@@ -11295,11 +11295,10 @@ return /******/ (function(modules) { // webpackBootstrap
         // propagate over all elements (until stopped)
         var elem = _firstTarget;
         while (elem && !stopped) {
-          var elemHammer = elem.hammer;
-          if(elemHammer){
+          if(elem.hammer){
             var _handlers;
-            for(var k = 0; k < elemHammer.length; k++){
-              _handlers = elemHammer[k]._handlers[event.type];
+            for(var k = 0; k < elem.hammer.length; k++){
+              _handlers = elem.hammer[k]._handlers[event.type];
               if(_handlers) for (var i = 0; i < _handlers.length && !stopped; i++) {
                 _handlers[i](event);
               }
@@ -38573,40 +38572,42 @@ return /******/ (function(modules) { // webpackBootstrap
     }, {
       key: 'onMouseWheel',
       value: function onMouseWheel(event) {
-        // retrieve delta
-        var delta = 0;
-        if (event.wheelDelta) {
-          /* IE/Opera. */
-          delta = event.wheelDelta / 120;
-        } else if (event.detail) {
-          /* Mozilla case. */
-          // In Mozilla, sign of delta is different than in IE.
-          // Also, delta is multiple of 3.
-          delta = -event.detail / 3;
-        }
-
-        // If delta is nonzero, handle it.
-        // Basically, delta is now positive if wheel was scrolled up,
-        // and negative, if wheel was scrolled down.
-        if (delta !== 0) {
-
-          // calculate the new scale
-          var scale = this.body.view.scale;
-          var zoom = delta / 10;
-          if (delta < 0) {
-            zoom = zoom / (1 - zoom);
+        if (this.options.zoomView === true) {
+          // retrieve delta
+          var delta = 0;
+          if (event.wheelDelta) {
+            /* IE/Opera. */
+            delta = event.wheelDelta / 120;
+          } else if (event.detail) {
+            /* Mozilla case. */
+            // In Mozilla, sign of delta is different than in IE.
+            // Also, delta is multiple of 3.
+            delta = -event.detail / 3;
           }
-          scale *= 1 + zoom;
 
-          // calculate the pointer location
-          var pointer = this.getPointer({ x: event.clientX, y: event.clientY });
+          // If delta is nonzero, handle it.
+          // Basically, delta is now positive if wheel was scrolled up,
+          // and negative, if wheel was scrolled down.
+          if (delta !== 0) {
 
-          // apply the new scale
-          this.zoom(scale, pointer);
+            // calculate the new scale
+            var scale = this.body.view.scale;
+            var zoom = delta / 10;
+            if (delta < 0) {
+              zoom = zoom / (1 - zoom);
+            }
+            scale *= 1 + zoom;
+
+            // calculate the pointer location
+            var pointer = this.getPointer({ x: event.clientX, y: event.clientY });
+
+            // apply the new scale
+            this.zoom(scale, pointer);
+          }
+
+          // Prevent default actions caused by mouse wheel.
+          event.preventDefault();
         }
-
-        // Prevent default actions caused by mouse wheel.
-        event.preventDefault();
       }
 
       /**
@@ -40573,82 +40574,79 @@ return /******/ (function(modules) { // webpackBootstrap
         var branchShiftCallback = function branchShiftCallback(node1, node2) {
           var centerParent = arguments.length <= 2 || arguments[2] === undefined ? false : arguments[2];
 
-          window.CALLBACKS.push(function () {
-            var pos1 = _this2._getPositionForHierarchy(node1);
-            var pos2 = _this2._getPositionForHierarchy(node2);
-            var diffAbs = Math.abs(pos2 - pos1);
-            //console.log("NOW CHEcKING:", node1.id, node2.id, diffAbs);
-            if (diffAbs > _this2.nodeSpacing) {
-              var branchNodes1 = {};branchNodes1[node1.id] = true;
-              var branchNodes2 = {};branchNodes2[node2.id] = true;
+          //window.CALLBACKS.push(() => {
+          var pos1 = _this2._getPositionForHierarchy(node1);
+          var pos2 = _this2._getPositionForHierarchy(node2);
+          var diffAbs = Math.abs(pos2 - pos1);
+          //console.log("NOW CHEcKING:", node1.id, node2.id, diffAbs);
+          if (diffAbs > _this2.nodeSpacing) {
+            var branchNodes1 = {};branchNodes1[node1.id] = true;
+            var branchNodes2 = {};branchNodes2[node2.id] = true;
 
-              getBranchNodes(node1, branchNodes1);
-              getBranchNodes(node2, branchNodes2);
+            getBranchNodes(node1, branchNodes1);
+            getBranchNodes(node2, branchNodes2);
 
-              // check the largest distance between the branches
-              var maxLevel = getCollisionLevel(node1, node2);
+            // check the largest distance between the branches
+            var maxLevel = getCollisionLevel(node1, node2);
 
-              var _getBranchBoundary = getBranchBoundary(branchNodes1, maxLevel);
+            var _getBranchBoundary = getBranchBoundary(branchNodes1, maxLevel);
 
-              var _getBranchBoundary2 = _slicedToArray(_getBranchBoundary, 4);
+            var _getBranchBoundary2 = _slicedToArray(_getBranchBoundary, 4);
 
-              var min1 = _getBranchBoundary2[0];
-              var max1 = _getBranchBoundary2[1];
-              var minSpace1 = _getBranchBoundary2[2];
-              var maxSpace1 = _getBranchBoundary2[3];
+            var min1 = _getBranchBoundary2[0];
+            var max1 = _getBranchBoundary2[1];
+            var minSpace1 = _getBranchBoundary2[2];
+            var maxSpace1 = _getBranchBoundary2[3];
 
-              var _getBranchBoundary3 = getBranchBoundary(branchNodes2, maxLevel);
+            var _getBranchBoundary3 = getBranchBoundary(branchNodes2, maxLevel);
 
-              var _getBranchBoundary32 = _slicedToArray(_getBranchBoundary3, 4);
+            var _getBranchBoundary32 = _slicedToArray(_getBranchBoundary3, 4);
 
-              var min2 = _getBranchBoundary32[0];
-              var max2 = _getBranchBoundary32[1];
-              var minSpace2 = _getBranchBoundary32[2];
-              var maxSpace2 = _getBranchBoundary32[3];
+            var min2 = _getBranchBoundary32[0];
+            var max2 = _getBranchBoundary32[1];
+            var minSpace2 = _getBranchBoundary32[2];
+            var maxSpace2 = _getBranchBoundary32[3];
 
-              //console.log(node1.id, getBranchBoundary(branchNodes1, maxLevel), node2.id, getBranchBoundary(branchNodes2, maxLevel), maxLevel);
-              var diffBranch = Math.abs(max1 - min2);
-              if (diffBranch > _this2.nodeSpacing) {
-                var offset = max1 - min2 + _this2.nodeSpacing;
-                if (offset < -minSpace2 + _this2.nodeSpacing) {
-                  offset = -minSpace2 + _this2.nodeSpacing;
-                  //console.log("RESETTING OFFSET", max1 - min2 + this.nodeSpacing, -minSpace2, offset);
-                }
-                if (offset < 0) {
-                  //console.log("SHIFTING", node2.id, offset);
-                  _this2._shiftBlock(node2.id, offset);
-                  stillShifting = true;
+            //console.log(node1.id, getBranchBoundary(branchNodes1, maxLevel), node2.id, getBranchBoundary(branchNodes2, maxLevel), maxLevel);
+            var diffBranch = Math.abs(max1 - min2);
+            if (diffBranch > _this2.nodeSpacing) {
+              var offset = max1 - min2 + _this2.nodeSpacing;
+              if (offset < -minSpace2 + _this2.nodeSpacing) {
+                offset = -minSpace2 + _this2.nodeSpacing;
+                //console.log("RESETTING OFFSET", max1 - min2 + this.nodeSpacing, -minSpace2, offset);
+              }
+              if (offset < 0) {
+                //console.log("SHIFTING", node2.id, offset);
+                _this2._shiftBlock(node2.id, offset);
+                stillShifting = true;
 
-                  if (centerParent === true) _this2._centerParent(node2);
-                }
+                if (centerParent === true) _this2._centerParent(node2);
               }
             }
-            _this2.body.emitter.emit("_redraw");
-          });
+          }
+          //this.body.emitter.emit("_redraw");})
         };
 
         // callback for shifting individual nodes
         var unitShiftCallback = function unitShiftCallback(node1, node2, centerParent) {
-          window.CALLBACKS.push(function () {
-            var pos1 = _this2._getPositionForHierarchy(node1);
-            var pos2 = _this2._getPositionForHierarchy(node2);
-            var diffAbs = Math.abs(pos2 - pos1);
-            //console.log("NOW CHEcKING:", node1.id, node2.id, diffAbs);
-            if (diffAbs > _this2.nodeSpacing) {
-              var diff = (pos1 + _this2.nodeSpacing - pos2) * _this2.whiteSpaceReductionFactor;
-              if (diff != 0) {
-                stillShifting = true;
-              }
-              var factor = node2.edges.length / (node1.edges.length + node2.edges.length);
-              _this2._setPositionForHierarchy(node2, pos2 + factor * diff, undefined, true);
-              _this2._setPositionForHierarchy(node1, pos1 - (1 - factor) * diff, undefined, true);
-              if (centerParent === true) {
-                _this2._centerParent(node2);
-              }
+          //window.CALLBACKS.push(() => {
+          var pos1 = _this2._getPositionForHierarchy(node1);
+          var pos2 = _this2._getPositionForHierarchy(node2);
+          var diffAbs = Math.abs(pos2 - pos1);
+          //console.log("NOW CHEcKING:", node1.id, node2.id, diffAbs);
+          if (diffAbs > _this2.nodeSpacing) {
+            var diff = (pos1 + _this2.nodeSpacing - pos2) * _this2.whiteSpaceReductionFactor;
+            if (diff != 0) {
+              stillShifting = true;
             }
-            _this2.body.emitter.emit("_redraw");
-          });
-          console.log(window.CALLBACKS.length);
+            var factor = node2.edges.length / (node1.edges.length + node2.edges.length);
+            _this2._setPositionForHierarchy(node2, pos2 + factor * diff, undefined, true);
+            _this2._setPositionForHierarchy(node1, pos1 - (1 - factor) * diff, undefined, true);
+            if (centerParent === true) {
+              _this2._centerParent(node2);
+            }
+          }
+          //this.body.emitter.emit("_redraw");})
         };
 
         // method to shift all nodes closer together iteratively
