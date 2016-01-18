@@ -21,7 +21,7 @@
     "network",
     "browser"
   ],
-  "main": "./dist/vis.min.js",
+  "main": "./dist/vis.js",
   "scripts": {
     "test": "mocha",
     "build": "gulp",
