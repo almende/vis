@@ -2,7 +2,7 @@
 http://visjs.org
 
 
-## not yet released, version 4.12.1-SNAPSHOT
+## not yet released, version 4.13.0-SNAPSHOT
 
 ### Network
 
@@ -10,7 +10,8 @@ http://visjs.org
 - Improved the hierarchical layout algorithm by adding a condensing method to remove whitespace.
 - Fixed #1556: Network throwing an error when clicking the "Edit" button
   on the manipulation toolbar.
-= Fixed #1334 (again): Network now ignores scroll when interaction:zoomView is false.
+- Fixed #1334 (again): Network now ignores scroll when interaction:zoomView is false.
+- Added options to customize the hierarchical layout without the use of physics.
 
 ### Graph2d
 

@@ -111,7 +111,7 @@ input.vis-configuration.vis-config-rangeinput{
     position:relative;
     top:-5px;
     width:60px;
-    height:13px;
+    /*height:13px;*/
     padding:1px;
     margin:0;
     pointer-events:none;

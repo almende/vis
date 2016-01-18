@@ -5,7 +5,7 @@
  * A dynamic, browser-based visualization library.
  *
  * @version 4.12.1-SNAPSHOT
- * @date    2016-01-15
+ * @date    2016-01-18
  *
  * @license
  * Copyright (C) 2011-2016 Almende B.V, http://almende.com
@@ -11295,10 +11295,11 @@ return /******/ (function(modules) { // webpackBootstrap
         // propagate over all elements (until stopped)
         var elem = _firstTarget;
         while (elem && !stopped) {
-          if(elem.hammer){
+          var elemHammer = elem.hammer;
+          if(elemHammer){
             var _handlers;
-            for(var k = 0; k < elem.hammer.length; k++){
-              _handlers = elem.hammer[k]._handlers[event.type];
+            for(var k = 0; k < elemHammer.length; k++){
+              _handlers = elemHammer[k]._handlers[event.type];
               if(_handlers) for (var i = 0; i < _handlers.length && !stopped; i++) {
                 _handlers[i](event);
               }
@@ -23181,6 +23182,8 @@ return /******/ (function(modules) { // webpackBootstrap
     }, {
       key: '_hide',
       value: function _hide() {
+        var _this = this;
+
         var storePrevious = arguments.length <= 0 || arguments[0] === undefined ? true : arguments[0];
 
         // store the previous color for next time;
@@ -23195,10 +23198,13 @@ return /******/ (function(modules) { // webpackBootstrap
         this.frame.style.display = 'none';
 
         // call the closing callback, restoring the onclick method.
-        if (this.closeCallback !== undefined) {
-          this.closeCallback();
-          this.closeCallback = undefined;
-        }
+        // this is in a setTimeout because it will trigger the show again before the click is done.
+        setTimeout(function () {
+          if (_this.closeCallback !== undefined) {
+            _this.closeCallback();
+            _this.closeCallback = undefined;
+          }
+        }, 0);
       }
 
       /**
@@ -23482,7 +23488,7 @@ return /******/ (function(modules) { // webpackBootstrap
     }, {
       key: '_bindHammer',
       value: function _bindHammer() {
-        var _this = this;
+        var _this2 = this;
 
         this.drag = {};
         this.pinch = {};
@@ -23490,19 +23496,19 @@ return /******/ (function(modules) { // webpackBootstrap
         this.hammer.get('pinch').set({ enable: true });
 
         hammerUtil.onTouch(this.hammer, function (event) {
-          _this._moveSelector(event);
+          _this2._moveSelector(event);
         });
         this.hammer.on('tap', function (event) {
-          _this._moveSelector(event);
+          _this2._moveSelector(event);
         });
         this.hammer.on('panstart', function (event) {
-          _this._moveSelector(event);
+          _this2._moveSelector(event);
         });
         this.hammer.on('panmove', function (event) {
-          _this._moveSelector(event);
+          _this2._moveSelector(event);
         });
         this.hammer.on('panend', function (event) {
-          _this._moveSelector(event);
+          _this2._moveSelector(event);
         });
       }
 
@@ -27844,7 +27850,6 @@ return /******/ (function(modules) { // webpackBootstrap
     var _this2 = this;
 
     if (options !== undefined) {
-
       var errorFound = _sharedValidator2['default'].validate(options, _optionsJs.allOptions);
       if (errorFound === true) {
         console.log('%cErrors have been found in the supplied options object.', _sharedValidator.printStyle);
@@ -40048,8 +40053,9 @@ return /******/ (function(modules) { // webpackBootstrap
 
       this.initialRandomSeed = Math.round(Math.random() * 1000000);
       this.randomSeed = this.initialRandomSeed;
+      this.setPhysics = false;
       this.options = {};
-      this.optionsBackup = {};
+      this.optionsBackup = { physics: {} };
 
       this.defaultOptions = {
         randomSeed: undefined,
@@ -40057,6 +40063,10 @@ return /******/ (function(modules) { // webpackBootstrap
         hierarchical: {
           enabled: false,
           levelSeparation: 150,
+          nodeSpacing: 100,
+          treeSpacing: 200,
+          blockShifting: true,
+          edgeMinimization: true,
           direction: 'UD', // UD, DU, LR, RL
           sortMethod: 'hubsize' // hubsize, directed
         }
@@ -40127,17 +40137,19 @@ return /******/ (function(modules) { // webpackBootstrap
         if (this.options.hierarchical.enabled === true) {
           // set the physics
           if (allOptions.physics === undefined || allOptions.physics === true) {
-            allOptions.physics = { solver: 'hierarchicalRepulsion' };
-            this.optionsBackup.physics = { solver: 'barnesHut' };
+            allOptions.physics = {
+              enabled: this.optionsBackup.physics.enabled === undefined ? true : this.optionsBackup.physics.enabled,
+              solver: 'hierarchicalRepulsion'
+            };
+            this.optionsBackup.physics.enabled = this.optionsBackup.physics.enabled === undefined ? true : this.optionsBackup.physics.enabled;
+            this.optionsBackup.physics.solver = this.optionsBackup.physics.solver || 'barnesHut';
           } else if (typeof allOptions.physics === 'object') {
-            this.optionsBackup.physics = { solver: 'barnesHut' };
-            if (allOptions.physics.solver !== undefined) {
-              this.optionsBackup.physics = { solver: allOptions.physics.solver };
-            }
-            allOptions.physics['solver'] = 'hierarchicalRepulsion';
+            this.optionsBackup.physics.enabled = allOptions.physics.enabled === undefined ? true : allOptions.physics.enabled;
+            this.optionsBackup.physics.solver = allOptions.physics.solver || 'barnesHut';
+            allOptions.physics.solver = 'hierarchicalRepulsion';
           } else if (allOptions.physics !== false) {
-            this.optionsBackup.physics = { solver: 'barnesHut' };
-            allOptions.physics['solver'] = 'hierarchicalRepulsion';
+            this.optionsBackup.physics.solver = 'barnesHut';
+            allOptions.physics = { solver: 'hierarchicalRepulsion' };
           }
 
           // get the type of static smooth curve in case it is required
@@ -40181,6 +40193,7 @@ return /******/ (function(modules) { // webpackBootstrap
           // force all edges into static smooth curves. Only applies to edges that do not use the global options for smooth.
           this.body.emitter.emit('_forceDisableDynamicCurves', type);
         }
+        console.log(JSON.stringify(allOptions), JSON.stringify(this.optionsBackup));
         return allOptions;
       }
     }, {
@@ -40331,6 +40344,7 @@ return /******/ (function(modules) { // webpackBootstrap
           var node = undefined,
               nodeId = undefined;
           var definedLevel = false;
+          var definedPositions = true;
           var undefinedLevel = false;
           this.hierarchicalLevels = {};
           this.lastNodeOnLevel = {};
@@ -40339,10 +40353,6 @@ return /******/ (function(modules) { // webpackBootstrap
           this.hierarchicalTrees = {};
           this.treeIndex = -1;
 
-          this.whiteSpaceReductionFactor = 0.5;
-          this.nodeSpacing = 100;
-          this.treeSpacing = 2 * this.nodeSpacing;
-
           this.distributionOrdering = {};
           this.distributionIndex = {};
           this.distributionOrderingPresence = {};
@@ -40350,6 +40360,9 @@ return /******/ (function(modules) { // webpackBootstrap
           for (nodeId in this.body.nodes) {
             if (this.body.nodes.hasOwnProperty(nodeId)) {
               node = this.body.nodes[nodeId];
+              if (node.options.x === undefined && node.options.y === undefined) {
+                definedPositions = false;
+              }
               if (node.options.level !== undefined) {
                 definedLevel = true;
                 this.hierarchicalLevels[nodeId] = node.options.level;
@@ -40385,7 +40398,7 @@ return /******/ (function(modules) { // webpackBootstrap
             this._placeNodesByHierarchy(distribution);
 
             // condense the whitespace.
-            this._condenseHierarchy(distribution);
+            this._condenseHierarchy();
 
             // shift to center so gravity does not have to do much
             this._shiftToCenter();
@@ -40398,17 +40411,20 @@ return /******/ (function(modules) { // webpackBootstrap
        */
     }, {
       key: '_condenseHierarchy',
-      value: function _condenseHierarchy(distribution) {
+      value: function _condenseHierarchy() {
         var _this2 = this;
 
+        // Global var in this scope to define when the movement has stopped.
+        var stillShifting = false;
+        var branches = {};
         // first we have some methods to help shifting trees around.
         // the main method to shift the trees
         var shiftTrees = function shiftTrees() {
           var treeSizes = getTreeSizes();
           for (var i = 0; i < treeSizes.length - 1; i++) {
             var diff = treeSizes[i].max - treeSizes[i + 1].min;
-            if (diff !== _this2.treeSpacing) {
-              shiftTree(i + 1, diff - _this2.treeSpacing);
+            if (diff !== _this2.options.hierarchical.treeSpacing) {
+              shiftTree(i + 1, diff - _this2.options.hierarchical.treeSpacing);
             }
           }
         };
@@ -40468,33 +40484,26 @@ return /******/ (function(modules) { // webpackBootstrap
           var maxLevel = arguments.length <= 1 || arguments[1] === undefined ? 1e9 : arguments[1];
 
           var minSpace = 1e9;
-          var maxSpace = -1e9;
+          var maxSpace = 1e9;
           var min = 1e9;
           var max = -1e9;
           for (var branchNode in branchMap) {
             if (branchMap.hasOwnProperty(branchNode)) {
               var node = _this2.body.nodes[branchNode];
               var level = _this2.hierarchicalLevels[node.id];
-              var index = _this2.distributionIndex[node.id];
-              var position = _this2._getPositionForHierarchy(_this2.body.nodes[node.id]);
+              var position = _this2._getPositionForHierarchy(node);
 
-              // if this is the node at the side, there is no previous node
-              if (index != 0) {
-                var prevNode = _this2.distributionOrdering[level][index - 1];
-                if (branchMap[prevNode.id] === undefined) {
-                  var prevPos = _this2._getPositionForHierarchy(prevNode);
-                  minSpace = Math.min(minSpace, position - prevPos);
-                }
-              }
+              // get the space around the node.
 
-              // if this is the node at the end there is no next node
-              if (index != _this2.distributionOrdering[level].length - 1) {
-                var nextNode = _this2.distributionOrdering[level][index + 1];
-                if (branchMap[nextNode.id] === undefined) {
-                  var nextPos = _this2._getPositionForHierarchy(nextNode);
-                  maxSpace = Math.max(maxSpace, nextPos - position);
-                }
-              }
+              var _getSpaceAroundNode2 = _this2._getSpaceAroundNode(node, branchMap);
+
+              var _getSpaceAroundNode22 = _slicedToArray(_getSpaceAroundNode2, 2);
+
+              var minSpaceNode = _getSpaceAroundNode22[0];
+              var maxSpaceNode = _getSpaceAroundNode22[1];
+
+              minSpace = Math.min(minSpaceNode, minSpace);
+              maxSpace = Math.min(maxSpaceNode, maxSpace);
 
               // the width is only relevant for the levels two nodes have in common. This is why we filter on this.
               if (level <= maxLevel) {
@@ -40503,9 +40512,6 @@ return /******/ (function(modules) { // webpackBootstrap
               }
             }
           }
-
-          // if there was no next node, the max space is infinite (1e9 ~ close enough)
-          maxSpace = maxSpace < 0 ? 1e9 : maxSpace;
 
           return [min, max, minSpace, maxSpace];
         };
@@ -40556,19 +40562,16 @@ return /******/ (function(modules) { // webpackBootstrap
             var level = levels[i];
             var levelNodes = _this2.distributionOrdering[level];
             if (levelNodes.length > 1) {
-              for (var _i = 0; _i < levelNodes.length - 1; _i++) {
-                if (hasSameParent(levelNodes[_i], levelNodes[_i + 1]) === true) {
-                  if (_this2.hierarchicalTrees[levelNodes[_i].id] === _this2.hierarchicalTrees[levelNodes[_i + 1].id]) {
-                    callback(levelNodes[_i], levelNodes[_i + 1], centerParents);
+              for (var j = 0; j < levelNodes.length - 1; j++) {
+                if (hasSameParent(levelNodes[j], levelNodes[j + 1]) === true) {
+                  if (_this2.hierarchicalTrees[levelNodes[j].id] === _this2.hierarchicalTrees[levelNodes[j + 1].id]) {
+                    callback(levelNodes[j], levelNodes[j + 1], centerParents);
                   }
                 }
               }
             }
           }
         };
-
-        // Global var in this scope to define when the movement has stopped.
-        var stillShifting = false;
 
         // callback for shifting branches
         var branchShiftCallback = function branchShiftCallback(node1, node2) {
@@ -40579,7 +40582,7 @@ return /******/ (function(modules) { // webpackBootstrap
           var pos2 = _this2._getPositionForHierarchy(node2);
           var diffAbs = Math.abs(pos2 - pos1);
           //console.log("NOW CHEcKING:", node1.id, node2.id, diffAbs);
-          if (diffAbs > _this2.nodeSpacing) {
+          if (diffAbs > _this2.options.hierarchical.nodeSpacing) {
             var branchNodes1 = {};branchNodes1[node1.id] = true;
             var branchNodes2 = {};branchNodes2[node2.id] = true;
 
@@ -40609,11 +40612,11 @@ return /******/ (function(modules) { // webpackBootstrap
 
             //console.log(node1.id, getBranchBoundary(branchNodes1, maxLevel), node2.id, getBranchBoundary(branchNodes2, maxLevel), maxLevel);
             var diffBranch = Math.abs(max1 - min2);
-            if (diffBranch > _this2.nodeSpacing) {
-              var offset = max1 - min2 + _this2.nodeSpacing;
-              if (offset < -minSpace2 + _this2.nodeSpacing) {
-                offset = -minSpace2 + _this2.nodeSpacing;
-                //console.log("RESETTING OFFSET", max1 - min2 + this.nodeSpacing, -minSpace2, offset);
+            if (diffBranch > _this2.options.hierarchical.nodeSpacing) {
+              var offset = max1 - min2 + _this2.options.hierarchical.nodeSpacing;
+              if (offset < -minSpace2 + _this2.options.hierarchical.nodeSpacing) {
+                offset = -minSpace2 + _this2.options.hierarchical.nodeSpacing;
+                //console.log("RESETTING OFFSET", max1 - min2 + this.options.hierarchical.nodeSpacing, -minSpace2, offset);
               }
               if (offset < 0) {
                 //console.log("SHIFTING", node2.id, offset);
@@ -40627,43 +40630,169 @@ return /******/ (function(modules) { // webpackBootstrap
           //this.body.emitter.emit("_redraw");})
         };
 
-        // callback for shifting individual nodes
-        var unitShiftCallback = function unitShiftCallback(node1, node2, centerParent) {
+        var minimizeEdgeLength = function minimizeEdgeLength(iterations, node) {
           //window.CALLBACKS.push(() => {
-          var pos1 = _this2._getPositionForHierarchy(node1);
-          var pos2 = _this2._getPositionForHierarchy(node2);
-          var diffAbs = Math.abs(pos2 - pos1);
-          //console.log("NOW CHEcKING:", node1.id, node2.id, diffAbs);
-          if (diffAbs > _this2.nodeSpacing) {
-            var diff = (pos1 + _this2.nodeSpacing - pos2) * _this2.whiteSpaceReductionFactor;
-            if (diff != 0) {
+          //  console.log("ts",node.id);
+          var nodeId = node.id;
+          var allEdges = node.edges;
+          var nodeLevel = _this2.hierarchicalLevels[node.id];
+
+          // gather constants
+          var C2 = _this2.options.hierarchical.levelSeparation * _this2.options.hierarchical.levelSeparation;
+          var referenceNodes = {};
+          var aboveEdges = [];
+          for (var i = 0; i < allEdges.length; i++) {
+            var edge = allEdges[i];
+            if (edge.toId != edge.fromId) {
+              var otherNode = edge.toId == nodeId ? edge.from : edge.to;
+              referenceNodes[allEdges[i].id] = otherNode;
+              if (_this2.hierarchicalLevels[otherNode.id] < nodeLevel) {
+                aboveEdges.push(edge);
+              }
+            }
+          }
+
+          // differentiated sum of lengths based on only moving one node over one axis
+          var getFx = function getFx(point, edges) {
+            var sum = 0;
+            for (var i = 0; i < edges.length; i++) {
+              if (referenceNodes[edges[i].id] !== undefined) {
+                var a = _this2._getPositionForHierarchy(referenceNodes[edges[i].id]) - point;
+                sum += a / Math.sqrt(a * a + C2);
+              }
+            }
+            return sum;
+          };
+
+          // doubly differentiated sum of lengths based on only moving one node over one axis
+          var getDFx = function getDFx(point, edges) {
+            var sum = 0;
+            for (var i = 0; i < edges.length; i++) {
+              if (referenceNodes[edges[i].id] !== undefined) {
+                var a = _this2._getPositionForHierarchy(referenceNodes[edges[i].id]) - point;
+                sum -= C2 * Math.pow(a * a + C2, -1.5);
+              }
+            }
+            return sum;
+          };
+
+          var getGuess = function getGuess(iterations, edges) {
+            var guess = _this2._getPositionForHierarchy(node);
+            // Newton's method for optimization
+            var guessMap = {};
+            for (var i = 0; i < iterations; i++) {
+              var fx = getFx(guess, edges);
+              var dfx = getDFx(guess, edges);
+
+              // we limit the movement to avoid instability.
+              var limit = 40;
+              var ratio = Math.max(-limit, Math.min(limit, Math.round(fx / dfx)));
+              guess = guess - ratio;
+              // reduce duplicates
+              if (guessMap[guess] !== undefined) {
+                break;
+              }
+              guessMap[guess] = i;
+            }
+            return guess;
+          };
+
+          var moveBranch = function moveBranch(guess) {
+            // position node if there is space
+            var nodePosition = _this2._getPositionForHierarchy(node);
+
+            // check movable area of the branch
+            if (branches[node.id] === undefined) {
+              var branchNodes = {};
+              branchNodes[node.id] = true;
+              getBranchNodes(node, branchNodes);
+              branches[node.id] = branchNodes;
+            }
+
+            var _getBranchBoundary4 = getBranchBoundary(branches[node.id]);
+
+            var _getBranchBoundary42 = _slicedToArray(_getBranchBoundary4, 4);
+
+            var minBranch = _getBranchBoundary42[0];
+            var maxBranch = _getBranchBoundary42[1];
+            var minSpaceBranch = _getBranchBoundary42[2];
+            var maxSpaceBranch = _getBranchBoundary42[3];
+
+            var diff = guess - nodePosition;
+
+            // check if we are allowed to move the node:
+            var branchOffset = 0;
+            if (diff > 0) {
+              branchOffset = Math.min(diff, maxSpaceBranch - _this2.options.hierarchical.nodeSpacing);
+            } else if (diff < 0) {
+              branchOffset = -Math.min(-diff, minSpaceBranch - _this2.options.hierarchical.nodeSpacing);
+            }
+
+            if (branchOffset != 0) {
+              //console.log("moving branch:",branchOffset, maxSpaceBranch, minSpaceBranch)
+              _this2._shiftBlock(node.id, branchOffset);
+              //this.body.emitter.emit("_redraw");
               stillShifting = true;
             }
-            var factor = node2.edges.length / (node1.edges.length + node2.edges.length);
-            _this2._setPositionForHierarchy(node2, pos2 + factor * diff, undefined, true);
-            _this2._setPositionForHierarchy(node1, pos1 - (1 - factor) * diff, undefined, true);
-            if (centerParent === true) {
-              _this2._centerParent(node2);
-            }
-          }
-          //this.body.emitter.emit("_redraw");})
-        };
+          };
 
-        // method to shift all nodes closer together iteratively
-        var shiftUnitsCloser = function shiftUnitsCloser(iterations) {
-          var levels = Object.keys(_this2.distributionOrdering);
-          for (var i = 0; i < iterations; i++) {
-            stillShifting = false;
-            shiftElementsCloser(unitShiftCallback, levels, false);
-            if (stillShifting !== true) {
-              //console.log("FINISHED shiftUnitsCloser IN " + i);
-              break;
+          var moveNode = function moveNode(guess) {
+            var nodePosition = _this2._getPositionForHierarchy(node);
+
+            // position node if there is space
+
+            var _getSpaceAroundNode3 = _this2._getSpaceAroundNode(node);
+
+            var _getSpaceAroundNode32 = _slicedToArray(_getSpaceAroundNode3, 2);
+
+            var minSpace = _getSpaceAroundNode32[0];
+            var maxSpace = _getSpaceAroundNode32[1];
+
+            var diff = guess - nodePosition;
+            // check if we are allowed to move the node:
+            var newPosition = nodePosition;
+            if (diff > 0) {
+              newPosition = Math.min(nodePosition + (maxSpace - _this2.options.hierarchical.nodeSpacing), guess);
+            } else if (diff < 0) {
+              newPosition = Math.max(nodePosition - (minSpace - _this2.options.hierarchical.nodeSpacing), guess);
             }
-          }
-          //console.log("FINISHED shiftUnitsCloser IN " + iterations);
+
+            if (newPosition !== nodePosition) {
+              //console.log("moving Node:",diff, minSpace, maxSpace)
+              _this2._setPositionForHierarchy(node, newPosition, undefined, true);
+              //this.body.emitter.emit("_redraw");
+              stillShifting = true;
+            }
+          };
+
+          var guess = getGuess(iterations, aboveEdges);
+          moveBranch(guess);
+          guess = getGuess(iterations, allEdges);
+          moveNode(guess);
+          //})
         };
 
         // method to remove whitespace between branches. Because we do bottom up, we can center the parents.
+        var minimizeEdgeLengthBottomUp = function minimizeEdgeLengthBottomUp(iterations) {
+          var levels = Object.keys(_this2.distributionOrdering);
+          levels = levels.reverse();
+          for (var i = 0; i < iterations; i++) {
+            stillShifting = false;
+            for (var j = 0; j < levels.length; j++) {
+              var level = levels[j];
+              var levelNodes = _this2.distributionOrdering[level];
+              for (var k = 0; k < levelNodes.length; k++) {
+                minimizeEdgeLength(1000, levelNodes[k]);
+              }
+            }
+            if (stillShifting !== true) {
+              //console.log("FINISHED minimizeEdgeLengthBottomUp IN " + i);
+              break;
+            }
+          }
+        };
+
+        //// method to remove whitespace between branches. Because we do bottom up, we can center the parents.
         var shiftBranchesCloserBottomUp = function shiftBranchesCloserBottomUp(iterations) {
           var levels = Object.keys(_this2.distributionOrdering);
           levels = levels.reverse();
@@ -40671,7 +40800,7 @@ return /******/ (function(modules) { // webpackBootstrap
             stillShifting = false;
             shiftElementsCloser(branchShiftCallback, levels, true);
             if (stillShifting !== true) {
-              //console.log("FINISHED shiftBranchesCloserBottomUp IN " + i);
+              //console.log("FINISHED shiftBranchesCloserBottomUp IN " + (i+1));
               break;
             }
           }
@@ -40679,16 +40808,62 @@ return /******/ (function(modules) { // webpackBootstrap
 
         // center all parents
         var centerAllParents = function centerAllParents() {
-          for (var node in _this2.body.nodes) {
-            _this2._centerParent(_this2.body.nodes[node]);
+          for (var nodeId in _this2.body.nodes) {
+            if (_this2.body.nodes.hasOwnProperty(nodeId)) _this2._centerParent(_this2.body.nodes[nodeId]);
           }
         };
 
         // the actual work is done here.
-        shiftBranchesCloserBottomUp(5);
-        centerAllParents();
-        shiftUnitsCloser(2);
+        if (this.options.hierarchical.blockShifting === true) {
+          shiftBranchesCloserBottomUp(5);
+          centerAllParents();
+        }
+
+        // minimize edge length
+        if (this.options.hierarchical.edgeMinimization === true) {
+          minimizeEdgeLengthBottomUp(20);
+        }
+
         shiftTrees();
+      }
+
+      /**
+       * This gives the space around the node. IF a map is supplied, it will only check against nodes NOT in the map.
+       * This is used to only get the distances to nodes outside of a branch.
+       * @param node
+       * @param map
+       * @returns {*[]}
+       * @private
+       */
+    }, {
+      key: '_getSpaceAroundNode',
+      value: function _getSpaceAroundNode(node, map) {
+        var useMap = true;
+        if (map === undefined) {
+          useMap = false;
+        }
+        var level = this.hierarchicalLevels[node.id];
+        var index = this.distributionIndex[node.id];
+        var position = this._getPositionForHierarchy(node);
+        var minSpace = 1e9;
+        var maxSpace = 1e9;
+        if (index !== 0) {
+          var prevNode = this.distributionOrdering[level][index - 1];
+          if (useMap === true && map[prevNode.id] === undefined || useMap === false) {
+            var prevPos = this._getPositionForHierarchy(prevNode);
+            minSpace = position - prevPos;
+          }
+        }
+
+        if (index != this.distributionOrdering[level].length - 1) {
+          var nextNode = this.distributionOrdering[level][index + 1];
+          if (useMap === true && map[nextNode.id] === undefined || useMap === false) {
+            var nextPos = this._getPositionForHierarchy(nextNode);
+            maxSpace = Math.min(maxSpace, nextPos - position);
+          }
+        }
+
+        return [minSpace, maxSpace];
       }
 
       /**
@@ -40710,32 +40885,25 @@ return /******/ (function(modules) { // webpackBootstrap
               var maxPos = -1e9;
               var children = this.hierarchicalParents[parentId].children;
               if (children.length > 0) {
-                for (var _i2 = 0; _i2 < children.length; _i2++) {
-                  var childNode = this.body.nodes[children[_i2]];
+                for (var _i = 0; _i < children.length; _i++) {
+                  var childNode = this.body.nodes[children[_i]];
                   minPos = Math.min(minPos, this._getPositionForHierarchy(childNode));
                   maxPos = Math.max(maxPos, this._getPositionForHierarchy(childNode));
                 }
               }
 
-              var level = this.hierarchicalLevels[parentId];
-              var index = this.distributionIndex[parentId];
               var position = this._getPositionForHierarchy(parentNode);
-              var minSpace = 1e9;
-              var maxSpace = 1e9;
-              if (index != 0) {
-                var prevNode = this.distributionOrdering[level][index - 1];
-                var prevPos = this._getPositionForHierarchy(prevNode);
-                minSpace = position - prevPos;
-              }
 
-              if (index != this.distributionOrdering[level].length - 1) {
-                var nextNode = this.distributionOrdering[level][index + 1];
-                var nextPos = this._getPositionForHierarchy(nextNode);
-                maxSpace = Math.min(maxSpace, nextPos - position);
-              }
+              var _getSpaceAroundNode4 = this._getSpaceAroundNode(parentNode);
+
+              var _getSpaceAroundNode42 = _slicedToArray(_getSpaceAroundNode4, 2);
+
+              var minSpace = _getSpaceAroundNode42[0];
+              var maxSpace = _getSpaceAroundNode42[1];
 
               var newPosition = 0.5 * (minPos + maxPos);
-              if (newPosition < position + maxSpace && newPosition > position - minSpace) {
+              var diff = position - newPosition;
+              if (diff < 0 && Math.abs(diff) < maxSpace - this.options.hierarchical.nodeSpacing || diff > 0 && Math.abs(diff) < minSpace - this.options.hierarchical.nodeSpacing) {
                 this._setPositionForHierarchy(parentNode, newPosition, undefined, true);
               }
             }
@@ -40764,7 +40932,7 @@ return /******/ (function(modules) { // webpackBootstrap
             for (var i = 0; i < nodeArray.length; i++) {
               var node = nodeArray[i];
               if (this.positionedNodes[node.id] === undefined) {
-                this._setPositionForHierarchy(node, this.nodeSpacing * i, level);
+                this._setPositionForHierarchy(node, this.options.hierarchical.nodeSpacing * i, level);
                 this.positionedNodes[node.id] = true;
                 this._placeBranchNodes(node.id, level);
               }
@@ -40967,8 +41135,6 @@ return /******/ (function(modules) { // webpackBootstrap
 
       /**
        * Update the bookkeeping of parent and child.
-       * @param parentNodeId
-       * @param childNodeId
        * @private
        */
     }, {
@@ -41079,15 +41245,15 @@ return /******/ (function(modules) { // webpackBootstrap
             if (i === 0) {
               pos = this._getPositionForHierarchy(this.body.nodes[parentId]);
             } else {
-              pos = this._getPositionForHierarchy(childNodes[i - 1]) + this.nodeSpacing;
+              pos = this._getPositionForHierarchy(childNodes[i - 1]) + this.options.hierarchical.nodeSpacing;
             }
             this._setPositionForHierarchy(childNode, pos, childNodeLevel);
 
             // if overlap has been detected, we shift the branch
             if (this.lastNodeOnLevel[childNodeLevel] !== undefined) {
               var previousPos = this._getPositionForHierarchy(this.body.nodes[this.lastNodeOnLevel[childNodeLevel]]);
-              if (pos - previousPos < this.nodeSpacing) {
-                var diff = previousPos + this.nodeSpacing - pos;
+              if (pos - previousPos < this.options.hierarchical.nodeSpacing) {
+                var diff = previousPos + this.options.hierarchical.nodeSpacing - pos;
                 var sharedParent = this._findCommonParent(this.lastNodeOnLevel[childNodeLevel], childNode.id);
                 this._shiftBlock(sharedParent.withChild, diff);
               }
@@ -42620,6 +42786,10 @@ return /******/ (function(modules) { // webpackBootstrap
       hierarchical: {
         enabled: { boolean: boolean },
         levelSeparation: { number: number },
+        nodeSpacing: { number: number },
+        treeSpacing: { number: number },
+        blockShifting: { boolean: boolean },
+        edgeMinimization: { boolean: boolean },
         direction: { string: ['UD', 'DU', 'LR', 'RL'] }, // UD, DU, LR, RL
         sortMethod: { string: ['hubsize', 'directed'] }, // hubsize, directed
         __type__: { object: object, boolean: boolean }
@@ -42919,6 +43089,10 @@ return /******/ (function(modules) { // webpackBootstrap
       hierarchical: {
         enabled: false,
         levelSeparation: [150, 20, 500, 5],
+        nodeSpacing: [100, 20, 500, 5],
+        treeSpacing: [200, 20, 500, 5],
+        blockShifting: true,
+        edgeMinimization: true,
         direction: ['UD', 'DU', 'LR', 'RL'], // UD, DU, LR, RL
         sortMethod: ['hubsize', 'directed'] // hubsize, directed
       }
