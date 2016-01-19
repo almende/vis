@@ -12,6 +12,7 @@ http://visjs.org
   on the manipulation toolbar.
 - Fixed #1334 (again): Network now ignores scroll when interaction:zoomView is false.
 - Added options to customize the hierarchical layout without the use of physics.
+- Fixed #1588: destroy now unsubscribed from the dataset.
 
 ### Graph2d
 
