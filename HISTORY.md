@@ -18,6 +18,8 @@ http://visjs.org
 ### Graph2d
 
 - Fixes #1557: Fix default axis formatting function.
+- Cleanup of linegraph's event handling.
+- Fixed #1017: Fixed minWidth behavior for bars.
 
 ## 2016-01-08, version 4.12.0
 
