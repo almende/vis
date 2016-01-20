@@ -5,7 +5,7 @@
  * A dynamic, browser-based visualization library.
  *
  * @version 4.12.1-SNAPSHOT
- * @date    2016-01-18
+ * @date    2016-01-19
  *
  * @license
  * Copyright (C) 2011-2016 Almende B.V, http://almende.com
@@ -28577,6 +28577,9 @@ return /******/ (function(modules) { // webpackBootstrap
         this.body.emitter.on('refreshNodes', this.refresh.bind(this));
         this.body.emitter.on('refresh', this.refresh.bind(this));
         this.body.emitter.on('destroy', function () {
+          util.forEach(_this2.nodesListeners, function (callback, event) {
+            if (_this2.body.data.nodes) _this2.body.data.nodes.off(event, callback);
+          });
           delete _this2.body.functions.createNode;
           delete _this2.nodesListeners.add;
           delete _this2.nodesListeners.update;
@@ -31517,6 +31520,9 @@ return /******/ (function(modules) { // webpackBootstrap
         this.body.emitter.on("refreshEdges", this.refresh.bind(this));
         this.body.emitter.on("refresh", this.refresh.bind(this));
         this.body.emitter.on("destroy", function () {
+          util.forEach(_this2.edgesListeners, function (callback, event) {
+            if (_this2.body.data.edges) _this2.body.data.edges.off(event, callback);
+          });
           delete _this2.body.functions.createEdge;
           delete _this2.edgesListeners.add;
           delete _this2.edgesListeners.update;

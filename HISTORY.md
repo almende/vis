@@ -12,6 +12,7 @@ http://visjs.org
 - Fixed #1556: Network throwing an error when clicking the "Edit" button
   on the manipulation toolbar.
 - Fixed #1334 (again): Network now ignores scroll when interaction:zoomView is false.
+- Fixed #1588: destroy now unsubscribed from the dataset.
 - Fixed #1584: Navigation buttons broken.
 
 ### Graph2d
