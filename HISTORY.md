@@ -6,12 +6,13 @@ http://visjs.org
 
 ### Network
 
+- Added options to customize the hierarchical layout without the use of physics.
 - Altered edges for arrows and added the arrowStrikethrough option.
 - Improved the hierarchical layout algorithm by adding a condensing method to remove whitespace.
 - Fixed #1556: Network throwing an error when clicking the "Edit" button
   on the manipulation toolbar.
 - Fixed #1334 (again): Network now ignores scroll when interaction:zoomView is false.
-- Added options to customize the hierarchical layout without the use of physics.
+- Fixed #1584: Navigation buttons broken.
 
 ### Graph2d
 
