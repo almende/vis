@@ -15,11 +15,16 @@ http://visjs.org
 - Fixed #1588: destroy now unsubscribed from the dataset.
 - Fixed #1584: Navigation buttons broken.
 
+### Timeline
+
+- Fixed #1592: Emit a "changed" event after each redraw.
+
 ### Graph2d
 
-- Fixes #1557: Fix default axis formatting function.
+- Fixed #1592: Emit a "changed" event after each redraw.
 - Cleanup of linegraph's event handling.
 - Fixed #1017: Fixed minWidth behavior for bars.
+- Fixes #1557: Fix default axis formatting function.
 
 ## 2016-01-08, version 4.12.0
 
