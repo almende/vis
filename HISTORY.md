@@ -17,11 +17,14 @@ http://visjs.org
 
 ### Timeline
 
+- Moved initial autoscale/fit method to an handler of the "changed" event.
+- Fixed #1580: Invisible timeline/graph should not be drawn, as most inputs are invalid
 - Fixed #1521: Prevent items from staying stuck to the left side of the viewport.
 - Fixed #1592: Emit a "changed" event after each redraw.
 
 ### Graph2d
 
+- Fixed #1580: Invisible timeline/graph should not be drawn, as most inputs are invalid
 - Fixed #1177: Fix custom range of slaved right axis.
 - Fixed #1592: Emit a "changed" event after each redraw.
 - Cleanup of linegraph's event handling.
