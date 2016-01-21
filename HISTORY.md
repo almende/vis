@@ -21,6 +21,7 @@ http://visjs.org
 
 ### Graph2d
 
+- Fixed #1177: Fix custom range of slaved right axis.
 - Fixed #1592: Emit a "changed" event after each redraw.
 - Cleanup of linegraph's event handling.
 - Fixed #1017: Fixed minWidth behavior for bars.
