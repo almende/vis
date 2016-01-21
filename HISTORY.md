@@ -17,6 +17,7 @@ http://visjs.org
 
 ### Timeline
 
+- Fixed #1521: Prevent items from staying stuck to the left side of the viewport.
 - Fixed #1592: Emit a "changed" event after each redraw.
 
 ### Graph2d
