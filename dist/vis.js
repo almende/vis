@@ -40206,7 +40206,7 @@ return /******/ (function(modules) { // webpackBootstrap
           // force all edges into static smooth curves. Only applies to edges that do not use the global options for smooth.
           this.body.emitter.emit('_forceDisableDynamicCurves', type);
         }
-        console.log(JSON.stringify(allOptions), JSON.stringify(this.optionsBackup));
+
         return allOptions;
       }
     }, {
@@ -40401,6 +40401,14 @@ return /******/ (function(modules) { // webpackBootstrap
               }
             }
 
+            // fallback for cases where there are nodes but no edges
+            for (var _nodeId in this.body.nodes) {
+              if (this.body.nodes.hasOwnProperty(_nodeId)) {
+                if (this.hierarchicalLevels[_nodeId] === undefined) {
+                  this.hierarchicalLevels[_nodeId] = 0;
+                }
+              }
+            }
             // check the distribution of the nodes per level.
             var distribution = this._getDistribution();
 
@@ -40466,7 +40474,7 @@ return /******/ (function(modules) { // webpackBootstrap
               }
             }
           }
-          return [min, max];
+          return { min: min, max: max };
         };
 
         // get the width of all trees
@@ -40856,27 +40864,31 @@ return /******/ (function(modules) { // webpackBootstrap
           useMap = false;
         }
         var level = this.hierarchicalLevels[node.id];
-        var index = this.distributionIndex[node.id];
-        var position = this._getPositionForHierarchy(node);
-        var minSpace = 1e9;
-        var maxSpace = 1e9;
-        if (index !== 0) {
-          var prevNode = this.distributionOrdering[level][index - 1];
-          if (useMap === true && map[prevNode.id] === undefined || useMap === false) {
-            var prevPos = this._getPositionForHierarchy(prevNode);
-            minSpace = position - prevPos;
+        if (level !== undefined) {
+          var index = this.distributionIndex[node.id];
+          var position = this._getPositionForHierarchy(node);
+          var minSpace = 1e9;
+          var maxSpace = 1e9;
+          if (index !== 0) {
+            var prevNode = this.distributionOrdering[level][index - 1];
+            if (useMap === true && map[prevNode.id] === undefined || useMap === false) {
+              var prevPos = this._getPositionForHierarchy(prevNode);
+              minSpace = position - prevPos;
+            }
           }
-        }
 
-        if (index != this.distributionOrdering[level].length - 1) {
-          var nextNode = this.distributionOrdering[level][index + 1];
-          if (useMap === true && map[nextNode.id] === undefined || useMap === false) {
-            var nextPos = this._getPositionForHierarchy(nextNode);
-            maxSpace = Math.min(maxSpace, nextPos - position);
+          if (index != this.distributionOrdering[level].length - 1) {
+            var nextNode = this.distributionOrdering[level][index + 1];
+            if (useMap === true && map[nextNode.id] === undefined || useMap === false) {
+              var nextPos = this._getPositionForHierarchy(nextNode);
+              maxSpace = Math.min(maxSpace, nextPos - position);
+            }
           }
-        }
 
-        return [minSpace, maxSpace];
+          return [minSpace, maxSpace];
+        } else {
+          return [0, 0];
+        }
       }
 
       /**
@@ -41134,14 +41146,18 @@ return /******/ (function(modules) { // webpackBootstrap
         // get the minimum level
         for (var nodeId in this.body.nodes) {
           if (this.body.nodes.hasOwnProperty(nodeId)) {
-            minLevel = Math.min(this.hierarchicalLevels[nodeId], minLevel);
+            if (this.hierarchicalLevels[nodeId] !== undefined) {
+              minLevel = Math.min(this.hierarchicalLevels[nodeId], minLevel);
+            }
           }
         }
 
         // subtract the minimum from the set so we have a range starting from 0
         for (var nodeId in this.body.nodes) {
           if (this.body.nodes.hasOwnProperty(nodeId)) {
-            this.hierarchicalLevels[nodeId] -= minLevel;
+            if (this.hierarchicalLevels[nodeId] !== undefined) {
+              this.hierarchicalLevels[nodeId] -= minLevel;
+            }
           }
         }
       }
@@ -41190,15 +41206,17 @@ return /******/ (function(modules) { // webpackBootstrap
             progress[node.id] = true;
             var childNode = undefined;
             for (var i = 0; i < node.edges.length; i++) {
-              if (node.edges[i].toId === node.id) {
-                childNode = node.edges[i].from;
-              } else {
-                childNode = node.edges[i].to;
-              }
+              if (node.edges[i].connected === true) {
+                if (node.edges[i].toId === node.id) {
+                  childNode = node.edges[i].from;
+                } else {
+                  childNode = node.edges[i].to;
+                }
 
-              if (node.id !== childNode.id) {
-                callback(node, childNode, node.edges[i]);
-                crawler(childNode);
+                if (node.id !== childNode.id) {
+                  callback(node, childNode, node.edges[i]);
+                  crawler(childNode);
+                }
               }
             }
           }
@@ -41402,6 +41420,7 @@ return /******/ (function(modules) { // webpackBootstrap
             }
           }
         }
+
         if (this.options.hierarchical.direction === 'UD' || this.options.hierarchical.direction === 'DU') {
           node.x = position;
         } else {

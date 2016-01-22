@@ -15,6 +15,7 @@ http://visjs.org
 - Fixed #1588: destroy now unsubscribed from the dataset.
 - Fixed #1584: Navigation buttons broken.
 - Fixed #1596: correct clean up of manipulation dom elements.
+- Fixed #1594: bug in hierarchical layout.
 
 ### Timeline
 
