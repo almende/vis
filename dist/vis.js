@@ -5,7 +5,7 @@
  * A dynamic, browser-based visualization library.
  *
  * @version 4.12.1-SNAPSHOT
- * @date    2016-01-22
+ * @date    2016-01-23
  *
  * @license
  * Copyright (C) 2011-2016 Almende B.V, http://almende.com
@@ -29869,11 +29869,14 @@ return /******/ (function(modules) { // webpackBootstrap
 
         //draw dashed border if enabled, save and restore is required for firefox not to crash on unix.
         ctx.save();
-        this.enableBorderDashes(ctx);
-        //draw the border
-        ctx.stroke();
-        //disable dashed border for other elements
-        this.disableBorderDashes(ctx);
+        // if borders are zero width, they will be drawn with width 1 by default. This prevents that
+        if (borderWidth > 0) {
+          this.enableBorderDashes(ctx);
+          //draw the border
+          ctx.stroke();
+          //disable dashed border for other elements
+          this.disableBorderDashes(ctx);
+        }
         ctx.restore();
 
         this.updateBoundingBox(x, y, ctx, selected);
@@ -30189,14 +30192,12 @@ return /******/ (function(modules) { // webpackBootstrap
     }, {
       key: '_drawRawCircle',
       value: function _drawRawCircle(ctx, x, y, selected, hover, size) {
-        var borderWidth = this.options.borderWidth;
+        var neutralborderWidth = this.options.borderWidth;
         var selectionLineWidth = this.options.borderWidthSelected || 2 * this.options.borderWidth;
+        var borderWidth = (selected ? selectionLineWidth : neutralborderWidth) / this.body.view.scale;
+        ctx.lineWidth = Math.min(this.width, borderWidth);
 
         ctx.strokeStyle = selected ? this.options.color.highlight.border : hover ? this.options.color.hover.border : this.options.color.border;
-
-        ctx.lineWidth = selected ? selectionLineWidth : borderWidth;
-        ctx.lineWidth *= this.networkScaleInv;
-        ctx.lineWidth = Math.min(this.width, ctx.lineWidth);
         ctx.fillStyle = selected ? this.options.color.highlight.background : hover ? this.options.color.hover.background : this.options.color.background;
         ctx.circle(x, y, size);
 
@@ -30209,11 +30210,14 @@ return /******/ (function(modules) { // webpackBootstrap
 
         //draw dashed border if enabled, save and restore is required for firefox not to crash on unix.
         ctx.save();
-        this.enableBorderDashes(ctx);
-        //draw the border
-        ctx.stroke();
-        //disable dashed border for other elements
-        this.disableBorderDashes(ctx);
+        // if borders are zero width, they will be drawn with width 1 by default. This prevents that
+        if (borderWidth > 0) {
+          this.enableBorderDashes(ctx);
+          //draw the border
+          ctx.stroke();
+          //disable dashed border for other elements
+          this.disableBorderDashes(ctx);
+        }
         ctx.restore();
       }
     }, {
@@ -30420,13 +30424,12 @@ return /******/ (function(modules) { // webpackBootstrap
         this.left = x - this.width / 2;
         this.top = y - this.height / 2;
 
-        var borderWidth = this.options.borderWidth;
+        var neutralborderWidth = this.options.borderWidth;
         var selectionLineWidth = this.options.borderWidthSelected || 2 * this.options.borderWidth;
+        var borderWidth = (selected ? selectionLineWidth : neutralborderWidth) / this.body.view.scale;
+        ctx.lineWidth = Math.min(this.width, borderWidth);
 
         ctx.strokeStyle = selected ? this.options.color.highlight.border : hover ? this.options.color.hover.border : this.options.color.border;
-        ctx.lineWidth = this.selected ? selectionLineWidth : borderWidth;
-        ctx.lineWidth *= this.networkScaleInv;
-        ctx.lineWidth = Math.min(this.width, ctx.lineWidth);
 
         ctx.fillStyle = selected ? this.options.color.highlight.background : hover ? this.options.color.hover.background : this.options.color.background;
         ctx.database(x - this.width / 2, y - this.height * 0.5, this.width, this.height);
@@ -30440,11 +30443,14 @@ return /******/ (function(modules) { // webpackBootstrap
 
         //draw dashed border if enabled, save and restore is required for firefox not to crash on unix.
         ctx.save();
-        this.enableBorderDashes(ctx);
-        //draw the border
-        ctx.stroke();
-        //disable dashed border for other elements
-        this.disableBorderDashes(ctx);
+        // if borders are zero width, they will be drawn with width 1 by default. This prevents that
+        if (borderWidth > 0) {
+          this.enableBorderDashes(ctx);
+          //draw the border
+          ctx.stroke();
+          //disable dashed border for other elements
+          this.disableBorderDashes(ctx);
+        }
         ctx.restore();
 
         this.updateBoundingBox(x, y, ctx, selected);
@@ -30583,13 +30589,12 @@ return /******/ (function(modules) { // webpackBootstrap
         this.left = x - this.width / 2;
         this.top = y - this.height / 2;
 
-        var borderWidth = this.options.borderWidth;
+        var neutralborderWidth = this.options.borderWidth;
         var selectionLineWidth = this.options.borderWidthSelected || 2 * this.options.borderWidth;
+        var borderWidth = (selected ? selectionLineWidth : neutralborderWidth) / this.body.view.scale;
+        ctx.lineWidth = Math.min(this.width, borderWidth);
 
         ctx.strokeStyle = selected ? this.options.color.highlight.border : hover ? this.options.color.hover.border : this.options.color.border;
-        ctx.lineWidth = selected ? selectionLineWidth : borderWidth;
-        ctx.lineWidth /= this.body.view.scale;
-        ctx.lineWidth = Math.min(this.width, ctx.lineWidth);
         ctx.fillStyle = selected ? this.options.color.highlight.background : hover ? this.options.color.hover.background : this.options.color.background;
         ctx[shape](x, y, this.options.size);
 
@@ -30602,11 +30607,14 @@ return /******/ (function(modules) { // webpackBootstrap
 
         //draw dashed border if enabled, save and restore is required for firefox not to crash on unix.
         ctx.save();
-        this.enableBorderDashes(ctx);
-        //draw the border
-        ctx.stroke();
-        //disable dashed border for other elements
-        this.disableBorderDashes(ctx);
+        // if borders are zero width, they will be drawn with width 1 by default. This prevents that
+        if (borderWidth > 0) {
+          this.enableBorderDashes(ctx);
+          //draw the border
+          ctx.stroke();
+          //disable dashed border for other elements
+          this.disableBorderDashes(ctx);
+        }
         ctx.restore();
 
         if (this.options.label !== undefined) {
@@ -30749,14 +30757,12 @@ return /******/ (function(modules) { // webpackBootstrap
         this.left = x - this.width * 0.5;
         this.top = y - this.height * 0.5;
 
-        var borderWidth = this.options.borderWidth;
+        var neutralborderWidth = this.options.borderWidth;
         var selectionLineWidth = this.options.borderWidthSelected || 2 * this.options.borderWidth;
+        var borderWidth = (selected ? selectionLineWidth : neutralborderWidth) / this.body.view.scale;
+        ctx.lineWidth = Math.min(this.width, borderWidth);
 
         ctx.strokeStyle = selected ? this.options.color.highlight.border : hover ? this.options.color.hover.border : this.options.color.border;
-
-        ctx.lineWidth = selected ? selectionLineWidth : borderWidth;
-        ctx.lineWidth /= this.body.view.scale;
-        ctx.lineWidth = Math.min(this.width, ctx.lineWidth);
 
         ctx.fillStyle = selected ? this.options.color.highlight.background : hover ? this.options.color.hover.background : this.options.color.background;
         ctx.ellipse(this.left, this.top, this.width, this.height);
@@ -30770,11 +30776,16 @@ return /******/ (function(modules) { // webpackBootstrap
 
         //draw dashed border if enabled, save and restore is required for firefox not to crash on unix.
         ctx.save();
-        this.enableBorderDashes(ctx);
-        //draw the border
-        ctx.stroke();
-        //disable dashed border for other elements
-        this.disableBorderDashes(ctx);
+
+        // if borders are zero width, they will be drawn with width 1 by default. This prevents that
+        if (borderWidth > 0) {
+          this.enableBorderDashes(ctx);
+          //draw the border
+          ctx.stroke();
+          //disable dashed border for other elements
+          this.disableBorderDashes(ctx);
+        }
+
         ctx.restore();
 
         this.updateBoundingBox(x, y, ctx, selected);
@@ -30973,17 +30984,15 @@ return /******/ (function(modules) { // webpackBootstrap
         this.top = y - this.height / 2;
 
         if (this.options.shapeProperties.useBorderWithImage === true) {
-          var borderWidth = this.options.borderWidth;
-
+          var neutralborderWidth = this.options.borderWidth;
           var selectionLineWidth = this.options.borderWidthSelected || 2 * this.options.borderWidth;
+          var borderWidth = (selected ? selectionLineWidth : neutralborderWidth) / this.body.view.scale;
+          ctx.lineWidth = Math.min(this.width, borderWidth);
 
           ctx.beginPath();
 
           // setup the line properties.
           ctx.strokeStyle = selected ? this.options.color.highlight.border : hover ? this.options.color.hover.border : this.options.color.border;
-          ctx.lineWidth = selected ? selectionLineWidth : borderWidth;
-          ctx.lineWidth /= this.body.view.scale;
-          ctx.lineWidth = Math.min(this.width, ctx.lineWidth);
 
           // set a fillstyle
           ctx.fillStyle = selected ? this.options.color.highlight.background : hover ? this.options.color.hover.background : this.options.color.background;
@@ -30994,11 +31003,14 @@ return /******/ (function(modules) { // webpackBootstrap
 
           //draw dashed border if enabled, save and restore is required for firefox not to crash on unix.
           ctx.save();
-          this.enableBorderDashes(ctx);
-          //draw the border
-          ctx.stroke();
-          //disable dashed border for other elements
-          this.disableBorderDashes(ctx);
+          // if borders are zero width, they will be drawn with width 1 by default. This prevents that
+          if (borderWidth > 0) {
+            this.enableBorderDashes(ctx);
+            //draw the border
+            ctx.stroke();
+            //disable dashed border for other elements
+            this.disableBorderDashes(ctx);
+          }
           ctx.restore();
 
           ctx.closePath();
