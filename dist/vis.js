@@ -5,7 +5,7 @@
  * A dynamic, browser-based visualization library.
  *
  * @version 4.12.1-SNAPSHOT
- * @date    2016-01-19
+ * @date    2016-01-23
  *
  * @license
  * Copyright (C) 2011-2016 Almende B.V, http://almende.com
@@ -10648,6 +10648,27 @@ return /******/ (function(modules) { // webpackBootstrap
       me.emit('contextmenu', me.getEventProperties(event));
     };
 
+    //Single time autoscale/fit
+    this.fitDone = false;
+    this.on('changed', function () {
+      if (this.itemsData == null) return;
+      if (!me.fitDone) {
+        me.fitDone = true;
+        if (me.options.start != undefined || me.options.end != undefined) {
+          if (me.options.start == undefined || me.options.end == undefined) {
+            var range = me.getItemRange();
+          }
+
+          var start = me.options.start != undefined ? me.options.start : range.min;
+          var end = me.options.end != undefined ? me.options.end : range.max;
+
+          me.setWindow(start, end, { animation: false });
+        } else {
+          me.fit({ animation: false });
+        }
+      }
+    });
+
     // apply options
     if (options) {
       this.setOptions(options);
@@ -10720,8 +10741,6 @@ return /******/ (function(modules) { // webpackBootstrap
    * @param {vis.DataSet | Array | null} items
    */
   Timeline.prototype.setItems = function (items) {
-    var initialLoad = this.itemsData == null;
-
     // convert to type DataSet when needed
     var newDataSet;
     if (!items) {
@@ -10742,20 +10761,7 @@ return /******/ (function(modules) { // webpackBootstrap
     this.itemsData = newDataSet;
     this.itemSet && this.itemSet.setItems(newDataSet);
 
-    if (initialLoad) {
-      if (this.options.start != undefined || this.options.end != undefined) {
-        if (this.options.start == undefined || this.options.end == undefined) {
-          var range = this.getItemRange();
-        }
-
-        var start = this.options.start != undefined ? this.options.start : range.min;
-        var end = this.options.end != undefined ? this.options.end : range.max;
-
-        this.setWindow(start, end, { animation: false });
-      } else {
-        this.fit({ animation: false });
-      }
-    }
+    this.body.emitter.emit('_change', { queue: true });
   };
 
   /**
@@ -10935,6 +10941,7 @@ return /******/ (function(modules) { // webpackBootstrap
         factor = interval / _this.props.center.width;
         util.forEach(_this.itemSet.items, (function (item) {
           item.show();
+          item.repositionX();
 
           var start = getStart(item);
           var end = getEnd(item);
@@ -14611,22 +14618,13 @@ return /******/ (function(modules) { // webpackBootstrap
    */
   exports.onTouch = function (hammer, callback) {
     callback.inputHandler = function (event) {
-      if (event.isFirst && !isTouching) {
+      if (event.isFirst) {
         callback(event);
-
-        isTouching = true;
-        setTimeout(function () {
-          isTouching = false;
-        }, 0);
       }
     };
 
     hammer.on('hammer.input', callback.inputHandler);
   };
-
-  // isTouching is true while a touch action is being emitted
-  // this is a hack to prevent `touch` from being fired twice
-  var isTouching = false;
 
   /**
    * Register a release event, taking place after a gesture
@@ -14635,22 +14633,13 @@ return /******/ (function(modules) { // webpackBootstrap
    */
   exports.onRelease = function (hammer, callback) {
     callback.inputHandler = function (event) {
-      if (event.isFinal && !isReleasing) {
+      if (event.isFinal) {
         callback(event);
-
-        isReleasing = true;
-        setTimeout(function () {
-          isReleasing = false;
-        }, 0);
       }
     };
 
     return hammer.on('hammer.input', callback.inputHandler);
   };
-
-  // isReleasing is true while a release action is being emitted
-  // this is a hack to prevent `release` from being fired twice
-  var isReleasing = false;
 
   /**
    * Unregister a touch event, taking place before a gesture
@@ -15299,13 +15288,15 @@ return /******/ (function(modules) { // webpackBootstrap
     this.dom.rightContainer.appendChild(this.dom.shadowBottomRight);
 
     this.on('rangechange', (function () {
-      this._redraw(); // this allows overriding the _redraw method
+      if (this.initialDrawDone) {
+        this._redraw(); // this allows overriding the _redraw method
+      }
     }).bind(this));
     this.on('touch', this._onTouch.bind(this));
     this.on('pan', this._onDrag.bind(this));
 
     var me = this;
-    this.on('change', function (properties) {
+    this.on('_change', function (properties) {
       if (properties && properties.queue == true) {
         // redraw once on next tick
         if (!me._redrawTimer) {
@@ -15385,6 +15376,7 @@ return /******/ (function(modules) { // webpackBootstrap
     this.touch = {};
 
     this.redrawCount = 0;
+    this.initialDrawDone = false;
 
     // attach the root panel to the provided container
     if (!container) throw new Error('No container provided');
@@ -15515,11 +15507,11 @@ return /******/ (function(modules) { // webpackBootstrap
     // override redraw with a throttled version
     if (!this._origRedraw) {
       this._origRedraw = this._redraw.bind(this);
+      this._redraw = util.throttle(this._origRedraw, this.options.throttleRedraw);
+    } else {
+      // Not the initial run: redraw everything
+      this._redraw();
     }
-    this._redraw = util.throttle(this._origRedraw, this.options.throttleRedraw);
-
-    // redraw everything
-    this._redraw();
   };
 
   /**
@@ -15816,12 +15808,13 @@ return /******/ (function(modules) { // webpackBootstrap
    * @protected
    */
   Core.prototype._redraw = function () {
+    this.redrawCount++;
     var resized = false;
     var options = this.options;
     var props = this.props;
     var dom = this.dom;
 
-    if (!dom) return; // when destroyed
+    if (!dom || !dom.container || dom.container.clientWidth == 0) return; // when destroyed, or invisible
 
     DateUtil.updateHiddenDates(this.options.moment, this.body, this.options.hiddenDates);
 
@@ -15957,17 +15950,21 @@ return /******/ (function(modules) { // webpackBootstrap
     this.components.forEach(function (component) {
       resized = component.redraw() || resized;
     });
+    var MAX_REDRAW = 5;
     if (resized) {
-      // keep repainting until all sizes are settled
-      var MAX_REDRAWS = 3; // maximum number of consecutive redraws
-      if (this.redrawCount < MAX_REDRAWS) {
-        this.redrawCount++;
-        this._redraw();
+      if (this.redrawCount < MAX_REDRAW) {
+        this.body.emitter.emit('_change');
+        return;
       } else {
         console.log('WARNING: infinite loop in redraw?');
       }
+    } else {
       this.redrawCount = 0;
     }
+    this.initialDrawDone = true;
+
+    //Emit public 'changed' event for UI updates, see issue #1592
+    this.body.emitter.emit("changed");
   };
 
   // TODO: deprecated since version 1.1.0, remove some day
@@ -16092,13 +16089,19 @@ return /******/ (function(modules) { // webpackBootstrap
           me.props.lastWidth = me.dom.root.offsetWidth;
           me.props.lastHeight = me.dom.root.offsetHeight;
 
-          me.emit('change');
+          me.body.emitter.emit('_change');
         }
       }
     };
 
     // add event listener to window resize
     util.addEventListener(window, 'resize', this._onResize);
+
+    //Prevent initial unnecessary redraw
+    if (me.dom.root) {
+      me.props.lastWidth = me.dom.root.offsetWidth;
+      me.props.lastHeight = me.dom.root.offsetHeight;
+    }
 
     this.watchTimer = setInterval(this._onResize, 1000);
   };
@@ -16997,7 +17000,7 @@ return /******/ (function(modules) { // webpackBootstrap
     // update the order of all items in each group
     this._order();
 
-    this.body.emitter.emit('change', { queue: true });
+    this.body.emitter.emit('_change', { queue: true });
   };
 
   /**
@@ -17102,7 +17105,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
     this._order();
     this.stackDirty = true; // force re-stacking of all items next redraw
-    this.body.emitter.emit('change', { queue: true });
+    this.body.emitter.emit('_change', { queue: true });
   };
 
   /**
@@ -17132,7 +17135,7 @@ return /******/ (function(modules) { // webpackBootstrap
       // update order
       this._order();
       this.stackDirty = true; // force re-stacking of all items next redraw
-      this.body.emitter.emit('change', { queue: true });
+      this.body.emitter.emit('_change', { queue: true });
     }
   };
 
@@ -17201,7 +17204,7 @@ return /******/ (function(modules) { // webpackBootstrap
       }
     });
 
-    this.body.emitter.emit('change', { queue: true });
+    this.body.emitter.emit('_change', { queue: true });
   };
 
   /**
@@ -17222,7 +17225,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
     this.markDirty();
 
-    this.body.emitter.emit('change', { queue: true });
+    this.body.emitter.emit('_change', { queue: true });
   };
 
   /**
@@ -17585,7 +17588,7 @@ return /******/ (function(modules) { // webpackBootstrap
       }).bind(this));
 
       this.stackDirty = true; // force re-stacking of all items next redraw
-      this.body.emitter.emit('change');
+      this.body.emitter.emit('_change');
     }
   };
 
@@ -17636,7 +17639,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
             // force re-stacking of all items next redraw
             me.stackDirty = true;
-            me.body.emitter.emit('change');
+            me.body.emitter.emit('_change');
           });
         } else {
           // update existing item
@@ -17651,7 +17654,7 @@ return /******/ (function(modules) { // webpackBootstrap
               props.item.setData(props.data);
 
               me.stackDirty = true; // force re-stacking of all items next redraw
-              me.body.emitter.emit('change');
+              me.body.emitter.emit('_change');
             }
           });
         }
@@ -24269,6 +24272,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
     // item set
     this.linegraph = new LineGraph(this.body);
+
     this.components.push(this.linegraph);
 
     this.itemsData = null; // DataSet
@@ -24297,9 +24301,8 @@ return /******/ (function(modules) { // webpackBootstrap
     // create itemset
     if (items) {
       this.setItems(items);
-    } else {
-      this._redraw();
     }
+    this._redraw();
   }
 
   // Extend the functionality from Core
@@ -24346,7 +24349,6 @@ return /******/ (function(modules) { // webpackBootstrap
       if (this.options.start != undefined || this.options.end != undefined) {
         var start = this.options.start != undefined ? this.options.start : null;
         var end = this.options.end != undefined ? this.options.end : null;
-
         this.setWindow(start, end, { animation: false });
       } else {
         this.fit({ animation: false });
@@ -24581,6 +24583,7 @@ return /******/ (function(modules) { // webpackBootstrap
     this.abortedGraphUpdate = false;
     this.updateSVGheight = false;
     this.updateSVGheightOnResize = false;
+    this.forceGraphUpdate = true;
 
     var me = this;
     this.itemsData = null; // DataSet
@@ -24620,17 +24623,18 @@ return /******/ (function(modules) { // webpackBootstrap
     this.svgElements = {};
     this.setOptions(options);
     this.groupsUsingDefaultStyles = [0];
-    this.COUNTER = 0;
     this.body.emitter.on('rangechanged', function () {
       me.lastStart = me.body.range.start;
       me.svg.style.left = util.option.asSize(-me.props.width);
-      me.redraw.call(me, true);
+
+      me.forceGraphUpdate = true;
+      //Is this local redraw necessary? (Core also does a change event!)
+      me.redraw.call(me);
     });
 
     // create the HTML DOM
     this._create();
     this.framework = { svg: this.svg, svgElements: this.svgElements, options: this.options, groups: this.groups };
-    this.body.emitter.emit('change');
   }
 
   LineGraph.prototype = new Component();
@@ -24672,7 +24676,7 @@ return /******/ (function(modules) { // webpackBootstrap
   LineGraph.prototype.setOptions = function (options) {
     if (options) {
       var fields = ['sampling', 'defaultGroup', 'stack', 'height', 'graphHeight', 'yAxisOrientation', 'style', 'barChart', 'dataAxis', 'sort', 'groups'];
-      if (options.graphHeight === undefined && options.height !== undefined && this.body.domProps.centerContainer.height !== undefined) {
+      if (options.graphHeight === undefined && options.height !== undefined) {
         this.updateSVGheight = true;
         this.updateSVGheightOnResize = true;
       } else if (this.body.domProps.centerContainer.height !== undefined && options.graphHeight !== undefined) {
@@ -24722,7 +24726,9 @@ return /******/ (function(modules) { // webpackBootstrap
 
     // this is used to redraw the graph if the visibility of the groups is changed.
     if (this.dom.frame) {
-      this.redraw(true);
+      //not on initial run?
+      this.forceGraphUpdate = true;
+      this.body.emitter.emit("_change", { queue: true });
     }
   };
 
@@ -24835,7 +24841,6 @@ return /******/ (function(modules) { // webpackBootstrap
 
   LineGraph.prototype._onUpdate = function (ids) {
     this._updateAllGroupData();
-    this.redraw(true);
   };
   LineGraph.prototype._onAdd = function (ids) {
     this._onUpdate(ids);
@@ -24845,7 +24850,6 @@ return /******/ (function(modules) { // webpackBootstrap
   };
   LineGraph.prototype._onUpdateGroups = function (groupIds) {
     this._updateAllGroupData();
-    this.redraw(true);
   };
   LineGraph.prototype._onAddGroups = function (groupIds) {
     this._onUpdateGroups(groupIds);
@@ -24860,7 +24864,8 @@ return /******/ (function(modules) { // webpackBootstrap
     for (var i = 0; i < groupIds.length; i++) {
       this._removeGroup(groupIds[i]);
     }
-    this.redraw(true);
+    this.forceGraphUpdate = true;
+    this.body.emitter.emit("_change", { queue: true });
   };
 
   /**
@@ -24905,9 +24910,15 @@ return /******/ (function(modules) { // webpackBootstrap
       if (this.groups[groupId].options.yAxisOrientation == 'right') {
         this.yAxisRight.updateGroup(groupId, this.groups[groupId]);
         this.legendRight.updateGroup(groupId, this.groups[groupId]);
+        //If yAxisOrientation changed, clean out the group from the other axis.
+        this.yAxisLeft.removeGroup(groupId);
+        this.legendLeft.removeGroup(groupId);
       } else {
         this.yAxisLeft.updateGroup(groupId, this.groups[groupId]);
         this.legendLeft.updateGroup(groupId, this.groups[groupId]);
+        //If yAxisOrientation changed, clean out the group from the other axis.
+        this.yAxisRight.removeGroup(groupId);
+        this.legendRight.removeGroup(groupId);
       }
     }
     this.legendLeft.redraw();
@@ -24983,6 +24994,8 @@ return /******/ (function(modules) { // webpackBootstrap
           }
         }
       }
+      this.forceGraphUpdate = true;
+      this.body.emitter.emit("_change", { queue: true });
     }
   };
 
@@ -24990,16 +25003,16 @@ return /******/ (function(modules) { // webpackBootstrap
    * Redraw the component, mandatory function
    * @return {boolean} Returns true if the component is resized
    */
-  LineGraph.prototype.redraw = function (forceGraphUpdate) {
+  LineGraph.prototype.redraw = function () {
     var resized = false;
 
     // calculate actual size and position
     this.props.width = this.dom.frame.offsetWidth;
     this.props.height = this.body.domProps.centerContainer.height - this.body.domProps.border.top - this.body.domProps.border.bottom;
 
-    // update the graph if there is no lastWidth or with, used for the initial draw
+    // update the graph if there is no lastWidth or width, used for the initial draw
     if (this.lastWidth === undefined && this.props.width) {
-      forceGraphUpdate = true;
+      this.forceGraphUpdate = true;
     }
 
     // check if this component is resized
@@ -25034,8 +25047,9 @@ return /******/ (function(modules) { // webpackBootstrap
     }
 
     // zoomed is here to ensure that animations are shown correctly.
-    if (resized == true || zoomed == true || this.abortedGraphUpdate == true || forceGraphUpdate == true) {
+    if (resized == true || zoomed == true || this.abortedGraphUpdate == true || this.forceGraphUpdate == true) {
       resized = this._updateGraph() || resized;
+      this.forceGraphUpdate = false;
     } else {
       // move the whole svg while dragging
       if (this.lastStart != 0) {
@@ -25048,7 +25062,6 @@ return /******/ (function(modules) { // webpackBootstrap
         }
       }
     }
-
     this.legendLeft.redraw();
     this.legendRight.redraw();
     return resized;
@@ -25114,96 +25127,93 @@ return /******/ (function(modules) { // webpackBootstrap
         this._getYRanges(groupIds, groupsData, groupRanges);
 
         // update the Y axis first, we use this data to draw at the correct Y points
-        // changeCalled is required to clean the SVG on a change emit.
         changeCalled = this._updateYAxis(groupIds, groupRanges);
-        var MAX_CYCLES = 5;
-        if (changeCalled == true && this.COUNTER < MAX_CYCLES) {
+
+        //  at changeCalled, abort this update cycle as the graph needs another update with new Width input from the Redraw container.
+        //  Cleanup SVG elements on abort.
+        if (changeCalled == true) {
           DOMutil.cleanupElements(this.svgElements);
           this.abortedGraphUpdate = true;
-          this.COUNTER++;
-          this.body.emitter.emit('change');
           return true;
-        } else {
-          if (this.COUNTER > MAX_CYCLES) {
-            console.log("WARNING: there may be an infinite loop in the _updateGraph emitter cycle.");
-          }
-          this.COUNTER = 0;
-          this.abortedGraphUpdate = false;
+        }
+        this.abortedGraphUpdate = false;
 
-          // With the yAxis scaled correctly, use this to get the Y values of the points.
-          var below = undefined;
-          for (i = 0; i < groupIds.length; i++) {
-            group = this.groups[groupIds[i]];
-            if (this.options.stack === true && this.options.style === 'line') {
-              if (group.options.excludeFromStacking == undefined || !group.options.excludeFromStacking) {
-                if (below != undefined) {
-                  this._stack(groupsData[group.id], groupsData[below.id]);
-                  if (group.options.shaded.enabled == true && group.options.shaded.orientation !== "group") {
-                    if (group.options.shaded.orientation == "top" && below.options.shaded.orientation !== "group") {
-                      below.options.shaded.orientation = "group";
-                      below.options.shaded.groupId = group.id;
-                    } else {
-                      group.options.shaded.orientation = "group";
-                      group.options.shaded.groupId = below.id;
-                    }
+        // With the yAxis scaled correctly, use this to get the Y values of the points.
+        var below = undefined;
+        for (i = 0; i < groupIds.length; i++) {
+          group = this.groups[groupIds[i]];
+          if (this.options.stack === true && this.options.style === 'line') {
+            if (group.options.excludeFromStacking == undefined || !group.options.excludeFromStacking) {
+              if (below != undefined) {
+                this._stack(groupsData[group.id], groupsData[below.id]);
+                if (group.options.shaded.enabled == true && group.options.shaded.orientation !== "group") {
+                  if (group.options.shaded.orientation == "top" && below.options.shaded.orientation !== "group") {
+                    below.options.shaded.orientation = "group";
+                    below.options.shaded.groupId = group.id;
+                  } else {
+                    group.options.shaded.orientation = "group";
+                    group.options.shaded.groupId = below.id;
                   }
                 }
-                below = group;
               }
-            }
-            this._convertYcoordinates(groupsData[groupIds[i]], group);
-          }
-
-          //Precalculate paths and draw shading if appropriate. This will make sure the shading is always behind any lines.
-          var paths = {};
-          for (i = 0; i < groupIds.length; i++) {
-            group = this.groups[groupIds[i]];
-            if (group.options.style === 'line' && group.options.shaded.enabled == true) {
-              var dataset = groupsData[groupIds[i]];
-              if (!paths.hasOwnProperty(groupIds[i])) {
-                paths[groupIds[i]] = Lines.calcPath(dataset, group);
-              }
-              if (group.options.shaded.orientation === "group") {
-                var subGroupId = group.options.shaded.groupId;
-                if (groupIds.indexOf(subGroupId) === -1) {
-                  console.log(group.id + ": Unknown shading group target given:" + subGroupId);
-                  continue;
-                }
-                if (!paths.hasOwnProperty(subGroupId)) {
-                  paths[subGroupId] = Lines.calcPath(groupsData[subGroupId], this.groups[subGroupId]);
-                }
-                Lines.drawShading(paths[groupIds[i]], group, paths[subGroupId], this.framework);
-              } else {
-                Lines.drawShading(paths[groupIds[i]], group, undefined, this.framework);
-              }
+              below = group;
             }
           }
+          this._convertYcoordinates(groupsData[groupIds[i]], group);
+        }
 
-          // draw the groups, calculating paths if still necessary.
-          Bars.draw(groupIds, groupsData, this.framework);
-          for (i = 0; i < groupIds.length; i++) {
-            group = this.groups[groupIds[i]];
-            if (groupsData[groupIds[i]].length > 0) {
-              switch (group.options.style) {
-                case "line":
-                  if (!paths.hasOwnProperty(groupIds[i])) {
-                    paths[groupIds[i]] = Lines.calcPath(groupsData[groupIds[i]], group);
-                  }
-                  Lines.draw(paths[groupIds[i]], group, this.framework);
-                //explicit no break;
-                case "point":
-                //explicit no break;
-                case "points":
-                  if (group.options.style == "point" || group.options.style == "points" || group.options.drawPoints.enabled == true) {
-                    Points.draw(groupsData[groupIds[i]], group, this.framework);
-                  }
-                  break;
-                case "bar":
-                // bar needs to be drawn enmasse
-                //explicit no break
-                default:
-                //do nothing...
+        //Precalculate paths and draw shading if appropriate. This will make sure the shading is always behind any lines.
+        var paths = {};
+        for (i = 0; i < groupIds.length; i++) {
+          group = this.groups[groupIds[i]];
+          if (group.options.style === 'line' && group.options.shaded.enabled == true) {
+            var dataset = groupsData[groupIds[i]];
+            if (dataset == null || dataset.length == 0) {
+              continue;
+            }
+            if (!paths.hasOwnProperty(groupIds[i])) {
+              paths[groupIds[i]] = Lines.calcPath(dataset, group);
+            }
+            if (group.options.shaded.orientation === "group") {
+              var subGroupId = group.options.shaded.groupId;
+              if (groupIds.indexOf(subGroupId) === -1) {
+                console.log(group.id + ": Unknown shading group target given:" + subGroupId);
+                continue;
               }
+              if (!paths.hasOwnProperty(subGroupId)) {
+                paths[subGroupId] = Lines.calcPath(groupsData[subGroupId], this.groups[subGroupId]);
+              }
+              Lines.drawShading(paths[groupIds[i]], group, paths[subGroupId], this.framework);
+            } else {
+              Lines.drawShading(paths[groupIds[i]], group, undefined, this.framework);
+            }
+          }
+        }
+
+        // draw the groups, calculating paths if still necessary.
+        Bars.draw(groupIds, groupsData, this.framework);
+        for (i = 0; i < groupIds.length; i++) {
+          group = this.groups[groupIds[i]];
+          if (groupsData[groupIds[i]].length > 0) {
+            switch (group.options.style) {
+              case "line":
+                if (!paths.hasOwnProperty(groupIds[i])) {
+                  paths[groupIds[i]] = Lines.calcPath(groupsData[groupIds[i]], group);
+                }
+                Lines.draw(paths[groupIds[i]], group, this.framework);
+              //explicit no break;
+              case "point":
+              //explicit no break;
+              case "points":
+                if (group.options.style == "point" || group.options.style == "points" || group.options.drawPoints.enabled == true) {
+                  Points.draw(groupsData[groupIds[i]], group, this.framework);
+                }
+                break;
+              case "bar":
+              // bar needs to be drawn enmasse
+              //explicit no break
+              default:
+              //do nothing...
             }
           }
         }
@@ -25572,14 +25582,14 @@ return /******/ (function(modules) { // webpackBootstrap
       left: {
         range: { min: undefined, max: undefined },
         format: function format(value) {
-          return '' + value.toPrecision(3);
+          return '' + Number.parseFloat(value.toPrecision(3));
         },
         title: { text: undefined, style: undefined }
       },
       right: {
         range: { min: undefined, max: undefined },
         format: function format(value) {
-          return '' + value.toPrecision(3);
+          return '' + Number.parseFloat(value.toPrecision(3));
         },
         title: { text: undefined, style: undefined }
       }
@@ -25639,6 +25649,9 @@ return /******/ (function(modules) { // webpackBootstrap
   };
 
   DataAxis.prototype.updateGroup = function (label, graphOptions) {
+    if (!this.groups.hasOwnProperty(label)) {
+      this.amountOfGroups += 1;
+    }
     this.groups[label] = graphOptions;
   };
 
@@ -25873,9 +25886,8 @@ return /******/ (function(modules) { // webpackBootstrap
     var orientation = this.options['orientation'];
 
     // get the range for the slaved axis
-    var step;
+    var step, stepSize, rangeStart, rangeEnd;
     if (this.master === false) {
-      var stepSize, rangeStart, rangeEnd, minimumStep;
       if (this.zeroCrossing !== -1 && this.options.alignZeros === true) {
         if (this.range.end > 0) {
           stepSize = this.range.end / this.zeroCrossing; // size of one step
@@ -25891,13 +25903,12 @@ return /******/ (function(modules) { // webpackBootstrap
         rangeStart = this.range.start;
         rangeEnd = this.range.end;
       }
-      minimumStep = this.stepPixels;
     } else {
       // calculate range and step (step such that we have space for 7 characters per label)
-      minimumStep = this.props.majorCharHeight;
       rangeStart = this.range.start;
       rangeEnd = this.range.end;
     }
+    var minimumStep = this.props.majorCharHeight;
 
     this.step = step = new DataStep(rangeStart, rangeEnd, minimumStep, this.dom.frame.offsetHeight, this.options[this.options.orientation].range, this.options[this.options.orientation].format, this.master === false && this.options.alignZeros // does the step have to align zeros? only if not master and the options is on
     );
@@ -26172,9 +26183,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function DataStep(start, end, minimumStep, containerHeight, customRange, formattingFunction, alignZeros) {
     // variables
-    this.current = 0;
-
-    this.autoScale = true;
+    this.current = -1;
     this.stepIndex = 0;
     this.step = 1;
     this.scale = 1;
@@ -26182,7 +26191,6 @@ return /******/ (function(modules) { // webpackBootstrap
 
     this.marginStart;
     this.marginEnd;
-    this.deadSpace = 0;
 
     this.majorSteps = [1, 2, 5, 10];
     this.minorSteps = [0.25, 0.5, 1, 2];
@@ -26203,17 +26211,17 @@ return /******/ (function(modules) { // webpackBootstrap
    * @param {Number} [minimumStep] Optional. Minimum step size in milliseconds
    */
   DataStep.prototype.setRange = function (start, end, minimumStep, containerHeight, customRange) {
+    if (customRange === undefined) {
+      customRange = {};
+    }
+
     this._start = customRange.min === undefined ? start : customRange.min;
     this._end = customRange.max === undefined ? end : customRange.max;
     if (this._start === this._end) {
       this._start = customRange.min === undefined ? this._start - 0.75 : this._start;
-      this._end = customRange.max === undefined ? this._end + 1 : this._end;;
+      this._end = customRange.max === undefined ? this._end + 1 : this._end;
     }
-
-    if (this.autoScale === true) {
-      this.setMinimumStep(minimumStep, containerHeight);
-    }
-
+    this.setMinimumStep(minimumStep, containerHeight);
     this.setFirst(customRange);
   };
 
@@ -26276,9 +26284,7 @@ return /******/ (function(modules) { // webpackBootstrap
       this.marginEnd += this.marginEnd % this.step;
     }
 
-    this.deadSpace = this.roundToMinor(niceEnd) - niceEnd + this.roundToMinor(niceStart) - niceStart;
     this.marginRange = this.marginEnd - this.marginStart;
-
     this.current = this.marginEnd;
   };
 
@@ -26328,6 +26334,7 @@ return /******/ (function(modules) { // webpackBootstrap
   DataStep.prototype.getCurrent = function () {
     // prevent round-off errors when close to zero
     var current = Math.abs(this.current) < this.step / 2 ? 0 : this.current;
+
     var returnValue = current;
     if (typeof this.formattingFunction === 'function') {
       return this.formattingFunction(current);
@@ -26382,7 +26389,7 @@ return /******/ (function(modules) { // webpackBootstrap
    */
   function GraphGroup(group, groupId, options, groupsUsingDefaultStyles) {
     this.id = groupId;
-    var fields = ['sampling', 'style', 'sort', 'yAxisOrientation', 'barChart', 'drawPoints', 'shaded', 'interpolation', 'zIndex'];
+    var fields = ['sampling', 'style', 'sort', 'yAxisOrientation', 'barChart', 'drawPoints', 'shaded', 'interpolation', 'zIndex', 'excludeFromStacking', 'excludeFromLegend'];
     this.options = util.selectiveBridgeObject(fields, options);
     this.usingDefaultStyle = group.className === undefined;
     this.groupsUsingDefaultStyles = groupsUsingDefaultStyles;
@@ -26430,7 +26437,7 @@ return /******/ (function(modules) { // webpackBootstrap
    */
   GraphGroup.prototype.setOptions = function (options) {
     if (options !== undefined) {
-      var fields = ['sampling', 'style', 'sort', 'yAxisOrientation', 'barChart', 'excludeFromLegend', 'excludeFromStacking', 'zIndex'];
+      var fields = ['sampling', 'style', 'sort', 'yAxisOrientation', 'barChart', 'zIndex', 'excludeFromStacking', 'excludeFromLegend'];
       util.selectiveDeepExtend(fields, this.options, options);
 
       // if the group's drawPoints is a function delegate the callback to the onRender property
@@ -26636,7 +26643,7 @@ return /******/ (function(modules) { // webpackBootstrap
         drawData = Bargraph._getSafeDrawData(coreDistance, group, minWidth);
         intersections[key].resolved += 1;
 
-        if (group.options.stack === true) {
+        if (group.options.stack === true && group.options.excludeFromStacking !== true) {
           if (combinedData[i].screen_y < group.zeroPosition) {
             heightOffset = intersections[key].accumulatedNegative;
             intersections[key].accumulatedNegative += group.zeroPosition - combinedData[i].screen_y;
@@ -29862,11 +29869,14 @@ return /******/ (function(modules) { // webpackBootstrap
 
         //draw dashed border if enabled, save and restore is required for firefox not to crash on unix.
         ctx.save();
-        this.enableBorderDashes(ctx);
-        //draw the border
-        ctx.stroke();
-        //disable dashed border for other elements
-        this.disableBorderDashes(ctx);
+        // if borders are zero width, they will be drawn with width 1 by default. This prevents that
+        if (borderWidth > 0) {
+          this.enableBorderDashes(ctx);
+          //draw the border
+          ctx.stroke();
+          //disable dashed border for other elements
+          this.disableBorderDashes(ctx);
+        }
         ctx.restore();
 
         this.updateBoundingBox(x, y, ctx, selected);
@@ -30182,14 +30192,12 @@ return /******/ (function(modules) { // webpackBootstrap
     }, {
       key: '_drawRawCircle',
       value: function _drawRawCircle(ctx, x, y, selected, hover, size) {
-        var borderWidth = this.options.borderWidth;
+        var neutralborderWidth = this.options.borderWidth;
         var selectionLineWidth = this.options.borderWidthSelected || 2 * this.options.borderWidth;
+        var borderWidth = (selected ? selectionLineWidth : neutralborderWidth) / this.body.view.scale;
+        ctx.lineWidth = Math.min(this.width, borderWidth);
 
         ctx.strokeStyle = selected ? this.options.color.highlight.border : hover ? this.options.color.hover.border : this.options.color.border;
-
-        ctx.lineWidth = selected ? selectionLineWidth : borderWidth;
-        ctx.lineWidth *= this.networkScaleInv;
-        ctx.lineWidth = Math.min(this.width, ctx.lineWidth);
         ctx.fillStyle = selected ? this.options.color.highlight.background : hover ? this.options.color.hover.background : this.options.color.background;
         ctx.circle(x, y, size);
 
@@ -30202,11 +30210,14 @@ return /******/ (function(modules) { // webpackBootstrap
 
         //draw dashed border if enabled, save and restore is required for firefox not to crash on unix.
         ctx.save();
-        this.enableBorderDashes(ctx);
-        //draw the border
-        ctx.stroke();
-        //disable dashed border for other elements
-        this.disableBorderDashes(ctx);
+        // if borders are zero width, they will be drawn with width 1 by default. This prevents that
+        if (borderWidth > 0) {
+          this.enableBorderDashes(ctx);
+          //draw the border
+          ctx.stroke();
+          //disable dashed border for other elements
+          this.disableBorderDashes(ctx);
+        }
         ctx.restore();
       }
     }, {
@@ -30413,13 +30424,12 @@ return /******/ (function(modules) { // webpackBootstrap
         this.left = x - this.width / 2;
         this.top = y - this.height / 2;
 
-        var borderWidth = this.options.borderWidth;
+        var neutralborderWidth = this.options.borderWidth;
         var selectionLineWidth = this.options.borderWidthSelected || 2 * this.options.borderWidth;
+        var borderWidth = (selected ? selectionLineWidth : neutralborderWidth) / this.body.view.scale;
+        ctx.lineWidth = Math.min(this.width, borderWidth);
 
         ctx.strokeStyle = selected ? this.options.color.highlight.border : hover ? this.options.color.hover.border : this.options.color.border;
-        ctx.lineWidth = this.selected ? selectionLineWidth : borderWidth;
-        ctx.lineWidth *= this.networkScaleInv;
-        ctx.lineWidth = Math.min(this.width, ctx.lineWidth);
 
         ctx.fillStyle = selected ? this.options.color.highlight.background : hover ? this.options.color.hover.background : this.options.color.background;
         ctx.database(x - this.width / 2, y - this.height * 0.5, this.width, this.height);
@@ -30433,11 +30443,14 @@ return /******/ (function(modules) { // webpackBootstrap
 
         //draw dashed border if enabled, save and restore is required for firefox not to crash on unix.
         ctx.save();
-        this.enableBorderDashes(ctx);
-        //draw the border
-        ctx.stroke();
-        //disable dashed border for other elements
-        this.disableBorderDashes(ctx);
+        // if borders are zero width, they will be drawn with width 1 by default. This prevents that
+        if (borderWidth > 0) {
+          this.enableBorderDashes(ctx);
+          //draw the border
+          ctx.stroke();
+          //disable dashed border for other elements
+          this.disableBorderDashes(ctx);
+        }
         ctx.restore();
 
         this.updateBoundingBox(x, y, ctx, selected);
@@ -30576,13 +30589,12 @@ return /******/ (function(modules) { // webpackBootstrap
         this.left = x - this.width / 2;
         this.top = y - this.height / 2;
 
-        var borderWidth = this.options.borderWidth;
+        var neutralborderWidth = this.options.borderWidth;
         var selectionLineWidth = this.options.borderWidthSelected || 2 * this.options.borderWidth;
+        var borderWidth = (selected ? selectionLineWidth : neutralborderWidth) / this.body.view.scale;
+        ctx.lineWidth = Math.min(this.width, borderWidth);
 
         ctx.strokeStyle = selected ? this.options.color.highlight.border : hover ? this.options.color.hover.border : this.options.color.border;
-        ctx.lineWidth = selected ? selectionLineWidth : borderWidth;
-        ctx.lineWidth /= this.body.view.scale;
-        ctx.lineWidth = Math.min(this.width, ctx.lineWidth);
         ctx.fillStyle = selected ? this.options.color.highlight.background : hover ? this.options.color.hover.background : this.options.color.background;
         ctx[shape](x, y, this.options.size);
 
@@ -30595,11 +30607,14 @@ return /******/ (function(modules) { // webpackBootstrap
 
         //draw dashed border if enabled, save and restore is required for firefox not to crash on unix.
         ctx.save();
-        this.enableBorderDashes(ctx);
-        //draw the border
-        ctx.stroke();
-        //disable dashed border for other elements
-        this.disableBorderDashes(ctx);
+        // if borders are zero width, they will be drawn with width 1 by default. This prevents that
+        if (borderWidth > 0) {
+          this.enableBorderDashes(ctx);
+          //draw the border
+          ctx.stroke();
+          //disable dashed border for other elements
+          this.disableBorderDashes(ctx);
+        }
         ctx.restore();
 
         if (this.options.label !== undefined) {
@@ -30742,14 +30757,12 @@ return /******/ (function(modules) { // webpackBootstrap
         this.left = x - this.width * 0.5;
         this.top = y - this.height * 0.5;
 
-        var borderWidth = this.options.borderWidth;
+        var neutralborderWidth = this.options.borderWidth;
         var selectionLineWidth = this.options.borderWidthSelected || 2 * this.options.borderWidth;
+        var borderWidth = (selected ? selectionLineWidth : neutralborderWidth) / this.body.view.scale;
+        ctx.lineWidth = Math.min(this.width, borderWidth);
 
         ctx.strokeStyle = selected ? this.options.color.highlight.border : hover ? this.options.color.hover.border : this.options.color.border;
-
-        ctx.lineWidth = selected ? selectionLineWidth : borderWidth;
-        ctx.lineWidth /= this.body.view.scale;
-        ctx.lineWidth = Math.min(this.width, ctx.lineWidth);
 
         ctx.fillStyle = selected ? this.options.color.highlight.background : hover ? this.options.color.hover.background : this.options.color.background;
         ctx.ellipse(this.left, this.top, this.width, this.height);
@@ -30763,11 +30776,16 @@ return /******/ (function(modules) { // webpackBootstrap
 
         //draw dashed border if enabled, save and restore is required for firefox not to crash on unix.
         ctx.save();
-        this.enableBorderDashes(ctx);
-        //draw the border
-        ctx.stroke();
-        //disable dashed border for other elements
-        this.disableBorderDashes(ctx);
+
+        // if borders are zero width, they will be drawn with width 1 by default. This prevents that
+        if (borderWidth > 0) {
+          this.enableBorderDashes(ctx);
+          //draw the border
+          ctx.stroke();
+          //disable dashed border for other elements
+          this.disableBorderDashes(ctx);
+        }
+
         ctx.restore();
 
         this.updateBoundingBox(x, y, ctx, selected);
@@ -30966,17 +30984,15 @@ return /******/ (function(modules) { // webpackBootstrap
         this.top = y - this.height / 2;
 
         if (this.options.shapeProperties.useBorderWithImage === true) {
-          var borderWidth = this.options.borderWidth;
-
+          var neutralborderWidth = this.options.borderWidth;
           var selectionLineWidth = this.options.borderWidthSelected || 2 * this.options.borderWidth;
+          var borderWidth = (selected ? selectionLineWidth : neutralborderWidth) / this.body.view.scale;
+          ctx.lineWidth = Math.min(this.width, borderWidth);
 
           ctx.beginPath();
 
           // setup the line properties.
           ctx.strokeStyle = selected ? this.options.color.highlight.border : hover ? this.options.color.hover.border : this.options.color.border;
-          ctx.lineWidth = selected ? selectionLineWidth : borderWidth;
-          ctx.lineWidth /= this.body.view.scale;
-          ctx.lineWidth = Math.min(this.width, ctx.lineWidth);
 
           // set a fillstyle
           ctx.fillStyle = selected ? this.options.color.highlight.background : hover ? this.options.color.hover.background : this.options.color.background;
@@ -30987,11 +31003,14 @@ return /******/ (function(modules) { // webpackBootstrap
 
           //draw dashed border if enabled, save and restore is required for firefox not to crash on unix.
           ctx.save();
-          this.enableBorderDashes(ctx);
-          //draw the border
-          ctx.stroke();
-          //disable dashed border for other elements
-          this.disableBorderDashes(ctx);
+          // if borders are zero width, they will be drawn with width 1 by default. This prevents that
+          if (borderWidth > 0) {
+            this.enableBorderDashes(ctx);
+            //draw the border
+            ctx.stroke();
+            //disable dashed border for other elements
+            this.disableBorderDashes(ctx);
+          }
           ctx.restore();
 
           ctx.closePath();
@@ -40199,7 +40218,7 @@ return /******/ (function(modules) { // webpackBootstrap
           // force all edges into static smooth curves. Only applies to edges that do not use the global options for smooth.
           this.body.emitter.emit('_forceDisableDynamicCurves', type);
         }
-        console.log(JSON.stringify(allOptions), JSON.stringify(this.optionsBackup));
+
         return allOptions;
       }
     }, {
@@ -40394,6 +40413,14 @@ return /******/ (function(modules) { // webpackBootstrap
               }
             }
 
+            // fallback for cases where there are nodes but no edges
+            for (var _nodeId in this.body.nodes) {
+              if (this.body.nodes.hasOwnProperty(_nodeId)) {
+                if (this.hierarchicalLevels[_nodeId] === undefined) {
+                  this.hierarchicalLevels[_nodeId] = 0;
+                }
+              }
+            }
             // check the distribution of the nodes per level.
             var distribution = this._getDistribution();
 
@@ -40459,7 +40486,7 @@ return /******/ (function(modules) { // webpackBootstrap
               }
             }
           }
-          return [min, max];
+          return { min: min, max: max };
         };
 
         // get the width of all trees
@@ -40849,27 +40876,31 @@ return /******/ (function(modules) { // webpackBootstrap
           useMap = false;
         }
         var level = this.hierarchicalLevels[node.id];
-        var index = this.distributionIndex[node.id];
-        var position = this._getPositionForHierarchy(node);
-        var minSpace = 1e9;
-        var maxSpace = 1e9;
-        if (index !== 0) {
-          var prevNode = this.distributionOrdering[level][index - 1];
-          if (useMap === true && map[prevNode.id] === undefined || useMap === false) {
-            var prevPos = this._getPositionForHierarchy(prevNode);
-            minSpace = position - prevPos;
+        if (level !== undefined) {
+          var index = this.distributionIndex[node.id];
+          var position = this._getPositionForHierarchy(node);
+          var minSpace = 1e9;
+          var maxSpace = 1e9;
+          if (index !== 0) {
+            var prevNode = this.distributionOrdering[level][index - 1];
+            if (useMap === true && map[prevNode.id] === undefined || useMap === false) {
+              var prevPos = this._getPositionForHierarchy(prevNode);
+              minSpace = position - prevPos;
+            }
           }
-        }
 
-        if (index != this.distributionOrdering[level].length - 1) {
-          var nextNode = this.distributionOrdering[level][index + 1];
-          if (useMap === true && map[nextNode.id] === undefined || useMap === false) {
-            var nextPos = this._getPositionForHierarchy(nextNode);
-            maxSpace = Math.min(maxSpace, nextPos - position);
+          if (index != this.distributionOrdering[level].length - 1) {
+            var nextNode = this.distributionOrdering[level][index + 1];
+            if (useMap === true && map[nextNode.id] === undefined || useMap === false) {
+              var nextPos = this._getPositionForHierarchy(nextNode);
+              maxSpace = Math.min(maxSpace, nextPos - position);
+            }
           }
-        }
 
-        return [minSpace, maxSpace];
+          return [minSpace, maxSpace];
+        } else {
+          return [0, 0];
+        }
       }
 
       /**
@@ -41127,14 +41158,18 @@ return /******/ (function(modules) { // webpackBootstrap
         // get the minimum level
         for (var nodeId in this.body.nodes) {
           if (this.body.nodes.hasOwnProperty(nodeId)) {
-            minLevel = Math.min(this.hierarchicalLevels[nodeId], minLevel);
+            if (this.hierarchicalLevels[nodeId] !== undefined) {
+              minLevel = Math.min(this.hierarchicalLevels[nodeId], minLevel);
+            }
           }
         }
 
         // subtract the minimum from the set so we have a range starting from 0
         for (var nodeId in this.body.nodes) {
           if (this.body.nodes.hasOwnProperty(nodeId)) {
-            this.hierarchicalLevels[nodeId] -= minLevel;
+            if (this.hierarchicalLevels[nodeId] !== undefined) {
+              this.hierarchicalLevels[nodeId] -= minLevel;
+            }
           }
         }
       }
@@ -41183,15 +41218,17 @@ return /******/ (function(modules) { // webpackBootstrap
             progress[node.id] = true;
             var childNode = undefined;
             for (var i = 0; i < node.edges.length; i++) {
-              if (node.edges[i].toId === node.id) {
-                childNode = node.edges[i].from;
-              } else {
-                childNode = node.edges[i].to;
-              }
+              if (node.edges[i].connected === true) {
+                if (node.edges[i].toId === node.id) {
+                  childNode = node.edges[i].from;
+                } else {
+                  childNode = node.edges[i].to;
+                }
 
-              if (node.id !== childNode.id) {
-                callback(node, childNode, node.edges[i]);
-                crawler(childNode);
+                if (node.id !== childNode.id) {
+                  callback(node, childNode, node.edges[i]);
+                  crawler(childNode);
+                }
               }
             }
           }
@@ -41395,6 +41432,7 @@ return /******/ (function(modules) { // webpackBootstrap
             }
           }
         }
+
         if (this.options.hierarchical.direction === 'UD' || this.options.hierarchical.direction === 'DU') {
           node.x = position;
         } else {
@@ -42132,7 +42170,7 @@ return /******/ (function(modules) { // webpackBootstrap
           this.canvas.frame.removeChild(this.editModeDiv);
         }
         if (this.closeDiv) {
-          this.canvas.frame.removeChild(this.manipulationDiv);
+          this.canvas.frame.removeChild(this.closeDiv);
         }
 
         // set the references to undefined

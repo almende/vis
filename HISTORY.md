@@ -14,6 +14,9 @@ http://visjs.org
 - Fixed #1334 (again): Network now ignores scroll when interaction:zoomView is false.
 - Fixed #1588: destroy now unsubscribed from the dataset.
 - Fixed #1584: Navigation buttons broken.
+- Fixed #1596: correct clean up of manipulation dom elements.
+- Fixed #1594: bug in hierarchical layout.
+- Fixed #1597: Allow zero borders and addressed scaling artifacts.
 
 ### Timeline
 
