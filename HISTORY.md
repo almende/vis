@@ -17,6 +17,7 @@ http://visjs.org
 - Fixed #1596: correct clean up of manipulation dom elements.
 - Fixed #1594: bug in hierarchical layout.
 - Fixed #1597: Allow zero borders and addressed scaling artifacts.
+- Fixed #1608: Fixed wrong variable reference
 
 ### Timeline
 
