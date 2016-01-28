@@ -17,6 +17,7 @@ http://visjs.org
 - Fixed #1596: correct clean up of manipulation dom elements.
 - Fixed #1594: bug in hierarchical layout.
 - Fixed #1597: Allow zero borders and addressed scaling artifacts.
+- Fixed #1608: Fixed wrong variable reference
 
 ### Timeline
 
@@ -24,6 +25,7 @@ http://visjs.org
 - Fixed #1580: Invisible timeline/graph should not be drawn, as most inputs are invalid
 - Fixed #1521: Prevent items from staying stuck to the left side of the viewport.
 - Fixed #1592: Emit a "changed" event after each redraw.
+- Fixed #1541: Timeline and Graph2d did not load synchronously anymore.
 
 ### Graph2d
 
@@ -34,6 +36,7 @@ http://visjs.org
 - Cleanup of linegraph's event handling.
 - Fixed #1017: Fixed minWidth behavior for bars.
 - Fixes #1557: Fix default axis formatting function.
+- Fixed #1541: Timeline and Graph2d did not load synchronously anymore.
 
 ## 2016-01-08, version 4.12.0
 
