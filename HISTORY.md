@@ -29,6 +29,7 @@ http://visjs.org
 
 ### Graph2d
 
+- Major redesign of data axis/scales, with large focus on creating a sane slave axis setup
 - Fixed #1585: Allow bar groups to exclude from stacking
 - Fixed #1580: Invisible timeline/graph should not be drawn, as most inputs are invalid
 - Fixed #1177: Fix custom range of slaved right axis.

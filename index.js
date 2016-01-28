@@ -23,7 +23,6 @@ exports.Timeline = require('./lib/timeline/Timeline');
 exports.Graph2d = require('./lib/timeline/Graph2d');
 exports.timeline = {
   Core: require('./lib/timeline/Core'),
-  DataStep: require('./lib/timeline/DataStep'),
   DateUtil: require('./lib/timeline/DateUtil'),
   Range: require('./lib/timeline/Range'),
   stack: require('./lib/timeline/Stack'),
@@ -43,6 +42,7 @@ exports.timeline = {
     CurrentTime: require('./lib/timeline/component/CurrentTime'),
     CustomTime: require('./lib/timeline/component/CustomTime'),
     DataAxis: require('./lib/timeline/component/DataAxis'),
+    DataScale: require('./lib/timeline/component/DataScale'),
     GraphGroup: require('./lib/timeline/component/GraphGroup'),
     Group: require('./lib/timeline/component/Group'),
     ItemSet: require('./lib/timeline/component/ItemSet'),
