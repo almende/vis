@@ -4,6 +4,9 @@ http://visjs.org
 
 ## not yet released, version 4.13.1-SNAPSHOT
 
+### Graph3d
+
+- Fixed #1615: implemented new option `dotSizeRatio`.
 
 
 ## 2016-02-01, version 4.13.0
