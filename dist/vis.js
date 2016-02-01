@@ -4,8 +4,8 @@
  *
  * A dynamic, browser-based visualization library.
  *
- * @version 4.12.0
- * @date    2016-01-08
+ * @version 4.13.0
+ * @date    2016-02-01
  *
  * @license
  * Copyright (C) 2011-2016 Almende B.V, http://almende.com
@@ -108,7 +108,6 @@ return /******/ (function(modules) { // webpackBootstrap
   exports.Graph2d = __webpack_require__(48);
   exports.timeline = {
     Core: __webpack_require__(27),
-    DataStep: __webpack_require__(51),
     DateUtil: __webpack_require__(26),
     Range: __webpack_require__(23),
     stack: __webpack_require__(31),
@@ -128,6 +127,7 @@ return /******/ (function(modules) { // webpackBootstrap
       CurrentTime: __webpack_require__(43),
       CustomTime: __webpack_require__(41),
       DataAxis: __webpack_require__(50),
+      DataScale: __webpack_require__(51),
       GraphGroup: __webpack_require__(52),
       Group: __webpack_require__(30),
       ItemSet: __webpack_require__(28),
@@ -1414,13 +1414,13 @@ return /******/ (function(modules) { // webpackBootstrap
    * this function will then iterate in both directions over this sorted list to find all visible items.
    *
    * @param {Item[]} orderedItems       | Items ordered by start
-   * @param {function} searchFunction   | -1 is lower, 0 is found, 1 is higher
+   * @param {function} comparator       | -1 is lower, 0 is equal, 1 is higher
    * @param {String} field
    * @param {String} field2
    * @returns {number}
    * @private
    */
-  exports.binarySearchCustom = function (orderedItems, searchFunction, field, field2) {
+  exports.binarySearchCustom = function (orderedItems, comparator, field, field2) {
     var maxIterations = 10000;
     var iteration = 0;
     var low = 0;
@@ -1432,7 +1432,7 @@ return /******/ (function(modules) { // webpackBootstrap
       var item = orderedItems[middle];
       var value = field2 === undefined ? item[field] : item[field][field2];
 
-      var searchResult = searchFunction(value);
+      var searchResult = comparator(value);
       if (searchResult == 0) {
         // jihaa, found a visible item!
         return middle;
@@ -1459,15 +1459,20 @@ return /******/ (function(modules) { // webpackBootstrap
    * @param {{start: number, end: number}} target
    * @param {String} field
    * @param {String} sidePreference   'before' or 'after'
+   * @param {function} comparator an optional comparator, returning -1,0,1 for <,==,>.
    * @returns {number}
    * @private
    */
-  exports.binarySearchValue = function (orderedItems, target, field, sidePreference) {
+  exports.binarySearchValue = function (orderedItems, target, field, sidePreference, comparator) {
     var maxIterations = 10000;
     var iteration = 0;
     var low = 0;
     var high = orderedItems.length - 1;
     var prevValue, value, nextValue, middle;
+
+    var comparator = comparator != undefined ? comparator : function (a, b) {
+      return a == b ? 0 : a < b ? -1 : 1;
+    };
 
     while (low <= high && iteration < maxIterations) {
       // get a new guess
@@ -1476,18 +1481,18 @@ return /******/ (function(modules) { // webpackBootstrap
       value = orderedItems[middle][field];
       nextValue = orderedItems[Math.min(orderedItems.length - 1, middle + 1)][field];
 
-      if (value == target) {
+      if (comparator(value, target) == 0) {
         // we found the target
         return middle;
-      } else if (prevValue < target && value > target) {
+      } else if (comparator(prevValue, target) < 0 && comparator(value, target) > 0) {
         // target is in between of the previous and the current
         return sidePreference == 'before' ? Math.max(0, middle - 1) : middle;
-      } else if (value < target && nextValue > target) {
+      } else if (comparator(value, target) < 0 && comparator(nextValue, target) > 0) {
         // target is in between of the current and the next
         return sidePreference == 'before' ? middle : Math.min(orderedItems.length - 1, middle + 1);
       } else {
         // didnt find the target, we need to change our boundaries.
-        if (value < target) {
+        if (comparator(value, target) < 0) {
           // it is too small --> increase low
           low = middle + 1;
         } else {
@@ -1577,7 +1582,7 @@ return /******/ (function(modules) { // webpackBootstrap
 /***/ function(module, exports, __webpack_require__) {
 
   /* WEBPACK VAR INJECTION */(function(module) {//! moment.js
-  //! version : 2.11.0
+  //! version : 2.11.1
   //! authors : Tim Wood, Iskren Chernev, Moment.js contributors
   //! license : MIT
   //! momentjs.com
@@ -1848,7 +1853,7 @@ return /******/ (function(modules) { // webpackBootstrap
       function loadLocale(name) {
           var oldLocale = null;
           // TODO: Find a better way to register and load all the locales in Node
-          if (!locales[name] && !isUndefined(module) &&
+          if (!locales[name] && (typeof module !== 'undefined') &&
                   module && module.exports) {
               try {
                   oldLocale = globalLocale._abbr;
@@ -2116,13 +2121,13 @@ return /******/ (function(modules) { // webpackBootstrap
 
       // any word (or two) characters or numbers including two/three word month in arabic.
       // includes scottish gaelic two word and hyphenated months
-      var matchWord = /[0-9]*(a[mn]\s?)?['a-z\u00A0-\u05FF\u0700-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF\-]+|[\u0600-\u06FF\/]+(\s*?[\u0600-\u06FF]+){1,2}/i;
+      var matchWord = /[0-9]*['a-z\u00A0-\u05FF\u0700-\uD7FF\uF900-\uFDCF\uFDF0-\uFFEF]+|[\u0600-\u06FF\/]+(\s*?[\u0600-\u06FF]+){1,2}/i;
 
 
       var regexes = {};
 
       function addRegexToken (token, regex, strictRegex) {
-          regexes[token] = isFunction(regex) ? regex : function (isStrict) {
+          regexes[token] = isFunction(regex) ? regex : function (isStrict, localeData) {
               return (isStrict && strictRegex) ? strictRegex : regex;
           };
       }
@@ -2137,9 +2142,13 @@ return /******/ (function(modules) { // webpackBootstrap
 
       // Code from http://stackoverflow.com/questions/3561493/is-there-a-regexp-escape-function-in-javascript
       function unescapeFormat(s) {
-          return s.replace('\\', '').replace(/\\(\[)|\\(\])|\[([^\]\[]*)\]|\\(.)/g, function (matched, p1, p2, p3, p4) {
+          return regexEscape(s.replace('\\', '').replace(/\\(\[)|\\(\])|\[([^\]\[]*)\]|\\(.)/g, function (matched, p1, p2, p3, p4) {
               return p1 || p2 || p3 || p4;
-          }).replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
+          }));
+      }
+
+      function regexEscape(s) {
+          return s.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
       }
 
       var tokens = {};
@@ -2208,8 +2217,12 @@ return /******/ (function(modules) { // webpackBootstrap
 
       addRegexToken('M',    match1to2);
       addRegexToken('MM',   match1to2, match2);
-      addRegexToken('MMM',  matchWord);
-      addRegexToken('MMMM', matchWord);
+      addRegexToken('MMM',  function (isStrict, locale) {
+          return locale.monthsShortRegex(isStrict);
+      });
+      addRegexToken('MMMM', function (isStrict, locale) {
+          return locale.monthsRegex(isStrict);
+      });
 
       addParseToken(['M', 'MM'], function (input, array) {
           array[MONTH] = toInt(input) - 1;
@@ -2234,7 +2247,7 @@ return /******/ (function(modules) { // webpackBootstrap
               this._months[MONTHS_IN_FORMAT.test(format) ? 'format' : 'standalone'][m.month()];
       }
 
-      var defaultLocaleMonthsShort = 'Jan_Feb_Mar_Apr_May_Jun_Jul_Aug_Sept_Oct_Nov_Dec'.split('_');
+      var defaultLocaleMonthsShort = 'Jan_Feb_Mar_Apr_May_Jun_Jul_Aug_Sep_Oct_Nov_Dec'.split('_');
       function localeMonthsShort (m, format) {
           return isArray(this._monthsShort) ? this._monthsShort[m.month()] :
               this._monthsShort[MONTHS_IN_FORMAT.test(format) ? 'format' : 'standalone'][m.month()];
@@ -2309,6 +2322,72 @@ return /******/ (function(modules) { // webpackBootstrap
           return daysInMonth(this.year(), this.month());
       }
 
+      var defaultMonthsShortRegex = matchWord;
+      function monthsShortRegex (isStrict) {
+          if (this._monthsParseExact) {
+              if (!hasOwnProp(this, '_monthsRegex')) {
+                  computeMonthsParse.call(this);
+              }
+              if (isStrict) {
+                  return this._monthsShortStrictRegex;
+              } else {
+                  return this._monthsShortRegex;
+              }
+          } else {
+              return this._monthsShortStrictRegex && isStrict ?
+                  this._monthsShortStrictRegex : this._monthsShortRegex;
+          }
+      }
+
+      var defaultMonthsRegex = matchWord;
+      function monthsRegex (isStrict) {
+          if (this._monthsParseExact) {
+              if (!hasOwnProp(this, '_monthsRegex')) {
+                  computeMonthsParse.call(this);
+              }
+              if (isStrict) {
+                  return this._monthsStrictRegex;
+              } else {
+                  return this._monthsRegex;
+              }
+          } else {
+              return this._monthsStrictRegex && isStrict ?
+                  this._monthsStrictRegex : this._monthsRegex;
+          }
+      }
+
+      function computeMonthsParse () {
+          function cmpLenRev(a, b) {
+              return b.length - a.length;
+          }
+
+          var shortPieces = [], longPieces = [], mixedPieces = [],
+              i, mom;
+          for (i = 0; i < 12; i++) {
+              // make the regex if we don't have it already
+              mom = create_utc__createUTC([2000, i]);
+              shortPieces.push(this.monthsShort(mom, ''));
+              longPieces.push(this.months(mom, ''));
+              mixedPieces.push(this.months(mom, ''));
+              mixedPieces.push(this.monthsShort(mom, ''));
+          }
+          // Sorting makes sure if one month (or abbr) is a prefix of another it
+          // will match the longer piece.
+          shortPieces.sort(cmpLenRev);
+          longPieces.sort(cmpLenRev);
+          mixedPieces.sort(cmpLenRev);
+          for (i = 0; i < 12; i++) {
+              shortPieces[i] = regexEscape(shortPieces[i]);
+              longPieces[i] = regexEscape(longPieces[i]);
+              mixedPieces[i] = regexEscape(mixedPieces[i]);
+          }
+
+          this._monthsRegex = new RegExp('^(' + mixedPieces.join('|') + ')', 'i');
+          this._monthsShortRegex = this._monthsRegex;
+          this._monthsStrictRegex = new RegExp('^(' + longPieces.join('|') + ')$', 'i');
+          this._monthsShortStrictRegex = new RegExp('^(' + shortPieces.join('|') + ')$', 'i');
+      }
+
       function checkOverflow (m) {
           var overflow;
           var a = m._a;
@@ -2340,7 +2419,8 @@ return /******/ (function(modules) { // webpackBootstrap
       }
 
       function warn(msg) {
-          if (utils_hooks__hooks.suppressDeprecationWarnings === false && !isUndefined(console) && console.warn) {
+          if (utils_hooks__hooks.suppressDeprecationWarnings === false &&
+                  (typeof console !==  'undefined') && console.warn) {
               console.warn('Deprecation warning: ' + msg);
           }
       }
@@ -2508,6 +2588,11 @@ return /******/ (function(modules) { // webpackBootstrap
 
       // FORMATTING
 
+      addFormatToken('Y', 0, 0, function () {
+          var y = this.year();
+          return y <= 9999 ? '' + y : '+' + y;
+      });
+
       addFormatToken(0, ['YY', 2], 0, function () {
           return this.year() % 100;
       });
@@ -2534,6 +2619,9 @@ return /******/ (function(modules) { // webpackBootstrap
       });
       addParseToken('YY', function (input, array) {
           array[YEAR] = utils_hooks__hooks.parseTwoDigitYear(input);
+      });
+      addParseToken('Y', function (input, array) {
+          array[YEAR] = parseInt(input, 10);
       });
 
       // HELPERS
@@ -2786,6 +2874,8 @@ return /******/ (function(modules) { // webpackBootstrap
           for (i = 0; i < tokens.length; i++) {
               token = tokens[i];
               parsedInput = (string.match(getParseRegexForToken(token, config)) || [])[0];
+              // console.log('token', token, 'parsedInput', parsedInput,
+              //         'regex', getParseRegexForToken(token, config));
               if (parsedInput) {
                   skipped = string.substr(0, string.indexOf(parsedInput));
                   if (skipped.length > 0) {
@@ -3061,8 +3151,8 @@ return /******/ (function(modules) { // webpackBootstrap
           return pickBy('isAfter', args);
       }
 
-      var now = Date.now || function () {
-          return +(new Date());
+      var now = function () {
+          return Date.now ? Date.now() : +(new Date());
       };
 
       function Duration (duration) {
@@ -4620,11 +4710,15 @@ return /******/ (function(modules) { // webpackBootstrap
       prototype__proto.set             = locale_set__set;
 
       // Month
-      prototype__proto.months       =        localeMonths;
-      prototype__proto._months      = defaultLocaleMonths;
-      prototype__proto.monthsShort  =        localeMonthsShort;
-      prototype__proto._monthsShort = defaultLocaleMonthsShort;
-      prototype__proto.monthsParse  =        localeMonthsParse;
+      prototype__proto.months            =        localeMonths;
+      prototype__proto._months           = defaultLocaleMonths;
+      prototype__proto.monthsShort       =        localeMonthsShort;
+      prototype__proto._monthsShort      = defaultLocaleMonthsShort;
+      prototype__proto.monthsParse       =        localeMonthsParse;
+      prototype__proto._monthsRegex      = defaultMonthsRegex;
+      prototype__proto.monthsRegex       = monthsRegex;
+      prototype__proto._monthsShortRegex = defaultMonthsShortRegex;
+      prototype__proto.monthsShortRegex  = monthsShortRegex;
 
       // Week
       prototype__proto.week = localeWeek;
@@ -4693,9 +4787,6 @@ return /******/ (function(modules) { // webpackBootstrap
       }
 
       locale_locales__getSetGlobalLocale('en', {
-          monthsParse : [/^jan/i, /^feb/i, /^mar/i, /^apr/i, /^may/i, /^jun/i, /^jul/i, /^aug/i, /^sep/i, /^oct/i, /^nov/i, /^dec/i],
-          longMonthsParse : [/^january$/i, /^february$/i, /^march$/i, /^april$/i, /^may$/i, /^june$/i, /^july$/i, /^august$/i, /^september$/i, /^october$/i, /^november$/i, /^december$/i],
-          shortMonthsParse : [/^jan$/i, /^feb$/i, /^mar$/i, /^apr$/i, /^may$/i, /^jun$/i, /^jul$/i, /^aug/i, /^sept?$/i, /^oct$/i, /^nov$/i, /^dec$/i],
           ordinalParse: /\d{1,2}(th|st|nd|rd)/,
           ordinal : function (number) {
               var b = number % 10,
@@ -5063,7 +5154,7 @@ return /******/ (function(modules) { // webpackBootstrap
       // Side effect imports
 
 
-      utils_hooks__hooks.version = '2.11.0';
+      utils_hooks__hooks.version = '2.11.1';
 
       setHookCallback(local__createLocal);
 
@@ -10562,6 +10653,27 @@ return /******/ (function(modules) { // webpackBootstrap
       me.emit('contextmenu', me.getEventProperties(event));
     };
 
+    //Single time autoscale/fit
+    this.fitDone = false;
+    this.on('changed', function () {
+      if (this.itemsData == null) return;
+      if (!me.fitDone) {
+        me.fitDone = true;
+        if (me.options.start != undefined || me.options.end != undefined) {
+          if (me.options.start == undefined || me.options.end == undefined) {
+            var range = me.getItemRange();
+          }
+
+          var start = me.options.start != undefined ? me.options.start : range.min;
+          var end = me.options.end != undefined ? me.options.end : range.max;
+
+          me.setWindow(start, end, { animation: false });
+        } else {
+          me.fit({ animation: false });
+        }
+      }
+    });
+
     // apply options
     if (options) {
       this.setOptions(options);
@@ -10575,9 +10687,10 @@ return /******/ (function(modules) { // webpackBootstrap
     // create itemset
     if (items) {
       this.setItems(items);
-    } else {
-      this._redraw();
     }
+
+    // draw for the first time
+    this._redraw();
   }
 
   // Extend the functionality from Core
@@ -10634,8 +10747,6 @@ return /******/ (function(modules) { // webpackBootstrap
    * @param {vis.DataSet | Array | null} items
    */
   Timeline.prototype.setItems = function (items) {
-    var initialLoad = this.itemsData == null;
-
     // convert to type DataSet when needed
     var newDataSet;
     if (!items) {
@@ -10655,21 +10766,6 @@ return /******/ (function(modules) { // webpackBootstrap
     // set items
     this.itemsData = newDataSet;
     this.itemSet && this.itemSet.setItems(newDataSet);
-
-    if (initialLoad) {
-      if (this.options.start != undefined || this.options.end != undefined) {
-        if (this.options.start == undefined || this.options.end == undefined) {
-          var range = this.getItemRange();
-        }
-
-        var start = this.options.start != undefined ? this.options.start : range.min;
-        var end = this.options.end != undefined ? this.options.end : range.max;
-
-        this.setWindow(start, end, { animation: false });
-      } else {
-        this.fit({ animation: false });
-      }
-    }
   };
 
   /**
@@ -10849,6 +10945,7 @@ return /******/ (function(modules) { // webpackBootstrap
         factor = interval / _this.props.center.width;
         util.forEach(_this.itemSet.items, (function (item) {
           item.show();
+          item.repositionX();
 
           var start = getStart(item);
           var end = getEnd(item);
@@ -11209,10 +11306,11 @@ return /******/ (function(modules) { // webpackBootstrap
         // propagate over all elements (until stopped)
         var elem = _firstTarget;
         while (elem && !stopped) {
-          if(elem.hammer){
+          var elemHammer = elem.hammer;
+          if(elemHammer){
             var _handlers;
-            for(var k = 0; k < elem.hammer.length; k++){
-              _handlers = elem.hammer[k]._handlers[event.type];
+            for(var k = 0; k < elemHammer.length; k++){
+              _handlers = elemHammer[k]._handlers[event.type];
               if(_handlers) for (var i = 0; i < _handlers.length && !stopped; i++) {
                 _handlers[i](event);
               }
@@ -14228,10 +14326,13 @@ return /******/ (function(modules) { // webpackBootstrap
     this.previousDelta = delta;
     this._applyRange(newStart, newEnd);
 
+    var startDate = new Date(this.start);
+    var endDate = new Date(this.end);
+
     // fire a rangechange event
     this.body.emitter.emit('rangechange', {
-      start: new Date(this.start),
-      end: new Date(this.end),
+      start: startDate,
+      end: endDate,
       byUser: true
     });
   };
@@ -14524,22 +14625,13 @@ return /******/ (function(modules) { // webpackBootstrap
    */
   exports.onTouch = function (hammer, callback) {
     callback.inputHandler = function (event) {
-      if (event.isFirst && !isTouching) {
+      if (event.isFirst) {
         callback(event);
-
-        isTouching = true;
-        setTimeout(function () {
-          isTouching = false;
-        }, 0);
       }
     };
 
     hammer.on('hammer.input', callback.inputHandler);
   };
-
-  // isTouching is true while a touch action is being emitted
-  // this is a hack to prevent `touch` from being fired twice
-  var isTouching = false;
 
   /**
    * Register a release event, taking place after a gesture
@@ -14548,22 +14640,13 @@ return /******/ (function(modules) { // webpackBootstrap
    */
   exports.onRelease = function (hammer, callback) {
     callback.inputHandler = function (event) {
-      if (event.isFinal && !isReleasing) {
+      if (event.isFinal) {
         callback(event);
-
-        isReleasing = true;
-        setTimeout(function () {
-          isReleasing = false;
-        }, 0);
       }
     };
 
     return hammer.on('hammer.input', callback.inputHandler);
   };
-
-  // isReleasing is true while a release action is being emitted
-  // this is a hack to prevent `release` from being fired twice
-  var isReleasing = false;
 
   /**
    * Unregister a touch event, taking place before a gesture
@@ -15150,6 +15233,7 @@ return /******/ (function(modules) { // webpackBootstrap
    */
   Core.prototype._create = function (container) {
     this.dom = {};
+    this.options = {};
 
     this.dom.container = container;
 
@@ -15212,13 +15296,15 @@ return /******/ (function(modules) { // webpackBootstrap
     this.dom.rightContainer.appendChild(this.dom.shadowBottomRight);
 
     this.on('rangechange', (function () {
-      this._redraw(); // this allows overriding the _redraw method
+      if (this.initialDrawDone === true) {
+        this._redraw(); // this allows overriding the _redraw method
+      }
     }).bind(this));
     this.on('touch', this._onTouch.bind(this));
     this.on('pan', this._onDrag.bind(this));
 
     var me = this;
-    this.on('change', function (properties) {
+    this.on('_change', function (properties) {
       if (properties && properties.queue == true) {
         // redraw once on next tick
         if (!me._redrawTimer) {
@@ -15298,6 +15384,7 @@ return /******/ (function(modules) { // webpackBootstrap
     this.touch = {};
 
     this.redrawCount = 0;
+    this.initialDrawDone = false;
 
     // attach the root panel to the provided container
     if (!container) throw new Error('No container provided');
@@ -15335,6 +15422,7 @@ return /******/ (function(modules) { // webpackBootstrap
       var fields = ['width', 'height', 'minHeight', 'maxHeight', 'autoResize', 'start', 'end', 'clickToUse', 'dataAttributes', 'hiddenDates', 'locale', 'locales', 'moment', 'throttleRedraw'];
       util.selectiveExtend(fields, this.options, options);
 
+      this.options.orientation = { item: undefined, axis: undefined };
       if ('orientation' in options) {
         if (typeof options.orientation === 'string') {
           this.options.orientation = {
@@ -15428,11 +15516,11 @@ return /******/ (function(modules) { // webpackBootstrap
     // override redraw with a throttled version
     if (!this._origRedraw) {
       this._origRedraw = this._redraw.bind(this);
+      this._redraw = util.throttle(this._origRedraw, this.options.throttleRedraw);
+    } else {
+      // Not the initial run: redraw everything
+      this._redraw();
     }
-    this._redraw = util.throttle(this._origRedraw, this.options.throttleRedraw);
-
-    // redraw everything
-    this._redraw();
   };
 
   /**
@@ -15729,12 +15817,13 @@ return /******/ (function(modules) { // webpackBootstrap
    * @protected
    */
   Core.prototype._redraw = function () {
+    this.redrawCount++;
     var resized = false;
     var options = this.options;
     var props = this.props;
     var dom = this.dom;
 
-    if (!dom) return; // when destroyed
+    if (!dom || !dom.container || dom.container.clientWidth == 0) return; // when destroyed, or invisible
 
     DateUtil.updateHiddenDates(this.options.moment, this.body, this.options.hiddenDates);
 
@@ -15870,17 +15959,21 @@ return /******/ (function(modules) { // webpackBootstrap
     this.components.forEach(function (component) {
       resized = component.redraw() || resized;
     });
+    var MAX_REDRAW = 5;
     if (resized) {
-      // keep repainting until all sizes are settled
-      var MAX_REDRAWS = 3; // maximum number of consecutive redraws
-      if (this.redrawCount < MAX_REDRAWS) {
-        this.redrawCount++;
-        this._redraw();
+      if (this.redrawCount < MAX_REDRAW) {
+        this.body.emitter.emit('_change');
+        return;
       } else {
         console.log('WARNING: infinite loop in redraw?');
       }
+    } else {
       this.redrawCount = 0;
     }
+    this.initialDrawDone = true;
+
+    //Emit public 'changed' event for UI updates, see issue #1592
+    this.body.emitter.emit("changed");
   };
 
   // TODO: deprecated since version 1.1.0, remove some day
@@ -16005,13 +16098,19 @@ return /******/ (function(modules) { // webpackBootstrap
           me.props.lastWidth = me.dom.root.offsetWidth;
           me.props.lastHeight = me.dom.root.offsetHeight;
 
-          me.emit('change');
+          me.body.emitter.emit('_change');
         }
       }
     };
 
     // add event listener to window resize
     util.addEventListener(window, 'resize', this._onResize);
+
+    //Prevent initial unnecessary redraw
+    if (me.dom.root) {
+      me.props.lastWidth = me.dom.root.offsetWidth;
+      me.props.lastHeight = me.dom.root.offsetHeight;
+    }
 
     this.watchTimer = setInterval(this._onResize, 1000);
   };
@@ -16068,7 +16167,6 @@ return /******/ (function(modules) { // webpackBootstrap
     var newScrollTop = this._setScrollTop(this.touch.initialScrollTop + delta);
 
     if (newScrollTop != oldScrollTop) {
-      this._redraw(); // TODO: this causes two redraws when dragging, the other is triggered by rangechange already
       this.emit("verticalDrag");
     }
   };
@@ -16853,6 +16951,8 @@ return /******/ (function(modules) { // webpackBootstrap
       // update the group holding all ungrouped items
       this._updateUngrouped();
     }
+
+    this.body.emitter.emit('_change', { queue: true });
   };
 
   /**
@@ -16910,7 +17010,7 @@ return /******/ (function(modules) { // webpackBootstrap
     // update the order of all items in each group
     this._order();
 
-    this.body.emitter.emit('change', { queue: true });
+    this.body.emitter.emit('_change', { queue: true });
   };
 
   /**
@@ -17015,7 +17115,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
     this._order();
     this.stackDirty = true; // force re-stacking of all items next redraw
-    this.body.emitter.emit('change', { queue: true });
+    this.body.emitter.emit('_change', { queue: true });
   };
 
   /**
@@ -17045,7 +17145,7 @@ return /******/ (function(modules) { // webpackBootstrap
       // update order
       this._order();
       this.stackDirty = true; // force re-stacking of all items next redraw
-      this.body.emitter.emit('change', { queue: true });
+      this.body.emitter.emit('_change', { queue: true });
     }
   };
 
@@ -17114,7 +17214,7 @@ return /******/ (function(modules) { // webpackBootstrap
       }
     });
 
-    this.body.emitter.emit('change', { queue: true });
+    this.body.emitter.emit('_change', { queue: true });
   };
 
   /**
@@ -17135,7 +17235,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
     this.markDirty();
 
-    this.body.emitter.emit('change', { queue: true });
+    this.body.emitter.emit('_change', { queue: true });
   };
 
   /**
@@ -17498,7 +17598,7 @@ return /******/ (function(modules) { // webpackBootstrap
       }).bind(this));
 
       this.stackDirty = true; // force re-stacking of all items next redraw
-      this.body.emitter.emit('change');
+      this.body.emitter.emit('_change');
     }
   };
 
@@ -17549,7 +17649,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
             // force re-stacking of all items next redraw
             me.stackDirty = true;
-            me.body.emitter.emit('change');
+            me.body.emitter.emit('_change');
           });
         } else {
           // update existing item
@@ -17564,7 +17664,7 @@ return /******/ (function(modules) { // webpackBootstrap
               props.item.setData(props.data);
 
               me.stackDirty = true; // force re-stacking of all items next redraw
-              me.body.emitter.emit('change');
+              me.body.emitter.emit('_change');
             }
           });
         }
@@ -23095,6 +23195,8 @@ return /******/ (function(modules) { // webpackBootstrap
     }, {
       key: '_hide',
       value: function _hide() {
+        var _this = this;
+
         var storePrevious = arguments.length <= 0 || arguments[0] === undefined ? true : arguments[0];
 
         // store the previous color for next time;
@@ -23109,10 +23211,13 @@ return /******/ (function(modules) { // webpackBootstrap
         this.frame.style.display = 'none';
 
         // call the closing callback, restoring the onclick method.
-        if (this.closeCallback !== undefined) {
-          this.closeCallback();
-          this.closeCallback = undefined;
-        }
+        // this is in a setTimeout because it will trigger the show again before the click is done.
+        setTimeout(function () {
+          if (_this.closeCallback !== undefined) {
+            _this.closeCallback();
+            _this.closeCallback = undefined;
+          }
+        }, 0);
       }
 
       /**
@@ -23396,7 +23501,7 @@ return /******/ (function(modules) { // webpackBootstrap
     }, {
       key: '_bindHammer',
       value: function _bindHammer() {
-        var _this = this;
+        var _this2 = this;
 
         this.drag = {};
         this.pinch = {};
@@ -23404,19 +23509,19 @@ return /******/ (function(modules) { // webpackBootstrap
         this.hammer.get('pinch').set({ enable: true });
 
         hammerUtil.onTouch(this.hammer, function (event) {
-          _this._moveSelector(event);
+          _this2._moveSelector(event);
         });
         this.hammer.on('tap', function (event) {
-          _this._moveSelector(event);
+          _this2._moveSelector(event);
         });
         this.hammer.on('panstart', function (event) {
-          _this._moveSelector(event);
+          _this2._moveSelector(event);
         });
         this.hammer.on('panmove', function (event) {
-          _this._moveSelector(event);
+          _this2._moveSelector(event);
         });
         this.hammer.on('panend', function (event) {
-          _this._moveSelector(event);
+          _this2._moveSelector(event);
         });
       }
 
@@ -24177,6 +24282,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
     // item set
     this.linegraph = new LineGraph(this.body);
+
     this.components.push(this.linegraph);
 
     this.itemsData = null; // DataSet
@@ -24205,9 +24311,10 @@ return /******/ (function(modules) { // webpackBootstrap
     // create itemset
     if (items) {
       this.setItems(items);
-    } else {
-      this._redraw();
     }
+
+    // draw for the first time
+    this._redraw();
   }
 
   // Extend the functionality from Core
@@ -24254,7 +24361,6 @@ return /******/ (function(modules) { // webpackBootstrap
       if (this.options.start != undefined || this.options.end != undefined) {
         var start = this.options.start != undefined ? this.options.start : null;
         var end = this.options.end != undefined ? this.options.end : null;
-
         this.setWindow(start, end, { animation: false });
       } else {
         this.fit({ animation: false });
@@ -24473,40 +24579,8 @@ return /******/ (function(modules) { // webpackBootstrap
         size: 6,
         style: 'square' // square, circle
       },
-      dataAxis: {
-        showMinorLabels: true,
-        showMajorLabels: true,
-        icons: false,
-        width: '40px',
-        visible: true,
-        alignZeros: true,
-        left: {
-          range: { min: undefined, max: undefined },
-          format: function format(value) {
-            return value;
-          },
-          title: { text: undefined, style: undefined }
-        },
-        right: {
-          range: { min: undefined, max: undefined },
-          format: function format(value) {
-            return value;
-          },
-          title: { text: undefined, style: undefined }
-        }
-      },
-      legend: {
-        enabled: false,
-        icons: true,
-        left: {
-          visible: true,
-          position: 'top-left' // top/bottom - left,right
-        },
-        right: {
-          visible: true,
-          position: 'top-right' // top/bottom - left,right
-        }
-      },
+      dataAxis: {}, //Defaults are done on DataAxis level
+      legend: {}, //Defaults are done on Legend level
       groups: {
         visibility: {}
       }
@@ -24521,6 +24595,7 @@ return /******/ (function(modules) { // webpackBootstrap
     this.abortedGraphUpdate = false;
     this.updateSVGheight = false;
     this.updateSVGheightOnResize = false;
+    this.forceGraphUpdate = true;
 
     var me = this;
     this.itemsData = null; // DataSet
@@ -24560,17 +24635,18 @@ return /******/ (function(modules) { // webpackBootstrap
     this.svgElements = {};
     this.setOptions(options);
     this.groupsUsingDefaultStyles = [0];
-    this.COUNTER = 0;
     this.body.emitter.on('rangechanged', function () {
       me.lastStart = me.body.range.start;
       me.svg.style.left = util.option.asSize(-me.props.width);
-      me.redraw.call(me, true);
+
+      me.forceGraphUpdate = true;
+      //Is this local redraw necessary? (Core also does a change event!)
+      me.redraw.call(me);
     });
 
     // create the HTML DOM
     this._create();
     this.framework = { svg: this.svg, svgElements: this.svgElements, options: this.options, groups: this.groups };
-    this.body.emitter.emit('change');
   }
 
   LineGraph.prototype = new Component();
@@ -24612,7 +24688,7 @@ return /******/ (function(modules) { // webpackBootstrap
   LineGraph.prototype.setOptions = function (options) {
     if (options) {
       var fields = ['sampling', 'defaultGroup', 'stack', 'height', 'graphHeight', 'yAxisOrientation', 'style', 'barChart', 'dataAxis', 'sort', 'groups'];
-      if (options.graphHeight === undefined && options.height !== undefined && this.body.domProps.centerContainer.height !== undefined) {
+      if (options.graphHeight === undefined && options.height !== undefined) {
         this.updateSVGheight = true;
         this.updateSVGheightOnResize = true;
       } else if (this.body.domProps.centerContainer.height !== undefined && options.graphHeight !== undefined) {
@@ -24662,7 +24738,9 @@ return /******/ (function(modules) { // webpackBootstrap
 
     // this is used to redraw the graph if the visibility of the groups is changed.
     if (this.dom.frame) {
-      this.redraw(true);
+      //not on initial run?
+      this.forceGraphUpdate = true;
+      this.body.emitter.emit("_change", { queue: true });
     }
   };
 
@@ -24775,7 +24853,6 @@ return /******/ (function(modules) { // webpackBootstrap
 
   LineGraph.prototype._onUpdate = function (ids) {
     this._updateAllGroupData();
-    this.redraw(true);
   };
   LineGraph.prototype._onAdd = function (ids) {
     this._onUpdate(ids);
@@ -24785,7 +24862,6 @@ return /******/ (function(modules) { // webpackBootstrap
   };
   LineGraph.prototype._onUpdateGroups = function (groupIds) {
     this._updateAllGroupData();
-    this.redraw(true);
   };
   LineGraph.prototype._onAddGroups = function (groupIds) {
     this._onUpdateGroups(groupIds);
@@ -24800,7 +24876,8 @@ return /******/ (function(modules) { // webpackBootstrap
     for (var i = 0; i < groupIds.length; i++) {
       this._removeGroup(groupIds[i]);
     }
-    this.redraw(true);
+    this.forceGraphUpdate = true;
+    this.body.emitter.emit("_change", { queue: true });
   };
 
   /**
@@ -24845,9 +24922,15 @@ return /******/ (function(modules) { // webpackBootstrap
       if (this.groups[groupId].options.yAxisOrientation == 'right') {
         this.yAxisRight.updateGroup(groupId, this.groups[groupId]);
         this.legendRight.updateGroup(groupId, this.groups[groupId]);
+        //If yAxisOrientation changed, clean out the group from the other axis.
+        this.yAxisLeft.removeGroup(groupId);
+        this.legendLeft.removeGroup(groupId);
       } else {
         this.yAxisLeft.updateGroup(groupId, this.groups[groupId]);
         this.legendLeft.updateGroup(groupId, this.groups[groupId]);
+        //If yAxisOrientation changed, clean out the group from the other axis.
+        this.yAxisRight.removeGroup(groupId);
+        this.legendRight.removeGroup(groupId);
       }
     }
     this.legendLeft.redraw();
@@ -24887,7 +24970,6 @@ return /******/ (function(modules) { // webpackBootstrap
         var extended = util.bridgeObject(item);
         extended.x = util.convert(item.x, 'Date');
         extended.orginalY = item.y; //real Y
-        // typecast all items to numbers. Takes around 10ms for 500.000 items
         extended.y = Number(item.y);
 
         var index = groupsContent[groupId].length - groupCounts[groupId]--;
@@ -24923,6 +25005,8 @@ return /******/ (function(modules) { // webpackBootstrap
           }
         }
       }
+      this.forceGraphUpdate = true;
+      this.body.emitter.emit("_change", { queue: true });
     }
   };
 
@@ -24930,17 +25014,12 @@ return /******/ (function(modules) { // webpackBootstrap
    * Redraw the component, mandatory function
    * @return {boolean} Returns true if the component is resized
    */
-  LineGraph.prototype.redraw = function (forceGraphUpdate) {
+  LineGraph.prototype.redraw = function () {
     var resized = false;
 
     // calculate actual size and position
     this.props.width = this.dom.frame.offsetWidth;
     this.props.height = this.body.domProps.centerContainer.height - this.body.domProps.border.top - this.body.domProps.border.bottom;
-
-    // update the graph if there is no lastWidth or with, used for the initial draw
-    if (this.lastWidth === undefined && this.props.width) {
-      forceGraphUpdate = true;
-    }
 
     // check if this component is resized
     resized = this._isResized() || resized;
@@ -24974,8 +25053,9 @@ return /******/ (function(modules) { // webpackBootstrap
     }
 
     // zoomed is here to ensure that animations are shown correctly.
-    if (resized == true || zoomed == true || this.abortedGraphUpdate == true || forceGraphUpdate == true) {
+    if (resized == true || zoomed == true || this.abortedGraphUpdate == true || this.forceGraphUpdate == true) {
       resized = this._updateGraph() || resized;
+      this.forceGraphUpdate = false;
     } else {
       // move the whole svg while dragging
       if (this.lastStart != 0) {
@@ -24988,7 +25068,6 @@ return /******/ (function(modules) { // webpackBootstrap
         }
       }
     }
-
     this.legendLeft.redraw();
     this.legendRight.redraw();
     return resized;
@@ -25054,96 +25133,93 @@ return /******/ (function(modules) { // webpackBootstrap
         this._getYRanges(groupIds, groupsData, groupRanges);
 
         // update the Y axis first, we use this data to draw at the correct Y points
-        // changeCalled is required to clean the SVG on a change emit.
         changeCalled = this._updateYAxis(groupIds, groupRanges);
-        var MAX_CYCLES = 5;
-        if (changeCalled == true && this.COUNTER < MAX_CYCLES) {
+
+        //  at changeCalled, abort this update cycle as the graph needs another update with new Width input from the Redraw container.
+        //  Cleanup SVG elements on abort.
+        if (changeCalled == true) {
           DOMutil.cleanupElements(this.svgElements);
           this.abortedGraphUpdate = true;
-          this.COUNTER++;
-          this.body.emitter.emit('change');
           return true;
-        } else {
-          if (this.COUNTER > MAX_CYCLES) {
-            console.log("WARNING: there may be an infinite loop in the _updateGraph emitter cycle.");
-          }
-          this.COUNTER = 0;
-          this.abortedGraphUpdate = false;
+        }
+        this.abortedGraphUpdate = false;
 
-          // With the yAxis scaled correctly, use this to get the Y values of the points.
-          var below = undefined;
-          for (i = 0; i < groupIds.length; i++) {
-            group = this.groups[groupIds[i]];
-            if (this.options.stack === true && this.options.style === 'line') {
-              if (group.options.excludeFromStacking == undefined || !group.options.excludeFromStacking) {
-                if (below != undefined) {
-                  this._stack(groupsData[group.id], groupsData[below.id]);
-                  if (group.options.shaded.enabled == true && group.options.shaded.orientation !== "group") {
-                    if (group.options.shaded.orientation == "top" && below.options.shaded.orientation !== "group") {
-                      below.options.shaded.orientation = "group";
-                      below.options.shaded.groupId = group.id;
-                    } else {
-                      group.options.shaded.orientation = "group";
-                      group.options.shaded.groupId = below.id;
-                    }
+        // With the yAxis scaled correctly, use this to get the Y values of the points.
+        var below = undefined;
+        for (i = 0; i < groupIds.length; i++) {
+          group = this.groups[groupIds[i]];
+          if (this.options.stack === true && this.options.style === 'line') {
+            if (group.options.excludeFromStacking == undefined || !group.options.excludeFromStacking) {
+              if (below != undefined) {
+                this._stack(groupsData[group.id], groupsData[below.id]);
+                if (group.options.shaded.enabled == true && group.options.shaded.orientation !== "group") {
+                  if (group.options.shaded.orientation == "top" && below.options.shaded.orientation !== "group") {
+                    below.options.shaded.orientation = "group";
+                    below.options.shaded.groupId = group.id;
+                  } else {
+                    group.options.shaded.orientation = "group";
+                    group.options.shaded.groupId = below.id;
                   }
                 }
-                below = group;
               }
-            }
-            this._convertYcoordinates(groupsData[groupIds[i]], group);
-          }
-
-          //Precalculate paths and draw shading if appropriate. This will make sure the shading is always behind any lines.
-          var paths = {};
-          for (i = 0; i < groupIds.length; i++) {
-            group = this.groups[groupIds[i]];
-            if (group.options.style === 'line' && group.options.shaded.enabled == true) {
-              var dataset = groupsData[groupIds[i]];
-              if (!paths.hasOwnProperty(groupIds[i])) {
-                paths[groupIds[i]] = Lines.calcPath(dataset, group);
-              }
-              if (group.options.shaded.orientation === "group") {
-                var subGroupId = group.options.shaded.groupId;
-                if (groupIds.indexOf(subGroupId) === -1) {
-                  console.log(group.id + ": Unknown shading group target given:" + subGroupId);
-                  continue;
-                }
-                if (!paths.hasOwnProperty(subGroupId)) {
-                  paths[subGroupId] = Lines.calcPath(groupsData[subGroupId], this.groups[subGroupId]);
-                }
-                Lines.drawShading(paths[groupIds[i]], group, paths[subGroupId], this.framework);
-              } else {
-                Lines.drawShading(paths[groupIds[i]], group, undefined, this.framework);
-              }
+              below = group;
             }
           }
+          this._convertYcoordinates(groupsData[groupIds[i]], group);
+        }
 
-          // draw the groups, calculating paths if still necessary.
-          Bars.draw(groupIds, groupsData, this.framework);
-          for (i = 0; i < groupIds.length; i++) {
-            group = this.groups[groupIds[i]];
-            if (groupsData[groupIds[i]].length > 0) {
-              switch (group.options.style) {
-                case "line":
-                  if (!paths.hasOwnProperty(groupIds[i])) {
-                    paths[groupIds[i]] = Lines.calcPath(groupsData[groupIds[i]], group);
-                  }
-                  Lines.draw(paths[groupIds[i]], group, this.framework);
-                //explicit no break;
-                case "point":
-                //explicit no break;
-                case "points":
-                  if (group.options.style == "point" || group.options.style == "points" || group.options.drawPoints.enabled == true) {
-                    Points.draw(groupsData[groupIds[i]], group, this.framework);
-                  }
-                  break;
-                case "bar":
-                // bar needs to be drawn enmasse
-                //explicit no break
-                default:
-                //do nothing...
+        //Precalculate paths and draw shading if appropriate. This will make sure the shading is always behind any lines.
+        var paths = {};
+        for (i = 0; i < groupIds.length; i++) {
+          group = this.groups[groupIds[i]];
+          if (group.options.style === 'line' && group.options.shaded.enabled == true) {
+            var dataset = groupsData[groupIds[i]];
+            if (dataset == null || dataset.length == 0) {
+              continue;
+            }
+            if (!paths.hasOwnProperty(groupIds[i])) {
+              paths[groupIds[i]] = Lines.calcPath(dataset, group);
+            }
+            if (group.options.shaded.orientation === "group") {
+              var subGroupId = group.options.shaded.groupId;
+              if (groupIds.indexOf(subGroupId) === -1) {
+                console.log(group.id + ": Unknown shading group target given:" + subGroupId);
+                continue;
               }
+              if (!paths.hasOwnProperty(subGroupId)) {
+                paths[subGroupId] = Lines.calcPath(groupsData[subGroupId], this.groups[subGroupId]);
+              }
+              Lines.drawShading(paths[groupIds[i]], group, paths[subGroupId], this.framework);
+            } else {
+              Lines.drawShading(paths[groupIds[i]], group, undefined, this.framework);
+            }
+          }
+        }
+
+        // draw the groups, calculating paths if still necessary.
+        Bars.draw(groupIds, groupsData, this.framework);
+        for (i = 0; i < groupIds.length; i++) {
+          group = this.groups[groupIds[i]];
+          if (groupsData[groupIds[i]].length > 0) {
+            switch (group.options.style) {
+              case "line":
+                if (!paths.hasOwnProperty(groupIds[i])) {
+                  paths[groupIds[i]] = Lines.calcPath(groupsData[groupIds[i]], group);
+                }
+                Lines.draw(paths[groupIds[i]], group, this.framework);
+              //explicit no break;
+              case "point":
+              //explicit no break;
+              case "points":
+                if (group.options.style == "point" || group.options.style == "points" || group.options.drawPoints.enabled == true) {
+                  Points.draw(groupsData[groupIds[i]], group, this.framework);
+                }
+                break;
+              case "bar":
+              // bar needs to be drawn enmasse
+              //explicit no break
+              default:
+              //do nothing...
             }
           }
         }
@@ -25219,8 +25295,11 @@ return /******/ (function(modules) { // webpackBootstrap
         var itemsData = group.getItems();
         // optimization for sorted data
         if (group.options.sort == true) {
-          var first = Math.max(0, util.binarySearchValue(itemsData, minDate, 'x', 'before'));
-          var last = Math.min(itemsData.length, util.binarySearchValue(itemsData, maxDate, 'x', 'after') + 1);
+          var dateComparator = function dateComparator(a, b) {
+            return a.getTime() == b.getTime() ? 0 : a < b ? -1 : 1;
+          };
+          var first = Math.max(0, util.binarySearchValue(itemsData, minDate, 'x', 'before', dateComparator));
+          var last = Math.min(itemsData.length, util.binarySearchValue(itemsData, maxDate, 'x', 'after', dateComparator) + 1);
           if (last <= 0) {
             last = itemsData.length;
           }
@@ -25381,6 +25460,8 @@ return /******/ (function(modules) { // webpackBootstrap
       this.yAxisRight.drawIcons = false;
     }
     this.yAxisRight.master = !yAxisLeftUsed;
+    this.yAxisRight.masterAxis = this.yAxisLeft;
+
     if (this.yAxisRight.master == false) {
       if (yAxisRightUsed == true) {
         this.yAxisLeft.lineOffset = this.yAxisRight.width;
@@ -25389,9 +25470,6 @@ return /******/ (function(modules) { // webpackBootstrap
       }
 
       resized = this.yAxisLeft.redraw() || resized;
-      this.yAxisRight.stepPixels = this.yAxisLeft.stepPixels;
-      this.yAxisRight.zeroCrossing = this.yAxisLeft.zeroCrossing;
-      this.yAxisRight.amountOfSteps = this.yAxisLeft.amountOfSteps;
       resized = this.yAxisRight.redraw() || resized;
     } else {
       resized = this.yAxisRight.redraw() || resized;
@@ -25482,8 +25560,7 @@ return /******/ (function(modules) { // webpackBootstrap
   var util = __webpack_require__(1);
   var DOMutil = __webpack_require__(7);
   var Component = __webpack_require__(25);
-  var DataStep = __webpack_require__(51);
-
+  var DataScale = __webpack_require__(51);
   /**
    * A horizontal time axis
    * @param {Object} [options]        See DataAxis.setOptions for the available
@@ -25500,7 +25577,7 @@ return /******/ (function(modules) { // webpackBootstrap
       orientation: 'left', // supported: 'left', 'right'
       showMinorLabels: true,
       showMajorLabels: true,
-      icons: true,
+      icons: false,
       majorLinesOffset: 7,
       minorLinesOffset: 4,
       labelOffsetX: 10,
@@ -25512,14 +25589,14 @@ return /******/ (function(modules) { // webpackBootstrap
       left: {
         range: { min: undefined, max: undefined },
         format: function format(value) {
-          return value;
+          return '' + Number.parseFloat(value.toPrecision(3));
         },
         title: { text: undefined, style: undefined }
       },
       right: {
         range: { min: undefined, max: undefined },
         format: function format(value) {
-          return value;
+          return '' + Number.parseFloat(value.toPrecision(3));
         },
         title: { text: undefined, style: undefined }
       }
@@ -25535,7 +25612,7 @@ return /******/ (function(modules) { // webpackBootstrap
     };
 
     this.dom = {};
-
+    this.scale = undefined;
     this.range = { start: 0, end: 0 };
 
     this.options = util.extend({}, this.defaultOptions);
@@ -25553,6 +25630,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
     this.lineOffset = 0;
     this.master = true;
+    this.masterAxis = null;
     this.svgElements = {};
     this.iconsRemoved = false;
 
@@ -25579,6 +25657,9 @@ return /******/ (function(modules) { // webpackBootstrap
   };
 
   DataAxis.prototype.updateGroup = function (label, graphOptions) {
+    if (!this.groups.hasOwnProperty(label)) {
+      this.amountOfGroups += 1;
+    }
     this.groups[label] = graphOptions;
   };
 
@@ -25596,10 +25677,9 @@ return /******/ (function(modules) { // webpackBootstrap
         redraw = true;
       }
       var fields = ['orientation', 'showMinorLabels', 'showMajorLabels', 'icons', 'majorLinesOffset', 'minorLinesOffset', 'labelOffsetX', 'labelOffsetY', 'iconWidth', 'width', 'visible', 'left', 'right', 'alignZeros'];
-      util.selectiveExtend(fields, this.options, options);
+      util.selectiveDeepExtend(fields, this.options, options);
 
       this.minWidth = Number(('' + this.options.width).replace("px", ""));
-
       if (redraw === true && this.dom.frame) {
         this.hide();
         this.show();
@@ -25709,11 +25789,6 @@ return /******/ (function(modules) { // webpackBootstrap
    * @param end
    */
   DataAxis.prototype.setRange = function (start, end) {
-    if (this.master === false && this.options.alignZeros === true && this.zeroCrossing != -1) {
-      if (start > 0) {
-        start = 0;
-      }
-    }
     this.range.start = start;
     this.range.end = end;
   };
@@ -25807,95 +25882,55 @@ return /******/ (function(modules) { // webpackBootstrap
    * @private
    */
   DataAxis.prototype._redrawLabels = function () {
+    var _this = this;
+
     var resized = false;
     DOMutil.prepareElements(this.DOMelements.lines);
     DOMutil.prepareElements(this.DOMelements.labels);
     var orientation = this.options['orientation'];
+    var customRange = this.options[orientation].range != undefined ? this.options[orientation].range : {};
 
-    // get the range for the slaved axis
-    var step;
-    if (this.master === false) {
-      var stepSize, rangeStart, rangeEnd, minimumStep;
-      if (this.zeroCrossing !== -1 && this.options.alignZeros === true) {
-        if (this.range.end > 0) {
-          stepSize = this.range.end / this.zeroCrossing; // size of one step
-          rangeStart = this.range.end - this.amountOfSteps * stepSize;
-          rangeEnd = this.range.end;
-        } else {
-          // all of the range (including start) has to be done before the zero crossing.
-          stepSize = -1 * this.range.start / (this.amountOfSteps - this.zeroCrossing); // absolute size of a step
-          rangeStart = this.range.start;
-          rangeEnd = this.range.start + stepSize * this.amountOfSteps;
-        }
-      } else {
-        rangeStart = this.range.start;
-        rangeEnd = this.range.end;
-      }
-      minimumStep = this.stepPixels;
-    } else {
-      // calculate range and step (step such that we have space for 7 characters per label)
-      minimumStep = this.props.majorCharHeight;
-      rangeStart = this.range.start;
-      rangeEnd = this.range.end;
+    //Override range with manual options:
+    var autoScaleEnd = true;
+    if (customRange.max != undefined) {
+      this.range.end = customRange.max;
+      autoScaleEnd = false;
+    }
+    var autoScaleStart = true;
+    if (customRange.min != undefined) {
+      this.range.start = customRange.min;
+      autoScaleStart = false;
     }
 
-    this.step = step = new DataStep(rangeStart, rangeEnd, minimumStep, this.dom.frame.offsetHeight, this.options[this.options.orientation].range, this.options[this.options.orientation].format, this.master === false && this.options.alignZeros // does the step have to align zeros? only if not master and the options is on
-    );
+    this.scale = new DataScale(this.range.start, this.range.end, autoScaleStart, autoScaleEnd, this.dom.frame.offsetHeight, this.props.majorCharHeight, this.options.alignZeros, this.options[orientation].format);
 
-    // the slave axis needs to use the same horizontal lines as the master axis.
-    if (this.master === true) {
-      this.stepPixels = this.dom.frame.offsetHeight / step.marginRange * step.step;
-      this.amountOfSteps = Math.ceil(this.dom.frame.offsetHeight / this.stepPixels);
-    } else {
-      // align with zero
-      if (this.options.alignZeros === true && this.zeroCrossing !== -1) {
-        // distance is the amount of steps away from the zero crossing we are.
-        var distance = (step.current - this.zeroCrossing * step.step) / step.step;
-        this.step.shift(distance);
-      }
+    if (this.master === false && this.masterAxis != undefined) {
+      this.scale.followScale(this.masterAxis.scale);
     }
 
-    // value at the bottom of the SVG
-    this.valueAtBottom = step.marginEnd;
-
+    //Is updated in side-effect of _redrawLabel():
     this.maxLabelSize = 0;
-    var y = 0; // init value
-    var stepIndex = 0; // init value
-    var isMajor = false; // init value
-    while (stepIndex < this.amountOfSteps) {
-      y = Math.round(stepIndex * this.stepPixels);
-      isMajor = step.isMajor();
 
-      if (stepIndex > 0 && stepIndex !== this.amountOfSteps) {
-        if (this.options['showMinorLabels'] && isMajor === false || this.master === false && this.options['showMinorLabels'] === true) {
-          this._redrawLabel(y - 2, step.getCurrent(), orientation, 'vis-y-axis vis-minor', this.props.minorCharHeight);
+    var lines = this.scale.getLines();
+    lines.forEach(function (line) {
+      var y = line.y;
+      var isMajor = line.major;
+      if (_this.options['showMinorLabels'] && isMajor === false) {
+        _this._redrawLabel(y - 2, line.val, orientation, 'vis-y-axis vis-minor', _this.props.minorCharHeight);
+      }
+      if (isMajor) {
+        if (y >= 0) {
+          _this._redrawLabel(y - 2, line.val, orientation, 'vis-y-axis vis-major', _this.props.majorCharHeight);
         }
-
-        if (isMajor && this.options['showMajorLabels'] && this.master === true || this.options['showMinorLabels'] === false && this.master === false && isMajor === true) {
-          if (y >= 0) {
-            this._redrawLabel(y - 2, step.getCurrent(), orientation, 'vis-y-axis vis-major', this.props.majorCharHeight);
-          }
-          this._redrawLine(y, orientation, 'vis-grid vis-horizontal vis-major', this.options.majorLinesOffset, this.props.majorLineWidth);
+      }
+      if (_this.master === true) {
+        if (isMajor) {
+          _this._redrawLine(y, orientation, 'vis-grid vis-horizontal vis-major', _this.options.majorLinesOffset, _this.props.majorLineWidth);
         } else {
-          this._redrawLine(y, orientation, 'vis-grid vis-horizontal vis-minor', this.options.minorLinesOffset, this.props.minorLineWidth);
+          _this._redrawLine(y, orientation, 'vis-grid vis-horizontal vis-minor', _this.options.minorLinesOffset, _this.props.minorLineWidth);
         }
       }
-
-      // get zero crossing
-      if (this.master === true && step.current === 0) {
-        this.zeroCrossing = stepIndex;
-      }
-
-      step.next();
-      stepIndex += 1;
-    }
-
-    // get zero crossing if it's the last step
-    if (this.master === true && step.current === 0) {
-      this.zeroCrossing = stepIndex;
-    }
-
-    this.conversionFactor = this.stepPixels / step.step;
+    });
 
     // Note that title is rotated, so we're using the height, not width!
     var titleWidth = 0;
@@ -25931,13 +25966,11 @@ return /******/ (function(modules) { // webpackBootstrap
   };
 
   DataAxis.prototype.convertValue = function (value) {
-    var invertedValue = this.valueAtBottom - value;
-    var convertedValue = invertedValue * this.conversionFactor;
-    return convertedValue;
+    return this.scale.convertValue(value);
   };
 
   DataAxis.prototype.screenToValue = function (x) {
-    return this.valueAtBottom - x / this.conversionFactor;
+    return this.scale.screenToValue(x);
   };
 
   /**
@@ -26083,93 +26116,74 @@ return /******/ (function(modules) { // webpackBootstrap
 /***/ function(module, exports) {
 
   /**
-   * @constructor  DataStep
-   * The class DataStep is an iterator for data for the lineGraph. You provide a start data point and an
-   * end data point. The class itself determines the best scale (step size) based on the
-   * provided start Date, end Date, and minimumStep.
-   *
-   * If minimumStep is provided, the step size is chosen as close as possible
-   * to the minimumStep but larger than minimumStep. If minimumStep is not
-   * provided, the scale is set to 1 DAY.
-   * The minimumStep should correspond with the onscreen size of about 6 characters
-   *
-   * Alternatively, you can set a scale by hand.
-   * After creation, you can initialize the class by executing first(). Then you
-   * can iterate from the start date to the end date via next(). You can check if
-   * the end date is reached with the function hasNext(). After each step, you can
-   * retrieve the current date via getCurrent().
-   * The DataStep has scales ranging from milliseconds, seconds, minutes, hours,
-   * days, to years.
-   *
-   * Version: 1.2
-   *
-   * @param {Date} [start]         The start date, for example new Date(2010, 9, 21)
-   *                               or new Date(2010, 9, 21, 23, 45, 00)
-   * @param {Date} [end]           The end date
-   * @param {Number} [minimumStep] Optional. Minimum step size in milliseconds
+   * Created by ludo on 25-1-16.
    */
+
   'use strict';
 
-  function DataStep(start, end, minimumStep, containerHeight, customRange, formattingFunction, alignZeros) {
-    // variables
-    this.current = 0;
-
-    this.autoScale = true;
-    this.stepIndex = 0;
-    this.step = 1;
-    this.scale = 1;
-    this.formattingFunction = formattingFunction;
-
-    this.marginStart;
-    this.marginEnd;
-    this.deadSpace = 0;
+  function DataScale(start, end, autoScaleStart, autoScaleEnd, containerHeight, majorCharHeight) {
+    var zeroAlign = arguments.length <= 6 || arguments[6] === undefined ? false : arguments[6];
+    var formattingFunction = arguments.length <= 7 || arguments[7] === undefined ? false : arguments[7];
 
     this.majorSteps = [1, 2, 5, 10];
     this.minorSteps = [0.25, 0.5, 1, 2];
+    this.customLines = null;
 
-    this.alignZeros = alignZeros;
+    this.containerHeight = containerHeight;
+    this.majorCharHeight = majorCharHeight;
+    this._start = start;
+    this._end = end;
 
-    this.setRange(start, end, minimumStep, containerHeight, customRange);
+    this.scale = 1;
+    this.minorStepIdx = -1;
+    this.magnitudefactor = 1;
+    this.determineScale();
+
+    this.zeroAlign = zeroAlign;
+    this.autoScaleStart = autoScaleStart;
+    this.autoScaleEnd = autoScaleEnd;
+
+    this.formattingFunction = formattingFunction;
+
+    if (autoScaleStart || autoScaleEnd) {
+      var me = this;
+      var roundToMinor = function roundToMinor(value) {
+        var rounded = value - value % (me.magnitudefactor * me.minorSteps[me.minorStepIdx]);
+        if (value % (me.magnitudefactor * me.minorSteps[me.minorStepIdx]) > 0.5 * (me.magnitudefactor * me.minorSteps[me.minorStepIdx])) {
+          return rounded + me.magnitudefactor * me.minorSteps[me.minorStepIdx];
+        } else {
+          return rounded;
+        }
+      };
+      if (autoScaleStart) {
+        this._start -= this.magnitudefactor * 2 * this.minorSteps[this.minorStepIdx];
+        this._start = roundToMinor(this._start);
+      }
+
+      if (autoScaleEnd) {
+        this._end += this.magnitudefactor * this.minorSteps[this.minorStepIdx];
+        this._end = roundToMinor(this._end);
+      }
+      this.determineScale();
+    }
   }
 
-  /**
-   * Set a new range
-   * If minimumStep is provided, the step size is chosen as close as possible
-   * to the minimumStep but larger than minimumStep. If minimumStep is not
-   * provided, the scale is set to 1 DAY.
-   * The minimumStep should correspond with the onscreen size of about 6 characters
-   * @param {Number} [start]      The start date and time.
-   * @param {Number} [end]        The end date and time.
-   * @param {Number} [minimumStep] Optional. Minimum step size in milliseconds
-   */
-  DataStep.prototype.setRange = function (start, end, minimumStep, containerHeight, customRange) {
-    this._start = customRange.min === undefined ? start : customRange.min;
-    this._end = customRange.max === undefined ? end : customRange.max;
-    if (this._start === this._end) {
-      this._start = customRange.min === undefined ? this._start - 0.75 : this._start;
-      this._end = customRange.max === undefined ? this._end + 1 : this._end;;
-    }
-
-    if (this.autoScale === true) {
-      this.setMinimumStep(minimumStep, containerHeight);
-    }
-
-    this.setFirst(customRange);
+  DataScale.prototype.setCharHeight = function (majorCharHeight) {
+    this.majorCharHeight = majorCharHeight;
   };
 
-  /**
-   * Automatically determine the scale that bests fits the provided minimum step
-   * @param {Number} [minimumStep]  The minimum step size in pixels
-   */
-  DataStep.prototype.setMinimumStep = function (minimumStep, containerHeight) {
-    // round to floor
-    var range = this._end - this._start;
-    var safeRange = range * 1.2;
-    var minimumStepValue = minimumStep * (safeRange / containerHeight);
-    var orderOfMagnitude = Math.round(Math.log(safeRange) / Math.LN10);
+  DataScale.prototype.setHeight = function (containerHeight) {
+    this.containerHeight = containerHeight;
+  };
 
-    var minorStepIdx = -1;
-    var magnitudefactor = Math.pow(10, orderOfMagnitude);
+  DataScale.prototype.determineScale = function () {
+    var range = this._end - this._start;
+    this.scale = this.containerHeight / range;
+    var minimumStepValue = this.majorCharHeight / this.scale;
+    var orderOfMagnitude = Math.round(Math.log(range) / Math.LN10);
+
+    this.minorStepIdx = -1;
+    this.magnitudefactor = Math.pow(10, orderOfMagnitude);
 
     var start = 0;
     if (orderOfMagnitude < 0) {
@@ -26177,13 +26191,13 @@ return /******/ (function(modules) { // webpackBootstrap
     }
 
     var solutionFound = false;
-    for (var i = start; Math.abs(i) <= Math.abs(orderOfMagnitude); i++) {
-      magnitudefactor = Math.pow(10, i);
+    for (var l = start; Math.abs(l) <= Math.abs(orderOfMagnitude); l++) {
+      this.magnitudefactor = Math.pow(10, l);
       for (var j = 0; j < this.minorSteps.length; j++) {
-        var stepSize = magnitudefactor * this.minorSteps[j];
+        var stepSize = this.magnitudefactor * this.minorSteps[j];
         if (stepSize >= minimumStepValue) {
           solutionFound = true;
-          minorStepIdx = j;
+          this.minorStepIdx = j;
           break;
         }
       }
@@ -26191,83 +26205,22 @@ return /******/ (function(modules) { // webpackBootstrap
         break;
       }
     }
-    this.stepIndex = minorStepIdx;
-    this.scale = magnitudefactor;
-    this.step = magnitudefactor * this.minorSteps[minorStepIdx];
   };
 
-  /**
-   * Round the current date to the first minor date value
-   * This must be executed once when the current date is set to start Date
-   */
-  DataStep.prototype.setFirst = function (customRange) {
-    if (customRange === undefined) {
-      customRange = {};
-    }
-
-    var niceStart = customRange.min === undefined ? this._start - this.scale * 2 * this.minorSteps[this.stepIndex] : customRange.min;
-    var niceEnd = customRange.max === undefined ? this._end + this.scale * this.minorSteps[this.stepIndex] : customRange.max;
-
-    this.marginEnd = customRange.max === undefined ? this.roundToMinor(niceEnd) : customRange.max;
-    this.marginStart = customRange.min === undefined ? this.roundToMinor(niceStart) : customRange.min;
-
-    // if we need to align the zero's we need to make sure that there is a zero to use.
-    if (this.alignZeros === true && (this.marginEnd - this.marginStart) % this.step != 0) {
-      this.marginEnd += this.marginEnd % this.step;
-    }
-
-    this.deadSpace = this.roundToMinor(niceEnd) - niceEnd + this.roundToMinor(niceStart) - niceStart;
-    this.marginRange = this.marginEnd - this.marginStart;
-
-    this.current = this.marginEnd;
+  DataScale.prototype.is_major = function (value) {
+    return value % (this.magnitudefactor * this.majorSteps[this.minorStepIdx]) === 0;
   };
 
-  DataStep.prototype.roundToMinor = function (value) {
-    var rounded = value - value % (this.scale * this.minorSteps[this.stepIndex]);
-    if (value % (this.scale * this.minorSteps[this.stepIndex]) > 0.5 * (this.scale * this.minorSteps[this.stepIndex])) {
-      return rounded + this.scale * this.minorSteps[this.stepIndex];
-    } else {
-      return rounded;
-    }
+  DataScale.prototype.getStep = function () {
+    return this.magnitudefactor * this.minorSteps[this.minorStepIdx];
   };
 
-  /**
-   * Check if the there is a next step
-   * @return {boolean}  true if the current date has not passed the end date
-   */
-  DataStep.prototype.hasNext = function () {
-    return this.current >= this.marginStart;
+  DataScale.prototype.getFirstMajor = function () {
+    var majorStep = this.magnitudefactor * this.majorSteps[this.minorStepIdx];
+    return this.convertValue(this._start + (majorStep - this._start % majorStep) % majorStep);
   };
 
-  /**
-   * Do the next step
-   */
-  DataStep.prototype.next = function () {
-    var prev = this.current;
-    this.current -= this.step;
-
-    // safety mechanism: if current time is still unchanged, move to the end
-    if (this.current === prev) {
-      this.current = this._end;
-    }
-  };
-
-  /**
-   * Do the next step
-   */
-  DataStep.prototype.previous = function () {
-    this.current += this.step;
-    this.marginEnd += this.step;
-    this.marginRange = this.marginEnd - this.marginStart;
-  };
-
-  /**
-   * Get the current datetime
-   * @return {String}  current The current date
-   */
-  DataStep.prototype.getCurrent = function () {
-    // prevent round-off errors when close to zero
-    var current = Math.abs(this.current) < this.step / 2 ? 0 : this.current;
+  DataScale.prototype.formatValue = function (current) {
     var returnValue = current.toPrecision(5);
     if (typeof this.formattingFunction === 'function') {
       returnValue = this.formattingFunction(current);
@@ -26282,28 +26235,123 @@ return /******/ (function(modules) { // webpackBootstrap
     }
   };
 
-  /**
-   * Check if the current value is a major value (for example when the step
-   * is DAY, a major value is each first day of the MONTH)
-   * @return {boolean} true if current date is major, else false.
-   */
-  DataStep.prototype.isMajor = function () {
-    return this.current % (this.scale * this.majorSteps[this.stepIndex]) === 0;
+  DataScale.prototype.getLines = function () {
+    var lines = [];
+    var step = this.getStep();
+    var bottomOffset = (step - this._start % step) % step;
+    for (var i = this._start + bottomOffset; this._end - i > 0.00001; i += step) {
+      if (i != this._start) {
+        //Skip the bottom line
+        lines.push({ major: this.is_major(i), y: this.convertValue(i), val: this.formatValue(i) });
+      }
+    }
+    return lines;
   };
 
-  DataStep.prototype.shift = function (steps) {
-    if (steps < 0) {
-      for (var i = 0; i < -steps; i++) {
-        this.previous();
+  DataScale.prototype.followScale = function (other) {
+    var oldStepIdx = this.minorStepIdx;
+    var oldStart = this._start;
+    var oldEnd = this._end;
+
+    var me = this;
+    var increaseMagnitude = function increaseMagnitude() {
+      me.magnitudefactor *= 2;
+    };
+    var decreaseMagnitude = function decreaseMagnitude() {
+      me.magnitudefactor /= 2;
+    };
+
+    if (other.minorStepIdx <= 1 && this.minorStepIdx <= 1 || other.minorStepIdx > 1 && this.minorStepIdx > 1) {
+      //easy, no need to change stepIdx nor multiplication factor
+    } else if (other.minorStepIdx < this.minorStepIdx) {
+        //I'm 5, they are 4 per major.
+        this.minorStepIdx = 1;
+        if (oldStepIdx == 2) {
+          increaseMagnitude();
+        } else {
+          increaseMagnitude();
+          increaseMagnitude();
+        }
+      } else {
+        //I'm 4, they are 5 per major
+        this.minorStepIdx = 2;
+        if (oldStepIdx == 1) {
+          decreaseMagnitude();
+        } else {
+          decreaseMagnitude();
+          decreaseMagnitude();
+        }
       }
-    } else if (steps > 0) {
-      for (var i = 0; i < steps; i++) {
-        this.next();
+
+    //Get masters stats:
+    var lines = other.getLines();
+    var otherZero = other.convertValue(0);
+    var otherStep = other.getStep() * other.scale;
+
+    var done = false;
+    var count = 0;
+    //Loop until magnitude is correct for given constrains.
+    while (!done && count++ < 5) {
+
+      //Get my stats:
+      this.scale = otherStep / (this.minorSteps[this.minorStepIdx] * this.magnitudefactor);
+      var newRange = this.containerHeight / this.scale;
+
+      //For the case the magnitudefactor has changed:
+      this._start = oldStart;
+      this._end = this._start + newRange;
+
+      var myOriginalZero = this._end * this.scale;
+      var majorStep = this.magnitudefactor * this.majorSteps[this.minorStepIdx];
+      var majorOffset = this.getFirstMajor() - other.getFirstMajor();
+
+      if (this.zeroAlign) {
+        var zeroOffset = otherZero - myOriginalZero;
+        this._end += zeroOffset / this.scale;
+        this._start = this._end - newRange;
+      } else {
+        if (!this.autoScaleStart) {
+          this._start += majorStep - majorOffset / this.scale;
+          this._end = this._start + newRange;
+        } else {
+          this._start -= majorOffset / this.scale;
+          this._end = this._start + newRange;
+        }
       }
+      if (!this.autoScaleEnd && this._end > oldEnd + 0.00001) {
+        //Need to decrease magnitude to prevent scale overshoot! (end)
+        decreaseMagnitude();
+        done = false;
+        continue;
+      }
+      if (!this.autoScaleStart && this._start < oldStart - 0.00001) {
+        if (this.zeroAlign && oldStart >= 0) {
+          console.warn("Can't adhere to given 'min' range, due to zeroalign");
+        } else {
+          //Need to decrease magnitude to prevent scale overshoot! (start)
+          decreaseMagnitude();
+          done = false;
+          continue;
+        }
+      }
+      if (this.autoScaleStart && this.autoScaleEnd && newRange < oldEnd - oldStart) {
+        increaseMagnitude();
+        done = false;
+        continue;
+      }
+      done = true;
     }
   };
 
-  module.exports = DataStep;
+  DataScale.prototype.convertValue = function (value) {
+    return this.containerHeight - (value - this._start) * this.scale;
+  };
+
+  DataScale.prototype.screenToValue = function (pixels) {
+    return (this.containerHeight - pixels) / this.scale + this._start;
+  };
+
+  module.exports = DataScale;
 
 /***/ },
 /* 52 */
@@ -26329,7 +26377,7 @@ return /******/ (function(modules) { // webpackBootstrap
    */
   function GraphGroup(group, groupId, options, groupsUsingDefaultStyles) {
     this.id = groupId;
-    var fields = ['sampling', 'style', 'sort', 'yAxisOrientation', 'barChart', 'drawPoints', 'shaded', 'interpolation', 'zIndex'];
+    var fields = ['sampling', 'style', 'sort', 'yAxisOrientation', 'barChart', 'drawPoints', 'shaded', 'interpolation', 'zIndex', 'excludeFromStacking', 'excludeFromLegend'];
     this.options = util.selectiveBridgeObject(fields, options);
     this.usingDefaultStyle = group.className === undefined;
     this.groupsUsingDefaultStyles = groupsUsingDefaultStyles;
@@ -26377,7 +26425,7 @@ return /******/ (function(modules) { // webpackBootstrap
    */
   GraphGroup.prototype.setOptions = function (options) {
     if (options !== undefined) {
-      var fields = ['sampling', 'style', 'sort', 'yAxisOrientation', 'barChart', 'excludeFromLegend', 'excludeFromStacking', 'zIndex'];
+      var fields = ['sampling', 'style', 'sort', 'yAxisOrientation', 'barChart', 'zIndex', 'excludeFromStacking', 'excludeFromLegend'];
       util.selectiveDeepExtend(fields, this.options, options);
 
       // if the group's drawPoints is a function delegate the callback to the onRender property
@@ -26565,16 +26613,13 @@ return /******/ (function(modules) { // webpackBootstrap
     // plot barchart
     for (i = 0; i < combinedData.length; i++) {
       group = framework.groups[combinedData[i].groupId];
-      var minWidth = 0.1 * group.options.barChart.width;
+      var minWidth = group.options.barChart.minWidth != undefined ? group.options.barChart.minWidth : 0.1 * group.options.barChart.width;
 
       key = combinedData[i].screen_x;
       var heightOffset = 0;
       if (intersections[key] === undefined) {
         if (i + 1 < combinedData.length) {
           coreDistance = Math.abs(combinedData[i + 1].screen_x - key);
-        }
-        if (i > 0) {
-          coreDistance = Math.min(coreDistance, Math.abs(combinedData[i - 1].screen_x - key));
         }
         drawData = Bargraph._getSafeDrawData(coreDistance, group, minWidth);
       } else {
@@ -26583,13 +26628,10 @@ return /******/ (function(modules) { // webpackBootstrap
         if (nextKey < combinedData.length) {
           coreDistance = Math.abs(combinedData[nextKey].screen_x - key);
         }
-        if (prevKey > 0) {
-          coreDistance = Math.min(coreDistance, Math.abs(combinedData[prevKey].screen_x - key));
-        }
         drawData = Bargraph._getSafeDrawData(coreDistance, group, minWidth);
         intersections[key].resolved += 1;
 
-        if (group.options.stack === true) {
+        if (group.options.stack === true && group.options.excludeFromStacking !== true) {
           if (combinedData[i].screen_y < group.zeroPosition) {
             heightOffset = intersections[key].accumulatedNegative;
             intersections[key].accumulatedNegative += group.zeroPosition - combinedData[i].screen_y;
@@ -26600,11 +26642,6 @@ return /******/ (function(modules) { // webpackBootstrap
         } else if (group.options.barChart.sideBySide === true) {
           drawData.width = drawData.width / intersections[key].amount;
           drawData.offset += intersections[key].resolved * drawData.width - 0.5 * drawData.width * (intersections[key].amount + 1);
-          if (group.options.barChart.align === 'left') {
-            drawData.offset -= 0.5 * drawData.width;
-          } else if (group.options.barChart.align === 'right') {
-            drawData.offset += 0.5 * drawData.width;
-          }
         }
       }
       DOMutil.drawBar(combinedData[i].screen_x + drawData.offset, combinedData[i].screen_y - heightOffset, drawData.width, group.zeroPosition - combinedData[i].screen_y, group.className + ' vis-bar', framework.svgElements, framework.svg, group.style);
@@ -27120,7 +27157,7 @@ return /******/ (function(modules) { // webpackBootstrap
   function Legend(body, options, side, linegraphOptions) {
     this.body = body;
     this.defaultOptions = {
-      enabled: true,
+      enabled: false,
       icons: true,
       iconSize: 20,
       iconSpacing: 6,
@@ -27130,9 +27167,10 @@ return /******/ (function(modules) { // webpackBootstrap
       },
       right: {
         visible: true,
-        position: 'top-left' // top/bottom - left,center,right
+        position: 'top-right' // top/bottom - left,center,right
       }
     };
+
     this.side = side;
     this.options = util.extend({}, this.defaultOptions);
     this.linegraphOptions = linegraphOptions;
@@ -27372,6 +27410,7 @@ return /******/ (function(modules) { // webpackBootstrap
     style: { string: ['line', 'bar', 'points'] }, // line, bar
     barChart: {
       width: { number: number },
+      minWidth: { number: number },
       sideBySide: { boolean: boolean },
       align: { string: ['left', 'center', 'right'] },
       __type__: { object: object }
@@ -27511,6 +27550,7 @@ return /******/ (function(modules) { // webpackBootstrap
       style: ['line', 'bar', 'points'], // line, bar
       barChart: {
         width: [50, 5, 100, 5],
+        minWidth: [50, 5, 100, 5],
         sideBySide: false,
         align: ['left', 'center', 'right'] // left, center, right
       },
@@ -27805,7 +27845,6 @@ return /******/ (function(modules) { // webpackBootstrap
     var _this2 = this;
 
     if (options !== undefined) {
-
       var errorFound = _sharedValidator2['default'].validate(options, _optionsJs.allOptions);
       if (errorFound === true) {
         console.log('%cErrors have been found in the supplied options object.', _sharedValidator.printStyle);
@@ -28533,6 +28572,9 @@ return /******/ (function(modules) { // webpackBootstrap
         this.body.emitter.on('refreshNodes', this.refresh.bind(this));
         this.body.emitter.on('refresh', this.refresh.bind(this));
         this.body.emitter.on('destroy', function () {
+          util.forEach(_this2.nodesListeners, function (callback, event) {
+            if (_this2.body.data.nodes) _this2.body.data.nodes.off(event, callback);
+          });
           delete _this2.body.functions.createNode;
           delete _this2.nodesListeners.add;
           delete _this2.nodesListeners.update;
@@ -29815,11 +29857,14 @@ return /******/ (function(modules) { // webpackBootstrap
 
         //draw dashed border if enabled, save and restore is required for firefox not to crash on unix.
         ctx.save();
-        this.enableBorderDashes(ctx);
-        //draw the border
-        ctx.stroke();
-        //disable dashed border for other elements
-        this.disableBorderDashes(ctx);
+        // if borders are zero width, they will be drawn with width 1 by default. This prevents that
+        if (borderWidth > 0) {
+          this.enableBorderDashes(ctx);
+          //draw the border
+          ctx.stroke();
+          //disable dashed border for other elements
+          this.disableBorderDashes(ctx);
+        }
         ctx.restore();
 
         this.updateBoundingBox(x, y, ctx, selected);
@@ -30135,14 +30180,12 @@ return /******/ (function(modules) { // webpackBootstrap
     }, {
       key: '_drawRawCircle',
       value: function _drawRawCircle(ctx, x, y, selected, hover, size) {
-        var borderWidth = this.options.borderWidth;
+        var neutralborderWidth = this.options.borderWidth;
         var selectionLineWidth = this.options.borderWidthSelected || 2 * this.options.borderWidth;
+        var borderWidth = (selected ? selectionLineWidth : neutralborderWidth) / this.body.view.scale;
+        ctx.lineWidth = Math.min(this.width, borderWidth);
 
         ctx.strokeStyle = selected ? this.options.color.highlight.border : hover ? this.options.color.hover.border : this.options.color.border;
-
-        ctx.lineWidth = selected ? selectionLineWidth : borderWidth;
-        ctx.lineWidth *= this.networkScaleInv;
-        ctx.lineWidth = Math.min(this.width, ctx.lineWidth);
         ctx.fillStyle = selected ? this.options.color.highlight.background : hover ? this.options.color.hover.background : this.options.color.background;
         ctx.circle(x, y, size);
 
@@ -30155,11 +30198,14 @@ return /******/ (function(modules) { // webpackBootstrap
 
         //draw dashed border if enabled, save and restore is required for firefox not to crash on unix.
         ctx.save();
-        this.enableBorderDashes(ctx);
-        //draw the border
-        ctx.stroke();
-        //disable dashed border for other elements
-        this.disableBorderDashes(ctx);
+        // if borders are zero width, they will be drawn with width 1 by default. This prevents that
+        if (borderWidth > 0) {
+          this.enableBorderDashes(ctx);
+          //draw the border
+          ctx.stroke();
+          //disable dashed border for other elements
+          this.disableBorderDashes(ctx);
+        }
         ctx.restore();
       }
     }, {
@@ -30366,13 +30412,12 @@ return /******/ (function(modules) { // webpackBootstrap
         this.left = x - this.width / 2;
         this.top = y - this.height / 2;
 
-        var borderWidth = this.options.borderWidth;
+        var neutralborderWidth = this.options.borderWidth;
         var selectionLineWidth = this.options.borderWidthSelected || 2 * this.options.borderWidth;
+        var borderWidth = (selected ? selectionLineWidth : neutralborderWidth) / this.body.view.scale;
+        ctx.lineWidth = Math.min(this.width, borderWidth);
 
         ctx.strokeStyle = selected ? this.options.color.highlight.border : hover ? this.options.color.hover.border : this.options.color.border;
-        ctx.lineWidth = this.selected ? selectionLineWidth : borderWidth;
-        ctx.lineWidth *= this.networkScaleInv;
-        ctx.lineWidth = Math.min(this.width, ctx.lineWidth);
 
         ctx.fillStyle = selected ? this.options.color.highlight.background : hover ? this.options.color.hover.background : this.options.color.background;
         ctx.database(x - this.width / 2, y - this.height * 0.5, this.width, this.height);
@@ -30386,11 +30431,14 @@ return /******/ (function(modules) { // webpackBootstrap
 
         //draw dashed border if enabled, save and restore is required for firefox not to crash on unix.
         ctx.save();
-        this.enableBorderDashes(ctx);
-        //draw the border
-        ctx.stroke();
-        //disable dashed border for other elements
-        this.disableBorderDashes(ctx);
+        // if borders are zero width, they will be drawn with width 1 by default. This prevents that
+        if (borderWidth > 0) {
+          this.enableBorderDashes(ctx);
+          //draw the border
+          ctx.stroke();
+          //disable dashed border for other elements
+          this.disableBorderDashes(ctx);
+        }
         ctx.restore();
 
         this.updateBoundingBox(x, y, ctx, selected);
@@ -30529,13 +30577,12 @@ return /******/ (function(modules) { // webpackBootstrap
         this.left = x - this.width / 2;
         this.top = y - this.height / 2;
 
-        var borderWidth = this.options.borderWidth;
+        var neutralborderWidth = this.options.borderWidth;
         var selectionLineWidth = this.options.borderWidthSelected || 2 * this.options.borderWidth;
+        var borderWidth = (selected ? selectionLineWidth : neutralborderWidth) / this.body.view.scale;
+        ctx.lineWidth = Math.min(this.width, borderWidth);
 
         ctx.strokeStyle = selected ? this.options.color.highlight.border : hover ? this.options.color.hover.border : this.options.color.border;
-        ctx.lineWidth = selected ? selectionLineWidth : borderWidth;
-        ctx.lineWidth /= this.body.view.scale;
-        ctx.lineWidth = Math.min(this.width, ctx.lineWidth);
         ctx.fillStyle = selected ? this.options.color.highlight.background : hover ? this.options.color.hover.background : this.options.color.background;
         ctx[shape](x, y, this.options.size);
 
@@ -30548,11 +30595,14 @@ return /******/ (function(modules) { // webpackBootstrap
 
         //draw dashed border if enabled, save and restore is required for firefox not to crash on unix.
         ctx.save();
-        this.enableBorderDashes(ctx);
-        //draw the border
-        ctx.stroke();
-        //disable dashed border for other elements
-        this.disableBorderDashes(ctx);
+        // if borders are zero width, they will be drawn with width 1 by default. This prevents that
+        if (borderWidth > 0) {
+          this.enableBorderDashes(ctx);
+          //draw the border
+          ctx.stroke();
+          //disable dashed border for other elements
+          this.disableBorderDashes(ctx);
+        }
         ctx.restore();
 
         if (this.options.label !== undefined) {
@@ -30631,7 +30681,7 @@ return /******/ (function(modules) { // webpackBootstrap
       key: 'distanceToBorder',
       value: function distanceToBorder(ctx, angle) {
         this.resize(ctx);
-        return this.options.size + this.options.borderWidth;
+        return this.options.size;
       }
     }]);
 
@@ -30695,14 +30745,12 @@ return /******/ (function(modules) { // webpackBootstrap
         this.left = x - this.width * 0.5;
         this.top = y - this.height * 0.5;
 
-        var borderWidth = this.options.borderWidth;
+        var neutralborderWidth = this.options.borderWidth;
         var selectionLineWidth = this.options.borderWidthSelected || 2 * this.options.borderWidth;
+        var borderWidth = (selected ? selectionLineWidth : neutralborderWidth) / this.body.view.scale;
+        ctx.lineWidth = Math.min(this.width, borderWidth);
 
         ctx.strokeStyle = selected ? this.options.color.highlight.border : hover ? this.options.color.hover.border : this.options.color.border;
-
-        ctx.lineWidth = selected ? selectionLineWidth : borderWidth;
-        ctx.lineWidth /= this.body.view.scale;
-        ctx.lineWidth = Math.min(this.width, ctx.lineWidth);
 
         ctx.fillStyle = selected ? this.options.color.highlight.background : hover ? this.options.color.hover.background : this.options.color.background;
         ctx.ellipse(this.left, this.top, this.width, this.height);
@@ -30716,11 +30764,16 @@ return /******/ (function(modules) { // webpackBootstrap
 
         //draw dashed border if enabled, save and restore is required for firefox not to crash on unix.
         ctx.save();
-        this.enableBorderDashes(ctx);
-        //draw the border
-        ctx.stroke();
-        //disable dashed border for other elements
-        this.disableBorderDashes(ctx);
+
+        // if borders are zero width, they will be drawn with width 1 by default. This prevents that
+        if (borderWidth > 0) {
+          this.enableBorderDashes(ctx);
+          //draw the border
+          ctx.stroke();
+          //disable dashed border for other elements
+          this.disableBorderDashes(ctx);
+        }
+
         ctx.restore();
 
         this.updateBoundingBox(x, y, ctx, selected);
@@ -30919,17 +30972,15 @@ return /******/ (function(modules) { // webpackBootstrap
         this.top = y - this.height / 2;
 
         if (this.options.shapeProperties.useBorderWithImage === true) {
-          var borderWidth = this.options.borderWidth;
-
+          var neutralborderWidth = this.options.borderWidth;
           var selectionLineWidth = this.options.borderWidthSelected || 2 * this.options.borderWidth;
+          var borderWidth = (selected ? selectionLineWidth : neutralborderWidth) / this.body.view.scale;
+          ctx.lineWidth = Math.min(this.width, borderWidth);
 
           ctx.beginPath();
 
           // setup the line properties.
           ctx.strokeStyle = selected ? this.options.color.highlight.border : hover ? this.options.color.hover.border : this.options.color.border;
-          ctx.lineWidth = selected ? selectionLineWidth : borderWidth;
-          ctx.lineWidth /= this.body.view.scale;
-          ctx.lineWidth = Math.min(this.width, ctx.lineWidth);
 
           // set a fillstyle
           ctx.fillStyle = selected ? this.options.color.highlight.background : hover ? this.options.color.hover.background : this.options.color.background;
@@ -30940,11 +30991,14 @@ return /******/ (function(modules) { // webpackBootstrap
 
           //draw dashed border if enabled, save and restore is required for firefox not to crash on unix.
           ctx.save();
-          this.enableBorderDashes(ctx);
-          //draw the border
-          ctx.stroke();
-          //disable dashed border for other elements
-          this.disableBorderDashes(ctx);
+          // if borders are zero width, they will be drawn with width 1 by default. This prevents that
+          if (borderWidth > 0) {
+            this.enableBorderDashes(ctx);
+            //draw the border
+            ctx.stroke();
+            //disable dashed border for other elements
+            this.disableBorderDashes(ctx);
+          }
           ctx.restore();
 
           ctx.closePath();
@@ -31357,6 +31411,7 @@ return /******/ (function(modules) { // webpackBootstrap
           middle: { enabled: false, scaleFactor: 1 },
           from: { enabled: false, scaleFactor: 1 }
         },
+        arrowStrikethrough: true,
         color: {
           color: '#848484',
           highlight: '#848484',
@@ -31472,6 +31527,9 @@ return /******/ (function(modules) { // webpackBootstrap
         this.body.emitter.on("refreshEdges", this.refresh.bind(this));
         this.body.emitter.on("refresh", this.refresh.bind(this));
         this.body.emitter.on("destroy", function () {
+          util.forEach(_this2.edgesListeners, function (callback, event) {
+            if (_this2.body.data.edges) _this2.body.data.edges.off(event, callback);
+          });
           delete _this2.body.functions.createEdge;
           delete _this2.edgesListeners.add;
           delete _this2.edgesListeners.update;
@@ -32063,21 +32121,45 @@ return /******/ (function(modules) { // webpackBootstrap
     }, {
       key: 'draw',
       value: function draw(ctx) {
-        var via = this.edgeType.drawLine(ctx, this.selected, this.hover);
-        this.drawArrows(ctx, via);
-        this.drawLabel(ctx, via);
+        // get the via node from the edge type
+        var viaNode = this.edgeType.getViaNode();
+        var arrowData = {};
+
+        // restore edge targets to defaults
+        this.edgeType.fromPoint = this.from;
+        this.edgeType.toPoint = this.to;
+
+        // from and to arrows give a different end point for edges. we set them here
+        if (this.options.arrows.from.enabled === true) {
+          arrowData.from = this.edgeType.getArrowData(ctx, 'from', viaNode, this.selected, this.hover);
+          if (this.options.arrowStrikethrough === false) this.edgeType.fromPoint = arrowData.from.core;
+        }
+        if (this.options.arrows.to.enabled === true) {
+          arrowData.to = this.edgeType.getArrowData(ctx, 'to', viaNode, this.selected, this.hover);
+          if (this.options.arrowStrikethrough === false) this.edgeType.toPoint = arrowData.to.core;
+        }
+
+        // the middle arrow depends on the line, which can depend on the to and from arrows so we do this one lastly.
+        if (this.options.arrows.middle.enabled === true) {
+          arrowData.middle = this.edgeType.getArrowData(ctx, 'middle', viaNode, this.selected, this.hover);
+        }
+
+        // draw everything
+        this.edgeType.drawLine(ctx, this.selected, this.hover, viaNode);
+        this.drawArrows(ctx, arrowData);
+        this.drawLabel(ctx, viaNode);
       }
     }, {
       key: 'drawArrows',
-      value: function drawArrows(ctx, viaNode) {
+      value: function drawArrows(ctx, arrowData) {
         if (this.options.arrows.from.enabled === true) {
-          this.edgeType.drawArrowHead(ctx, 'from', viaNode, this.selected, this.hover);
+          this.edgeType.drawArrowHead(ctx, this.selected, this.hover, arrowData.from);
         }
         if (this.options.arrows.middle.enabled === true) {
-          this.edgeType.drawArrowHead(ctx, 'middle', viaNode, this.selected, this.hover);
+          this.edgeType.drawArrowHead(ctx, this.selected, this.hover, arrowData.middle);
         }
         if (this.options.arrows.to.enabled === true) {
-          this.edgeType.drawArrowHead(ctx, 'to', viaNode, this.selected, this.hover);
+          this.edgeType.drawArrowHead(ctx, this.selected, this.hover, arrowData.to);
         }
       }
     }, {
@@ -32210,7 +32292,7 @@ return /******/ (function(modules) { // webpackBootstrap
         var allowDeletion = arguments.length <= 2 || arguments[2] === undefined ? false : arguments[2];
         var globalOptions = arguments.length <= 3 || arguments[3] === undefined ? {} : arguments[3];
 
-        var fields = ['id', 'from', 'hidden', 'hoverWidth', 'label', 'labelHighlightBold', 'length', 'line', 'opacity', 'physics', 'scaling', 'selectionWidth', 'selfReferenceSize', 'to', 'title', 'value', 'width'];
+        var fields = ['arrowStrikethrough', 'id', 'from', 'hidden', 'hoverWidth', 'label', 'labelHighlightBold', 'length', 'line', 'opacity', 'physics', 'scaling', 'selectionWidth', 'selfReferenceSize', 'to', 'title', 'value', 'width'];
 
         // only deep extend the items in the field array. These do not have shorthand.
         util.selectiveDeepExtend(fields, parentOptions, newOptions, allowDeletion);
@@ -32354,34 +32436,25 @@ return /******/ (function(modules) { // webpackBootstrap
 
     _createClass(CubicBezierEdge, [{
       key: '_line',
-      value: function _line(ctx) {
+      value: function _line(ctx, viaNodes) {
         // get the coordinates of the support points.
-
-        var _getViaCoordinates2 = this._getViaCoordinates();
-
-        var _getViaCoordinates22 = _slicedToArray(_getViaCoordinates2, 2);
-
-        var via1 = _getViaCoordinates22[0];
-        var via2 = _getViaCoordinates22[1];
-
-        var returnValue = [via1, via2];
+        var via1 = viaNodes[0];
+        var via2 = viaNodes[1];
 
         // start drawing the line.
         ctx.beginPath();
-        ctx.moveTo(this.from.x, this.from.y);
+        ctx.moveTo(this.fromPoint.x, this.fromPoint.y);
 
         // fallback to normal straight edges
-        if (via1.x === undefined) {
-          ctx.lineTo(this.to.x, this.to.y);
-          returnValue = undefined;
+        if (viaNodes === undefined || via1.x === undefined) {
+          ctx.lineTo(this.toPoint.x, this.toPoint.y);
         } else {
-          ctx.bezierCurveTo(via1.x, via1.y, via2.x, via2.y, this.to.x, this.to.y);
+          ctx.bezierCurveTo(via1.x, via1.y, via2.x, via2.y, this.toPoint.x, this.toPoint.y);
         }
         // draw shadow if enabled
         this.enableShadow(ctx);
         ctx.stroke();
         this.disableShadow(ctx);
-        return returnValue;
       }
     }, {
       key: '_getViaCoordinates',
@@ -32393,7 +32466,7 @@ return /******/ (function(modules) { // webpackBootstrap
             y1 = undefined,
             x2 = undefined,
             y2 = undefined;
-        var roundness = this.options.smooth.roundness;;
+        var roundness = this.options.smooth.roundness;
 
         // horizontal if x > y or if direction is forced or if direction is horizontal
         if ((Math.abs(dx) > Math.abs(dy) || this.options.smooth.forceDirection === true || this.options.smooth.forceDirection === 'horizontal') && this.options.smooth.forceDirection !== 'vertical') {
@@ -32409,6 +32482,11 @@ return /******/ (function(modules) { // webpackBootstrap
         }
 
         return [{ x: x1, y: y1 }, { x: x2, y: y2 }];
+      }
+    }, {
+      key: 'getViaNode',
+      value: function getViaNode() {
+        return this._getViaCoordinates();
       }
     }, {
       key: '_findBorderPosition',
@@ -32451,8 +32529,8 @@ return /******/ (function(modules) { // webpackBootstrap
         vec[1] = 3 * t * Math.pow(1 - t, 2);
         vec[2] = 3 * Math.pow(t, 2) * (1 - t);
         vec[3] = Math.pow(t, 3);
-        var x = vec[0] * this.from.x + vec[1] * via1.x + vec[2] * via2.x + vec[3] * this.to.x;
-        var y = vec[0] * this.from.y + vec[1] * via1.y + vec[2] * via2.y + vec[3] * this.to.y;
+        var x = vec[0] * this.fromPoint.x + vec[1] * via1.x + vec[2] * via2.x + vec[3] * this.toPoint.x;
+        var y = vec[0] * this.fromPoint.y + vec[1] * via1.y + vec[2] * via2.y + vec[3] * this.toPoint.y;
 
         return { x: x, y: y };
       }
@@ -32723,6 +32801,8 @@ return /******/ (function(modules) { // webpackBootstrap
       this.color = {};
       this.selectionWidth = 2;
       this.hoverWidth = 1.5;
+      this.fromPoint = this.from;
+      this.toPoint = this.to;
     }
 
     _createClass(EdgeBase, [{
@@ -32754,25 +32834,23 @@ return /******/ (function(modules) { // webpackBootstrap
        */
     }, {
       key: 'drawLine',
-      value: function drawLine(ctx, selected, hover) {
+      value: function drawLine(ctx, selected, hover, viaNode) {
         // set style
         ctx.strokeStyle = this.getColor(ctx, selected, hover);
         ctx.lineWidth = this.getLineWidth(selected, hover);
-        var via = undefined;
+
         if (this.options.dashes !== false) {
-          via = this._drawDashedLine(ctx);
+          this._drawDashedLine(ctx, viaNode);
         } else {
-          via = this._drawLine(ctx);
+          this._drawLine(ctx, viaNode);
         }
-        return via;
       }
     }, {
       key: '_drawLine',
-      value: function _drawLine(ctx) {
-        var via = undefined;
+      value: function _drawLine(ctx, viaNode, fromPoint, toPoint) {
         if (this.from != this.to) {
           // draw line
-          via = this._line(ctx);
+          this._line(ctx, viaNode, fromPoint, toPoint);
         } else {
           var _getCircleData2 = this._getCircleData(ctx);
 
@@ -32784,12 +32862,10 @@ return /******/ (function(modules) { // webpackBootstrap
 
           this._circle(ctx, x, y, radius);
         }
-        return via;
       }
     }, {
       key: '_drawDashedLine',
-      value: function _drawDashedLine(ctx) {
-        var via = undefined;
+      value: function _drawDashedLine(ctx, viaNode, fromPoint, toPoint) {
         ctx.lineCap = 'round';
         var pattern = [5, 5];
         if (Array.isArray(this.options.dashes) === true) {
@@ -32807,7 +32883,7 @@ return /******/ (function(modules) { // webpackBootstrap
           // draw the line
           if (this.from != this.to) {
             // draw line
-            via = this._line(ctx);
+            this._line(ctx, viaNode);
           } else {
             var _getCircleData3 = this._getCircleData(ctx);
 
@@ -32848,7 +32924,6 @@ return /******/ (function(modules) { // webpackBootstrap
           // disable shadows for other elements.
           this.disableShadow(ctx);
         }
-        return via;
       }
     }, {
       key: 'findBorderPosition',
@@ -33158,21 +33233,16 @@ return /******/ (function(modules) { // webpackBootstrap
        * @param viaNode
        */
     }, {
-      key: 'drawArrowHead',
-      value: function drawArrowHead(ctx, position, viaNode, selected, hover) {
-        // set style
-        ctx.strokeStyle = this.getColor(ctx, selected, hover);
-        ctx.fillStyle = ctx.strokeStyle;
-        ctx.lineWidth = this.getLineWidth(selected, hover);
-
+      key: 'getArrowData',
+      value: function getArrowData(ctx, position, viaNode, selected, hover) {
         // set lets
         var angle = undefined;
-        var length = undefined;
-        var arrowPos = undefined;
+        var arrowPoint = undefined;
         var node1 = undefined;
         var node2 = undefined;
         var guideOffset = undefined;
         var scaleFactor = undefined;
+        var lineWidth = this.getLineWidth(selected, hover);
 
         if (position === 'from') {
           node1 = this.from;
@@ -33195,64 +33265,70 @@ return /******/ (function(modules) { // webpackBootstrap
           if (position !== 'middle') {
             // draw arrow head
             if (this.options.smooth.enabled === true) {
-              arrowPos = this.findBorderPosition(node1, ctx, { via: viaNode });
-              var guidePos = this.getPoint(Math.max(0.0, Math.min(1.0, arrowPos.t + guideOffset)), viaNode);
-              angle = Math.atan2(arrowPos.y - guidePos.y, arrowPos.x - guidePos.x);
+              arrowPoint = this.findBorderPosition(node1, ctx, { via: viaNode });
+              var guidePos = this.getPoint(Math.max(0.0, Math.min(1.0, arrowPoint.t + guideOffset)), viaNode);
+              angle = Math.atan2(arrowPoint.y - guidePos.y, arrowPoint.x - guidePos.x);
             } else {
               angle = Math.atan2(node1.y - node2.y, node1.x - node2.x);
-              arrowPos = this.findBorderPosition(node1, ctx);
+              arrowPoint = this.findBorderPosition(node1, ctx);
             }
           } else {
             angle = Math.atan2(node1.y - node2.y, node1.x - node2.x);
-            arrowPos = this.getPoint(0.6, viaNode); // this is 0.6 to account for the size of the arrow.
+            arrowPoint = this.getPoint(0.5, viaNode); // this is 0.6 to account for the size of the arrow.
           }
-          // draw arrow at the end of the line
-          length = (10 + 5 * this.options.width) * scaleFactor;
-          ctx.arrow(arrowPos.x, arrowPos.y, angle, length);
-
-          // draw shadow if enabled
-          this.enableShadow(ctx);
-          ctx.fill();
-
-          // disable shadows for other elements.
-          this.disableShadow(ctx);
-          ctx.stroke();
         } else {
-          // draw circle
-          var _angle = undefined,
-              point = undefined;
+            var _getCircleData7 = this._getCircleData(ctx);
 
-          var _getCircleData7 = this._getCircleData(ctx);
+            var _getCircleData72 = _slicedToArray(_getCircleData7, 3);
 
-          var _getCircleData72 = _slicedToArray(_getCircleData7, 3);
+            var x = _getCircleData72[0];
+            var y = _getCircleData72[1];
+            var radius = _getCircleData72[2];
 
-          var x = _getCircleData72[0];
-          var y = _getCircleData72[1];
-          var radius = _getCircleData72[2];
-
-          if (position === 'from') {
-            point = this.findBorderPosition(this.from, ctx, { x: x, y: y, low: 0.25, high: 0.6, direction: -1 });
-            _angle = point.t * -2 * Math.PI + 1.5 * Math.PI + 0.1 * Math.PI;
-          } else if (position === 'to') {
-            point = this.findBorderPosition(this.from, ctx, { x: x, y: y, low: 0.6, high: 1.0, direction: 1 });
-            _angle = point.t * -2 * Math.PI + 1.5 * Math.PI - 1.1 * Math.PI;
-          } else {
-            point = this._pointOnCircle(x, y, radius, 0.175);
-            _angle = 3.9269908169872414; // === 0.175 * -2 * Math.PI + 1.5 * Math.PI + 0.1 * Math.PI;
+            if (position === 'from') {
+              arrowPoint = this.findBorderPosition(this.from, ctx, { x: x, y: y, low: 0.25, high: 0.6, direction: -1 });
+              angle = arrowPoint.t * -2 * Math.PI + 1.5 * Math.PI + 0.1 * Math.PI;
+            } else if (position === 'to') {
+              arrowPoint = this.findBorderPosition(this.from, ctx, { x: x, y: y, low: 0.6, high: 1.0, direction: 1 });
+              angle = arrowPoint.t * -2 * Math.PI + 1.5 * Math.PI - 1.1 * Math.PI;
+            } else {
+              arrowPoint = this._pointOnCircle(x, y, radius, 0.175);
+              angle = 3.9269908169872414; // === 0.175 * -2 * Math.PI + 1.5 * Math.PI + 0.1 * Math.PI;
+            }
           }
 
-          // draw the arrowhead
-          var _length = (10 + 5 * this.options.width) * scaleFactor;
-          ctx.arrow(point.x, point.y, _angle, _length);
+        var length = 15 * scaleFactor + 3 * lineWidth; // 3* lineWidth is the width of the edge.
 
-          // draw shadow if enabled
-          this.enableShadow(ctx);
-          ctx.fill();
+        var xi = arrowPoint.x - length * 0.9 * Math.cos(angle);
+        var yi = arrowPoint.y - length * 0.9 * Math.sin(angle);
+        var arrowCore = { x: xi, y: yi };
 
-          // disable shadows for other elements.
-          this.disableShadow(ctx);
-          ctx.stroke();
-        }
+        return { point: arrowPoint, core: arrowCore, angle: angle, length: length };
+      }
+
+      /**
+       *
+       * @param ctx
+       * @param selected
+       * @param hover
+       * @param arrowData
+       */
+    }, {
+      key: 'drawArrowHead',
+      value: function drawArrowHead(ctx, selected, hover, arrowData) {
+        // set style
+        ctx.strokeStyle = this.getColor(ctx, selected, hover);
+        ctx.fillStyle = ctx.strokeStyle;
+        ctx.lineWidth = this.getLineWidth(selected, hover);
+
+        // draw arrow at the end of the line
+        ctx.arrow(arrowData.point.x, arrowData.point.y, arrowData.angle, arrowData.length);
+
+        // draw shadow if enabled
+        this.enableShadow(ctx);
+        ctx.fill();
+        // disable shadows for other elements.
+        this.disableShadow(ctx);
       }
     }, {
       key: 'enableShadow',
@@ -33282,6 +33358,8 @@ return /******/ (function(modules) { // webpackBootstrap
   exports['default'] = EdgeBase;
   module.exports = exports['default'];
 
+  // draw circle
+
 /***/ },
 /* 86 */
 /***/ function(module, exports, __webpack_require__) {
@@ -33294,7 +33372,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
 
-  var _get = function get(_x, _x2, _x3) { var _again = true; _function: while (_again) { var object = _x, property = _x2, receiver = _x3; _again = false; if (object === null) object = Function.prototype; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { _x = parent; _x2 = property; _x3 = receiver; _again = true; desc = parent = undefined; continue _function; } } else if ("value" in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } } };
+  var _get = function get(_x2, _x3, _x4) { var _again = true; _function: while (_again) { var object = _x2, property = _x3, receiver = _x4; _again = false; if (object === null) object = Function.prototype; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { _x2 = parent; _x3 = property; _x4 = receiver; _again = true; desc = parent = undefined; continue _function; } } else if ("value" in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } } };
 
   function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { "default": obj }; }
 
@@ -33423,31 +33501,42 @@ return /******/ (function(modules) { // webpackBootstrap
        */
     }, {
       key: "_line",
-      value: function _line(ctx) {
+      value: function _line(ctx, viaNode) {
         // draw a straight line
         ctx.beginPath();
-        ctx.moveTo(this.from.x, this.from.y);
-        ctx.quadraticCurveTo(this.via.x, this.via.y, this.to.x, this.to.y);
+        ctx.moveTo(this.fromPoint.x, this.fromPoint.y);
+        // fallback to normal straight edges
+        if (viaNode.x === undefined) {
+          ctx.lineTo(this.toPoint.x, this.toPoint.y);
+        } else {
+          ctx.quadraticCurveTo(viaNode.x, viaNode.y, this.toPoint.x, this.toPoint.y);
+        }
         // draw shadow if enabled
         this.enableShadow(ctx);
         ctx.stroke();
         this.disableShadow(ctx);
+      }
+    }, {
+      key: "getViaNode",
+      value: function getViaNode() {
         return this.via;
       }
 
       /**
        * Combined function of pointOnLine and pointOnBezier. This gives the coordinates of a point on the line at a certain percentage of the way
        * @param percentage
-       * @param via
+       * @param viaNode
        * @returns {{x: number, y: number}}
        * @private
        */
     }, {
       key: "getPoint",
       value: function getPoint(percentage) {
+        var viaNode = arguments.length <= 1 || arguments[1] === undefined ? this.via : arguments[1];
+
         var t = percentage;
-        var x = Math.pow(1 - t, 2) * this.from.x + 2 * t * (1 - t) * this.via.x + Math.pow(t, 2) * this.to.x;
-        var y = Math.pow(1 - t, 2) * this.from.y + 2 * t * (1 - t) * this.via.y + Math.pow(t, 2) * this.to.y;
+        var x = Math.pow(1 - t, 2) * this.fromPoint.x + 2 * t * (1 - t) * viaNode.x + Math.pow(t, 2) * this.toPoint.x;
+        var y = Math.pow(1 - t, 2) * this.fromPoint.y + 2 * t * (1 - t) * viaNode.y + Math.pow(t, 2) * this.toPoint.y;
 
         return { x: x, y: y };
       }
@@ -33511,26 +33600,33 @@ return /******/ (function(modules) { // webpackBootstrap
 
     _createClass(BezierEdgeStatic, [{
       key: '_line',
-      value: function _line(ctx) {
+      value: function _line(ctx, viaNode) {
         // draw a straight line
         ctx.beginPath();
-        ctx.moveTo(this.from.x, this.from.y);
-        var via = this._getViaCoordinates();
-        var returnValue = via;
+        ctx.moveTo(this.fromPoint.x, this.fromPoint.y);
 
         // fallback to normal straight edges
-        if (via.x === undefined) {
-          ctx.lineTo(this.to.x, this.to.y);
-          returnValue = undefined;
+        if (viaNode.x === undefined) {
+          ctx.lineTo(this.toPoint.x, this.toPoint.y);
         } else {
-          ctx.quadraticCurveTo(via.x, via.y, this.to.x, this.to.y);
+          ctx.quadraticCurveTo(viaNode.x, viaNode.y, this.toPoint.x, this.toPoint.y);
         }
         // draw shadow if enabled
         this.enableShadow(ctx);
         ctx.stroke();
         this.disableShadow(ctx);
-        return returnValue;
       }
+    }, {
+      key: 'getViaNode',
+      value: function getViaNode() {
+        return this._getViaCoordinates();
+      }
+
+      /**
+       * We do not use the to and fromPoints here to make the via nodes the same as edges without arrows.
+       * @returns {{x: undefined, y: undefined}}
+       * @private
+       */
     }, {
       key: '_getViaCoordinates',
       value: function _getViaCoordinates() {
@@ -33698,26 +33794,26 @@ return /******/ (function(modules) { // webpackBootstrap
     }, {
       key: '_getDistanceToEdge',
       value: function _getDistanceToEdge(x1, y1, x2, y2, x3, y3) {
-        var via = arguments.length <= 6 || arguments[6] === undefined ? this._getViaCoordinates() : arguments[6];
+        var viaNode = arguments.length <= 6 || arguments[6] === undefined ? this._getViaCoordinates() : arguments[6];
         // x3,y3 is the point
-        return this._getDistanceToBezierEdge(x1, y1, x2, y2, x3, y3, via);
+        return this._getDistanceToBezierEdge(x1, y1, x2, y2, x3, y3, viaNode);
       }
 
       /**
        * Combined function of pointOnLine and pointOnBezier. This gives the coordinates of a point on the line at a certain percentage of the way
        * @param percentage
-       * @param via
+       * @param viaNode
        * @returns {{x: number, y: number}}
        * @private
        */
     }, {
       key: 'getPoint',
       value: function getPoint(percentage) {
-        var via = arguments.length <= 1 || arguments[1] === undefined ? this._getViaCoordinates() : arguments[1];
+        var viaNode = arguments.length <= 1 || arguments[1] === undefined ? this._getViaCoordinates() : arguments[1];
 
         var t = percentage;
-        var x = Math.pow(1 - t, 2) * this.from.x + 2 * t * (1 - t) * via.x + Math.pow(t, 2) * this.to.x;
-        var y = Math.pow(1 - t, 2) * this.from.y + 2 * t * (1 - t) * via.y + Math.pow(t, 2) * this.to.y;
+        var x = Math.pow(1 - t, 2) * this.fromPoint.x + 2 * t * (1 - t) * viaNode.x + Math.pow(t, 2) * this.toPoint.x;
+        var y = Math.pow(1 - t, 2) * this.fromPoint.y + 2 * t * (1 - t) * viaNode.y + Math.pow(t, 2) * this.toPoint.y;
 
         return { x: x, y: y };
       }
@@ -33773,12 +33869,16 @@ return /******/ (function(modules) { // webpackBootstrap
       value: function _line(ctx) {
         // draw a straight line
         ctx.beginPath();
-        ctx.moveTo(this.from.x, this.from.y);
-        ctx.lineTo(this.to.x, this.to.y);
+        ctx.moveTo(this.fromPoint.x, this.fromPoint.y);
+        ctx.lineTo(this.toPoint.x, this.toPoint.y);
         // draw shadow if enabled
         this.enableShadow(ctx);
         ctx.stroke();
         this.disableShadow(ctx);
+      }
+    }, {
+      key: 'getViaNode',
+      value: function getViaNode() {
         return undefined;
       }
 
@@ -33793,8 +33893,8 @@ return /******/ (function(modules) { // webpackBootstrap
       key: 'getPoint',
       value: function getPoint(percentage) {
         return {
-          x: (1 - percentage) * this.from.x + percentage * this.to.x,
-          y: (1 - percentage) * this.from.y + percentage * this.to.y
+          x: (1 - percentage) * this.fromPoint.x + percentage * this.toPoint.x,
+          y: (1 - percentage) * this.fromPoint.y + percentage * this.toPoint.y
         };
       }
     }, {
@@ -38490,40 +38590,42 @@ return /******/ (function(modules) { // webpackBootstrap
     }, {
       key: 'onMouseWheel',
       value: function onMouseWheel(event) {
-        // retrieve delta
-        var delta = 0;
-        if (event.wheelDelta) {
-          /* IE/Opera. */
-          delta = event.wheelDelta / 120;
-        } else if (event.detail) {
-          /* Mozilla case. */
-          // In Mozilla, sign of delta is different than in IE.
-          // Also, delta is multiple of 3.
-          delta = -event.detail / 3;
-        }
-
-        // If delta is nonzero, handle it.
-        // Basically, delta is now positive if wheel was scrolled up,
-        // and negative, if wheel was scrolled down.
-        if (delta !== 0) {
-
-          // calculate the new scale
-          var scale = this.body.view.scale;
-          var zoom = delta / 10;
-          if (delta < 0) {
-            zoom = zoom / (1 - zoom);
+        if (this.options.zoomView === true) {
+          // retrieve delta
+          var delta = 0;
+          if (event.wheelDelta) {
+            /* IE/Opera. */
+            delta = event.wheelDelta / 120;
+          } else if (event.detail) {
+            /* Mozilla case. */
+            // In Mozilla, sign of delta is different than in IE.
+            // Also, delta is multiple of 3.
+            delta = -event.detail / 3;
           }
-          scale *= 1 + zoom;
 
-          // calculate the pointer location
-          var pointer = this.getPointer({ x: event.clientX, y: event.clientY });
+          // If delta is nonzero, handle it.
+          // Basically, delta is now positive if wheel was scrolled up,
+          // and negative, if wheel was scrolled down.
+          if (delta !== 0) {
 
-          // apply the new scale
-          this.zoom(scale, pointer);
+            // calculate the new scale
+            var scale = this.body.view.scale;
+            var zoom = delta / 10;
+            if (delta < 0) {
+              zoom = zoom / (1 - zoom);
+            }
+            scale *= 1 + zoom;
+
+            // calculate the pointer location
+            var pointer = this.getPointer({ x: event.clientX, y: event.clientY });
+
+            // apply the new scale
+            this.zoom(scale, pointer);
+          }
+
+          // Prevent default actions caused by mouse wheel.
+          event.preventDefault();
         }
-
-        // Prevent default actions caused by mouse wheel.
-        event.preventDefault();
       }
 
       /**
@@ -39942,6 +40044,8 @@ return /******/ (function(modules) { // webpackBootstrap
     value: true
   });
 
+  var _slicedToArray = (function () { function sliceIterator(arr, i) { var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i['return']) _i['return'](); } finally { if (_d) throw _e; } } return _arr; } return function (arr, i) { if (Array.isArray(arr)) { return arr; } else if (Symbol.iterator in Object(arr)) { return sliceIterator(arr, i); } else { throw new TypeError('Invalid attempt to destructure non-iterable instance'); } }; })();
+
   var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
 
   function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
@@ -39962,8 +40066,9 @@ return /******/ (function(modules) { // webpackBootstrap
 
       this.initialRandomSeed = Math.round(Math.random() * 1000000);
       this.randomSeed = this.initialRandomSeed;
+      this.setPhysics = false;
       this.options = {};
-      this.optionsBackup = {};
+      this.optionsBackup = { physics: {} };
 
       this.defaultOptions = {
         randomSeed: undefined,
@@ -39971,16 +40076,15 @@ return /******/ (function(modules) { // webpackBootstrap
         hierarchical: {
           enabled: false,
           levelSeparation: 150,
+          nodeSpacing: 100,
+          treeSpacing: 200,
+          blockShifting: true,
+          edgeMinimization: true,
           direction: 'UD', // UD, DU, LR, RL
           sortMethod: 'hubsize' // hubsize, directed
         }
       };
       util.extend(this.options, this.defaultOptions);
-
-      this.lastNodeOnLevel = {};
-      this.hierarchicalParents = {};
-      this.hierarchicalChildren = {};
-
       this.bindEventListeners();
     }
 
@@ -40016,7 +40120,7 @@ return /******/ (function(modules) { // webpackBootstrap
               this.body.emitter.emit('refresh', true);
             }
 
-            // make sure the level seperation is the right way up
+            // make sure the level separation is the right way up
             if (this.options.hierarchical.direction === 'RL' || this.options.hierarchical.direction === 'DU') {
               if (this.options.hierarchical.levelSeparation > 0) {
                 this.options.hierarchical.levelSeparation *= -1;
@@ -40046,17 +40150,19 @@ return /******/ (function(modules) { // webpackBootstrap
         if (this.options.hierarchical.enabled === true) {
           // set the physics
           if (allOptions.physics === undefined || allOptions.physics === true) {
-            allOptions.physics = { solver: 'hierarchicalRepulsion' };
-            this.optionsBackup.physics = { solver: 'barnesHut' };
+            allOptions.physics = {
+              enabled: this.optionsBackup.physics.enabled === undefined ? true : this.optionsBackup.physics.enabled,
+              solver: 'hierarchicalRepulsion'
+            };
+            this.optionsBackup.physics.enabled = this.optionsBackup.physics.enabled === undefined ? true : this.optionsBackup.physics.enabled;
+            this.optionsBackup.physics.solver = this.optionsBackup.physics.solver || 'barnesHut';
           } else if (typeof allOptions.physics === 'object') {
-            this.optionsBackup.physics = { solver: 'barnesHut' };
-            if (allOptions.physics.solver !== undefined) {
-              this.optionsBackup.physics = { solver: allOptions.physics.solver };
-            }
-            allOptions.physics['solver'] = 'hierarchicalRepulsion';
+            this.optionsBackup.physics.enabled = allOptions.physics.enabled === undefined ? true : allOptions.physics.enabled;
+            this.optionsBackup.physics.solver = allOptions.physics.solver || 'barnesHut';
+            allOptions.physics.solver = 'hierarchicalRepulsion';
           } else if (allOptions.physics !== false) {
-            this.optionsBackup.physics = { solver: 'barnesHut' };
-            allOptions.physics['solver'] = 'hierarchicalRepulsion';
+            this.optionsBackup.physics.solver = 'barnesHut';
+            allOptions.physics = { solver: 'hierarchicalRepulsion' };
           }
 
           // get the type of static smooth curve in case it is required
@@ -40100,6 +40206,7 @@ return /******/ (function(modules) { // webpackBootstrap
           // force all edges into static smooth curves. Only applies to edges that do not use the global options for smooth.
           this.body.emitter.emit('_forceDisableDynamicCurves', type);
         }
+
         return allOptions;
       }
     }, {
@@ -40128,14 +40235,14 @@ return /******/ (function(modules) { // webpackBootstrap
       }
 
       /**
-       * Use KamadaKawai to position nodes. This is quite a heavy algorithm so if there are a lot of nodes we
+       * Use Kamada Kawai to position nodes. This is quite a heavy algorithm so if there are a lot of nodes we
        * cluster them first to reduce the amount.
        */
     }, {
       key: 'layoutNetwork',
       value: function layoutNetwork() {
         if (this.options.hierarchical.enabled !== true && this.options.improvedLayout === true) {
-          // first check if we should KamadaKawai to layout. The threshold is if less than half of the visible
+          // first check if we should Kamada Kawai to layout. The threshold is if less than half of the visible
           // nodes have predefined positions we use this.
           var positionDefined = 0;
           for (var i = 0; i < this.body.nodeIndices.length; i++) {
@@ -40250,13 +40357,25 @@ return /******/ (function(modules) { // webpackBootstrap
           var node = undefined,
               nodeId = undefined;
           var definedLevel = false;
+          var definedPositions = true;
           var undefinedLevel = false;
           this.hierarchicalLevels = {};
-          this.nodeSpacing = 100;
+          this.lastNodeOnLevel = {};
+          this.hierarchicalParents = {};
+          this.hierarchicalChildren = {};
+          this.hierarchicalTrees = {};
+          this.treeIndex = -1;
+
+          this.distributionOrdering = {};
+          this.distributionIndex = {};
+          this.distributionOrderingPresence = {};
 
           for (nodeId in this.body.nodes) {
             if (this.body.nodes.hasOwnProperty(nodeId)) {
               node = this.body.nodes[nodeId];
+              if (node.options.x === undefined && node.options.y === undefined) {
+                definedPositions = false;
+              }
               if (node.options.level !== undefined) {
                 definedLevel = true;
                 this.hierarchicalLevels[nodeId] = node.options.level;
@@ -40271,7 +40390,7 @@ return /******/ (function(modules) { // webpackBootstrap
             throw new Error('To use the hierarchical layout, nodes require either no predefined levels or levels have to be defined for all nodes.');
             return;
           } else {
-            // define levels if undefined by the users. Based on hubsize
+            // define levels if undefined by the users. Based on hubsize.
             if (undefinedLevel === true) {
               if (this.options.hierarchical.sortMethod === 'hubsize') {
                 this._determineLevelsByHubsize();
@@ -40282,6 +40401,14 @@ return /******/ (function(modules) { // webpackBootstrap
               }
             }
 
+            // fallback for cases where there are nodes but no edges
+            for (var _nodeId in this.body.nodes) {
+              if (this.body.nodes.hasOwnProperty(_nodeId)) {
+                if (this.hierarchicalLevels[_nodeId] === undefined) {
+                  this.hierarchicalLevels[_nodeId] = 0;
+                }
+              }
+            }
             // check the distribution of the nodes per level.
             var distribution = this._getDistribution();
 
@@ -40291,8 +40418,8 @@ return /******/ (function(modules) { // webpackBootstrap
             // place the nodes on the canvas.
             this._placeNodesByHierarchy(distribution);
 
-            // Todo: condense the whitespace.
-            this._condenseHierarchy(distribution);
+            // condense the whitespace.
+            this._condenseHierarchy();
 
             // shift to center so gravity does not have to do much
             this._shiftToCenter();
@@ -40301,12 +40428,513 @@ return /******/ (function(modules) { // webpackBootstrap
       }
 
       /**
-       * TODO: implement. Clear whitespace after positioning.
        * @private
        */
     }, {
       key: '_condenseHierarchy',
-      value: function _condenseHierarchy(distribution) {}
+      value: function _condenseHierarchy() {
+        var _this2 = this;
+
+        // Global var in this scope to define when the movement has stopped.
+        var stillShifting = false;
+        var branches = {};
+        // first we have some methods to help shifting trees around.
+        // the main method to shift the trees
+        var shiftTrees = function shiftTrees() {
+          var treeSizes = getTreeSizes();
+          for (var i = 0; i < treeSizes.length - 1; i++) {
+            var diff = treeSizes[i].max - treeSizes[i + 1].min;
+            if (diff !== _this2.options.hierarchical.treeSpacing) {
+              shiftTree(i + 1, diff - _this2.options.hierarchical.treeSpacing);
+            }
+          }
+        };
+
+        // shift a single tree by an offset
+        var shiftTree = function shiftTree(index, offset) {
+          for (var nodeId in _this2.hierarchicalTrees) {
+            if (_this2.hierarchicalTrees.hasOwnProperty(nodeId)) {
+              if (_this2.hierarchicalTrees[nodeId] === index) {
+                _this2._setPositionForHierarchy(_this2.body.nodes[nodeId], offset, undefined, true);
+              }
+            }
+          }
+        };
+
+        // get the width of a tree
+        var getTreeSize = function getTreeSize(index) {
+          var min = 1e9;
+          var max = -1e9;
+          for (var nodeId in _this2.hierarchicalTrees) {
+            if (_this2.hierarchicalTrees.hasOwnProperty(nodeId)) {
+              if (_this2.hierarchicalTrees[nodeId] === index) {
+                var pos = _this2._getPositionForHierarchy(_this2.body.nodes[nodeId]);
+                min = Math.min(pos, min);
+                max = Math.max(pos, max);
+              }
+            }
+          }
+          return { min: min, max: max };
+        };
+
+        // get the width of all trees
+        var getTreeSizes = function getTreeSizes() {
+          var treeWidths = [];
+          for (var i = 0; i < _this2.treeIndex; i++) {
+            treeWidths.push(getTreeSize(i));
+          }
+          return treeWidths;
+        };
+
+        // get a map of all nodes in this branch
+        var getBranchNodes = function getBranchNodes(source, map) {
+          map[source.id] = true;
+          if (_this2.hierarchicalParents[source.id]) {
+            var children = _this2.hierarchicalParents[source.id].children;
+            if (children.length > 0) {
+              for (var i = 0; i < children.length; i++) {
+                getBranchNodes(_this2.body.nodes[children[i]], map);
+              }
+            }
+          }
+        };
+
+        // get a min max width as well as the maximum movement space it has on either sides
+        // we use min max terminology because width and height can interchange depending on the direction of the layout
+        var getBranchBoundary = function getBranchBoundary(branchMap) {
+          var maxLevel = arguments.length <= 1 || arguments[1] === undefined ? 1e9 : arguments[1];
+
+          var minSpace = 1e9;
+          var maxSpace = 1e9;
+          var min = 1e9;
+          var max = -1e9;
+          for (var branchNode in branchMap) {
+            if (branchMap.hasOwnProperty(branchNode)) {
+              var node = _this2.body.nodes[branchNode];
+              var level = _this2.hierarchicalLevels[node.id];
+              var position = _this2._getPositionForHierarchy(node);
+
+              // get the space around the node.
+
+              var _getSpaceAroundNode2 = _this2._getSpaceAroundNode(node, branchMap);
+
+              var _getSpaceAroundNode22 = _slicedToArray(_getSpaceAroundNode2, 2);
+
+              var minSpaceNode = _getSpaceAroundNode22[0];
+              var maxSpaceNode = _getSpaceAroundNode22[1];
+
+              minSpace = Math.min(minSpaceNode, minSpace);
+              maxSpace = Math.min(maxSpaceNode, maxSpace);
+
+              // the width is only relevant for the levels two nodes have in common. This is why we filter on this.
+              if (level <= maxLevel) {
+                min = Math.min(position, min);
+                max = Math.max(position, max);
+              }
+            }
+          }
+
+          return [min, max, minSpace, maxSpace];
+        };
+
+        // get the maximum level of a branch.
+        var getMaxLevel = function getMaxLevel(nodeId) {
+          var level = _this2.hierarchicalLevels[nodeId];
+          if (_this2.hierarchicalParents[nodeId]) {
+            var children = _this2.hierarchicalParents[nodeId].children;
+            if (children.length > 0) {
+              for (var i = 0; i < children.length; i++) {
+                level = Math.max(level, getMaxLevel(children[i]));
+              }
+            }
+          }
+          return level;
+        };
+
+        // check what the maximum level is these nodes have in common.
+        var getCollisionLevel = function getCollisionLevel(node1, node2) {
+          var maxLevel1 = getMaxLevel(node1.id);
+          var maxLevel2 = getMaxLevel(node2.id);
+          return Math.min(maxLevel1, maxLevel2);
+        };
+
+        // check if two nodes have the same parent(s)
+        var hasSameParent = function hasSameParent(node1, node2) {
+          var parents1 = _this2.hierarchicalChildren[node1.id];
+          var parents2 = _this2.hierarchicalChildren[node2.id];
+          if (parents1 === undefined || parents2 === undefined) {
+            return false;
+          }
+          parents1 = parents1.parents;
+          parents2 = parents2.parents;
+          for (var i = 0; i < parents1.length; i++) {
+            for (var j = 0; j < parents2.length; j++) {
+              if (parents1[i] == parents2[j]) {
+                return true;
+              }
+            }
+          }
+          return false;
+        };
+
+        // condense elements. These can be nodes or branches depending on the callback.
+        var shiftElementsCloser = function shiftElementsCloser(callback, levels, centerParents) {
+          for (var i = 0; i < levels.length; i++) {
+            var level = levels[i];
+            var levelNodes = _this2.distributionOrdering[level];
+            if (levelNodes.length > 1) {
+              for (var j = 0; j < levelNodes.length - 1; j++) {
+                if (hasSameParent(levelNodes[j], levelNodes[j + 1]) === true) {
+                  if (_this2.hierarchicalTrees[levelNodes[j].id] === _this2.hierarchicalTrees[levelNodes[j + 1].id]) {
+                    callback(levelNodes[j], levelNodes[j + 1], centerParents);
+                  }
+                }
+              }
+            }
+          }
+        };
+
+        // callback for shifting branches
+        var branchShiftCallback = function branchShiftCallback(node1, node2) {
+          var centerParent = arguments.length <= 2 || arguments[2] === undefined ? false : arguments[2];
+
+          //window.CALLBACKS.push(() => {
+          var pos1 = _this2._getPositionForHierarchy(node1);
+          var pos2 = _this2._getPositionForHierarchy(node2);
+          var diffAbs = Math.abs(pos2 - pos1);
+          //console.log("NOW CHEcKING:", node1.id, node2.id, diffAbs);
+          if (diffAbs > _this2.options.hierarchical.nodeSpacing) {
+            var branchNodes1 = {};branchNodes1[node1.id] = true;
+            var branchNodes2 = {};branchNodes2[node2.id] = true;
+
+            getBranchNodes(node1, branchNodes1);
+            getBranchNodes(node2, branchNodes2);
+
+            // check the largest distance between the branches
+            var maxLevel = getCollisionLevel(node1, node2);
+
+            var _getBranchBoundary = getBranchBoundary(branchNodes1, maxLevel);
+
+            var _getBranchBoundary2 = _slicedToArray(_getBranchBoundary, 4);
+
+            var min1 = _getBranchBoundary2[0];
+            var max1 = _getBranchBoundary2[1];
+            var minSpace1 = _getBranchBoundary2[2];
+            var maxSpace1 = _getBranchBoundary2[3];
+
+            var _getBranchBoundary3 = getBranchBoundary(branchNodes2, maxLevel);
+
+            var _getBranchBoundary32 = _slicedToArray(_getBranchBoundary3, 4);
+
+            var min2 = _getBranchBoundary32[0];
+            var max2 = _getBranchBoundary32[1];
+            var minSpace2 = _getBranchBoundary32[2];
+            var maxSpace2 = _getBranchBoundary32[3];
+
+            //console.log(node1.id, getBranchBoundary(branchNodes1, maxLevel), node2.id, getBranchBoundary(branchNodes2, maxLevel), maxLevel);
+            var diffBranch = Math.abs(max1 - min2);
+            if (diffBranch > _this2.options.hierarchical.nodeSpacing) {
+              var offset = max1 - min2 + _this2.options.hierarchical.nodeSpacing;
+              if (offset < -minSpace2 + _this2.options.hierarchical.nodeSpacing) {
+                offset = -minSpace2 + _this2.options.hierarchical.nodeSpacing;
+                //console.log("RESETTING OFFSET", max1 - min2 + this.options.hierarchical.nodeSpacing, -minSpace2, offset);
+              }
+              if (offset < 0) {
+                //console.log("SHIFTING", node2.id, offset);
+                _this2._shiftBlock(node2.id, offset);
+                stillShifting = true;
+
+                if (centerParent === true) _this2._centerParent(node2);
+              }
+            }
+          }
+          //this.body.emitter.emit("_redraw");})
+        };
+
+        var minimizeEdgeLength = function minimizeEdgeLength(iterations, node) {
+          //window.CALLBACKS.push(() => {
+          //  console.log("ts",node.id);
+          var nodeId = node.id;
+          var allEdges = node.edges;
+          var nodeLevel = _this2.hierarchicalLevels[node.id];
+
+          // gather constants
+          var C2 = _this2.options.hierarchical.levelSeparation * _this2.options.hierarchical.levelSeparation;
+          var referenceNodes = {};
+          var aboveEdges = [];
+          for (var i = 0; i < allEdges.length; i++) {
+            var edge = allEdges[i];
+            if (edge.toId != edge.fromId) {
+              var otherNode = edge.toId == nodeId ? edge.from : edge.to;
+              referenceNodes[allEdges[i].id] = otherNode;
+              if (_this2.hierarchicalLevels[otherNode.id] < nodeLevel) {
+                aboveEdges.push(edge);
+              }
+            }
+          }
+
+          // differentiated sum of lengths based on only moving one node over one axis
+          var getFx = function getFx(point, edges) {
+            var sum = 0;
+            for (var i = 0; i < edges.length; i++) {
+              if (referenceNodes[edges[i].id] !== undefined) {
+                var a = _this2._getPositionForHierarchy(referenceNodes[edges[i].id]) - point;
+                sum += a / Math.sqrt(a * a + C2);
+              }
+            }
+            return sum;
+          };
+
+          // doubly differentiated sum of lengths based on only moving one node over one axis
+          var getDFx = function getDFx(point, edges) {
+            var sum = 0;
+            for (var i = 0; i < edges.length; i++) {
+              if (referenceNodes[edges[i].id] !== undefined) {
+                var a = _this2._getPositionForHierarchy(referenceNodes[edges[i].id]) - point;
+                sum -= C2 * Math.pow(a * a + C2, -1.5);
+              }
+            }
+            return sum;
+          };
+
+          var getGuess = function getGuess(iterations, edges) {
+            var guess = _this2._getPositionForHierarchy(node);
+            // Newton's method for optimization
+            var guessMap = {};
+            for (var i = 0; i < iterations; i++) {
+              var fx = getFx(guess, edges);
+              var dfx = getDFx(guess, edges);
+
+              // we limit the movement to avoid instability.
+              var limit = 40;
+              var ratio = Math.max(-limit, Math.min(limit, Math.round(fx / dfx)));
+              guess = guess - ratio;
+              // reduce duplicates
+              if (guessMap[guess] !== undefined) {
+                break;
+              }
+              guessMap[guess] = i;
+            }
+            return guess;
+          };
+
+          var moveBranch = function moveBranch(guess) {
+            // position node if there is space
+            var nodePosition = _this2._getPositionForHierarchy(node);
+
+            // check movable area of the branch
+            if (branches[node.id] === undefined) {
+              var branchNodes = {};
+              branchNodes[node.id] = true;
+              getBranchNodes(node, branchNodes);
+              branches[node.id] = branchNodes;
+            }
+
+            var _getBranchBoundary4 = getBranchBoundary(branches[node.id]);
+
+            var _getBranchBoundary42 = _slicedToArray(_getBranchBoundary4, 4);
+
+            var minBranch = _getBranchBoundary42[0];
+            var maxBranch = _getBranchBoundary42[1];
+            var minSpaceBranch = _getBranchBoundary42[2];
+            var maxSpaceBranch = _getBranchBoundary42[3];
+
+            var diff = guess - nodePosition;
+
+            // check if we are allowed to move the node:
+            var branchOffset = 0;
+            if (diff > 0) {
+              branchOffset = Math.min(diff, maxSpaceBranch - _this2.options.hierarchical.nodeSpacing);
+            } else if (diff < 0) {
+              branchOffset = -Math.min(-diff, minSpaceBranch - _this2.options.hierarchical.nodeSpacing);
+            }
+
+            if (branchOffset != 0) {
+              //console.log("moving branch:",branchOffset, maxSpaceBranch, minSpaceBranch)
+              _this2._shiftBlock(node.id, branchOffset);
+              //this.body.emitter.emit("_redraw");
+              stillShifting = true;
+            }
+          };
+
+          var moveNode = function moveNode(guess) {
+            var nodePosition = _this2._getPositionForHierarchy(node);
+
+            // position node if there is space
+
+            var _getSpaceAroundNode3 = _this2._getSpaceAroundNode(node);
+
+            var _getSpaceAroundNode32 = _slicedToArray(_getSpaceAroundNode3, 2);
+
+            var minSpace = _getSpaceAroundNode32[0];
+            var maxSpace = _getSpaceAroundNode32[1];
+
+            var diff = guess - nodePosition;
+            // check if we are allowed to move the node:
+            var newPosition = nodePosition;
+            if (diff > 0) {
+              newPosition = Math.min(nodePosition + (maxSpace - _this2.options.hierarchical.nodeSpacing), guess);
+            } else if (diff < 0) {
+              newPosition = Math.max(nodePosition - (minSpace - _this2.options.hierarchical.nodeSpacing), guess);
+            }
+
+            if (newPosition !== nodePosition) {
+              //console.log("moving Node:",diff, minSpace, maxSpace)
+              _this2._setPositionForHierarchy(node, newPosition, undefined, true);
+              //this.body.emitter.emit("_redraw");
+              stillShifting = true;
+            }
+          };
+
+          var guess = getGuess(iterations, aboveEdges);
+          moveBranch(guess);
+          guess = getGuess(iterations, allEdges);
+          moveNode(guess);
+          //})
+        };
+
+        // method to remove whitespace between branches. Because we do bottom up, we can center the parents.
+        var minimizeEdgeLengthBottomUp = function minimizeEdgeLengthBottomUp(iterations) {
+          var levels = Object.keys(_this2.distributionOrdering);
+          levels = levels.reverse();
+          for (var i = 0; i < iterations; i++) {
+            stillShifting = false;
+            for (var j = 0; j < levels.length; j++) {
+              var level = levels[j];
+              var levelNodes = _this2.distributionOrdering[level];
+              for (var k = 0; k < levelNodes.length; k++) {
+                minimizeEdgeLength(1000, levelNodes[k]);
+              }
+            }
+            if (stillShifting !== true) {
+              //console.log("FINISHED minimizeEdgeLengthBottomUp IN " + i);
+              break;
+            }
+          }
+        };
+
+        //// method to remove whitespace between branches. Because we do bottom up, we can center the parents.
+        var shiftBranchesCloserBottomUp = function shiftBranchesCloserBottomUp(iterations) {
+          var levels = Object.keys(_this2.distributionOrdering);
+          levels = levels.reverse();
+          for (var i = 0; i < iterations; i++) {
+            stillShifting = false;
+            shiftElementsCloser(branchShiftCallback, levels, true);
+            if (stillShifting !== true) {
+              //console.log("FINISHED shiftBranchesCloserBottomUp IN " + (i+1));
+              break;
+            }
+          }
+        };
+
+        // center all parents
+        var centerAllParents = function centerAllParents() {
+          for (var nodeId in _this2.body.nodes) {
+            if (_this2.body.nodes.hasOwnProperty(nodeId)) _this2._centerParent(_this2.body.nodes[nodeId]);
+          }
+        };
+
+        // the actual work is done here.
+        if (this.options.hierarchical.blockShifting === true) {
+          shiftBranchesCloserBottomUp(5);
+          centerAllParents();
+        }
+
+        // minimize edge length
+        if (this.options.hierarchical.edgeMinimization === true) {
+          minimizeEdgeLengthBottomUp(20);
+        }
+
+        shiftTrees();
+      }
+
+      /**
+       * This gives the space around the node. IF a map is supplied, it will only check against nodes NOT in the map.
+       * This is used to only get the distances to nodes outside of a branch.
+       * @param node
+       * @param map
+       * @returns {*[]}
+       * @private
+       */
+    }, {
+      key: '_getSpaceAroundNode',
+      value: function _getSpaceAroundNode(node, map) {
+        var useMap = true;
+        if (map === undefined) {
+          useMap = false;
+        }
+        var level = this.hierarchicalLevels[node.id];
+        if (level !== undefined) {
+          var index = this.distributionIndex[node.id];
+          var position = this._getPositionForHierarchy(node);
+          var minSpace = 1e9;
+          var maxSpace = 1e9;
+          if (index !== 0) {
+            var prevNode = this.distributionOrdering[level][index - 1];
+            if (useMap === true && map[prevNode.id] === undefined || useMap === false) {
+              var prevPos = this._getPositionForHierarchy(prevNode);
+              minSpace = position - prevPos;
+            }
+          }
+
+          if (index != this.distributionOrdering[level].length - 1) {
+            var nextNode = this.distributionOrdering[level][index + 1];
+            if (useMap === true && map[nextNode.id] === undefined || useMap === false) {
+              var nextPos = this._getPositionForHierarchy(nextNode);
+              maxSpace = Math.min(maxSpace, nextPos - position);
+            }
+          }
+
+          return [minSpace, maxSpace];
+        } else {
+          return [0, 0];
+        }
+      }
+
+      /**
+       * We use this method to center a parent node and check if it does not cross other nodes when it does.
+       * @param node
+       * @private
+       */
+    }, {
+      key: '_centerParent',
+      value: function _centerParent(node) {
+        if (this.hierarchicalChildren[node.id]) {
+          var parents = this.hierarchicalChildren[node.id].parents;
+          for (var i = 0; i < parents.length; i++) {
+            var parentId = parents[i];
+            var parentNode = this.body.nodes[parentId];
+            if (this.hierarchicalParents[parentId]) {
+              // get the range of the children
+              var minPos = 1e9;
+              var maxPos = -1e9;
+              var children = this.hierarchicalParents[parentId].children;
+              if (children.length > 0) {
+                for (var _i = 0; _i < children.length; _i++) {
+                  var childNode = this.body.nodes[children[_i]];
+                  minPos = Math.min(minPos, this._getPositionForHierarchy(childNode));
+                  maxPos = Math.max(maxPos, this._getPositionForHierarchy(childNode));
+                }
+              }
+
+              var position = this._getPositionForHierarchy(parentNode);
+
+              var _getSpaceAroundNode4 = this._getSpaceAroundNode(parentNode);
+
+              var _getSpaceAroundNode42 = _slicedToArray(_getSpaceAroundNode4, 2);
+
+              var minSpace = _getSpaceAroundNode42[0];
+              var maxSpace = _getSpaceAroundNode42[1];
+
+              var newPosition = 0.5 * (minPos + maxPos);
+              var diff = position - newPosition;
+              if (diff < 0 && Math.abs(diff) < maxSpace - this.options.hierarchical.nodeSpacing || diff > 0 && Math.abs(diff) < minSpace - this.options.hierarchical.nodeSpacing) {
+                this._setPositionForHierarchy(parentNode, newPosition, undefined, true);
+              }
+            }
+          }
+        }
+      }
 
       /**
        * This function places the nodes on the canvas based on the hierarchial distribution.
@@ -40329,7 +40957,7 @@ return /******/ (function(modules) { // webpackBootstrap
             for (var i = 0; i < nodeArray.length; i++) {
               var node = nodeArray[i];
               if (this.positionedNodes[node.id] === undefined) {
-                this._setPositionForHierarchy(node, this.nodeSpacing * i);
+                this._setPositionForHierarchy(node, this.options.hierarchical.nodeSpacing * i, level);
                 this.positionedNodes[node.id] = true;
                 this._placeBranchNodes(node.id, level);
               }
@@ -40418,18 +41046,18 @@ return /******/ (function(modules) { // webpackBootstrap
     }, {
       key: '_determineLevelsByHubsize',
       value: function _determineLevelsByHubsize() {
-        var _this2 = this;
+        var _this3 = this;
 
         var hubSize = 1;
 
         var levelDownstream = function levelDownstream(nodeA, nodeB) {
-          if (_this2.hierarchicalLevels[nodeB.id] === undefined) {
+          if (_this3.hierarchicalLevels[nodeB.id] === undefined) {
             // set initial level
-            if (_this2.hierarchicalLevels[nodeA.id] === undefined) {
-              _this2.hierarchicalLevels[nodeA.id] = 0;
+            if (_this3.hierarchicalLevels[nodeA.id] === undefined) {
+              _this3.hierarchicalLevels[nodeA.id] = 0;
             }
             // set level
-            _this2.hierarchicalLevels[nodeB.id] = _this2.hierarchicalLevels[nodeA.id] + 1;
+            _this3.hierarchicalLevels[nodeB.id] = _this3.hierarchicalLevels[nodeA.id] + 1;
           }
         };
 
@@ -40456,7 +41084,7 @@ return /******/ (function(modules) { // webpackBootstrap
     }, {
       key: '_determineLevelsCustomCallback',
       value: function _determineLevelsCustomCallback() {
-        var _this3 = this;
+        var _this4 = this;
 
         var minLevel = 100000;
 
@@ -40464,15 +41092,15 @@ return /******/ (function(modules) { // webpackBootstrap
         var customCallback = function customCallback(nodeA, nodeB, edge) {};
 
         var levelByDirection = function levelByDirection(nodeA, nodeB, edge) {
-          var levelA = _this3.hierarchicalLevels[nodeA.id];
+          var levelA = _this4.hierarchicalLevels[nodeA.id];
           // set initial level
           if (levelA === undefined) {
-            _this3.hierarchicalLevels[nodeA.id] = minLevel;
+            _this4.hierarchicalLevels[nodeA.id] = minLevel;
           }
 
           var diff = customCallback(_NetworkUtil2['default'].cloneOptions(nodeA, 'node'), _NetworkUtil2['default'].cloneOptions(nodeB, 'node'), _NetworkUtil2['default'].cloneOptions(edge, 'edge'));
 
-          _this3.hierarchicalLevels[nodeB.id] = _this3.hierarchicalLevels[nodeA.id] + diff;
+          _this4.hierarchicalLevels[nodeB.id] = _this4.hierarchicalLevels[nodeA.id] + diff;
         };
 
         this._crawlNetwork(levelByDirection);
@@ -40488,19 +41116,19 @@ return /******/ (function(modules) { // webpackBootstrap
     }, {
       key: '_determineLevelsDirected',
       value: function _determineLevelsDirected() {
-        var _this4 = this;
+        var _this5 = this;
 
         var minLevel = 10000;
         var levelByDirection = function levelByDirection(nodeA, nodeB, edge) {
-          var levelA = _this4.hierarchicalLevels[nodeA.id];
+          var levelA = _this5.hierarchicalLevels[nodeA.id];
           // set initial level
           if (levelA === undefined) {
-            _this4.hierarchicalLevels[nodeA.id] = minLevel;
+            _this5.hierarchicalLevels[nodeA.id] = minLevel;
           }
           if (edge.toId == nodeB.id) {
-            _this4.hierarchicalLevels[nodeB.id] = _this4.hierarchicalLevels[nodeA.id] + 1;
+            _this5.hierarchicalLevels[nodeB.id] = _this5.hierarchicalLevels[nodeA.id] + 1;
           } else {
-            _this4.hierarchicalLevels[nodeB.id] = _this4.hierarchicalLevels[nodeA.id] - 1;
+            _this5.hierarchicalLevels[nodeB.id] = _this5.hierarchicalLevels[nodeA.id] - 1;
           }
         };
         this._crawlNetwork(levelByDirection);
@@ -40518,41 +41146,43 @@ return /******/ (function(modules) { // webpackBootstrap
         // get the minimum level
         for (var nodeId in this.body.nodes) {
           if (this.body.nodes.hasOwnProperty(nodeId)) {
-            minLevel = Math.min(this.hierarchicalLevels[nodeId], minLevel);
+            if (this.hierarchicalLevels[nodeId] !== undefined) {
+              minLevel = Math.min(this.hierarchicalLevels[nodeId], minLevel);
+            }
           }
         }
 
         // subtract the minimum from the set so we have a range starting from 0
         for (var nodeId in this.body.nodes) {
           if (this.body.nodes.hasOwnProperty(nodeId)) {
-            this.hierarchicalLevels[nodeId] -= minLevel;
+            if (this.hierarchicalLevels[nodeId] !== undefined) {
+              this.hierarchicalLevels[nodeId] -= minLevel;
+            }
           }
         }
       }
 
       /**
        * Update the bookkeeping of parent and child.
-       * @param parentNodeId
-       * @param childNodeId
        * @private
        */
     }, {
       key: '_generateMap',
       value: function _generateMap() {
-        var _this5 = this;
+        var _this6 = this;
 
         var fillInRelations = function fillInRelations(parentNode, childNode) {
-          if (_this5.hierarchicalLevels[childNode.id] > _this5.hierarchicalLevels[parentNode.id]) {
+          if (_this6.hierarchicalLevels[childNode.id] > _this6.hierarchicalLevels[parentNode.id]) {
             var parentNodeId = parentNode.id;
             var childNodeId = childNode.id;
-            if (_this5.hierarchicalParents[parentNodeId] === undefined) {
-              _this5.hierarchicalParents[parentNodeId] = { children: [], amount: 0 };
+            if (_this6.hierarchicalParents[parentNodeId] === undefined) {
+              _this6.hierarchicalParents[parentNodeId] = { children: [], amount: 0 };
             }
-            _this5.hierarchicalParents[parentNodeId].children.push(childNodeId);
-            if (_this5.hierarchicalChildren[childNodeId] === undefined) {
-              _this5.hierarchicalChildren[childNodeId] = { parents: [], amount: 0 };
+            _this6.hierarchicalParents[parentNodeId].children.push(childNodeId);
+            if (_this6.hierarchicalChildren[childNodeId] === undefined) {
+              _this6.hierarchicalChildren[childNodeId] = { parents: [], amount: 0 };
             }
-            _this5.hierarchicalChildren[childNodeId].parents.push(parentNodeId);
+            _this6.hierarchicalChildren[childNodeId].parents.push(parentNodeId);
           }
         };
 
@@ -40560,7 +41190,7 @@ return /******/ (function(modules) { // webpackBootstrap
       }
 
       /**
-       * Crawl over the entire network and use a callback on each node couple that is connected to eachother.
+       * Crawl over the entire network and use a callback on each node couple that is connected to each other.
        * @param callback          | will receive nodeA nodeB and the connecting edge. A and B are unique.
        * @param startingNodeId
        * @private
@@ -40576,15 +41206,17 @@ return /******/ (function(modules) { // webpackBootstrap
             progress[node.id] = true;
             var childNode = undefined;
             for (var i = 0; i < node.edges.length; i++) {
-              if (node.edges[i].toId === node.id) {
-                childNode = node.edges[i].from;
-              } else {
-                childNode = node.edges[i].to;
-              }
+              if (node.edges[i].connected === true) {
+                if (node.edges[i].toId === node.id) {
+                  childNode = node.edges[i].from;
+                } else {
+                  childNode = node.edges[i].to;
+                }
 
-              if (node.id !== childNode.id) {
-                callback(node, childNode, node.edges[i]);
-                crawler(childNode);
+                if (node.id !== childNode.id) {
+                  callback(node, childNode, node.edges[i]);
+                  crawler(childNode);
+                }
               }
             }
           }
@@ -40635,7 +41267,7 @@ return /******/ (function(modules) { // webpackBootstrap
         for (var i = 0; i < childNodes.length; i++) {
           var childNode = childNodes[i];
           var childNodeLevel = this.hierarchicalLevels[childNode.id];
-          // check if the childnode is below the parent node and if it has already been positioned.
+          // check if the child node is below the parent node and if it has already been positioned.
           if (childNodeLevel > parentLevel && this.positionedNodes[childNode.id] === undefined) {
             // get the amount of space required for this node. If parent the width is based on the amount of children.
             var pos = undefined;
@@ -40644,15 +41276,15 @@ return /******/ (function(modules) { // webpackBootstrap
             if (i === 0) {
               pos = this._getPositionForHierarchy(this.body.nodes[parentId]);
             } else {
-              pos = this._getPositionForHierarchy(childNodes[i - 1]) + this.nodeSpacing;
+              pos = this._getPositionForHierarchy(childNodes[i - 1]) + this.options.hierarchical.nodeSpacing;
             }
-            this._setPositionForHierarchy(childNode, pos);
+            this._setPositionForHierarchy(childNode, pos, childNodeLevel);
 
             // if overlap has been detected, we shift the branch
             if (this.lastNodeOnLevel[childNodeLevel] !== undefined) {
               var previousPos = this._getPositionForHierarchy(this.body.nodes[this.lastNodeOnLevel[childNodeLevel]]);
-              if (pos - previousPos < this.nodeSpacing) {
-                var diff = previousPos + this.nodeSpacing - pos;
+              if (pos - previousPos < this.options.hierarchical.nodeSpacing) {
+                var diff = previousPos + this.options.hierarchical.nodeSpacing - pos;
                 var sharedParent = this._findCommonParent(this.lastNodeOnLevel[childNodeLevel], childNode.id);
                 this._shiftBlock(sharedParent.withChild, diff);
               }
@@ -40677,7 +41309,7 @@ return /******/ (function(modules) { // webpackBootstrap
           minPos = Math.min(minPos, this._getPositionForHierarchy(this.body.nodes[childNodeId]));
           maxPos = Math.max(maxPos, this._getPositionForHierarchy(this.body.nodes[childNodeId]));
         }
-        this._setPositionForHierarchy(this.body.nodes[parentId], 0.5 * (minPos + maxPos));
+        this._setPositionForHierarchy(this.body.nodes[parentId], 0.5 * (minPos + maxPos), parentLevel);
       }
 
       /**
@@ -40711,22 +41343,22 @@ return /******/ (function(modules) { // webpackBootstrap
     }, {
       key: '_findCommonParent',
       value: function _findCommonParent(childA, childB) {
-        var _this6 = this;
+        var _this7 = this;
 
         var parents = {};
         var iterateParents = function iterateParents(parents, child) {
-          if (_this6.hierarchicalChildren[child] !== undefined) {
-            for (var i = 0; i < _this6.hierarchicalChildren[child].parents.length; i++) {
-              var _parent = _this6.hierarchicalChildren[child].parents[i];
+          if (_this7.hierarchicalChildren[child] !== undefined) {
+            for (var i = 0; i < _this7.hierarchicalChildren[child].parents.length; i++) {
+              var _parent = _this7.hierarchicalChildren[child].parents[i];
               parents[_parent] = true;
               iterateParents(parents, _parent);
             }
           }
         };
         var findParent = function findParent(parents, child) {
-          if (_this6.hierarchicalChildren[child] !== undefined) {
-            for (var i = 0; i < _this6.hierarchicalChildren[child].parents.length; i++) {
-              var _parent2 = _this6.hierarchicalChildren[child].parents[i];
+          if (_this7.hierarchicalChildren[child] !== undefined) {
+            for (var i = 0; i < _this7.hierarchicalChildren[child].parents.length; i++) {
+              var _parent2 = _this7.hierarchicalChildren[child].parents[i];
               if (parents[_parent2] !== undefined) {
                 return { foundParent: _parent2, withChild: child };
               }
@@ -40747,11 +41379,48 @@ return /******/ (function(modules) { // webpackBootstrap
        * Abstract the getting of the position so we won't have to repeat the check for direction all the time
        * @param node
        * @param position
+       * @param level
        * @private
        */
     }, {
       key: '_setPositionForHierarchy',
-      value: function _setPositionForHierarchy(node, position) {
+      value: function _setPositionForHierarchy(node, position, level) {
+        var doNotUpdate = arguments.length <= 3 || arguments[3] === undefined ? false : arguments[3];
+
+        if (doNotUpdate !== true) {
+          if (this.distributionOrdering[level] === undefined) {
+            this.distributionOrdering[level] = [];
+            this.distributionOrderingPresence[level] = {};
+          }
+
+          if (this.distributionOrderingPresence[level][node.id] === undefined) {
+            this.distributionOrdering[level].push(node);
+            this.distributionIndex[node.id] = this.distributionOrdering[level].length - 1;
+          }
+          this.distributionOrderingPresence[level][node.id] = true;
+
+          if (this.hierarchicalTrees[node.id] === undefined) {
+            if (this.hierarchicalChildren[node.id] !== undefined) {
+              var tree = 1;
+              // get the lowest tree denominator.
+              for (var i = 0; i < this.hierarchicalChildren[node.id].parents.length; i++) {
+                var parentId = this.hierarchicalChildren[node.id].parents[i];
+                if (this.hierarchicalTrees[parentId] !== undefined) {
+                  //tree = Math.min(tree,this.hierarchicalTrees[parentId]);
+                  tree = this.hierarchicalTrees[parentId];
+                }
+              }
+              //for (let i = 0; i < this.hierarchicalChildren.parents.length; i++) {
+              //  let parentId = this.hierarchicalChildren.parents[i];
+              //  this.hierarchicalTrees[parentId] = tree;
+              //}
+              this.hierarchicalTrees[node.id] = tree;
+            } else {
+              this.hierarchicalTrees[node.id] = ++this.treeIndex;
+            }
+          }
+        }
+
         if (this.options.hierarchical.direction === 'UD' || this.options.hierarchical.direction === 'DU') {
           node.x = position;
         } else {
@@ -41489,7 +42158,7 @@ return /******/ (function(modules) { // webpackBootstrap
           this.canvas.frame.removeChild(this.editModeDiv);
         }
         if (this.closeDiv) {
-          this.canvas.frame.removeChild(this.manipulationDiv);
+          this.canvas.frame.removeChild(this.closeDiv);
         }
 
         // set the references to undefined
@@ -42055,6 +42724,7 @@ return /******/ (function(modules) { // webpackBootstrap
         from: { enabled: { boolean: boolean }, scaleFactor: { number: number }, __type__: { object: object, boolean: boolean } },
         __type__: { string: ['from', 'to', 'middle'], object: object }
       },
+      arrowStrikethrough: { boolean: boolean },
       color: {
         color: { string: string },
         highlight: { string: string },
@@ -42148,6 +42818,10 @@ return /******/ (function(modules) { // webpackBootstrap
       hierarchical: {
         enabled: { boolean: boolean },
         levelSeparation: { number: number },
+        nodeSpacing: { number: number },
+        treeSpacing: { number: number },
+        blockShifting: { boolean: boolean },
+        edgeMinimization: { boolean: boolean },
         direction: { string: ['UD', 'DU', 'LR', 'RL'] }, // UD, DU, LR, RL
         sortMethod: { string: ['hubsize', 'directed'] }, // hubsize, directed
         __type__: { object: object, boolean: boolean }
@@ -42372,6 +43046,7 @@ return /******/ (function(modules) { // webpackBootstrap
       },
       shadow: {
         enabled: false,
+        color: 'rgba(0,0,0,0.5)',
         size: [10, 0, 20, 1],
         x: [5, -30, 30, 1],
         y: [5, -30, 30, 1]
@@ -42390,6 +43065,7 @@ return /******/ (function(modules) { // webpackBootstrap
         middle: { enabled: false, scaleFactor: [1, 0, 3, 0.05] },
         from: { enabled: false, scaleFactor: [1, 0, 3, 0.05] }
       },
+      arrowStrikethrough: true,
       color: {
         color: ['color', '#848484'],
         highlight: ['color', '#848484'],
@@ -42426,6 +43102,7 @@ return /******/ (function(modules) { // webpackBootstrap
       selfReferenceSize: [20, 0, 200, 1],
       shadow: {
         enabled: false,
+        color: 'rgba(0,0,0,0.5)',
         size: [10, 0, 20, 1],
         x: [5, -30, 30, 1],
         y: [5, -30, 30, 1]
@@ -42444,6 +43121,10 @@ return /******/ (function(modules) { // webpackBootstrap
       hierarchical: {
         enabled: false,
         levelSeparation: [150, 20, 500, 5],
+        nodeSpacing: [100, 20, 500, 5],
+        treeSpacing: [200, 20, 500, 5],
+        blockShifting: true,
+        edgeMinimization: true,
         direction: ['UD', 'DU', 'LR', 'RL'], // UD, DU, LR, RL
         sortMethod: ['hubsize', 'directed'] // hubsize, directed
       }

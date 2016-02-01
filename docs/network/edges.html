@@ -119,6 +119,7 @@ var options = {
       middle: {enabled: false, scaleFactor:1},
       from:   {enabled: false, scaleFactor:1}
     },
+    arrowStrikethrough: true,
     color: {
       color:'#848484',
       highlight:'#848484',
@@ -253,6 +254,12 @@ network.setOptions(options);
             <td>Object or Boolean</td>
             <td><code>Object</code></td>
             <td>Exactly the same as the to object but with an arrowhead at the from node of the edge.</td>
+        </tr>
+        <tr>
+            <td class="indent">arrowStrikethrough</td>
+            <td>Boolean</td>
+            <td><code>true</code></td>
+            <td>When false, the edge stops at the arrow. This can be useful if you have thick lines and you want the arrow to end in a point. Middle arrows are not affected by this.</td>
         </tr>
         <tr class='toggle collapsible' onclick="toggleTable('optionTable','color', this);">
             <td><span parent="color" class="right-caret"></span> color</td>

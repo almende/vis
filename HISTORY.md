@@ -2,6 +2,45 @@
 http://visjs.org
 
 
+## 2016-02-01, version 4.13.0
+
+### Network
+
+- Added options to customize the hierarchical layout without the use of physics.
+- Altered edges for arrows and added the arrowStrikethrough option.
+- Improved the hierarchical layout algorithm by adding a condensing method to remove whitespace.
+- Fixed #1556: Network throwing an error when clicking the "Edit" button
+  on the manipulation toolbar.
+- Fixed #1334 (again): Network now ignores scroll when interaction:zoomView is false.
+- Fixed #1588: destroy now unsubscribed from the dataset.
+- Fixed #1584: Navigation buttons broken.
+- Fixed #1596: correct clean up of manipulation dom elements.
+- Fixed #1594: bug in hierarchical layout.
+- Fixed #1597: Allow zero borders and addressed scaling artifacts.
+- Fixed #1608: Fixed wrong variable reference
+
+### Timeline
+
+- Moved initial autoscale/fit method to an handler of the "changed" event.
+- Fixed #1580: Invisible timeline/graph should not be drawn, as most inputs are invalid
+- Fixed #1521: Prevent items from staying stuck to the left side of the viewport.
+- Fixed #1592: Emit a "changed" event after each redraw.
+- Fixed #1541: Timeline and Graph2d did not load synchronously anymore.
+
+### Graph2d
+
+- Major redesign of data axis/scales, with large focus on creating a sane slave axis setup
+- Cleanup of linegraph's event handling.
+- Fixed #1585: Allow bar groups to exclude from stacking
+- Fixed #1580: Invisible timeline/graph should not be drawn, as most inputs are invalid
+- Fixed #1177: Fix custom range of slaved right axis.
+- Fixed #1592: Emit a "changed" event after each redraw.
+- Fixed #1017: Fixed minWidth behavior for bars.
+- Fixes #1557: Fix default axis formatting function.
+- Fixed #1541: Timeline and Graph2d did not load synchronously anymore.
+- Fixed a performance regression
+
+
 ## 2016-01-08, version 4.12.0
 
 ### Timeline

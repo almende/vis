@@ -7,7 +7,7 @@
     <link href="../dist/vis.css" rel="stylesheet" type="text/css"/>
     <style type="text/css">
         #network{
-            width: 1200px;
+            width: 1900px;
             height: 800px;
             border: 1px solid lightgray;
         }
@@ -17,63 +17,52 @@
 <h1>Network Test</h1>
 <div id="network"></div>
 <script>
-    var nodes = new vis.DataSet([
-        {id: 1, label: '1'},
-        {id: 2, label: '2'},
-        {id: 3, label: '3'},
-        {id: 4, label: '4'},
-        {id: 5, label: '5'},
-        {id: 6, label: '6'},
-        {id: 7, label: '7'},
-    ]);
-    var edges = new vis.DataSet([
-        {id: "e1", from: 2, to: 1, label: "e1"},
-        {id: "e2", from: 3, to: 1, label: "e2"},
-        {id: "e3", from: 4, to: 1, label: "e3"},
-        {id: "e4", from: 5, to: 1, label: "e4"},
-        {id: "e5", from: 6, to: 1, label: "e5"},
-        {id: "e6", from: 2, to: 7, label: "e6"},
-        {id: "e7", from: 3, to: 7, label: "e7"},
-        {id: "e8", from: 4, to: 7, label: "e8"},
-        {id: "e9", from: 5, to: 7, label: "e9"},
-        {id: "e10", from: 6, to: 7, label: "e10"},
-    ]);
+    var network = null;
 
-    // create a network
-    var container = document.getElementById('network');
-    var data = {
-        nodes: nodes,
-        edges: edges
-    };
-    var options = {
-        layout: {randomSeed: 8},
-        edges: {
-            arrows: {
-                to: {
-                    scaleFactor: 0.5
+    var idmap = {};
+    for (var i = 0; i < nodes.length; i++) {
+        nodes[i].label = i;
+        idmap[nodes[i].id] = i;
+        nodes[i].id = i;
+    }
+
+    for (var i = 0; i < edges.length; i++) {
+        edges[i].from = idmap[edges[i].from];
+        edges[i].to = idmap[edges[i].to];
+        edges[i].id = 'e'+i;
+    }
+
+    console.log(JSON.stringify(nodes), JSON.stringify(edges));
+
+
+    // randomly create some nodes and edges
+        var data = {
+            nodes: nodes,
+            edges: edges
+        }
+        // create a network
+        var status = document.getElementById('status');
+        var container = document.getElementById('network');
+        var options = {
+            layout: {
+                hierarchical: {
+                    direction: "UD",
+                    sortMethod: "directed"
                 }
             },
-            font: {
-                align: "middle"
+            physics: {
+                enabled: false,
+                stabilization:false
             }
-        }
-    };
-    var network = new vis.Network(container, data, options);
-
-        var clusterOptionsByData = {
-            joinCondition: function(node) {
-                if (node.id > 1 && node.id < 7)
-                    return true;
-                return false;
-            },
-            clusterNodeProperties: {id:"c1", label:'c1'}
         };
-        network.cluster(clusterOptionsByData);
-
-
-    setTimeout(function() {
-        network.setOptions({layout: { hierarchical: { direction: "LR" }}});
-    },2000)
+        network = new vis.Network(container, data, options);
+        network.on("stabilizationProgress", function(params) {
+            var prog = params.iterations/params.total;
+            status.innerText = Math.round(prog*100)+'%';
+        });
+        network.on("stabilizationIterationsDone", function() {
+            status.innerText = "stabilized";
+        });
 </script>
 </body>
 </html>
