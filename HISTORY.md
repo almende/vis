@@ -4,6 +4,16 @@ http://visjs.org
 
 ## not yet released, version 4.13.1-SNAPSHOT
 
+### Timeline
+
+- Fixed a regression: Timeline/Graph2d constructor throwing an exception when
+  no options are provided via the constructor.
+
+### Graph2d
+
+- Fixed a regression: Timeline/Graph2d constructor throwing an exception when
+  no options are provided via the constructor.
+
 ### Graph3d
 
 - Fixed #1615: implemented new option `dotSizeRatio`.
