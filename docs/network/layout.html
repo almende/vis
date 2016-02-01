@@ -105,8 +105,12 @@ var options = {
     hierarchical: {
       enabled:false,
       levelSeparation: 150,
-      direction: 'UD',   // UD, DU, LR, RL
-      sortMethod: 'hubsize' // hubsize, directed
+      nodeSpacing: 100,
+      treeSpacing: 200,
+      blockShifting: true,
+      edgeMinimization: true,
+      direction: 'UD',        // UD, DU, LR, RL
+      sortMethod: 'hubsize'   // hubsize, directed
     }
   }
 }
@@ -132,6 +136,12 @@ network.setOptions(options);
         <tr class='toggle collapsible' onclick="toggleTable('optionTable','hierarchical', this);"><td><span parent="repulsion" class="right-caret"></span> hierarchical</td><td>Object or Boolean</td><td><code>Object</code></td>      <td>When true, the layout engine positions the nodes in a hierarchical fashion using default settings. For customization you can supply an object.</td></tr>
         <tr parent="hierarchical" class="hidden"><td class="indent">hierarchical.enabled</td><td>Boolean</td><td><code>false</code></td>        <td>Toggle the usage of the hierarchical layout system. If this option is not defined, it is set to true if any of the properties in this object are defined.</td></tr>
         <tr parent="hierarchical" class="hidden"><td class="indent">hierarchical.levelSeparation</td><td>Number</td><td><code>150</code></td>   <td>The distance between the different levels.</td></tr>
+        <tr parent="hierarchical" class="hidden"><td class="indent">hierarchical.nodeSpacing</td><td>Number</td><td><code>100</code></td>       <td>Minimum distance between nodes on the free axis. This is only for the initial layout. If you enable physics, the node distance there will be the effective node distance.</td></tr>
+        <tr parent="hierarchical" class="hidden"><td class="indent">hierarchical.treeSpacing</td><td>Number</td><td><code>200</code></td>       <td>Distance between different trees (independent networks). This is only for the initial layout. If you enable physics, the repulsion model will denote the distance between the trees.</td></tr>
+        <tr parent="hierarchical" class="hidden"><td class="indent">hierarchical.blockShifting</td><td>Boolean</td><td><code>true</code></td>    <td>Method for reducing whitespace. Can be used alone or together with edge minimization. Each node will check for whitespace and will shift
+            it's branch along with it for as far as it can, respecting the nodeSpacing on any level. This is mainly for the initial layout. If you enable physics, they layout will be determined by the physics. This will greatly speed up the stabilization time though!</td></tr>
+        <tr parent="hierarchical" class="hidden"><td class="indent">hierarchical.edgeMinimization</td><td>Boolean</td><td><code>true</code></td> <td>Method for reducing whitespace. Can be used alone or together with block shifting. Enabling block shifting will usually speed up the layout process.
+            Each node will try to move along its free axis to reduce the total length of it's edges. This is mainly for the initial layout. If you enable physics, they layout will be determined by the physics. This will greatly speed up the stabilization time though!</td></tr>
         <tr parent="hierarchical" class="hidden"><td class="indent">hierarchical.direction</td><td>String</td><td><code>'UD'</code></td>        <td>The direction of the hierarchical layout. The available options are: <code>UD, DU, LR, RL</code>. To simplify: up-down, down-up, left-right, right-left.</td></tr>
         <tr parent="hierarchical" class="hidden"><td class="indent">hierarchical.sortMethod</td><td>String</td><td><code>'hubsize'</code></td>  <td>The algorithm used to ascertain the levels of the nodes based on the data. The possible options are: <code>hubsize, directed</code>. <br><br>
             Hubsize takes the nodes with the most edges and puts them at the top. From that the rest of the hierarchy is evaluated. <br><br>
