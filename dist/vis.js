@@ -4,8 +4,8 @@
  *
  * A dynamic, browser-based visualization library.
  *
- * @version 4.12.1-SNAPSHOT
- * @date    2016-01-23
+ * @version 4.13.0
+ * @date    2016-02-01
  *
  * @license
  * Copyright (C) 2011-2016 Almende B.V, http://almende.com
@@ -108,7 +108,6 @@ return /******/ (function(modules) { // webpackBootstrap
   exports.Graph2d = __webpack_require__(48);
   exports.timeline = {
     Core: __webpack_require__(27),
-    DataStep: __webpack_require__(51),
     DateUtil: __webpack_require__(26),
     Range: __webpack_require__(23),
     stack: __webpack_require__(31),
@@ -128,6 +127,7 @@ return /******/ (function(modules) { // webpackBootstrap
       CurrentTime: __webpack_require__(43),
       CustomTime: __webpack_require__(41),
       DataAxis: __webpack_require__(50),
+      DataScale: __webpack_require__(51),
       GraphGroup: __webpack_require__(52),
       Group: __webpack_require__(30),
       ItemSet: __webpack_require__(28),
@@ -1414,13 +1414,13 @@ return /******/ (function(modules) { // webpackBootstrap
    * this function will then iterate in both directions over this sorted list to find all visible items.
    *
    * @param {Item[]} orderedItems       | Items ordered by start
-   * @param {function} searchFunction   | -1 is lower, 0 is found, 1 is higher
+   * @param {function} comparator       | -1 is lower, 0 is equal, 1 is higher
    * @param {String} field
    * @param {String} field2
    * @returns {number}
    * @private
    */
-  exports.binarySearchCustom = function (orderedItems, searchFunction, field, field2) {
+  exports.binarySearchCustom = function (orderedItems, comparator, field, field2) {
     var maxIterations = 10000;
     var iteration = 0;
     var low = 0;
@@ -1432,7 +1432,7 @@ return /******/ (function(modules) { // webpackBootstrap
       var item = orderedItems[middle];
       var value = field2 === undefined ? item[field] : item[field][field2];
 
-      var searchResult = searchFunction(value);
+      var searchResult = comparator(value);
       if (searchResult == 0) {
         // jihaa, found a visible item!
         return middle;
@@ -1459,15 +1459,20 @@ return /******/ (function(modules) { // webpackBootstrap
    * @param {{start: number, end: number}} target
    * @param {String} field
    * @param {String} sidePreference   'before' or 'after'
+   * @param {function} comparator an optional comparator, returning -1,0,1 for <,==,>.
    * @returns {number}
    * @private
    */
-  exports.binarySearchValue = function (orderedItems, target, field, sidePreference) {
+  exports.binarySearchValue = function (orderedItems, target, field, sidePreference, comparator) {
     var maxIterations = 10000;
     var iteration = 0;
     var low = 0;
     var high = orderedItems.length - 1;
     var prevValue, value, nextValue, middle;
+
+    var comparator = comparator != undefined ? comparator : function (a, b) {
+      return a == b ? 0 : a < b ? -1 : 1;
+    };
 
     while (low <= high && iteration < maxIterations) {
       // get a new guess
@@ -1476,18 +1481,18 @@ return /******/ (function(modules) { // webpackBootstrap
       value = orderedItems[middle][field];
       nextValue = orderedItems[Math.min(orderedItems.length - 1, middle + 1)][field];
 
-      if (value == target) {
+      if (comparator(value, target) == 0) {
         // we found the target
         return middle;
-      } else if (prevValue < target && value > target) {
+      } else if (comparator(prevValue, target) < 0 && comparator(value, target) > 0) {
         // target is in between of the previous and the current
         return sidePreference == 'before' ? Math.max(0, middle - 1) : middle;
-      } else if (value < target && nextValue > target) {
+      } else if (comparator(value, target) < 0 && comparator(nextValue, target) > 0) {
         // target is in between of the current and the next
         return sidePreference == 'before' ? middle : Math.min(orderedItems.length - 1, middle + 1);
       } else {
         // didnt find the target, we need to change our boundaries.
-        if (value < target) {
+        if (comparator(value, target) < 0) {
           // it is too small --> increase low
           low = middle + 1;
         } else {
@@ -10682,9 +10687,10 @@ return /******/ (function(modules) { // webpackBootstrap
     // create itemset
     if (items) {
       this.setItems(items);
-    } else {
-      this._redraw();
     }
+
+    // draw for the first time
+    this._redraw();
   }
 
   // Extend the functionality from Core
@@ -10760,8 +10766,6 @@ return /******/ (function(modules) { // webpackBootstrap
     // set items
     this.itemsData = newDataSet;
     this.itemSet && this.itemSet.setItems(newDataSet);
-
-    this.body.emitter.emit('_change', { queue: true });
   };
 
   /**
@@ -14322,10 +14326,13 @@ return /******/ (function(modules) { // webpackBootstrap
     this.previousDelta = delta;
     this._applyRange(newStart, newEnd);
 
+    var startDate = new Date(this.start);
+    var endDate = new Date(this.end);
+
     // fire a rangechange event
     this.body.emitter.emit('rangechange', {
-      start: new Date(this.start),
-      end: new Date(this.end),
+      start: startDate,
+      end: endDate,
       byUser: true
     });
   };
@@ -15226,6 +15233,7 @@ return /******/ (function(modules) { // webpackBootstrap
    */
   Core.prototype._create = function (container) {
     this.dom = {};
+    this.options = {};
 
     this.dom.container = container;
 
@@ -15288,7 +15296,7 @@ return /******/ (function(modules) { // webpackBootstrap
     this.dom.rightContainer.appendChild(this.dom.shadowBottomRight);
 
     this.on('rangechange', (function () {
-      if (this.initialDrawDone) {
+      if (this.initialDrawDone === true) {
         this._redraw(); // this allows overriding the _redraw method
       }
     }).bind(this));
@@ -15414,6 +15422,7 @@ return /******/ (function(modules) { // webpackBootstrap
       var fields = ['width', 'height', 'minHeight', 'maxHeight', 'autoResize', 'start', 'end', 'clickToUse', 'dataAttributes', 'hiddenDates', 'locale', 'locales', 'moment', 'throttleRedraw'];
       util.selectiveExtend(fields, this.options, options);
 
+      this.options.orientation = { item: undefined, axis: undefined };
       if ('orientation' in options) {
         if (typeof options.orientation === 'string') {
           this.options.orientation = {
@@ -16158,7 +16167,6 @@ return /******/ (function(modules) { // webpackBootstrap
     var newScrollTop = this._setScrollTop(this.touch.initialScrollTop + delta);
 
     if (newScrollTop != oldScrollTop) {
-      this._redraw(); // TODO: this causes two redraws when dragging, the other is triggered by rangechange already
       this.emit("verticalDrag");
     }
   };
@@ -16943,6 +16951,8 @@ return /******/ (function(modules) { // webpackBootstrap
       // update the group holding all ungrouped items
       this._updateUngrouped();
     }
+
+    this.body.emitter.emit('_change', { queue: true });
   };
 
   /**
@@ -24302,6 +24312,8 @@ return /******/ (function(modules) { // webpackBootstrap
     if (items) {
       this.setItems(items);
     }
+
+    // draw for the first time
     this._redraw();
   }
 
@@ -24958,7 +24970,6 @@ return /******/ (function(modules) { // webpackBootstrap
         var extended = util.bridgeObject(item);
         extended.x = util.convert(item.x, 'Date');
         extended.orginalY = item.y; //real Y
-        // typecast all items to numbers. Takes around 10ms for 500.000 items
         extended.y = Number(item.y);
 
         var index = groupsContent[groupId].length - groupCounts[groupId]--;
@@ -25009,11 +25020,6 @@ return /******/ (function(modules) { // webpackBootstrap
     // calculate actual size and position
     this.props.width = this.dom.frame.offsetWidth;
     this.props.height = this.body.domProps.centerContainer.height - this.body.domProps.border.top - this.body.domProps.border.bottom;
-
-    // update the graph if there is no lastWidth or width, used for the initial draw
-    if (this.lastWidth === undefined && this.props.width) {
-      this.forceGraphUpdate = true;
-    }
 
     // check if this component is resized
     resized = this._isResized() || resized;
@@ -25289,8 +25295,11 @@ return /******/ (function(modules) { // webpackBootstrap
         var itemsData = group.getItems();
         // optimization for sorted data
         if (group.options.sort == true) {
-          var first = Math.max(0, util.binarySearchValue(itemsData, minDate, 'x', 'before'));
-          var last = Math.min(itemsData.length, util.binarySearchValue(itemsData, maxDate, 'x', 'after') + 1);
+          var dateComparator = function dateComparator(a, b) {
+            return a.getTime() == b.getTime() ? 0 : a < b ? -1 : 1;
+          };
+          var first = Math.max(0, util.binarySearchValue(itemsData, minDate, 'x', 'before', dateComparator));
+          var last = Math.min(itemsData.length, util.binarySearchValue(itemsData, maxDate, 'x', 'after', dateComparator) + 1);
           if (last <= 0) {
             last = itemsData.length;
           }
@@ -25451,6 +25460,8 @@ return /******/ (function(modules) { // webpackBootstrap
       this.yAxisRight.drawIcons = false;
     }
     this.yAxisRight.master = !yAxisLeftUsed;
+    this.yAxisRight.masterAxis = this.yAxisLeft;
+
     if (this.yAxisRight.master == false) {
       if (yAxisRightUsed == true) {
         this.yAxisLeft.lineOffset = this.yAxisRight.width;
@@ -25459,9 +25470,6 @@ return /******/ (function(modules) { // webpackBootstrap
       }
 
       resized = this.yAxisLeft.redraw() || resized;
-      this.yAxisRight.stepPixels = this.yAxisLeft.stepPixels;
-      this.yAxisRight.zeroCrossing = this.yAxisLeft.zeroCrossing;
-      this.yAxisRight.amountOfSteps = this.yAxisLeft.amountOfSteps;
       resized = this.yAxisRight.redraw() || resized;
     } else {
       resized = this.yAxisRight.redraw() || resized;
@@ -25552,8 +25560,7 @@ return /******/ (function(modules) { // webpackBootstrap
   var util = __webpack_require__(1);
   var DOMutil = __webpack_require__(7);
   var Component = __webpack_require__(25);
-  var DataStep = __webpack_require__(51);
-
+  var DataScale = __webpack_require__(51);
   /**
    * A horizontal time axis
    * @param {Object} [options]        See DataAxis.setOptions for the available
@@ -25605,7 +25612,7 @@ return /******/ (function(modules) { // webpackBootstrap
     };
 
     this.dom = {};
-
+    this.scale = undefined;
     this.range = { start: 0, end: 0 };
 
     this.options = util.extend({}, this.defaultOptions);
@@ -25623,6 +25630,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
     this.lineOffset = 0;
     this.master = true;
+    this.masterAxis = null;
     this.svgElements = {};
     this.iconsRemoved = false;
 
@@ -25669,10 +25677,9 @@ return /******/ (function(modules) { // webpackBootstrap
         redraw = true;
       }
       var fields = ['orientation', 'showMinorLabels', 'showMajorLabels', 'icons', 'majorLinesOffset', 'minorLinesOffset', 'labelOffsetX', 'labelOffsetY', 'iconWidth', 'width', 'visible', 'left', 'right', 'alignZeros'];
-      util.selectiveExtend(fields, this.options, options);
+      util.selectiveDeepExtend(fields, this.options, options);
 
       this.minWidth = Number(('' + this.options.width).replace("px", ""));
-
       if (redraw === true && this.dom.frame) {
         this.hide();
         this.show();
@@ -25782,11 +25789,6 @@ return /******/ (function(modules) { // webpackBootstrap
    * @param end
    */
   DataAxis.prototype.setRange = function (start, end) {
-    if (this.master === false && this.options.alignZeros === true && this.zeroCrossing != -1) {
-      if (start > 0) {
-        start = 0;
-      }
-    }
     this.range.start = start;
     this.range.end = end;
   };
@@ -25880,93 +25882,55 @@ return /******/ (function(modules) { // webpackBootstrap
    * @private
    */
   DataAxis.prototype._redrawLabels = function () {
+    var _this = this;
+
     var resized = false;
     DOMutil.prepareElements(this.DOMelements.lines);
     DOMutil.prepareElements(this.DOMelements.labels);
     var orientation = this.options['orientation'];
+    var customRange = this.options[orientation].range != undefined ? this.options[orientation].range : {};
 
-    // get the range for the slaved axis
-    var step, stepSize, rangeStart, rangeEnd;
-    if (this.master === false) {
-      if (this.zeroCrossing !== -1 && this.options.alignZeros === true) {
-        if (this.range.end > 0) {
-          stepSize = this.range.end / this.zeroCrossing; // size of one step
-          rangeStart = this.range.end - this.amountOfSteps * stepSize;
-          rangeEnd = this.range.end;
-        } else {
-          // all of the range (including start) has to be done before the zero crossing.
-          stepSize = -1 * this.range.start / (this.amountOfSteps - this.zeroCrossing); // absolute size of a step
-          rangeStart = this.range.start;
-          rangeEnd = this.range.start + stepSize * this.amountOfSteps;
-        }
-      } else {
-        rangeStart = this.range.start;
-        rangeEnd = this.range.end;
-      }
-    } else {
-      // calculate range and step (step such that we have space for 7 characters per label)
-      rangeStart = this.range.start;
-      rangeEnd = this.range.end;
+    //Override range with manual options:
+    var autoScaleEnd = true;
+    if (customRange.max != undefined) {
+      this.range.end = customRange.max;
+      autoScaleEnd = false;
     }
-    var minimumStep = this.props.majorCharHeight;
-
-    this.step = step = new DataStep(rangeStart, rangeEnd, minimumStep, this.dom.frame.offsetHeight, this.options[this.options.orientation].range, this.options[this.options.orientation].format, this.master === false && this.options.alignZeros // does the step have to align zeros? only if not master and the options is on
-    );
-
-    // the slave axis needs to use the same horizontal lines as the master axis.
-    if (this.master === true) {
-      this.stepPixels = this.dom.frame.offsetHeight / step.marginRange * step.step;
-      this.amountOfSteps = Math.ceil(this.dom.frame.offsetHeight / this.stepPixels);
-    } else {
-      // align with zero
-      if (this.options.alignZeros === true && this.zeroCrossing !== -1) {
-        // distance is the amount of steps away from the zero crossing we are.
-        var distance = (step.current - this.zeroCrossing * step.step) / step.step;
-        this.step.shift(distance);
-      }
+    var autoScaleStart = true;
+    if (customRange.min != undefined) {
+      this.range.start = customRange.min;
+      autoScaleStart = false;
     }
 
-    // value at the bottom of the SVG
-    this.valueAtBottom = step.marginEnd;
+    this.scale = new DataScale(this.range.start, this.range.end, autoScaleStart, autoScaleEnd, this.dom.frame.offsetHeight, this.props.majorCharHeight, this.options.alignZeros, this.options[orientation].format);
 
+    if (this.master === false && this.masterAxis != undefined) {
+      this.scale.followScale(this.masterAxis.scale);
+    }
+
+    //Is updated in side-effect of _redrawLabel():
     this.maxLabelSize = 0;
-    var y = 0; // init value
-    var stepIndex = 0; // init value
-    var isMajor = false; // init value
-    while (stepIndex < this.amountOfSteps) {
-      y = Math.round(stepIndex * this.stepPixels);
-      isMajor = step.isMajor();
 
-      if (stepIndex > 0 && stepIndex !== this.amountOfSteps) {
-        if (this.options['showMinorLabels'] && isMajor === false || this.master === false && this.options['showMinorLabels'] === true) {
-          this._redrawLabel(y - 2, step.getCurrent(), orientation, 'vis-y-axis vis-minor', this.props.minorCharHeight);
+    var lines = this.scale.getLines();
+    lines.forEach(function (line) {
+      var y = line.y;
+      var isMajor = line.major;
+      if (_this.options['showMinorLabels'] && isMajor === false) {
+        _this._redrawLabel(y - 2, line.val, orientation, 'vis-y-axis vis-minor', _this.props.minorCharHeight);
+      }
+      if (isMajor) {
+        if (y >= 0) {
+          _this._redrawLabel(y - 2, line.val, orientation, 'vis-y-axis vis-major', _this.props.majorCharHeight);
         }
-
-        if (isMajor && this.options['showMajorLabels'] && this.master === true || this.options['showMinorLabels'] === false && this.master === false && isMajor === true) {
-          if (y >= 0) {
-            this._redrawLabel(y - 2, step.getCurrent(), orientation, 'vis-y-axis vis-major', this.props.majorCharHeight);
-          }
-          this._redrawLine(y, orientation, 'vis-grid vis-horizontal vis-major', this.options.majorLinesOffset, this.props.majorLineWidth);
+      }
+      if (_this.master === true) {
+        if (isMajor) {
+          _this._redrawLine(y, orientation, 'vis-grid vis-horizontal vis-major', _this.options.majorLinesOffset, _this.props.majorLineWidth);
         } else {
-          this._redrawLine(y, orientation, 'vis-grid vis-horizontal vis-minor', this.options.minorLinesOffset, this.props.minorLineWidth);
+          _this._redrawLine(y, orientation, 'vis-grid vis-horizontal vis-minor', _this.options.minorLinesOffset, _this.props.minorLineWidth);
         }
       }
-
-      // get zero crossing
-      if (this.master === true && step.current === 0) {
-        this.zeroCrossing = stepIndex;
-      }
-
-      step.next();
-      stepIndex += 1;
-    }
-
-    // get zero crossing if it's the last step
-    if (this.master === true && step.current === 0) {
-      this.zeroCrossing = stepIndex;
-    }
-
-    this.conversionFactor = this.stepPixels / step.step;
+    });
 
     // Note that title is rotated, so we're using the height, not width!
     var titleWidth = 0;
@@ -26002,13 +25966,11 @@ return /******/ (function(modules) { // webpackBootstrap
   };
 
   DataAxis.prototype.convertValue = function (value) {
-    var invertedValue = this.valueAtBottom - value;
-    var convertedValue = invertedValue * this.conversionFactor;
-    return convertedValue;
+    return this.scale.convertValue(value);
   };
 
   DataAxis.prototype.screenToValue = function (x) {
-    return this.valueAtBottom - x / this.conversionFactor;
+    return this.scale.screenToValue(x);
   };
 
   /**
@@ -26154,90 +26116,74 @@ return /******/ (function(modules) { // webpackBootstrap
 /***/ function(module, exports) {
 
   /**
-   * @constructor  DataStep
-   * The class DataStep is an iterator for data for the lineGraph. You provide a start data point and an
-   * end data point. The class itself determines the best scale (step size) based on the
-   * provided start Date, end Date, and minimumStep.
-   *
-   * If minimumStep is provided, the step size is chosen as close as possible
-   * to the minimumStep but larger than minimumStep. If minimumStep is not
-   * provided, the scale is set to 1 DAY.
-   * The minimumStep should correspond with the onscreen size of about 6 characters
-   *
-   * Alternatively, you can set a scale by hand.
-   * After creation, you can initialize the class by executing first(). Then you
-   * can iterate from the start date to the end date via next(). You can check if
-   * the end date is reached with the function hasNext(). After each step, you can
-   * retrieve the current date via getCurrent().
-   * The DataStep has scales ranging from milliseconds, seconds, minutes, hours,
-   * days, to years.
-   *
-   * Version: 1.2
-   *
-   * @param {Date} [start]         The start date, for example new Date(2010, 9, 21)
-   *                               or new Date(2010, 9, 21, 23, 45, 00)
-   * @param {Date} [end]           The end date
-   * @param {Number} [minimumStep] Optional. Minimum step size in milliseconds
+   * Created by ludo on 25-1-16.
    */
+
   'use strict';
 
-  function DataStep(start, end, minimumStep, containerHeight, customRange, formattingFunction, alignZeros) {
-    // variables
-    this.current = -1;
-    this.stepIndex = 0;
-    this.step = 1;
-    this.scale = 1;
-    this.formattingFunction = formattingFunction;
-
-    this.marginStart;
-    this.marginEnd;
+  function DataScale(start, end, autoScaleStart, autoScaleEnd, containerHeight, majorCharHeight) {
+    var zeroAlign = arguments.length <= 6 || arguments[6] === undefined ? false : arguments[6];
+    var formattingFunction = arguments.length <= 7 || arguments[7] === undefined ? false : arguments[7];
 
     this.majorSteps = [1, 2, 5, 10];
     this.minorSteps = [0.25, 0.5, 1, 2];
+    this.customLines = null;
 
-    this.alignZeros = alignZeros;
+    this.containerHeight = containerHeight;
+    this.majorCharHeight = majorCharHeight;
+    this._start = start;
+    this._end = end;
 
-    this.setRange(start, end, minimumStep, containerHeight, customRange);
+    this.scale = 1;
+    this.minorStepIdx = -1;
+    this.magnitudefactor = 1;
+    this.determineScale();
+
+    this.zeroAlign = zeroAlign;
+    this.autoScaleStart = autoScaleStart;
+    this.autoScaleEnd = autoScaleEnd;
+
+    this.formattingFunction = formattingFunction;
+
+    if (autoScaleStart || autoScaleEnd) {
+      var me = this;
+      var roundToMinor = function roundToMinor(value) {
+        var rounded = value - value % (me.magnitudefactor * me.minorSteps[me.minorStepIdx]);
+        if (value % (me.magnitudefactor * me.minorSteps[me.minorStepIdx]) > 0.5 * (me.magnitudefactor * me.minorSteps[me.minorStepIdx])) {
+          return rounded + me.magnitudefactor * me.minorSteps[me.minorStepIdx];
+        } else {
+          return rounded;
+        }
+      };
+      if (autoScaleStart) {
+        this._start -= this.magnitudefactor * 2 * this.minorSteps[this.minorStepIdx];
+        this._start = roundToMinor(this._start);
+      }
+
+      if (autoScaleEnd) {
+        this._end += this.magnitudefactor * this.minorSteps[this.minorStepIdx];
+        this._end = roundToMinor(this._end);
+      }
+      this.determineScale();
+    }
   }
 
-  /**
-   * Set a new range
-   * If minimumStep is provided, the step size is chosen as close as possible
-   * to the minimumStep but larger than minimumStep. If minimumStep is not
-   * provided, the scale is set to 1 DAY.
-   * The minimumStep should correspond with the onscreen size of about 6 characters
-   * @param {Number} [start]      The start date and time.
-   * @param {Number} [end]        The end date and time.
-   * @param {Number} [minimumStep] Optional. Minimum step size in milliseconds
-   */
-  DataStep.prototype.setRange = function (start, end, minimumStep, containerHeight, customRange) {
-    if (customRange === undefined) {
-      customRange = {};
-    }
-
-    this._start = customRange.min === undefined ? start : customRange.min;
-    this._end = customRange.max === undefined ? end : customRange.max;
-    if (this._start === this._end) {
-      this._start = customRange.min === undefined ? this._start - 0.75 : this._start;
-      this._end = customRange.max === undefined ? this._end + 1 : this._end;
-    }
-    this.setMinimumStep(minimumStep, containerHeight);
-    this.setFirst(customRange);
+  DataScale.prototype.setCharHeight = function (majorCharHeight) {
+    this.majorCharHeight = majorCharHeight;
   };
 
-  /**
-   * Automatically determine the scale that bests fits the provided minimum step
-   * @param {Number} [minimumStep]  The minimum step size in pixels
-   */
-  DataStep.prototype.setMinimumStep = function (minimumStep, containerHeight) {
-    // round to floor
-    var range = this._end - this._start;
-    var safeRange = range * 1.2;
-    var minimumStepValue = minimumStep * (safeRange / containerHeight);
-    var orderOfMagnitude = Math.round(Math.log(safeRange) / Math.LN10);
+  DataScale.prototype.setHeight = function (containerHeight) {
+    this.containerHeight = containerHeight;
+  };
 
-    var minorStepIdx = -1;
-    var magnitudefactor = Math.pow(10, orderOfMagnitude);
+  DataScale.prototype.determineScale = function () {
+    var range = this._end - this._start;
+    this.scale = this.containerHeight / range;
+    var minimumStepValue = this.majorCharHeight / this.scale;
+    var orderOfMagnitude = Math.round(Math.log(range) / Math.LN10);
+
+    this.minorStepIdx = -1;
+    this.magnitudefactor = Math.pow(10, orderOfMagnitude);
 
     var start = 0;
     if (orderOfMagnitude < 0) {
@@ -26245,13 +26191,13 @@ return /******/ (function(modules) { // webpackBootstrap
     }
 
     var solutionFound = false;
-    for (var i = start; Math.abs(i) <= Math.abs(orderOfMagnitude); i++) {
-      magnitudefactor = Math.pow(10, i);
+    for (var l = start; Math.abs(l) <= Math.abs(orderOfMagnitude); l++) {
+      this.magnitudefactor = Math.pow(10, l);
       for (var j = 0; j < this.minorSteps.length; j++) {
-        var stepSize = magnitudefactor * this.minorSteps[j];
+        var stepSize = this.magnitudefactor * this.minorSteps[j];
         if (stepSize >= minimumStepValue) {
           solutionFound = true;
-          minorStepIdx = j;
+          this.minorStepIdx = j;
           break;
         }
       }
@@ -26259,111 +26205,153 @@ return /******/ (function(modules) { // webpackBootstrap
         break;
       }
     }
-    this.stepIndex = minorStepIdx;
-    this.scale = magnitudefactor;
-    this.step = magnitudefactor * this.minorSteps[minorStepIdx];
   };
 
-  /**
-   * Round the current date to the first minor date value
-   * This must be executed once when the current date is set to start Date
-   */
-  DataStep.prototype.setFirst = function (customRange) {
-    if (customRange === undefined) {
-      customRange = {};
-    }
-
-    var niceStart = customRange.min === undefined ? this._start - this.scale * 2 * this.minorSteps[this.stepIndex] : customRange.min;
-    var niceEnd = customRange.max === undefined ? this._end + this.scale * this.minorSteps[this.stepIndex] : customRange.max;
-
-    this.marginEnd = customRange.max === undefined ? this.roundToMinor(niceEnd) : customRange.max;
-    this.marginStart = customRange.min === undefined ? this.roundToMinor(niceStart) : customRange.min;
-
-    // if we need to align the zero's we need to make sure that there is a zero to use.
-    if (this.alignZeros === true && (this.marginEnd - this.marginStart) % this.step != 0) {
-      this.marginEnd += this.marginEnd % this.step;
-    }
-
-    this.marginRange = this.marginEnd - this.marginStart;
-    this.current = this.marginEnd;
+  DataScale.prototype.is_major = function (value) {
+    return value % (this.magnitudefactor * this.majorSteps[this.minorStepIdx]) === 0;
   };
 
-  DataStep.prototype.roundToMinor = function (value) {
-    var rounded = value - value % (this.scale * this.minorSteps[this.stepIndex]);
-    if (value % (this.scale * this.minorSteps[this.stepIndex]) > 0.5 * (this.scale * this.minorSteps[this.stepIndex])) {
-      return rounded + this.scale * this.minorSteps[this.stepIndex];
-    } else {
-      return rounded;
-    }
+  DataScale.prototype.getStep = function () {
+    return this.magnitudefactor * this.minorSteps[this.minorStepIdx];
   };
 
-  /**
-   * Check if the there is a next step
-   * @return {boolean}  true if the current date has not passed the end date
-   */
-  DataStep.prototype.hasNext = function () {
-    return this.current >= this.marginStart;
+  DataScale.prototype.getFirstMajor = function () {
+    var majorStep = this.magnitudefactor * this.majorSteps[this.minorStepIdx];
+    return this.convertValue(this._start + (majorStep - this._start % majorStep) % majorStep);
   };
 
-  /**
-   * Do the next step
-   */
-  DataStep.prototype.next = function () {
-    var prev = this.current;
-    this.current -= this.step;
-
-    // safety mechanism: if current time is still unchanged, move to the end
-    if (this.current === prev) {
-      this.current = this._end;
-    }
-  };
-
-  /**
-   * Do the next step
-   */
-  DataStep.prototype.previous = function () {
-    this.current += this.step;
-    this.marginEnd += this.step;
-    this.marginRange = this.marginEnd - this.marginStart;
-  };
-
-  /**
-   * Get the current datetime
-   * @return {String}  current The current date
-   */
-  DataStep.prototype.getCurrent = function () {
-    // prevent round-off errors when close to zero
-    var current = Math.abs(this.current) < this.step / 2 ? 0 : this.current;
-
-    var returnValue = current;
+  DataScale.prototype.formatValue = function (current) {
+    var returnValue = current.toPrecision(5);
     if (typeof this.formattingFunction === 'function') {
-      return this.formattingFunction(current);
+      returnValue = this.formattingFunction(current);
     }
-    return '' + returnValue.toPrecision(3);
-  };
 
-  /**
-   * Check if the current value is a major value (for example when the step
-   * is DAY, a major value is each first day of the MONTH)
-   * @return {boolean} true if current date is major, else false.
-   */
-  DataStep.prototype.isMajor = function () {
-    return this.current % (this.scale * this.majorSteps[this.stepIndex]) === 0;
-  };
-
-  DataStep.prototype.shift = function (steps) {
-    if (steps < 0) {
-      for (var i = 0; i < -steps; i++) {
-        this.previous();
-      }
-    } else if (steps > 0) {
-      for (var i = 0; i < steps; i++) {
-        this.next();
-      }
+    if (typeof returnValue === 'number') {
+      return '' + returnValue;
+    } else if (typeof returnValue === 'string') {
+      return returnValue;
+    } else {
+      return current.toPrecision(5);
     }
   };
 
-  module.exports = DataStep;
+  DataScale.prototype.getLines = function () {
+    var lines = [];
+    var step = this.getStep();
+    var bottomOffset = (step - this._start % step) % step;
+    for (var i = this._start + bottomOffset; this._end - i > 0.00001; i += step) {
+      if (i != this._start) {
+        //Skip the bottom line
+        lines.push({ major: this.is_major(i), y: this.convertValue(i), val: this.formatValue(i) });
+      }
+    }
+    return lines;
+  };
+
+  DataScale.prototype.followScale = function (other) {
+    var oldStepIdx = this.minorStepIdx;
+    var oldStart = this._start;
+    var oldEnd = this._end;
+
+    var me = this;
+    var increaseMagnitude = function increaseMagnitude() {
+      me.magnitudefactor *= 2;
+    };
+    var decreaseMagnitude = function decreaseMagnitude() {
+      me.magnitudefactor /= 2;
+    };
+
+    if (other.minorStepIdx <= 1 && this.minorStepIdx <= 1 || other.minorStepIdx > 1 && this.minorStepIdx > 1) {
+      //easy, no need to change stepIdx nor multiplication factor
+    } else if (other.minorStepIdx < this.minorStepIdx) {
+        //I'm 5, they are 4 per major.
+        this.minorStepIdx = 1;
+        if (oldStepIdx == 2) {
+          increaseMagnitude();
+        } else {
+          increaseMagnitude();
+          increaseMagnitude();
+        }
+      } else {
+        //I'm 4, they are 5 per major
+        this.minorStepIdx = 2;
+        if (oldStepIdx == 1) {
+          decreaseMagnitude();
+        } else {
+          decreaseMagnitude();
+          decreaseMagnitude();
+        }
+      }
+
+    //Get masters stats:
+    var lines = other.getLines();
+    var otherZero = other.convertValue(0);
+    var otherStep = other.getStep() * other.scale;
+
+    var done = false;
+    var count = 0;
+    //Loop until magnitude is correct for given constrains.
+    while (!done && count++ < 5) {
+
+      //Get my stats:
+      this.scale = otherStep / (this.minorSteps[this.minorStepIdx] * this.magnitudefactor);
+      var newRange = this.containerHeight / this.scale;
+
+      //For the case the magnitudefactor has changed:
+      this._start = oldStart;
+      this._end = this._start + newRange;
+
+      var myOriginalZero = this._end * this.scale;
+      var majorStep = this.magnitudefactor * this.majorSteps[this.minorStepIdx];
+      var majorOffset = this.getFirstMajor() - other.getFirstMajor();
+
+      if (this.zeroAlign) {
+        var zeroOffset = otherZero - myOriginalZero;
+        this._end += zeroOffset / this.scale;
+        this._start = this._end - newRange;
+      } else {
+        if (!this.autoScaleStart) {
+          this._start += majorStep - majorOffset / this.scale;
+          this._end = this._start + newRange;
+        } else {
+          this._start -= majorOffset / this.scale;
+          this._end = this._start + newRange;
+        }
+      }
+      if (!this.autoScaleEnd && this._end > oldEnd + 0.00001) {
+        //Need to decrease magnitude to prevent scale overshoot! (end)
+        decreaseMagnitude();
+        done = false;
+        continue;
+      }
+      if (!this.autoScaleStart && this._start < oldStart - 0.00001) {
+        if (this.zeroAlign && oldStart >= 0) {
+          console.warn("Can't adhere to given 'min' range, due to zeroalign");
+        } else {
+          //Need to decrease magnitude to prevent scale overshoot! (start)
+          decreaseMagnitude();
+          done = false;
+          continue;
+        }
+      }
+      if (this.autoScaleStart && this.autoScaleEnd && newRange < oldEnd - oldStart) {
+        increaseMagnitude();
+        done = false;
+        continue;
+      }
+      done = true;
+    }
+  };
+
+  DataScale.prototype.convertValue = function (value) {
+    return this.containerHeight - (value - this._start) * this.scale;
+  };
+
+  DataScale.prototype.screenToValue = function (pixels) {
+    return (this.containerHeight - pixels) / this.scale + this._start;
+  };
+
+  module.exports = DataScale;
 
 /***/ },
 /* 52 */
@@ -27179,7 +27167,7 @@ return /******/ (function(modules) { // webpackBootstrap
       },
       right: {
         visible: true,
-        position: 'top-left' // top/bottom - left,center,right
+        position: 'top-right' // top/bottom - left,center,right
       }
     };
 
@@ -33299,10 +33287,10 @@ return /******/ (function(modules) { // webpackBootstrap
 
             if (position === 'from') {
               arrowPoint = this.findBorderPosition(this.from, ctx, { x: x, y: y, low: 0.25, high: 0.6, direction: -1 });
-              angle = point.t * -2 * Math.PI + 1.5 * Math.PI + 0.1 * Math.PI;
+              angle = arrowPoint.t * -2 * Math.PI + 1.5 * Math.PI + 0.1 * Math.PI;
             } else if (position === 'to') {
               arrowPoint = this.findBorderPosition(this.from, ctx, { x: x, y: y, low: 0.6, high: 1.0, direction: 1 });
-              angle = point.t * -2 * Math.PI + 1.5 * Math.PI - 1.1 * Math.PI;
+              angle = arrowPoint.t * -2 * Math.PI + 1.5 * Math.PI - 1.1 * Math.PI;
             } else {
               arrowPoint = this._pointOnCircle(x, y, radius, 0.175);
               angle = 3.9269908169872414; // === 0.175 * -2 * Math.PI + 1.5 * Math.PI + 0.1 * Math.PI;

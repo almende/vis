@@ -2,7 +2,7 @@
 http://visjs.org
 
 
-## not yet released, version 4.13.0-SNAPSHOT
+## 2016-02-01, version 4.13.0
 
 ### Network
 
@@ -30,14 +30,16 @@ http://visjs.org
 ### Graph2d
 
 - Major redesign of data axis/scales, with large focus on creating a sane slave axis setup
+- Cleanup of linegraph's event handling.
 - Fixed #1585: Allow bar groups to exclude from stacking
 - Fixed #1580: Invisible timeline/graph should not be drawn, as most inputs are invalid
 - Fixed #1177: Fix custom range of slaved right axis.
 - Fixed #1592: Emit a "changed" event after each redraw.
-- Cleanup of linegraph's event handling.
 - Fixed #1017: Fixed minWidth behavior for bars.
 - Fixes #1557: Fix default axis formatting function.
 - Fixed #1541: Timeline and Graph2d did not load synchronously anymore.
+- Fixed a performance regression
+
 
 ## 2016-01-08, version 4.12.0
 
