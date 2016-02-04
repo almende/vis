@@ -2,6 +2,17 @@
 http://visjs.org
 
 
+## not yet released, version 4.14.1
+
+### Timeline
+
+- Fixed #1630: method `getItemRange` missing in docs.
+
+### Graph2d
+
+- Fixed #1630: method `getDataRange` was wrongly called `getItemRange` in docs.
+
+
 ## 2016-02-04, version 4.14.0
 
 ### Timeline
