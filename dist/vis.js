@@ -4,8 +4,8 @@
  *
  * A dynamic, browser-based visualization library.
  *
- * @version 4.13.0
- * @date    2016-02-01
+ * @version 4.14.0
+ * @date    2016-02-04
  *
  * @license
  * Copyright (C) 2011-2016 Almende B.V, http://almende.com
@@ -1582,7 +1582,7 @@ return /******/ (function(modules) { // webpackBootstrap
 /***/ function(module, exports, __webpack_require__) {
 
   /* WEBPACK VAR INJECTION */(function(module) {//! moment.js
-  //! version : 2.11.1
+  //! version : 2.11.2
   //! authors : Tim Wood, Iskren Chernev, Moment.js contributors
   //! license : MIT
   //! momentjs.com
@@ -3399,7 +3399,7 @@ return /******/ (function(modules) { // webpackBootstrap
       }
 
       // ASP.NET json date format regex
-      var aspNetRegex = /(\-)?(?:(\d*)[. ])?(\d+)\:(\d+)(?:\:(\d+)\.?(\d{3})?)?/;
+      var aspNetRegex = /^(\-)?(?:(\d*)[. ])?(\d+)\:(\d+)(?:\:(\d+)\.?(\d{3})?\d*)?$/;
 
       // from http://docs.closure-library.googlecode.com/git/closure_goog_date_date.js.source.html
       // somewhat more in line with 4.4.3.2 2004 spec, but allows decimal anywhere
@@ -5154,7 +5154,7 @@ return /******/ (function(modules) { // webpackBootstrap
       // Side effect imports
 
 
-      utils_hooks__hooks.version = '2.11.1';
+      utils_hooks__hooks.version = '2.11.2';
 
       setHookCallback(local__createLocal);
 
@@ -7267,6 +7267,8 @@ return /******/ (function(modules) { // webpackBootstrap
       strokeWidth: 1 // px
     };
 
+    this.dotSizeRatio = 0.02; // size of the dots as a fraction of the graph width
+
     // create a frame and canvas
     this.create();
 
@@ -7985,6 +7987,8 @@ return /******/ (function(modules) { // webpackBootstrap
       if (options.yValueLabel !== undefined) this.yValueLabel = options.yValueLabel;
       if (options.zValueLabel !== undefined) this.zValueLabel = options.zValueLabel;
 
+      if (options.dotSizeRatio !== undefined) this.dotSizeRatio = options.dotSizeRatio;
+
       if (options.style !== undefined) {
         var styleNumber = this._getStyleNumber(options.style);
         if (styleNumber !== -1) {
@@ -8107,7 +8111,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
     if (this.style === Graph3d.STYLE.DOTCOLOR || this.style === Graph3d.STYLE.DOTSIZE) {
 
-      var dotSize = this.frame.clientWidth * 0.02;
+      var dotSize = this.frame.clientWidth * this.dotSizeRatio;
 
       var widthMin, widthMax;
       if (this.style === Graph3d.STYLE.DOTSIZE) {
@@ -8747,7 +8751,7 @@ return /******/ (function(modules) { // webpackBootstrap
     this.dataPoints.sort(sortDepth);
 
     // draw the datapoints as colored circles
-    var dotSize = this.frame.clientWidth * 0.02; // px
+    var dotSize = this.frame.clientWidth * this.dotSizeRatio; // px
     for (i = 0; i < this.dataPoints.length; i++) {
       var point = this.dataPoints[i];
 
@@ -15233,7 +15237,6 @@ return /******/ (function(modules) { // webpackBootstrap
    */
   Core.prototype._create = function (container) {
     this.dom = {};
-    this.options = {};
 
     this.dom.container = container;
 
