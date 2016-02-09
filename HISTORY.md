@@ -12,6 +12,11 @@ http://visjs.org
 
 - Fixed #1630: method `getDataRange` was wrongly called `getItemRange` in docs.
 
+### Graph3d
+
+- The built-in tooltip now shows the provided `xLabel`, `yLabel`, and `zLabel`
+  instead of `'x'`, `'y'`, and `'z'`. Thanks @jacklightbody.
+
 
 ## 2016-02-04, version 4.14.0
 
