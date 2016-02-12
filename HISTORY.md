@@ -17,6 +17,9 @@ http://visjs.org
 - The built-in tooltip now shows the provided `xLabel`, `yLabel`, and `zLabel`
   instead of `'x'`, `'y'`, and `'z'`. Thanks @jacklightbody.
 
+### Network
+
+- Fixed #1635: edges are now referring to the correct points.
 
 ## 2016-02-04, version 4.14.0
 

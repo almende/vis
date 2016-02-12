@@ -5,7 +5,7 @@
  * A dynamic, browser-based visualization library.
  *
  * @version 4.14.0
- * @date    2016-02-04
+ * @date    2016-02-12
  *
  * @license
  * Copyright (C) 2011-2016 Almende B.V, http://almende.com
@@ -1582,7 +1582,7 @@ return /******/ (function(modules) { // webpackBootstrap
 /***/ function(module, exports, __webpack_require__) {
 
   /* WEBPACK VAR INJECTION */(function(module) {//! moment.js
-  //! version : 2.11.2
+  //! version : 2.11.1
   //! authors : Tim Wood, Iskren Chernev, Moment.js contributors
   //! license : MIT
   //! momentjs.com
@@ -3399,7 +3399,7 @@ return /******/ (function(modules) { // webpackBootstrap
       }
 
       // ASP.NET json date format regex
-      var aspNetRegex = /^(\-)?(?:(\d*)[. ])?(\d+)\:(\d+)(?:\:(\d+)\.?(\d{3})?\d*)?$/;
+      var aspNetRegex = /(\-)?(?:(\d*)[. ])?(\d+)\:(\d+)(?:\:(\d+)\.?(\d{3})?)?/;
 
       // from http://docs.closure-library.googlecode.com/git/closure_goog_date_date.js.source.html
       // somewhat more in line with 4.4.3.2 2004 spec, but allows decimal anywhere
@@ -5154,7 +5154,7 @@ return /******/ (function(modules) { // webpackBootstrap
       // Side effect imports
 
 
-      utils_hooks__hooks.version = '2.11.2';
+      utils_hooks__hooks.version = '2.11.1';
 
       setHookCallback(local__createLocal);
 
@@ -9343,7 +9343,7 @@ return /******/ (function(modules) { // webpackBootstrap
     if (typeof this.showTooltip === 'function') {
       content.innerHTML = this.showTooltip(dataPoint.point);
     } else {
-      content.innerHTML = '<table>' + '<tr><td>x:</td><td>' + dataPoint.point.x + '</td></tr>' + '<tr><td>y:</td><td>' + dataPoint.point.y + '</td></tr>' + '<tr><td>z:</td><td>' + dataPoint.point.z + '</td></tr>' + '</table>';
+      content.innerHTML = '<table>' + '<tr><td>' + this.xLabel + ':</td><td>' + dataPoint.point.x + '</td></tr>' + '<tr><td>' + this.yLabel + ':</td><td>' + dataPoint.point.y + '</td></tr>' + '<tr><td>' + this.zLabel + ':</td><td>' + dataPoint.point.z + '</td></tr>' + '</table>';
     }
 
     content.style.left = '0';
@@ -32129,8 +32129,8 @@ return /******/ (function(modules) { // webpackBootstrap
         var arrowData = {};
 
         // restore edge targets to defaults
-        this.edgeType.fromPoint = this.from;
-        this.edgeType.toPoint = this.to;
+        this.edgeType.fromPoint = this.edgeType.from;
+        this.edgeType.toPoint = this.edgeType.to;
 
         // from and to arrows give a different end point for edges. we set them here
         if (this.options.arrows.from.enabled === true) {
@@ -42395,6 +42395,11 @@ return /******/ (function(modules) { // webpackBootstrap
           edge.edgeType.to = to;
         }
 
+        // we use the selection to find the node that is being dragged. We explicitly select it here.
+        if (this.selectedControlNode !== undefined) {
+          this.selectionHandler.selectObject(this.selectedControlNode);
+        }
+
         this.body.emitter.emit('_redraw');
       }
 
@@ -42409,7 +42414,6 @@ return /******/ (function(modules) { // webpackBootstrap
         this.body.emitter.emit('disablePhysics');
         var pointer = this.body.functions.getPointer(event.center);
         var pos = this.canvas.DOMtoCanvas(pointer);
-
         if (this.selectedControlNode !== undefined) {
           this.selectedControlNode.x = pos.x;
           this.selectedControlNode.y = pos.y;
@@ -42433,12 +42437,13 @@ return /******/ (function(modules) { // webpackBootstrap
         var pointer = this.body.functions.getPointer(event.center);
         var pointerObj = this.selectionHandler._pointerToPositionObject(pointer);
         var edge = this.body.edges[this.edgeBeingEditedId];
-
         // if the node that was dragged is not a control node, return
         if (this.selectedControlNode === undefined) {
           return;
         }
 
+        // we use the selection to find the node that is being dragged. We explicitly DEselect the control node here.
+        this.selectionHandler.unselectAll();
         var overlappingNodeIds = this.selectionHandler._getAllNodesOverlappingWith(pointerObj);
         var node = undefined;
         for (var i = overlappingNodeIds.length - 1; i >= 0; i--) {
@@ -42447,7 +42452,6 @@ return /******/ (function(modules) { // webpackBootstrap
             break;
           }
         }
-
         // perform the connection
         if (node !== undefined && this.selectedControlNode !== undefined) {
           if (node.isCluster === true) {
