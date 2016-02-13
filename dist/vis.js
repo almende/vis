@@ -38286,8 +38286,8 @@ return /******/ (function(modules) { // webpackBootstrap
 
         var _determineIfDifferent2 = this._determineIfDifferent(previousSelection, currentSelection);
 
-        var nodesChanges = _determineIfDifferent2.nodesChanges;
-        var edgesChanges = _determineIfDifferent2.edgesChanges;
+        var nodesChanged = _determineIfDifferent2.nodesChanged;
+        var edgesChanged = _determineIfDifferent2.edgesChanged;
 
         var nodeSelected = false;
 
@@ -38296,14 +38296,14 @@ return /******/ (function(modules) { // webpackBootstrap
           this.selectionHandler._generateClickEvent('selectNode', event, pointer);
           selected = true;
           nodeSelected = true;
-        } else if (selectedNodesCount - previouslySelectedNodeCount < 0) {
-          // node was deselected
-          this.selectionHandler._generateClickEvent('deselectNode', event, pointer, previousSelection);
-          selected = true;
-        } else if (selectedNodesCount === previouslySelectedNodeCount && nodesChanges === true) {
+        } else if (nodesChanged === true && selectedNodesCount > 0) {
           this.selectionHandler._generateClickEvent('deselectNode', event, pointer, previousSelection);
           this.selectionHandler._generateClickEvent('selectNode', event, pointer);
           nodeSelected = true;
+          selected = true;
+        } else if (selectedNodesCount - previouslySelectedNodeCount < 0) {
+          // node was deselected
+          this.selectionHandler._generateClickEvent('deselectNode', event, pointer, previousSelection);
           selected = true;
         }
 
@@ -38312,13 +38312,13 @@ return /******/ (function(modules) { // webpackBootstrap
           // edge was selected
           this.selectionHandler._generateClickEvent('selectEdge', event, pointer);
           selected = true;
+        } else if (selectedEdgesCount > 0 && edgesChanged === true) {
+          this.selectionHandler._generateClickEvent('deselectEdge', event, pointer, previousSelection);
+          this.selectionHandler._generateClickEvent('selectEdge', event, pointer);
+          selected = true;
         } else if (selectedEdgesCount - previouslySelectedEdgeCount < 0) {
           // edge was deselected
           this.selectionHandler._generateClickEvent('deselectEdge', event, pointer, previousSelection);
-          selected = true;
-        } else if (selectedEdgesCount === previouslySelectedEdgeCount && edgesChanges === true) {
-          this.selectionHandler._generateClickEvent('deselectEdge', event, pointer, previousSelection);
-          this.selectionHandler._generateClickEvent('selectEdge', event, pointer);
           selected = true;
         }
 
@@ -38333,37 +38333,37 @@ return /******/ (function(modules) { // webpackBootstrap
        * This function checks if the nodes and edges previously selected have changed.
        * @param previousSelection
        * @param currentSelection
-       * @returns {{nodesChanges: boolean, edgesChanges: boolean}}
+       * @returns {{nodesChanged: boolean, edgesChanged: boolean}}
        * @private
        */
     }, {
       key: '_determineIfDifferent',
       value: function _determineIfDifferent(previousSelection, currentSelection) {
-        var nodesChanges = false;
-        var edgesChanges = false;
+        var nodesChanged = false;
+        var edgesChanged = false;
 
         for (var i = 0; i < previousSelection.nodes.length; i++) {
           if (currentSelection.nodes.indexOf(previousSelection.nodes[i]) === -1) {
-            nodesChanges = true;
+            nodesChanged = true;
           }
         }
         for (var i = 0; i < currentSelection.nodes.length; i++) {
           if (previousSelection.nodes.indexOf(previousSelection.nodes[i]) === -1) {
-            nodesChanges = true;
+            nodesChanged = true;
           }
         }
         for (var i = 0; i < previousSelection.edges.length; i++) {
           if (currentSelection.edges.indexOf(previousSelection.edges[i]) === -1) {
-            edgesChanges = true;
+            edgesChanged = true;
           }
         }
         for (var i = 0; i < currentSelection.edges.length; i++) {
           if (previousSelection.edges.indexOf(previousSelection.edges[i]) === -1) {
-            edgesChanges = true;
+            edgesChanged = true;
           }
         }
 
-        return { nodesChanges: nodesChanges, edgesChanges: edgesChanges };
+        return { nodesChanged: nodesChanged, edgesChanged: edgesChanged };
       }
 
       /**
