@@ -20,6 +20,8 @@ http://visjs.org
 ### Network
 
 - Fixed #1635: edges are now referring to the correct points.
+- Fixed #1644, #1631: overlapping nodes in hierarchical layout should no longer occur.
+- Added parentCentralization option for hierarchical layout.
 
 ## 2016-02-04, version 4.14.0
 

@@ -5,7 +5,7 @@
  * A dynamic, browser-based visualization library.
  *
  * @version 4.14.0
- * @date    2016-02-12
+ * @date    2016-02-13
  *
  * @license
  * Copyright (C) 2011-2016 Almende B.V, http://almende.com
@@ -1582,7 +1582,7 @@ return /******/ (function(modules) { // webpackBootstrap
 /***/ function(module, exports, __webpack_require__) {
 
   /* WEBPACK VAR INJECTION */(function(module) {//! moment.js
-  //! version : 2.11.1
+  //! version : 2.11.2
   //! authors : Tim Wood, Iskren Chernev, Moment.js contributors
   //! license : MIT
   //! momentjs.com
@@ -3399,7 +3399,7 @@ return /******/ (function(modules) { // webpackBootstrap
       }
 
       // ASP.NET json date format regex
-      var aspNetRegex = /(\-)?(?:(\d*)[. ])?(\d+)\:(\d+)(?:\:(\d+)\.?(\d{3})?)?/;
+      var aspNetRegex = /^(\-)?(?:(\d*)[. ])?(\d+)\:(\d+)(?:\:(\d+)\.?(\d{3})?\d*)?$/;
 
       // from http://docs.closure-library.googlecode.com/git/closure_goog_date_date.js.source.html
       // somewhat more in line with 4.4.3.2 2004 spec, but allows decimal anywhere
@@ -5154,7 +5154,7 @@ return /******/ (function(modules) { // webpackBootstrap
       // Side effect imports
 
 
-      utils_hooks__hooks.version = '2.11.1';
+      utils_hooks__hooks.version = '2.11.2';
 
       setHookCallback(local__createLocal);
 
@@ -40083,6 +40083,7 @@ return /******/ (function(modules) { // webpackBootstrap
           treeSpacing: 200,
           blockShifting: true,
           edgeMinimization: true,
+          parentCentralization: true,
           direction: 'UD', // UD, DU, LR, RL
           sortMethod: 'hubsize' // hubsize, directed
         }
@@ -40364,8 +40365,8 @@ return /******/ (function(modules) { // webpackBootstrap
           var undefinedLevel = false;
           this.hierarchicalLevels = {};
           this.lastNodeOnLevel = {};
-          this.hierarchicalParents = {};
-          this.hierarchicalChildren = {};
+          this.hierarchicalChildrenReference = {};
+          this.hierarchicalParentReference = {};
           this.hierarchicalTrees = {};
           this.treeIndex = -1;
 
@@ -40447,9 +40448,7 @@ return /******/ (function(modules) { // webpackBootstrap
           var treeSizes = getTreeSizes();
           for (var i = 0; i < treeSizes.length - 1; i++) {
             var diff = treeSizes[i].max - treeSizes[i + 1].min;
-            if (diff !== _this2.options.hierarchical.treeSpacing) {
-              shiftTree(i + 1, diff - _this2.options.hierarchical.treeSpacing);
-            }
+            shiftTree(i + 1, diff + _this2.options.hierarchical.treeSpacing);
           }
         };
 
@@ -40458,7 +40457,9 @@ return /******/ (function(modules) { // webpackBootstrap
           for (var nodeId in _this2.hierarchicalTrees) {
             if (_this2.hierarchicalTrees.hasOwnProperty(nodeId)) {
               if (_this2.hierarchicalTrees[nodeId] === index) {
-                _this2._setPositionForHierarchy(_this2.body.nodes[nodeId], offset, undefined, true);
+                var node = _this2.body.nodes[nodeId];
+                var pos = _this2._getPositionForHierarchy(node);
+                _this2._setPositionForHierarchy(node, pos + offset, undefined, true);
               }
             }
           }
@@ -40483,7 +40484,7 @@ return /******/ (function(modules) { // webpackBootstrap
         // get the width of all trees
         var getTreeSizes = function getTreeSizes() {
           var treeWidths = [];
-          for (var i = 0; i < _this2.treeIndex; i++) {
+          for (var i = 0; i <= _this2.treeIndex; i++) {
             treeWidths.push(getTreeSize(i));
           }
           return treeWidths;
@@ -40492,8 +40493,8 @@ return /******/ (function(modules) { // webpackBootstrap
         // get a map of all nodes in this branch
         var getBranchNodes = function getBranchNodes(source, map) {
           map[source.id] = true;
-          if (_this2.hierarchicalParents[source.id]) {
-            var children = _this2.hierarchicalParents[source.id].children;
+          if (_this2.hierarchicalChildrenReference[source.id]) {
+            var children = _this2.hierarchicalChildrenReference[source.id];
             if (children.length > 0) {
               for (var i = 0; i < children.length; i++) {
                 getBranchNodes(_this2.body.nodes[children[i]], map);
@@ -40543,8 +40544,8 @@ return /******/ (function(modules) { // webpackBootstrap
         // get the maximum level of a branch.
         var getMaxLevel = function getMaxLevel(nodeId) {
           var level = _this2.hierarchicalLevels[nodeId];
-          if (_this2.hierarchicalParents[nodeId]) {
-            var children = _this2.hierarchicalParents[nodeId].children;
+          if (_this2.hierarchicalChildrenReference[nodeId]) {
+            var children = _this2.hierarchicalChildrenReference[nodeId];
             if (children.length > 0) {
               for (var i = 0; i < children.length; i++) {
                 level = Math.max(level, getMaxLevel(children[i]));
@@ -40563,13 +40564,12 @@ return /******/ (function(modules) { // webpackBootstrap
 
         // check if two nodes have the same parent(s)
         var hasSameParent = function hasSameParent(node1, node2) {
-          var parents1 = _this2.hierarchicalChildren[node1.id];
-          var parents2 = _this2.hierarchicalChildren[node2.id];
+          var parents1 = _this2.hierarchicalParentReference[node1.id];
+          var parents2 = _this2.hierarchicalParentReference[node2.id];
           if (parents1 === undefined || parents2 === undefined) {
             return false;
           }
-          parents1 = parents1.parents;
-          parents2 = parents2.parents;
+
           for (var i = 0; i < parents1.length; i++) {
             for (var j = 0; j < parents2.length; j++) {
               if (parents1[i] == parents2[j]) {
@@ -40782,7 +40782,7 @@ return /******/ (function(modules) { // webpackBootstrap
             }
 
             if (newPosition !== nodePosition) {
-              //console.log("moving Node:",diff, minSpace, maxSpace)
+              //console.log("moving Node:",diff, minSpace, maxSpace);
               _this2._setPositionForHierarchy(node, newPosition, undefined, true);
               //this.body.emitter.emit("_redraw");
               stillShifting = true;
@@ -40816,7 +40816,7 @@ return /******/ (function(modules) { // webpackBootstrap
           }
         };
 
-        //// method to remove whitespace between branches. Because we do bottom up, we can center the parents.
+        // method to remove whitespace between branches. Because we do bottom up, we can center the parents.
         var shiftBranchesCloserBottomUp = function shiftBranchesCloserBottomUp(iterations) {
           var levels = Object.keys(_this2.distributionOrdering);
           levels = levels.reverse();
@@ -40837,6 +40837,19 @@ return /******/ (function(modules) { // webpackBootstrap
           }
         };
 
+        // center all parents
+        var centerAllParentsBottomUp = function centerAllParentsBottomUp() {
+          var levels = Object.keys(_this2.distributionOrdering);
+          levels = levels.reverse();
+          for (var i = 0; i < levels.length; i++) {
+            var level = levels[i];
+            var levelNodes = _this2.distributionOrdering[level];
+            for (var j = 0; j < levelNodes.length; j++) {
+              _this2._centerParent(levelNodes[j]);
+            }
+          }
+        };
+
         // the actual work is done here.
         if (this.options.hierarchical.blockShifting === true) {
           shiftBranchesCloserBottomUp(5);
@@ -40846,6 +40859,10 @@ return /******/ (function(modules) { // webpackBootstrap
         // minimize edge length
         if (this.options.hierarchical.edgeMinimization === true) {
           minimizeEdgeLengthBottomUp(20);
+        }
+
+        if (this.options.hierarchical.parentCentralization === true) {
+          centerAllParentsBottomUp();
         }
 
         shiftTrees();
@@ -40902,16 +40919,16 @@ return /******/ (function(modules) { // webpackBootstrap
     }, {
       key: '_centerParent',
       value: function _centerParent(node) {
-        if (this.hierarchicalChildren[node.id]) {
-          var parents = this.hierarchicalChildren[node.id].parents;
+        if (this.hierarchicalParentReference[node.id]) {
+          var parents = this.hierarchicalParentReference[node.id];
           for (var i = 0; i < parents.length; i++) {
             var parentId = parents[i];
             var parentNode = this.body.nodes[parentId];
-            if (this.hierarchicalParents[parentId]) {
+            if (this.hierarchicalChildrenReference[parentId]) {
               // get the range of the children
               var minPos = 1e9;
               var maxPos = -1e9;
-              var children = this.hierarchicalParents[parentId].children;
+              var children = this.hierarchicalChildrenReference[parentId];
               if (children.length > 0) {
                 for (var _i = 0; _i < children.length; _i++) {
                   var childNode = this.body.nodes[children[_i]];
@@ -40956,13 +40973,22 @@ return /******/ (function(modules) { // webpackBootstrap
             var nodeArray = Object.keys(distribution[level]);
             nodeArray = this._indexArrayToNodes(nodeArray);
             this._sortNodeArray(nodeArray);
+            var handledNodeCount = 0;
 
             for (var i = 0; i < nodeArray.length; i++) {
               var node = nodeArray[i];
               if (this.positionedNodes[node.id] === undefined) {
-                this._setPositionForHierarchy(node, this.options.hierarchical.nodeSpacing * i, level);
+                var pos = this.options.hierarchical.nodeSpacing * handledNodeCount;
+                // we get the X or Y values we need and store them in pos and previousPos. The get and set make sure we get X or Y
+                if (handledNodeCount > 0) {
+                  pos = this._getPositionForHierarchy(nodeArray[i - 1]) + this.options.hierarchical.nodeSpacing;
+                }
+                this._setPositionForHierarchy(node, pos, level);
+
                 this.positionedNodes[node.id] = true;
                 this._placeBranchNodes(node.id, level);
+
+                handledNodeCount++;
               }
             }
           }
@@ -41178,14 +41204,14 @@ return /******/ (function(modules) { // webpackBootstrap
           if (_this6.hierarchicalLevels[childNode.id] > _this6.hierarchicalLevels[parentNode.id]) {
             var parentNodeId = parentNode.id;
             var childNodeId = childNode.id;
-            if (_this6.hierarchicalParents[parentNodeId] === undefined) {
-              _this6.hierarchicalParents[parentNodeId] = { children: [], amount: 0 };
+            if (_this6.hierarchicalChildrenReference[parentNodeId] === undefined) {
+              _this6.hierarchicalChildrenReference[parentNodeId] = [];
             }
-            _this6.hierarchicalParents[parentNodeId].children.push(childNodeId);
-            if (_this6.hierarchicalChildren[childNodeId] === undefined) {
-              _this6.hierarchicalChildren[childNodeId] = { parents: [], amount: 0 };
+            _this6.hierarchicalChildrenReference[parentNodeId].push(childNodeId);
+            if (_this6.hierarchicalParentReference[childNodeId] === undefined) {
+              _this6.hierarchicalParentReference[childNodeId] = [];
             }
-            _this6.hierarchicalChildren[childNodeId].parents.push(parentNodeId);
+            _this6.hierarchicalParentReference[childNodeId].push(parentNodeId);
           }
         };
 
@@ -41201,11 +41227,21 @@ return /******/ (function(modules) { // webpackBootstrap
     }, {
       key: '_crawlNetwork',
       value: function _crawlNetwork(callback, startingNodeId) {
+        var _this7 = this;
+
         if (callback === undefined) callback = function () {};
 
         var progress = {};
-        var crawler = function crawler(node) {
+        var treeIndex = 0;
+
+        var crawler = function crawler(node, tree) {
           if (progress[node.id] === undefined) {
+
+            if (_this7.hierarchicalTrees[node.id] === undefined) {
+              _this7.hierarchicalTrees[node.id] = tree;
+              _this7.treeIndex = Math.max(tree, _this7.treeIndex);
+            }
+
             progress[node.id] = true;
             var childNode = undefined;
             for (var i = 0; i < node.edges.length; i++) {
@@ -41218,7 +41254,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
                 if (node.id !== childNode.id) {
                   callback(node, childNode, node.edges[i]);
-                  crawler(childNode);
+                  crawler(childNode, tree);
                 }
               }
             }
@@ -41229,7 +41265,10 @@ return /******/ (function(modules) { // webpackBootstrap
         if (startingNodeId === undefined) {
           for (var i = 0; i < this.body.nodeIndices.length; i++) {
             var node = this.body.nodes[this.body.nodeIndices[i]];
-            crawler(node);
+            if (progress[node.id] === undefined) {
+              crawler(node, treeIndex);
+              treeIndex += 1;
+            }
           }
         } else {
           var node = this.body.nodes[startingNodeId];
@@ -41253,14 +41292,14 @@ return /******/ (function(modules) { // webpackBootstrap
       key: '_placeBranchNodes',
       value: function _placeBranchNodes(parentId, parentLevel) {
         // if this is not a parent, cancel the placing. This can happen with multiple parents to one child.
-        if (this.hierarchicalParents[parentId] === undefined) {
+        if (this.hierarchicalChildrenReference[parentId] === undefined) {
           return;
         }
 
         // get a list of childNodes
         var childNodes = [];
-        for (var i = 0; i < this.hierarchicalParents[parentId].children.length; i++) {
-          childNodes.push(this.body.nodes[this.hierarchicalParents[parentId].children[i]]);
+        for (var i = 0; i < this.hierarchicalChildrenReference[parentId].length; i++) {
+          childNodes.push(this.body.nodes[this.hierarchicalChildrenReference[parentId][i]]);
         }
 
         // use the positions to order the nodes.
@@ -41329,9 +41368,9 @@ return /******/ (function(modules) { // webpackBootstrap
         } else {
           this.body.nodes[parentId].y += diff;
         }
-        if (this.hierarchicalParents[parentId] !== undefined) {
-          for (var i = 0; i < this.hierarchicalParents[parentId].children.length; i++) {
-            this._shiftBlock(this.hierarchicalParents[parentId].children[i], diff);
+        if (this.hierarchicalChildrenReference[parentId] !== undefined) {
+          for (var i = 0; i < this.hierarchicalChildrenReference[parentId].length; i++) {
+            this._shiftBlock(this.hierarchicalChildrenReference[parentId][i], diff);
           }
         }
       }
@@ -41346,22 +41385,22 @@ return /******/ (function(modules) { // webpackBootstrap
     }, {
       key: '_findCommonParent',
       value: function _findCommonParent(childA, childB) {
-        var _this7 = this;
+        var _this8 = this;
 
         var parents = {};
         var iterateParents = function iterateParents(parents, child) {
-          if (_this7.hierarchicalChildren[child] !== undefined) {
-            for (var i = 0; i < _this7.hierarchicalChildren[child].parents.length; i++) {
-              var _parent = _this7.hierarchicalChildren[child].parents[i];
+          if (_this8.hierarchicalParentReference[child] !== undefined) {
+            for (var i = 0; i < _this8.hierarchicalParentReference[child].length; i++) {
+              var _parent = _this8.hierarchicalParentReference[child][i];
               parents[_parent] = true;
               iterateParents(parents, _parent);
             }
           }
         };
         var findParent = function findParent(parents, child) {
-          if (_this7.hierarchicalChildren[child] !== undefined) {
-            for (var i = 0; i < _this7.hierarchicalChildren[child].parents.length; i++) {
-              var _parent2 = _this7.hierarchicalChildren[child].parents[i];
+          if (_this8.hierarchicalParentReference[child] !== undefined) {
+            for (var i = 0; i < _this8.hierarchicalParentReference[child].length; i++) {
+              var _parent2 = _this8.hierarchicalParentReference[child][i];
               if (parents[_parent2] !== undefined) {
                 return { foundParent: _parent2, withChild: child };
               }
@@ -41401,27 +41440,6 @@ return /******/ (function(modules) { // webpackBootstrap
             this.distributionIndex[node.id] = this.distributionOrdering[level].length - 1;
           }
           this.distributionOrderingPresence[level][node.id] = true;
-
-          if (this.hierarchicalTrees[node.id] === undefined) {
-            if (this.hierarchicalChildren[node.id] !== undefined) {
-              var tree = 1;
-              // get the lowest tree denominator.
-              for (var i = 0; i < this.hierarchicalChildren[node.id].parents.length; i++) {
-                var parentId = this.hierarchicalChildren[node.id].parents[i];
-                if (this.hierarchicalTrees[parentId] !== undefined) {
-                  //tree = Math.min(tree,this.hierarchicalTrees[parentId]);
-                  tree = this.hierarchicalTrees[parentId];
-                }
-              }
-              //for (let i = 0; i < this.hierarchicalChildren.parents.length; i++) {
-              //  let parentId = this.hierarchicalChildren.parents[i];
-              //  this.hierarchicalTrees[parentId] = tree;
-              //}
-              this.hierarchicalTrees[node.id] = tree;
-            } else {
-              this.hierarchicalTrees[node.id] = ++this.treeIndex;
-            }
-          }
         }
 
         if (this.options.hierarchical.direction === 'UD' || this.options.hierarchical.direction === 'DU') {
@@ -42829,6 +42847,7 @@ return /******/ (function(modules) { // webpackBootstrap
         treeSpacing: { number: number },
         blockShifting: { boolean: boolean },
         edgeMinimization: { boolean: boolean },
+        parentCentralization: { boolean: boolean },
         direction: { string: ['UD', 'DU', 'LR', 'RL'] }, // UD, DU, LR, RL
         sortMethod: { string: ['hubsize', 'directed'] }, // hubsize, directed
         __type__: { object: object, boolean: boolean }
@@ -43132,6 +43151,7 @@ return /******/ (function(modules) { // webpackBootstrap
         treeSpacing: [200, 20, 500, 5],
         blockShifting: true,
         edgeMinimization: true,
+        parentCentralization: true,
         direction: ['UD', 'DU', 'LR', 'RL'], // UD, DU, LR, RL
         sortMethod: ['hubsize', 'directed'] // hubsize, directed
       }

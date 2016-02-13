@@ -109,6 +109,7 @@ var options = {
       treeSpacing: 200,
       blockShifting: true,
       edgeMinimization: true,
+      parentCentralization: true,
       direction: 'UD',        // UD, DU, LR, RL
       sortMethod: 'hubsize'   // hubsize, directed
     }
@@ -142,6 +143,7 @@ network.setOptions(options);
             it's branch along with it for as far as it can, respecting the nodeSpacing on any level. This is mainly for the initial layout. If you enable physics, they layout will be determined by the physics. This will greatly speed up the stabilization time though!</td></tr>
         <tr parent="hierarchical" class="hidden"><td class="indent">hierarchical.edgeMinimization</td><td>Boolean</td><td><code>true</code></td> <td>Method for reducing whitespace. Can be used alone or together with block shifting. Enabling block shifting will usually speed up the layout process.
             Each node will try to move along its free axis to reduce the total length of it's edges. This is mainly for the initial layout. If you enable physics, they layout will be determined by the physics. This will greatly speed up the stabilization time though!</td></tr>
+        <tr parent="hierarchical" class="hidden"><td class="indent">hierarchical.parentCentralization</td><td>Boolean</td><td><code>true</code></td> <td>When true, the parents nodes will be centered again after the the layout algorithm has been finished.</td></tr>
         <tr parent="hierarchical" class="hidden"><td class="indent">hierarchical.direction</td><td>String</td><td><code>'UD'</code></td>        <td>The direction of the hierarchical layout. The available options are: <code>UD, DU, LR, RL</code>. To simplify: up-down, down-up, left-right, right-left.</td></tr>
         <tr parent="hierarchical" class="hidden"><td class="indent">hierarchical.sortMethod</td><td>String</td><td><code>'hubsize'</code></td>  <td>The algorithm used to ascertain the levels of the nodes based on the data. The possible options are: <code>hubsize, directed</code>. <br><br>
             Hubsize takes the nodes with the most edges and puts them at the top. From that the rest of the hierarchy is evaluated. <br><br>
