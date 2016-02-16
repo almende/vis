@@ -86,8 +86,8 @@
           addNode: function (data, callback) {
             // filling in the popup DOM elements
             document.getElementById('operation').innerHTML = "Add Node";
-            document.getElementById('node-id').value = data.id;
-            document.getElementById('node-label').value = data.label;
+            document.getElementById('obj-id').value = data.id;
+            document.getElementById('obj-label').value = data.label;
             document.getElementById('saveButton').onclick = saveData.bind(this, data, callback);
             document.getElementById('cancelButton').onclick = clearPopUp.bind();
             document.getElementById('network-popUp').style.display = 'block';
@@ -95,8 +95,17 @@
           editNode: function (data, callback) {
             // filling in the popup DOM elements
             document.getElementById('operation').innerHTML = "Edit Node";
-            document.getElementById('node-id').value = data.id;
-            document.getElementById('node-label').value = data.label;
+            document.getElementById('obj-id').value = data.id;
+            document.getElementById('obj-label').value = data.label;
+            document.getElementById('saveButton').onclick = saveData.bind(this, data, callback);
+            document.getElementById('cancelButton').onclick = cancelEdit.bind(this,callback);
+            document.getElementById('network-popUp').style.display = 'block';
+          },
+          //editEdgeNodes: false, /* To suppress reconnecting the edge in editMode */
+          editEdge: function (data, callback) {
+            document.getElementById('operation').innerHTML = "Edit Edge";
+            document.getElementById('obj-id').value = data.id;
+            document.getElementById('obj-label').value = data.label;
             document.getElementById('saveButton').onclick = saveData.bind(this, data, callback);
             document.getElementById('cancelButton').onclick = cancelEdit.bind(this,callback);
             document.getElementById('network-popUp').style.display = 'block';
@@ -129,8 +138,8 @@
     }
 
     function saveData(data,callback) {
-      data.id = document.getElementById('node-id').value;
-      data.label = document.getElementById('node-label').value;
+      data.id = document.getElementById('obj-id').value;
+      data.label = document.getElementById('obj-label').value;
       clearPopUp();
       callback(data);
     }
@@ -156,10 +165,10 @@
 <div id="network-popUp">
   <span id="operation">node</span> <br>
   <table style="margin:auto;"><tr>
-    <td>id</td><td><input id="node-id" value="new value" /></td>
+    <td>id</td><td><input id="obj-id" value="new value" /></td>
   </tr>
     <tr>
-      <td>label</td><td><input id="node-label" value="new value" /></td>
+      <td>label</td><td><input id="obj-label" value="new value" /></td>
     </tr></table>
   <input type="button" value="save" id="saveButton" />
   <input type="button" value="cancel" id="cancelButton" />

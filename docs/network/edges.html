@@ -128,6 +128,7 @@ var options = {
       opacity:1.0
     },
     dashes: false,
+    editEdgeNodes: undefined,
     font: {
       color: '#343434',
       size: 14, // px
@@ -325,6 +326,12 @@ network.setOptions(options);
                 repeated until the distance is filled.
                 <i>When using dashed lines in IE versions older than 11, the line will be drawn straight, not smooth</i>.
             </td>
+        </tr>
+        <tr>
+            <td>editEdgeNodes</td>
+            <td>Boolean</td>
+            <td><code>undefined</code></td>
+            <td>When true, the edge will offer the option to reconnect to different nodes in edit-mode.</td>
         </tr>
         <tr class='toggle collapsible' onclick="toggleTable('optionTable','font', this);">
             <td><span parent="font" class="right-caret"></span> font</td>
