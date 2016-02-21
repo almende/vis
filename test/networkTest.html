@@ -18,106 +18,228 @@
 <div id="network"></div>
 
 <script type="text/javascript">
-    // create an array with nodes
-    var nodes = [
-        {"id":3,"label":"SDPBCC\n SDPA","group":"SDP","level":4,"shape":"image","image":"sdp.png","cluster":"SDPBCC"},
-        {"id":14,"label":"SDPTPH\nSDPTPH","group":"SDP","level":4,"shape":"image","image":"sdp.png","cluster":"SDPTPH"},
-        {"id":6,"label":"SDPBCC\nSDPBCC","group":"SDP","level":4,"shape":"image","image":"sdp.png","cluster":"SDPBCC"},
-        {"id":9,"label":"CCNTPH\nCCNTPH","group":"CCN","level":5,"shape":"image","image":"ccn.png","cluster":"CCNTPH"},
-        {"id":7,"label":"SDPTPH\n SDPA","group":"SDP","level":4,"shape":"image","image":"sdp.png","cluster":"SDPTPH"},
-        {"id":12,"label":"AIRTPH\n ","group":"AIR","level":3,"shape":"image","image":"air.png","cluster":"AIRTPH"},
-        {"id":5,"label":"SDPBCC2\n SDPA","group":"SDP","level":4,"shape":"image","image":"sdp.png","cluster":"SDPBCC2"},
-        {"id":10,"label":"VS:172.26.104.11\n","group":"VS","level":2,"shape":"image","image":"vs.png","cluster":"VS:172.26.104.11"},
-        {"id":15,"label":"VS:172.26.104.10\n","group":"VS","level":2,"shape":"image","image":"vs.png","cluster":"VS:172.26.104.10"},
-        {"id":1,"label":"AIRBCC\n ","group":"AIR","level":3,"shape":"image","image":"air.png","cluster":"AIRBCC"},
-        {"id":4,"label":"CCNBCC\nCCNBCC","group":"CCN","level":5,"shape":"image","image":"ccn.png","cluster":"CCNBCC"},
-        {"id":16,"label":"SDPTPH2\n SDPA","group":"SDP","level":4,"shape":"image","image":"sdp.png","cluster":"SDPTPH2"},
-        {"id":2,"label":"VS:172.26.11.16\n","group":"VS","level":2,"shape":"image","image":"vs.png","cluster":"VS:172.26.11.16"},
-        {"id":8,"label":"VS:172.26.11.15\n","group":"VS","level":2,"shape":"image","image":"vs.png","cluster":"VS:172.26.11.15"},
-        {"id":13,"label":"SDPTPH2\nSDPTPH2","group":"SDP","level":4,"shape":"image","image":"sdp.png","cluster":"SDPTPH2"},
-        {"id":11,"label":"SDPBCC2\nSDPBCC2","group":"SDP","level":4,"shape":"image","image":"sdp.png","cluster":"SDPBCC2"}
-    ];
+    var allNodes;
+    var allEdges;
+    var pathActive = false;
 
-    for (var i = 0; i < nodes.length; i++) {
-        nodes[i].label = nodes[i].id
-        nodes[i].shape = "dot"
-    }
+    var nodes = [{
+        id: 1,
+        label: 'test1'
+    }, {
+        id: 2,
+        label: 'test2'
+    }, {
+        id: 3,
+        label: 'test3'
+    }, {
+        id: 4,
+        label: 'test4'
+    }, {
+        id: 5,
+        label: 'test5'
+    }];
+    var edges = [{
+        from: 1,
+        to: 3
+    }, {
+        from: 1,
+        to: 2
+    }, {
+        from: 3,
+        to: 4
+    }, {
+        from: 2,
+        to: 4
+    }, {
+        from: 4,
+        to: 5
+    }]
 
-    // create an array with edges
-    var edges = new vis.DataSet([
-        {"from":12,"to":6,"label":"RPC","font":{"align":"top"}},
-        {"from":12,"to":15,"label":"XmlRPC","font":{"align":"top"}},
-        {"from":1,"to":2,"label":"XmlRPC","font":{"align":"top"}},
-        {"from":12,"to":8,"label":"XmlRPC","font":{"align":"top"}},
-        {"from":1,"to":10,"label":"XmlRPC","font":{"align":"top"}},
-        {"from":7,"to":4,"label":"Diameter","font":{"align":"top"}},
-        {"from":12,"to":10,"label":"XmlRPC","font":{"align":"top"}},
-        {"from":5,"to":4,"label":"Diameter","font":{"align":"top"}},
-        {"from":1,"to":8,"label":"XmlRPC","font":{"align":"top"}},
-        {"from":1,"to":14,"label":"RPC","font":{"align":"top"}},
-        {"from":1,"to":13,"label":"RPC","font":{"align":"top"}},
-        {"from":5,"to":9,"label":"Diameter","font":{"align":"top"}},
-        {"from":3,"to":4,"label":"Diameter","font":{"align":"top"}},
-        {"from":12,"to":2,"label":"XmlRPC","font":{"align":"top"}},
-        {"from":3,"to":9,"label":"Diameter","font":{"align":"top"}},
-        {"from":16,"to":4,"label":"Diameter","font":{"align":"top"}},
-        {"from":7,"to":9,"label":"Diameter","font":{"align":"top"}},
-        {"from":16,"to":9,"label":"Diameter","font":{"align":"top"}},
-        {"from":1,"to":6,"label":"RPC","font":{"align":"top"}},
-        {"from":12,"to":14,"label":"RPC","font":{"align":"top"}},
-        {"from":1,"to":15,"label":"XmlRPC","font":{"align":"top"}},
-        {"from":12,"to":11,"label":"RPC","font":{"align":"top"}},
-        {"from":12,"to":13,"label":"RPC","font":{"align":"top"}},
-        {"from":1,"to":11,"label":"RPC","font":{"align":"top"}}
-    ]);
+    var nodesDataset = new vis.DataSet(nodes);
+    var edgesDataset = new vis.DataSet(edges);
 
-    var showAll=true;
+    var container = document.getElementById('mynetwork');
 
-    // create a network
-    var container = document.getElementById('network');
     var data = {
-        nodes: nodes,
-        edges: edges
+        nodes: nodesDataset,
+        edges: edgesDataset
     };
+
     var options = {
-
-        /* edges:{hidden:true}, */
-
+        autoResize: true,
+        height: '100%',
+        width: '100%',
+        nodes: {
+            shape: 'box'
+        },
+        edges: {
+            smooth: {
+                enabled: true,
+                type: "dynamic"
+            },
+        },
         layout: {
-            randomSeed: undefined,
             hierarchical: {
-                enabled:true,
-                /* improvedLayout:true,*/
-                levelSeparation: 250,
-                nodeSpacing: 150,
+                levelSeparation: 220,
+                nodeSpacing: 120,
+                treeSpacing: 100,
+                direction: 'LR',
                 blockShifting: true,
-                direction: 'UD',   // UD, DU, LR, RL
-                sortMethod: 'directed' // hubsize, directed
+                sortMethod: 'directed',
+                edgeMinimization: false
             }
         },
-        physics:{
-            enabled: false
-
-        },
-        interaction:{
-            dragNodes:true,
-            dragView: true,
-            hideEdgesOnDrag: true,
-            hideNodesOnDrag: false,
-            selectConnectedEdges: true,
-            selectable: true,
-            multiselect:true,
-            navigationButtons: true
-
+        physics: {
+            hierarchicalRepulsion: {
+                centralGravity: 0.5,
+                springLength: 300,
+                springConstant: 0.1,
+                nodeDistance: 150,
+                damping: 0.09
+            },
         }
     };
+
     var network = new vis.Network(container, data, options);
 
+    allNodes = nodesDataset.get({
+        returnType: "Object"
+    });
+    allEdges = edgesDataset.get({
+        returnType: "Object"
+    });
 
-</script>
+    showPath();
+    showPath();
 
-</body>
-</html>
+    function getNodeId(nodeLabels) {
+        var resultArray = [];
+        var unmatchedNodesLabel = [];
+
+        for (var i = 0; i < nodeLabels.length; i++) {
+            for (var nodeId in allNodes) {
+                var matchflag = false;
+
+                if (nodeLabels[i].toUpperCase() === allNodes[nodeId].label.toUpperCase()) {
+                    resultArray.push(allNodes[nodeId].id);
+                    matchflag = true;
+                    break;
+                }
+            }
+
+            if (!matchflag) {
+                console.log('An unmatched nodeLabel exists!' + nodeLabels[i]);
+            }
+        }
+
+        return resultArray;
+    }
+
+    function getLinkedEdge(fromNodeId, toNodeId) {
+        var result;
+
+        if (fromNodeId) {
+            var allLinkedEdges = network.getConnectedEdges(fromNodeId);
+
+            for (var i = 0; i < allLinkedEdges.length; i++) {
+                var linkedNodes = network.getConnectedNodes(allLinkedEdges[i]);
+
+                for (var j = 0; j < linkedNodes.length; j++) {
+                    if (toNodeId === linkedNodes[j]) {
+                        result = allLinkedEdges[i];
+                        if (j == 0) {
+                            if (allEdges[allLinkedEdges[i]].arrows === undefined) {
+                                allEdges[allLinkedEdges[i]].arrows = 'from';
+                            } else {
+                                allEdges[allLinkedEdges[i]].arrows = 'to;from';
+                            }
+                        } else {
+                            if (allEdges[allLinkedEdges[i]].arrows === undefined) {
+                                allEdges[allLinkedEdges[i]].arrows = 'to';
+                            } else {
+                                allEdges[allLinkedEdges[i]].arrows = 'to;from';
+                            }
+                        }
+                        break;
+                    }
+                }
+            }
+        }
+
+        return result;
+    }
+
+    function updateNodesEdges() {
+        // update nodes and edges
+        var updateNodes = [];
+        var updateEdges = [];
+
+        for (var nodeId in allNodes) {
+            if (allNodes.hasOwnProperty(nodeId)) {
+                updateNodes.push(allNodes[nodeId]);
+            }
+        }
+
+        for (var edgeId in allEdges) {
+            if (allEdges.hasOwnProperty(edgeId)) {
+                updateEdges.push(allEdges[edgeId]);
+            }
+        }
+
+        nodesDataset.update(updateNodes);
+        edgesDataset.update(updateEdges);
+    }
+
+    function showPath() {
+        // Test values
+        var pathData = 'test1,test3,test4,test5';
+        var nodesOrder = pathData.split(',');
+
+        var orderedNodeId = getNodeId(nodesOrder);
+
+        if (orderedNodeId.length > 0) {
+            pathActive = true;
+
+            // mark all nodes as hard to read
+            for (var nodeId in allNodes) {
+                allNodes[nodeId].color = 'rgba(200,200,200,0.5)';
+            }
+
+            // mark all edges as hard to read
+            for (var edgeId in allEdges) {
+                allEdges[edgeId].color = 'rgba(200,200,200,0.5)';
+            }
+
+            // the selected nodes and edges get its own color and its label back.
+            for (var i = 0; i < orderedNodeId.length; i++) {
+                allNodes[orderedNodeId[i]].color = undefined;
+
+                // linked edge
+                if (i < orderedNodeId.length) {
+                    var linkedEdge = getLinkedEdge(orderedNodeId[i], orderedNodeId[i + 1]);
+
+                    if (linkedEdge) {
+                        allEdges[linkedEdge].color = undefined;
+                    }
+                }
+            }
+
+            updateNodesEdges();
+        }
+
+        // reset all nodes
+        for (var nodeId in allNodes) {
+            allNodes[nodeId].color = undefined;
+        }
+
+        // reset all edges <--- it does NOT work! although edge's color undfined!
+        for (var edgeId in allEdges) {
+            allEdges[edgeId].color = null;
+            allEdges[edgeId].arrows = null;
+        }
+
+        updateNodesEdges();
+    }
 
 </script>
 </body>

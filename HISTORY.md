@@ -23,6 +23,7 @@ http://visjs.org
 - Fixed #1644, #1631: overlapping nodes in hierarchical layout should no longer occur.
 - Added parentCentralization option for hierarchical layout.
 - Fixed #1575: fixed selection events
+- Fixed #1677: updating groups through manipulation now works as it should.
 
 ## 2016-02-04, version 4.14.0
 

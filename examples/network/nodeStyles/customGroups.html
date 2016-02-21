@@ -26,12 +26,9 @@
 </head>
 
 <body>
-
+<i class="fa fa-flag"></i> We use an icon once in the DOM so the CSS for fontAwesome is loaded.</h2>
 <div id="mynetwork"></div>
 <script type="text/javascript">
-    var color = 'gray';
-    var len = undefined;
-
     var nodes = [
         {id: 0, label: "0", group: 'source'},
         {id: 1, label: "1", group: 'icons'},
@@ -128,7 +125,8 @@
             }
         }
     };
-    network = new vis.Network(container, data, options);
+    var network = new vis.Network(container, data, options);
+
 </script>
 </body>
 </html>
