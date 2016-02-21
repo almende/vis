@@ -25592,14 +25592,14 @@ return /******/ (function(modules) { // webpackBootstrap
       left: {
         range: { min: undefined, max: undefined },
         format: function format(value) {
-          return '' + Number.parseFloat(value.toPrecision(3));
+          return '' + parseFloat(value.toPrecision(3));
         },
         title: { text: undefined, style: undefined }
       },
       right: {
         range: { min: undefined, max: undefined },
         format: function format(value) {
-          return '' + Number.parseFloat(value.toPrecision(3));
+          return '' + parseFloat(value.toPrecision(3));
         },
         title: { text: undefined, style: undefined }
       }
@@ -28552,6 +28552,7 @@ return /******/ (function(modules) { // webpackBootstrap
         shapeProperties: {
           borderDashes: false, // only for borders
           borderRadius: 6, // only for box shape
+          interpolation: true, // only for image and circularImage shapes
           useImageSize: false, // only for image and circularImage shapes
           useBorderWithImage: false // only for image shape
         },
@@ -30221,8 +30222,35 @@ return /******/ (function(modules) { // webpackBootstrap
           // draw shadow if enabled
           this.enableShadow(ctx);
 
-          // draw image
-          ctx.drawImage(this.imageObj, this.left, this.top, this.width, this.height);
+          var factor = this.imageObj.width / this.width / this.body.view.scale;
+          if (factor > 2 && this.options.shapeProperties.interpolation === true) {
+            var w = this.imageObj.width;
+            var h = this.imageObj.height;
+            var can2 = document.createElement('canvas');
+            can2.width = w;
+            can2.height = w;
+            var ctx2 = can2.getContext('2d');
+
+            factor *= 0.5;
+            w *= 0.5;
+            h *= 0.5;
+            ctx2.drawImage(this.imageObj, 0, 0, w, h);
+
+            var distance = 0;
+            var iterations = 1;
+            while (factor > 2 && iterations < 4) {
+              ctx2.drawImage(can2, distance, 0, w, h, distance + w, 0, w / 2, h / 2);
+              distance += w;
+              factor *= 0.5;
+              w *= 0.5;
+              h *= 0.5;
+              iterations += 1;
+            }
+            ctx.drawImage(can2, distance, 0, w, h, this.left, this.top, this.width, this.height);
+          } else {
+            // draw image
+            ctx.drawImage(this.imageObj, this.left, this.top, this.width, this.height);
+          }
 
           // disable shadows for other elements.
           this.disableShadow(ctx);
@@ -42941,6 +42969,7 @@ return /******/ (function(modules) { // webpackBootstrap
       shapeProperties: {
         borderDashes: { boolean: boolean, array: array },
         borderRadius: { number: number },
+        interpolation: { boolean: boolean },
         useImageSize: { boolean: boolean },
         useBorderWithImage: { boolean: boolean },
         __type__: { object: object }
@@ -43081,6 +43110,7 @@ return /******/ (function(modules) { // webpackBootstrap
       shapeProperties: {
         borderDashes: false,
         borderRadius: [6, 0, 20, 1],
+        interpolation: true,
         useImageSize: false
       },
       size: [25, 0, 200, 1]

@@ -26,6 +26,8 @@ http://visjs.org
 - Added parentCentralization option for hierarchical layout.
 - Fixed #1575: fixed selection events
 - Fixed #1677: updating groups through manipulation now works as it should.
+- Fixed #1672: Implemented stepped scaling for nice interpolation of images.
+- Added interpolation option for interpolation of images, default true.
 
 ## 2016-02-04, version 4.14.0
 
