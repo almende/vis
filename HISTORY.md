@@ -11,6 +11,8 @@ http://visjs.org
 ### Graph2d
 
 - Fixed #1630: method `getDataRange` was wrongly called `getItemRange` in docs.
+- Fixed #1655: use parseFloat instead of Number.parseFloat, as the latter is
+  not supported in IE. Thanks @ttjoseph.
 
 ### Graph3d
 
