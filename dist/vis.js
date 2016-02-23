@@ -22170,6 +22170,7 @@ return /******/ (function(modules) { // webpackBootstrap
       if (interval > 1000) interval = 1000;
 
       me.redraw();
+      me.body.emitter.emit('currentTimeTick');
 
       // start a renderTimer to adjust for the new time
       me.currentTimeTimer = setTimeout(update, interval);
