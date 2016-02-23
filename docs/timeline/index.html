@@ -1151,6 +1151,12 @@ document.getElementById('myTimeline').onclick = function (event) {
     </tr>
 
     <tr>
+      <td>getItemRange()</td>
+      <td>Object</td>
+      <td>Get the range of all the items as an object containing <code>min: Date</code> and <code>max: Date</code>.</td>
+    </tr>
+
+    <tr>
       <td>getSelection()</td>
       <td>number[]</td>
       <td>Get an array with the ids of the currently selected items.</td>
@@ -1340,6 +1346,11 @@ timeline.off('select', onSelect);
       <th>Name</th>
       <th>Properties</th>
       <th>Description</th>
+    </tr>
+
+    <tr>
+      <td>currentTimeTick</td>
+      <td>Fired when the current time bar redraws. The rate depends on the zoom level.</td>
     </tr>
 
     <tr>

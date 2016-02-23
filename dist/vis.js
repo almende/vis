@@ -4,8 +4,8 @@
  *
  * A dynamic, browser-based visualization library.
  *
- * @version 4.14.0
- * @date    2016-02-04
+ * @version 4.15.0
+ * @date    2016-02-23
  *
  * @license
  * Copyright (C) 2011-2016 Almende B.V, http://almende.com
@@ -9343,7 +9343,7 @@ return /******/ (function(modules) { // webpackBootstrap
     if (typeof this.showTooltip === 'function') {
       content.innerHTML = this.showTooltip(dataPoint.point);
     } else {
-      content.innerHTML = '<table>' + '<tr><td>x:</td><td>' + dataPoint.point.x + '</td></tr>' + '<tr><td>y:</td><td>' + dataPoint.point.y + '</td></tr>' + '<tr><td>z:</td><td>' + dataPoint.point.z + '</td></tr>' + '</table>';
+      content.innerHTML = '<table>' + '<tr><td>' + this.xLabel + ':</td><td>' + dataPoint.point.x + '</td></tr>' + '<tr><td>' + this.yLabel + ':</td><td>' + dataPoint.point.y + '</td></tr>' + '<tr><td>' + this.zLabel + ':</td><td>' + dataPoint.point.z + '</td></tr>' + '</table>';
     }
 
     content.style.left = '0';
@@ -22170,6 +22170,7 @@ return /******/ (function(modules) { // webpackBootstrap
       if (interval > 1000) interval = 1000;
 
       me.redraw();
+      me.body.emitter.emit('currentTimeTick');
 
       // start a renderTimer to adjust for the new time
       me.currentTimeTimer = setTimeout(update, interval);
@@ -25592,14 +25593,14 @@ return /******/ (function(modules) { // webpackBootstrap
       left: {
         range: { min: undefined, max: undefined },
         format: function format(value) {
-          return '' + Number.parseFloat(value.toPrecision(3));
+          return '' + parseFloat(value.toPrecision(3));
         },
         title: { text: undefined, style: undefined }
       },
       right: {
         range: { min: undefined, max: undefined },
         format: function format(value) {
-          return '' + Number.parseFloat(value.toPrecision(3));
+          return '' + parseFloat(value.toPrecision(3));
         },
         title: { text: undefined, style: undefined }
       }
@@ -28552,6 +28553,7 @@ return /******/ (function(modules) { // webpackBootstrap
         shapeProperties: {
           borderDashes: false, // only for borders
           borderRadius: 6, // only for box shape
+          interpolation: true, // only for image and circularImage shapes
           useImageSize: false, // only for image and circularImage shapes
           useBorderWithImage: false // only for image shape
         },
@@ -30221,8 +30223,35 @@ return /******/ (function(modules) { // webpackBootstrap
           // draw shadow if enabled
           this.enableShadow(ctx);
 
-          // draw image
-          ctx.drawImage(this.imageObj, this.left, this.top, this.width, this.height);
+          var factor = this.imageObj.width / this.width / this.body.view.scale;
+          if (factor > 2 && this.options.shapeProperties.interpolation === true) {
+            var w = this.imageObj.width;
+            var h = this.imageObj.height;
+            var can2 = document.createElement('canvas');
+            can2.width = w;
+            can2.height = w;
+            var ctx2 = can2.getContext('2d');
+
+            factor *= 0.5;
+            w *= 0.5;
+            h *= 0.5;
+            ctx2.drawImage(this.imageObj, 0, 0, w, h);
+
+            var distance = 0;
+            var iterations = 1;
+            while (factor > 2 && iterations < 4) {
+              ctx2.drawImage(can2, distance, 0, w, h, distance + w, 0, w / 2, h / 2);
+              distance += w;
+              factor *= 0.5;
+              w *= 0.5;
+              h *= 0.5;
+              iterations += 1;
+            }
+            ctx.drawImage(can2, distance, 0, w, h, this.left, this.top, this.width, this.height);
+          } else {
+            // draw image
+            ctx.drawImage(this.imageObj, this.left, this.top, this.width, this.height);
+          }
 
           // disable shadows for other elements.
           this.disableShadow(ctx);
@@ -32129,8 +32158,8 @@ return /******/ (function(modules) { // webpackBootstrap
         var arrowData = {};
 
         // restore edge targets to defaults
-        this.edgeType.fromPoint = this.from;
-        this.edgeType.toPoint = this.to;
+        this.edgeType.fromPoint = this.edgeType.from;
+        this.edgeType.toPoint = this.edgeType.to;
 
         // from and to arrows give a different end point for edges. we set them here
         if (this.options.arrows.from.enabled === true) {
@@ -38286,8 +38315,8 @@ return /******/ (function(modules) { // webpackBootstrap
 
         var _determineIfDifferent2 = this._determineIfDifferent(previousSelection, currentSelection);
 
-        var nodesChanges = _determineIfDifferent2.nodesChanges;
-        var edgesChanges = _determineIfDifferent2.edgesChanges;
+        var nodesChanged = _determineIfDifferent2.nodesChanged;
+        var edgesChanged = _determineIfDifferent2.edgesChanged;
 
         var nodeSelected = false;
 
@@ -38296,14 +38325,14 @@ return /******/ (function(modules) { // webpackBootstrap
           this.selectionHandler._generateClickEvent('selectNode', event, pointer);
           selected = true;
           nodeSelected = true;
-        } else if (selectedNodesCount - previouslySelectedNodeCount < 0) {
-          // node was deselected
-          this.selectionHandler._generateClickEvent('deselectNode', event, pointer, previousSelection);
-          selected = true;
-        } else if (selectedNodesCount === previouslySelectedNodeCount && nodesChanges === true) {
+        } else if (nodesChanged === true && selectedNodesCount > 0) {
           this.selectionHandler._generateClickEvent('deselectNode', event, pointer, previousSelection);
           this.selectionHandler._generateClickEvent('selectNode', event, pointer);
           nodeSelected = true;
+          selected = true;
+        } else if (selectedNodesCount - previouslySelectedNodeCount < 0) {
+          // node was deselected
+          this.selectionHandler._generateClickEvent('deselectNode', event, pointer, previousSelection);
           selected = true;
         }
 
@@ -38312,13 +38341,13 @@ return /******/ (function(modules) { // webpackBootstrap
           // edge was selected
           this.selectionHandler._generateClickEvent('selectEdge', event, pointer);
           selected = true;
+        } else if (selectedEdgesCount > 0 && edgesChanged === true) {
+          this.selectionHandler._generateClickEvent('deselectEdge', event, pointer, previousSelection);
+          this.selectionHandler._generateClickEvent('selectEdge', event, pointer);
+          selected = true;
         } else if (selectedEdgesCount - previouslySelectedEdgeCount < 0) {
           // edge was deselected
           this.selectionHandler._generateClickEvent('deselectEdge', event, pointer, previousSelection);
-          selected = true;
-        } else if (selectedEdgesCount === previouslySelectedEdgeCount && edgesChanges === true) {
-          this.selectionHandler._generateClickEvent('deselectEdge', event, pointer, previousSelection);
-          this.selectionHandler._generateClickEvent('selectEdge', event, pointer);
           selected = true;
         }
 
@@ -38333,37 +38362,37 @@ return /******/ (function(modules) { // webpackBootstrap
        * This function checks if the nodes and edges previously selected have changed.
        * @param previousSelection
        * @param currentSelection
-       * @returns {{nodesChanges: boolean, edgesChanges: boolean}}
+       * @returns {{nodesChanged: boolean, edgesChanged: boolean}}
        * @private
        */
     }, {
       key: '_determineIfDifferent',
       value: function _determineIfDifferent(previousSelection, currentSelection) {
-        var nodesChanges = false;
-        var edgesChanges = false;
+        var nodesChanged = false;
+        var edgesChanged = false;
 
         for (var i = 0; i < previousSelection.nodes.length; i++) {
           if (currentSelection.nodes.indexOf(previousSelection.nodes[i]) === -1) {
-            nodesChanges = true;
+            nodesChanged = true;
           }
         }
         for (var i = 0; i < currentSelection.nodes.length; i++) {
           if (previousSelection.nodes.indexOf(previousSelection.nodes[i]) === -1) {
-            nodesChanges = true;
+            nodesChanged = true;
           }
         }
         for (var i = 0; i < previousSelection.edges.length; i++) {
           if (currentSelection.edges.indexOf(previousSelection.edges[i]) === -1) {
-            edgesChanges = true;
+            edgesChanged = true;
           }
         }
         for (var i = 0; i < currentSelection.edges.length; i++) {
           if (previousSelection.edges.indexOf(previousSelection.edges[i]) === -1) {
-            edgesChanges = true;
+            edgesChanged = true;
           }
         }
 
-        return { nodesChanges: nodesChanges, edgesChanges: edgesChanges };
+        return { nodesChanged: nodesChanged, edgesChanged: edgesChanged };
       }
 
       /**
@@ -40083,6 +40112,7 @@ return /******/ (function(modules) { // webpackBootstrap
           treeSpacing: 200,
           blockShifting: true,
           edgeMinimization: true,
+          parentCentralization: true,
           direction: 'UD', // UD, DU, LR, RL
           sortMethod: 'hubsize' // hubsize, directed
         }
@@ -40364,8 +40394,8 @@ return /******/ (function(modules) { // webpackBootstrap
           var undefinedLevel = false;
           this.hierarchicalLevels = {};
           this.lastNodeOnLevel = {};
-          this.hierarchicalParents = {};
-          this.hierarchicalChildren = {};
+          this.hierarchicalChildrenReference = {};
+          this.hierarchicalParentReference = {};
           this.hierarchicalTrees = {};
           this.treeIndex = -1;
 
@@ -40447,9 +40477,7 @@ return /******/ (function(modules) { // webpackBootstrap
           var treeSizes = getTreeSizes();
           for (var i = 0; i < treeSizes.length - 1; i++) {
             var diff = treeSizes[i].max - treeSizes[i + 1].min;
-            if (diff !== _this2.options.hierarchical.treeSpacing) {
-              shiftTree(i + 1, diff - _this2.options.hierarchical.treeSpacing);
-            }
+            shiftTree(i + 1, diff + _this2.options.hierarchical.treeSpacing);
           }
         };
 
@@ -40458,7 +40486,9 @@ return /******/ (function(modules) { // webpackBootstrap
           for (var nodeId in _this2.hierarchicalTrees) {
             if (_this2.hierarchicalTrees.hasOwnProperty(nodeId)) {
               if (_this2.hierarchicalTrees[nodeId] === index) {
-                _this2._setPositionForHierarchy(_this2.body.nodes[nodeId], offset, undefined, true);
+                var node = _this2.body.nodes[nodeId];
+                var pos = _this2._getPositionForHierarchy(node);
+                _this2._setPositionForHierarchy(node, pos + offset, undefined, true);
               }
             }
           }
@@ -40483,7 +40513,7 @@ return /******/ (function(modules) { // webpackBootstrap
         // get the width of all trees
         var getTreeSizes = function getTreeSizes() {
           var treeWidths = [];
-          for (var i = 0; i < _this2.treeIndex; i++) {
+          for (var i = 0; i <= _this2.treeIndex; i++) {
             treeWidths.push(getTreeSize(i));
           }
           return treeWidths;
@@ -40492,8 +40522,8 @@ return /******/ (function(modules) { // webpackBootstrap
         // get a map of all nodes in this branch
         var getBranchNodes = function getBranchNodes(source, map) {
           map[source.id] = true;
-          if (_this2.hierarchicalParents[source.id]) {
-            var children = _this2.hierarchicalParents[source.id].children;
+          if (_this2.hierarchicalChildrenReference[source.id]) {
+            var children = _this2.hierarchicalChildrenReference[source.id];
             if (children.length > 0) {
               for (var i = 0; i < children.length; i++) {
                 getBranchNodes(_this2.body.nodes[children[i]], map);
@@ -40543,8 +40573,8 @@ return /******/ (function(modules) { // webpackBootstrap
         // get the maximum level of a branch.
         var getMaxLevel = function getMaxLevel(nodeId) {
           var level = _this2.hierarchicalLevels[nodeId];
-          if (_this2.hierarchicalParents[nodeId]) {
-            var children = _this2.hierarchicalParents[nodeId].children;
+          if (_this2.hierarchicalChildrenReference[nodeId]) {
+            var children = _this2.hierarchicalChildrenReference[nodeId];
             if (children.length > 0) {
               for (var i = 0; i < children.length; i++) {
                 level = Math.max(level, getMaxLevel(children[i]));
@@ -40563,13 +40593,12 @@ return /******/ (function(modules) { // webpackBootstrap
 
         // check if two nodes have the same parent(s)
         var hasSameParent = function hasSameParent(node1, node2) {
-          var parents1 = _this2.hierarchicalChildren[node1.id];
-          var parents2 = _this2.hierarchicalChildren[node2.id];
+          var parents1 = _this2.hierarchicalParentReference[node1.id];
+          var parents2 = _this2.hierarchicalParentReference[node2.id];
           if (parents1 === undefined || parents2 === undefined) {
             return false;
           }
-          parents1 = parents1.parents;
-          parents2 = parents2.parents;
+
           for (var i = 0; i < parents1.length; i++) {
             for (var j = 0; j < parents2.length; j++) {
               if (parents1[i] == parents2[j]) {
@@ -40782,7 +40811,7 @@ return /******/ (function(modules) { // webpackBootstrap
             }
 
             if (newPosition !== nodePosition) {
-              //console.log("moving Node:",diff, minSpace, maxSpace)
+              //console.log("moving Node:",diff, minSpace, maxSpace);
               _this2._setPositionForHierarchy(node, newPosition, undefined, true);
               //this.body.emitter.emit("_redraw");
               stillShifting = true;
@@ -40816,7 +40845,7 @@ return /******/ (function(modules) { // webpackBootstrap
           }
         };
 
-        //// method to remove whitespace between branches. Because we do bottom up, we can center the parents.
+        // method to remove whitespace between branches. Because we do bottom up, we can center the parents.
         var shiftBranchesCloserBottomUp = function shiftBranchesCloserBottomUp(iterations) {
           var levels = Object.keys(_this2.distributionOrdering);
           levels = levels.reverse();
@@ -40837,6 +40866,19 @@ return /******/ (function(modules) { // webpackBootstrap
           }
         };
 
+        // center all parents
+        var centerAllParentsBottomUp = function centerAllParentsBottomUp() {
+          var levels = Object.keys(_this2.distributionOrdering);
+          levels = levels.reverse();
+          for (var i = 0; i < levels.length; i++) {
+            var level = levels[i];
+            var levelNodes = _this2.distributionOrdering[level];
+            for (var j = 0; j < levelNodes.length; j++) {
+              _this2._centerParent(levelNodes[j]);
+            }
+          }
+        };
+
         // the actual work is done here.
         if (this.options.hierarchical.blockShifting === true) {
           shiftBranchesCloserBottomUp(5);
@@ -40846,6 +40888,10 @@ return /******/ (function(modules) { // webpackBootstrap
         // minimize edge length
         if (this.options.hierarchical.edgeMinimization === true) {
           minimizeEdgeLengthBottomUp(20);
+        }
+
+        if (this.options.hierarchical.parentCentralization === true) {
+          centerAllParentsBottomUp();
         }
 
         shiftTrees();
@@ -40902,16 +40948,16 @@ return /******/ (function(modules) { // webpackBootstrap
     }, {
       key: '_centerParent',
       value: function _centerParent(node) {
-        if (this.hierarchicalChildren[node.id]) {
-          var parents = this.hierarchicalChildren[node.id].parents;
+        if (this.hierarchicalParentReference[node.id]) {
+          var parents = this.hierarchicalParentReference[node.id];
           for (var i = 0; i < parents.length; i++) {
             var parentId = parents[i];
             var parentNode = this.body.nodes[parentId];
-            if (this.hierarchicalParents[parentId]) {
+            if (this.hierarchicalChildrenReference[parentId]) {
               // get the range of the children
               var minPos = 1e9;
               var maxPos = -1e9;
-              var children = this.hierarchicalParents[parentId].children;
+              var children = this.hierarchicalChildrenReference[parentId];
               if (children.length > 0) {
                 for (var _i = 0; _i < children.length; _i++) {
                   var childNode = this.body.nodes[children[_i]];
@@ -40956,17 +41002,111 @@ return /******/ (function(modules) { // webpackBootstrap
             var nodeArray = Object.keys(distribution[level]);
             nodeArray = this._indexArrayToNodes(nodeArray);
             this._sortNodeArray(nodeArray);
+            var handledNodeCount = 0;
 
             for (var i = 0; i < nodeArray.length; i++) {
               var node = nodeArray[i];
               if (this.positionedNodes[node.id] === undefined) {
-                this._setPositionForHierarchy(node, this.options.hierarchical.nodeSpacing * i, level);
-                this.positionedNodes[node.id] = true;
-                this._placeBranchNodes(node.id, level);
+                var pos = this.options.hierarchical.nodeSpacing * handledNodeCount;
+                // we get the X or Y values we need and store them in pos and previousPos. The get and set make sure we get X or Y
+                if (handledNodeCount > 0) {
+                  pos = this._getPositionForHierarchy(nodeArray[i - 1]) + this.options.hierarchical.nodeSpacing;
+                }
+                this._setPositionForHierarchy(node, pos, level);
+                this._validataPositionAndContinue(node, level, pos);
+
+                handledNodeCount++;
               }
             }
           }
         }
+      }
+
+      /**
+       * This is a recursively called function to enumerate the branches from the largest hubs and place the nodes
+       * on a X position that ensures there will be no overlap.
+       *
+       * @param parentId
+       * @param parentLevel
+       * @private
+       */
+    }, {
+      key: '_placeBranchNodes',
+      value: function _placeBranchNodes(parentId, parentLevel) {
+        // if this is not a parent, cancel the placing. This can happen with multiple parents to one child.
+        if (this.hierarchicalChildrenReference[parentId] === undefined) {
+          return;
+        }
+
+        // get a list of childNodes
+        var childNodes = [];
+        for (var i = 0; i < this.hierarchicalChildrenReference[parentId].length; i++) {
+          childNodes.push(this.body.nodes[this.hierarchicalChildrenReference[parentId][i]]);
+        }
+
+        // use the positions to order the nodes.
+        this._sortNodeArray(childNodes);
+
+        // position the childNodes
+        for (var i = 0; i < childNodes.length; i++) {
+          var childNode = childNodes[i];
+          var childNodeLevel = this.hierarchicalLevels[childNode.id];
+          // check if the child node is below the parent node and if it has already been positioned.
+          if (childNodeLevel > parentLevel && this.positionedNodes[childNode.id] === undefined) {
+            // get the amount of space required for this node. If parent the width is based on the amount of children.
+            var pos = undefined;
+
+            // we get the X or Y values we need and store them in pos and previousPos. The get and set make sure we get X or Y
+            if (i === 0) {
+              pos = this._getPositionForHierarchy(this.body.nodes[parentId]);
+            } else {
+              pos = this._getPositionForHierarchy(childNodes[i - 1]) + this.options.hierarchical.nodeSpacing;
+            }
+            this._setPositionForHierarchy(childNode, pos, childNodeLevel);
+            this._validataPositionAndContinue(childNode, childNodeLevel, pos);
+          } else {
+            return;
+          }
+        }
+
+        // center the parent nodes.
+        var minPos = 1e9;
+        var maxPos = -1e9;
+        for (var i = 0; i < childNodes.length; i++) {
+          var childNodeId = childNodes[i].id;
+          minPos = Math.min(minPos, this._getPositionForHierarchy(this.body.nodes[childNodeId]));
+          maxPos = Math.max(maxPos, this._getPositionForHierarchy(this.body.nodes[childNodeId]));
+        }
+        this._setPositionForHierarchy(this.body.nodes[parentId], 0.5 * (minPos + maxPos), parentLevel);
+      }
+
+      /**
+       * This method checks for overlap and if required shifts the branch. It also keeps records of positioned nodes.
+       * Finally it will call _placeBranchNodes to place the branch nodes.
+       * @param node
+       * @param level
+       * @param pos
+       * @private
+       */
+    }, {
+      key: '_validataPositionAndContinue',
+      value: function _validataPositionAndContinue(node, level, pos) {
+        // if overlap has been detected, we shift the branch
+        if (this.lastNodeOnLevel[level] !== undefined) {
+          var previousPos = this._getPositionForHierarchy(this.body.nodes[this.lastNodeOnLevel[level]]);
+          if (pos - previousPos < this.options.hierarchical.nodeSpacing) {
+            var diff = previousPos + this.options.hierarchical.nodeSpacing - pos;
+            var sharedParent = this._findCommonParent(this.lastNodeOnLevel[level], node.id);
+            this._shiftBlock(sharedParent.withChild, diff);
+          }
+        }
+
+        // store change in position.
+        this.lastNodeOnLevel[level] = node.id;
+
+        this.positionedNodes[node.id] = true;
+
+        this._placeBranchNodes(node.id, level);
       }
 
       /**
@@ -41178,14 +41318,14 @@ return /******/ (function(modules) { // webpackBootstrap
           if (_this6.hierarchicalLevels[childNode.id] > _this6.hierarchicalLevels[parentNode.id]) {
             var parentNodeId = parentNode.id;
             var childNodeId = childNode.id;
-            if (_this6.hierarchicalParents[parentNodeId] === undefined) {
-              _this6.hierarchicalParents[parentNodeId] = { children: [], amount: 0 };
+            if (_this6.hierarchicalChildrenReference[parentNodeId] === undefined) {
+              _this6.hierarchicalChildrenReference[parentNodeId] = [];
             }
-            _this6.hierarchicalParents[parentNodeId].children.push(childNodeId);
-            if (_this6.hierarchicalChildren[childNodeId] === undefined) {
-              _this6.hierarchicalChildren[childNodeId] = { parents: [], amount: 0 };
+            _this6.hierarchicalChildrenReference[parentNodeId].push(childNodeId);
+            if (_this6.hierarchicalParentReference[childNodeId] === undefined) {
+              _this6.hierarchicalParentReference[childNodeId] = [];
             }
-            _this6.hierarchicalChildren[childNodeId].parents.push(parentNodeId);
+            _this6.hierarchicalParentReference[childNodeId].push(parentNodeId);
           }
         };
 
@@ -41201,11 +41341,21 @@ return /******/ (function(modules) { // webpackBootstrap
     }, {
       key: '_crawlNetwork',
       value: function _crawlNetwork(callback, startingNodeId) {
+        var _this7 = this;
+
         if (callback === undefined) callback = function () {};
 
         var progress = {};
-        var crawler = function crawler(node) {
+        var treeIndex = 0;
+
+        var crawler = function crawler(node, tree) {
           if (progress[node.id] === undefined) {
+
+            if (_this7.hierarchicalTrees[node.id] === undefined) {
+              _this7.hierarchicalTrees[node.id] = tree;
+              _this7.treeIndex = Math.max(tree, _this7.treeIndex);
+            }
+
             progress[node.id] = true;
             var childNode = undefined;
             for (var i = 0; i < node.edges.length; i++) {
@@ -41218,7 +41368,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
                 if (node.id !== childNode.id) {
                   callback(node, childNode, node.edges[i]);
-                  crawler(childNode);
+                  crawler(childNode, tree);
                 }
               }
             }
@@ -41229,7 +41379,10 @@ return /******/ (function(modules) { // webpackBootstrap
         if (startingNodeId === undefined) {
           for (var i = 0; i < this.body.nodeIndices.length; i++) {
             var node = this.body.nodes[this.body.nodeIndices[i]];
-            crawler(node);
+            if (progress[node.id] === undefined) {
+              crawler(node, treeIndex);
+              treeIndex += 1;
+            }
           }
         } else {
           var node = this.body.nodes[startingNodeId];
@@ -41239,80 +41392,6 @@ return /******/ (function(modules) { // webpackBootstrap
           }
           crawler(node);
         }
-      }
-
-      /**
-       * This is a recursively called function to enumerate the branches from the largest hubs and place the nodes
-       * on a X position that ensures there will be no overlap.
-       *
-       * @param parentId
-       * @param parentLevel
-       * @private
-       */
-    }, {
-      key: '_placeBranchNodes',
-      value: function _placeBranchNodes(parentId, parentLevel) {
-        // if this is not a parent, cancel the placing. This can happen with multiple parents to one child.
-        if (this.hierarchicalParents[parentId] === undefined) {
-          return;
-        }
-
-        // get a list of childNodes
-        var childNodes = [];
-        for (var i = 0; i < this.hierarchicalParents[parentId].children.length; i++) {
-          childNodes.push(this.body.nodes[this.hierarchicalParents[parentId].children[i]]);
-        }
-
-        // use the positions to order the nodes.
-        this._sortNodeArray(childNodes);
-
-        // position the childNodes
-        for (var i = 0; i < childNodes.length; i++) {
-          var childNode = childNodes[i];
-          var childNodeLevel = this.hierarchicalLevels[childNode.id];
-          // check if the child node is below the parent node and if it has already been positioned.
-          if (childNodeLevel > parentLevel && this.positionedNodes[childNode.id] === undefined) {
-            // get the amount of space required for this node. If parent the width is based on the amount of children.
-            var pos = undefined;
-
-            // we get the X or Y values we need and store them in pos and previousPos. The get and set make sure we get X or Y
-            if (i === 0) {
-              pos = this._getPositionForHierarchy(this.body.nodes[parentId]);
-            } else {
-              pos = this._getPositionForHierarchy(childNodes[i - 1]) + this.options.hierarchical.nodeSpacing;
-            }
-            this._setPositionForHierarchy(childNode, pos, childNodeLevel);
-
-            // if overlap has been detected, we shift the branch
-            if (this.lastNodeOnLevel[childNodeLevel] !== undefined) {
-              var previousPos = this._getPositionForHierarchy(this.body.nodes[this.lastNodeOnLevel[childNodeLevel]]);
-              if (pos - previousPos < this.options.hierarchical.nodeSpacing) {
-                var diff = previousPos + this.options.hierarchical.nodeSpacing - pos;
-                var sharedParent = this._findCommonParent(this.lastNodeOnLevel[childNodeLevel], childNode.id);
-                this._shiftBlock(sharedParent.withChild, diff);
-              }
-            }
-
-            // store change in position.
-            this.lastNodeOnLevel[childNodeLevel] = childNode.id;
-
-            this.positionedNodes[childNode.id] = true;
-
-            this._placeBranchNodes(childNode.id, childNodeLevel);
-          } else {
-            return;
-          }
-        }
-
-        // center the parent nodes.
-        var minPos = 1e9;
-        var maxPos = -1e9;
-        for (var i = 0; i < childNodes.length; i++) {
-          var childNodeId = childNodes[i].id;
-          minPos = Math.min(minPos, this._getPositionForHierarchy(this.body.nodes[childNodeId]));
-          maxPos = Math.max(maxPos, this._getPositionForHierarchy(this.body.nodes[childNodeId]));
-        }
-        this._setPositionForHierarchy(this.body.nodes[parentId], 0.5 * (minPos + maxPos), parentLevel);
       }
 
       /**
@@ -41329,9 +41408,9 @@ return /******/ (function(modules) { // webpackBootstrap
         } else {
           this.body.nodes[parentId].y += diff;
         }
-        if (this.hierarchicalParents[parentId] !== undefined) {
-          for (var i = 0; i < this.hierarchicalParents[parentId].children.length; i++) {
-            this._shiftBlock(this.hierarchicalParents[parentId].children[i], diff);
+        if (this.hierarchicalChildrenReference[parentId] !== undefined) {
+          for (var i = 0; i < this.hierarchicalChildrenReference[parentId].length; i++) {
+            this._shiftBlock(this.hierarchicalChildrenReference[parentId][i], diff);
           }
         }
       }
@@ -41346,22 +41425,22 @@ return /******/ (function(modules) { // webpackBootstrap
     }, {
       key: '_findCommonParent',
       value: function _findCommonParent(childA, childB) {
-        var _this7 = this;
+        var _this8 = this;
 
         var parents = {};
         var iterateParents = function iterateParents(parents, child) {
-          if (_this7.hierarchicalChildren[child] !== undefined) {
-            for (var i = 0; i < _this7.hierarchicalChildren[child].parents.length; i++) {
-              var _parent = _this7.hierarchicalChildren[child].parents[i];
+          if (_this8.hierarchicalParentReference[child] !== undefined) {
+            for (var i = 0; i < _this8.hierarchicalParentReference[child].length; i++) {
+              var _parent = _this8.hierarchicalParentReference[child][i];
               parents[_parent] = true;
               iterateParents(parents, _parent);
             }
           }
         };
         var findParent = function findParent(parents, child) {
-          if (_this7.hierarchicalChildren[child] !== undefined) {
-            for (var i = 0; i < _this7.hierarchicalChildren[child].parents.length; i++) {
-              var _parent2 = _this7.hierarchicalChildren[child].parents[i];
+          if (_this8.hierarchicalParentReference[child] !== undefined) {
+            for (var i = 0; i < _this8.hierarchicalParentReference[child].length; i++) {
+              var _parent2 = _this8.hierarchicalParentReference[child][i];
               if (parents[_parent2] !== undefined) {
                 return { foundParent: _parent2, withChild: child };
               }
@@ -41390,6 +41469,7 @@ return /******/ (function(modules) { // webpackBootstrap
       value: function _setPositionForHierarchy(node, position, level) {
         var doNotUpdate = arguments.length <= 3 || arguments[3] === undefined ? false : arguments[3];
 
+        //console.log('_setPositionForHierarchy',node.id, position)
         if (doNotUpdate !== true) {
           if (this.distributionOrdering[level] === undefined) {
             this.distributionOrdering[level] = [];
@@ -41401,27 +41481,6 @@ return /******/ (function(modules) { // webpackBootstrap
             this.distributionIndex[node.id] = this.distributionOrdering[level].length - 1;
           }
           this.distributionOrderingPresence[level][node.id] = true;
-
-          if (this.hierarchicalTrees[node.id] === undefined) {
-            if (this.hierarchicalChildren[node.id] !== undefined) {
-              var tree = 1;
-              // get the lowest tree denominator.
-              for (var i = 0; i < this.hierarchicalChildren[node.id].parents.length; i++) {
-                var parentId = this.hierarchicalChildren[node.id].parents[i];
-                if (this.hierarchicalTrees[parentId] !== undefined) {
-                  //tree = Math.min(tree,this.hierarchicalTrees[parentId]);
-                  tree = this.hierarchicalTrees[parentId];
-                }
-              }
-              //for (let i = 0; i < this.hierarchicalChildren.parents.length; i++) {
-              //  let parentId = this.hierarchicalChildren.parents[i];
-              //  this.hierarchicalTrees[parentId] = tree;
-              //}
-              this.hierarchicalTrees[node.id] = tree;
-            } else {
-              this.hierarchicalTrees[node.id] = ++this.treeIndex;
-            }
-          }
         }
 
         if (this.options.hierarchical.direction === 'UD' || this.options.hierarchical.direction === 'DU') {
@@ -41774,7 +41833,7 @@ return /******/ (function(modules) { // webpackBootstrap
           this.inMode = 'editNode';
           if (typeof this.options.editNode === 'function') {
             if (node.isCluster !== true) {
-              var data = util.deepExtend({}, node.options, true);
+              var data = util.deepExtend({}, node.options, false);
               data.x = node.x;
               data.y = node.y;
 
@@ -42395,6 +42454,11 @@ return /******/ (function(modules) { // webpackBootstrap
           edge.edgeType.to = to;
         }
 
+        // we use the selection to find the node that is being dragged. We explicitly select it here.
+        if (this.selectedControlNode !== undefined) {
+          this.selectionHandler.selectObject(this.selectedControlNode);
+        }
+
         this.body.emitter.emit('_redraw');
       }
 
@@ -42409,7 +42473,6 @@ return /******/ (function(modules) { // webpackBootstrap
         this.body.emitter.emit('disablePhysics');
         var pointer = this.body.functions.getPointer(event.center);
         var pos = this.canvas.DOMtoCanvas(pointer);
-
         if (this.selectedControlNode !== undefined) {
           this.selectedControlNode.x = pos.x;
           this.selectedControlNode.y = pos.y;
@@ -42433,12 +42496,13 @@ return /******/ (function(modules) { // webpackBootstrap
         var pointer = this.body.functions.getPointer(event.center);
         var pointerObj = this.selectionHandler._pointerToPositionObject(pointer);
         var edge = this.body.edges[this.edgeBeingEditedId];
-
         // if the node that was dragged is not a control node, return
         if (this.selectedControlNode === undefined) {
           return;
         }
 
+        // we use the selection to find the node that is being dragged. We explicitly DEselect the control node here.
+        this.selectionHandler.unselectAll();
         var overlappingNodeIds = this.selectionHandler._getAllNodesOverlappingWith(pointerObj);
         var node = undefined;
         for (var i = overlappingNodeIds.length - 1; i >= 0; i--) {
@@ -42447,7 +42511,6 @@ return /******/ (function(modules) { // webpackBootstrap
             break;
           }
         }
-
         // perform the connection
         if (node !== undefined && this.selectedControlNode !== undefined) {
           if (node.isCluster === true) {
@@ -42825,6 +42888,7 @@ return /******/ (function(modules) { // webpackBootstrap
         treeSpacing: { number: number },
         blockShifting: { boolean: boolean },
         edgeMinimization: { boolean: boolean },
+        parentCentralization: { boolean: boolean },
         direction: { string: ['UD', 'DU', 'LR', 'RL'] }, // UD, DU, LR, RL
         sortMethod: { string: ['hubsize', 'directed'] }, // hubsize, directed
         __type__: { object: object, boolean: boolean }
@@ -42918,6 +42982,7 @@ return /******/ (function(modules) { // webpackBootstrap
       shapeProperties: {
         borderDashes: { boolean: boolean, array: array },
         borderRadius: { number: number },
+        interpolation: { boolean: boolean },
         useImageSize: { boolean: boolean },
         useBorderWithImage: { boolean: boolean },
         __type__: { object: object }
@@ -43058,6 +43123,7 @@ return /******/ (function(modules) { // webpackBootstrap
       shapeProperties: {
         borderDashes: false,
         borderRadius: [6, 0, 20, 1],
+        interpolation: true,
         useImageSize: false
       },
       size: [25, 0, 200, 1]
@@ -43128,6 +43194,7 @@ return /******/ (function(modules) { // webpackBootstrap
         treeSpacing: [200, 20, 500, 5],
         blockShifting: true,
         edgeMinimization: true,
+        parentCentralization: true,
         direction: ['UD', 'DU', 'LR', 'RL'], // UD, DU, LR, RL
         sortMethod: ['hubsize', 'directed'] // hubsize, directed
       }

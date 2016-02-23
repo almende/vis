@@ -2,6 +2,35 @@
 http://visjs.org
 
 
+## 2016-02-23, version 4.15.0
+
+### Timeline
+
+- Implemented `currentTimeTick` event (see #1683).
+- Fixed #1630: method `getItemRange` missing in docs.
+
+### Graph2d
+
+- Fixed #1630: method `getDataRange` was wrongly called `getItemRange` in docs.
+- Fixed #1655: use parseFloat instead of Number.parseFloat, as the latter is
+  not supported in IE. Thanks @ttjoseph.
+
+### Graph3d
+
+- Changed the built-in tooltip to show the provided `xLabel`, `yLabel`, and
+  `zLabel` instead of `'x'`, `'y'`, and `'z'`. Thanks @jacklightbody.
+
+### Network
+
+- Implemented interpolation option for interpolation of images, default true.
+- Implemented parentCentralization option for hierarchical layout.
+- Fixed #1635: edges are now referring to the correct points.
+- Fixed #1644, #1631: overlapping nodes in hierarchical layout should no longer occur.
+- Fixed #1575: fixed selection events
+- Fixed #1677: updating groups through manipulation now works as it should.
+- Fixed #1672: Implemented stepped scaling for nice interpolation of images.
+
+
 ## 2016-02-04, version 4.14.0
 
 ### Timeline

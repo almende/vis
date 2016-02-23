@@ -180,6 +180,7 @@ var options = {
     shapeProperties: {
       borderDashes: false, // only for borders
       borderRadius: 6,     // only for box shape
+      interpolation: false,  // only for image and circularImage shapes
       useImageSize: false,  // only for image and circularImage shapes
       useBorderWithImage: false  // only for image shape
     }
@@ -643,6 +644,13 @@ mySize = minSize + diff * scale;
             <td>Number</td>
             <td><code>6</code></td>
             <td>This property is used only for the <code>box</code> shape. It allows you to determine the roundness of the corners of the shape.
+            </td>
+        </tr>
+        <tr parent="shapeProperties" class="hidden">
+            <td class="indent">shapeProperties.interpolation</td>
+            <td>Boolean</td>
+            <td><code>true</code></td>
+            <td>This property only applies to the <code>image</code> and <code>circularImage</code> shapes. When true, the image is resampled when scaled down, resulting in a nicer image at the cost of computional time.</i>
             </td>
         </tr>
         <tr parent="shapeProperties" class="hidden">

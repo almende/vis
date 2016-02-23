@@ -1145,6 +1145,12 @@ function (option, path) {
             </td>
         </tr>
 
+        <tr>
+            <td>getDataRange()</td>
+            <td>Object</td>
+            <td>Get the range of all the items as an object containing <code>min: Date</code> and <code>max: Date</code>.</td>
+        </tr>
+
         <tr id="getEventProperties">
             <td>getEventProperties(event)</td>
             <td>Object</td>
@@ -1175,13 +1181,6 @@ function (option, path) {
             <td>Object</td>
             <td>Get the current visible window. Returns an object with properties <code>start: Date</code> and <code>end: Date</code>.</td>
         </tr>
-
-        <tr>
-            <td>getItemRange()</td>
-            <td>Object</td>
-            <td>Get the range of all the items as an object containing <code>min: Date</code> and <code>max: Date</code>.</td>
-        </tr>
-
 
         <tr>
             <td>isGroupVisible(groupId)</td>
@@ -1305,6 +1304,12 @@ Graph2d.off('rangechanged', onChange);
             <th>Properties</th>
             <th>Description</th>
         </tr>
+
+        <tr>
+            <td>currentTimeTick</td>
+            <td>Fired when the current time bar redraws. The rate depends on the zoom level.</td>
+        </tr>
+
         <tr>
             <td>click</td>
             <td>
