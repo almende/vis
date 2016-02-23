@@ -216,6 +216,10 @@
   items.on('update', console.log.bind(console));
   items.on('remove', console.log.bind(console));
 
+  timeline.on('currentTimeTick', function () {
+    console.log('currentTimeTick')
+  });
+
 
 //  timeline.setOptions({timeAxis:{scale: 'minute', step: 5}})
 </script>
