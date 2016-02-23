@@ -5,7 +5,7 @@
  * A dynamic, browser-based visualization library.
  *
  * @version 4.14.0
- * @date    2016-02-21
+ * @date    2016-02-23
  *
  * @license
  * Copyright (C) 2011-2016 Almende B.V, http://almende.com
@@ -41012,15 +41012,100 @@ return /******/ (function(modules) { // webpackBootstrap
                   pos = this._getPositionForHierarchy(nodeArray[i - 1]) + this.options.hierarchical.nodeSpacing;
                 }
                 this._setPositionForHierarchy(node, pos, level);
-
-                this.positionedNodes[node.id] = true;
-                this._placeBranchNodes(node.id, level);
+                this._validataPositionAndContinue(node, level, pos);
 
                 handledNodeCount++;
               }
             }
           }
         }
+      }
+
+      /**
+       * This is a recursively called function to enumerate the branches from the largest hubs and place the nodes
+       * on a X position that ensures there will be no overlap.
+       *
+       * @param parentId
+       * @param parentLevel
+       * @private
+       */
+    }, {
+      key: '_placeBranchNodes',
+      value: function _placeBranchNodes(parentId, parentLevel) {
+        // if this is not a parent, cancel the placing. This can happen with multiple parents to one child.
+        if (this.hierarchicalChildrenReference[parentId] === undefined) {
+          return;
+        }
+
+        // get a list of childNodes
+        var childNodes = [];
+        for (var i = 0; i < this.hierarchicalChildrenReference[parentId].length; i++) {
+          childNodes.push(this.body.nodes[this.hierarchicalChildrenReference[parentId][i]]);
+        }
+
+        // use the positions to order the nodes.
+        this._sortNodeArray(childNodes);
+
+        // position the childNodes
+        for (var i = 0; i < childNodes.length; i++) {
+          var childNode = childNodes[i];
+          var childNodeLevel = this.hierarchicalLevels[childNode.id];
+          // check if the child node is below the parent node and if it has already been positioned.
+          if (childNodeLevel > parentLevel && this.positionedNodes[childNode.id] === undefined) {
+            // get the amount of space required for this node. If parent the width is based on the amount of children.
+            var pos = undefined;
+
+            // we get the X or Y values we need and store them in pos and previousPos. The get and set make sure we get X or Y
+            if (i === 0) {
+              pos = this._getPositionForHierarchy(this.body.nodes[parentId]);
+            } else {
+              pos = this._getPositionForHierarchy(childNodes[i - 1]) + this.options.hierarchical.nodeSpacing;
+            }
+            this._setPositionForHierarchy(childNode, pos, childNodeLevel);
+            this._validataPositionAndContinue(childNode, childNodeLevel, pos);
+          } else {
+            return;
+          }
+        }
+
+        // center the parent nodes.
+        var minPos = 1e9;
+        var maxPos = -1e9;
+        for (var i = 0; i < childNodes.length; i++) {
+          var childNodeId = childNodes[i].id;
+          minPos = Math.min(minPos, this._getPositionForHierarchy(this.body.nodes[childNodeId]));
+          maxPos = Math.max(maxPos, this._getPositionForHierarchy(this.body.nodes[childNodeId]));
+        }
+        this._setPositionForHierarchy(this.body.nodes[parentId], 0.5 * (minPos + maxPos), parentLevel);
+      }
+
+      /**
+       * This method checks for overlap and if required shifts the branch. It also keeps records of positioned nodes.
+       * Finally it will call _placeBranchNodes to place the branch nodes.
+       * @param node
+       * @param level
+       * @param pos
+       * @private
+       */
+    }, {
+      key: '_validataPositionAndContinue',
+      value: function _validataPositionAndContinue(node, level, pos) {
+        // if overlap has been detected, we shift the branch
+        if (this.lastNodeOnLevel[level] !== undefined) {
+          var previousPos = this._getPositionForHierarchy(this.body.nodes[this.lastNodeOnLevel[level]]);
+          if (pos - previousPos < this.options.hierarchical.nodeSpacing) {
+            var diff = previousPos + this.options.hierarchical.nodeSpacing - pos;
+            var sharedParent = this._findCommonParent(this.lastNodeOnLevel[level], node.id);
+            this._shiftBlock(sharedParent.withChild, diff);
+          }
+        }
+
+        // store change in position.
+        this.lastNodeOnLevel[level] = node.id;
+
+        this.positionedNodes[node.id] = true;
+
+        this._placeBranchNodes(node.id, level);
       }
 
       /**
@@ -41309,80 +41394,6 @@ return /******/ (function(modules) { // webpackBootstrap
       }
 
       /**
-       * This is a recursively called function to enumerate the branches from the largest hubs and place the nodes
-       * on a X position that ensures there will be no overlap.
-       *
-       * @param parentId
-       * @param parentLevel
-       * @private
-       */
-    }, {
-      key: '_placeBranchNodes',
-      value: function _placeBranchNodes(parentId, parentLevel) {
-        // if this is not a parent, cancel the placing. This can happen with multiple parents to one child.
-        if (this.hierarchicalChildrenReference[parentId] === undefined) {
-          return;
-        }
-
-        // get a list of childNodes
-        var childNodes = [];
-        for (var i = 0; i < this.hierarchicalChildrenReference[parentId].length; i++) {
-          childNodes.push(this.body.nodes[this.hierarchicalChildrenReference[parentId][i]]);
-        }
-
-        // use the positions to order the nodes.
-        this._sortNodeArray(childNodes);
-
-        // position the childNodes
-        for (var i = 0; i < childNodes.length; i++) {
-          var childNode = childNodes[i];
-          var childNodeLevel = this.hierarchicalLevels[childNode.id];
-          // check if the child node is below the parent node and if it has already been positioned.
-          if (childNodeLevel > parentLevel && this.positionedNodes[childNode.id] === undefined) {
-            // get the amount of space required for this node. If parent the width is based on the amount of children.
-            var pos = undefined;
-
-            // we get the X or Y values we need and store them in pos and previousPos. The get and set make sure we get X or Y
-            if (i === 0) {
-              pos = this._getPositionForHierarchy(this.body.nodes[parentId]);
-            } else {
-              pos = this._getPositionForHierarchy(childNodes[i - 1]) + this.options.hierarchical.nodeSpacing;
-            }
-            this._setPositionForHierarchy(childNode, pos, childNodeLevel);
-
-            // if overlap has been detected, we shift the branch
-            if (this.lastNodeOnLevel[childNodeLevel] !== undefined) {
-              var previousPos = this._getPositionForHierarchy(this.body.nodes[this.lastNodeOnLevel[childNodeLevel]]);
-              if (pos - previousPos < this.options.hierarchical.nodeSpacing) {
-                var diff = previousPos + this.options.hierarchical.nodeSpacing - pos;
-                var sharedParent = this._findCommonParent(this.lastNodeOnLevel[childNodeLevel], childNode.id);
-                this._shiftBlock(sharedParent.withChild, diff);
-              }
-            }
-
-            // store change in position.
-            this.lastNodeOnLevel[childNodeLevel] = childNode.id;
-
-            this.positionedNodes[childNode.id] = true;
-
-            this._placeBranchNodes(childNode.id, childNodeLevel);
-          } else {
-            return;
-          }
-        }
-
-        // center the parent nodes.
-        var minPos = 1e9;
-        var maxPos = -1e9;
-        for (var i = 0; i < childNodes.length; i++) {
-          var childNodeId = childNodes[i].id;
-          minPos = Math.min(minPos, this._getPositionForHierarchy(this.body.nodes[childNodeId]));
-          maxPos = Math.max(maxPos, this._getPositionForHierarchy(this.body.nodes[childNodeId]));
-        }
-        this._setPositionForHierarchy(this.body.nodes[parentId], 0.5 * (minPos + maxPos), parentLevel);
-      }
-
-      /**
        * Shift a branch a certain distance
        * @param parentId
        * @param diff
@@ -41457,6 +41468,7 @@ return /******/ (function(modules) { // webpackBootstrap
       value: function _setPositionForHierarchy(node, position, level) {
         var doNotUpdate = arguments.length <= 3 || arguments[3] === undefined ? false : arguments[3];
 
+        //console.log('_setPositionForHierarchy',node.id, position)
         if (doNotUpdate !== true) {
           if (this.distributionOrdering[level] === undefined) {
             this.distributionOrdering[level] = [];

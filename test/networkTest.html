@@ -7,7 +7,7 @@
     <link href="../dist/vis.css" rel="stylesheet" type="text/css"/>
     <style type="text/css">
         #network{
-            width: 1900px;
+            width: 1200px;
             height: 800px;
             border: 1px solid lightgray;
         }
@@ -18,228 +18,168 @@
 <div id="network"></div>
 
 <script type="text/javascript">
-    var allNodes;
-    var allEdges;
-    var pathActive = false;
-
-    var nodes = [{
-        id: 1,
-        label: 'test1'
-    }, {
-        id: 2,
-        label: 'test2'
-    }, {
-        id: 3,
-        label: 'test3'
-    }, {
-        id: 4,
-        label: 'test4'
-    }, {
-        id: 5,
-        label: 'test5'
-    }];
-    var edges = [{
-        from: 1,
-        to: 3
-    }, {
-        from: 1,
-        to: 2
-    }, {
-        from: 3,
-        to: 4
-    }, {
-        from: 2,
-        to: 4
-    }, {
-        from: 4,
-        to: 5
-    }]
-
-    var nodesDataset = new vis.DataSet(nodes);
-    var edgesDataset = new vis.DataSet(edges);
-
-    var container = document.getElementById('mynetwork');
-
+    // create a network
+    var container = document.getElementById('network');
     var data = {
-        nodes: nodesDataset,
-        edges: edgesDataset
+        nodes: [{
+            "id": "59acc308-fc78-11e3-a451-005056967662_1",
+            "level": 1,
+            "shape": "box",
+            "label": "737464  (HALB)\nLenks\u00e4ule\n0 | M1182 - TK-PF\n0 | M2676 - TK-PF",
+        }, {
+            "id": "bc5ada61-e297-11e3-a03f-005056967662_2",
+            "level": 2,
+            "shape": "box",
+            "label": "578647 C (HALB)\nF\u00fchrungskasten komplett\n0000 | M2731 - TK-PF",
+        }, {
+            "id": "6f8a780a-e28e-11e3-a03f-005056967662_2",
+            "level": 2,
+            "shape": "box",
+            "label": "615430 C (HALB)\nF\u00fchrungskasten komplett\n0000 | M2781 - TK-PF\n0000 | M2788 - TK-PF",
+        }, {
+            "id": "49bb72b1-e2b2-11e3-a03f-005056967662_2",
+            "level": 2,
+            "shape": "box",
+            "label": "678478 D (HALB)\nF\u00fchrungskasten montiert\n0 | M1085 - TK-PFC",
+        }, {
+            "id": "e7bf7c7e-e28e-11e3-a03f-005056967662_2",
+            "level": 2,
+            "shape": "box",
+            "label": "727672 B (HALB)\nF\u00fchrungskasten komplett\n0 | M9999 - TK-PTH\n0000 | M1155 - TK-PTH",
+        }, {
+            "id": "623e8501-e2e2-11e3-a03f-005056967662_2",
+            "level": 2,
+            "shape": "box",
+            "label": "760550 A (HALB)\nF\u00fchrungskasten komplett\n0000 | M1556 - TK-PHS",
+        }, {
+            "id": "e7c6dcdf-e28e-11e3-a03f-005056967662_2",
+            "level": 2,
+            "shape": "box",
+            "label": "793641 A (HALB)\nF\u00fchrungskasten komplett\n0000 | M1155 - TK-PTH",
+        }, {
+            "id": "623edd04-e2e2-11e3-a03f-005056967662_2",
+            "level": 2,
+            "shape": "box",
+            "label": "802797 A (HALB)\nF\u00fchrungskasten komplett\n0 | M1556 - TK-PHS",
+        }, {
+            "id": "a986a9ab-fc82-11e3-a451-005056967662_2",
+            "level": 2,
+            "shape": "box",
+            "label": "821943  (HALB)\nF\u00fchrungskasten komplett\n0 | M2781 - TK-PF",
+        }, {
+            "id": "c22dda1e-fc84-11e3-a451-005056967662_2",
+            "level": 2,
+            "shape": "box",
+            "label": "821944  (HALB)\nF\u00fchrungskasten komplett\n0 | M2781 - TK-PF",
+        }, {
+            "id": "a05fcb83-29c6-11e4-9203-005056967662_2",
+            "level": 2,
+            "shape": "box",
+            "label": "828431  (HALB)\nF\u00fchrungskasten komplett",
+        }, {
+            "id": "eb9b67b7-6e3f-11e4-9203-005056967662_2",
+            "level": 2,
+            "shape": "box",
+            "label": "829382 A (HALB)\nF\u00fchrungskasten komplett\n0 | M1556 - TK-PHS",
+        }, {
+            "id": "084ec1e3-e447-11e3-a03f-005056967662_3",
+            "level": 3,
+            "shape": "box",
+            "color": "#00ff00",
+            "label": "310759 C (ROH)\nSchr\u00e4gkugellager",
+        }],
+        edges: [{
+            "from": "59acc308-fc78-11e3-a451-005056967662_1",
+            "to": "a986a9ab-fc82-11e3-a451-005056967662_2"
+        }, {
+            "from": "bc5ada61-e297-11e3-a03f-005056967662_2",
+            "to": "084ec1e3-e447-11e3-a03f-005056967662_3"
+        }, {
+            "from": "6f8a780a-e28e-11e3-a03f-005056967662_2",
+            "to": "084ec1e3-e447-11e3-a03f-005056967662_3"
+        }, {
+            "from": "49bb72b1-e2b2-11e3-a03f-005056967662_2",
+            "to": "084ec1e3-e447-11e3-a03f-005056967662_3"
+        }, {
+            "from": "e7bf7c7e-e28e-11e3-a03f-005056967662_2",
+            "to": "084ec1e3-e447-11e3-a03f-005056967662_3"
+        }, {
+            "from": "623e8501-e2e2-11e3-a03f-005056967662_2",
+            "to": "084ec1e3-e447-11e3-a03f-005056967662_3"
+        }, {
+            "from": "e7c6dcdf-e28e-11e3-a03f-005056967662_2",
+            "to": "084ec1e3-e447-11e3-a03f-005056967662_3"
+        }, {
+            "from": "623edd04-e2e2-11e3-a03f-005056967662_2",
+            "to": "084ec1e3-e447-11e3-a03f-005056967662_3"
+        }, {
+            "from": "a986a9ab-fc82-11e3-a451-005056967662_2",
+            "to": "084ec1e3-e447-11e3-a03f-005056967662_3"
+        }, {
+            "from": "c22dda1e-fc84-11e3-a451-005056967662_2",
+            "to": "084ec1e3-e447-11e3-a03f-005056967662_3"
+        }, {
+            "from": "a05fcb83-29c6-11e4-9203-005056967662_2",
+            "to": "084ec1e3-e447-11e3-a03f-005056967662_3"
+        }, {
+            "from": "eb9b67b7-6e3f-11e4-9203-005056967662_2",
+            "to": "084ec1e3-e447-11e3-a03f-005056967662_3"
+        }]
     };
+    var ids = {};
 
+    for ( var i = 0; i < data.nodes.length; i++) {
+        ids[data.nodes[i].id] = i;
+        data.nodes[i].id = i
+        data.nodes[i].label = i
+    }
+
+    for ( var i = 0; i < data.edges.length; i++) {
+        data.edges[i].from = ids[data.edges[i].from]
+        data.edges[i].to = ids[data.edges[i].to]
+    }
     var options = {
-        autoResize: true,
-        height: '100%',
-        width: '100%',
-        nodes: {
-            shape: 'box'
-        },
-        edges: {
-            smooth: {
-                enabled: true,
-                type: "dynamic"
-            },
-        },
+
         layout: {
             hierarchical: {
-                levelSeparation: 220,
-                nodeSpacing: 120,
-                treeSpacing: 100,
-                direction: 'LR',
-                blockShifting: true,
-                sortMethod: 'directed',
-                edgeMinimization: false
-            }
-        },
-        physics: {
-            hierarchicalRepulsion: {
-                centralGravity: 0.5,
-                springLength: 300,
-                springConstant: 0.1,
-                nodeDistance: 150,
-                damping: 0.09
-            },
-        }
-    };
+                //enabled: true,
 
+                nodeSpacing: 100,
+
+                //blockShifting: false,
+                //edgeMinimization: false,
+
+                direction: 'UD',
+                sortMethod: 'directed'
+
+            },
+
+        },
+
+        interaction: {
+            dragNodes: true,
+            hover: true
+        },
+
+        physics: {
+            enabled: false
+        }
+
+    };
     var network = new vis.Network(container, data, options);
 
-    allNodes = nodesDataset.get({
-        returnType: "Object"
+    network.on('click', function(params) {
+        if (params.nodes !== undefined) {
+            var firstNode = params.nodes[0];
+            if (firstNode !== undefined) {
+                var splitted = firstNode.split('_');
+
+                Lisp.request.get('/dataStore/article/detail/id/' + splitted[0]);
+            }
+        }
     });
-    allEdges = edgesDataset.get({
-        returnType: "Object"
-    });
 
-    showPath();
-    showPath();
 
-    function getNodeId(nodeLabels) {
-        var resultArray = [];
-        var unmatchedNodesLabel = [];
-
-        for (var i = 0; i < nodeLabels.length; i++) {
-            for (var nodeId in allNodes) {
-                var matchflag = false;
-
-                if (nodeLabels[i].toUpperCase() === allNodes[nodeId].label.toUpperCase()) {
-                    resultArray.push(allNodes[nodeId].id);
-                    matchflag = true;
-                    break;
-                }
-            }
-
-            if (!matchflag) {
-                console.log('An unmatched nodeLabel exists!' + nodeLabels[i]);
-            }
-        }
-
-        return resultArray;
-    }
-
-    function getLinkedEdge(fromNodeId, toNodeId) {
-        var result;
-
-        if (fromNodeId) {
-            var allLinkedEdges = network.getConnectedEdges(fromNodeId);
-
-            for (var i = 0; i < allLinkedEdges.length; i++) {
-                var linkedNodes = network.getConnectedNodes(allLinkedEdges[i]);
-
-                for (var j = 0; j < linkedNodes.length; j++) {
-                    if (toNodeId === linkedNodes[j]) {
-                        result = allLinkedEdges[i];
-                        if (j == 0) {
-                            if (allEdges[allLinkedEdges[i]].arrows === undefined) {
-                                allEdges[allLinkedEdges[i]].arrows = 'from';
-                            } else {
-                                allEdges[allLinkedEdges[i]].arrows = 'to;from';
-                            }
-                        } else {
-                            if (allEdges[allLinkedEdges[i]].arrows === undefined) {
-                                allEdges[allLinkedEdges[i]].arrows = 'to';
-                            } else {
-                                allEdges[allLinkedEdges[i]].arrows = 'to;from';
-                            }
-                        }
-                        break;
-                    }
-                }
-            }
-        }
-
-        return result;
-    }
-
-    function updateNodesEdges() {
-        // update nodes and edges
-        var updateNodes = [];
-        var updateEdges = [];
-
-        for (var nodeId in allNodes) {
-            if (allNodes.hasOwnProperty(nodeId)) {
-                updateNodes.push(allNodes[nodeId]);
-            }
-        }
-
-        for (var edgeId in allEdges) {
-            if (allEdges.hasOwnProperty(edgeId)) {
-                updateEdges.push(allEdges[edgeId]);
-            }
-        }
-
-        nodesDataset.update(updateNodes);
-        edgesDataset.update(updateEdges);
-    }
-
-    function showPath() {
-        // Test values
-        var pathData = 'test1,test3,test4,test5';
-        var nodesOrder = pathData.split(',');
-
-        var orderedNodeId = getNodeId(nodesOrder);
-
-        if (orderedNodeId.length > 0) {
-            pathActive = true;
-
-            // mark all nodes as hard to read
-            for (var nodeId in allNodes) {
-                allNodes[nodeId].color = 'rgba(200,200,200,0.5)';
-            }
-
-            // mark all edges as hard to read
-            for (var edgeId in allEdges) {
-                allEdges[edgeId].color = 'rgba(200,200,200,0.5)';
-            }
-
-            // the selected nodes and edges get its own color and its label back.
-            for (var i = 0; i < orderedNodeId.length; i++) {
-                allNodes[orderedNodeId[i]].color = undefined;
-
-                // linked edge
-                if (i < orderedNodeId.length) {
-                    var linkedEdge = getLinkedEdge(orderedNodeId[i], orderedNodeId[i + 1]);
-
-                    if (linkedEdge) {
-                        allEdges[linkedEdge].color = undefined;
-                    }
-                }
-            }
-
-            updateNodesEdges();
-        }
-
-        // reset all nodes
-        for (var nodeId in allNodes) {
-            allNodes[nodeId].color = undefined;
-        }
-
-        // reset all edges <--- it does NOT work! although edge's color undfined!
-        for (var edgeId in allEdges) {
-            allEdges[edgeId].color = null;
-            allEdges[edgeId].arrows = null;
-        }
-
-        updateNodesEdges();
-    }
 
 </script>
 </body>
