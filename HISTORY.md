@@ -6,6 +6,7 @@ http://visjs.org
 
 ### Timeline
 
+- Implemented `currentTimeTick` event (see #1683).
 - Fixed #1630: method `getItemRange` missing in docs.
 
 ### Graph2d
