@@ -2,6 +2,13 @@
 http://visjs.org
 
 
+## not-yet-released, version 4.15.1
+
+### Graph2d
+
+- Fixed #1692: Error when y-axis values are equal.
+
+
 ## 2016-02-23, version 4.15.0
 
 ### Timeline
