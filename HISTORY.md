@@ -8,6 +8,11 @@ http://visjs.org
 
 - Fixed #1692: Error when y-axis values are equal.
 
+### Timeline
+
+- Fixed #1695: Item line and dot not correctly reckoning with the line width
+  when using left or right align.
+
 
 ## 2016-02-23, version 4.15.0
 
