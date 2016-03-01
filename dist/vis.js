@@ -5,7 +5,7 @@
  * A dynamic, browser-based visualization library.
  *
  * @version 4.14.0
- * @date    2016-02-23
+ * @date    2016-03-01
  *
  * @license
  * Copyright (C) 2011-2016 Almende B.V, http://almende.com
@@ -37331,6 +37331,7 @@ return /******/ (function(modules) { // webpackBootstrap
       this.resizeTimer = undefined;
       this.resizeFunction = this._onResize.bind(this);
       this.cameraState = {};
+      this.initialized = false;
 
       this.options = {};
       this.defaultOptions = {
@@ -37413,10 +37414,15 @@ return /******/ (function(modules) { // webpackBootstrap
       value: function _getCameraState() {
         var pixelRatio = arguments.length <= 0 || arguments[0] === undefined ? this.pixelRatio : arguments[0];
 
-        this.cameraState.previousWidth = this.frame.canvas.width / pixelRatio;
-        this.cameraState.previousHeight = this.frame.canvas.height / pixelRatio;
-        this.cameraState.scale = this.body.view.scale;
-        this.cameraState.position = this.DOMtoCanvas({ x: 0.5 * this.frame.canvas.width / pixelRatio, y: 0.5 * this.frame.canvas.height / pixelRatio });
+        if (this.initialized === true) {
+          this.cameraState.previousWidth = this.frame.canvas.width / pixelRatio;
+          this.cameraState.previousHeight = this.frame.canvas.height / pixelRatio;
+          this.cameraState.scale = this.body.view.scale;
+          this.cameraState.position = this.DOMtoCanvas({
+            x: 0.5 * this.frame.canvas.width / pixelRatio,
+            y: 0.5 * this.frame.canvas.height / pixelRatio
+          });
+        }
       }
 
       /**
@@ -37655,6 +37661,8 @@ return /******/ (function(modules) { // webpackBootstrap
           this._setCameraState();
         }
 
+        // set initialized so the get and set camera will work from now on.
+        this.initialized = true;
         return emitEvent;
       }
     }, {

@@ -20,164 +20,41 @@
 <script type="text/javascript">
     // create a network
     var container = document.getElementById('network');
+    var nodes = new vis.DataSet([]);
+    var edges = new vis.DataSet([]);
+
+    // create a network
     var data = {
-        nodes: [{
-            "id": "59acc308-fc78-11e3-a451-005056967662_1",
-            "level": 1,
-            "shape": "box",
-            "label": "737464  (HALB)\nLenks\u00e4ule\n0 | M1182 - TK-PF\n0 | M2676 - TK-PF",
-        }, {
-            "id": "bc5ada61-e297-11e3-a03f-005056967662_2",
-            "level": 2,
-            "shape": "box",
-            "label": "578647 C (HALB)\nF\u00fchrungskasten komplett\n0000 | M2731 - TK-PF",
-        }, {
-            "id": "6f8a780a-e28e-11e3-a03f-005056967662_2",
-            "level": 2,
-            "shape": "box",
-            "label": "615430 C (HALB)\nF\u00fchrungskasten komplett\n0000 | M2781 - TK-PF\n0000 | M2788 - TK-PF",
-        }, {
-            "id": "49bb72b1-e2b2-11e3-a03f-005056967662_2",
-            "level": 2,
-            "shape": "box",
-            "label": "678478 D (HALB)\nF\u00fchrungskasten montiert\n0 | M1085 - TK-PFC",
-        }, {
-            "id": "e7bf7c7e-e28e-11e3-a03f-005056967662_2",
-            "level": 2,
-            "shape": "box",
-            "label": "727672 B (HALB)\nF\u00fchrungskasten komplett\n0 | M9999 - TK-PTH\n0000 | M1155 - TK-PTH",
-        }, {
-            "id": "623e8501-e2e2-11e3-a03f-005056967662_2",
-            "level": 2,
-            "shape": "box",
-            "label": "760550 A (HALB)\nF\u00fchrungskasten komplett\n0000 | M1556 - TK-PHS",
-        }, {
-            "id": "e7c6dcdf-e28e-11e3-a03f-005056967662_2",
-            "level": 2,
-            "shape": "box",
-            "label": "793641 A (HALB)\nF\u00fchrungskasten komplett\n0000 | M1155 - TK-PTH",
-        }, {
-            "id": "623edd04-e2e2-11e3-a03f-005056967662_2",
-            "level": 2,
-            "shape": "box",
-            "label": "802797 A (HALB)\nF\u00fchrungskasten komplett\n0 | M1556 - TK-PHS",
-        }, {
-            "id": "a986a9ab-fc82-11e3-a451-005056967662_2",
-            "level": 2,
-            "shape": "box",
-            "label": "821943  (HALB)\nF\u00fchrungskasten komplett\n0 | M2781 - TK-PF",
-        }, {
-            "id": "c22dda1e-fc84-11e3-a451-005056967662_2",
-            "level": 2,
-            "shape": "box",
-            "label": "821944  (HALB)\nF\u00fchrungskasten komplett\n0 | M2781 - TK-PF",
-        }, {
-            "id": "a05fcb83-29c6-11e4-9203-005056967662_2",
-            "level": 2,
-            "shape": "box",
-            "label": "828431  (HALB)\nF\u00fchrungskasten komplett",
-        }, {
-            "id": "eb9b67b7-6e3f-11e4-9203-005056967662_2",
-            "level": 2,
-            "shape": "box",
-            "label": "829382 A (HALB)\nF\u00fchrungskasten komplett\n0 | M1556 - TK-PHS",
-        }, {
-            "id": "084ec1e3-e447-11e3-a03f-005056967662_3",
-            "level": 3,
-            "shape": "box",
-            "color": "#00ff00",
-            "label": "310759 C (ROH)\nSchr\u00e4gkugellager",
-        }],
-        edges: [{
-            "from": "59acc308-fc78-11e3-a451-005056967662_1",
-            "to": "a986a9ab-fc82-11e3-a451-005056967662_2"
-        }, {
-            "from": "bc5ada61-e297-11e3-a03f-005056967662_2",
-            "to": "084ec1e3-e447-11e3-a03f-005056967662_3"
-        }, {
-            "from": "6f8a780a-e28e-11e3-a03f-005056967662_2",
-            "to": "084ec1e3-e447-11e3-a03f-005056967662_3"
-        }, {
-            "from": "49bb72b1-e2b2-11e3-a03f-005056967662_2",
-            "to": "084ec1e3-e447-11e3-a03f-005056967662_3"
-        }, {
-            "from": "e7bf7c7e-e28e-11e3-a03f-005056967662_2",
-            "to": "084ec1e3-e447-11e3-a03f-005056967662_3"
-        }, {
-            "from": "623e8501-e2e2-11e3-a03f-005056967662_2",
-            "to": "084ec1e3-e447-11e3-a03f-005056967662_3"
-        }, {
-            "from": "e7c6dcdf-e28e-11e3-a03f-005056967662_2",
-            "to": "084ec1e3-e447-11e3-a03f-005056967662_3"
-        }, {
-            "from": "623edd04-e2e2-11e3-a03f-005056967662_2",
-            "to": "084ec1e3-e447-11e3-a03f-005056967662_3"
-        }, {
-            "from": "a986a9ab-fc82-11e3-a451-005056967662_2",
-            "to": "084ec1e3-e447-11e3-a03f-005056967662_3"
-        }, {
-            "from": "c22dda1e-fc84-11e3-a451-005056967662_2",
-            "to": "084ec1e3-e447-11e3-a03f-005056967662_3"
-        }, {
-            "from": "a05fcb83-29c6-11e4-9203-005056967662_2",
-            "to": "084ec1e3-e447-11e3-a03f-005056967662_3"
-        }, {
-            "from": "eb9b67b7-6e3f-11e4-9203-005056967662_2",
-            "to": "084ec1e3-e447-11e3-a03f-005056967662_3"
-        }]
+        nodes: nodes,
+        edges: edges
     };
-    var ids = {};
-
-    for ( var i = 0; i < data.nodes.length; i++) {
-        ids[data.nodes[i].id] = i;
-        data.nodes[i].id = i
-        data.nodes[i].label = i
-    }
-
-    for ( var i = 0; i < data.edges.length; i++) {
-        data.edges[i].from = ids[data.edges[i].from]
-        data.edges[i].to = ids[data.edges[i].to]
-    }
+//    data.nodes.update({id: 0, label: 'node 1'});
+    var fontFace = 'roboto,"helvetica neue","segoe ui",arial,helvetica,sans-serif';
     var options = {
-
-        layout: {
-            hierarchical: {
-                //enabled: true,
-
-                nodeSpacing: 100,
-
-                //blockShifting: false,
-                //edgeMinimization: false,
-
-                direction: 'UD',
-                sortMethod: 'directed'
-
-            },
-
-        },
-
+        autoResize: true,
         interaction: {
-            dragNodes: true,
             hover: true
         },
-
-        physics: {
-            enabled: false
+        width: '100%',
+        height: '400px',
+        nodes: {
+            shape: 'dot',
+            font: {
+                size: 13,
+                face: fontFace,
+                strokeColor: '#fff',
+                strokeWidth: 5
+            }
         }
-
     };
     var network = new vis.Network(container, data, options);
 
-    network.on('click', function(params) {
-        if (params.nodes !== undefined) {
-            var firstNode = params.nodes[0];
-            if (firstNode !== undefined) {
-                var splitted = firstNode.split('_');
+    function info(s) {
+        document.getElementById('num').innerText += s + '\n';
+    }
 
-                Lisp.request.get('/dataStore/article/detail/id/' + splitted[0]);
-            }
-        }
-    });
+
+
 
 
 
