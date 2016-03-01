@@ -2,7 +2,19 @@
 http://visjs.org
 
 
-## not yet released, version 4.14.1
+## not-yet-released, version 4.15.1
+
+### Graph2d
+
+- Fixed #1692: Error when y-axis values are equal.
+
+### Timeline
+
+- Fixed #1695: Item line and dot not correctly reckoning with the line width
+  when using left or right align.
+
+
+## 2016-02-23, version 4.15.0
 
 ### Timeline
 
@@ -17,18 +29,19 @@ http://visjs.org
 
 ### Graph3d
 
-- The built-in tooltip now shows the provided `xLabel`, `yLabel`, and `zLabel`
-  instead of `'x'`, `'y'`, and `'z'`. Thanks @jacklightbody.
+- Changed the built-in tooltip to show the provided `xLabel`, `yLabel`, and
+  `zLabel` instead of `'x'`, `'y'`, and `'z'`. Thanks @jacklightbody.
 
 ### Network
 
+- Implemented interpolation option for interpolation of images, default true.
+- Implemented parentCentralization option for hierarchical layout.
 - Fixed #1635: edges are now referring to the correct points.
 - Fixed #1644, #1631: overlapping nodes in hierarchical layout should no longer occur.
-- Added parentCentralization option for hierarchical layout.
 - Fixed #1575: fixed selection events
 - Fixed #1677: updating groups through manipulation now works as it should.
 - Fixed #1672: Implemented stepped scaling for nice interpolation of images.
-- Added interpolation option for interpolation of images, default true.
+
 
 ## 2016-02-04, version 4.14.0
 
