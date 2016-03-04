@@ -20,6 +20,7 @@ http://visjs.org
 
 - Implemented `currentTimeTick` event (see #1683).
 - Fixed #1630: method `getItemRange` missing in docs.
+- Fixed #1455: allow vertical panning of the web page on touch devices.
 
 ### Graph2d
 
