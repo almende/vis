@@ -132,13 +132,13 @@ gulp.task('bundle-css', ['clean'], function () {
 });
 
 gulp.task('copy', ['clean'], function () {
-  var network = gulp.src('./lib/network/img/**/*')
+    var network = gulp.src('./lib/network/img/**/*')
       .pipe(gulp.dest(DIST + '/img/network'));
 
-  var timeline = gulp.src('./lib/timeline/img/**/*')
+    var timeline = gulp.src('./lib/timeline/img/**/*')
       .pipe(gulp.dest(DIST + '/img/timeline'));
 
-  return merge(network, timeline);
+    return merge(network, timeline);
 });
 
 gulp.task('minify', ['bundle-js'], function (cb) {
@@ -148,7 +148,7 @@ gulp.task('minify', ['bundle-js'], function (cb) {
   //       any issues when concatenating the file downstream (the file ends
   //       with a comment).
   fs.writeFileSync(DIST + '/' + VIS_MIN_JS, result.code + '\n');
-  fs.writeFileSync(DIST + '/' + VIS_MAP, result.map);
+  fs.writeFileSync(DIST + '/' + VIS_MAP, result.map.replace(/"\.\/dist\//g, '"'));
 
   cb();
 });

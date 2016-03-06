@@ -115,7 +115,7 @@
   <h2 id="Example">Example</h2>
   <p>
     The following code shows how to create a Timeline and provide it with data.
-    More examples can be found in the <a href="../examples">examples</a> directory.
+    More examples can be found in the <a href="../../timeline_examples.html">timeline examples</a> page.
   </p>
 
 <pre class="prettyprint lang-html">&lt;!DOCTYPE HTML&gt;
@@ -666,6 +666,14 @@ function (option, path) {
         and set repeat to weekly.
       </td>
     </tr>
+
+    <tr>
+      <td>itemsAlwaysDraggable</td>
+      <td>boolean</td>
+      <td><code>false</code></td>
+      <td>If true, all items in the Timeline are draggable without being selected. If false, only the selected item(s) are draggable.</td>
+    </tr>
+
     <tr>
       <td>locale</td>
       <td>String</td>
@@ -735,6 +743,16 @@ function (option, path) {
     </tr>
 
     <tr>
+      <td>maxMinorChars</td>
+      <td>number</td>
+      <td>7</td>
+      <td>
+        Specifies the maximum number of characters that should fit in minor grid labels.
+        If larger, less and wider grids will be drawn.
+      </td>
+    </tr>
+
+    <tr>
       <td>min</td>
       <td>Date or Number or String or Moment</td>
       <td>none</td>
@@ -767,6 +785,16 @@ function (option, path) {
       <td>
         If true, multiple items can be selected using ctrl+click, shift+click, or by holding items.
         Only applicable when option <code>selectable</code> is <code>true</code>.
+      </td>
+    </tr>
+    
+    <tr>
+      <td style="font-size: 0.9em">multiselectPerGroup</td>
+      <td>boolean</td>
+      <td><code>false</code></td>
+      <td>
+        If true, selecting multiple items using shift+click will only select items residing in the same group as the <i>first</i> selected item.
+        Only applicable when option <code>selectable</code> and <code>multiselect</code> are <code>true</code>.
       </td>
     </tr>
 
@@ -1123,6 +1151,12 @@ document.getElementById('myTimeline').onclick = function (event) {
     </tr>
 
     <tr>
+      <td>getItemRange()</td>
+      <td>Object</td>
+      <td>Get the range of all the items as an object containing <code>min: Date</code> and <code>max: Date</code>.</td>
+    </tr>
+
+    <tr>
       <td>getSelection()</td>
       <td>number[]</td>
       <td>Get an array with the ids of the currently selected items.</td>
@@ -1193,6 +1227,15 @@ document.getElementById('myTimeline').onclick = function (event) {
       <td>Adjust the time of a custom time bar.
         Parameter <code>time</code> can be a Date object, numeric timestamp, or ISO date string.
         Parameter <code>id</code> is the idof the custom time bar, and is <code>undefined</code> by default.
+      </td>
+    </tr>
+
+    <tr>
+      <td>setCustomTimeTitle(title [, id])</td>
+      <td>none</td>
+      <td>Adjust the title attribute of a custom time bar.
+        Parameter <code>title</code> is the string to be set as title. Use empty string to hide the title completely.
+        Parameter <code>id</code> is the id of the custom time bar, and is <code>undefined</code> by default.
       </td>
     </tr>
 
@@ -1306,6 +1349,11 @@ timeline.off('select', onSelect);
     </tr>
 
     <tr>
+      <td>currentTimeTick</td>
+      <td>Fired when the current time bar redraws. The rate depends on the zoom level.</td>
+    </tr>
+
+    <tr>
       <td>click</td>
       <td>
         Passes a properties object as returned by the method <a href="#getEventProperties"><code>Timeline.getEventProperties(event)</code></a>.
@@ -1344,8 +1392,16 @@ timeline.off('select', onSelect);
       </td>
       <td>Fired after the dragging of a group is finished.
       </td>
-    </tr>    
+    </tr>
 
+    <tr>
+      <td>changed</td>
+      <td>
+        Has no properties.
+      </td>
+      <td>Fired once after each graph redraw.
+      </td>
+    </tr>
     <tr>
       <td>rangechange</td>
       <td>
@@ -1492,7 +1548,7 @@ var items = new vis.DataSet([
 };
 </pre>
 
-  A full example is available here: <a href="../../examples/timeline/08_manipulation_callbacks.html">08_manipulation_callbacks.html</a>.
+  A full example is available here: <a href="../../examples/timeline/editing/editingItemsCallbacks.html">editingItemsCallbacks.html</a>.
 
 
   <h2 id="Templates">Templates</h2>

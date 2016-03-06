@@ -333,59 +333,55 @@ network.setOptions(options);
             <tr><td id="event_clickToUse">clickToUse</td>
                 <td>Boolean</td>
                 <td>false</td>
-                <td>Locales object. By default only <code>'en'</code>, <code>'de'</code>, <code>'es'</code> and <code>'nl'</code> are supported. Take a look
-                    at
-                    the <a href="#locales" data-scroll=""
-                           data-options="{ &quot;easing&quot;: &quot;easeInCubic&quot; }">locales
-                        section below</a> for more explaination on how to customize this.
+                <td>When a Network is configured to be <code>clickToUse</code>, it will react to mouse and touch events only when active. When active, a blue shadow border is displayed around the Network. The network is set active by clicking on it, and is changed to inactive again by clicking outside the Network or by pressing the ESC key.
                 </td>
             </tr>
             <tr><td id="event_configure">configure</td>
                 <td>Object</td>
                 <td>Object</td>
-                <td href="./configure.html">All options in this object are explained in the configure module.</a>
+                <td>All options in this object are explained in the <a href="./configure.html">configure module</a>.
                 </td>
             </tr>
             <tr><td id="event_edges">edges</td>
                 <td>Object</td>
                 <td>Object</td>
-                <td href="./edges.html">All options in this object are explained in the edges module.</a>
+                <td>All options in this object are explained in the <a href="./edges.html">edges module</a>.
                 </td>
             </tr>
             <tr><td id="event_nodes">nodes</td>
                 <td>Object</td>
                 <td>Object</td>
-                <td href="./nodes.html">All options in this object are explained in the nodes module.</a>
+                <td>All options in this object are explained in the <a href="./nodes.html">nodes module</a>.
                 </td>
             </tr>
             <tr><td id="event_groups">groups</td>
                 <td>Object</td>
                 <td>Object</td>
-                <td href="./groups.html">All options in this object are explained in the groups module.</a>
+                <td>All options in this object are explained in the <a href="./groups.html">groups module</a>.
                 </td>
             </tr>
             <tr><td id="event_layout">layout</td>
                 <td>Object</td>
                 <td>Object</td>
-                <td href="./layout.html">All options in this object are explained in the layout module.</a>
+                <td>All options in this object are explained in the <a href="./layout.html">layout module</a>.
                 </td>
             </tr>
             <tr><td id="event_interaction">interaction</td>
                 <td>Object</td>
                 <td>Object</td>
-                <td href="./interaction.html">All options in this object are explained in the interaction module.</a>
+                <td>All options in this object are explained in the <a href="./interaction.html">interaction module</a>.
                 </td>
             </tr>
             <tr><td id="event_manipulation">manipulation</td>
                 <td>Object</td>
                 <td>Object</td>
-                <td href="./manipulation.html">All options in this object are explained in the manipulation module.</a>
+                <td>All options in this object are explained in the <a href="./manipulation.html">manipulation module</a>.
                 </td>
             </tr>
             <tr><td id="event_physics">physics</td>
                 <td>Object</td>
                 <td>Object</td>
-                <td href="./physics.html">All options in this object are explained in the physics module.</a>
+                <td>All options in this object are explained in the <a href="./physics.html">physics module</a>.
                 </td>
             </tr>
         </table>
@@ -944,6 +940,28 @@ function releaseFunction (clusterPosition, containedNodesPositions) {
                     before selecting its own objects. <i>Does not fire events</i>.
                 </td>
             </tr>
+            <tr class="collapsible toggle" onclick="toggleTable('methodTable','setSelection', this);">
+                <td colspan="2"><span parent="setSelection" class="right-caret" id="method_setSelection"></span> setSelection(
+                  <code>Object selection</code>, 
+                  <code>[Object options]</code>)</td>
+            </tr>
+            <tr class="hidden" parent="setSelection">
+                <td class="midMethods">Returns: none</td>
+                <td>Sets the selection, wich must be an object like this:
+            <pre class="code">
+{
+  nodes: [Array of nodeIds],
+  edges: [Array of edgeIds]
+}</pre>
+                  You can also pass only <code>nodes</code> or <code>edges</code> in <code>selection</code> object.
+                  Available options are:
+                  <pre class="code">
+{
+  unselectAll: Boolean,
+  highlightEdges: Boolean
+}</pre>
+                </td>
+            </tr>
             <tr class="collapsible toggle" onclick="toggleTable('methodTable','unselectAll', this);">
                 <td colspan="2"><span parent="unselectAll" class="right-caret" id="method_unselectAll"></span> unselectAll()</td>
             </tr>
@@ -968,8 +986,8 @@ function releaseFunction (clusterPosition, containedNodesPositions) {
                 <td colspan="2"><span parent="clusterByHubsize" class="right-caret" id="method_getViewPosition"></span> getViewPosition()</td>
             </tr>
             <tr class="hidden" parent="clusterByHubsize">
-                <td class="midMethods">Returns: Number</td>
-                <td>Returns the current central focus point of the view.</td>
+                <td class="midMethods">Returns: Object</td>
+                <td>Returns the current central focus point of the view in the form: <code>{ x: {Number}, y: {Number} }</code></td>
             </tr>
 
             <tr class="collapsible toggle" onclick="toggleTable('methodTable','fit', this);">
@@ -1301,19 +1319,19 @@ var options = {
             </tr>
             <tr><td id="event_hoverNode">hoverNode</td>
                 <td><code>{node: nodeId}</code></td>
-                <td>Fired interaction:{hover:true} and the mouse hovers over a node.</td>
+                <td>Fired if the option <code>interaction:{hover:true}</code> is enabled and the mouse hovers over a node.</td>
             </tr>
             <tr><td id="event_blurNode">blurNode</td>
                 <td><code>{node: nodeId}</code></td>
-                <td>Fired interaction:{hover:true} and the mouse moved away from a node it was hovering over before.</td>
+                <td>Fired if the option <code>interaction:{hover:true}</code> is enabled and the mouse moved away from a node it was hovering over before.</td>
             </tr>
             <tr><td id="event_hoverEdge">hoverEdge</td>
                 <td><code>{edge: edgeId}</code></td>
-                <td>Fired interaction:{hover:true} and the mouse hovers over an edge.</td>
+                <td>Fired if the option <code>interaction:{hover:true}</code> is enabled and the mouse hovers over an edge.</td>
             </tr>
             <tr><td id="event_blurEdge">blurEdge</td>
                 <td><code>{edge: edgeId}</code></td>
-                <td>Fired interaction:{hover:true} and the mouse moved away from an edge it was hovering over before.</td>
+                <td>Fired if the option <code>interaction:{hover:true}</code> is enabled and the mouse moved away from an edge it was hovering over before.</td>
             </tr>
             <tr><td id="event_zoom">zoom</td>
                 <td><code>{direction:'+'/'-', scale: Number}</code></td>

@@ -79,7 +79,8 @@
                         <select id="fill" onchange="updateStyle()">
                             <option value="">none</option>
                             <option value="top">top</option>
-                            <option value="bottom" selected="selected">bottom</option>
+                            <option value="bottom">bottom</option>
+                            <option value="zero" selected="selected">zero</option>
                         </select>
                     </td>
                 </tr>
@@ -98,16 +99,16 @@
                     <td>Fill Opacity</td>
                     <td>
                         <select id="fillopacity" onchange="updateStyle()">
-                            <option value="opacity:0.1;">0.1</option>
-                            <option value="opacity:0.2;">0.2</option>
-                            <option value="opacity:0.3;">0.3</option>
-                            <option value="opacity:0.4;">0.4</option>
-                            <option value="opacity:0.5;">0.5</option>
-                            <option value="opacity:0.6;" selected="selected">0.6</option>
-                            <option value="opacity:0.7;">0.7</option>
-                            <option value="opacity:0.8;">0.8</option>
-                            <option value="opacity:0.9;">0.9</option>
-                            <option value="opacity:1;">1</option>
+                            <option value="fill-opacity:0.1;">0.1</option>
+                            <option value="fill-opacity:0.2;">0.2</option>
+                            <option value="fill-opacity:0.3;">0.3</option>
+                            <option value="fill-opacity:0.4;">0.4</option>
+                            <option value="fill-opacity:0.5;">0.5</option>
+                            <option value="fill-opacity:0.6;" selected="selected">0.6</option>
+                            <option value="fill-opacity:0.7;">0.7</option>
+                            <option value="fill-opacity:0.8;">0.8</option>
+                            <option value="fill-opacity:0.9;">0.9</option>
+                            <option value="fill-opacity:1;">1</option>
                         </select>
                     </td>
                 </tr>
@@ -187,7 +188,7 @@
         {x: '2014-06-11', y: 10, group: 0},
         {x: '2014-06-12', y: 25, group: 0},
         {x: '2014-06-13', y: 30, group: 0},
-        {x: '2014-06-14', y: 10, group: 0},
+        {x: '2014-06-14', y: -10, group: 0},
         {x: '2014-06-15', y: 15, group: 0},
         {x: '2014-06-16', y: 30, group: 0}
     ];
@@ -210,7 +211,7 @@
                 style: 'square' // square, circle
             },
             shaded: {
-                orientation: 'bottom' // top, bottom
+                orientation: 'zero' // top, bottom
             }
         }
     };

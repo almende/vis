@@ -188,6 +188,10 @@
             var allOptions = vis.network.allOptions.allOptions;
             var testOptions = {};
             constructOptions(allOptions, testOptions);
+            if (testOptions.physics === undefined) {testOptions.physics = {};}
+            if (testOptions.layout === undefined) {testOptions.layout = {};}
+            testOptions.physics.enabled = true;
+            testOptions.layout.improvedLayout = false;
             var failed = setTimeout(function () {
                 console.error("FAILED", JSON.stringify(testOptions, null, 4))
             }, 500);
@@ -211,6 +215,7 @@
                 setTimeout(checkOptions, 100);
             })
             console.log("now testing:",testOptions)
+
             network.setOptions(testOptions);
         }
     }

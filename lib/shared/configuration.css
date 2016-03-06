@@ -10,6 +10,11 @@ div.vis-configuration-wrapper {
     width:700px;
 }
 
+div.vis-configuration-wrapper::after {
+  clear: both;
+  content: "";
+  display: block;
+}
 
 div.vis-configuration.vis-config-option-container{
     display:block;
@@ -111,7 +116,7 @@ input.vis-configuration.vis-config-rangeinput{
     position:relative;
     top:-5px;
     width:60px;
-    height:13px;
+    /*height:13px;*/
     padding:1px;
     margin:0;
     pointer-events:none;

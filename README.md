@@ -22,15 +22,13 @@ The vis.js library is developed by [Almende B.V](http://almende.com).
 
 Install via npm:
 
-    npm install vis
+    $ npm install vis
 
 Install via bower:
 
-    bower install vis
+    $ bower install vis
 
-Link via cdnjs:
-
-    http://cdnjs.com
+Link via cdnjs: http://cdnjs.com
 
 Or download the library from the github project:
 [https://github.com/almende/vis.git](https://github.com/almende/vis.git).
@@ -126,28 +124,28 @@ of the project.
 
 To build the library from source, clone the project from github
 
-    git clone git://github.com/almende/vis.git
+    $ git clone git://github.com/almende/vis.git
 
 The source code uses the module style of node (require and module.exports) to
 organize dependencies. To install all dependencies and build the library, 
 run `npm install` in the root of the project.
 
-    cd vis
-    npm install
+    $ cd vis
+    $ npm install
 
 Then, the project can be build running:
 
-    npm run build
+    $ npm run build
 
 To automatically rebuild on changes in the source files, once can use
 
-    npm run watch
+    $ npm run watch
 
 This will both build and minify the library on changes. Minifying is relatively
 slow, so when only the non-minified library is needed, one can use the 
 `watch-dev` script instead:
 
-    npm run watch-dev
+    $ npm run watch-dev
 
 
 ## Custom builds
@@ -163,10 +161,25 @@ The source code of vis.js consists of commonjs modules, which makes it possible 
 
 Before you can do a build:
 
-- Install node.js, npm, browserify, and uglify-js on your system.
-- Download or clone the vis.js project.
-- Install the dependencies of vis.js by running `npm install` in the root of the project.
+- Install node.js and npm on your system: https://nodejs.org/
+- Install the following modules using npm: `browserify`, `babelify`, and `uglify-js`:
+ 
+  ```
+  $ [sudo] npm install -g browserify babelify uglify-js
+  ```
+ 
+- Download or clone the vis.js project:
 
+  ```
+  $ git clone https://github.com/almende/vis.git
+  ```
+
+- Install the dependencies of vis.js by running `npm install` in the root of the project:
+
+  ```
+  $ cd vis
+  $ npm install
+  ```
 
 #### Example 1: Bundle a single visualization
 
@@ -177,13 +190,13 @@ exports.DataSet = require('./lib/DataSet');
 exports.Timeline = require('./lib/timeline/Timeline');
 ```
 
-Install browserify globally via `[sudo] npm install -g browserify`, then create a custom bundle like:
+Then create a custom bundle using browserify, like:
 
-    browserify custom.js -t babelify -o vis-custom.js -s vis
+    $ browserify custom.js -t babelify -o vis-custom.js -s vis
 
-This will generate a custom bundle *vis-custom.js*, which exposes the namespace `vis` containing only `DataSet` and `Timeline`. The generated bundle can be minified with uglifyjs (installed globally with `[sudo] npm install -g uglify-js`):
+This will generate a custom bundle *vis-custom.js*, which exposes the namespace `vis` containing only `DataSet` and `Timeline`. The generated bundle can be minified using uglifyjs:
 
-    uglifyjs vis-custom.js -o vis-custom.min.js
+    $ uglifyjs vis-custom.js -o vis-custom.min.js
 
 The custom bundle can now be loaded like:
 
@@ -204,11 +217,11 @@ The custom bundle can now be loaded like:
 
 The default bundle `vis.js` is standalone and includes external dependencies such as hammer.js and moment.js. When these libraries are already loaded by the application, vis.js does not need to include these dependencies itself too. To build a custom bundle of vis.js excluding moment.js and hammer.js, run browserify in the root of the project:
 
-    browserify index.js -t babelify -o vis-custom.js -s vis -x moment -x hammerjs
+    $ browserify index.js -t babelify -o vis-custom.js -s vis -x moment -x hammerjs
     
 This will generate a custom bundle *vis-custom.js*, which exposes the namespace `vis`, and has moment and hammerjs excluded. The generated bundle can be minified with uglifyjs:
 
-    uglifyjs vis-custom.js -o vis-custom.min.js
+    $ uglifyjs vis-custom.js -o vis-custom.min.js
 
 The custom bundle can now be loaded as:
 
@@ -254,12 +267,12 @@ var timeline = new Timeline(container, data, options);
 
 Install the application dependencies via npm:
 
-    npm install vis moment
+    $ npm install vis moment
 
 The application can be bundled and minified:
 
-    browserify app.js -o app-bundle.js -t babelify 
-    uglifyjs app-bundle.js -o app-bundle.min.js
+    $ browserify app.js -o app-bundle.js -t babelify 
+    $ uglifyjs app-bundle.js -o app-bundle.min.js
 
 And loaded into a webpage:
 
@@ -282,11 +295,11 @@ And loaded into a webpage:
 
 To test the library, install the project dependencies once:
 
-    npm install
+    $ npm install
 
 Then run the tests:
 
-    npm test
+    $ npm test
 
 
 ## License

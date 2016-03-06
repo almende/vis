@@ -72,7 +72,7 @@ Stabilize when clustering:<input type="checkbox" id="stabilizeCheckbox">
         nodes: nodes,
         edges: edges
     };
-    var options = {layout: {randomSeed: 8}};
+    var options = {layout: {randomSeed: 8}, physics:{adaptiveTimestep:false}};
     var network = new vis.Network(container, data, options);
 
     // set the first initial zoom level
@@ -125,6 +125,8 @@ Stabilize when clustering:<input type="checkbox" id="stabilizeCheckbox">
         }
         network.clusterOutliers(clusterOptionsByData);
         if (document.getElementById('stabilizeCheckbox').checked === true) {
+            // since we use the scale as a unique identifier, we do NOT want to fit after the stabilization
+            network.setOptions({physics:{stabilization:{fit: false}}});
             network.stabilize();
         }
     }
@@ -145,6 +147,8 @@ Stabilize when clustering:<input type="checkbox" id="stabilizeCheckbox">
         }
         clusters = newClusters;
         if (declustered === true && document.getElementById('stabilizeCheckbox').checked === true) {
+            // since we use the scale as a unique identifier, we do NOT want to fit after the stabilization
+            network.setOptions({physics:{stabilization:{fit: false}}});
             network.stabilize();
         }
     }

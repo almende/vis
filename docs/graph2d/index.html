@@ -246,8 +246,6 @@
     <p>
         Graph2d can load data from an <code>Array</code>, a <code>DataSet</code> (offering 2 way data binding), or a <code>DataView</code> (offering one way data binding).
         Objects are added to this DataSet by using the <code>add()</code> function.
-        Data points must have properties <code>x</code>, <code>y</code>, and <code>z</code>,
-        and can optionally have a property <code>style</code> and <code>filter</code>.
     <p>
         Graph2d can be provided with two types of data:
     </p>
@@ -436,7 +434,7 @@ var options = {
             <td class="greenField indent">barChart.sideBySide</td>
             <td>Boolean</td>
             <td>false</td>
-            <td>If two datapoints of a barchart overlap, they are drawn over eachother by default. If sideBySide is set to true, they will be drawn side by side.
+            <td>If two datapoints of a barchart overlap, they are drawn over eachother by default. If sideBySide is set to true, they will be drawn side by side, within the same width as a single bar..
                 See <a href="../../examples/graph2d/10_barsSideBySide.html">example 10</a> for more information.
                 When using groups, see <a href="../../examples/graph2d/11_barsSideBySideGroups.html">example 11</a>.
             </td>
@@ -447,7 +445,12 @@ var options = {
             <td>50</td>
             <td>The width of the bars.</td>
         </tr>
-
+        <tr parent="barChart" class="hidden">
+            <td class="greenField indent">barChart.minWidth</td>
+            <td>Number</td>
+            <td></td>
+            <td>The minimum width of the bars in pixels: by default the bars get smaller while zooming out to prevent overlap, this value is the minimum width of the bar. Default behavior (when minWidth is not set) is 10% of the bar width.</td>
+        </tr>
         <tr class='toggle collapsible' onclick="toggleTable('g2dOptions','dataAxis', this);">
             <td><span parent="dataAxis" class="right-caret"></span> dataAxis</td>
             <td>Object</td>
@@ -472,12 +475,11 @@ var options = {
             <td>Function</td>
             <td></td>
             <td>Insert a custom function on how to format the label. The function will receive a numeric value and has to return a string. Default function is:
-            <pre class="code">
+            <pre class="prettyprint lang-js">
 function (value) {
-  return value;
-}
-            </pre>
-            which does nothing to it.</td>
+  return ''+value.toPrecision(3);
+}</pre>
+            </td>
         </tr>
         <tr parent="dataAxis" class="hidden">
             <td class="indent2">dataAxis.left.range.min</td>
@@ -578,7 +580,7 @@ drawPoints: {
             
             3. <code>Function</code>: If a function is provided it will be used as a callback. The function may return values from listing 1 or 2.<br />
             <pre class="prettyprint lang-js">
-drawPoints: function(item, group, graph2d) {
+drawPoints: function(item, group) {
   ...
 }
             </pre>
@@ -743,7 +745,7 @@ onRender: function(item, group, graph2d) {
             <td>stack</td>
             <td>Boolean</td>
             <td>true</td>
-            <td>If stack is enabled, the graphs will be stacked upon eachother when applicable. This currently only works with bar graphs but linegraph support is being worked on.</td>
+            <td>If stack is enabled, the graphs will be stacked upon each-other when applicable. A group can opt-out of stacking through the "excludeFromStacking" option.</td>
         </tr>
         <tr class='toggle collapsible' onclick="toggleTable('g2dOptions','shaded', this);">
             <td class="greenField"><span parent="shaded" class="right-caret"></span> shaded</td>
@@ -761,7 +763,17 @@ onRender: function(item, group, graph2d) {
             <td class="greenField indent">shaded.orientation</td>
             <td>String</td>
             <td>'bottom'</td>
-            <td>This determines if the shaded area is at the bottom or at the top of the curve. The options are 'bottom' or 'top'.</td>
+            <td>This determines if the shaded area is at the bottom or at the top of the curve, or always towards the zero-axis of the graph.
+                The options are 'zero', 'bottom', 'top', or the special case of 'group'. If group is chosen, the option groupId is required.
+                See <a href="../../examples/graph2d/20_shading.html">Example 20</a> what these options look like.
+            </td>
+        </tr>
+        <tr parent="shaded" class="hidden">
+            <td class="greenField indent">shaded.groupId</td>
+            <td>String</td>
+            <td>undefined</td>
+            <td>The id of the group which should be used as the other shading limit.
+            </td>
         </tr>
         <tr parent="shaded" class="hidden">
             <td class="greenField indent">shaded.style</td>
@@ -786,7 +798,13 @@ onRender: function(item, group, graph2d) {
             <td class="greenField">excludeFromLegend</td>
             <td>Boolean</td>
             <td>false</td>
-            <td>Group option only. Excludes the the group from beeing listed in the legend.</td>
+            <td>Group option only. Excludes the group from being listed in the legend.</td>
+        </tr>
+        <tr>
+            <td class="greenField">excludeFromStacking</td>
+            <td>Boolean</td>
+            <td>false</td>
+            <td>Group option only. Excludes the group from being included in the stacking.</td>
         </tr>
     </table>
 
@@ -928,6 +946,16 @@ function (option, path) {
         </tr>
 
         <tr>
+            <td>maxMinorChars</td>
+            <td>number</td>
+            <td>7</td>
+            <td>
+                Specifies the maximum number of characters that should fit in minor grid labels.
+                If larger, less and wider grids will be drawn.
+            </td>
+        </tr>
+
+        <tr>
             <td>min</td>
             <td>Date or Number or String</td>
             <td>none</td>
@@ -995,22 +1023,6 @@ function (option, path) {
                 are shown. When both <code>showMajorLabels</code> and
                 <code>showMinorLabels</code> are false, no horizontal axis will be
                 visible.</td>
-        </tr>
-
-        <tr>
-            <td>showMajorLines</td>
-            <td>Boolean</td>
-            <td>true</td>
-            <td>By default, the timeline shows both minor and major date lines on the
-                time axis. You can use this option to hide the lines from the major dates.
-        </tr>
-
-        <tr>
-            <td>showMinorLines</td>
-            <td>Boolean</td>
-            <td>true</td>
-            <td>By default, the timeline shows both minor and major date lines on the
-                time axis. You can use this option to hide the lines from the minor dates.
         </tr>
 
         <tr>
@@ -1133,6 +1145,12 @@ function (option, path) {
             </td>
         </tr>
 
+        <tr>
+            <td>getDataRange()</td>
+            <td>Object</td>
+            <td>Get the range of all the items as an object containing <code>min: Date</code> and <code>max: Date</code>.</td>
+        </tr>
+
         <tr id="getEventProperties">
             <td>getEventProperties(event)</td>
             <td>Object</td>
@@ -1163,13 +1181,6 @@ function (option, path) {
             <td>Object</td>
             <td>Get the current visible window. Returns an object with properties <code>start: Date</code> and <code>end: Date</code>.</td>
         </tr>
-
-        <tr>
-            <td>getItemRange()</td>
-            <td>Object</td>
-            <td>Get the range of all the items as an object containing <code>min: Date</code> and <code>max: Date</code>.</td>
-        </tr>
-
 
         <tr>
             <td>isGroupVisible(groupId)</td>
@@ -1293,6 +1304,12 @@ Graph2d.off('rangechanged', onChange);
             <th>Properties</th>
             <th>Description</th>
         </tr>
+
+        <tr>
+            <td>currentTimeTick</td>
+            <td>Fired when the current time bar redraws. The rate depends on the zoom level.</td>
+        </tr>
+
         <tr>
             <td>click</td>
             <td>
@@ -1323,16 +1340,14 @@ Graph2d.off('rangechanged', onChange);
             <td>Fired when double clicked inside the Graph2d.
             </td>
         </tr>
-
         <tr>
-            <td>finishedRedraw</td>
+            <td>changed</td>
             <td>
-                none.
+                Has no properties.
             </td>
-            <td>Fired after a redraw is complete. When moving the Graph2d around, this could be fired frequently.
+            <td>Fired once after each graph redraw.
             </td>
         </tr>
-
         <tr>
             <td>rangechange</td>
             <td>
@@ -1356,6 +1371,7 @@ Graph2d.off('rangechanged', onChange);
             <td>Fired once after the user has dragged the Graph2d window.
             </td>
         </tr>
+
         <tr>
             <td>timechange</td>
             <td>
