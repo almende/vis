@@ -6,6 +6,7 @@ http://visjs.org
 
 ### Graph2d
 
+- Fixed #1455: allow vertical panning of the web page on touch devices.
 - Fixed #1692: Error when y-axis values are equal.
 
 ### Timeline
