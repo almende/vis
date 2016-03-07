@@ -120,7 +120,7 @@
     '<div onclick="alert(\'you clicked a div\');   ">Click here! (div)</div>', start: now.clone().add(-2, 'days').toDate() },
     {_id: 3, content: 'item 3', start: now.clone().add(2, 'days').toDate(), style: 'color: red;'},
     {
-      _id: 4, content: 'item 4 foo bar foo bar foo bar foo bar foo bar',
+      _id: 4, content: 'item 4 foo bar foo bar foo bar foo bar foo bar <a href="http://visjs.org">Normal link</a>',
       start: now.clone().add(0, 'days').toDate(),
       end: now.clone().add(7, 'days').toDate(),
       title: 'hello title!'
