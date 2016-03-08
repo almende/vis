@@ -2,6 +2,12 @@
 http://visjs.org
 
 
+## not yet released, version 4.15.2-SNAPSHOT
+
+
+
+
+
 ## 2016-03-08, version 4.15.1
 
 ## General
