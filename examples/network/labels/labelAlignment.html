@@ -21,7 +21,10 @@
 
 <body>
 
-<p>Labels of edges can be aligned to edges in various ways. <br>Label alignment for nodes (top, bottom, left, right, inside) is planned but not in vis yet.</p>
+<p>Labels of edges can be aligned to edges in various ways.</p>
+<p>Text-alignment within node labels can be 'left' or 'center', other font alignments not implemented.</p>
+<p>Label alignment (placement of label &quot;box&quot;) for nodes (top, bottom, left, right, inside) is
+planned but not in vis yet.</p>
 
 <div id="mynetwork"></div>
 
@@ -30,9 +33,10 @@
   var nodes = [
     {id: 1, label: 'Node 1'},
     {id: 2, label: 'Node 2'},
-    {id: 3, label: 'Node 3'},
+    {id: 3, label: 'Node 3:\nLeft-Aligned', font: {'face': 'Monospace', align: 'left'}},
     {id: 4, label: 'Node 4'},
-    {id: 5, label: 'Node 5'}
+    {id: 5, label: 'Node 5\nLeft-Aligned box', shape: 'box',
+     font: {'face': 'Monospace', align: 'left'}}
   ];
 
   // create an array with edges
