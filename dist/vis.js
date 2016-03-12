@@ -5,7 +5,7 @@
  * A dynamic, browser-based visualization library.
  *
  * @version 4.15.1
- * @date    2016-03-08
+ * @date    2016-03-10
  *
  * @license
  * Copyright (C) 2011-2016 Almende B.V, http://almende.com
@@ -721,6 +721,10 @@ return /******/ (function(modules) { // webpackBootstrap
    */
   exports.getAbsoluteLeft = function (elem) {
     return elem.getBoundingClientRect().left;
+  };
+
+  exports.getAbsoluteRight = function (elem) {
+    return elem.getBoundingClientRect().right;
   };
 
   /**
@@ -10661,6 +10665,7 @@ return /******/ (function(modules) { // webpackBootstrap
    * @extends Core
    */
   function Timeline(container, items, groups, options) {
+
     if (!(this instanceof Timeline)) {
       throw new SyntaxError('Constructor must be called with the new operator');
     }
@@ -10684,7 +10689,7 @@ return /******/ (function(modules) { // webpackBootstrap
         axis: 'bottom', // axis orientation: 'bottom', 'top', or 'both'
         item: 'bottom' // not relevant
       },
-
+      rtl: false,
       moment: moment,
 
       width: null,
@@ -10739,7 +10744,7 @@ return /******/ (function(modules) { // webpackBootstrap
     this.components.push(this.currentTime);
 
     // item set
-    this.itemSet = new ItemSet(this.body);
+    this.itemSet = new ItemSet(this.body, this.options);
     this.components.push(this.itemSet);
 
     this.itemsData = null; // DataSet
@@ -10822,6 +10827,7 @@ return /******/ (function(modules) { // webpackBootstrap
   Timeline.prototype.setOptions = function (options) {
     // validate options
     var errorFound = _Validator2.default.validate(options, allOptions);
+
     if (errorFound === true) {
       console.log('%cErrors have been found in the supplied options object.', printStyle);
     }
@@ -15804,9 +15810,9 @@ return /******/ (function(modules) { // webpackBootstrap
       // http://en.wikibooks.org/wiki/Algorithm_Implementation/Strings/Levenshtein_distance#JavaScript
       /*
        Copyright (c) 2011 Andrei Mackenzie
-        Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
-        The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
-        THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+         Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+         The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+         THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
        */
 
     }, {
@@ -15899,7 +15905,6 @@ return /******/ (function(modules) { // webpackBootstrap
       zoomMax: 1000 * 60 * 60 * 24 * 365 * 10000 // milliseconds
     };
     this.options = util.extend({}, this.defaultOptions);
-
     this.props = {
       touch: {}
     };
@@ -15941,7 +15946,7 @@ return /******/ (function(modules) { // webpackBootstrap
   Range.prototype.setOptions = function (options) {
     if (options) {
       // copy the options that we know
-      var fields = ['direction', 'min', 'max', 'zoomMin', 'zoomMax', 'moveable', 'zoomable', 'moment', 'activate', 'hiddenDates', 'zoomKey'];
+      var fields = ['direction', 'min', 'max', 'zoomMin', 'zoomMax', 'moveable', 'zoomable', 'moment', 'activate', 'hiddenDates', 'zoomKey', 'rtl'];
       util.selectiveExtend(fields, this.options, options);
 
       if ('start' in options || 'end' in options) {
@@ -16446,7 +16451,11 @@ return /******/ (function(modules) { // webpackBootstrap
     // calculate the time where the mouse is, check whether inside
     // and no scroll action should happen.
     var clientX = event.center ? event.center.x : event.clientX;
-    var x = clientX - util.getAbsoluteLeft(this.body.dom.centerContainer);
+    if (this.options.rtl) {
+      var x = clientX - util.getAbsoluteLeft(this.body.dom.centerContainer);
+    } else {
+      var x = util.getAbsoluteRight(this.body.dom.centerContainer);-clientX;
+    }
     var time = this.body.util.toTime(x);
 
     return time >= this.start && time <= this.end;
@@ -17321,8 +17330,14 @@ return /******/ (function(modules) { // webpackBootstrap
   Core.prototype.setOptions = function (options) {
     if (options) {
       // copy the known options
-      var fields = ['width', 'height', 'minHeight', 'maxHeight', 'autoResize', 'start', 'end', 'clickToUse', 'dataAttributes', 'hiddenDates', 'locale', 'locales', 'moment', 'throttleRedraw'];
+      var fields = ['width', 'height', 'minHeight', 'maxHeight', 'autoResize', 'start', 'end', 'clickToUse', 'dataAttributes', 'hiddenDates', 'locale', 'locales', 'moment', 'rtl', 'throttleRedraw'];
       util.selectiveExtend(fields, this.options, options);
+
+      if (this.options.rtl) {
+        var contentContainer = this.dom.leftContainer;
+        this.dom.leftContainer = this.dom.rightContainer;
+        this.dom.rightContainer = contentContainer;
+      }
 
       this.options.orientation = { item: undefined, axis: undefined };
       if ('orientation' in options) {
@@ -18170,8 +18185,8 @@ return /******/ (function(modules) { // webpackBootstrap
    */
   function ItemSet(body, options) {
     this.body = body;
-
     this.defaultOptions = {
+      rtl: false,
       type: null, // 'box', 'point', 'range', 'background'
       orientation: {
         item: 'bottom' // item orientation: 'top' or 'bottom'
@@ -18374,8 +18389,8 @@ return /******/ (function(modules) { // webpackBootstrap
 
     // add item on doubletap
     this.hammer.on('doubletap', this._onAddItem.bind(this));
-
     this.groupHammer = new Hammer(this.body.dom.leftContainer);
+
     this.groupHammer.on('panstart', this._onGroupDragStart.bind(this));
     this.groupHammer.on('panmove', this._onGroupDrag.bind(this));
     this.groupHammer.on('panend', this._onGroupDragEnd.bind(this));
@@ -18452,7 +18467,7 @@ return /******/ (function(modules) { // webpackBootstrap
   ItemSet.prototype.setOptions = function (options) {
     if (options) {
       // copy all options that we know
-      var fields = ['type', 'align', 'order', 'stack', 'selectable', 'multiselect', 'itemsAlwaysDraggable', 'multiselectPerGroup', 'groupOrder', 'dataAttributes', 'template', 'groupTemplate', 'hide', 'snap', 'groupOrderSwap'];
+      var fields = ['type', 'rtl', 'align', 'order', 'stack', 'selectable', 'multiselect', 'itemsAlwaysDraggable', 'multiselectPerGroup', 'groupOrder', 'dataAttributes', 'template', 'groupTemplate', 'hide', 'snap', 'groupOrderSwap'];
       util.selectiveExtend(fields, this.options, options);
 
       if ('orientation' in options) {
@@ -22915,7 +22930,7 @@ return /******/ (function(modules) { // webpackBootstrap
   TimeAxis.prototype.setOptions = function (options) {
     if (options) {
       // copy all options that we know
-      util.selectiveExtend(['showMinorLabels', 'showMajorLabels', 'maxMinorChars', 'hiddenDates', 'timeAxis', 'moment'], this.options, options);
+      util.selectiveExtend(['showMinorLabels', 'showMajorLabels', 'maxMinorChars', 'hiddenDates', 'timeAxis', 'moment', 'rtl'], this.options, options);
 
       // deep copy the format options
       util.selectiveDeepExtend(['format'], this.options, options);
@@ -23019,7 +23034,6 @@ return /******/ (function(modules) { // webpackBootstrap
     } else {
       this.body.dom.backgroundVertical.appendChild(background);
     }
-
     return this._isResized() || parentChanged;
   };
 
@@ -23159,7 +23173,6 @@ return /******/ (function(modules) { // webpackBootstrap
   TimeAxis.prototype._repaintMinorText = function (x, text, orientation, className) {
     // reuse redundant label
     var label = this.dom.redundant.minorTexts.shift();
-
     if (!label) {
       // create new label
       var content = document.createTextNode('');
@@ -23172,7 +23185,13 @@ return /******/ (function(modules) { // webpackBootstrap
     label.childNodes[0].nodeValue = text;
 
     label.style.top = orientation == 'top' ? this.props.majorLabelHeight + 'px' : '0';
+
+    // if (this.options.rtl) {
+    //   label.style.right = x + 'px';
+    // } else {
     label.style.left = x + 'px';
+    // };
+
     label.className = 'vis-text vis-minor ' + className;
     //label.title = title;  // TODO: this is a heavy operation
 
@@ -23206,7 +23225,11 @@ return /******/ (function(modules) { // webpackBootstrap
     //label.title = title; // TODO: this is a heavy operation
 
     label.style.top = orientation == 'top' ? '0' : this.props.minorLabelHeight + 'px';
+    // if (this.options.rtl) {
+    //   label.style.right = x + 'px';
+    // } else {
     label.style.left = x + 'px';
+    // };
 
     return label;
   };
@@ -23237,7 +23260,11 @@ return /******/ (function(modules) { // webpackBootstrap
       line.style.top = this.body.domProps.top.height + 'px';
     }
     line.style.height = props.minorLineHeight + 'px';
+    // if (this.options.rtl) {
+    //    line.style.right = (x - props.minorLineWidth / 2) + 'px';
+    // } else {
     line.style.left = x - props.minorLineWidth / 2 + 'px';
+    // };
     line.style.width = width + 'px';
 
     line.className = 'vis-grid vis-vertical vis-minor ' + className;
@@ -23270,7 +23297,13 @@ return /******/ (function(modules) { // webpackBootstrap
     } else {
       line.style.top = this.body.domProps.top.height + 'px';
     }
+
+    // if (this.options.rtl) {
+    //   line.style.right = (x - props.majorLineWidth / 2) + 'px';
+    // } else {
     line.style.left = x - props.majorLineWidth / 2 + 'px';
+    // }
+
     line.style.height = props.majorLineHeight + 'px';
     line.style.width = width + 'px';
 
@@ -23293,7 +23326,9 @@ return /******/ (function(modules) { // webpackBootstrap
       this.dom.measureCharMinor = document.createElement('DIV');
       this.dom.measureCharMinor.className = 'vis-text vis-minor vis-measure';
       this.dom.measureCharMinor.style.position = 'absolute';
-
+      if (this.options.rtl) {
+        this.dom.measureCharMinor.style.direction = 'rtl';
+      }
       this.dom.measureCharMinor.appendChild(document.createTextNode('0'));
       this.dom.foreground.appendChild(this.dom.measureCharMinor);
     }
@@ -23305,7 +23340,9 @@ return /******/ (function(modules) { // webpackBootstrap
       this.dom.measureCharMajor = document.createElement('DIV');
       this.dom.measureCharMajor.className = 'vis-text vis-major vis-measure';
       this.dom.measureCharMajor.style.position = 'absolute';
-
+      if (this.options.rtl) {
+        this.dom.measureCharMajor.style.direction = 'rtl';
+      }
       this.dom.measureCharMajor.appendChild(document.createTextNode('0'));
       this.dom.foreground.appendChild(this.dom.measureCharMajor);
     }
@@ -24055,7 +24092,11 @@ return /******/ (function(modules) { // webpackBootstrap
       var title = locale.current + ' ' + locale.time + ': ' + now.format('dddd, MMMM Do YYYY, H:mm:ss');
       title = title.charAt(0).toUpperCase() + title.substring(1);
 
-      this.bar.style.left = x + 'px';
+      if (this.options.rtl) {
+        this.bar.style.right = x + 'px';
+      } else {
+        this.bar.style.left = x + 'px';
+      }
       this.bar.title = title;
     } else {
       // remove the line from the DOM
@@ -24162,6 +24203,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
     //globals :
     align: { string: string },
+    rtl: { boolean: boolean, 'undefined': 'undefined' },
     autoResize: { boolean: boolean },
     throttleRedraw: { number: number },
     clickToUse: { boolean: boolean },
@@ -24279,6 +24321,7 @@ return /******/ (function(modules) { // webpackBootstrap
   var configureOptions = {
     global: {
       align: ['center', 'left', 'right'],
+      direction: false,
       autoResize: true,
       throttleRedraw: [10, 0, 1000, 10],
       clickToUse: false,
@@ -25952,10 +25995,10 @@ return /******/ (function(modules) { // webpackBootstrap
   DataAxis.prototype.show = function () {
     this.hidden = false;
     if (!this.dom.frame.parentNode) {
-      if (this.options.orientation === 'left') {
-        this.body.dom.left.appendChild(this.dom.frame);
-      } else {
+      if (this.options.rtl) {
         this.body.dom.right.appendChild(this.dom.frame);
+      } else {
+        this.body.dom.left.appendChild(this.dom.frame);
       }
     }
 
