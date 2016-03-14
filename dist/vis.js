@@ -5,7 +5,7 @@
  * A dynamic, browser-based visualization library.
  *
  * @version 4.15.1
- * @date    2016-03-10
+ * @date    2016-03-13
  *
  * @license
  * Copyright (C) 2011-2016 Almende B.V, http://almende.com
@@ -11058,6 +11058,8 @@ return /******/ (function(modules) { // webpackBootstrap
           var start = getStart(item);
           var end = getEnd(item);
 
+          console.log(this.options);
+
           var left = start - (item.getWidthLeft() + 10) * factor;
           var right = end + (item.getWidthRight() + 10) * factor;
 
@@ -11127,7 +11129,11 @@ return /******/ (function(modules) { // webpackBootstrap
   Timeline.prototype.getEventProperties = function (event) {
     var clientX = event.center ? event.center.x : event.clientX;
     var clientY = event.center ? event.center.y : event.clientY;
-    var x = clientX - util.getAbsoluteLeft(this.dom.centerContainer);
+    if (this.options.rtl) {
+      var x = util.getAbsoluteRight(this.dom.centerContainer) - clientX;
+    } else {
+      var x = clientX - util.getAbsoluteLeft(this.dom.centerContainer);
+    }
     var y = clientY - util.getAbsoluteTop(this.dom.centerContainer);
 
     var item = this.itemSet.itemFromTarget(event);
@@ -15893,6 +15899,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
     // default options
     this.defaultOptions = {
+      rtl: false,
       start: null,
       end: null,
       moment: moment,
@@ -16268,7 +16275,13 @@ return /******/ (function(modules) { // webpackBootstrap
     interval -= duration;
 
     var width = direction == 'horizontal' ? this.body.domProps.center.width : this.body.domProps.center.height;
-    var diffRange = -delta / width * interval;
+
+    if (this.options.rtl) {
+      var diffRange = delta / width * interval;
+    } else {
+      var diffRange = -delta / width * interval;
+    }
+
     var newStart = this.props.touch.start + diffRange;
     var newEnd = this.props.touch.end + diffRange;
 
@@ -16370,7 +16383,7 @@ return /******/ (function(modules) { // webpackBootstrap
       }
 
       // calculate center, the date to zoom around
-      var pointer = getPointer({ x: event.clientX, y: event.clientY }, this.body.dom.center);
+      var pointer = this.getPointer({ x: event.clientX, y: event.clientY }, this.body.dom.center);
       var pointerDate = this._pointerToDate(pointer);
 
       this.zoom(scale, pointerDate, delta);
@@ -16406,7 +16419,7 @@ return /******/ (function(modules) { // webpackBootstrap
     this.props.touch.allowDragging = false;
 
     if (!this.props.touch.center) {
-      this.props.touch.center = getPointer(event.center, this.body.dom.center);
+      this.props.touch.center = this.getPointer(event.center, this.body.dom.center);
     }
 
     var scale = 1 / (event.scale + this.scaleOffset);
@@ -16454,7 +16467,7 @@ return /******/ (function(modules) { // webpackBootstrap
     if (this.options.rtl) {
       var x = clientX - util.getAbsoluteLeft(this.body.dom.centerContainer);
     } else {
-      var x = util.getAbsoluteRight(this.body.dom.centerContainer);-clientX;
+      var x = util.getAbsoluteRight(this.body.dom.centerContainer) - clientX;
     }
     var time = this.body.util.toTime(x);
 
@@ -16489,12 +16502,19 @@ return /******/ (function(modules) { // webpackBootstrap
    * @return {{x: Number, y: Number}} pointer
    * @private
    */
-  function getPointer(touch, element) {
-    return {
-      x: touch.x - util.getAbsoluteLeft(element),
-      y: touch.y - util.getAbsoluteTop(element)
-    };
-  }
+  Range.prototype.getPointer = function (touch, element) {
+    if (this.options.rtl) {
+      return {
+        x: util.getAbsoluteRight(element) - touch.x,
+        y: touch.y - util.getAbsoluteTop(element)
+      };
+    } else {
+      return {
+        x: touch.x - util.getAbsoluteLeft(element),
+        y: touch.y - util.getAbsoluteTop(element)
+      };
+    }
+  };
 
   /**
    * Zoom the range the given scale in or out. Start and end date will
@@ -18652,8 +18672,14 @@ return /******/ (function(modules) { // webpackBootstrap
    */
   ItemSet.prototype.getVisibleItems = function () {
     var range = this.body.range.getRange();
-    var left = this.body.util.toScreen(range.start);
-    var right = this.body.util.toScreen(range.end);
+
+    if (this.options.rtl) {
+      var right = this.body.util.toScreen(range.start);
+      var left = this.body.util.toScreen(range.end);
+    } else {
+      var left = this.body.util.toScreen(range.start);
+      var right = this.body.util.toScreen(range.end);
+    }
 
     var ids = [];
     for (var groupId in this.groups) {
@@ -18666,8 +18692,14 @@ return /******/ (function(modules) { // webpackBootstrap
         for (var i = 0; i < rawVisibleItems.length; i++) {
           var item = rawVisibleItems[i];
           // TODO: also check whether visible vertically
-          if (item.left < right && item.left + item.width > left) {
-            ids.push(item.id);
+          if (this.options.rtl) {
+            if (item.right < left && item.right + item.width > right) {
+              ids.push(item.id);
+            }
+          } else {
+            if (item.left < right && item.left + item.width > left) {
+              ids.push(item.id);
+            }
           }
         }
       }
@@ -18707,7 +18739,12 @@ return /******/ (function(modules) { // webpackBootstrap
 
     // recalculate absolute position (before redrawing groups)
     this.props.top = this.body.domProps.top.height + this.body.domProps.border.top;
-    this.props.left = this.body.domProps.left.width + this.body.domProps.border.left;
+
+    if (this.options.rtl) {
+      this.props.right = this.body.domProps.right.width + this.body.domProps.border.right;
+    } else {
+      this.props.left = this.body.domProps.left.width + this.body.domProps.border.left;
+    }
 
     // update class name
     frame.className = 'vis-itemset';
@@ -18758,7 +18795,11 @@ return /******/ (function(modules) { // webpackBootstrap
 
     // reposition axis
     this.dom.axis.style.top = asSize(orientation == 'top' ? this.body.domProps.top.height + this.body.domProps.border.top : this.body.domProps.top.height + this.body.domProps.centerContainer.height);
-    this.dom.axis.style.left = '0';
+    if (this.options.rtl) {
+      this.dom.axis.style.right = '0';
+    } else {
+      this.dom.axis.style.left = '0';
+    }
 
     // check if this component is resized
     resized = this._isResized() || resized;
@@ -19286,6 +19327,7 @@ return /******/ (function(modules) { // webpackBootstrap
   ItemSet.prototype._onTouch = function (event) {
     // store the touched item, used in _onDragStart
     this.touchParams.item = this.itemFromTarget(event);
+    console.log(event.target.dragLeftItem, event.target.dragRightItem);
     this.touchParams.dragLeftItem = event.target.dragLeftItem || false;
     this.touchParams.dragRightItem = event.target.dragRightItem || false;
     this.touchParams.itemProps = null;
@@ -19378,8 +19420,15 @@ return /******/ (function(modules) { // webpackBootstrap
    */
   ItemSet.prototype._onDragStartAddItem = function (event) {
     var snap = this.options.snap || null;
-    var xAbs = util.getAbsoluteLeft(this.dom.frame);
-    var x = event.center.x - xAbs - 10; // minus 10 to compensate for the drag starting as soon as you've moved 10px
+
+    if (this.options.rtl) {
+      var xAbs = util.getAbsoluteRight(this.dom.frame);
+      var x = xAbs - event.center.x + 10; // plus 10 to compensate for the drag starting as soon as you've moved 10px
+    } else {
+        var xAbs = util.getAbsoluteLeft(this.dom.frame);
+        var x = event.center.x - xAbs - 10; // minus 10 to compensate for the drag starting as soon as you've moved 10px
+      }
+
     var time = this.body.util.toTime(x);
     var scale = this.body.util.getScale();
     var step = this.body.util.getStep();
@@ -19400,7 +19449,7 @@ return /******/ (function(modules) { // webpackBootstrap
     if (group) {
       itemData.group = group.groupId;
     }
-
+    console.log("adding range item");
     var newItem = new RangeItem(itemData, this.conversion, this.options);
     newItem.id = id; // TODO: not so nice setting id afterwards
     newItem.data = this._cloneItemData(itemData);
@@ -19408,10 +19457,15 @@ return /******/ (function(modules) { // webpackBootstrap
 
     var props = {
       item: newItem,
-      dragRight: true,
       initialX: event.center.x,
       data: newItem.data
     };
+
+    if (this.options.rtl) {
+      props.dragLeft = true;
+    } else {
+      props.dragRight = true;
+    }
     this.touchParams.itemProps = [props];
 
     event.stopPropagation();
@@ -19424,11 +19478,18 @@ return /******/ (function(modules) { // webpackBootstrap
    */
   ItemSet.prototype._onDrag = function (event) {
     if (this.touchParams.itemProps) {
+      console.log("Ddddddddddddd");
       event.stopPropagation();
 
       var me = this;
       var snap = this.options.snap || null;
-      var xOffset = this.body.dom.root.offsetLeft + this.body.domProps.left.width;
+
+      if (this.options.rtl) {
+        var xOffset = this.body.dom.root.offsetLeft + this.body.domProps.right.width;
+      } else {
+        var xOffset = this.body.dom.root.offsetLeft + this.body.domProps.left.width;
+      }
+
       var scale = this.body.util.getScale();
       var step = this.body.util.getStep();
 
@@ -19452,7 +19513,12 @@ return /******/ (function(modules) { // webpackBootstrap
       this.touchParams.itemProps.forEach(function (props) {
         var current = me.body.util.toTime(event.center.x - xOffset);
         var initial = me.body.util.toTime(props.initialX - xOffset);
-        var offset = current - initial; // ms
+
+        if (this.options.rtl) {
+          var offset = -(current - initial); // ms
+        } else {
+            var offset = current - initial; // ms
+          }
 
         var itemData = this._cloneItemData(props.item.data); // clone the data
         if (props.item.editable === false) {
@@ -19460,27 +19526,48 @@ return /******/ (function(modules) { // webpackBootstrap
         }
 
         var updateTimeAllowed = me.options.editable.updateTime || props.item.editable === true;
-
+        console.log(props);
         if (updateTimeAllowed) {
           if (props.dragLeft) {
             // drag left side of a range item
-            if (itemData.start != undefined) {
-              var initialStart = util.convert(props.data.start, 'Date');
-              var start = new Date(initialStart.valueOf() + offset);
-              // TODO: pass a Moment instead of a Date to snap(). (Breaking change)
-              itemData.start = snap ? snap(start, scale, step) : start;
+            if (this.options.rtl) {
+              console.log("moving left");
+              if (itemData.end != undefined) {
+                var initialEnd = util.convert(props.data.end, 'Date');
+                var end = new Date(initialEnd.valueOf() + offset);
+                // TODO: pass a Moment instead of a Date to snap(). (Breaking change)
+                itemData.end = snap ? snap(end, scale, step) : end;
+              }
+            } else {
+              if (itemData.start != undefined) {
+                var initialStart = util.convert(props.data.start, 'Date');
+                var start = new Date(initialStart.valueOf() + offset);
+                // TODO: pass a Moment instead of a Date to snap(). (Breaking change)
+                itemData.start = snap ? snap(start, scale, step) : start;
+              }
             }
           } else if (props.dragRight) {
+            console.log("moving right");
             // drag right side of a range item
-            if (itemData.end != undefined) {
-              var initialEnd = util.convert(props.data.end, 'Date');
-              var end = new Date(initialEnd.valueOf() + offset);
-              // TODO: pass a Moment instead of a Date to snap(). (Breaking change)
-              itemData.end = snap ? snap(end, scale, step) : end;
+            if (this.options.rtl) {
+              if (itemData.start != undefined) {
+                var initialStart = util.convert(props.data.start, 'Date');
+                var start = new Date(initialStart.valueOf() + offset);
+                // TODO: pass a Moment instead of a Date to snap(). (Breaking change)
+                itemData.start = snap ? snap(start, scale, step) : start;
+              }
+            } else {
+              if (itemData.end != undefined) {
+                var initialEnd = util.convert(props.data.end, 'Date');
+                var end = new Date(initialEnd.valueOf() + offset);
+                // TODO: pass a Moment instead of a Date to snap(). (Breaking change)
+                itemData.end = snap ? snap(end, scale, step) : end;
+              }
             }
           } else {
             // drag both start and end
             if (itemData.start != undefined) {
+
               var initialStart = util.convert(props.data.start, 'Date').valueOf();
               var start = new Date(initialStart + offset);
 
@@ -19523,6 +19610,7 @@ return /******/ (function(modules) { // webpackBootstrap
       }.bind(this));
 
       this.stackDirty = true; // force re-stacking of all items next redraw
+      console.log("should redraw");
       this.body.emitter.emit('_change');
     }
   };
@@ -19826,8 +19914,16 @@ return /******/ (function(modules) { // webpackBootstrap
       });
     } else {
       // add item
-      var xAbs = util.getAbsoluteLeft(this.dom.frame);
-      var x = event.center.x - xAbs;
+      console.log("adding item");
+      if (this.options.rtl) {
+        var xAbs = util.getAbsoluteRight(this.dom.frame);
+        var x = xAbs - event.center.x;
+      } else {
+        var xAbs = util.getAbsoluteLeft(this.dom.frame);
+        var x = event.center.x - xAbs;
+      }
+      // var xAbs = util.getAbsoluteLeft(this.dom.frame);
+      // var x = event.center.x - xAbs;
       var start = this.body.util.toTime(x);
       var scale = this.body.util.getScale();
       var step = this.body.util.getStep();
@@ -21546,7 +21642,7 @@ return /******/ (function(modules) { // webpackBootstrap
       }
     };
     this.overflow = false; // if contents can overflow (css styling), this flag is set to true
-
+    this.options = options;
     // validate data
     if (data) {
       if (data.start == undefined) {
@@ -21578,6 +21674,7 @@ return /******/ (function(modules) { // webpackBootstrap
    * Repaint the item
    */
   RangeItem.prototype.redraw = function () {
+    console.log("kkkkkkkkkkkkkkkkkkkkk");
     var dom = this.dom;
     if (!dom) {
       // create DOM
@@ -21646,7 +21743,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
       this.dirty = false;
     }
-
+    console.log("redrawing range");
     this._repaintDeleteButton(dom.box);
     this._repaintDragLeft();
     this._repaintDragRight();
@@ -21691,7 +21788,7 @@ return /******/ (function(modules) { // webpackBootstrap
     var parentWidth = this.parent.width;
     var start = this.conversion.toScreen(this.data.start);
     var end = this.conversion.toScreen(this.data.end);
-    var contentLeft;
+    var contentStartPosition;
     var contentWidth;
 
     // limit the width of the range, as browsers cannot draw very wide divs
@@ -21706,7 +21803,11 @@ return /******/ (function(modules) { // webpackBootstrap
     var boxWidth = Math.max(end - start, 1);
 
     if (this.overflow) {
-      this.left = start;
+      if (this.options.rtl) {
+        this.right = start;
+      } else {
+        this.left = start;
+      }
       this.width = boxWidth + this.props.content.width;
       contentWidth = this.props.content.width;
 
@@ -21714,25 +21815,46 @@ return /******/ (function(modules) { // webpackBootstrap
       //       a width which will not change when moving the Timeline
       //       So no re-stacking needed, which is nicer for the eye;
     } else {
-        this.left = start;
+        if (this.options.rtl) {
+          this.right = start;
+        } else {
+          this.left = start;
+        }
         this.width = boxWidth;
         contentWidth = Math.min(end - start, this.props.content.width);
       }
 
-    this.dom.box.style.left = this.left + 'px';
+    if (this.options.rtl) {
+      this.dom.box.style.right = this.right + 'px';
+    } else {
+      this.dom.box.style.left = this.left + 'px';
+    }
     this.dom.box.style.width = boxWidth + 'px';
 
     switch (this.options.align) {
       case 'left':
-        this.dom.content.style.left = '0';
+        if (this.options.rtl) {
+          this.dom.content.style.right = '0';
+        } else {
+          this.dom.content.style.left = '0';
+        }
         break;
 
       case 'right':
-        this.dom.content.style.left = Math.max(boxWidth - contentWidth, 0) + 'px';
+        if (this.options.rtl) {
+          this.dom.content.style.right = Math.max(boxWidth - contentWidth, 0) + 'px';
+        } else {
+          this.dom.content.style.left = Math.max(boxWidth - contentWidth, 0) + 'px';
+        }
         break;
 
       case 'center':
-        this.dom.content.style.left = Math.max((boxWidth - contentWidth) / 2, 0) + 'px';
+        if (this.options.rtl) {
+          this.dom.content.style.right = Math.max((boxWidth - contentWidth) / 2, 0) + 'px';
+        } else {
+          this.dom.content.style.left = Math.max((boxWidth - contentWidth) / 2, 0) + 'px';
+        }
+
         break;
 
       default:
@@ -21740,18 +21862,22 @@ return /******/ (function(modules) { // webpackBootstrap
         // when range exceeds left of the window, position the contents at the left of the visible area
         if (this.overflow) {
           if (end > 0) {
-            contentLeft = Math.max(-start, 0);
+            contentStartPosition = Math.max(-start, 0);
           } else {
-            contentLeft = -contentWidth; // ensure it's not visible anymore
+            contentStartPosition = -contentWidth; // ensure it's not visible anymore
           }
         } else {
             if (start < 0) {
-              contentLeft = -start;
+              contentStartPosition = -start;
             } else {
-              contentLeft = 0;
+              contentStartPosition = 0;
             }
           }
-        this.dom.content.style.left = contentLeft + 'px';
+        if (this.options.rtl) {
+          this.dom.content.style.right = contentStartPosition + 'px';
+        } else {
+          this.dom.content.style.left = contentStartPosition + 'px';
+        }
     }
   };
 
@@ -21797,6 +21923,7 @@ return /******/ (function(modules) { // webpackBootstrap
    * @protected
    */
   RangeItem.prototype._repaintDragRight = function () {
+    console.log("repainting!!!!");
     if (this.selected && this.options.editable.updateTime && !this.dom.dragRight) {
       // create and show drag area
       var dragRight = document.createElement('div');
@@ -21847,6 +21974,7 @@ return /******/ (function(modules) { // webpackBootstrap
     this.dirty = true;
 
     this.top = null;
+    this.right = null;
     this.left = null;
     this.width = null;
     this.height = null;
@@ -22211,7 +22339,7 @@ return /******/ (function(modules) { // webpackBootstrap
         height: 0
       }
     };
-
+    this.options = options;
     // validate data
     if (data) {
       if (data.start == undefined) {
@@ -22355,27 +22483,54 @@ return /******/ (function(modules) { // webpackBootstrap
 
     // calculate left position of the box
     if (align == 'right') {
-      this.left = start - this.width;
+      if (this.options.rtl) {
+        this.right = start - this.width;
 
-      // reposition box, line, and dot
-      this.dom.box.style.left = this.left + 'px';
-      this.dom.line.style.left = start - this.props.line.width + 'px';
-      this.dom.dot.style.left = start - this.props.line.width / 2 - this.props.dot.width / 2 + 'px';
+        // reposition box, line, and dot
+        this.dom.box.style.right = this.right + 'px';
+        this.dom.line.style.right = start - this.props.line.width + 'px';
+        this.dom.dot.style.right = start - this.props.line.width / 2 - this.props.dot.width / 2 + 'px';
+      } else {
+        this.left = start - this.width;
+
+        // reposition box, line, and dot
+        this.dom.box.style.left = this.left + 'px';
+        this.dom.line.style.left = start - this.props.line.width + 'px';
+        this.dom.dot.style.left = start - this.props.line.width / 2 - this.props.dot.width / 2 + 'px';
+      }
     } else if (align == 'left') {
-      this.left = start;
+      if (this.options.rtl) {
+        this.right = start;
 
-      // reposition box, line, and dot
-      this.dom.box.style.left = this.left + 'px';
-      this.dom.line.style.left = start + 'px';
-      this.dom.dot.style.left = start + this.props.line.width / 2 - this.props.dot.width / 2 + 'px';
+        // reposition box, line, and dot
+        this.dom.box.style.right = this.right + 'px';
+        this.dom.line.style.right = start + 'px';
+        this.dom.dot.style.right = start + this.props.line.width / 2 - this.props.dot.width / 2 + 'px';
+      } else {
+        this.left = start;
+
+        // reposition box, line, and dot
+        this.dom.box.style.left = this.left + 'px';
+        this.dom.line.style.left = start + 'px';
+        this.dom.dot.style.left = start + this.props.line.width / 2 - this.props.dot.width / 2 + 'px';
+      }
     } else {
       // default or 'center'
-      this.left = start - this.width / 2;
+      if (this.options.rtl) {
+        this.right = start - this.width / 2;
 
-      // reposition box, line, and dot
-      this.dom.box.style.left = this.left + 'px';
-      this.dom.line.style.left = start - this.props.line.width / 2 + 'px';
-      this.dom.dot.style.left = start - this.props.dot.width / 2 + 'px';
+        // reposition box, line, and dot
+        this.dom.box.style.right = this.right + 'px';
+        this.dom.line.style.right = start - this.props.line.width / 2 + 'px';
+        this.dom.dot.style.right = start - this.props.dot.width / 2 + 'px';
+      } else {
+        this.left = start - this.width / 2;
+
+        // reposition box, line, and dot
+        this.dom.box.style.left = this.left + 'px';
+        this.dom.line.style.left = start - this.props.line.width / 2 + 'px';
+        this.dom.dot.style.left = start - this.props.dot.width / 2 + 'px';
+      }
     }
   };
 
@@ -22456,7 +22611,7 @@ return /******/ (function(modules) { // webpackBootstrap
         marginLeft: 0
       }
     };
-
+    this.options = options;
     // validate data
     if (data) {
       if (data.start == undefined) {
@@ -22555,7 +22710,11 @@ return /******/ (function(modules) { // webpackBootstrap
 
       // reposition the dot
       dom.dot.style.top = (this.height - this.props.dot.height) / 2 + 'px';
-      dom.dot.style.left = this.props.dot.width / 2 + 'px';
+      if (this.options.rtl) {
+        dom.dot.style.right = this.props.dot.width / 2 + 'px';
+      } else {
+        dom.dot.style.left = this.props.dot.width / 2 + 'px';
+      }
 
       this.dirty = false;
     }
@@ -22593,10 +22752,17 @@ return /******/ (function(modules) { // webpackBootstrap
   PointItem.prototype.repositionX = function () {
     var start = this.conversion.toScreen(this.data.start);
 
-    this.left = start - this.props.dot.width;
+    if (this.options.rtl) {
+      this.right = start - this.props.dot.width;
 
-    // reposition point
-    this.dom.point.style.left = this.left + 'px';
+      // reposition point
+      this.dom.point.style.right = this.right + 'px';
+    } else {
+      this.left = start - this.props.dot.width;
+
+      // reposition point
+      this.dom.point.style.left = this.left + 'px';
+    }
   };
 
   /**
@@ -23186,12 +23352,12 @@ return /******/ (function(modules) { // webpackBootstrap
 
     label.style.top = orientation == 'top' ? this.props.majorLabelHeight + 'px' : '0';
 
-    // if (this.options.rtl) {
-    //   label.style.right = x + 'px';
-    // } else {
-    label.style.left = x + 'px';
-    // };
-
+    if (this.options.rtl) {
+      label.style.left = "";
+      label.style.right = x + 'px';
+    } else {
+      label.style.left = x + 'px';
+    };
     label.className = 'vis-text vis-minor ' + className;
     //label.title = title;  // TODO: this is a heavy operation
 
@@ -23225,11 +23391,12 @@ return /******/ (function(modules) { // webpackBootstrap
     //label.title = title; // TODO: this is a heavy operation
 
     label.style.top = orientation == 'top' ? '0' : this.props.minorLabelHeight + 'px';
-    // if (this.options.rtl) {
-    //   label.style.right = x + 'px';
-    // } else {
-    label.style.left = x + 'px';
-    // };
+    if (this.options.rtl) {
+      label.style.left = "";
+      label.style.right = x + 'px';
+    } else {
+      label.style.left = x + 'px';
+    };
 
     return label;
   };
@@ -23260,11 +23427,12 @@ return /******/ (function(modules) { // webpackBootstrap
       line.style.top = this.body.domProps.top.height + 'px';
     }
     line.style.height = props.minorLineHeight + 'px';
-    // if (this.options.rtl) {
-    //    line.style.right = (x - props.minorLineWidth / 2) + 'px';
-    // } else {
-    line.style.left = x - props.minorLineWidth / 2 + 'px';
-    // };
+    if (this.options.rtl) {
+      line.style.left = "";
+      line.style.right = x - props.minorLineWidth / 2 + 'px';
+    } else {
+      line.style.left = x - props.minorLineWidth / 2 + 'px';
+    };
     line.style.width = width + 'px';
 
     line.className = 'vis-grid vis-vertical vis-minor ' + className;
@@ -23298,11 +23466,12 @@ return /******/ (function(modules) { // webpackBootstrap
       line.style.top = this.body.domProps.top.height + 'px';
     }
 
-    // if (this.options.rtl) {
-    //   line.style.right = (x - props.majorLineWidth / 2) + 'px';
-    // } else {
-    line.style.left = x - props.majorLineWidth / 2 + 'px';
-    // }
+    if (this.options.rtl) {
+      line.style.left = "";
+      line.style.right = x - props.majorLineWidth / 2 + 'px';
+    } else {
+      line.style.left = x - props.majorLineWidth / 2 + 'px';
+    }
 
     line.style.height = props.majorLineHeight + 'px';
     line.style.width = width + 'px';
@@ -23326,9 +23495,7 @@ return /******/ (function(modules) { // webpackBootstrap
       this.dom.measureCharMinor = document.createElement('DIV');
       this.dom.measureCharMinor.className = 'vis-text vis-minor vis-measure';
       this.dom.measureCharMinor.style.position = 'absolute';
-      if (this.options.rtl) {
-        this.dom.measureCharMinor.style.direction = 'rtl';
-      }
+
       this.dom.measureCharMinor.appendChild(document.createTextNode('0'));
       this.dom.foreground.appendChild(this.dom.measureCharMinor);
     }
@@ -23340,9 +23507,7 @@ return /******/ (function(modules) { // webpackBootstrap
       this.dom.measureCharMajor = document.createElement('DIV');
       this.dom.measureCharMajor.className = 'vis-text vis-major vis-measure';
       this.dom.measureCharMajor.style.position = 'absolute';
-      if (this.options.rtl) {
-        this.dom.measureCharMajor.style.direction = 'rtl';
-      }
+
       this.dom.measureCharMajor.appendChild(document.createTextNode('0'));
       this.dom.foreground.appendChild(this.dom.measureCharMajor);
     }
@@ -24009,6 +24174,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
     // default options
     this.defaultOptions = {
+      rtl: false,
       showCurrentTime: true,
 
       moment: moment,
@@ -24057,7 +24223,7 @@ return /******/ (function(modules) { // webpackBootstrap
   CurrentTime.prototype.setOptions = function (options) {
     if (options) {
       // copy all options that we know
-      util.selectiveExtend(['showCurrentTime', 'moment', 'locale', 'locales'], this.options, options);
+      util.selectiveExtend(['rtl', 'showCurrentTime', 'moment', 'locale', 'locales'], this.options, options);
     }
   };
 
