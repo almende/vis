@@ -19460,7 +19460,6 @@ return /******/ (function(modules) { // webpackBootstrap
     if (group) {
       itemData.group = group.groupId;
     }
-    console.log("adding range item");
     var newItem = new RangeItem(itemData, this.conversion, this.options);
     newItem.id = id; // TODO: not so nice setting id afterwards
     newItem.data = this._cloneItemData(itemData);
@@ -19617,7 +19616,6 @@ return /******/ (function(modules) { // webpackBootstrap
       }.bind(this));
 
       this.stackDirty = true; // force re-stacking of all items next redraw
-      console.log("should redraw");
       this.body.emitter.emit('_change');
     }
   };
@@ -19921,7 +19919,6 @@ return /******/ (function(modules) { // webpackBootstrap
       });
     } else {
       // add item
-      console.log("adding item");
       if (this.options.rtl) {
         var xAbs = util.getAbsoluteRight(this.dom.frame);
         var x = xAbs - event.center.x;
@@ -22111,7 +22108,12 @@ return /******/ (function(modules) { // webpackBootstrap
       var me = this;
 
       var deleteButton = document.createElement('div');
-      deleteButton.className = 'vis-delete';
+
+      if (this.options.rtl) {
+        deleteButton.className = 'vis-delete-rtl';
+      } else {
+        deleteButton.className = 'vis-delete';
+      }
       deleteButton.title = 'Delete this item';
 
       // TODO: be able to destroy the delete button
@@ -43089,7 +43091,12 @@ return /******/ (function(modules) { // webpackBootstrap
     }, {
       key: '_createDeleteButton',
       value: function _createDeleteButton(locale) {
-        var button = this._createButton('delete', 'vis-button vis-delete', locale['del'] || this.options.locales['en']['del']);
+        if (this.options.rtl) {
+          var deleteBtnClass = 'vis-button vis-delete-rtl';
+        } else {
+          var deleteBtnClass = 'vis-button vis-delete';
+        }
+        var button = this._createButton('delete', deleteBtnClass, locale['del'] || this.options.locales['en']['del']);
         this.manipulationDiv.appendChild(button);
         this._bindHammerToDiv(button, this.deleteSelected.bind(this));
       }
