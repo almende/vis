@@ -5,8 +5,7 @@
  * A dynamic, browser-based visualization library.
  *
  * @version 4.15.2-SNAPSHOT
- * @date    2016-03-14
-
+ * @date    2016-03-15
  *
  * @license
  * Copyright (C) 2011-2016 Almende B.V, http://almende.com
@@ -11058,8 +11057,6 @@ return /******/ (function(modules) { // webpackBootstrap
 
           var start = getStart(item);
           var end = getEnd(item);
-          console.log(start, end);
-          console.log(this.options);
 
           if (this.options.rtl) {
             var startSide = start - (item.getWidthRight() + 10) * factor;
@@ -17670,7 +17667,6 @@ return /******/ (function(modules) { // webpackBootstrap
     var interval = range.max - range.min;
     var min = new Date(range.min.valueOf() - interval * 0.01);
     var max = new Date(range.max.valueOf() + interval * 0.01);
-    console.log(min, max);
     var animation = options && options.animation !== undefined ? options.animation : true;
     this.range.setRange(min, max, animation);
   };
@@ -21751,7 +21747,6 @@ return /******/ (function(modules) { // webpackBootstrap
 
       this.dirty = false;
     }
-    console.log("redrawing range");
     this._repaintDeleteButton(dom.box);
     this._repaintDragLeft();
     this._repaintDragRight();
@@ -21931,7 +21926,6 @@ return /******/ (function(modules) { // webpackBootstrap
    * @protected
    */
   RangeItem.prototype._repaintDragRight = function () {
-    console.log("repainting!!!!");
     if (this.selected && this.options.editable.updateTime && !this.dom.dragRight) {
       // create and show drag area
       var dragRight = document.createElement('div');
