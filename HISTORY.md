@@ -25,6 +25,7 @@ http://visjs.org
 - Fixed #1455: allow vertical panning of the web page on touch devices.
 - Fixed #1695: Item line and dot not correctly reckoning with the line width
   when using left or right align.
+- Fixed #1697: Timeline not drawn when used within the Angular.js directive.
 
 
 ## 2016-02-23, version 4.15.0

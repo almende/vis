@@ -4,8 +4,9 @@
  *
  * A dynamic, browser-based visualization library.
  *
- * @version 4.15.1
- * @date    2016-03-13
+ * @version 4.15.2-SNAPSHOT
+ * @date    2016-03-14
+
  *
  * @license
  * Copyright (C) 2011-2016 Almende B.V, http://almende.com
@@ -17772,7 +17773,7 @@ return /******/ (function(modules) { // webpackBootstrap
     var props = this.props;
     var dom = this.dom;
 
-    if (!dom || !dom.container || dom.container.clientWidth == 0) return; // when destroyed, or invisible
+    if (!dom || !dom.container || dom.root.clientWidth == 0) return; // when destroyed, or invisible
 
     DateUtil.updateHiddenDates(this.options.moment, this.body, this.options.hiddenDates);
 
@@ -29330,7 +29331,9 @@ return /******/ (function(modules) { // webpackBootstrap
       value: function create(properties) {
         var constructorClass = arguments.length <= 1 || arguments[1] === undefined ? _Node2.default : arguments[1];
 
-        return new constructorClass(properties, this.body, this.images, this.groups, this.options);
+        var idField = this.body.data.nodes._fieldId;
+        var id = properties[idField];
+        return new constructorClass(id, properties, this.body, this.images, this.groups, this.options);
       }
     }, {
       key: 'refresh',
@@ -29591,9 +29594,9 @@ return /******/ (function(modules) { // webpackBootstrap
   /**
    * @class Node
    * A node. A node can be connected to other nodes via one or multiple edges.
+   * @param {string} id      Id for the node
    * @param {object} options An object containing options for the node. All
-   *                            options are optional, except for the id.
-   *                              {number} id     Id of the node. Required
+   *                            options are optional
    *                              {string} label  Text label for the node
    *                              {number} x      Horizontal position of the node
    *                              {number} y      Vertical position of the node
@@ -29615,7 +29618,7 @@ return /******/ (function(modules) { // webpackBootstrap
    */
 
   var Node = function () {
-    function Node(options, body, imagelist, grouplist, globalOptions) {
+    function Node(id, options, body, imagelist, grouplist, globalOptions) {
       _classCallCheck(this, Node);
 
       this.options = util.bridgeObject(globalOptions);
@@ -29624,8 +29627,11 @@ return /******/ (function(modules) { // webpackBootstrap
 
       this.edges = []; // all edges connected to this node
 
-      // set defaults for the options
-      this.id = undefined;
+      if (id === undefined) {
+        throw "Node must have an id";
+      }
+
+      this.id = id;
       this.imagelist = imagelist;
       this.grouplist = grouplist;
 
@@ -29682,14 +29688,6 @@ return /******/ (function(modules) { // webpackBootstrap
         var currentShape = this.options.shape;
         if (!options) {
           return;
-        }
-        // basic options
-        if (options.id !== undefined) {
-          this.id = options.id;
-        }
-
-        if (this.id === undefined) {
-          throw "Node must have an id";
         }
 
         // set these options locally
@@ -32365,7 +32363,9 @@ return /******/ (function(modules) { // webpackBootstrap
     }, {
       key: 'create',
       value: function create(properties) {
-        return new _Edge2.default(properties, this.body, this.options);
+        var idField = this.body.data.edges._fieldId;
+        var id = properties[idField];
+        return new _Edge2.default(id, properties, this.body, this.options);
       }
     }, {
       key: 'markAllEdgesAsDirty',
@@ -32468,6 +32468,7 @@ return /******/ (function(modules) { // webpackBootstrap
    * @class Edge
    *
    * A edge connects two nodes
+   * @param {string} [id]           Id for the edge. optional
    * @param {Object} properties     Object with options. Must contain
    *                                At least options from and to.
    *                                Available options: from (number),
@@ -32481,7 +32482,7 @@ return /******/ (function(modules) { // webpackBootstrap
    */
 
   var Edge = function () {
-    function Edge(options, body, globalOptions) {
+    function Edge(id, options, body, globalOptions) {
       _classCallCheck(this, Edge);
 
       if (body === undefined) {
@@ -32492,7 +32493,7 @@ return /******/ (function(modules) { // webpackBootstrap
       this.body = body;
 
       // initialize variables
-      this.id = undefined;
+      this.id = id;
       this.fromId = undefined;
       this.toId = undefined;
       this.selected = false;
@@ -32532,9 +32533,6 @@ return /******/ (function(modules) { // webpackBootstrap
 
         Edge.parseOptions(this.options, options, true, this.globalOptions);
 
-        if (options.id !== undefined) {
-          this.id = options.id;
-        }
         if (options.from !== undefined) {
           this.fromId = options.from;
         }
@@ -32614,14 +32612,14 @@ return /******/ (function(modules) { // webpackBootstrap
           if (this.options.smooth.enabled === true) {
             if (this.options.smooth.type === 'dynamic') {
               dataChanged = true;
-              this.edgeType = new _BezierEdgeDynamic2.default(this.options, this.body, this.labelModule);
+              this.edgeType = new _BezierEdgeDynamic2.default(this.id, this.options, this.body, this.labelModule);
             } else if (this.options.smooth.type === 'cubicBezier') {
-              this.edgeType = new _CubicBezierEdge2.default(this.options, this.body, this.labelModule);
+              this.edgeType = new _CubicBezierEdge2.default(this.id, this.options, this.body, this.labelModule);
             } else {
-              this.edgeType = new _BezierEdgeStatic2.default(this.options, this.body, this.labelModule);
+              this.edgeType = new _BezierEdgeStatic2.default(this.id, this.options, this.body, this.labelModule);
             }
           } else {
-            this.edgeType = new _StraightEdge2.default(this.options, this.body, this.labelModule);
+            this.edgeType = new _StraightEdge2.default(this.id, this.options, this.body, this.labelModule);
           }
         } else {
           // if nothing changes, we just set the options.
@@ -33069,10 +33067,10 @@ return /******/ (function(modules) { // webpackBootstrap
   var CubicBezierEdge = function (_CubicBezierEdgeBase) {
     _inherits(CubicBezierEdge, _CubicBezierEdgeBase);
 
-    function CubicBezierEdge(options, body, labelModule) {
+    function CubicBezierEdge(id, options, body, labelModule) {
       _classCallCheck(this, CubicBezierEdge);
 
-      return _possibleConstructorReturn(this, Object.getPrototypeOf(CubicBezierEdge).call(this, options, body, labelModule));
+      return _possibleConstructorReturn(this, Object.getPrototypeOf(CubicBezierEdge).call(this, id, options, body, labelModule));
     }
 
     /**
@@ -33217,10 +33215,10 @@ return /******/ (function(modules) { // webpackBootstrap
   var CubicBezierEdgeBase = function (_BezierEdgeBase) {
     _inherits(CubicBezierEdgeBase, _BezierEdgeBase);
 
-    function CubicBezierEdgeBase(options, body, labelModule) {
+    function CubicBezierEdgeBase(id, options, body, labelModule) {
       _classCallCheck(this, CubicBezierEdgeBase);
 
-      return _possibleConstructorReturn(this, Object.getPrototypeOf(CubicBezierEdgeBase).call(this, options, body, labelModule));
+      return _possibleConstructorReturn(this, Object.getPrototypeOf(CubicBezierEdgeBase).call(this, id, options, body, labelModule));
     }
 
     /**
@@ -33303,10 +33301,10 @@ return /******/ (function(modules) { // webpackBootstrap
   var BezierEdgeBase = function (_EdgeBase) {
     _inherits(BezierEdgeBase, _EdgeBase);
 
-    function BezierEdgeBase(options, body, labelModule) {
+    function BezierEdgeBase(id, options, body, labelModule) {
       _classCallCheck(this, BezierEdgeBase);
 
-      return _possibleConstructorReturn(this, Object.getPrototypeOf(BezierEdgeBase).call(this, options, body, labelModule));
+      return _possibleConstructorReturn(this, Object.getPrototypeOf(BezierEdgeBase).call(this, id, options, body, labelModule));
     }
 
     /**
@@ -33439,9 +33437,10 @@ return /******/ (function(modules) { // webpackBootstrap
   var util = __webpack_require__(1);
 
   var EdgeBase = function () {
-    function EdgeBase(options, body, labelModule) {
+    function EdgeBase(id, options, body, labelModule) {
       _classCallCheck(this, EdgeBase);
 
+      this.id = id;
       this.body = body;
       this.labelModule = labelModule;
       this.options = {};
@@ -33471,7 +33470,6 @@ return /******/ (function(modules) { // webpackBootstrap
         this.options = options;
         this.from = this.body.nodes[this.options.from];
         this.to = this.body.nodes[this.options.to];
-        this.id = this.options.id;
       }
 
       /**
@@ -34045,12 +34043,12 @@ return /******/ (function(modules) { // webpackBootstrap
   var BezierEdgeDynamic = function (_BezierEdgeBase) {
     _inherits(BezierEdgeDynamic, _BezierEdgeBase);
 
-    function BezierEdgeDynamic(options, body, labelModule) {
+    function BezierEdgeDynamic(id, options, body, labelModule) {
       _classCallCheck(this, BezierEdgeDynamic);
 
       // --> this calls the setOptions below
 
-      var _this = _possibleConstructorReturn(this, Object.getPrototypeOf(BezierEdgeDynamic).call(this, options, body, labelModule));
+      var _this = _possibleConstructorReturn(this, Object.getPrototypeOf(BezierEdgeDynamic).call(this, id, options, body, labelModule));
       //this.via = undefined; // Here for completeness but not allowed to defined before super() is invoked.
 
 
@@ -34072,7 +34070,6 @@ return /******/ (function(modules) { // webpackBootstrap
 
         // set the options and the to and from nodes
         this.options = options;
-        this.id = this.options.id;
         this.from = this.body.nodes[this.options.from];
         this.to = this.body.nodes[this.options.to];
 
@@ -34133,12 +34130,14 @@ return /******/ (function(modules) { // webpackBootstrap
       value: function setupSupportNode() {
         if (this.via === undefined) {
           var nodeId = "edgeId:" + this.id;
-          var node = this.body.functions.createNode({
-            id: nodeId,
+          var properties = {
             shape: 'circle',
             physics: true,
             hidden: true
-          });
+          };
+          var idField = this.body.data.nodes._fieldId;
+          properties[idField] = nodeId;
+          var node = this.body.functions.createNode(properties);
           this.body.nodes[nodeId] = node;
           this.via = node;
           this.via.parentEdgeId = this.id;
@@ -34250,10 +34249,10 @@ return /******/ (function(modules) { // webpackBootstrap
   var BezierEdgeStatic = function (_BezierEdgeBase) {
     _inherits(BezierEdgeStatic, _BezierEdgeBase);
 
-    function BezierEdgeStatic(options, body, labelModule) {
+    function BezierEdgeStatic(id, options, body, labelModule) {
       _classCallCheck(this, BezierEdgeStatic);
 
-      return _possibleConstructorReturn(this, Object.getPrototypeOf(BezierEdgeStatic).call(this, options, body, labelModule));
+      return _possibleConstructorReturn(this, Object.getPrototypeOf(BezierEdgeStatic).call(this, id, options, body, labelModule));
     }
 
     /**
@@ -42920,8 +42919,9 @@ return /******/ (function(modules) { // webpackBootstrap
       key: '_getNewTargetNode',
       value: function _getNewTargetNode(x, y) {
         var controlNodeStyle = util.deepExtend({}, this.options.controlNodeStyle);
+        var idField = this.body.data.nodes._fieldId;
 
-        controlNodeStyle.id = 'targetNode' + util.randomUUID();
+        controlNodeStyle[idField] = 'targetNode' + util.randomUUID();
         controlNodeStyle.hidden = false;
         controlNodeStyle.physics = false;
         controlNodeStyle.x = x;
@@ -43487,11 +43487,12 @@ return /******/ (function(modules) { // webpackBootstrap
         var _this5 = this;
 
         var defaultData = {
-          id: util.randomUUID(),
           x: clickData.pointer.canvas.x,
           y: clickData.pointer.canvas.y,
           label: 'new'
         };
+        var idField = this.body.data.nodes._fieldId;
+        defaultData[idField] = util.randomUUID();
 
         if (typeof this.options.addNode === 'function') {
           if (this.options.addNode.length === 2) {
