@@ -11057,18 +11057,23 @@ return /******/ (function(modules) { // webpackBootstrap
 
           var start = getStart(item);
           var end = getEnd(item);
-
+          console.log(start, end);
           console.log(this.options);
 
-          var left = start - (item.getWidthLeft() + 10) * factor;
-          var right = end + (item.getWidthRight() + 10) * factor;
+          if (this.options.rtl) {
+            var startSide = start - (item.getWidthRight() + 10) * factor;
+            var endSide = end + (item.getWidthLeft() + 10) * factor;
+          } else {
+            var startSide = start - (item.getWidthLeft() + 10) * factor;
+            var endSide = end + (item.getWidthRight() + 10) * factor;
+          }
 
-          if (left < min) {
-            min = left;
+          if (startSide < min) {
+            min = startSide;
             minItem = item;
           }
-          if (right > max) {
-            max = right;
+          if (endSide > max) {
+            max = endSide;
             maxItem = item;
           }
         }.bind(_this));
@@ -11079,8 +11084,13 @@ return /******/ (function(modules) { // webpackBootstrap
           delta = _this.props.center.width - lhs - rhs; // px
 
           if (delta > 0) {
-            min = getStart(minItem) - lhs * interval / delta; // ms
-            max = getEnd(maxItem) + rhs * interval / delta; // ms
+            if (_this.options.rtl) {
+              min = getStart(minItem) - rhs * interval / delta; // ms
+              max = getEnd(maxItem) + lhs * interval / delta; // ms
+            } else {
+                min = getStart(minItem) - lhs * interval / delta; // ms
+                max = getEnd(maxItem) + rhs * interval / delta; // ms
+              }
           }
         }
       })();
@@ -17357,6 +17367,8 @@ return /******/ (function(modules) { // webpackBootstrap
         var contentContainer = this.dom.leftContainer;
         this.dom.leftContainer = this.dom.rightContainer;
         this.dom.rightContainer = contentContainer;
+        this.dom.container.style.direction = "rtl";
+        this.dom.backgroundVertical.className = 'vis-panel vis-background vis-vertical-rtl';
       }
 
       this.options.orientation = { item: undefined, axis: undefined };
@@ -17657,7 +17669,7 @@ return /******/ (function(modules) { // webpackBootstrap
     var interval = range.max - range.min;
     var min = new Date(range.min.valueOf() - interval * 0.01);
     var max = new Date(range.max.valueOf() + interval * 0.01);
-
+    console.log(min, max);
     var animation = options && options.animation !== undefined ? options.animation : true;
     this.range.setRange(min, max, animation);
   };
@@ -19327,7 +19339,6 @@ return /******/ (function(modules) { // webpackBootstrap
   ItemSet.prototype._onTouch = function (event) {
     // store the touched item, used in _onDragStart
     this.touchParams.item = this.itemFromTarget(event);
-    console.log(event.target.dragLeftItem, event.target.dragRightItem);
     this.touchParams.dragLeftItem = event.target.dragLeftItem || false;
     this.touchParams.dragRightItem = event.target.dragRightItem || false;
     this.touchParams.itemProps = null;
@@ -19478,7 +19489,6 @@ return /******/ (function(modules) { // webpackBootstrap
    */
   ItemSet.prototype._onDrag = function (event) {
     if (this.touchParams.itemProps) {
-      console.log("Ddddddddddddd");
       event.stopPropagation();
 
       var me = this;
@@ -19526,12 +19536,10 @@ return /******/ (function(modules) { // webpackBootstrap
         }
 
         var updateTimeAllowed = me.options.editable.updateTime || props.item.editable === true;
-        console.log(props);
         if (updateTimeAllowed) {
           if (props.dragLeft) {
             // drag left side of a range item
             if (this.options.rtl) {
-              console.log("moving left");
               if (itemData.end != undefined) {
                 var initialEnd = util.convert(props.data.end, 'Date');
                 var end = new Date(initialEnd.valueOf() + offset);
@@ -19547,7 +19555,6 @@ return /******/ (function(modules) { // webpackBootstrap
               }
             }
           } else if (props.dragRight) {
-            console.log("moving right");
             // drag right side of a range item
             if (this.options.rtl) {
               if (itemData.start != undefined) {
@@ -21078,8 +21085,8 @@ return /******/ (function(modules) { // webpackBootstrap
       this.visibleItems = this._updateVisibleItems(this.orderedItems, this.visibleItems, range);
     } else {
       // no custom order function, lazy stacking
-      this.visibleItems = this._updateVisibleItems(this.orderedItems, this.visibleItems, range);
 
+      this.visibleItems = this._updateVisibleItems(this.orderedItems, this.visibleItems, range);
       if (this.itemSet.options.stack) {
         // TODO: ugly way to access options...
         stack.stack(this.visibleItems, margin, restack);
@@ -21095,10 +21102,9 @@ return /******/ (function(modules) { // webpackBootstrap
     // calculate actual size and position
     var foreground = this.dom.foreground;
     this.top = foreground.offsetTop;
-    this.left = foreground.offsetLeft;
+    this.right = foreground.offsetLeft;
     this.width = foreground.offsetWidth;
     resized = util.updateProperty(this, 'height', height) || resized;
-
     // recalculate size of label
     resized = util.updateProperty(this.props.label, 'width', this.dom.inner.clientWidth) || resized;
     resized = util.updateProperty(this.props.label, 'height', this.dom.inner.clientHeight) || resized;
@@ -21538,7 +21544,6 @@ return /******/ (function(modules) { // webpackBootstrap
    */
   exports.stack = function (items, margin, force) {
     var i, iMax;
-
     if (force) {
       // reset top position of all items
       for (i = 0, iMax = items.length; i < iMax; i++) {
@@ -21559,7 +21564,7 @@ return /******/ (function(modules) { // webpackBootstrap
           var collidingItem = null;
           for (var j = 0, jj = items.length; j < jj; j++) {
             var other = items[j];
-            if (other.top !== null && other !== item && other.stack && exports.collision(item, other, margin.item)) {
+            if (other.top !== null && other !== item && other.stack && exports.collision(item, other, margin.item, other.options.rtl)) {
               collidingItem = other;
               break;
             }
@@ -21612,8 +21617,14 @@ return /******/ (function(modules) { // webpackBootstrap
    *                          minimum required margin.
    * @return {boolean}        true if a and b collide, else false
    */
-  exports.collision = function (a, b, margin) {
-    return a.left - margin.horizontal + EPSILON < b.left + b.width && a.left + a.width + margin.horizontal - EPSILON > b.left && a.top - margin.vertical + EPSILON < b.top + b.height && a.top + a.height + margin.vertical - EPSILON > b.top;
+  exports.collision = function (a, b, margin, rtl) {
+    var isCollision = null;
+    if (rtl) {
+      isCollision = a.right - margin.horizontal + EPSILON < b.right + b.width && a.right + a.width + margin.horizontal - EPSILON > b.right && a.top - margin.vertical + EPSILON < b.top + b.height && a.top + a.height + margin.vertical - EPSILON > b.top;
+    } else {
+      a.left - margin.horizontal + EPSILON < b.left + b.width && a.left + a.width + margin.horizontal - EPSILON > b.left && a.top - margin.vertical + EPSILON < b.top + b.height && a.top + a.height + margin.vertical - EPSILON > b.top;
+    }
+    return isCollision;
   };
 
 /***/ },
@@ -21674,7 +21685,6 @@ return /******/ (function(modules) { // webpackBootstrap
    * Repaint the item
    */
   RangeItem.prototype.redraw = function () {
-    console.log("kkkkkkkkkkkkkkkkkkkkk");
     var dom = this.dom;
     if (!dom) {
       // create DOM
@@ -22521,7 +22531,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
         // reposition box, line, and dot
         this.dom.box.style.right = this.right + 'px';
-        this.dom.line.style.right = start - this.props.line.width / 2 + 'px';
+        this.dom.line.style.right = start - this.props.line.width + 'px';
         this.dom.dot.style.right = start - this.props.dot.width / 2 + 'px';
       } else {
         this.left = start - this.width / 2;
@@ -22608,7 +22618,8 @@ return /******/ (function(modules) { // webpackBootstrap
       },
       content: {
         height: 0,
-        marginLeft: 0
+        marginLeft: 0,
+        marginRight: 0
       }
     };
     this.options = options;
@@ -22701,7 +22712,11 @@ return /******/ (function(modules) { // webpackBootstrap
       this.props.content.height = dom.content.offsetHeight;
 
       // resize contents
-      dom.content.style.marginLeft = 2 * this.props.dot.width + 'px';
+      if (this.options.rtl) {
+        dom.content.style.marginRight = 2 * this.props.dot.width + 'px';
+      } else {
+        dom.content.style.marginLeft = 2 * this.props.dot.width + 'px';
+      }
       //dom.content.style.marginRight = ... + 'px'; // TODO: margin right
 
       // recalculate size
@@ -22772,7 +22787,6 @@ return /******/ (function(modules) { // webpackBootstrap
   PointItem.prototype.repositionY = function () {
     var orientation = this.options.orientation.item;
     var point = this.dom.point;
-
     if (orientation == 'top') {
       point.style.top = this.top + 'px';
     } else {
@@ -22793,7 +22807,7 @@ return /******/ (function(modules) { // webpackBootstrap
    * @return {number}
    */
   PointItem.prototype.getWidthRight = function () {
-    return this.width - this.props.dot.width;
+    return this.props.dot.width;
   };
 
   module.exports = PointItem;
@@ -23339,6 +23353,7 @@ return /******/ (function(modules) { // webpackBootstrap
   TimeAxis.prototype._repaintMinorText = function (x, text, orientation, className) {
     // reuse redundant label
     var label = this.dom.redundant.minorTexts.shift();
+
     if (!label) {
       // create new label
       var content = document.createTextNode('');
@@ -23430,12 +23445,12 @@ return /******/ (function(modules) { // webpackBootstrap
     if (this.options.rtl) {
       line.style.left = "";
       line.style.right = x - props.minorLineWidth / 2 + 'px';
+      line.className = 'vis-grid vis-vertical-rtl vis-minor ' + className;
     } else {
       line.style.left = x - props.minorLineWidth / 2 + 'px';
+      line.className = 'vis-grid vis-vertical vis-minor ' + className;
     };
     line.style.width = width + 'px';
-
-    line.className = 'vis-grid vis-vertical vis-minor ' + className;
 
     return line;
   };
@@ -23469,14 +23484,14 @@ return /******/ (function(modules) { // webpackBootstrap
     if (this.options.rtl) {
       line.style.left = "";
       line.style.right = x - props.majorLineWidth / 2 + 'px';
+      line.className = 'vis-grid vis-vertical-rtl vis-major ' + className;
     } else {
       line.style.left = x - props.majorLineWidth / 2 + 'px';
+      line.className = 'vis-grid vis-vertical vis-major ' + className;
     }
 
     line.style.height = props.majorLineHeight + 'px';
     line.style.width = width + 'px';
-
-    line.className = 'vis-grid vis-vertical vis-major ' + className;
 
     return line;
   };
@@ -26162,7 +26177,7 @@ return /******/ (function(modules) { // webpackBootstrap
     this.hidden = false;
     if (!this.dom.frame.parentNode) {
       if (this.options.rtl) {
-        this.body.dom.right.appendChild(this.dom.frame);
+        this.body.dom.left.appendChild(this.dom.frame);
       } else {
         this.body.dom.left.appendChild(this.dom.frame);
       }

@@ -41,6 +41,11 @@
   border-left: 1px solid;
 }
 
+.vis-time-axis .vis-grid.vis-vertical-rtl {
+  position: absolute;
+  border-right: 1px solid;
+}
+
 .vis-time-axis .vis-grid.vis-minor {
   border-color: #e5e5e5;
 }
