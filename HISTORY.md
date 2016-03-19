@@ -4,6 +4,10 @@ http://visjs.org
 
 ## not yet released, version 4.15.2-SNAPSHOT
 
+### Timeline
+
+- Fixed #1697: Timeline not drawn when used within the Angular.js directive.
+
 
 ## 2016-03-08, version 4.15.1
 
