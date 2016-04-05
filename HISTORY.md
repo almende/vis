@@ -7,6 +7,7 @@ http://visjs.org
 ### Timeline
 
 - Fixed #1697: Timeline not drawn when used within the Angular.js directive.
+- Fixed #1774: Wrong initial scale when Timeline contains a single item.
 
 
 ## 2016-03-08, version 4.15.1
