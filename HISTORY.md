@@ -2,10 +2,11 @@
 http://visjs.org
 
 
-## not yet released, version 4.15.2-SNAPSHOT
+## not yet released, version 4.16.0-SNAPSHOT
 
 ### Timeline
 
+- Implemented rtl support. Thanks @yotamberk.
 - Fixed #1697: Timeline not drawn when used within the Angular.js directive.
 - Fixed #1774: Wrong initial scale when Timeline contains a single item.
 
