@@ -5,7 +5,7 @@
  * A dynamic, browser-based visualization library.
  *
  * @version 4.15.2-SNAPSHOT
- * @date    2016-03-19
+ * @date    2016-03-15
  *
  * @license
  * Copyright (C) 2011-2016 Almende B.V, http://almende.com
@@ -721,6 +721,10 @@ return /******/ (function(modules) { // webpackBootstrap
    */
   exports.getAbsoluteLeft = function (elem) {
     return elem.getBoundingClientRect().left;
+  };
+
+  exports.getAbsoluteRight = function (elem) {
+    return elem.getBoundingClientRect().right;
   };
 
   /**
@@ -10661,6 +10665,7 @@ return /******/ (function(modules) { // webpackBootstrap
    * @extends Core
    */
   function Timeline(container, items, groups, options) {
+
     if (!(this instanceof Timeline)) {
       throw new SyntaxError('Constructor must be called with the new operator');
     }
@@ -10684,7 +10689,7 @@ return /******/ (function(modules) { // webpackBootstrap
         axis: 'bottom', // axis orientation: 'bottom', 'top', or 'both'
         item: 'bottom' // not relevant
       },
-
+      rtl: false,
       moment: moment,
 
       width: null,
@@ -10739,7 +10744,7 @@ return /******/ (function(modules) { // webpackBootstrap
     this.components.push(this.currentTime);
 
     // item set
-    this.itemSet = new ItemSet(this.body);
+    this.itemSet = new ItemSet(this.body, this.options);
     this.components.push(this.itemSet);
 
     this.itemsData = null; // DataSet
@@ -10822,6 +10827,7 @@ return /******/ (function(modules) { // webpackBootstrap
   Timeline.prototype.setOptions = function (options) {
     // validate options
     var errorFound = _Validator2.default.validate(options, allOptions);
+
     if (errorFound === true) {
       console.log('%cErrors have been found in the supplied options object.', printStyle);
     }
@@ -11052,15 +11058,20 @@ return /******/ (function(modules) { // webpackBootstrap
           var start = getStart(item);
           var end = getEnd(item);
 
-          var left = start - (item.getWidthLeft() + 10) * factor;
-          var right = end + (item.getWidthRight() + 10) * factor;
+          if (this.options.rtl) {
+            var startSide = start - (item.getWidthRight() + 10) * factor;
+            var endSide = end + (item.getWidthLeft() + 10) * factor;
+          } else {
+            var startSide = start - (item.getWidthLeft() + 10) * factor;
+            var endSide = end + (item.getWidthRight() + 10) * factor;
+          }
 
-          if (left < min) {
-            min = left;
+          if (startSide < min) {
+            min = startSide;
             minItem = item;
           }
-          if (right > max) {
-            max = right;
+          if (endSide > max) {
+            max = endSide;
             maxItem = item;
           }
         }.bind(_this));
@@ -11071,8 +11082,13 @@ return /******/ (function(modules) { // webpackBootstrap
           delta = _this.props.center.width - lhs - rhs; // px
 
           if (delta > 0) {
-            min = getStart(minItem) - lhs * interval / delta; // ms
-            max = getEnd(maxItem) + rhs * interval / delta; // ms
+            if (_this.options.rtl) {
+              min = getStart(minItem) - rhs * interval / delta; // ms
+              max = getEnd(maxItem) + lhs * interval / delta; // ms
+            } else {
+                min = getStart(minItem) - lhs * interval / delta; // ms
+                max = getEnd(maxItem) + rhs * interval / delta; // ms
+              }
           }
         }
       })();
@@ -11121,7 +11137,11 @@ return /******/ (function(modules) { // webpackBootstrap
   Timeline.prototype.getEventProperties = function (event) {
     var clientX = event.center ? event.center.x : event.clientX;
     var clientY = event.center ? event.center.y : event.clientY;
-    var x = clientX - util.getAbsoluteLeft(this.dom.centerContainer);
+    if (this.options.rtl) {
+      var x = util.getAbsoluteRight(this.dom.centerContainer) - clientX;
+    } else {
+      var x = clientX - util.getAbsoluteLeft(this.dom.centerContainer);
+    }
     var y = clientY - util.getAbsoluteTop(this.dom.centerContainer);
 
     var item = this.itemSet.itemFromTarget(event);
@@ -15804,9 +15824,9 @@ return /******/ (function(modules) { // webpackBootstrap
       // http://en.wikibooks.org/wiki/Algorithm_Implementation/Strings/Levenshtein_distance#JavaScript
       /*
        Copyright (c) 2011 Andrei Mackenzie
-        Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
-        The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
-        THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+         Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+         The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+         THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
        */
 
     }, {
@@ -15887,6 +15907,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
     // default options
     this.defaultOptions = {
+      rtl: false,
       start: null,
       end: null,
       moment: moment,
@@ -15899,7 +15920,6 @@ return /******/ (function(modules) { // webpackBootstrap
       zoomMax: 1000 * 60 * 60 * 24 * 365 * 10000 // milliseconds
     };
     this.options = util.extend({}, this.defaultOptions);
-
     this.props = {
       touch: {}
     };
@@ -15941,7 +15961,7 @@ return /******/ (function(modules) { // webpackBootstrap
   Range.prototype.setOptions = function (options) {
     if (options) {
       // copy the options that we know
-      var fields = ['direction', 'min', 'max', 'zoomMin', 'zoomMax', 'moveable', 'zoomable', 'moment', 'activate', 'hiddenDates', 'zoomKey'];
+      var fields = ['direction', 'min', 'max', 'zoomMin', 'zoomMax', 'moveable', 'zoomable', 'moment', 'activate', 'hiddenDates', 'zoomKey', 'rtl'];
       util.selectiveExtend(fields, this.options, options);
 
       if ('start' in options || 'end' in options) {
@@ -16263,7 +16283,13 @@ return /******/ (function(modules) { // webpackBootstrap
     interval -= duration;
 
     var width = direction == 'horizontal' ? this.body.domProps.center.width : this.body.domProps.center.height;
-    var diffRange = -delta / width * interval;
+
+    if (this.options.rtl) {
+      var diffRange = delta / width * interval;
+    } else {
+      var diffRange = -delta / width * interval;
+    }
+
     var newStart = this.props.touch.start + diffRange;
     var newEnd = this.props.touch.end + diffRange;
 
@@ -16365,7 +16391,7 @@ return /******/ (function(modules) { // webpackBootstrap
       }
 
       // calculate center, the date to zoom around
-      var pointer = getPointer({ x: event.clientX, y: event.clientY }, this.body.dom.center);
+      var pointer = this.getPointer({ x: event.clientX, y: event.clientY }, this.body.dom.center);
       var pointerDate = this._pointerToDate(pointer);
 
       this.zoom(scale, pointerDate, delta);
@@ -16401,7 +16427,7 @@ return /******/ (function(modules) { // webpackBootstrap
     this.props.touch.allowDragging = false;
 
     if (!this.props.touch.center) {
-      this.props.touch.center = getPointer(event.center, this.body.dom.center);
+      this.props.touch.center = this.getPointer(event.center, this.body.dom.center);
     }
 
     var scale = 1 / (event.scale + this.scaleOffset);
@@ -16446,7 +16472,11 @@ return /******/ (function(modules) { // webpackBootstrap
     // calculate the time where the mouse is, check whether inside
     // and no scroll action should happen.
     var clientX = event.center ? event.center.x : event.clientX;
-    var x = clientX - util.getAbsoluteLeft(this.body.dom.centerContainer);
+    if (this.options.rtl) {
+      var x = clientX - util.getAbsoluteLeft(this.body.dom.centerContainer);
+    } else {
+      var x = util.getAbsoluteRight(this.body.dom.centerContainer) - clientX;
+    }
     var time = this.body.util.toTime(x);
 
     return time >= this.start && time <= this.end;
@@ -16480,12 +16510,19 @@ return /******/ (function(modules) { // webpackBootstrap
    * @return {{x: Number, y: Number}} pointer
    * @private
    */
-  function getPointer(touch, element) {
-    return {
-      x: touch.x - util.getAbsoluteLeft(element),
-      y: touch.y - util.getAbsoluteTop(element)
-    };
-  }
+  Range.prototype.getPointer = function (touch, element) {
+    if (this.options.rtl) {
+      return {
+        x: util.getAbsoluteRight(element) - touch.x,
+        y: touch.y - util.getAbsoluteTop(element)
+      };
+    } else {
+      return {
+        x: touch.x - util.getAbsoluteLeft(element),
+        y: touch.y - util.getAbsoluteTop(element)
+      };
+    }
+  };
 
   /**
    * Zoom the range the given scale in or out. Start and end date will
@@ -17321,8 +17358,16 @@ return /******/ (function(modules) { // webpackBootstrap
   Core.prototype.setOptions = function (options) {
     if (options) {
       // copy the known options
-      var fields = ['width', 'height', 'minHeight', 'maxHeight', 'autoResize', 'start', 'end', 'clickToUse', 'dataAttributes', 'hiddenDates', 'locale', 'locales', 'moment', 'throttleRedraw'];
+      var fields = ['width', 'height', 'minHeight', 'maxHeight', 'autoResize', 'start', 'end', 'clickToUse', 'dataAttributes', 'hiddenDates', 'locale', 'locales', 'moment', 'rtl', 'throttleRedraw'];
       util.selectiveExtend(fields, this.options, options);
+
+      if (this.options.rtl) {
+        var contentContainer = this.dom.leftContainer;
+        this.dom.leftContainer = this.dom.rightContainer;
+        this.dom.rightContainer = contentContainer;
+        this.dom.container.style.direction = "rtl";
+        this.dom.backgroundVertical.className = 'vis-panel vis-background vis-vertical-rtl';
+      }
 
       this.options.orientation = { item: undefined, axis: undefined };
       if ('orientation' in options) {
@@ -17622,7 +17667,6 @@ return /******/ (function(modules) { // webpackBootstrap
     var interval = range.max - range.min;
     var min = new Date(range.min.valueOf() - interval * 0.01);
     var max = new Date(range.max.valueOf() + interval * 0.01);
-
     var animation = options && options.animation !== undefined ? options.animation : true;
     this.range.setRange(min, max, animation);
   };
@@ -18170,8 +18214,8 @@ return /******/ (function(modules) { // webpackBootstrap
    */
   function ItemSet(body, options) {
     this.body = body;
-
     this.defaultOptions = {
+      rtl: false,
       type: null, // 'box', 'point', 'range', 'background'
       orientation: {
         item: 'bottom' // item orientation: 'top' or 'bottom'
@@ -18374,8 +18418,8 @@ return /******/ (function(modules) { // webpackBootstrap
 
     // add item on doubletap
     this.hammer.on('doubletap', this._onAddItem.bind(this));
-
     this.groupHammer = new Hammer(this.body.dom.leftContainer);
+
     this.groupHammer.on('panstart', this._onGroupDragStart.bind(this));
     this.groupHammer.on('panmove', this._onGroupDrag.bind(this));
     this.groupHammer.on('panend', this._onGroupDragEnd.bind(this));
@@ -18452,7 +18496,7 @@ return /******/ (function(modules) { // webpackBootstrap
   ItemSet.prototype.setOptions = function (options) {
     if (options) {
       // copy all options that we know
-      var fields = ['type', 'align', 'order', 'stack', 'selectable', 'multiselect', 'itemsAlwaysDraggable', 'multiselectPerGroup', 'groupOrder', 'dataAttributes', 'template', 'groupTemplate', 'hide', 'snap', 'groupOrderSwap'];
+      var fields = ['type', 'rtl', 'align', 'order', 'stack', 'selectable', 'multiselect', 'itemsAlwaysDraggable', 'multiselectPerGroup', 'groupOrder', 'dataAttributes', 'template', 'groupTemplate', 'hide', 'snap', 'groupOrderSwap'];
       util.selectiveExtend(fields, this.options, options);
 
       if ('orientation' in options) {
@@ -18637,8 +18681,14 @@ return /******/ (function(modules) { // webpackBootstrap
    */
   ItemSet.prototype.getVisibleItems = function () {
     var range = this.body.range.getRange();
-    var left = this.body.util.toScreen(range.start);
-    var right = this.body.util.toScreen(range.end);
+
+    if (this.options.rtl) {
+      var right = this.body.util.toScreen(range.start);
+      var left = this.body.util.toScreen(range.end);
+    } else {
+      var left = this.body.util.toScreen(range.start);
+      var right = this.body.util.toScreen(range.end);
+    }
 
     var ids = [];
     for (var groupId in this.groups) {
@@ -18651,8 +18701,14 @@ return /******/ (function(modules) { // webpackBootstrap
         for (var i = 0; i < rawVisibleItems.length; i++) {
           var item = rawVisibleItems[i];
           // TODO: also check whether visible vertically
-          if (item.left < right && item.left + item.width > left) {
-            ids.push(item.id);
+          if (this.options.rtl) {
+            if (item.right < left && item.right + item.width > right) {
+              ids.push(item.id);
+            }
+          } else {
+            if (item.left < right && item.left + item.width > left) {
+              ids.push(item.id);
+            }
           }
         }
       }
@@ -18692,7 +18748,12 @@ return /******/ (function(modules) { // webpackBootstrap
 
     // recalculate absolute position (before redrawing groups)
     this.props.top = this.body.domProps.top.height + this.body.domProps.border.top;
-    this.props.left = this.body.domProps.left.width + this.body.domProps.border.left;
+
+    if (this.options.rtl) {
+      this.props.right = this.body.domProps.right.width + this.body.domProps.border.right;
+    } else {
+      this.props.left = this.body.domProps.left.width + this.body.domProps.border.left;
+    }
 
     // update class name
     frame.className = 'vis-itemset';
@@ -18743,7 +18804,11 @@ return /******/ (function(modules) { // webpackBootstrap
 
     // reposition axis
     this.dom.axis.style.top = asSize(orientation == 'top' ? this.body.domProps.top.height + this.body.domProps.border.top : this.body.domProps.top.height + this.body.domProps.centerContainer.height);
-    this.dom.axis.style.left = '0';
+    if (this.options.rtl) {
+      this.dom.axis.style.right = '0';
+    } else {
+      this.dom.axis.style.left = '0';
+    }
 
     // check if this component is resized
     resized = this._isResized() || resized;
@@ -19363,8 +19428,15 @@ return /******/ (function(modules) { // webpackBootstrap
    */
   ItemSet.prototype._onDragStartAddItem = function (event) {
     var snap = this.options.snap || null;
-    var xAbs = util.getAbsoluteLeft(this.dom.frame);
-    var x = event.center.x - xAbs - 10; // minus 10 to compensate for the drag starting as soon as you've moved 10px
+
+    if (this.options.rtl) {
+      var xAbs = util.getAbsoluteRight(this.dom.frame);
+      var x = xAbs - event.center.x + 10; // plus 10 to compensate for the drag starting as soon as you've moved 10px
+    } else {
+        var xAbs = util.getAbsoluteLeft(this.dom.frame);
+        var x = event.center.x - xAbs - 10; // minus 10 to compensate for the drag starting as soon as you've moved 10px
+      }
+
     var time = this.body.util.toTime(x);
     var scale = this.body.util.getScale();
     var step = this.body.util.getStep();
@@ -19385,7 +19457,6 @@ return /******/ (function(modules) { // webpackBootstrap
     if (group) {
       itemData.group = group.groupId;
     }
-
     var newItem = new RangeItem(itemData, this.conversion, this.options);
     newItem.id = id; // TODO: not so nice setting id afterwards
     newItem.data = this._cloneItemData(itemData);
@@ -19393,10 +19464,15 @@ return /******/ (function(modules) { // webpackBootstrap
 
     var props = {
       item: newItem,
-      dragRight: true,
       initialX: event.center.x,
       data: newItem.data
     };
+
+    if (this.options.rtl) {
+      props.dragLeft = true;
+    } else {
+      props.dragRight = true;
+    }
     this.touchParams.itemProps = [props];
 
     event.stopPropagation();
@@ -19413,7 +19489,13 @@ return /******/ (function(modules) { // webpackBootstrap
 
       var me = this;
       var snap = this.options.snap || null;
-      var xOffset = this.body.dom.root.offsetLeft + this.body.domProps.left.width;
+
+      if (this.options.rtl) {
+        var xOffset = this.body.dom.root.offsetLeft + this.body.domProps.right.width;
+      } else {
+        var xOffset = this.body.dom.root.offsetLeft + this.body.domProps.left.width;
+      }
+
       var scale = this.body.util.getScale();
       var step = this.body.util.getStep();
 
@@ -19437,7 +19519,12 @@ return /******/ (function(modules) { // webpackBootstrap
       this.touchParams.itemProps.forEach(function (props) {
         var current = me.body.util.toTime(event.center.x - xOffset);
         var initial = me.body.util.toTime(props.initialX - xOffset);
-        var offset = current - initial; // ms
+
+        if (this.options.rtl) {
+          var offset = -(current - initial); // ms
+        } else {
+            var offset = current - initial; // ms
+          }
 
         var itemData = this._cloneItemData(props.item.data); // clone the data
         if (props.item.editable === false) {
@@ -19445,27 +19532,45 @@ return /******/ (function(modules) { // webpackBootstrap
         }
 
         var updateTimeAllowed = me.options.editable.updateTime || props.item.editable === true;
-
         if (updateTimeAllowed) {
           if (props.dragLeft) {
             // drag left side of a range item
-            if (itemData.start != undefined) {
-              var initialStart = util.convert(props.data.start, 'Date');
-              var start = new Date(initialStart.valueOf() + offset);
-              // TODO: pass a Moment instead of a Date to snap(). (Breaking change)
-              itemData.start = snap ? snap(start, scale, step) : start;
+            if (this.options.rtl) {
+              if (itemData.end != undefined) {
+                var initialEnd = util.convert(props.data.end, 'Date');
+                var end = new Date(initialEnd.valueOf() + offset);
+                // TODO: pass a Moment instead of a Date to snap(). (Breaking change)
+                itemData.end = snap ? snap(end, scale, step) : end;
+              }
+            } else {
+              if (itemData.start != undefined) {
+                var initialStart = util.convert(props.data.start, 'Date');
+                var start = new Date(initialStart.valueOf() + offset);
+                // TODO: pass a Moment instead of a Date to snap(). (Breaking change)
+                itemData.start = snap ? snap(start, scale, step) : start;
+              }
             }
           } else if (props.dragRight) {
             // drag right side of a range item
-            if (itemData.end != undefined) {
-              var initialEnd = util.convert(props.data.end, 'Date');
-              var end = new Date(initialEnd.valueOf() + offset);
-              // TODO: pass a Moment instead of a Date to snap(). (Breaking change)
-              itemData.end = snap ? snap(end, scale, step) : end;
+            if (this.options.rtl) {
+              if (itemData.start != undefined) {
+                var initialStart = util.convert(props.data.start, 'Date');
+                var start = new Date(initialStart.valueOf() + offset);
+                // TODO: pass a Moment instead of a Date to snap(). (Breaking change)
+                itemData.start = snap ? snap(start, scale, step) : start;
+              }
+            } else {
+              if (itemData.end != undefined) {
+                var initialEnd = util.convert(props.data.end, 'Date');
+                var end = new Date(initialEnd.valueOf() + offset);
+                // TODO: pass a Moment instead of a Date to snap(). (Breaking change)
+                itemData.end = snap ? snap(end, scale, step) : end;
+              }
             }
           } else {
             // drag both start and end
             if (itemData.start != undefined) {
+
               var initialStart = util.convert(props.data.start, 'Date').valueOf();
               var start = new Date(initialStart + offset);
 
@@ -19811,8 +19916,15 @@ return /******/ (function(modules) { // webpackBootstrap
       });
     } else {
       // add item
-      var xAbs = util.getAbsoluteLeft(this.dom.frame);
-      var x = event.center.x - xAbs;
+      if (this.options.rtl) {
+        var xAbs = util.getAbsoluteRight(this.dom.frame);
+        var x = xAbs - event.center.x;
+      } else {
+        var xAbs = util.getAbsoluteLeft(this.dom.frame);
+        var x = event.center.x - xAbs;
+      }
+      // var xAbs = util.getAbsoluteLeft(this.dom.frame);
+      // var x = event.center.x - xAbs;
       var start = this.body.util.toTime(x);
       var scale = this.body.util.getScale();
       var step = this.body.util.getStep();
@@ -20967,8 +21079,8 @@ return /******/ (function(modules) { // webpackBootstrap
       this.visibleItems = this._updateVisibleItems(this.orderedItems, this.visibleItems, range);
     } else {
       // no custom order function, lazy stacking
-      this.visibleItems = this._updateVisibleItems(this.orderedItems, this.visibleItems, range);
 
+      this.visibleItems = this._updateVisibleItems(this.orderedItems, this.visibleItems, range);
       if (this.itemSet.options.stack) {
         // TODO: ugly way to access options...
         stack.stack(this.visibleItems, margin, restack);
@@ -20984,10 +21096,9 @@ return /******/ (function(modules) { // webpackBootstrap
     // calculate actual size and position
     var foreground = this.dom.foreground;
     this.top = foreground.offsetTop;
-    this.left = foreground.offsetLeft;
+    this.right = foreground.offsetLeft;
     this.width = foreground.offsetWidth;
     resized = util.updateProperty(this, 'height', height) || resized;
-
     // recalculate size of label
     resized = util.updateProperty(this.props.label, 'width', this.dom.inner.clientWidth) || resized;
     resized = util.updateProperty(this.props.label, 'height', this.dom.inner.clientHeight) || resized;
@@ -21427,7 +21538,6 @@ return /******/ (function(modules) { // webpackBootstrap
    */
   exports.stack = function (items, margin, force) {
     var i, iMax;
-
     if (force) {
       // reset top position of all items
       for (i = 0, iMax = items.length; i < iMax; i++) {
@@ -21448,7 +21558,7 @@ return /******/ (function(modules) { // webpackBootstrap
           var collidingItem = null;
           for (var j = 0, jj = items.length; j < jj; j++) {
             var other = items[j];
-            if (other.top !== null && other !== item && other.stack && exports.collision(item, other, margin.item)) {
+            if (other.top !== null && other !== item && other.stack && exports.collision(item, other, margin.item, other.options.rtl)) {
               collidingItem = other;
               break;
             }
@@ -21501,8 +21611,14 @@ return /******/ (function(modules) { // webpackBootstrap
    *                          minimum required margin.
    * @return {boolean}        true if a and b collide, else false
    */
-  exports.collision = function (a, b, margin) {
-    return a.left - margin.horizontal + EPSILON < b.left + b.width && a.left + a.width + margin.horizontal - EPSILON > b.left && a.top - margin.vertical + EPSILON < b.top + b.height && a.top + a.height + margin.vertical - EPSILON > b.top;
+  exports.collision = function (a, b, margin, rtl) {
+    var isCollision = null;
+    if (rtl) {
+      isCollision = a.right - margin.horizontal + EPSILON < b.right + b.width && a.right + a.width + margin.horizontal - EPSILON > b.right && a.top - margin.vertical + EPSILON < b.top + b.height && a.top + a.height + margin.vertical - EPSILON > b.top;
+    } else {
+      a.left - margin.horizontal + EPSILON < b.left + b.width && a.left + a.width + margin.horizontal - EPSILON > b.left && a.top - margin.vertical + EPSILON < b.top + b.height && a.top + a.height + margin.vertical - EPSILON > b.top;
+    }
+    return isCollision;
   };
 
 /***/ },
@@ -21531,7 +21647,7 @@ return /******/ (function(modules) { // webpackBootstrap
       }
     };
     this.overflow = false; // if contents can overflow (css styling), this flag is set to true
-
+    this.options = options;
     // validate data
     if (data) {
       if (data.start == undefined) {
@@ -21631,7 +21747,6 @@ return /******/ (function(modules) { // webpackBootstrap
 
       this.dirty = false;
     }
-
     this._repaintDeleteButton(dom.box);
     this._repaintDragLeft();
     this._repaintDragRight();
@@ -21676,7 +21791,7 @@ return /******/ (function(modules) { // webpackBootstrap
     var parentWidth = this.parent.width;
     var start = this.conversion.toScreen(this.data.start);
     var end = this.conversion.toScreen(this.data.end);
-    var contentLeft;
+    var contentStartPosition;
     var contentWidth;
 
     // limit the width of the range, as browsers cannot draw very wide divs
@@ -21691,7 +21806,11 @@ return /******/ (function(modules) { // webpackBootstrap
     var boxWidth = Math.max(end - start, 1);
 
     if (this.overflow) {
-      this.left = start;
+      if (this.options.rtl) {
+        this.right = start;
+      } else {
+        this.left = start;
+      }
       this.width = boxWidth + this.props.content.width;
       contentWidth = this.props.content.width;
 
@@ -21699,25 +21818,46 @@ return /******/ (function(modules) { // webpackBootstrap
       //       a width which will not change when moving the Timeline
       //       So no re-stacking needed, which is nicer for the eye;
     } else {
-        this.left = start;
+        if (this.options.rtl) {
+          this.right = start;
+        } else {
+          this.left = start;
+        }
         this.width = boxWidth;
         contentWidth = Math.min(end - start, this.props.content.width);
       }
 
-    this.dom.box.style.left = this.left + 'px';
+    if (this.options.rtl) {
+      this.dom.box.style.right = this.right + 'px';
+    } else {
+      this.dom.box.style.left = this.left + 'px';
+    }
     this.dom.box.style.width = boxWidth + 'px';
 
     switch (this.options.align) {
       case 'left':
-        this.dom.content.style.left = '0';
+        if (this.options.rtl) {
+          this.dom.content.style.right = '0';
+        } else {
+          this.dom.content.style.left = '0';
+        }
         break;
 
       case 'right':
-        this.dom.content.style.left = Math.max(boxWidth - contentWidth, 0) + 'px';
+        if (this.options.rtl) {
+          this.dom.content.style.right = Math.max(boxWidth - contentWidth, 0) + 'px';
+        } else {
+          this.dom.content.style.left = Math.max(boxWidth - contentWidth, 0) + 'px';
+        }
         break;
 
       case 'center':
-        this.dom.content.style.left = Math.max((boxWidth - contentWidth) / 2, 0) + 'px';
+        if (this.options.rtl) {
+          this.dom.content.style.right = Math.max((boxWidth - contentWidth) / 2, 0) + 'px';
+        } else {
+          this.dom.content.style.left = Math.max((boxWidth - contentWidth) / 2, 0) + 'px';
+        }
+
         break;
 
       default:
@@ -21725,18 +21865,22 @@ return /******/ (function(modules) { // webpackBootstrap
         // when range exceeds left of the window, position the contents at the left of the visible area
         if (this.overflow) {
           if (end > 0) {
-            contentLeft = Math.max(-start, 0);
+            contentStartPosition = Math.max(-start, 0);
           } else {
-            contentLeft = -contentWidth; // ensure it's not visible anymore
+            contentStartPosition = -contentWidth; // ensure it's not visible anymore
           }
         } else {
             if (start < 0) {
-              contentLeft = -start;
+              contentStartPosition = -start;
             } else {
-              contentLeft = 0;
+              contentStartPosition = 0;
             }
           }
-        this.dom.content.style.left = contentLeft + 'px';
+        if (this.options.rtl) {
+          this.dom.content.style.right = contentStartPosition + 'px';
+        } else {
+          this.dom.content.style.left = contentStartPosition + 'px';
+        }
     }
   };
 
@@ -21832,6 +21976,7 @@ return /******/ (function(modules) { // webpackBootstrap
     this.dirty = true;
 
     this.top = null;
+    this.right = null;
     this.left = null;
     this.width = null;
     this.height = null;
@@ -21958,7 +22103,12 @@ return /******/ (function(modules) { // webpackBootstrap
       var me = this;
 
       var deleteButton = document.createElement('div');
-      deleteButton.className = 'vis-delete';
+
+      if (this.options.rtl) {
+        deleteButton.className = 'vis-delete-rtl';
+      } else {
+        deleteButton.className = 'vis-delete';
+      }
       deleteButton.title = 'Delete this item';
 
       // TODO: be able to destroy the delete button
@@ -22196,7 +22346,7 @@ return /******/ (function(modules) { // webpackBootstrap
         height: 0
       }
     };
-
+    this.options = options;
     // validate data
     if (data) {
       if (data.start == undefined) {
@@ -22340,27 +22490,54 @@ return /******/ (function(modules) { // webpackBootstrap
 
     // calculate left position of the box
     if (align == 'right') {
-      this.left = start - this.width;
+      if (this.options.rtl) {
+        this.right = start - this.width;
 
-      // reposition box, line, and dot
-      this.dom.box.style.left = this.left + 'px';
-      this.dom.line.style.left = start - this.props.line.width + 'px';
-      this.dom.dot.style.left = start - this.props.line.width / 2 - this.props.dot.width / 2 + 'px';
+        // reposition box, line, and dot
+        this.dom.box.style.right = this.right + 'px';
+        this.dom.line.style.right = start - this.props.line.width + 'px';
+        this.dom.dot.style.right = start - this.props.line.width / 2 - this.props.dot.width / 2 + 'px';
+      } else {
+        this.left = start - this.width;
+
+        // reposition box, line, and dot
+        this.dom.box.style.left = this.left + 'px';
+        this.dom.line.style.left = start - this.props.line.width + 'px';
+        this.dom.dot.style.left = start - this.props.line.width / 2 - this.props.dot.width / 2 + 'px';
+      }
     } else if (align == 'left') {
-      this.left = start;
+      if (this.options.rtl) {
+        this.right = start;
 
-      // reposition box, line, and dot
-      this.dom.box.style.left = this.left + 'px';
-      this.dom.line.style.left = start + 'px';
-      this.dom.dot.style.left = start + this.props.line.width / 2 - this.props.dot.width / 2 + 'px';
+        // reposition box, line, and dot
+        this.dom.box.style.right = this.right + 'px';
+        this.dom.line.style.right = start + 'px';
+        this.dom.dot.style.right = start + this.props.line.width / 2 - this.props.dot.width / 2 + 'px';
+      } else {
+        this.left = start;
+
+        // reposition box, line, and dot
+        this.dom.box.style.left = this.left + 'px';
+        this.dom.line.style.left = start + 'px';
+        this.dom.dot.style.left = start + this.props.line.width / 2 - this.props.dot.width / 2 + 'px';
+      }
     } else {
       // default or 'center'
-      this.left = start - this.width / 2;
+      if (this.options.rtl) {
+        this.right = start - this.width / 2;
 
-      // reposition box, line, and dot
-      this.dom.box.style.left = this.left + 'px';
-      this.dom.line.style.left = start - this.props.line.width / 2 + 'px';
-      this.dom.dot.style.left = start - this.props.dot.width / 2 + 'px';
+        // reposition box, line, and dot
+        this.dom.box.style.right = this.right + 'px';
+        this.dom.line.style.right = start - this.props.line.width + 'px';
+        this.dom.dot.style.right = start - this.props.dot.width / 2 + 'px';
+      } else {
+        this.left = start - this.width / 2;
+
+        // reposition box, line, and dot
+        this.dom.box.style.left = this.left + 'px';
+        this.dom.line.style.left = start - this.props.line.width / 2 + 'px';
+        this.dom.dot.style.left = start - this.props.dot.width / 2 + 'px';
+      }
     }
   };
 
@@ -22438,10 +22615,11 @@ return /******/ (function(modules) { // webpackBootstrap
       },
       content: {
         height: 0,
-        marginLeft: 0
+        marginLeft: 0,
+        marginRight: 0
       }
     };
-
+    this.options = options;
     // validate data
     if (data) {
       if (data.start == undefined) {
@@ -22531,7 +22709,11 @@ return /******/ (function(modules) { // webpackBootstrap
       this.props.content.height = dom.content.offsetHeight;
 
       // resize contents
-      dom.content.style.marginLeft = 2 * this.props.dot.width + 'px';
+      if (this.options.rtl) {
+        dom.content.style.marginRight = 2 * this.props.dot.width + 'px';
+      } else {
+        dom.content.style.marginLeft = 2 * this.props.dot.width + 'px';
+      }
       //dom.content.style.marginRight = ... + 'px'; // TODO: margin right
 
       // recalculate size
@@ -22540,7 +22722,11 @@ return /******/ (function(modules) { // webpackBootstrap
 
       // reposition the dot
       dom.dot.style.top = (this.height - this.props.dot.height) / 2 + 'px';
-      dom.dot.style.left = this.props.dot.width / 2 + 'px';
+      if (this.options.rtl) {
+        dom.dot.style.right = this.props.dot.width / 2 + 'px';
+      } else {
+        dom.dot.style.left = this.props.dot.width / 2 + 'px';
+      }
 
       this.dirty = false;
     }
@@ -22578,10 +22764,17 @@ return /******/ (function(modules) { // webpackBootstrap
   PointItem.prototype.repositionX = function () {
     var start = this.conversion.toScreen(this.data.start);
 
-    this.left = start - this.props.dot.width;
+    if (this.options.rtl) {
+      this.right = start - this.props.dot.width;
 
-    // reposition point
-    this.dom.point.style.left = this.left + 'px';
+      // reposition point
+      this.dom.point.style.right = this.right + 'px';
+    } else {
+      this.left = start - this.props.dot.width;
+
+      // reposition point
+      this.dom.point.style.left = this.left + 'px';
+    }
   };
 
   /**
@@ -22591,7 +22784,6 @@ return /******/ (function(modules) { // webpackBootstrap
   PointItem.prototype.repositionY = function () {
     var orientation = this.options.orientation.item;
     var point = this.dom.point;
-
     if (orientation == 'top') {
       point.style.top = this.top + 'px';
     } else {
@@ -22612,7 +22804,7 @@ return /******/ (function(modules) { // webpackBootstrap
    * @return {number}
    */
   PointItem.prototype.getWidthRight = function () {
-    return this.width - this.props.dot.width;
+    return this.props.dot.width;
   };
 
   module.exports = PointItem;
@@ -22915,7 +23107,7 @@ return /******/ (function(modules) { // webpackBootstrap
   TimeAxis.prototype.setOptions = function (options) {
     if (options) {
       // copy all options that we know
-      util.selectiveExtend(['showMinorLabels', 'showMajorLabels', 'maxMinorChars', 'hiddenDates', 'timeAxis', 'moment'], this.options, options);
+      util.selectiveExtend(['showMinorLabels', 'showMajorLabels', 'maxMinorChars', 'hiddenDates', 'timeAxis', 'moment', 'rtl'], this.options, options);
 
       // deep copy the format options
       util.selectiveDeepExtend(['format'], this.options, options);
@@ -23019,7 +23211,6 @@ return /******/ (function(modules) { // webpackBootstrap
     } else {
       this.body.dom.backgroundVertical.appendChild(background);
     }
-
     return this._isResized() || parentChanged;
   };
 
@@ -23172,7 +23363,13 @@ return /******/ (function(modules) { // webpackBootstrap
     label.childNodes[0].nodeValue = text;
 
     label.style.top = orientation == 'top' ? this.props.majorLabelHeight + 'px' : '0';
-    label.style.left = x + 'px';
+
+    if (this.options.rtl) {
+      label.style.left = "";
+      label.style.right = x + 'px';
+    } else {
+      label.style.left = x + 'px';
+    };
     label.className = 'vis-text vis-minor ' + className;
     //label.title = title;  // TODO: this is a heavy operation
 
@@ -23206,7 +23403,12 @@ return /******/ (function(modules) { // webpackBootstrap
     //label.title = title; // TODO: this is a heavy operation
 
     label.style.top = orientation == 'top' ? '0' : this.props.minorLabelHeight + 'px';
-    label.style.left = x + 'px';
+    if (this.options.rtl) {
+      label.style.left = "";
+      label.style.right = x + 'px';
+    } else {
+      label.style.left = x + 'px';
+    };
 
     return label;
   };
@@ -23237,10 +23439,15 @@ return /******/ (function(modules) { // webpackBootstrap
       line.style.top = this.body.domProps.top.height + 'px';
     }
     line.style.height = props.minorLineHeight + 'px';
-    line.style.left = x - props.minorLineWidth / 2 + 'px';
+    if (this.options.rtl) {
+      line.style.left = "";
+      line.style.right = x - props.minorLineWidth / 2 + 'px';
+      line.className = 'vis-grid vis-vertical-rtl vis-minor ' + className;
+    } else {
+      line.style.left = x - props.minorLineWidth / 2 + 'px';
+      line.className = 'vis-grid vis-vertical vis-minor ' + className;
+    };
     line.style.width = width + 'px';
-
-    line.className = 'vis-grid vis-vertical vis-minor ' + className;
 
     return line;
   };
@@ -23270,11 +23477,18 @@ return /******/ (function(modules) { // webpackBootstrap
     } else {
       line.style.top = this.body.domProps.top.height + 'px';
     }
-    line.style.left = x - props.majorLineWidth / 2 + 'px';
+
+    if (this.options.rtl) {
+      line.style.left = "";
+      line.style.right = x - props.majorLineWidth / 2 + 'px';
+      line.className = 'vis-grid vis-vertical-rtl vis-major ' + className;
+    } else {
+      line.style.left = x - props.majorLineWidth / 2 + 'px';
+      line.className = 'vis-grid vis-vertical vis-major ' + className;
+    }
+
     line.style.height = props.majorLineHeight + 'px';
     line.style.width = width + 'px';
-
-    line.className = 'vis-grid vis-vertical vis-major ' + className;
 
     return line;
   };
@@ -23972,6 +24186,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
     // default options
     this.defaultOptions = {
+      rtl: false,
       showCurrentTime: true,
 
       moment: moment,
@@ -24020,7 +24235,7 @@ return /******/ (function(modules) { // webpackBootstrap
   CurrentTime.prototype.setOptions = function (options) {
     if (options) {
       // copy all options that we know
-      util.selectiveExtend(['showCurrentTime', 'moment', 'locale', 'locales'], this.options, options);
+      util.selectiveExtend(['rtl', 'showCurrentTime', 'moment', 'locale', 'locales'], this.options, options);
     }
   };
 
@@ -24055,7 +24270,11 @@ return /******/ (function(modules) { // webpackBootstrap
       var title = locale.current + ' ' + locale.time + ': ' + now.format('dddd, MMMM Do YYYY, H:mm:ss');
       title = title.charAt(0).toUpperCase() + title.substring(1);
 
-      this.bar.style.left = x + 'px';
+      if (this.options.rtl) {
+        this.bar.style.right = x + 'px';
+      } else {
+        this.bar.style.left = x + 'px';
+      }
       this.bar.title = title;
     } else {
       // remove the line from the DOM
@@ -24162,6 +24381,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
     //globals :
     align: { string: string },
+    rtl: { boolean: boolean, 'undefined': 'undefined' },
     autoResize: { boolean: boolean },
     throttleRedraw: { number: number },
     clickToUse: { boolean: boolean },
@@ -24279,6 +24499,7 @@ return /******/ (function(modules) { // webpackBootstrap
   var configureOptions = {
     global: {
       align: ['center', 'left', 'right'],
+      direction: false,
       autoResize: true,
       throttleRedraw: [10, 0, 1000, 10],
       clickToUse: false,
@@ -25952,10 +26173,10 @@ return /******/ (function(modules) { // webpackBootstrap
   DataAxis.prototype.show = function () {
     this.hidden = false;
     if (!this.dom.frame.parentNode) {
-      if (this.options.orientation === 'left') {
+      if (this.options.rtl) {
         this.body.dom.left.appendChild(this.dom.frame);
       } else {
-        this.body.dom.right.appendChild(this.dom.frame);
+        this.body.dom.left.appendChild(this.dom.frame);
       }
     }
 
@@ -29104,7 +29325,9 @@ return /******/ (function(modules) { // webpackBootstrap
       value: function create(properties) {
         var constructorClass = arguments.length <= 1 || arguments[1] === undefined ? _Node2.default : arguments[1];
 
-        return new constructorClass(properties, this.body, this.images, this.groups, this.options);
+        var idField = this.body.data.nodes._fieldId;
+        var id = properties[idField];
+        return new constructorClass(id, properties, this.body, this.images, this.groups, this.options);
       }
     }, {
       key: 'refresh',
@@ -29365,9 +29588,9 @@ return /******/ (function(modules) { // webpackBootstrap
   /**
    * @class Node
    * A node. A node can be connected to other nodes via one or multiple edges.
+   * @param {string} id      Id for the node
    * @param {object} options An object containing options for the node. All
-   *                            options are optional, except for the id.
-   *                              {number} id     Id of the node. Required
+   *                            options are optional
    *                              {string} label  Text label for the node
    *                              {number} x      Horizontal position of the node
    *                              {number} y      Vertical position of the node
@@ -29389,7 +29612,7 @@ return /******/ (function(modules) { // webpackBootstrap
    */
 
   var Node = function () {
-    function Node(options, body, imagelist, grouplist, globalOptions) {
+    function Node(id, options, body, imagelist, grouplist, globalOptions) {
       _classCallCheck(this, Node);
 
       this.options = util.bridgeObject(globalOptions);
@@ -29398,8 +29621,11 @@ return /******/ (function(modules) { // webpackBootstrap
 
       this.edges = []; // all edges connected to this node
 
-      // set defaults for the options
-      this.id = undefined;
+      if (id === undefined) {
+        throw "Node must have an id";
+      }
+
+      this.id = id;
       this.imagelist = imagelist;
       this.grouplist = grouplist;
 
@@ -29456,14 +29682,6 @@ return /******/ (function(modules) { // webpackBootstrap
         var currentShape = this.options.shape;
         if (!options) {
           return;
-        }
-        // basic options
-        if (options.id !== undefined) {
-          this.id = options.id;
-        }
-
-        if (this.id === undefined) {
-          throw "Node must have an id";
         }
 
         // set these options locally
@@ -32139,7 +32357,9 @@ return /******/ (function(modules) { // webpackBootstrap
     }, {
       key: 'create',
       value: function create(properties) {
-        return new _Edge2.default(properties, this.body, this.options);
+        var idField = this.body.data.edges._fieldId;
+        var id = properties[idField];
+        return new _Edge2.default(id, properties, this.body, this.options);
       }
     }, {
       key: 'markAllEdgesAsDirty',
@@ -32242,6 +32462,7 @@ return /******/ (function(modules) { // webpackBootstrap
    * @class Edge
    *
    * A edge connects two nodes
+   * @param {string} [id]           Id for the edge. optional
    * @param {Object} properties     Object with options. Must contain
    *                                At least options from and to.
    *                                Available options: from (number),
@@ -32255,7 +32476,7 @@ return /******/ (function(modules) { // webpackBootstrap
    */
 
   var Edge = function () {
-    function Edge(options, body, globalOptions) {
+    function Edge(id, options, body, globalOptions) {
       _classCallCheck(this, Edge);
 
       if (body === undefined) {
@@ -32266,7 +32487,7 @@ return /******/ (function(modules) { // webpackBootstrap
       this.body = body;
 
       // initialize variables
-      this.id = undefined;
+      this.id = id;
       this.fromId = undefined;
       this.toId = undefined;
       this.selected = false;
@@ -32306,9 +32527,6 @@ return /******/ (function(modules) { // webpackBootstrap
 
         Edge.parseOptions(this.options, options, true, this.globalOptions);
 
-        if (options.id !== undefined) {
-          this.id = options.id;
-        }
         if (options.from !== undefined) {
           this.fromId = options.from;
         }
@@ -32388,14 +32606,14 @@ return /******/ (function(modules) { // webpackBootstrap
           if (this.options.smooth.enabled === true) {
             if (this.options.smooth.type === 'dynamic') {
               dataChanged = true;
-              this.edgeType = new _BezierEdgeDynamic2.default(this.options, this.body, this.labelModule);
+              this.edgeType = new _BezierEdgeDynamic2.default(this.id, this.options, this.body, this.labelModule);
             } else if (this.options.smooth.type === 'cubicBezier') {
-              this.edgeType = new _CubicBezierEdge2.default(this.options, this.body, this.labelModule);
+              this.edgeType = new _CubicBezierEdge2.default(this.id, this.options, this.body, this.labelModule);
             } else {
-              this.edgeType = new _BezierEdgeStatic2.default(this.options, this.body, this.labelModule);
+              this.edgeType = new _BezierEdgeStatic2.default(this.id, this.options, this.body, this.labelModule);
             }
           } else {
-            this.edgeType = new _StraightEdge2.default(this.options, this.body, this.labelModule);
+            this.edgeType = new _StraightEdge2.default(this.id, this.options, this.body, this.labelModule);
           }
         } else {
           // if nothing changes, we just set the options.
@@ -32843,10 +33061,10 @@ return /******/ (function(modules) { // webpackBootstrap
   var CubicBezierEdge = function (_CubicBezierEdgeBase) {
     _inherits(CubicBezierEdge, _CubicBezierEdgeBase);
 
-    function CubicBezierEdge(options, body, labelModule) {
+    function CubicBezierEdge(id, options, body, labelModule) {
       _classCallCheck(this, CubicBezierEdge);
 
-      return _possibleConstructorReturn(this, Object.getPrototypeOf(CubicBezierEdge).call(this, options, body, labelModule));
+      return _possibleConstructorReturn(this, Object.getPrototypeOf(CubicBezierEdge).call(this, id, options, body, labelModule));
     }
 
     /**
@@ -32991,10 +33209,10 @@ return /******/ (function(modules) { // webpackBootstrap
   var CubicBezierEdgeBase = function (_BezierEdgeBase) {
     _inherits(CubicBezierEdgeBase, _BezierEdgeBase);
 
-    function CubicBezierEdgeBase(options, body, labelModule) {
+    function CubicBezierEdgeBase(id, options, body, labelModule) {
       _classCallCheck(this, CubicBezierEdgeBase);
 
-      return _possibleConstructorReturn(this, Object.getPrototypeOf(CubicBezierEdgeBase).call(this, options, body, labelModule));
+      return _possibleConstructorReturn(this, Object.getPrototypeOf(CubicBezierEdgeBase).call(this, id, options, body, labelModule));
     }
 
     /**
@@ -33077,10 +33295,10 @@ return /******/ (function(modules) { // webpackBootstrap
   var BezierEdgeBase = function (_EdgeBase) {
     _inherits(BezierEdgeBase, _EdgeBase);
 
-    function BezierEdgeBase(options, body, labelModule) {
+    function BezierEdgeBase(id, options, body, labelModule) {
       _classCallCheck(this, BezierEdgeBase);
 
-      return _possibleConstructorReturn(this, Object.getPrototypeOf(BezierEdgeBase).call(this, options, body, labelModule));
+      return _possibleConstructorReturn(this, Object.getPrototypeOf(BezierEdgeBase).call(this, id, options, body, labelModule));
     }
 
     /**
@@ -33213,9 +33431,10 @@ return /******/ (function(modules) { // webpackBootstrap
   var util = __webpack_require__(1);
 
   var EdgeBase = function () {
-    function EdgeBase(options, body, labelModule) {
+    function EdgeBase(id, options, body, labelModule) {
       _classCallCheck(this, EdgeBase);
 
+      this.id = id;
       this.body = body;
       this.labelModule = labelModule;
       this.options = {};
@@ -33245,7 +33464,6 @@ return /******/ (function(modules) { // webpackBootstrap
         this.options = options;
         this.from = this.body.nodes[this.options.from];
         this.to = this.body.nodes[this.options.to];
-        this.id = this.options.id;
       }
 
       /**
@@ -33819,12 +34037,12 @@ return /******/ (function(modules) { // webpackBootstrap
   var BezierEdgeDynamic = function (_BezierEdgeBase) {
     _inherits(BezierEdgeDynamic, _BezierEdgeBase);
 
-    function BezierEdgeDynamic(options, body, labelModule) {
+    function BezierEdgeDynamic(id, options, body, labelModule) {
       _classCallCheck(this, BezierEdgeDynamic);
 
       // --> this calls the setOptions below
 
-      var _this = _possibleConstructorReturn(this, Object.getPrototypeOf(BezierEdgeDynamic).call(this, options, body, labelModule));
+      var _this = _possibleConstructorReturn(this, Object.getPrototypeOf(BezierEdgeDynamic).call(this, id, options, body, labelModule));
       //this.via = undefined; // Here for completeness but not allowed to defined before super() is invoked.
 
 
@@ -33846,7 +34064,6 @@ return /******/ (function(modules) { // webpackBootstrap
 
         // set the options and the to and from nodes
         this.options = options;
-        this.id = this.options.id;
         this.from = this.body.nodes[this.options.from];
         this.to = this.body.nodes[this.options.to];
 
@@ -33907,12 +34124,14 @@ return /******/ (function(modules) { // webpackBootstrap
       value: function setupSupportNode() {
         if (this.via === undefined) {
           var nodeId = "edgeId:" + this.id;
-          var node = this.body.functions.createNode({
-            id: nodeId,
+          var properties = {
             shape: 'circle',
             physics: true,
             hidden: true
-          });
+          };
+          var idField = this.body.data.nodes._fieldId;
+          properties[idField] = nodeId;
+          var node = this.body.functions.createNode(properties);
           this.body.nodes[nodeId] = node;
           this.via = node;
           this.via.parentEdgeId = this.id;
@@ -34024,10 +34243,10 @@ return /******/ (function(modules) { // webpackBootstrap
   var BezierEdgeStatic = function (_BezierEdgeBase) {
     _inherits(BezierEdgeStatic, _BezierEdgeBase);
 
-    function BezierEdgeStatic(options, body, labelModule) {
+    function BezierEdgeStatic(id, options, body, labelModule) {
       _classCallCheck(this, BezierEdgeStatic);
 
-      return _possibleConstructorReturn(this, Object.getPrototypeOf(BezierEdgeStatic).call(this, options, body, labelModule));
+      return _possibleConstructorReturn(this, Object.getPrototypeOf(BezierEdgeStatic).call(this, id, options, body, labelModule));
     }
 
     /**
@@ -42694,8 +42913,9 @@ return /******/ (function(modules) { // webpackBootstrap
       key: '_getNewTargetNode',
       value: function _getNewTargetNode(x, y) {
         var controlNodeStyle = util.deepExtend({}, this.options.controlNodeStyle);
+        var idField = this.body.data.nodes._fieldId;
 
-        controlNodeStyle.id = 'targetNode' + util.randomUUID();
+        controlNodeStyle[idField] = 'targetNode' + util.randomUUID();
         controlNodeStyle.hidden = false;
         controlNodeStyle.physics = false;
         controlNodeStyle.x = x;
@@ -42865,7 +43085,12 @@ return /******/ (function(modules) { // webpackBootstrap
     }, {
       key: '_createDeleteButton',
       value: function _createDeleteButton(locale) {
-        var button = this._createButton('delete', 'vis-button vis-delete', locale['del'] || this.options.locales['en']['del']);
+        if (this.options.rtl) {
+          var deleteBtnClass = 'vis-button vis-delete-rtl';
+        } else {
+          var deleteBtnClass = 'vis-button vis-delete';
+        }
+        var button = this._createButton('delete', deleteBtnClass, locale['del'] || this.options.locales['en']['del']);
         this.manipulationDiv.appendChild(button);
         this._bindHammerToDiv(button, this.deleteSelected.bind(this));
       }
@@ -43256,11 +43481,12 @@ return /******/ (function(modules) { // webpackBootstrap
         var _this5 = this;
 
         var defaultData = {
-          id: util.randomUUID(),
           x: clickData.pointer.canvas.x,
           y: clickData.pointer.canvas.y,
           label: 'new'
         };
+        var idField = this.body.data.nodes._fieldId;
+        defaultData[idField] = util.randomUUID();
 
         if (typeof this.options.addNode === 'function') {
           if (this.options.addNode.length === 2) {
