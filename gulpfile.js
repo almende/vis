@@ -1,4 +1,5 @@
 var fs = require('fs');
+var async = require('async');
 var gulp = require('gulp');
 var gutil = require('gulp-util');
 var concat = require('gulp-concat');
@@ -18,6 +19,11 @@ var VIS_MAP           = 'vis.map';
 var VIS_MIN_JS        = 'vis.min.js';
 var VIS_CSS           = 'vis.css';
 var VIS_MIN_CSS       = 'vis.min.css';
+var INDIVIDUAL_BUNDLES = [
+  {entry: './index-timeline-graph2d.js', filename: 'vis-timeline-graph2d.min.js'},
+  {entry: './index-network.js', filename: 'vis-network.min.js'},
+  {entry: './index-graph3d.js', filename: 'vis-graph3d.min.js'}
+];
 
 // generate banner with today's date and correct version
 function createBanner() {
@@ -34,6 +40,23 @@ var bannerPlugin = new webpack.BannerPlugin(createBanner(), {
   raw: true
 });
 
+var webpackModule = {
+  loaders: [
+    {
+      test: /\.js$/,
+      exclude: /node_modules/,
+      loader: 'babel',
+      query: {
+        cacheDirectory: true,
+        presets: ['es2015']
+      }
+    }
+  ],
+
+  // exclude requires of moment.js language files
+  wrappedContextRegExp: /$^/
+};
+
 var webpackConfig = {
   entry: ENTRY,
   output: {
@@ -43,22 +66,7 @@ var webpackConfig = {
     filename: VIS_JS,
     sourcePrefix: '  '
   },
-  module: {
-    loaders: [
-      {
-        test: /\.js$/,
-        exclude: /node_modules/,
-        loader: 'babel',
-        query: {
-          cacheDirectory: true,
-          presets: ['es2015']
-        }
-      }
-    ],
-
-    // exclude requires of moment.js language files
-    wrappedContextRegExp: /$^/
-  },
+  module: webpackModule,
   plugins: [ bannerPlugin ],
   cache: true
   //debug: true,
@@ -75,36 +83,70 @@ var uglifyConfig = {
 // create a single instance of the compiler to allow caching
 var compiler = webpack(webpackConfig);
 
+function handleCompilerCallback (err, stats) {
+  if (err) {
+    gutil.log(err.toString());
+  }
+
+  if (stats && stats.compilation && stats.compilation.errors) {
+    // output soft errors
+    stats.compilation.errors.forEach(function (err) {
+      gutil.log(err.toString());
+    });
+
+    if (err || stats.compilation.errors.length > 0) {
+      gutil.beep(); // TODO: this does not work on my system
+    }
+  }
+}
+
 // clean the dist/img directory
 gulp.task('clean', function (cb) {
   rimraf(DIST + '/img', cb);
 });
 
-gulp.task('bundle-js', ['clean'], function (cb) {
+gulp.task('bundle-js', function (cb) {
   // update the banner contents (has a date in it which should stay up to date)
   bannerPlugin.banner = createBanner();
 
   compiler.run(function (err, stats) {
-    if (err) {
-      gutil.log(err.toString());
-    }
-
-    if (stats && stats.compilation && stats.compilation.errors) {
-      // output soft errors
-      stats.compilation.errors.forEach(function (err) {
-        gutil.log(err.toString());
-      });
-
-      if (err || stats.compilation.errors.length > 0) {
-        gutil.beep(); // TODO: this does not work on my system
-      }
-    }
+    handleCompilerCallback(err, stats);
     cb();
   });
 });
 
+// create individual bundles for timeline+graph2d, network, graph3d
+gulp.task('bundle-js-individual', function (cb) {
+  // update the banner contents (has a date in it which should stay up to date)
+  bannerPlugin.banner = createBanner();
+
+  async.each(INDIVIDUAL_BUNDLES, function (item, callback) {
+    var webpackTimelineConfig = {
+      entry: item.entry,
+      output: {
+        library: 'vis',
+        libraryTarget: 'umd',
+        path: DIST,
+        filename: item.filename,
+        sourcePrefix: '  '
+      },
+      module: webpackModule,
+      plugins: [ bannerPlugin, new webpack.optimize.UglifyJsPlugin() ],
+      cache: true
+    };
+
+    var compiler = webpack(webpackTimelineConfig);
+    compiler.run(function (err, stats) {
+      handleCompilerCallback(err, stats);
+      callback();
+    });
+  }, cb);
+
+});
+
+
 // bundle and minify css
-gulp.task('bundle-css', ['clean'], function () {
+gulp.task('bundle-css', function () {
   var files = [
     './lib/shared/activator.css',
     './lib/shared/bootstrap.css',
@@ -161,7 +203,7 @@ gulp.task('minify', ['bundle-js'], function (cb) {
   cb();
 });
 
-gulp.task('bundle', ['bundle-js', 'bundle-css', 'copy']);
+gulp.task('bundle', ['bundle-js', 'bundle-js-individual', 'bundle-css', 'copy']);
 
 // read command line arguments --bundle and --minify
 var bundle = 'bundle' in argv;

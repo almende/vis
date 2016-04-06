@@ -10,6 +10,11 @@ http://visjs.org
 - Fixed #1697: Timeline not drawn when used within the Angular.js directive.
 - Fixed #1774: Wrong initial scale when Timeline contains a single item.
 
+### General
+
+- Created bundles for individual visualizations: `vis-graph3d.min.js`,
+  `vis-network.min.js`, and `vis-timeline-graph2d.min.js`.
+
 
 ## 2016-03-08, version 4.15.1
 
