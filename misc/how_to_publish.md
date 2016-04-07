@@ -84,5 +84,5 @@ This generates the vis.js library in the folder `./dist`.
 ## Prepare next version
 
 - Switch to the `develop` branch.
-- Change version numbers in `package.json` and `bower.json` to a snapshot
+- Change version numbers in `package.json` to a snapshot
   version like `0.4.0-SNAPSHOT`.
