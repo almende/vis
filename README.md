@@ -1,9 +1,7 @@
 vis.js
 ==================
 
-<div style="float: right;">
-  <img src="https://raw.githubusercontent.com/almende/vis/master/misc/we_need_help.png">
-</div>
+<img align="right" src="https://raw.githubusercontent.com/almende/vis/master/misc/we_need_help.png">
 
 Vis.js is a dynamic, browser based visualization library.
 The library is designed to be easy to use, handle large amounts
