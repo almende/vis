@@ -565,6 +565,17 @@ input.vis-configuration.vis-config-range:focus::-ms-fill-upper {
   cursor: pointer;
 }
 
+.vis-item .vis-delete-rtl {
+  background: url('img/timeline/delete.png') no-repeat center;
+  position: absolute;
+  width: 24px;
+  height: 24px;
+  top: -4px;
+  left: -24px;
+  cursor: pointer;
+}
+
+
 .vis-item.vis-range .vis-drag-left {
   position: absolute;
   width: 24px;
@@ -635,6 +646,11 @@ input.vis-configuration.vis-config-range:focus::-ms-fill-upper {
 .vis-time-axis .vis-grid.vis-vertical {
   position: absolute;
   border-left: 1px solid;
+}
+
+.vis-time-axis .vis-grid.vis-vertical-rtl {
+  position: absolute;
+  border-right: 1px solid;
 }
 
 .vis-time-axis .vis-grid.vis-minor {
