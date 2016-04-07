@@ -2,7 +2,7 @@
 http://visjs.org
 
 
-## not yet released, version 4.16.0-SNAPSHOT
+## 2016-04-07, version 4.16.0
 
 ### Timeline
 
