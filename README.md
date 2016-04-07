@@ -1,7 +1,9 @@
 vis.js
 ==================
 
-<img align="right" src="https://raw.githubusercontent.com/almende/vis/master/misc/we_need_help.png">
+<a href="https://github.com/almende/vis/issues/1781" target="_blank">
+  <img align="right" src="https://raw.githubusercontent.com/almende/vis/master/misc/we_need_help.png">
+</a>
 
 Vis.js is a dynamic, browser based visualization library.
 The library is designed to be easy to use, handle large amounts
