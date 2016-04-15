@@ -4,7 +4,10 @@ http://visjs.org
 
 ## not yet released, version 4.16.1-SNAPSHOT
 
+### Timeline
 
+- Fixed #1786: Timeline having zero height on Internet Explorer, regression
+  introduced after fixing #1697.
 
 
 ## 2016-04-07, version 4.16.0
