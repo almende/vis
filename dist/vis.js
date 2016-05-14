@@ -22462,6 +22462,7 @@ return /******/ (function(modules) { // webpackBootstrap
           this.dom.content.style.right = contentStartPosition + 'px';
         } else {
           this.dom.content.style.left = contentStartPosition + 'px';
+          this.dom.content.style.width = 'calc(100% - ' + contentStartPosition + 'px)';
         }
     }
   };
