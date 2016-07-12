@@ -44,7 +44,7 @@
     "hammerjs": "^2.0.6",
     "keycharm": "^0.2.0",
     "merge-stream": "^1.0.0",
-    "mocha": "^2.4.5",
+    "mocha": "^2.5.3",
     "moment": "^2.12.0",
     "propagating-hammerjs": "^1.4.6",
     "rimraf": "^2.5.2",
