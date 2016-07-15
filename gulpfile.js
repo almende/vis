@@ -164,7 +164,7 @@ gulp.task('bundle-css-individual', function (cb) {
   async.each(INDIVIDUAL_CSS_BUNDLES, function (item, callback) {
     return gulp.src(item.entry)
         .pipe(concat(item.filename))
-        .pipe(minifyCSS())
+        .pipe(cleanCSS())
         .pipe(rename(item.filename))
         .pipe(gulp.dest(DIST))
         .on('end', callback);
