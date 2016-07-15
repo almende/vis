@@ -9,8 +9,11 @@
     "url": "git://github.com/almende/vis.git"
   },
   "ignore": [
+    "gulpfile.js",
+    "index*.js",
     "misc",
     "node_modules",
+    "package.json",
     "test",
     "tools",
     "lib",
