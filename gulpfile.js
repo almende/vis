@@ -24,6 +24,10 @@ var INDIVIDUAL_BUNDLES = [
   {entry: './index-network.js', filename: 'vis-network.min.js'},
   {entry: './index-graph3d.js', filename: 'vis-graph3d.min.js'}
 ];
+var INDIVIDUAL_CSS_BUNDLES = [
+  {entry: ['./lib/shared/**/*.css', './lib/timeline/**/*.css'], filename: 'vis-timeline-graph2d.min.css'},
+  {entry: ['./lib/shared/**/*.css', './lib/network/**/*.css'], filename: 'vis-network.min.css'}
+];
 
 // generate banner with today's date and correct version
 function createBanner() {
@@ -181,6 +185,17 @@ gulp.task('bundle-css', function () {
       .pipe(gulp.dest(DIST));
 });
 
+gulp.task('bundle-css-individual', function (cb) {
+  async.each(INDIVIDUAL_CSS_BUNDLES, function (item, callback) {
+    return gulp.src(item.entry)
+        .pipe(concat(item.filename))
+        .pipe(minifyCSS())
+        .pipe(rename(item.filename))
+        .pipe(gulp.dest(DIST))
+        .on('end', callback);
+  }, cb);
+});
+
 gulp.task('copy', ['clean'], function () {
     var network = gulp.src('./lib/network/img/**/*')
       .pipe(gulp.dest(DIST + '/img/network'));
@@ -203,7 +218,7 @@ gulp.task('minify', ['bundle-js'], function (cb) {
   cb();
 });
 
-gulp.task('bundle', ['bundle-js', 'bundle-js-individual', 'bundle-css', 'copy']);
+gulp.task('bundle', ['bundle-js', 'bundle-js-individual', 'bundle-css', 'bundle-css-individual', 'copy']);
 
 // read command line arguments --bundle and --minify
 var bundle = 'bundle' in argv;
