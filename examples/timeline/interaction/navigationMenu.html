@@ -73,19 +73,40 @@
      * Zoom the timeline a given percentage in or out
      * @param {Number} percentage   For example 0.1 (zoom out) or -0.1 (zoom in)
      */
-    function zoom (percentage) {
-        var range = timeline.getWindow();
-        var interval = range.end - range.start;
+   function zoomIn(percentage) {
+      var range = timeline.getWindow();
+      var start = range.start.valueOf();
+      var end = range.end.valueOf();
+      var interval = end - start;
+      var newInterval = interval / (1 + percentage);
+      var distance = (interval - newInterval) / 2;
+      var newStart = start + distance;
+      var newEnd = end - distance;
 
-        timeline.setWindow({
-            start: range.start.valueOf() - interval * percentage,
-            end:   range.end.valueOf()   + interval * percentage
-        });
+      timeline.setWindow({
+        start   : newStart,
+        end     : newEnd
+      });
     }
 
+    function zoomOut(percentage) {
+      var range = timeline.getWindow();
+      var start = range.start.valueOf();
+      var end = range.end.valueOf();
+      var interval = end - start;
+      var newStart = start - interval * percentage / 2;
+      var newEnd = end + interval * percentage / 2;
+
+      timeline.setWindow({
+        start   : newStart,
+        end     : newEnd
+      });
+    }
+
+
     // attach events to the navigation buttons
-    document.getElementById('zoomIn').onclick    = function () { zoom(-0.2); };
-    document.getElementById('zoomOut').onclick   = function () { zoom( 0.2); };
+    document.getElementById('zoomIn').onclick    = function () { zoomIn( 0.2); };
+    document.getElementById('zoomOut').onclick   = function () { zoomOut( 0.2); };
     document.getElementById('moveLeft').onclick  = function () { move( 0.2); };
     document.getElementById('moveRight').onclick = function () { move(-0.2); };
 
