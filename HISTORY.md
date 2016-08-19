@@ -902,7 +902,7 @@ it future proof for maintainability, extendability and clarity. A summary of new
 ### Network
 
 - Title of nodes and edges can now be an HTML element too.
-- Renamed storePosition to storePositions. Added deprication message and old name still works.
+- Renamed storePosition to storePositions. Added deprecation message and old name still works.
 - Worked around hammer.js bug with multiple release listeners.
 - Improved cleaning up after manipulation toolbar.
 - Added getPositions() method to get the position of all nodes or some of them if specific Ids are supplied.
