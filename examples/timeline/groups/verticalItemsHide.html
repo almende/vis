@@ -16,7 +16,7 @@
 </head>
 
 <body onresize="/*timeline.checkResize();*/">
-<h1>Timeline grouping performance</h1>
+<h1>Timeline vertical visibility</h1>
 
 
 <button onclick="showVisibleItems()">Show current visible items</button>
@@ -116,49 +116,7 @@
   timeline = new vis.Timeline(container, null, options);
   timeline.setGroups(groups);
   timeline.setItems(items);
-
-// $(document).ready(function(){
-//         var left = $('.vis-left>.vis-content'),
-//         center = $('.vis-center>.vis-content'),
-//         right = $('.vis-right>.vis-content');
-//     left.on('scroll', function() {
-//         center.scrollTop($(this).scrollTop());
-//         right.scrollTop($(this).scrollTop());
-//     });
-//     center.on('scroll', function() {
-//         left.scrollTop($(this).scrollTop());
-//         right.scrollTop($(this).scrollTop());
-//     });
-//     right.on('scroll', function() {
-//         left.scrollTop($(this).scrollTop());
-//         center.scrollTop($(this).scrollTop());
-//     });
-// })
-
-  // $('.vis-center>.vis-content').off('scroll').on('scroll', function () {
-  //   $('.vis-left>.vis-content').scrollTop($(this).scrollTop());
-  // });
-  // $('.vis-center>.vis-content').off('mousewheel').on('mousewheel', function (e) {
-  //     if (e.originalEvent.ctrlKey !== true) {
-  //         var current = $(this).scrollTop();
-  //         var adjusted = current - (e.originalEvent.wheelDelta / 2);
-  //         $('.vis-left>.vis-content').scrollTop(adjusted);
-  //         $('.vis-center>.vis-content').scrollTop(adjusted);
-  //     }
-  // });
 </script>
 
-<style>
-/*.vis-right>.vis-content, .vis-center>.vis-content {
-        overflow-x: hidden;
-        overflow-y: hidden;
-    }
-    .vis-left>.vis-content {
-        height: 100%;
-        width: auto;
-        overflow-x: hidden;
-        overflow-y: scroll;
-    }*/
-</style>
 </body>
 </html>
