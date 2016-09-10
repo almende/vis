@@ -3,7 +3,7 @@ var async = require('async');
 var gulp = require('gulp');
 var gutil = require('gulp-util');
 var concat = require('gulp-concat');
-var minifyCSS = require('gulp-minify-css');
+var cleanCSS = require('gulp-clean-css');
 var rename = require("gulp-rename");
 var webpack = require('webpack');
 var uglify = require('uglify-js');
@@ -176,7 +176,7 @@ gulp.task('bundle-css', function () {
       .pipe(gulp.dest(DIST))
 
     // TODO: nicer to put minifying css in a separate task?
-      .pipe(minifyCSS())
+      .pipe(cleanCSS())
       .pipe(rename(VIS_MIN_CSS))
       .pipe(gulp.dest(DIST));
 });

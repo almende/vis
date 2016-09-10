@@ -1314,7 +1314,7 @@ document.getElementById('myTimeline').onclick = function (event) {
 
 <pre class="prettyprint lang-js">
 timeline.on('select', function (properties) {
-  alert('selected items: ' + properties.nodes);
+  alert('selected items: ' + properties.items);
 });
 </pre>
 
@@ -1324,7 +1324,7 @@ timeline.on('select', function (properties) {
 
 <pre class="prettyprint lang-js">
 function onSelect (properties) {
-  alert('selected items: ' + properties.nodes);
+  alert('selected items: ' + properties.items);
 }
 
 // add event listener
