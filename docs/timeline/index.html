@@ -1187,7 +1187,7 @@ document.getElementById('myTimeline').onclick = function (event) {
     <tr>
       <td>on(event, callback)</td>
       <td>none</td>
-      <td>Create an event listener. The callback function is invoked every time the event is triggered. Avialable events: <code>rangechange</code>, <code>rangechanged</code>, <code>select</code>. The callback function is invoked as <code>callback(properties)</code>, where <code>properties</code> is an object containing event specific properties. See section <a href="#Events">Events for more information</a>.</td>
+      <td>Create an event listener. The callback function is invoked every time the event is triggered. Avialable events: <code>rangechange</code>, <code>rangechanged</code>, <code>select</code>, <code>itemover</code>, <code>itemout</code>. The callback function is invoked as <code>callback(properties)</code>, where <code>properties</code> is an object containing event specific properties. See section <a href="#Events">Events for more information</a>.</td>
     </tr>
 
     <tr>
@@ -1440,6 +1440,28 @@ timeline.off('select', onSelect);
         When a use taps an already selected item, the select event is fired again.
         Not fired when the method <code>setSelection</code>is executed.
       </td>
+    </tr>
+
+    <tr>
+      <td>itemover</td>
+      <td>
+        <ul>
+          <li><code>item</code>: hovered item id</li>
+          <li><code>event</code>: the original mouseover event</li>
+        </ul>
+      </td>
+      <td>Fired when the user moves the mouse over an item.</td>
+    </tr>
+
+    <tr>
+      <td>itemout</td>
+      <td>
+        <ul>
+          <li><code>item</code>: hovered item id</li>
+          <li><code>event</code>: the original mouseout event</li>
+        </ul>
+      </td>
+      <td>Fired when the user moves the mouse out of an item.</td>
     </tr>
 
     <tr>

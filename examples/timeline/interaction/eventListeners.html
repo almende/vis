@@ -19,6 +19,7 @@
   </p>
   <div id="visualization"></div>
   <p></p>
+  <div id="hoveredItem"></div>
   <div id="log"></div>
 
   <script type="text/javascript">
@@ -47,6 +48,15 @@
       logEvent('select', properties);
     });
 
+    timeline.on('itemover', function (properties) {
+      logEvent('itemover', properties);
+      setHoveredItem(properties.item);
+    });
+    timeline.on('itemout', function (properties) {
+      logEvent('itemout', properties);
+      setHoveredItem('none');
+    });
+
     items.on('*', function (event, properties) {
       logEvent(event, properties);
     });
@@ -57,6 +67,11 @@
       msg.innerHTML = 'event=' + JSON.stringify(event) + ', ' +
           'properties=' + JSON.stringify(properties);
       log.firstChild ? log.insertBefore(msg, log.firstChild) : log.appendChild(msg);
+    }
+
+    function setHoveredItem(id) {
+      var hoveredItem = document.getElementById('hoveredItem');
+      hoveredItem.innerHTML = 'hoveredItem=' + id;
     }
 
   </script>
