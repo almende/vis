@@ -175,10 +175,7 @@ gulp.task('copy', ['clean'], function () {
     var network = gulp.src('./lib/network/img/**/*')
       .pipe(gulp.dest(DIST + '/img/network'));
 
-    var timeline = gulp.src('./lib/timeline/img/**/*')
-      .pipe(gulp.dest(DIST + '/img/timeline'));
-
-    return merge(network, timeline);
+    return network;
 });
 
 gulp.task('minify', ['bundle-js'], function (cb) {
