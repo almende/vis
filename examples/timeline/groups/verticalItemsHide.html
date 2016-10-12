@@ -4,7 +4,11 @@
 
   <script src="../../../docs/js/jquery.min.js"></script>
   <script src="../../../dist/vis.js"></script>
+<!-- <<<<<<< HEAD
   <link href="../../../dist/vis.css" rel="stylesheet" type="text/css" />
+======= -->
+  <link href="../../../dist/vis-timeline-graph2d.min.css" rel="stylesheet" type="text/css" />
+<!-- >>>>>>> d805427ae6d7a61d1c9d6563ee073c9fbb9871da -->
 
   <style type="text/css">
     body {
@@ -72,6 +76,7 @@
   // create items
   var items = new vis.DataSet();
 
+  var types = [ 'box', 'point', 'range', 'background']
   var order = 1;
   var truck = 1;
   for (var j = 0; j < 25; j++) {
@@ -83,11 +88,14 @@
       date.setHours(date.getHours() + 2 + Math.floor(Math.random()*4));
       var end = new Date(date);
 
+      var type = types[Math.floor(4 * Math.random())]
+
       items.add({
         id: order,
         group: truck,
         start: start,
         end: end,
+        type: type,
         content: 'Order ' + order
       });
 

@@ -8,9 +8,25 @@
     "type": "git",
     "url": "git://github.com/almende/vis.git"
   },
+  "keywords": [
+    "vis",
+    "visualization",
+    "web based",
+    "browser based",
+    "javascript",
+    "chart",
+    "linechart",
+    "timeline",
+    "graph",
+    "network",
+    "browser"
+  ],
   "ignore": [
+    "gulpfile.js",
+    "index*.js",
     "misc",
     "node_modules",
+    "package.json",
     "test",
     "tools",
     "lib",

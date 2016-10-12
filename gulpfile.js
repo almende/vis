@@ -3,7 +3,7 @@ var async = require('async');
 var gulp = require('gulp');
 var gutil = require('gulp-util');
 var concat = require('gulp-concat');
-var minifyCSS = require('gulp-minify-css');
+var cleanCSS = require('gulp-clean-css');
 var rename = require("gulp-rename");
 var webpack = require('webpack');
 var uglify = require('uglify-js');
@@ -19,10 +19,14 @@ var VIS_MAP           = 'vis.map';
 var VIS_MIN_JS        = 'vis.min.js';
 var VIS_CSS           = 'vis.css';
 var VIS_MIN_CSS       = 'vis.min.css';
-var INDIVIDUAL_BUNDLES = [
+var INDIVIDUAL_JS_BUNDLES = [
   {entry: './index-timeline-graph2d.js', filename: 'vis-timeline-graph2d.min.js'},
   {entry: './index-network.js', filename: 'vis-network.min.js'},
   {entry: './index-graph3d.js', filename: 'vis-graph3d.min.js'}
+];
+var INDIVIDUAL_CSS_BUNDLES = [
+  {entry: ['./lib/shared/**/*.css', './lib/timeline/**/*.css'], filename: 'vis-timeline-graph2d.min.css'},
+  {entry: ['./lib/shared/**/*.css', './lib/network/**/*.css'], filename: 'vis-network.min.css'}
 ];
 
 // generate banner with today's date and correct version
@@ -120,7 +124,7 @@ gulp.task('bundle-js-individual', function (cb) {
   // update the banner contents (has a date in it which should stay up to date)
   bannerPlugin.banner = createBanner();
 
-  async.each(INDIVIDUAL_BUNDLES, function (item, callback) {
+  async.each(INDIVIDUAL_JS_BUNDLES, function (item, callback) {
     var webpackTimelineConfig = {
       entry: item.entry,
       output: {
@@ -144,51 +148,34 @@ gulp.task('bundle-js-individual', function (cb) {
 
 });
 
-
 // bundle and minify css
 gulp.task('bundle-css', function () {
-  var files = [
-    './lib/shared/activator.css',
-    './lib/shared/bootstrap.css',
-    './lib/shared/configuration.css',
-
-    './lib/timeline/component/css/timeline.css',
-    './lib/timeline/component/css/panel.css',
-    './lib/timeline/component/css/labelset.css',
-    './lib/timeline/component/css/itemset.css',
-    './lib/timeline/component/css/item.css',
-    './lib/timeline/component/css/timeaxis.css',
-    './lib/timeline/component/css/currenttime.css',
-    './lib/timeline/component/css/customtime.css',
-    './lib/timeline/component/css/animation.css',
-
-    './lib/timeline/component/css/dataaxis.css',
-    './lib/timeline/component/css/pathStyles.css',
-
-    './lib/network/css/network-manipulation.css',
-    './lib/network/css/network-tooltip.css',
-    './lib/network/css/network-navigation.css',
-    './lib/network/css/network-colorpicker.css'
-  ];
-
-  return gulp.src(files)
+  return gulp.src('./lib/**/*.css')
       .pipe(concat(VIS_CSS))
       .pipe(gulp.dest(DIST))
-
-    // TODO: nicer to put minifying css in a separate task?
-      .pipe(minifyCSS())
+      // TODO: nicer to put minifying css in a separate task?
+      .pipe(cleanCSS())
       .pipe(rename(VIS_MIN_CSS))
       .pipe(gulp.dest(DIST));
+});
+
+// bundle and minify individual css
+gulp.task('bundle-css-individual', function (cb) {
+  async.each(INDIVIDUAL_CSS_BUNDLES, function (item, callback) {
+    return gulp.src(item.entry)
+        .pipe(concat(item.filename))
+        .pipe(cleanCSS())
+        .pipe(rename(item.filename))
+        .pipe(gulp.dest(DIST))
+        .on('end', callback);
+  }, cb);
 });
 
 gulp.task('copy', ['clean'], function () {
     var network = gulp.src('./lib/network/img/**/*')
       .pipe(gulp.dest(DIST + '/img/network'));
 
-    var timeline = gulp.src('./lib/timeline/img/**/*')
-      .pipe(gulp.dest(DIST + '/img/timeline'));
-
-    return merge(network, timeline);
+    return network;
 });
 
 gulp.task('minify', ['bundle-js'], function (cb) {
@@ -203,7 +190,7 @@ gulp.task('minify', ['bundle-js'], function (cb) {
   cb();
 });
 
-gulp.task('bundle', ['bundle-js', 'bundle-js-individual', 'bundle-css', 'copy']);
+gulp.task('bundle', ['bundle-js', 'bundle-js-individual', 'bundle-css', 'bundle-css-individual', 'copy']);
 
 // read command line arguments --bundle and --minify
 var bundle = 'bundle' in argv;
