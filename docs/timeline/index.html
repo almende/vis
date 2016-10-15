@@ -31,13 +31,13 @@
   <script language="JavaScript">
     smoothScroll.init();
   </script>
-  
+
   <!-- Tipue vendor css -->
   <link href="../css/tipuesearch.css" rel="stylesheet">
-    
+
   <!-- Tipue vendor css -->
   <link href="../css/tipuesearch.css" rel="stylesheet">
-  
+
   <script type="text/javascript" src="../js/toggleTable.js"></script>
 </head>
 <body onload="prettyPrint();">
@@ -213,7 +213,7 @@
     or a DataView (offering 1 way data binding).
     Items are regular objects and can contain the properties <code>start</code>,
     <code>end</code> (optional), <code>content</code>,
-    <code>group</code> (optional), <code>className</code> (optional), 
+    <code>group</code> (optional), <code>className</code> (optional),
     <code>editable</code> (optional), and <code>style</code> (optional).
   </p>
 
@@ -624,7 +624,7 @@ function (option, path) {
         If no <code>order</code> properties are provided, the order will be undetermined.
       </td>
     </tr>
-    
+
     <tr>
       <td>groupOrderSwap</td>
       <td>Function</td>
@@ -787,7 +787,7 @@ function (option, path) {
         Only applicable when option <code>selectable</code> is <code>true</code>.
       </td>
     </tr>
-    
+
     <tr>
       <td style="font-size: 0.9em">multiselectPerGroup</td>
       <td>boolean</td>
@@ -805,7 +805,7 @@ function (option, path) {
       <td>Callback function triggered when an item is about to be added: when the user double taps an empty space in the Timeline. See section <a href="#Editing_Items">Editing Items</a> for more information. Only applicable when both options <code>selectable</code> and <code>editable.add</code> are set <code><code>true</code></code>.
       </td>
     </tr>
-    
+
     <tr>
       <td>onAddGroup</td>
       <td>function</td>
@@ -829,7 +829,7 @@ function (option, path) {
       <td>Callback function triggered when an item has been moved: after the user has dragged the item to an other position. See section <a href="#Editing_Items">Editing Items</a> for more information. Only applicable when both options <code>selectable</code> and <code>editable.updateTime</code> or <code>editable.updateGroup</code> are set <code><code>true</code></code>.
       </td>
     </tr>
-    
+
     <tr>
       <td>onMoveGroup</td>
       <td>function</td>
@@ -853,7 +853,7 @@ function (option, path) {
       <td>Callback function triggered when an item is about to be removed: when the user tapped the delete button on the top right of a selected item. See section <a href="#Editing_Items">Editing Items</a> for more information. Only applicable when both options <code>selectable</code> and <code>editable.remove</code> are set <code><code>true</code></code>.
       </td>
     </tr>
-    
+
     <tr>
       <td>onRemoveGroup</td>
       <td>function</td>
@@ -895,6 +895,12 @@ function (option, path) {
       <td>Orientation of the timeline items: 'top' or 'bottom' (default). Determines whether items are aligned to the top or bottom of the Timeline.</td>
     </tr>
 
+     <tr>
+      <td>rtl</td>
+      <td>boolean</td>
+      <td><code>false</code></td>
+      <td>If true, the timeline will be right-to-left.</td>
+    </tr>
 
     <tr>
       <td>selectable</td>
@@ -965,13 +971,6 @@ function (option, path) {
       <td>function</td>
       <td>none</td>
       <td>A template function used to generate the contents of the items. The function is called by the Timeline with an items data as argument, and must return HTML code as result. When the option template is specified, the items do not need to have a field <code>content</code>. See section <a href="#Templates">Templates</a> for a detailed explanation.</td>
-    </tr>
-
-    <tr>
-      <td>throttleRedraw</td>
-      <td>number</td>
-      <td><code>0</code></td>
-      <td>Limit the maximum number of redraws to once every x milliseconds. For example setting throttleRedraw to `100` milliseconds will limit the number of redraws to 10 times per second.</td>
     </tr>
 
     <tr class='toggle collapsible' onclick="toggleTable('optionTable','timeAxis', this);">
