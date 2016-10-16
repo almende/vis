@@ -585,6 +585,8 @@ function (option, path) {
 }</pre>
         For values which not provided in the customized <code>options.format</code>, the default values will be used.
         All available formatting syntax is described in the <a href="http://momentjs.com/docs/#/displaying/format/">docs of moment.js</a>.
+        <br>
+        You can also use a function format for each label. The function accepts as arguments the date, scale and step in that order, and expects to return a string for the label.
       </td>
     </tr>
 
