@@ -1237,7 +1237,13 @@ var options = {
                     node
                     any way you want. This is also the style object that is provided in the processProperties function
                     for
-                    fine tuning. If undefined, default node options will be used.
+                    fine tuning. If undefined, default node options will be used.<br/><br/>
+                    Default functionality only allows clustering if the cluster will contain 2 or more nodes. To allow clustering of single nodes you can use the <code>allowSingleNodeCluster : true</code> property.
+<pre class="prettyprint lang-js">
+    clusterNodeProperties: {
+        allowSingleNodeCluster: true
+    }
+</pre>
                 </td>
             </tr>
             <tr><td id="event_clusterEdgeProperties">clusterEdgeProperties</td>
