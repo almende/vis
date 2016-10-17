@@ -648,7 +648,7 @@ function (option, path) {
       <td>groupTemplate</td>
       <td>function</td>
       <td>none</td>
-      <td>A template function used to generate the contents of the groups. The function is called by the Timeline with a groups data as argument, and must return HTML code as result. When the option groupTemplate is specified, the groups do not need to have a field <code>content</code>. See section <a href="#Templates">Templates</a> for a detailed explanation.</td>
+      <td>A template function used to generate the contents of the groups. The function is called by the Timeline with a groups data as the first argument and the group element as the second, and must return HTML code as result. When the option groupTemplate is specified, the groups do not need to have a field <code>content</code>. See section <a href="#Templates">Templates</a> for a detailed explanation.</td>
     </tr>
 
     <tr>
@@ -978,7 +978,7 @@ function (option, path) {
       <td>template</td>
       <td>function</td>
       <td>none</td>
-      <td>A template function used to generate the contents of the items. The function is called by the Timeline with an items data as argument, and must return HTML code as result. When the option template is specified, the items do not need to have a field <code>content</code>. See section <a href="#Templates">Templates</a> for a detailed explanation.</td>
+      <td>A template function used to generate the contents of the items. The function is called by the Timeline with an items data as the first argument and the item element as the second, and must return HTML code as result. When the option template is specified, the items do not need to have a field <code>content</code>. See section <a href="#Templates">Templates</a> for a detailed explanation.</td>
     </tr>
 
     <tr class='toggle collapsible' onclick="toggleTable('optionTable','timeAxis', this);">
@@ -1629,6 +1629,17 @@ var template = Handlebars.compile(source);
   template: template
 };
 </pre>
+
+<h3>React templates</h3>
+
+You can use a React component for the templates by rendering them to the templates' element directly:
+
+<pre class="prettyprint lang-js">
+  template: function (item, element) {
+    return ReactDOM.render(&lt;b&gt;{item.content}&lt;/b&gt;, element);
+  },
+</pre>
+
 
   <h3>Multiple templates</h3>
 
