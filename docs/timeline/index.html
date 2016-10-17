@@ -557,7 +557,7 @@ function (option, path) {
 
     <tr>
       <td>format</td>
-      <td>Object</td>
+      <td>Object or Function</td>
       <td>none</td>
       <td>
         Apply custom date formatting of the labels on the time axis. The default value of <code>format</code> is:
@@ -583,8 +583,16 @@ function (option, path) {
     year:       ''
   }
 }</pre>
+
         For values which not provided in the customized <code>options.format</code>, the default values will be used.
         All available formatting syntax is described in the <a href="http://momentjs.com/docs/#/displaying/format/">docs of moment.js</a>.
+        <br>
+        You can also use a function format for each label. The function accepts as arguments the date, scale and step in that order, and expects to return a string for the label.
+
+        <pre class="prettyprint lang-js">function format({
+  minorLabels: Function(date: Date, scale: Number, step: Number),
+  majorLabels: Function(date: Date, scale: Number, step: Number)
+}</pre>
       </td>
     </tr>
 
