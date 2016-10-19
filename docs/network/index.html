@@ -328,19 +328,23 @@ network.setOptions(options);
             <tr><td id="event_locale">locale</td>
                 <td>String</td>
                 <td><code>'en'</code></td>
-                <td>Select the locale. By default, the language is English. If you want to use another language, you
-                    will
-                    need to define your own locale and refer to it here.
+                <td>Select the locale. By default, the language is English.
                 </td>
             </tr>
             <tr><td id="event_locales">locales</td>
                 <td>Object</td>
                 <td>defaultLocales</td>
-                <td>Locales object. By default only <code>'en'</code>, <code>'de'</code>, <code>'es'</code>, <code>'it'</code> and <code>'nl'</code> are supported. Take a look
-                    at
-                    the <a href="#locales" data-scroll=""
-                           data-options="{ &quot;easing&quot;: &quot;easeInCubic&quot; }">locales
-                        section below</a> for more explaination on how to customize this.
+                <td>Locales object. By default
+                  <code>'en'</code>,
+                  <code>'de'</code>,
+                  <code>'es'</code>,
+                  <code>'it'</code>,
+                  <code>'nl'</code>
+                  <code>'pt-br'</code>,
+                  <code>'ru'</code> 
+                  are supported. Take a look at the
+                  <a href="#locales" data-scroll="" data-options="{ &quot;easing&quot;: &quot;easeInCubic&quot; }">locales section below</a>
+                  for more explaination on how to customize this.
                 </td>
             </tr>
             <tr><td id="event_clickToUse">clickToUse</td>
@@ -998,7 +1002,7 @@ function releaseFunction (clusterPosition, containedNodesPositions) {
             </tr>
             <tr class="collapsible toggle" onclick="toggleTable('methodTable','setSelection', this);">
                 <td colspan="2"><span parent="setSelection" class="right-caret" id="method_setSelection"></span> setSelection(
-                  <code>Object selection</code>, 
+                  <code>Object selection</code>,
                   <code>[Object options]</code>)</td>
             </tr>
             <tr class="hidden" parent="setSelection">

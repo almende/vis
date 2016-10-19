@@ -1,6 +1,7 @@
 <!doctype html>
 <html>
 <head>
+  <meta charset="utf-8"/>
   <title>Network | Manipulation</title>
 
   <style type="text/css">
@@ -64,6 +65,17 @@
     var data = getScaleFreeNetwork(25);
     var seed = 2;
 
+    function setDefaultLocale() {
+      var defaultLocal = navigator.language;
+      var select = document.getElementById('locale');
+      select.selectedIndex = 0; // set fallback value
+      for (var i = 0, j = select.options.length; i < j; ++i) {
+        if (select.options[i].getAttribute('value') === defaultLocal) {
+          select.selectedIndex = i;
+          break;
+        }
+      }
+    }
 
     function destroy() {
       if (network !== null) {
@@ -135,11 +147,16 @@
       callback(data);
     }
 
+    function init() {
+      setDefaultLocale();
+      draw();
+    }
+
   </script>
   <script src="../../googleAnalytics.js"></script>
 </head>
 
-<body onload="draw();">
+<body onload="init();">
 <h2>Editing the nodes and edges (localized)</h2>
 <p style="width: 700px; font-size:14px; text-align: justify;">
   The localization is only relevant to the manipulation buttons.
@@ -148,8 +165,13 @@
 <p>
   <label for="locale">Select a locale:</label>
   <select id="locale" onchange="draw();">
-    <option value="en" selected>en</option>
+    <option value="en">en</option>
+    <option value="de">de</option>
+    <option value="es">es</option>
+    <option value="it">it</option>
     <option value="nl">nl</option>
+    <option value="pt-br">pt</option>
+    <option value="ru">ru</option>
   </select>
 </p>
 
@@ -169,4 +191,3 @@
 
 </body>
 </html>
-
