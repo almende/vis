@@ -8,7 +8,7 @@ If you have any *general question* on how to use the vis.js library in your own 
 ### Bugs, Problems and Feature-Requests
 If you really want to open a new issue:
 * Please use the [search functionality](//github.com/almende/vis/issues) to make sure that there is not already an issue concerning the same topic.
-* Please make sure to **mention witch module** of vis.js (network, timeline, graph3d, ...) your are referring to.
+* Please make sure to **mention which module** of vis.js (network, timeline, graph3d, ...) your are referring to.
 * If you think you found a bug please **provide a simple example** (e.g. on [jsbin](jsbin.com)) that demonstrates the problem.
 * If you want to propose a feature-request please **describe what you are looking for in detail**, ideally providing a screenshot, drawing or something similar.
 * **Close the issue later**, when the issue is no longer needed.
