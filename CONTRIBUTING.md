@@ -1,22 +1,14 @@
 ## Contributing
 
-Contributions to the vis.js library are very welcome! We can't do this alone.
+[Contributions](//github.com/almende/vis/blob/master/misc/how_to_help.md) to the vis.js library are very welcome! [We can't do this alone](//github.com/almende/vis/blob/master/misc/we_need_help.md).
 
-You can contribute in different ways: spread the word, report bugs, come up with
-ideas and suggestions, and contribute to the code.
+### Questions
+If you have any *general question* on how to use the vis.js library in your own project please check out [stackoverflow](http://stackoverflow.com/questions/tagged/vis.js) for thinks like that. **This is NOT a JavaScript help forum!**
 
-If you have any **general question** on how to use the vis.js library in your 
-project please check out 
-[stackoverflow](http://stackoverflow.com/questions/tagged/vis.js) for that.
-
-There are a few preferences regarding **code contributions**:
-
-- vis.js follows the node.js code style as described
-  [here](http://nodeguide.com/style.html).
-- When implementing new features, please update the documentation accordingly.
-- Make changes in the `develop` branch, not the `master` branch.
-- Send pull requests to the `develop` branch, not the `master` branch.
-- Only commit changes done in the source files under `lib`, not to the builds
-  which are located in the folder `dist`.
-
-Thanks!
+### Bugs, Problems and Feature-Requests
+If you really want to open a new issue:
+* Please use the [search functionality](//github.com/almende/vis/issues) to make sure that there is not already an issue concerning the same topic.
+* Please make sure to **mention which module** of vis.js (network, timeline, graph3d, ...) your are referring to.
+* If you think you found a bug please **provide a simple example** (e.g. on [jsbin](jsbin.com)) that demonstrates the problem.
+* If you want to propose a feature-request please **describe what you are looking for in detail**, ideally providing a screenshot, drawing or something similar.
+* **Close the issue later**, when the issue is no longer needed.
