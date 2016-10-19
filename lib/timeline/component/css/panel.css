@@ -1,12 +1,7 @@
-.vis-center>.vis-content {
-    overflow-x: hidden;
-    overflow-y: hidden;
-    height: 100%;
-}
-.vis-left>.vis-content {
-    height: 100%;
-    overflow-x: hidden;
-    overflow-y: scroll;
+.vis-left.vis-panel, .vis-left.vis-panel {
+    height: 100%!important;
+    overflow-x: hidden!important;
+    overflow-y: scroll!important;
 } 
 
 .vis-panel {
