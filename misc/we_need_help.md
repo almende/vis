@@ -8,4 +8,8 @@ Although Almende is looking to replace the expertise required for Vis.js, we don
 
 **If you want to support the project please just start by [helping out](./how_to_help.md).**
 
-If you have shown some commitment to the project you can ask @ludost to become a member of the community support team. This team has write permissions to the repository and is helping maintaining it.
+If you have shown some commitment to the project you can ask @ludost to become a member of the community support team. This team has write permissions to the repository and is helping maintaining it. Currently this team consists of:
+
+* @ludost (almende maintainer)
+* @mojoaxel
+* @yotamberk
