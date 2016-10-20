@@ -31,13 +31,13 @@
   <script language="JavaScript">
     smoothScroll.init();
   </script>
-  
+
   <!-- Tipue vendor css -->
   <link href="../css/tipuesearch.css" rel="stylesheet">
-    
+
   <!-- Tipue vendor css -->
   <link href="../css/tipuesearch.css" rel="stylesheet">
-  
+
   <script type="text/javascript" src="../js/toggleTable.js"></script>
 </head>
 <body onload="prettyPrint();">
@@ -213,7 +213,7 @@
     or a DataView (offering 1 way data binding).
     Items are regular objects and can contain the properties <code>start</code>,
     <code>end</code> (optional), <code>content</code>,
-    <code>group</code> (optional), <code>className</code> (optional), 
+    <code>group</code> (optional), <code>className</code> (optional),
     <code>editable</code> (optional), and <code>style</code> (optional).
   </p>
 
@@ -557,7 +557,7 @@ function (option, path) {
 
     <tr>
       <td>format</td>
-      <td>Object</td>
+      <td>Object or Function</td>
       <td>none</td>
       <td>
         Apply custom date formatting of the labels on the time axis. The default value of <code>format</code> is:
@@ -583,8 +583,16 @@ function (option, path) {
     year:       ''
   }
 }</pre>
+
         For values which not provided in the customized <code>options.format</code>, the default values will be used.
         All available formatting syntax is described in the <a href="http://momentjs.com/docs/#/displaying/format/">docs of moment.js</a>.
+        <br>
+        You can also use a function format for each label. The function accepts as arguments the date, scale and step in that order, and expects to return a string for the label.
+
+        <pre class="prettyprint lang-js">function format({
+  minorLabels: Function(date: Date, scale: Number, step: Number),
+  majorLabels: Function(date: Date, scale: Number, step: Number)
+}</pre>
       </td>
     </tr>
 
@@ -624,7 +632,7 @@ function (option, path) {
         If no <code>order</code> properties are provided, the order will be undetermined.
       </td>
     </tr>
-    
+
     <tr>
       <td>groupOrderSwap</td>
       <td>Function</td>
@@ -640,7 +648,7 @@ function (option, path) {
       <td>groupTemplate</td>
       <td>function</td>
       <td>none</td>
-      <td>A template function used to generate the contents of the groups. The function is called by the Timeline with a groups data as argument, and must return HTML code as result. When the option groupTemplate is specified, the groups do not need to have a field <code>content</code>. See section <a href="#Templates">Templates</a> for a detailed explanation.</td>
+      <td>A template function used to generate the contents of the groups. The function is called by the Timeline with a groups data as the first argument and the group element as the second, and must return HTML code as result. When the option groupTemplate is specified, the groups do not need to have a field <code>content</code>. See section <a href="#Templates">Templates</a> for a detailed explanation.</td>
     </tr>
 
     <tr>
@@ -787,7 +795,7 @@ function (option, path) {
         Only applicable when option <code>selectable</code> is <code>true</code>.
       </td>
     </tr>
-    
+
     <tr>
       <td style="font-size: 0.9em">multiselectPerGroup</td>
       <td>boolean</td>
@@ -805,7 +813,7 @@ function (option, path) {
       <td>Callback function triggered when an item is about to be added: when the user double taps an empty space in the Timeline. See section <a href="#Editing_Items">Editing Items</a> for more information. Only applicable when both options <code>selectable</code> and <code>editable.add</code> are set <code><code>true</code></code>.
       </td>
     </tr>
-    
+
     <tr>
       <td>onAddGroup</td>
       <td>function</td>
@@ -829,7 +837,7 @@ function (option, path) {
       <td>Callback function triggered when an item has been moved: after the user has dragged the item to an other position. See section <a href="#Editing_Items">Editing Items</a> for more information. Only applicable when both options <code>selectable</code> and <code>editable.updateTime</code> or <code>editable.updateGroup</code> are set <code><code>true</code></code>.
       </td>
     </tr>
-    
+
     <tr>
       <td>onMoveGroup</td>
       <td>function</td>
@@ -853,7 +861,7 @@ function (option, path) {
       <td>Callback function triggered when an item is about to be removed: when the user tapped the delete button on the top right of a selected item. See section <a href="#Editing_Items">Editing Items</a> for more information. Only applicable when both options <code>selectable</code> and <code>editable.remove</code> are set <code><code>true</code></code>.
       </td>
     </tr>
-    
+
     <tr>
       <td>onRemoveGroup</td>
       <td>function</td>
@@ -970,14 +978,7 @@ function (option, path) {
       <td>template</td>
       <td>function</td>
       <td>none</td>
-      <td>A template function used to generate the contents of the items. The function is called by the Timeline with an items data as argument, and must return HTML code as result. When the option template is specified, the items do not need to have a field <code>content</code>. See section <a href="#Templates">Templates</a> for a detailed explanation.</td>
-    </tr>
-
-    <tr>
-      <td>throttleRedraw</td>
-      <td>number</td>
-      <td><code>0</code></td>
-      <td>Limit the maximum number of redraws to once every x milliseconds. For example setting throttleRedraw to `100` milliseconds will limit the number of redraws to 10 times per second.</td>
+      <td>A template function used to generate the contents of the items. The function is called by the Timeline with an items data as the first argument and the item element as the second, and must return HTML code as result. When the option template is specified, the items do not need to have a field <code>content</code>. See section <a href="#Templates">Templates</a> for a detailed explanation.</td>
     </tr>
 
     <tr class='toggle collapsible' onclick="toggleTable('optionTable','timeAxis', this);">
@@ -1629,6 +1630,17 @@ var template = Handlebars.compile(source);
 };
 </pre>
 
+<h3>React templates</h3>
+
+You can use a React component for the templates by rendering them to the templates' element directly:
+
+<pre class="prettyprint lang-js">
+  template: function (item, element) {
+    return ReactDOM.render(&lt;b&gt;{item.content}&lt;/b&gt;, element);
+  },
+</pre>
+
+
   <h3>Multiple templates</h3>
 
   In order to support multiple templates, the template handler can be extended to switch between different templates, depending on a specific item property:
@@ -1701,6 +1713,14 @@ var options = {
         <code>en</code><br>
         <code>en_EN</code><br>
         <code>en_US</code>
+      </td>
+    </tr>
+    <tr>
+      <td>Italian</td>
+      <td>
+        <code>it</code><br>
+        <code>it_IT</code><br>
+        <code>it_CH</code>
       </td>
     </tr>
     <tr>

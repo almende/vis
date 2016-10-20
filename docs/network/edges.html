@@ -115,9 +115,9 @@
 var options = {
   edges:{
     arrows: {
-      to:     {enabled: false, scaleFactor:1},
-      middle: {enabled: false, scaleFactor:1},
-      from:   {enabled: false, scaleFactor:1}
+      to:     {enabled: false, scaleFactor:1, type:'arrow'},
+      middle: {enabled: false, scaleFactor:1, type:'arrow'},
+      from:   {enabled: false, scaleFactor:1, type:'arrow'}
     },
     arrowStrikethrough: true,
     color: {
@@ -242,6 +242,12 @@ network.setOptions(options);
             <td>Number</td>
             <td><code>1</code></td>
             <td>The scale factor allows you to change the size of the arrowhead.</td>
+        </tr>
+        <tr parent="arrows" class="hidden">
+            <td class="indent2">arrows.to.type</td>
+            <td>String</td>
+            <td><code>arrow</code></td>
+            <td>The type of endpoint. Default is <code>arrow</code>. Also possible is <code>circle</code>.</td>
         </tr>
         <tr parent="arrows" class="hidden">
             <td class="indent">arrows.middle</td>
