@@ -19,7 +19,7 @@
   // create groups
   var numberOfGroups = 25; 
   var groups = new vis.DataSet()
-  for (var i = numberOfGroups; i >= 0; i--) {
+  for (var i = 0; i < numberOfGroups; i++) {
     groups.add({
       id: i,
       content: 'Truck&nbsp;' + i
@@ -65,7 +65,6 @@
     },
     orientation: 'top'
   };
-
 
   // create a Timeline
   var container = document.getElementById('mytimeline');
