@@ -1,9 +1,3 @@
-.vis-left.vis-panel, .vis-left.vis-panel {
-    height: 100%!important;
-    overflow-x: hidden!important;
-    overflow-y: scroll!important;
-} 
-
 .vis-panel {
   position: absolute;
 
@@ -27,6 +21,20 @@
   border-top-style: solid;
   border-bottom-style: solid;
   overflow: hidden;
+}
+
+.vis-left.vis-panel.vis-vertical-scroll, .vis-right.vis-panel.vis-vertical-scroll {
+  height: 100%;
+  overflow-x: hidden;
+  overflow-y: scroll;
+} 
+
+.vis-left.vis-panel.vis-vertical-scroll {
+  padding-left: 12px;
+}
+
+.vis-right.vis-panel.vis-vertical-scroll {
+  padding-right: 12px;
 }
 
 .vis-panel.vis-center,
