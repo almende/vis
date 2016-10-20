@@ -30,11 +30,19 @@
 } 
 
 .vis-left.vis-panel.vis-vertical-scroll {
-  padding-left: 12px;
+  direction: rtl;
+}
+
+.vis-left.vis-panel.vis-vertical-scroll .vis-content {
+  direction: ltr;
 }
 
 .vis-right.vis-panel.vis-vertical-scroll {
-  padding-right: 12px;
+  direction: ltr;
+}
+
+.vis-right.vis-panel.vis-vertical-scroll .vis-content {
+  direction: rtl;
 }
 
 .vis-panel.vis-center,
