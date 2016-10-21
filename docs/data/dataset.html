@@ -598,9 +598,11 @@ function (event, properties, senderId) {
         <code>update</code>, and <code>remove</code>,
         <code>properties</code> is always an object containing a property
         <code>items</code>, which contains an array with the ids of the affected
-        items. The <code>update</code> event has an extra field <code>oldData</code>
-        containing the original data of the updated items, and a field <code>data</code>
-        containing the changes: the properties of the items that are being updated.
+        items. The <code>update</code> and <code>remove</code> events have an extra
+        field <code>oldData</code> containing the original data of the items in the
+        dataset before the items were updated or removed. The <code>update</code>
+        event also contains a field <code>data</code> containing the changes:
+        the properties of the items that are being updated. 
       </td>
     </tr>
     <tr>
