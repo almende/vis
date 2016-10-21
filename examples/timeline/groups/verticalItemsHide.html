@@ -72,6 +72,7 @@
   // create items
   var items = new vis.DataSet();
 
+  var types = [ 'box', 'point', 'range', 'background']
   var order = 1;
   var truck = 1;
   for (var j = 0; j < 25; j++) {
@@ -83,11 +84,14 @@
       date.setHours(date.getHours() + 2 + Math.floor(Math.random()*4));
       var end = new Date(date);
 
+      var type = types[Math.floor(4 * Math.random())]
+
       items.add({
         id: order,
         group: truck,
         start: start,
         end: end,
+        type: type,
         content: 'Order ' + order
       });
 
