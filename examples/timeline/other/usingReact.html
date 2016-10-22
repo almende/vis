@@ -2,7 +2,7 @@
 <html>
   <head>
     <meta charset="utf-8">
-    <title>React Hello World</title>
+    <title>React Components in templates</title>
   </head>
   <body>
 
@@ -17,8 +17,8 @@
     to compile JSX into JavaScript. Also, check out:
     http://facebook.github.io/react/docs/tooling-integration.html
     -->
-    <script src="https://fb.me/react-15.0.1.js"></script>
-    <script src="https://fb.me/react-dom-15.0.1.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/react/15.3.2/react.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/react/15.3.2/react-dom.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-core/5.8.23/browser.min.js"></script>
 
     <script src="../../../dist/vis.js"></script>
@@ -30,7 +30,7 @@
     -->
     <script type="text/babel">
         var timeline;
-        
+
         // create groups
         var numberOfGroups = 25; 
         var groups = new vis.DataSet()
@@ -66,8 +66,7 @@
           render: function() {
             var { group } = this.props;
             return <div>
-              <label>{group.content}</label>
-              <button>do stuff</button>
+                <label>{group.content}</label>
             </div>
           }
         })
@@ -76,44 +75,37 @@
           render: function() {
             var { item } = this.props;
             return <div>
-              <label>{item.content}</label>
-              <button>do stuff</button>
+                <label>{item.content}</label>
             </div>
           }
         })
 
         // specify options
         var options = {
-          rtl: true,
-          stack: true,
-          maxHeight: 400,
-          start: new Date(),
-          end: new Date(1000*60*60*24 + (new Date()).valueOf()),
-          editable: true,
-          margin: {
-            item: 10, // minimal margin between items
-            axis: 5   // minimal margin between items and the axis
-          },
-          template: function (item, element) {
-            ReactDOM.unmountComponentAtNode(element);
-            return ReactDOM.render(<ItemTemplate item={item} />, element);
-          },
-          groupTemplate: function (group, element) {
-            ReactDOM.unmountComponentAtNode(element);
-            return ReactDOM.render(<GroupTemplate group={group} />, element);
-          },
-          orientation: 'top'
+            orientation: 'top',
+            maxHeight: 400,
+            start: new Date(),
+            end: new Date(1000*60*60*24 + (new Date()).valueOf()),
+            editable: true,
+            template: function (item, element) {
+                ReactDOM.unmountComponentAtNode(element);
+                return ReactDOM.render(<ItemTemplate item={item} />, element);
+            },
+            groupTemplate: function (group, element) {
+                ReactDOM.unmountComponentAtNode(element);
+                return ReactDOM.render(<GroupTemplate group={group} />, element);
+            }
         }
      
 
         var VisTimeline = React.createClass({
             componentDidMount: function() {
-                initTimeline()
+                return initTimeline();
             },
             render: function() {
                 return <div>
                     <h1>Vis timline with React</h1>
-                    <h2>Using react components for items ang group templates</h2>      
+                    <h2>Using react components for items and group templates</h2>      
 
                     <div id="mytimeline"></div>
                 </div>
