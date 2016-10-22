@@ -676,6 +676,15 @@ function (option, path) {
     </tr>
 
     <tr>
+      <td>horizontalScroll</td>
+      <td>Boolean</td>
+      <td>false</td>
+      <td>This option allows you to scroll horizontally to move backwards and forwards in the time range.
+       Only applicable when option <code>zoomCtrl</code> is defined or <code>zoomable</code> is <code>false</code>.
+      </td>
+    </tr>
+
+    <tr>
       <td>itemsAlwaysDraggable</td>
       <td>boolean</td>
       <td><code>false</code></td>
@@ -1012,6 +1021,14 @@ function (option, path) {
       <td>String</td>
       <td>none</td>
       <td>Specifies the default type for the timeline items. Choose from 'box', 'point', 'range', and 'background'. Note that individual items can override this default type. If undefined, the Timeline will auto detect the type from the items data: if a start and end date is available, a 'range' will be created, and else, a 'box' is created. Items of type 'background' are not editable.
+      </td>
+    </tr>
+
+    <tr>
+      <td>verticalScroll</td>
+      <td>Boolean</td>
+      <td>false</td>
+      <td> Show a vertical scroll on the side of the group list.    
       </td>
     </tr>
 
