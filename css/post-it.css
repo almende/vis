@@ -23,7 +23,7 @@
 }
 
 .post-it-top-right {
-    position: fixed;
+    position: absolute;
     top: 50px;
     right: 100px;
     z-index: 999;
