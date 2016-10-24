@@ -6,13 +6,13 @@ The company that developed vis.js for the main part, *almende* is [not able to m
 
 ### Answering questions
 
-There are new [issues with questions](//github.com/almende/vis/issues?q=is%3Aissue+is%3Aopen+label%3Aquestion+sort%3Acreated-desc) how to use vis.js opened almost every day. Be part of the community and help answer them!
+There are new [issues with questions](//github.com/almende/vis/issues?q=is%3Aissue+is%3Aopen+label%3AQuestion+sort%3Acreated-desc) how to use vis.js opened almost every day. Be part of the community and help answer them!
 
 A better way to ask questions on how to use vis.js is [stackoverflow](https://stackoverflow.com/tags/vis.js). Questions are posed here also and need to be answered by the community. [Please help answering questions](https://stackoverflow.com/tags/vis.js) here also.
 
 ### Closing old issues
 
-A new issue is often opened fast and then forgotten. Please help go trough [the old issues](//github.com/almende/vis/issues?q=is%3Aissue+is%3Aopen+sort%3Acreated-asc) (especially the [questions](//github.com/almende/vis/issues?q=is%3Aissue+is%3Aopen+sort%3Acreated-asc+label%3Aquestion)) and ask the creator of the issues if the problem still exists before closing the issue. The support team uses the **issue inactive** label to mark these issues.
+A new issue is often opened fast and then forgotten. Please help go trough [the old issues](//github.com/almende/vis/issues?q=is%3Aissue+is%3Aopen+sort%3Acreated-asc) (especially the [questions](//github.com/almende/vis/issues?q=is%3Aissue+is%3Aopen+sort%3Acreated-asc+label%3AQuestion)) and ask the creator of the issues if the problem still exists before closing the issue. The support team uses the **issue inactive** label to mark these issues.
 
 ### Improve the webpage
 
@@ -28,14 +28,14 @@ If you use vis.js to develop something beautiful feel free to create a pull-requ
 
 ### Confirming and fixing bugs
 
-Every software has bugs. We also have [quite a nice collection](https://github.com/almende/vis/issues?q=is%3Aissue+is%3Aopen+label%3Abug+sort%3Areactions-%2B1-desc) ;-)
+Every software has bugs. We also have [quite a nice collection](https://github.com/almende/vis/issues?q=is%3Aissue+is%3Aopen+label%3ABug+sort%3Areactions-%2B1-desc) ;-)
 Feel free to fix as many bugs as you want!
 
 You can not only help by fixing bugs, but also by confirming the bug or even creating a minimal code example to prove this bug exists.
 
 ### Implementing Feature-Requests
 
-A lot of people have a lot of ideas for improving vis.js. [We label these issues as **enhancement**](https://github.com/almende/vis/issues?q=is%3Aissue+is%3Aopen+sort%3Areactions-%2B1-desc+label%3Aenhancement). Feel free to implement a new feature by creating a new Pull-Request.
+A lot of people have a lot of ideas for improving vis.js. [We label these issues as **Feature-Request**](https://github.com/almende/vis/labels/Feature-Request). Feel free to implement a new feature by creating a new Pull-Request.
 
 [Some issues are labeled **For everybody!**](//github.com/almende/vis/issues?q=is%3Aissue+is%3Aopen+label%3A%22For+everyone%21%22+sort%3Areactions-%2B1-desc). These are a good starting point.
 
