@@ -154,7 +154,7 @@ slow, so when only the non-minified library is needed, one can use the
 
 ## Custom builds
 
-The folder `dist` contains bundled versions of vis.js for direct use in the browser. These bundles contain the all visualizations and includes external dependencies such as hammer.js and moment.js.
+The folder `dist` contains bundled versions of vis.js for direct use in the browser. These bundles contain all the visualizations and include external dependencies such as hammer.js and moment.js.
 
 The source code of vis.js consists of commonjs modules, which makes it possible to create custom bundles using tools like [Browserify](http://browserify.org/) or [Webpack](http://webpack.github.io/). This can be bundling just one visualization like the Timeline, or bundling vis.js as part of your own browserified web application. 
 
