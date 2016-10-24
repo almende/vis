@@ -64,4 +64,6 @@ There are some rules for pull-request:
 
 * Always adapt to the code style of the existing source. Never adapt existing code to your personal taste. :trollface:
 
+* Pull-requests must be reviewed by at least two member of the support team. The First must approve the pull-request, the second can than merge after also checking it.
+
 **Happy Helping!!**
