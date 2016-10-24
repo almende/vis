@@ -680,7 +680,7 @@ function (option, path) {
       <td>Boolean</td>
       <td>false</td>
       <td>This option allows you to scroll horizontally to move backwards and forwards in the time range.
-       Only applicable when option <code>zoomCtrl</code> is defined or <code>zoomable</code> is <code>false</code>.
+       Only applicable when option <code>zoomCtrl</code> is defined or <code>zoomable</code> is <code>false</code>. Notice that defining this option as <code>true</code> will override <code>verticalScroll</code> scroll event but not eliminate the vertical scrollbar.
       </td>
     </tr>
 
@@ -1028,7 +1028,7 @@ function (option, path) {
       <td>verticalScroll</td>
       <td>Boolean</td>
       <td>false</td>
-      <td> Show a vertical scroll on the side of the group list.    
+      <td> Show a vertical scroll on the side of the group list and link it to the scroll event when zoom is not triggered. Notice that defining this option as <code>true</code> will NOT override <code>horizontalScroll</code>. The scroll event will be vertically ignored, but a vertical scrollbar will be visible    
       </td>
     </tr>
 
