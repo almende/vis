@@ -1,0 +1,160 @@
+ccf1f06 bumped package.json version to 4.17.0
+33795a9 Fix scroll bugs with vertical scrollbar (#2228)
+70f76a2 Added point draw method for style 'line' (#2227)
+6bb7432 Merge pull request #2224 from bradh/timelinedocs-2016-10-24
+a70edfb Minor documentation cleanup.
+1e55ee8 Bugfix in timeline (#2219)
+c1a3f66 Merge pull request #2223 from bradh/rangeoverflowexamplecleanup
+95cd631 Merge pull request #2222 from bradh/readmefixes-2016-10-24
+7e342bd Remove stray reference to rangeoverflow in example comment.
+3633bd9 Trivial README fixes.
+5489a19 Merge pull request #2218 from mojoaxel/featureRequests
+cad071e renamed some labels
+ecf1c6a small improvements (#2217)
+ac1d6a6 Fix small timeline bug when defining timeline with no options and fix docs explanations (#2216)
+6adac31 Added point draw methods for styles 'surface' and 'grid' (#2215)
+a9be8e7 Merge pull request #2214 from wimrijnders/PR23
+9e1fd66 Add point draw methods for styles 'dot-color' and 'dot-size'
+1c4e1a4 Add point draw methods for styles 'dot' and 'dot-line' (#2212)
+171ee39 Merge pull request #2213 from mojoaxel/develop
+66ab105 add two eyes review process
+ab9d5f3 Merge pull request #2210 from wimrijnders/PR21
+cf75437 Fix dragging items that have a React template (#2211)
+fcc817b Added point draw methods for graph styles 'bar-color' and 'bar-size'
+8d13434 Merge pull request #2209 from wimrijnders/PR20
+105356b Merge pull request #2208 from wimrijnders/PR19
+d959843 Fix React support for group and item templates and add example (#2206)
+44d6d86 Added explanatory text for graph3d tooltip demo
+124b70f Undid last commit in a very roundabout way.
+5d0a70e Added generic graph drawing loop; isolated point drawing of graph style 'Bar'
+7689e21 Merge branch 'develop' into PR18
+25a04fc Merge pull request #2204 from wimrijnders/PR17
+cd1b18f Fixed another silly indent
+d3b174d Interim save
+13752ed Fixes after testing
+b889a50 Add a vertical scroll option for timeline [solves #273, #1060, #466] (#2196)
+7424bfb Graph3d: make setting dotSizeRatio public (#2202)
+3d0acba Small code cleanup and consolidation.
+178e9dc Horizontal scroll (#2201)
+ea4d56c vertical scroll when zoomKey isn't triggered (#2197)
+5030993 Merge pull request #2199 from wimrijnders/PR14
+baed96e Fixes and hardening for Settings.js
+3e84c35 Moved code for settings to separate module
+776f4cc Updates DataSet and DataView remove event payload (#2189)
+c92e2cd Line graph draw segments by depth order (#2200)
+6fc876a Final cleanup for settings handling
+9cfda2b Merge pull request #2195 from wimrijnders/PR14
+e9df41e Merge pull request #2185 from Tooa/Italian_support_timeline
+abb32df Final fixes
+66ac9dd Added commond handling for settings with internal prefix 'default'
+5d63ae0 Merge pull request #2182 from wimrijnders/PR13
+ffa2e19 Fixed oversight with showTooltip
+7c9bab8 Added fields tooltip and showLegend to defaults
+6a34948 Merge pull request #2188 from mojoaxel/locales
+f61c83a cleaned up locale; added all locals to example; set users local as default
+51f0db9 Add Italian locale support for network (#2184)
+e6351b6 Adjusted STYLE enum to previous
+9a028a8 Added step to defaults; fixes to detect and survive inconstent data
+bb627c6 Add Italian support for timeline
+055e7ee Merge pull request #2183 from mojoaxel/weNeedHelp
+832e963 linked users to there profile
+f3e5643 Added handling of settings for camera
+f5fe722 Managing help offers (#2178)
+1446540 Added handling of settings backgroundColor and dataColor
+810922a Merge pull request #2176 from wimrijnders/PR12
+49e5582 Merge pull request #2175 from wimrijnders/PR11
+8b39874 Merge pull request #2174 from ZacBrownBand/dataview_include_olddata
+7c62486 Re-ordered keys to match other usage.
+165aa03 Added xCenter and yCenter to defaults
+b21f5a1 Fixed typo
+b2e0eb9 Added structure for default values
+ffc5447 Replaced sin/cos usage in drawAxis() with unit vector
+f847430 Adds oldData to the update event payload in dataview to match dataset.
+674813d Uniform handling of common user options (#2168)
+5740c13 Merge pull request #2171 from wimrijnders/PR10
+9b5eb3f Added methods for drawing Y and Z axis labels
+db89162 Merge pull request #2167 from wimrijnders/PR8
+11b9210 Merge pull request #2165 from wimrijnders/PR6
+0187ab9 Merge pull request #2166 from wimrijnders/PR7
+9e13640 Consolidated code for drawing x-axis label
+ccec638 Added method for drawing lines between 3D points
+a2350bb Moved recurring code for StepNumber to start() method
+b84e9e4 Removed restriction to allow clusters of a single node. (#2013)
+fe1dfc8 Merge pull request #2162 from wimrijnders/PR5
+85222bf throw real Error instances (#2160)
+4b235ab Translation of all data points to single method.
+ca94ee0 Merge pull request #2161 from aanm/fixing-get-point
+bced0e6 Merge pull request #2159 from wimrijnders/PR3
+0330e2f Added 2D line drawing method
+fed0441 ignore '.directory' (#2158)
+029b6ab Consolidated usage of getContext (#2157)
+b136380 Fix blur edge for dense networks (#2124)
+932dfb1 Fix Vertical visibility for all item types (#2143)
+f99d204 Merge pull request #2066 from mojoaxel/newArrowTypes
+d2aa7b0 fixed typo
+37c595e added arrow-type docs; #1993
+0970cf6 added arrow-type example; #1993
+dc2c233 added arrow-type 'circle'; fixes #1993
+439aa79 Expose the item/group element in option.template and option.groupTemplate  (#2153)
+ea859d4 Add example to export to JSON and import it again. (#2152)
+12e2fa4 Custom function label - fixes #1098 (#2145)
+4079d2c Merge pull request #1967 from mojoaxel/npmpackage
+f95375b moved some dependencies for production
+217299e Add the source data to Point3d objects in Graph3D (#1884)
+c130f0b Merge pull request #2091 from Teamwork/requestAnimationFrame-for-redraws
+48b492d Rtl documentation (#2141)
+82e686e merged russian locale #2111
+d805427 Small bugfix to prevent null pointer exception (#2116)
+ee1e5d9 timeline: add missing require for util module (#2109)
+6afe0f1 timeline: use css style instead of delete image (#2034)
+ff3948f Use requestAnimationFrame to throttle redraws
+d9576be Added floating-point compensation to range-item width calculation (#2107)
+6539ca7 Fixed position of box item (#2106)
+d37bcea Added Timeline itemover, itemout events (#2099)
+fe02557 Fix grammar/syntax in loading instructions (#2093)
+bb549ea generate individual css files for network and timeline (#1970)
+d5e8a14 Select the closest edge, not just any nearby (#1922)
+0ba6e16 Hide vertically hidden ranged items in groups that are not visible (#2062)
+d29fad2 Prevent moment deprecation warning (#2089)
+cd29400 only use shape.radius if availible; fixes #1625 (#2005)
+096703b Removed all build-related stuff from bower.json (#1968)
+1f6935e updated deprecated dependencies (#1953)
+34e9cd8 general questions should be asked on stackoverflow (#1991)
+f1a403b Merge branch 'chrisbenseler-master' into develop
+57a3dfb Added pt-br locale to network
+b752755 Added getBaseEdge, getClusteredEdges updateEdge and updateClusteredNo… (#2055)
+343ead9 fixes BoxItem's initial width if content width is dynamic; fixes #2032 (#2035)
+8419c73 correct spelling for 'deprecated' and 'deprecation' s/depricat/deprecat/g
+9962987 Added getBaseEdge, getClusteredEdges updateEdge and updateClusteredNo… (#2055)
+8dd7849 fixes BoxItem's initial width if content width is dynamic; fixes #2032 (#2035)
+bcca755 correct spelling for 'deprecated' and 'deprecation' s/depricat/deprecat/g
+ae04736 Merge branch 'mokraemer-master' into develop
+29f2d98 timeline: set weekday css class on high zoom levels; fixes #2014; code cleanup;
+539afa7 #2014, changed visible to 2 day limit in zoom
+9249fb7 #2014
+e37759a Merge branch 'chonton-master' into develop
+30620e4 improved shape example with a ellipse with long label text; see #2011
+dd3639f decrease whitespace in ellipses having long text
+adedd6a Merge branch 'daattali-patch-2' into develop
+cc61cd8 implement a smarter zoom in/out that gets back to the original window
+d951959 Changes how current, start, and end are set to create a moment instance with the same locale as the TimeStep's moment instance (#1932)
+7a88861 Merge branch 'chiarishow-master' into develop
+67823f1 Fix issue #1156 (#1976)
+ae1ecf5 Merge pull request #1987 from Stexxen/develop
+9e4c42e Merge pull request #1940 from cgrandfield/master
+412a503 fix documentation: properties.nodes doesn't exist, it's properties.items
+727b5c2 Merge pull request #1998 from dejvo/develop
+9d30222 Fix incorrect documentation URL
+eb675cd Resolve issue almende/vis#1857
+ba5ce26 Merge pull request #1946 from doubleoevan/fix-known-security-issue-with-handlebars
+6460e39 fix known security with handlebars
+9ec77c6 fix wrong indentation
+d07a3ec better variable name
+8cd847c fix #1723
+181c98e Added support for drawing legends to all graph types other than line and barsize. Added a "showLegend" option which can be used to toggle legend drawing Added legend drawing to 11_tooltips and to playground examples Added description of showLegend option to documentation
+944511f Fixed getPoint for same node edges
+f516cb0 Fix right orientation axis for Graph2D, see examples/graph2d/05_bothAxis. It was broken by PR (#1729), which fixed issues #112 & #1730. As far as I can tell that change shouldn't influence the DataAxis (vertical-axis), but only the horizontal axis.
+2c78738 Merge pull request #1862 from raphink/content_width
+087b96b Set content width to avoid overflow (Fix #1853)
+94d9fdc Merge pull request #1822 from herregroen/master
+5f7510a reset switched{Day,Month,Year} in next function, not in isMajor function
