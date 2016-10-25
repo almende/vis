@@ -676,6 +676,15 @@ function (option, path) {
     </tr>
 
     <tr>
+      <td>horizontalScroll</td>
+      <td>Boolean</td>
+      <td>false</td>
+      <td>This option allows you to scroll horizontally to move backwards and forwards in the time range.
+       Only applicable when option <code>zoomCtrl</code> is defined or <code>zoomable</code> is <code>false</code>. Notice that defining this option as <code>true</code> will override <code>verticalScroll</code> scroll event but not eliminate the vertical scrollbar.
+      </td>
+    </tr>
+
+    <tr>
       <td>itemsAlwaysDraggable</td>
       <td>boolean</td>
       <td><code>false</code></td>
@@ -1016,6 +1025,14 @@ function (option, path) {
     </tr>
 
     <tr>
+      <td>verticalScroll</td>
+      <td>Boolean</td>
+      <td>false</td>
+      <td> Show a vertical scroll on the side of the group list and link it to the scroll event when zoom is not triggered. Notice that defining this option as <code>true</code> will NOT override <code>horizontalScroll</code>. The scroll event will be vertically ignored, but a vertical scrollbar will be visible    
+      </td>
+    </tr>
+
+    <tr>
       <td>width</td>
       <td>String or Number</td>
       <td><code>'100%'</code></td>
@@ -1194,7 +1211,7 @@ document.getElementById('myTimeline').onclick = function (event) {
     <tr>
       <td>on(event, callback)</td>
       <td>none</td>
-      <td>Create an event listener. The callback function is invoked every time the event is triggered. Avialable events: <code>rangechange</code>, <code>rangechanged</code>, <code>select</code>, <code>itemover</code>, <code>itemout</code>. The callback function is invoked as <code>callback(properties)</code>, where <code>properties</code> is an object containing event specific properties. See section <a href="#Events">Events for more information</a>.</td>
+      <td>Create an event listener. The callback function is invoked every time the event is triggered. Available events: <code>rangechange</code>, <code>rangechanged</code>, <code>select</code>, <code>itemover</code>, <code>itemout</code>. The callback function is invoked as <code>callback(properties)</code>, where <code>properties</code> is an object containing event specific properties. See section <a href="#Events">Events for more information</a>.</td>
     </tr>
 
     <tr>
@@ -1233,7 +1250,7 @@ document.getElementById('myTimeline').onclick = function (event) {
       <td>none</td>
       <td>Adjust the time of a custom time bar.
         Parameter <code>time</code> can be a Date object, numeric timestamp, or ISO date string.
-        Parameter <code>id</code> is the idof the custom time bar, and is <code>undefined</code> by default.
+        Parameter <code>id</code> is the id of the custom time bar, and is <code>undefined</code> by default.
       </td>
     </tr>
 
@@ -1557,7 +1574,9 @@ var items = new vis.DataSet([
   </p>
   <ul>
     <li><code>item</code>: the item being manipulated</li>
-    <li><code>callback</code>: a callback function which must be invoked to report back. The callback must be invoked as <code>callback(item or null)</code>. Here, <code>item</code> can contain changes to the passed item. Parameter `item` typically contains fields `content`, `start`, and optionally `end`. The type of `start` and `end` is determined by the DataSet type configuration and is `Date` by default.  When invoked as <code>callback(null)</code>, the action will be cancelled.</li>
+    <li><code>callback</code>: a callback function which must be invoked to report back. The callback must be invoked as <code>callback(item)</code> or <code>callback(null)</code>.
+    Here, <code>item</code> can contain changes to the passed item. Parameter <code>item</code> typically contains fields `content`, `start`, and optionally `end`. The type of `start`
+    and `end` is determined by the DataSet type configuration and is `Date` by default.  When invoked as <code>callback(null)</code>, the action will be cancelled.</li>
   </ul>
 
   <p>
@@ -1583,7 +1602,7 @@ var items = new vis.DataSet([
   <h2 id="Templates">Templates</h2>
 
   <p>
-    Timeline supports templates to format item contents. Any template engine (such as <a href="http://handlebarsjs.com/">handlebars</a> or <a href="http://mustache.github.io/">mustache</a>) can be used, and one can also manually build HTML. In the options, one can provide a template handler. This handler is a function accepting an items data as argument, and outputs formatted HTML:
+    Timeline supports templates to format item contents. Any template engine (such as <a href="http://handlebarsjs.com/">handlebars</a> or <a href="http://mustache.github.io/">mustache</a>) can be used, and one can also manually build HTML. In the options, one can provide a template handler. This handler is a function accepting an item's data as argument, and outputs formatted HTML:
   </p>
 
 <pre class="prettyprint lang-js">var options = {
@@ -1680,7 +1699,7 @@ var options = {
 
   <h3>Create a new locale</h3>
 
-  To load a locale into the Timeline not supported by default, one can add a new locale to the option <code>locales</code>:
+  To load a locale (that is not supported by default) into the Timeline, one can add a new locale to the option <code>locales</code>:
 
 <pre class="prettyprint lang-js">var options = {
   locales: {
@@ -1736,7 +1755,7 @@ var options = {
 
   <h2 id="Time_zone">Time zone</h2>
   <p>
-    By default, the Timeline displays time in local time. To display a Timeline in an other time zone or in UTC, the date constructor can be overloaded via the configuration option <code>moment</code>, which by default is the constructor function of moment.js. More information about UTC with moment.js can be found in the docs: <a href="http://momentjs.com/docs/#/parsing/utc/">http://momentjs.com/docs/#/parsing/utc/</a>.
+    By default, the Timeline displays time in local time. To display a Timeline in another time zone or in UTC, the date constructor can be overloaded via the configuration option <code>moment</code>, which by default is the constructor function of moment.js. More information about UTC with moment.js can be found in the docs: <a href="http://momentjs.com/docs/#/parsing/utc/">http://momentjs.com/docs/#/parsing/utc/</a>.
   </p>
 
   <p>
@@ -1810,7 +1829,7 @@ var options = {
       <td>Days</td><td><code>vis-date1</code>, <code>vis-date2</code>, ..., <code>vis-date31</code></td>
     </tr>
     <tr>
-      <td>Months</td><td><code>vis-januari</code>, <code>vis-februari</code>, <code>vis-march</code>, <code>vis-april</code>, <code>vis-may</code>, <code>vis-june</code>, <code>vis-july</code>, <code>vis-august</code>, <code>vis-september</code>, <code>vis-october</code>, <code>vis-november</code>, <code>vis-december</code></td>
+      <td>Months</td><td><code>vis-january</code>, <code>vis-february</code>, <code>vis-march</code>, <code>vis-april</code>, <code>vis-may</code>, <code>vis-june</code>, <code>vis-july</code>, <code>vis-august</code>, <code>vis-september</code>, <code>vis-october</code>, <code>vis-november</code>, <code>vis-december</code></td>
     </tr>
     <tr>
       <td>Years</td><td><code>vis-year2014</code>, <code>vis-year2015</code>, ...</td>
