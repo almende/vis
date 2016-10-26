@@ -7,6 +7,14 @@ This document describes how to publish vis.js.
 
 - Change the version number of the library in `package.json`.
 - Open `HISTORY.md`, write down the changes, version number, and release date.
+  (Changes since last release: `git log \`git describe --tags --abbrev=0\`..HEAD --oneline`)
+
+- Update external dependencies
+
+        npm install -g npm-check-updates
+        npm-check-updates -u
+        git commit -a -m "updated external dependencies"
+
 - Build the library by running:
 
         npm prune
