@@ -14,25 +14,20 @@
 <h1>Timeline Drag & Drop Example</h1>
 
 
-<div id="mytimeline"></div>
+<div id="mytimeline" ></div>
 <div class="vis-drag-source">
   <h3>Items:</h3>
   <ul>
     <li draggable="true" class="item">
-      item 1.
+      item 1 - box
     </li>
     <li draggable="true" class="item">
-      item 2.
+      item 2 - point
+    </li>
+    <li draggable="true" class="item">
+      item 3 - range
     </li>
   </ul>
-
-<h1>other random elements</h1>
-<h1>other random elements</h1>
-<h1>other random elements</h1>
-<h1>other random elements</h1>
-<h1>other random elements</h1>
-<h1>other random elements</h1>
-<h1>other random elements</h1>
 </div>
 
 <script>
@@ -85,6 +80,30 @@
   var container = document.getElementById('mytimeline');
   timeline1 = new vis.Timeline(container, items, groups, options);
 
+
+
+  function handleDragStart(event) {
+    dragSrcEl = event.target;
+
+    event.dataTransfer.effectAllowed = 'move';
+    // event.dataTransfer.setData('text/html', event.target.innerHTML);
+    var itemType = event.target.innerHTML.split('-')[1].trim();
+    var item = {
+      id: new Date(),
+      type: itemType,
+      content: event.target.innerHTML.split('-')[0].trim(),
+      start: new Date().getTime(),
+      end: new Date().getTime() + 100000
+    };
+
+    event.dataTransfer.setData("text/plain", JSON.stringify(item));
+  }
+
+  var items = document.querySelectorAll('.vis-drag-source .item');
+
+  items.forEach(function(item) {
+    item.addEventListener('dragstart', handleDragStart.bind(this), false);
+  });
 </script>
 
 </body>
