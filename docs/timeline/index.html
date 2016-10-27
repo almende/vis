@@ -916,7 +916,7 @@ function (option, path) {
       <td>rtl</td>
       <td>boolean</td>
       <td><code>false</code></td>
-      <td>If true, the timeline will be right-to-left.</td>
+      <td>If true, the timeline will be right-to-left. Note: you can achieve rtl timeline by defining a parent node with <code>dir="rtl"</code>. The timeline knows to take the nearest parent node direction and apply it. Notice that the timeline will prefer the <code>option.rtl</code> over any parent <code>dir="rtl"</code></td>
     </tr>
 
     <tr>
