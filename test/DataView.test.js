@@ -200,7 +200,8 @@ describe('DataView', function () {
       }]
     ]);
     assert.deepEqual(viewUpdates, [
-      ['update', {items: [2], data: [{id: 2, title: 'Item 2 (changed)'}]}]
+      ['update', {items: [2], data: [{id: 2, title: 'Item 2 (changed)'}],
+      oldData: [{"group": 2, "id": 2, "title": "Item 2"}]}]
     ]);
 
   });
