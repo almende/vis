@@ -13,11 +13,12 @@
 
 <h1>Timeline Drag & Drop Example</h1>
 
+<p>For this to work, you will have to define your own <code>'dragstart'</code> eventListener on each item in your list of items (make sure that any new item added to the list is attached to this eventListener 'dragstart' handler). This 'dragstart' handler must set <code>dataTransfer</code> - notice you can set  the item's information as you want this way.</p>
 
 <div id="mytimeline" ></div>
-<div class="vis-drag-source">
+<div>
   <h3>Items:</h3>
-  <ul>
+  <ul class="items">
     <li draggable="true" class="item">
       item 1 - box
     </li>
@@ -80,8 +81,6 @@
   var container = document.getElementById('mytimeline');
   timeline1 = new vis.Timeline(container, items, groups, options);
 
-
-
   function handleDragStart(event) {
     dragSrcEl = event.target;
 
@@ -92,14 +91,14 @@
       id: new Date(),
       type: itemType,
       content: event.target.innerHTML.split('-')[0].trim(),
-      start: new Date().getTime(),
-      end: new Date().getTime() + 100000
+      start: new Date(),
+      end: new Date(1000*60*60*24 + (new Date()).valueOf()),
     };
 
     event.dataTransfer.setData("text/plain", JSON.stringify(item));
   }
 
-  var items = document.querySelectorAll('.vis-drag-source .item');
+  var items = document.querySelectorAll('.items .item');
 
   items.forEach(function(item) {
     item.addEventListener('dragstart', handleDragStart.bind(this), false);
