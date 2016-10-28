@@ -5,7 +5,6 @@
 
   <script src="../../../dist/vis.js"></script>
   <link href="../../../dist/vis.css" rel="stylesheet" type="text/css" />
-  <link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet" type="text/css" />
 
   <script src="../../googleAnalytics.js"></script>
 
@@ -20,8 +19,12 @@
       margin-bottom: 5px;
       padding: 5px 12px;
     }
-    i {
-      margin-right: 10px;
+    li.item:before {
+      content: "≣";
+      font-family: Arial, sans-serif;
+      display: inline-block;
+      font-size: inherit;
+      cursor: move;
     }
   </style>
 </head>
@@ -37,13 +40,13 @@
   <h3>Items:</h3>
   <ul class="items">
     <li draggable="true" class="item">
-      <i class="fa fa-bars"></i> item 1 - box
+      item 1 - box
     </li>
     <li draggable="true" class="item">
-       <i class="fa fa-bars"></i>item 2 - point
+      item 2 - point
     </li>
     <li draggable="true" class="item">
-       <i class="fa fa-bars"></i>item 3 - range
+      item 3 - range
     </li>
   </ul>
 </div>
@@ -102,11 +105,11 @@
     dragSrcEl = event.target;
 
     event.dataTransfer.effectAllowed = 'move';
-    var itemType = event.target.innerHTML.split('</i>')[1].split('-')[1].trim();
+    var itemType = event.target.innerHTML.split('-')[1].trim();
     var item = {
       id: new Date(),
       type: itemType,
-      content: event.target.innerHTML.split('</i>')[1].split('-')[0].trim(),
+      content: event.target.innerHTML.split('-')[0].trim(),
       start: new Date(),
       end: new Date(1000*60*60*24 + (new Date()).valueOf()),
     };
