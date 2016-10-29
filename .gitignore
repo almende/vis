@@ -10,3 +10,6 @@ npm-debug.log
 # vim temporary files
 .*.sw[op]
 test/
+
+#vis deployment files
+dist/
