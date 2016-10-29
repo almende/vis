@@ -1,12 +1,18 @@
+# vis.js files
+dist/
+test/
+
+# npm files
+node_modules
+npm-debug.log
+
+# ide or system files
 .idea
 .c9
 *.iml
-node_modules
 .project
 .settings/
-npm-debug.log
 .directory
 
 # vim temporary files
 .*.sw[op]
-test/
