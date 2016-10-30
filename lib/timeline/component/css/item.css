@@ -90,6 +90,13 @@
   padding: 5px;
 }
 
+.vis-item .vis-onchange-tooltip {
+  position: absolute;
+  background: blue;
+  color: white;
+  font-weight: "bold";
+}
+
 .vis-item .vis-delete, .vis-item .vis-delete-rtl {
   position: absolute;
   top: 0px;
