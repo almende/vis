@@ -92,9 +92,12 @@
 
 .vis-item .vis-onchange-tooltip {
   position: absolute;
-  background: blue;
+  background: #4f81bd;
   color: white;
-  font-weight: "bold";
+  min-width: 200px;
+  background: #4f81bd;
+  padding: 5px;
+  border-radius: 1px;
 }
 
 .vis-item .vis-delete, .vis-item .vis-delete-rtl {
