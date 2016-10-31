@@ -1,6 +1,6 @@
 <html>
 <head>
-  <title>Timeline | Tooltip on item edit Option</title>
+  <title>Timeline | Tooltip on item onUpdateTime Option</title>
 
   <script src="../../../dist/vis.js"></script>
   <link href="../../../dist/vis.css" rel="stylesheet" type="text/css" />
@@ -10,20 +10,17 @@
 
 <body>
 
-<h1>Timeline Tooltip on item edit Option</h1>
+<h1>Timeline Tooltip on item onUpdateTime Option</h1>
 
-<h2>With <code>tooltipOnItemEdit: true</code>
+<h2>With <code>tooltipOnItemUpdateTime: true</code>
 </h2>
 
 <div id="mytimeline1"></div>
 
-<h2>With <code>orientation: 'top', tooltipOnItemEdit: { template: [Function(itemData)] }</code>
-</h2>
-<div id="mytimeline2"></div>
 <script>
 
   // create groups
-  var numberOfGroups = 25; 
+  var numberOfGroups = 10; 
   var groups = new vis.DataSet()
   for (var i = 0; i < numberOfGroups; i++) {
     groups.add({
@@ -33,7 +30,7 @@
   }
   
   // create items
-  var numberOfItems = 1000;
+  var numberOfItems = 100;
   var items = new vis.DataSet();
 
   var itemsPerGroup = Math.round(numberOfItems/numberOfGroups);
@@ -59,33 +56,24 @@
   
   // specify options
   var options = {
-    // rtl: true,
     stack: true,
-    maxHeight: 200,
+    multiselect: true,
+    maxHeight: 400,
     start: new Date(),
     end: new Date(1000*60*60*24 + (new Date()).valueOf()),
-    editable: true,
-    margin: {
-      item: 10, // minimal margin between items
-      axis: 5   // minimal margin between items and the axis
+    editable: {
+      updateTime: true,
+      updateGroup: false
     }
   };
 
   // create a Timeline
   options1 = Object.assign({
-    tooltipOnItemEdit: true
+    tooltipOnItemUpdateTime: true
   }, options)
   var container1 = document.getElementById('mytimeline1');
   timeline1 = new vis.Timeline(container1, items, groups, options1);
 
-  options2 = Object.assign({
-    orientation: 'top',
-    tooltipOnItemEdit: {
-      template: function(data) {return '<span>' + data.start + '</span>'}
-    }
-  }, options)
-  var container2 = document.getElementById('mytimeline2');
-  timeline2 = new vis.Timeline(container2, items, groups, options2);
 
 </script>
 

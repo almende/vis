@@ -90,11 +90,11 @@
   padding: 5px;
 }
 
-.vis-item .vis-onchange-tooltip {
+.vis-item .vis-onUpdateTime-tooltip {
   position: absolute;
   background: #4f81bd;
   color: white;
-  min-width: 200px;
+  width: 200px;
   background: #4f81bd;
   padding: 5px;
   border-radius: 1px;
