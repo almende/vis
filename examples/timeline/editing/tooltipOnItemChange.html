@@ -15,7 +15,7 @@
 <h2>With <code>tooltipOnItemUpdateTime: true</code>
 </h2>
 
-<div id="mytimeline1"></div>
+<div id="mytimeline"></div>
 
 <script>
 
@@ -56,23 +56,21 @@
   
   // specify options
   var options = {
+    orientation: 'top',
     stack: true,
     multiselect: true,
     maxHeight: 400,
     start: new Date(),
     end: new Date(1000*60*60*24 + (new Date()).valueOf()),
+    tooltipOnItemUpdateTime: true,
     editable: {
       updateTime: true,
       updateGroup: false
     }
   };
 
-  // create a Timeline
-  options1 = Object.assign({
-    tooltipOnItemUpdateTime: true
-  }, options)
-  var container1 = document.getElementById('mytimeline1');
-  timeline1 = new vis.Timeline(container1, items, groups, options1);
+  var container = document.getElementById('mytimeline');
+  timeline = new vis.Timeline(container, items, groups, options);
 
 
 </script>
