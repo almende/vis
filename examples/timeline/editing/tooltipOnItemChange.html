@@ -32,6 +32,7 @@
   // create items
   var numberOfItems = 100;
   var items = new vis.DataSet();
+  var types = [ 'box', 'point', 'range']
 
   var itemsPerGroup = Math.round(numberOfItems/numberOfGroups);
 
@@ -46,6 +47,7 @@
 
       items.add({
         id: order + itemsPerGroup * truck,
+        type: types[Math.floor(3 * Math.random())],
         group: truck,
         start: start,
         end: end,
