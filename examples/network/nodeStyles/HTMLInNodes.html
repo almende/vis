@@ -40,11 +40,8 @@
             '</foreignObject>' +
             '</svg>';
 
-        var DOMURL = window.URL || window.webkitURL || window;
 
-        var img = new Image();
-        var svg = new Blob([data], {type: 'image/svg+xml;charset=utf-8'});
-        var url = DOMURL.createObjectURL(svg);
+        var url = "data:image/svg+xml;charset=utf-8,"+ encodeURIComponent(svg);
 
         // Called when the Visualization API is loaded.
         function draw() {
