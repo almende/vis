@@ -95,7 +95,8 @@
   background: #4f81bd;
   color: white;
   width: 200px;
-  background: #4f81bd;
+  text-align: center;
+  white-space: nowrap
   padding: 5px;
   border-radius: 1px;
 }
