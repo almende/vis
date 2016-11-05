@@ -75,7 +75,7 @@ var webpackConfig = {
   cache: true,
 
   // generate details sourcempas of webpack modules
-  devtool: 'source-map'
+  //devtool: 'source-map'
 
   //debug: true,
   //bail: true
