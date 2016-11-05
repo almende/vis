@@ -100,6 +100,7 @@
                         <li><a href="http://www.visjs.org/index.html#download_install">Download</a></li>
                         <li><a href="http://www.visjs.org/showcase/index.html">Showcase</a></li>
                         <li><a href="http://www.visjs.org/index.html#contribute">Contribute</a></li>
+                        <li><a href="http://www.visjs.org/featureRequests.html">Feature requests</a></li>
                         <li><a href="http://www.visjs.org/index.html#licenses">License</a></li>
                     </ul>
                     <form class="navbar-form navbar-right" role="search">
@@ -568,7 +569,7 @@ function (value) {
             <pre class="prettyprint lang-js">
 drawPoints: true // or false
             </pre>
-
+            
             2. <code>Object</code> (the 'rendering' options): If an object is provided it may contain following properties which all can be optional: <code>onRender</code>, <code>className</code><code>size</code> and/or <code>style</code>. For more information check the property's documentation.<br />
             <pre class="prettyprint lang-js">
 drawPoints: {
@@ -576,7 +577,7 @@ drawPoints: {
   style: 'square'
 }
             </pre>
-
+            
             3. <code>Function</code>: If a function is provided it will be used as a callback. The function may return values from listing 1 or 2.<br />
             <pre class="prettyprint lang-js">
 drawPoints: function(item, group) {
@@ -673,7 +674,7 @@ onRender: function(item, group, graph2d) {
             <td class="greenField indent">interpolation.parametrization</td>
             <td>String</td>
             <td>'centripetal'</td>
-            <td>Define the type of parametrizaion for the catmullRom interpolation. <a href="../../examples/graph2d/06_interpolation.html">Example 6</a> shows the different parametrizations. The options are 'centripetal' (best results), 'chordal' and 'uniform'. Uniform is the computationally cheapest variant.
+            <td>Define the type of parametrizaion for the catmullRom interpolation. <a href="../../examples/graph2d/07_scrollingAndSorting.html">Example 7</a> shows the different parametrizations. The options are 'centripetal' (best results), 'chordal' and 'uniform'. Uniform is the computationally cheapest variant.
                 If interpolation is disabled, linear interpolation is used.</td>
         </tr>
         <tr class='toggle collapsible' onclick="toggleTable('g2dOptions','legend', this);">
@@ -1201,7 +1202,7 @@ function (option, path) {
         <tr>
             <td>on(event, callback)</td>
             <td>none</td>
-            <td>Create an event listener. The callback function is invoked every time the event is triggered. Avialable events: <code>rangechange</code>, <code>rangechanged</code>, <code>select</code>. The callback function is invoked as <code>callback(properties)</code>, where <code>properties</code> is an object containing event specific properties. See section <a href="#Events">Events for more information</a>.</td>
+            <td>Create an event listener. The callback function is invoked every time the event is triggered. Available events: <code>rangechange</code>, <code>rangechanged</code>, <code>select</code>. The callback function is invoked as <code>callback(properties)</code>, where <code>properties</code> is an object containing event specific properties. See section <a href="#Events">Events for more information</a>.</td>
         </tr>
 
         <tr>

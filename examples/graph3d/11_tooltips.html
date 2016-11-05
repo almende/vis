@@ -5,6 +5,12 @@
 
   <style>
     body {font: 10pt arial;}
+    div#info {
+      width     : 600px;
+      text-align: center;
+      margin-top: 2em;
+      font-size : 1.2em;
+    }
   </style>
 
   <script type="text/javascript" src="../../dist/vis.js"></script>
@@ -24,6 +30,11 @@
 
       // Create and populate a data table.
       data = new vis.DataSet();
+      var extra_content = [
+        'Arbitrary information',
+        'You can access data from the point source object',
+        'Tooltip example content',
+      ];
 
       // create some nice looking data with sin/cos
       var steps = 5;  // number of datapoints will be steps*steps
@@ -34,10 +45,10 @@
           var z = custom(x,y);
           if (withValue) {
             var value = (y - x);
-            data.add({x:x, y:y, z: z, style:value});
+            data.add({x:x, y:y, z: z, style:value, extra: extra_content[(x*y) % extra_content.length]});
           }
           else {
-            data.add({x:x, y:y, z: z});
+            data.add({x:x, y:y, z: z, extra: extra_content[(x*y) % extra_content.length]});
           }
         }
       }
@@ -48,14 +59,16 @@
         height: '600px',
         style: style,
         showPerspective: true,
+        showLegend: true,
         showGrid: true,
         showShadow: false,
 
         // Option tooltip can be true, false, or a function returning a string with HTML contents
         //tooltip: true,
         tooltip: function (point) {
-          // parameter point contains properties x, y, z
-          return 'value: <b>' + point.z + '</b>';
+          // parameter point contains properties x, y, z, and data
+          // data is the original object passed to the point constructor
+          return 'value: <b>' + point.z + '</b><br>' + point.data.extra;
         },
 
         keepAspectRatio: true,
@@ -99,6 +112,7 @@
 
 <div id="mygraph"></div>
 
-<div id="info"></div>
+<div id="info">Hover the mouse cursor over the graph to see tooltips.</div>
+
 </body>
 </html>
