@@ -72,7 +72,11 @@ var webpackConfig = {
   },
   module: webpackModule,
   plugins: [ bannerPlugin ],
-  cache: true
+  cache: true,
+
+  // generate details sourcempas of webpack modules
+  devtool: 'source-map'
+
   //debug: true,
   //bail: true
 };

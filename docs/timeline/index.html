@@ -1024,10 +1024,23 @@ function (option, path) {
       </td>
     </tr>
 
+    <tr class='toggle collapsible' onclick="toggleTable('optionTable','tooltipOnItemUpdateTime', this);">
+      <td><span parent="tooltipOnItemUpdateTime" class="right-caret"></span> tooltipOnItemUpdateTime</td>
+      <td>Object/Boolean</td>
+      <td><code>false</code></td>
+      <td>Show a tooltip on updating an item's time. Note: <code>editable.updateTime</code> must be <code>true</code></td>
+    </tr>
+    <tr parent="tooltipOnItemUpdateTime" class="hidden">
+      <td class="indent">template</td>
+      <td>Function</td>
+      <td>none</td>
+      <td>A template function used to generate the contents of the tooltip. The function is called by the Timeline with an item data as the first argument, and must return HTML code as result. See section <a href="#Templates">Templates</a> for a detailed explanation.
+      </td>
+    </tr>
     <tr>
       <td>verticalScroll</td>
       <td>Boolean</td>
-      <td>false</td>
+      <td><code>false</code></td>
       <td> Show a vertical scroll on the side of the group list and link it to the scroll event when zoom is not triggered. Notice that defining this option as <code>true</code> will NOT override <code>horizontalScroll</code>. The scroll event will be vertically ignored, but a vertical scrollbar will be visible    
       </td>
     </tr>
@@ -1322,9 +1335,20 @@ document.getElementById('myTimeline').onclick = function (event) {
       </td>
     </tr>
 
+     <tr>
+      <td>zoomIn(percentage)</td>
+      <td>none</td>
+      <td>Zoom in the current visible window. The parameter <code>percentage</code> can be a <code>Number</code> and must be between 0 and 1. If the parameter value of <code>percentage</code> is null, the window will be left unchanged.
+      </td>
+    </tr>
+    <tr>
+      <td>zoomOut(percentage)</td>
+      <td>none</td>
+      <td>Zoom out the current visible window. The parameter <code>percentage</code> can be a <code>Number</code> and must be between 0 and 1. If the parameter value of <code>percentage</code> is null, the window will be left unchanged.
+      </td>
+    </tr>
+
   </table>
-
-
 
   <h2 id="Events">Events</h2>
   <p>

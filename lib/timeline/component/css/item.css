@@ -90,6 +90,17 @@
   padding: 5px;
 }
 
+.vis-item .vis-onUpdateTime-tooltip {
+  position: absolute;
+  background: #4f81bd;
+  color: white;
+  width: 200px;
+  text-align: center;
+  white-space: nowrap;
+  padding: 5px;
+  border-radius: 1px;
+}
+
 .vis-item .vis-delete, .vis-item .vis-delete-rtl {
   position: absolute;
   top: 0px;
