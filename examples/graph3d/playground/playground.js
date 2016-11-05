@@ -407,6 +407,7 @@ function getOptions() {
     showAnimationControls: (document.getElementById("showAnimationControls").checked != false),
     showGrid:          (document.getElementById("showGrid").checked != false),
     showPerspective:   (document.getElementById("showPerspective").checked != false),
+    showLegend:        (document.getElementById("showLegend").checked != false),
     showShadow:        (document.getElementById("showShadow").checked != false),
     keepAspectRatio:   (document.getElementById("keepAspectRatio").checked != false),
     verticalRatio:      document.getElementById("verticalRatio").value,

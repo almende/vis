@@ -64,6 +64,7 @@
             <li><a href="http://www.visjs.org/index.html#download_install">Download</a></li>
             <li><a href="http://www.visjs.org/showcase/index.html">Showcase</a></li>
             <li><a href="http://www.visjs.org/index.html#contribute">Contribute</a></li>
+            <li><a href="http://www.visjs.org/featureRequests.html">Feature requests</a></li>
             <li><a href="http://www.visjs.org/index.html#licenses">License</a></li>
           </ul>
         </div>
@@ -161,8 +162,8 @@
 
   <h2 id="Loading">Loading</h2>
   <p>
-    Install or download the <a href="http://visjs.org" target="_blank">vis.js</a> library.
-    in a subfolder of your project. Include the libraries script and css files in the
+    Install or download the <a href="http://visjs.org" target="_blank">vis.js</a> library
+    in a subfolder of your project. Include the library's script and css files in the
     head of your html code:
   </p>
 
@@ -556,7 +557,7 @@ function (option, path) {
 
     <tr>
       <td>format</td>
-      <td>Object</td>
+      <td>Object or Function</td>
       <td>none</td>
       <td>
         Apply custom date formatting of the labels on the time axis. The default value of <code>format</code> is:
@@ -582,8 +583,16 @@ function (option, path) {
     year:       ''
   }
 }</pre>
+
         For values which not provided in the customized <code>options.format</code>, the default values will be used.
         All available formatting syntax is described in the <a href="http://momentjs.com/docs/#/displaying/format/">docs of moment.js</a>.
+        <br>
+        You can also use a function format for each label. The function accepts as arguments the date, scale and step in that order, and expects to return a string for the label.
+
+        <pre class="prettyprint lang-js">function format({
+  minorLabels: Function(date: Date, scale: Number, step: Number),
+  majorLabels: Function(date: Date, scale: Number, step: Number)
+}</pre>
       </td>
     </tr>
 
@@ -639,7 +648,7 @@ function (option, path) {
       <td>groupTemplate</td>
       <td>function</td>
       <td>none</td>
-      <td>A template function used to generate the contents of the groups. The function is called by the Timeline with a groups data as argument, and must return HTML code as result. When the option groupTemplate is specified, the groups do not need to have a field <code>content</code>. See section <a href="#Templates">Templates</a> for a detailed explanation.</td>
+      <td>A template function used to generate the contents of the groups. The function is called by the Timeline with a groups data as the first argument and the group element as the second, and must return HTML code as result. When the option groupTemplate is specified, the groups do not need to have a field <code>content</code>. See section <a href="#Templates">Templates</a> for a detailed explanation.</td>
     </tr>
 
     <tr>
@@ -663,6 +672,15 @@ function (option, path) {
         <code>{start: '2014-03-21 00:00:00', end: '2014-03-28 00:00:00', [repeat:'daily']}</code> or as an Array of these objects. The repeat argument is optional.
         The possible values are (case-sensitive): <code>daily, weekly, monthly, yearly</code>. To hide a weekend, pick any Saturday as start and the following Monday as end
         and set repeat to weekly.
+      </td>
+    </tr>
+
+    <tr>
+      <td>horizontalScroll</td>
+      <td>Boolean</td>
+      <td>false</td>
+      <td>This option allows you to scroll horizontally to move backwards and forwards in the time range.
+       Only applicable when option <code>zoomCtrl</code> is defined or <code>zoomable</code> is <code>false</code>. Notice that defining this option as <code>true</code> will override <code>verticalScroll</code> scroll event but not eliminate the vertical scrollbar.
       </td>
     </tr>
 
@@ -894,6 +912,12 @@ function (option, path) {
       <td>Orientation of the timeline items: 'top' or 'bottom' (default). Determines whether items are aligned to the top or bottom of the Timeline.</td>
     </tr>
 
+     <tr>
+      <td>rtl</td>
+      <td>boolean</td>
+      <td><code>false</code></td>
+      <td>If true, the timeline will be right-to-left. Note: you can achieve rtl timeline by defining a parent node with <code>dir="rtl"</code>. The timeline knows to take the nearest parent node direction and apply it. Notice that the timeline will prefer the <code>option.rtl</code> over any parent <code>dir="rtl"</code></td>
+    </tr>
 
     <tr>
       <td>selectable</td>
@@ -963,14 +987,7 @@ function (option, path) {
       <td>template</td>
       <td>function</td>
       <td>none</td>
-      <td>A template function used to generate the contents of the items. The function is called by the Timeline with an items data as argument, and must return HTML code as result. When the option template is specified, the items do not need to have a field <code>content</code>. See section <a href="#Templates">Templates</a> for a detailed explanation.</td>
-    </tr>
-
-    <tr>
-      <td>throttleRedraw</td>
-      <td>number</td>
-      <td><code>0</code></td>
-      <td>Limit the maximum number of redraws to once every x milliseconds. For example setting throttleRedraw to `100` milliseconds will limit the number of redraws to 10 times per second.</td>
+      <td>A template function used to generate the contents of the items. The function is called by the Timeline with an items data as the first argument and the item element as the second, and must return HTML code as result. When the option template is specified, the items do not need to have a field <code>content</code>. See section <a href="#Templates">Templates</a> for a detailed explanation.</td>
     </tr>
 
     <tr class='toggle collapsible' onclick="toggleTable('optionTable','timeAxis', this);">
@@ -1004,6 +1021,27 @@ function (option, path) {
       <td>String</td>
       <td>none</td>
       <td>Specifies the default type for the timeline items. Choose from 'box', 'point', 'range', and 'background'. Note that individual items can override this default type. If undefined, the Timeline will auto detect the type from the items data: if a start and end date is available, a 'range' will be created, and else, a 'box' is created. Items of type 'background' are not editable.
+      </td>
+    </tr>
+
+    <tr class='toggle collapsible' onclick="toggleTable('optionTable','tooltipOnItemUpdateTime', this);">
+      <td><span parent="tooltipOnItemUpdateTime" class="right-caret"></span> tooltipOnItemUpdateTime</td>
+      <td>Object/Boolean</td>
+      <td><code>false</code></td>
+      <td>Show a tooltip on updating an item's time. Note: <code>editable.updateTime</code> must be <code>true</code></td>
+    </tr>
+    <tr parent="tooltipOnItemUpdateTime" class="hidden">
+      <td class="indent">template</td>
+      <td>Function</td>
+      <td>none</td>
+      <td>A template function used to generate the contents of the tooltip. The function is called by the Timeline with an item data as the first argument, and must return HTML code as result. See section <a href="#Templates">Templates</a> for a detailed explanation.
+      </td>
+    </tr>
+    <tr>
+      <td>verticalScroll</td>
+      <td>Boolean</td>
+      <td><code>false</code></td>
+      <td> Show a vertical scroll on the side of the group list and link it to the scroll event when zoom is not triggered. Notice that defining this option as <code>true</code> will NOT override <code>horizontalScroll</code>. The scroll event will be vertically ignored, but a vertical scrollbar will be visible    
       </td>
     </tr>
 
@@ -1186,7 +1224,7 @@ document.getElementById('myTimeline').onclick = function (event) {
     <tr>
       <td>on(event, callback)</td>
       <td>none</td>
-      <td>Create an event listener. The callback function is invoked every time the event is triggered. Avialable events: <code>rangechange</code>, <code>rangechanged</code>, <code>select</code>. The callback function is invoked as <code>callback(properties)</code>, where <code>properties</code> is an object containing event specific properties. See section <a href="#Events">Events for more information</a>.</td>
+      <td>Create an event listener. The callback function is invoked every time the event is triggered. Available events: <code>rangechange</code>, <code>rangechanged</code>, <code>select</code>, <code>itemover</code>, <code>itemout</code>. The callback function is invoked as <code>callback(properties)</code>, where <code>properties</code> is an object containing event specific properties. See section <a href="#Events">Events for more information</a>.</td>
     </tr>
 
     <tr>
@@ -1225,7 +1263,7 @@ document.getElementById('myTimeline').onclick = function (event) {
       <td>none</td>
       <td>Adjust the time of a custom time bar.
         Parameter <code>time</code> can be a Date object, numeric timestamp, or ISO date string.
-        Parameter <code>id</code> is the idof the custom time bar, and is <code>undefined</code> by default.
+        Parameter <code>id</code> is the id of the custom time bar, and is <code>undefined</code> by default.
       </td>
     </tr>
 
@@ -1297,9 +1335,20 @@ document.getElementById('myTimeline').onclick = function (event) {
       </td>
     </tr>
 
+     <tr>
+      <td>zoomIn(percentage)</td>
+      <td>none</td>
+      <td>Zoom in the current visible window. The parameter <code>percentage</code> can be a <code>Number</code> and must be between 0 and 1. If the parameter value of <code>percentage</code> is null, the window will be left unchanged.
+      </td>
+    </tr>
+    <tr>
+      <td>zoomOut(percentage)</td>
+      <td>none</td>
+      <td>Zoom out the current visible window. The parameter <code>percentage</code> can be a <code>Number</code> and must be between 0 and 1. If the parameter value of <code>percentage</code> is null, the window will be left unchanged.
+      </td>
+    </tr>
+
   </table>
-
-
 
   <h2 id="Events">Events</h2>
   <p>
@@ -1313,7 +1362,7 @@ document.getElementById('myTimeline').onclick = function (event) {
 
 <pre class="prettyprint lang-js">
 timeline.on('select', function (properties) {
-  alert('selected items: ' + properties.nodes);
+  alert('selected items: ' + properties.items);
 });
 </pre>
 
@@ -1323,7 +1372,7 @@ timeline.on('select', function (properties) {
 
 <pre class="prettyprint lang-js">
 function onSelect (properties) {
-  alert('selected items: ' + properties.nodes);
+  alert('selected items: ' + properties.items);
 }
 
 // add event listener
@@ -1442,6 +1491,28 @@ timeline.off('select', onSelect);
     </tr>
 
     <tr>
+      <td>itemover</td>
+      <td>
+        <ul>
+          <li><code>item</code>: hovered item id</li>
+          <li><code>event</code>: the original mouseover event</li>
+        </ul>
+      </td>
+      <td>Fired when the user moves the mouse over an item.</td>
+    </tr>
+
+    <tr>
+      <td>itemout</td>
+      <td>
+        <ul>
+          <li><code>item</code>: hovered item id</li>
+          <li><code>event</code>: the original mouseout event</li>
+        </ul>
+      </td>
+      <td>Fired when the user moves the mouse out of an item.</td>
+    </tr>
+
+    <tr>
       <td>timechange</td>
       <td>
         <ul>
@@ -1527,7 +1598,9 @@ var items = new vis.DataSet([
   </p>
   <ul>
     <li><code>item</code>: the item being manipulated</li>
-    <li><code>callback</code>: a callback function which must be invoked to report back. The callback must be invoked as <code>callback(item or null)</code>. Here, <code>item</code> can contain changes to the passed item. Parameter `item` typically contains fields `content`, `start`, and optionally `end`. The type of `start` and `end` is determined by the DataSet type configuration and is `Date` by default.  When invoked as <code>callback(null)</code>, the action will be cancelled.</li>
+    <li><code>callback</code>: a callback function which must be invoked to report back. The callback must be invoked as <code>callback(item)</code> or <code>callback(null)</code>.
+    Here, <code>item</code> can contain changes to the passed item. Parameter <code>item</code> typically contains fields `content`, `start`, and optionally `end`. The type of `start`
+    and `end` is determined by the DataSet type configuration and is `Date` by default.  When invoked as <code>callback(null)</code>, the action will be cancelled.</li>
   </ul>
 
   <p>
@@ -1553,7 +1626,7 @@ var items = new vis.DataSet([
   <h2 id="Templates">Templates</h2>
 
   <p>
-    Timeline supports templates to format item contents. Any template engine (such as <a href="http://handlebarsjs.com/">handlebars</a> or <a href="http://mustache.github.io/">mustache</a>) can be used, and one can also manually build HTML. In the options, one can provide a template handler. This handler is a function accepting an items data as argument, and outputs formatted HTML:
+    Timeline supports templates to format item contents. Any template engine (such as <a href="http://handlebarsjs.com/">handlebars</a> or <a href="http://mustache.github.io/">mustache</a>) can be used, and one can also manually build HTML. In the options, one can provide a template handler. This handler is a function accepting an item's data as argument, and outputs formatted HTML:
   </p>
 
 <pre class="prettyprint lang-js">var options = {
@@ -1600,6 +1673,17 @@ var template = Handlebars.compile(source);
 };
 </pre>
 
+<h3>React templates</h3>
+
+You can use a React component for the templates by rendering them to the templates' element directly:
+
+<pre class="prettyprint lang-js">
+  template: function (item, element) {
+    return ReactDOM.render(&lt;b&gt;{item.content}&lt;/b&gt;, element);
+  },
+</pre>
+
+
   <h3>Multiple templates</h3>
 
   In order to support multiple templates, the template handler can be extended to switch between different templates, depending on a specific item property:
@@ -1639,7 +1723,7 @@ var options = {
 
   <h3>Create a new locale</h3>
 
-  To load a locale into the Timeline not supported by default, one can add a new locale to the option <code>locales</code>:
+  To load a locale (that is not supported by default) into the Timeline, one can add a new locale to the option <code>locales</code>:
 
 <pre class="prettyprint lang-js">var options = {
   locales: {
@@ -1675,6 +1759,14 @@ var options = {
       </td>
     </tr>
     <tr>
+      <td>Italian</td>
+      <td>
+        <code>it</code><br>
+        <code>it_IT</code><br>
+        <code>it_CH</code>
+      </td>
+    </tr>
+    <tr>
       <td>Dutch</td>
       <td>
         <code>nl</code><br>
@@ -1682,12 +1774,19 @@ var options = {
         <code>nl_BE</code>
       </td>
     </tr>
+	<tr>
+      <td>German</td>
+      <td>
+        <code>de</code><br>
+        <code>de_DE</code><br>
+      </td>
+    </tr>
   </table>
 
 
   <h2 id="Time_zone">Time zone</h2>
   <p>
-    By default, the Timeline displays time in local time. To display a Timeline in an other time zone or in UTC, the date constructor can be overloaded via the configuration option <code>moment</code>, which by default is the constructor function of moment.js. More information about UTC with moment.js can be found in the docs: <a href="http://momentjs.com/docs/#/parsing/utc/">http://momentjs.com/docs/#/parsing/utc/</a>.
+    By default, the Timeline displays time in local time. To display a Timeline in another time zone or in UTC, the date constructor can be overloaded via the configuration option <code>moment</code>, which by default is the constructor function of moment.js. More information about UTC with moment.js can be found in the docs: <a href="http://momentjs.com/docs/#/parsing/utc/">http://momentjs.com/docs/#/parsing/utc/</a>.
   </p>
 
   <p>
@@ -1761,7 +1860,7 @@ var options = {
       <td>Days</td><td><code>vis-date1</code>, <code>vis-date2</code>, ..., <code>vis-date31</code></td>
     </tr>
     <tr>
-      <td>Months</td><td><code>vis-januari</code>, <code>vis-februari</code>, <code>vis-march</code>, <code>vis-april</code>, <code>vis-may</code>, <code>vis-june</code>, <code>vis-july</code>, <code>vis-august</code>, <code>vis-september</code>, <code>vis-october</code>, <code>vis-november</code>, <code>vis-december</code></td>
+      <td>Months</td><td><code>vis-january</code>, <code>vis-february</code>, <code>vis-march</code>, <code>vis-april</code>, <code>vis-may</code>, <code>vis-june</code>, <code>vis-july</code>, <code>vis-august</code>, <code>vis-september</code>, <code>vis-october</code>, <code>vis-november</code>, <code>vis-december</code></td>
     </tr>
     <tr>
       <td>Years</td><td><code>vis-year2014</code>, <code>vis-year2015</code>, ...</td>

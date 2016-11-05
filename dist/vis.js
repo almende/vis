@@ -4,8 +4,8 @@
  *
  * A dynamic, browser-based visualization library.
  *
- * @version 4.16.1
- * @date    2016-04-18
+ * @version 4.17.0
+ * @date    2016-11-05
  *
  * @license
  * Copyright (C) 2011-2016 Almende B.V, http://almende.com
@@ -89,10 +89,10 @@ return /******/ (function(modules) { // webpackBootstrap
   util.extend(exports, __webpack_require__(7));
 
   // Timeline & Graph2d
-  util.extend(exports, __webpack_require__(24));
+  util.extend(exports, __webpack_require__(26));
 
   // Network
-  util.extend(exports, __webpack_require__(60));
+  util.extend(exports, __webpack_require__(62));
 
 /***/ },
 /* 1 */
@@ -100,12 +100,13 @@ return /******/ (function(modules) { // webpackBootstrap
 
   'use strict';
 
-  var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
+  var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
 
   // utility functions
 
   // first check if moment.js is already loaded in the browser window, if so,
   // use this instance. Else, load via commonjs.
+
 
   var moment = __webpack_require__(2);
   var uuid = __webpack_require__(6);
@@ -211,7 +212,7 @@ return /******/ (function(modules) { // webpackBootstrap
    * @param value
    */
   exports.fillIfDefined = function (a, b) {
-    var allowDeletion = arguments.length <= 2 || arguments[2] === undefined ? false : arguments[2];
+    var allowDeletion = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : false;
 
     for (var prop in a) {
       if (b[prop] !== undefined) {
@@ -301,7 +302,7 @@ return /******/ (function(modules) { // webpackBootstrap
    * @return {Object} a
    */
   exports.selectiveDeepExtend = function (props, a, b) {
-    var allowDeletion = arguments.length <= 3 || arguments[3] === undefined ? false : arguments[3];
+    var allowDeletion = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : false;
 
     // TODO: add support for Arrays to deepExtend
     if (Array.isArray(b)) {
@@ -349,7 +350,7 @@ return /******/ (function(modules) { // webpackBootstrap
    * @return {Object} a
    */
   exports.selectiveNotDeepExtend = function (props, a, b) {
-    var allowDeletion = arguments.length <= 3 || arguments[3] === undefined ? false : arguments[3];
+    var allowDeletion = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : false;
 
     // TODO: add support for Arrays to deepExtend
     if (Array.isArray(b)) {
@@ -482,8 +483,11 @@ return /******/ (function(modules) { // webpackBootstrap
 
       case 'number':
       case 'Number':
-        return Number(object.valueOf());
-
+        if (!isNaN(Date.parse(object))) {
+          return moment(object).valueOf();
+        } else {
+          return Number(object.valueOf());
+        }
       case 'string':
       case 'String':
         return String(object);
@@ -503,11 +507,11 @@ return /******/ (function(modules) { // webpackBootstrap
             // object is an ASP date
             return new Date(Number(match[1])); // parse number
           } else {
-              return moment(object).toDate(); // parse string
-            }
-        } else {
-            throw new Error('Cannot convert object of type ' + exports.getType(object) + ' to type Date');
+            return moment(new Date(object)).toDate(); // parse string
           }
+        } else {
+          throw new Error('Cannot convert object of type ' + exports.getType(object) + ' to type Date');
+        }
 
       case 'Moment':
         if (exports.isNumber(object)) {
@@ -524,11 +528,11 @@ return /******/ (function(modules) { // webpackBootstrap
             // object is an ASP date
             return moment(Number(match[1])); // parse number
           } else {
-              return moment(object); // parse string
-            }
-        } else {
-            throw new Error('Cannot convert object of type ' + exports.getType(object) + ' to type Date');
+            return moment(object); // parse string
           }
+        } else {
+          throw new Error('Cannot convert object of type ' + exports.getType(object) + ' to type Date');
+        }
 
       case 'ISODate':
         if (exports.isNumber(object)) {
@@ -543,11 +547,11 @@ return /******/ (function(modules) { // webpackBootstrap
             // object is an ASP date
             return new Date(Number(match[1])).toISOString(); // parse number
           } else {
-              return new Date(object).toISOString(); // parse string
-            }
-        } else {
-            throw new Error('Cannot convert object of type ' + exports.getType(object) + ' to type ISODate');
+            return moment(object).format(); // ISO 8601
           }
+        } else {
+          throw new Error('Cannot convert object of type ' + exports.getType(object) + ' to type ISODate');
+        }
 
       case 'ASPDate':
         if (exports.isNumber(object)) {
@@ -561,8 +565,8 @@ return /******/ (function(modules) { // webpackBootstrap
             // object is an ASP date
             value = new Date(Number(match[1])).valueOf(); // parse number
           } else {
-              value = new Date(object).valueOf(); // parse string
-            }
+            value = new Date(object).valueOf(); // parse string
+          }
           return '/Date(' + value + ')/';
         } else {
           throw new Error('Cannot convert object of type ' + exports.getType(object) + ' to type ASPDate');
@@ -760,28 +764,20 @@ return /******/ (function(modules) { // webpackBootstrap
   };
 
   /**
-   * Throttle the given function to be only executed once every `wait` milliseconds
+   * Throttle the given function to be only executed once per animation frame
    * @param {function} fn
-   * @param {number} wait    Time in milliseconds
    * @returns {function} Returns the throttled function
    */
-  exports.throttle = function (fn, wait) {
-    var timeout = null;
-    var needExecution = false;
+  exports.throttle = function (fn) {
+    var scheduled = false;
 
     return function throttled() {
-      if (!timeout) {
-        needExecution = false;
-        fn();
-
-        timeout = setTimeout(function () {
-          timeout = null;
-          if (needExecution) {
-            throttled();
-          }
-        }, wait);
-      } else {
-        needExecution = true;
+      if (!scheduled) {
+        scheduled = true;
+        requestAnimationFrame(function () {
+          scheduled = false;
+          fn();
+        });
       }
     };
   };
@@ -840,8 +836,8 @@ return /******/ (function(modules) { // webpackBootstrap
     if (event.preventDefault) {
       event.preventDefault(); // non-IE browsers
     } else {
-        event.returnValue = false; // IE browsers
-      }
+      event.returnValue = false; // IE browsers
+    }
   };
 
   /**
@@ -1329,8 +1325,8 @@ return /******/ (function(modules) { // webpackBootstrap
    * @param [String] option      | this is the option key in the options argument
    */
   exports.mergeOptions = function (mergeTarget, options, option) {
-    var allowDeletion = arguments.length <= 3 || arguments[3] === undefined ? false : arguments[3];
-    var globalOptions = arguments.length <= 4 || arguments[4] === undefined ? {} : arguments[4];
+    var allowDeletion = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : false;
+    var globalOptions = arguments.length > 4 && arguments[4] !== undefined ? arguments[4] : {};
 
     if (options[option] === null) {
       mergeTarget[option] = Object.create(globalOptions[option]);
@@ -1510,6 +1506,32 @@ return /******/ (function(modules) { // webpackBootstrap
     }
   };
 
+  exports.getScrollBarWidth = function () {
+    var inner = document.createElement('p');
+    inner.style.width = "100%";
+    inner.style.height = "200px";
+
+    var outer = document.createElement('div');
+    outer.style.position = "absolute";
+    outer.style.top = "0px";
+    outer.style.left = "0px";
+    outer.style.visibility = "hidden";
+    outer.style.width = "200px";
+    outer.style.height = "150px";
+    outer.style.overflow = "hidden";
+    outer.appendChild(inner);
+
+    document.body.appendChild(outer);
+    var w1 = inner.offsetWidth;
+    outer.style.overflow = 'scroll';
+    var w2 = inner.offsetWidth;
+    if (w1 == w2) w2 = outer.clientWidth;
+
+    document.body.removeChild(outer);
+
+    return w1 - w2;
+  };
+
 /***/ },
 /* 2 */
 /***/ function(module, exports, __webpack_require__) {
@@ -1525,7 +1547,7 @@ return /******/ (function(modules) { // webpackBootstrap
 /***/ function(module, exports, __webpack_require__) {
 
   /* WEBPACK VAR INJECTION */(function(module) {//! moment.js
-  //! version : 2.13.0
+  //! version : 2.15.2
   //! authors : Tim Wood, Iskren Chernev, Moment.js contributors
   //! license : MIT
   //! momentjs.com
@@ -1550,6 +1572,21 @@ return /******/ (function(modules) { // webpackBootstrap
 
       function isArray(input) {
           return input instanceof Array || Object.prototype.toString.call(input) === '[object Array]';
+      }
+
+      function isObject(input) {
+          // IE8 will treat undefined and null as object if it wasn't for
+          // input != null
+          return input != null && Object.prototype.toString.call(input) === '[object Object]';
+      }
+
+      function isObjectEmpty(obj) {
+          var k;
+          for (k in obj) {
+              // even if its not own property I'd still call it non-empty
+              return false;
+          }
+          return true;
       }
 
       function isDate(input) {
@@ -1639,7 +1676,7 @@ return /******/ (function(modules) { // webpackBootstrap
               var parsedParts = some.call(flags.parsedDateParts, function (i) {
                   return i != null;
               });
-              m._isValid = !isNaN(m._d.getTime()) &&
+              var isNowValid = !isNaN(m._d.getTime()) &&
                   flags.overflow < 0 &&
                   !flags.empty &&
                   !flags.invalidMonth &&
@@ -1650,10 +1687,17 @@ return /******/ (function(modules) { // webpackBootstrap
                   (!flags.meridiem || (flags.meridiem && parsedParts));
 
               if (m._strict) {
-                  m._isValid = m._isValid &&
+                  isNowValid = isNowValid &&
                       flags.charsLeftOver === 0 &&
                       flags.unusedTokens.length === 0 &&
                       flags.bigHour === undefined;
+              }
+
+              if (Object.isFrozen == null || !Object.isFrozen(m)) {
+                  m._isValid = isNowValid;
+              }
+              else {
+                  return isNowValid;
               }
           }
           return m._isValid;
@@ -1747,7 +1791,8 @@ return /******/ (function(modules) { // webpackBootstrap
 
       function absFloor (number) {
           if (number < 0) {
-              return Math.ceil(number);
+              // -0 -> 0
+              return Math.ceil(number) || 0;
           } else {
               return Math.floor(number);
           }
@@ -1794,7 +1839,22 @@ return /******/ (function(modules) { // webpackBootstrap
                   utils_hooks__hooks.deprecationHandler(null, msg);
               }
               if (firstTime) {
-                  warn(msg + '\nArguments: ' + Array.prototype.slice.call(arguments).join(', ') + '\n' + (new Error()).stack);
+                  var args = [];
+                  var arg;
+                  for (var i = 0; i < arguments.length; i++) {
+                      arg = '';
+                      if (typeof arguments[i] === 'object') {
+                          arg += '\n[' + i + '] ';
+                          for (var key in arguments[0]) {
+                              arg += key + ': ' + arguments[0][key] + ', ';
+                          }
+                          arg = arg.slice(0, -2); // Remove trailing comma and space
+                      } else {
+                          arg = arguments[i];
+                      }
+                      args.push(arg);
+                  }
+                  warn(msg + '\nArguments: ' + Array.prototype.slice.call(args).join('') + '\n' + (new Error()).stack);
                   firstTime = false;
               }
               return fn.apply(this, arguments);
@@ -1818,10 +1878,6 @@ return /******/ (function(modules) { // webpackBootstrap
 
       function isFunction(input) {
           return input instanceof Function || Object.prototype.toString.call(input) === '[object Function]';
-      }
-
-      function isObject(input) {
-          return Object.prototype.toString.call(input) === '[object Object]';
       }
 
       function locale_set__set (config) {
@@ -1855,6 +1911,14 @@ return /******/ (function(modules) { // webpackBootstrap
                   }
               }
           }
+          for (prop in parentConfig) {
+              if (hasOwnProp(parentConfig, prop) &&
+                      !hasOwnProp(childConfig, prop) &&
+                      isObject(parentConfig[prop])) {
+                  // make sure changes to properties don't modify parent config
+                  res[prop] = extend({}, res[prop]);
+              }
+          }
           return res;
       }
 
@@ -1880,161 +1944,83 @@ return /******/ (function(modules) { // webpackBootstrap
           };
       }
 
-      // internal storage for locale config files
-      var locales = {};
-      var globalLocale;
+      var defaultCalendar = {
+          sameDay : '[Today at] LT',
+          nextDay : '[Tomorrow at] LT',
+          nextWeek : 'dddd [at] LT',
+          lastDay : '[Yesterday at] LT',
+          lastWeek : '[Last] dddd [at] LT',
+          sameElse : 'L'
+      };
 
-      function normalizeLocale(key) {
-          return key ? key.toLowerCase().replace('_', '-') : key;
+      function locale_calendar__calendar (key, mom, now) {
+          var output = this._calendar[key] || this._calendar['sameElse'];
+          return isFunction(output) ? output.call(mom, now) : output;
       }
 
-      // pick the locale from the array
-      // try ['en-au', 'en-gb'] as 'en-au', 'en-gb', 'en', as in move through the list trying each
-      // substring from most specific to least, but move to the next array item if it's a more specific variant than the current root
-      function chooseLocale(names) {
-          var i = 0, j, next, locale, split;
+      var defaultLongDateFormat = {
+          LTS  : 'h:mm:ss A',
+          LT   : 'h:mm A',
+          L    : 'MM/DD/YYYY',
+          LL   : 'MMMM D, YYYY',
+          LLL  : 'MMMM D, YYYY h:mm A',
+          LLLL : 'dddd, MMMM D, YYYY h:mm A'
+      };
 
-          while (i < names.length) {
-              split = normalizeLocale(names[i]).split('-');
-              j = split.length;
-              next = normalizeLocale(names[i + 1]);
-              next = next ? next.split('-') : null;
-              while (j > 0) {
-                  locale = loadLocale(split.slice(0, j).join('-'));
-                  if (locale) {
-                      return locale;
-                  }
-                  if (next && next.length >= j && compareArrays(split, next, true) >= j - 1) {
-                      //the next array item is better than a shallower substring of this one
-                      break;
-                  }
-                  j--;
-              }
-              i++;
+      function longDateFormat (key) {
+          var format = this._longDateFormat[key],
+              formatUpper = this._longDateFormat[key.toUpperCase()];
+
+          if (format || !formatUpper) {
+              return format;
           }
-          return null;
+
+          this._longDateFormat[key] = formatUpper.replace(/MMMM|MM|DD|dddd/g, function (val) {
+              return val.slice(1);
+          });
+
+          return this._longDateFormat[key];
       }
 
-      function loadLocale(name) {
-          var oldLocale = null;
-          // TODO: Find a better way to register and load all the locales in Node
-          if (!locales[name] && (typeof module !== 'undefined') &&
-                  module && module.exports) {
-              try {
-                  oldLocale = globalLocale._abbr;
-                  !(function webpackMissingModule() { var e = new Error("Cannot find module \"./locale\""); e.code = 'MODULE_NOT_FOUND'; throw e; }());
-                  // because defineLocale currently also sets the global locale, we
-                  // want to undo that for lazy loaded locales
-                  locale_locales__getSetGlobalLocale(oldLocale);
-              } catch (e) { }
-          }
-          return locales[name];
+      var defaultInvalidDate = 'Invalid date';
+
+      function invalidDate () {
+          return this._invalidDate;
       }
 
-      // This function will load locale and then set the global locale.  If
-      // no arguments are passed in, it will simply return the current global
-      // locale key.
-      function locale_locales__getSetGlobalLocale (key, values) {
-          var data;
-          if (key) {
-              if (isUndefined(values)) {
-                  data = locale_locales__getLocale(key);
-              }
-              else {
-                  data = defineLocale(key, values);
-              }
+      var defaultOrdinal = '%d';
+      var defaultOrdinalParse = /\d{1,2}/;
 
-              if (data) {
-                  // moment.duration._locale = moment._locale = data;
-                  globalLocale = data;
-              }
-          }
-
-          return globalLocale._abbr;
+      function ordinal (number) {
+          return this._ordinal.replace('%d', number);
       }
 
-      function defineLocale (name, config) {
-          if (config !== null) {
-              config.abbr = name;
-              if (locales[name] != null) {
-                  deprecateSimple('defineLocaleOverride',
-                          'use moment.updateLocale(localeName, config) to change ' +
-                          'an existing locale. moment.defineLocale(localeName, ' +
-                          'config) should only be used for creating a new locale');
-                  config = mergeConfigs(locales[name]._config, config);
-              } else if (config.parentLocale != null) {
-                  if (locales[config.parentLocale] != null) {
-                      config = mergeConfigs(locales[config.parentLocale]._config, config);
-                  } else {
-                      // treat as if there is no base config
-                      deprecateSimple('parentLocaleUndefined',
-                              'specified parentLocale is not defined yet');
-                  }
-              }
-              locales[name] = new Locale(config);
+      var defaultRelativeTime = {
+          future : 'in %s',
+          past   : '%s ago',
+          s  : 'a few seconds',
+          m  : 'a minute',
+          mm : '%d minutes',
+          h  : 'an hour',
+          hh : '%d hours',
+          d  : 'a day',
+          dd : '%d days',
+          M  : 'a month',
+          MM : '%d months',
+          y  : 'a year',
+          yy : '%d years'
+      };
 
-              // backwards compat for now: also set the locale
-              locale_locales__getSetGlobalLocale(name);
-
-              return locales[name];
-          } else {
-              // useful for testing
-              delete locales[name];
-              return null;
-          }
+      function relative__relativeTime (number, withoutSuffix, string, isFuture) {
+          var output = this._relativeTime[string];
+          return (isFunction(output)) ?
+              output(number, withoutSuffix, string, isFuture) :
+              output.replace(/%d/i, number);
       }
 
-      function updateLocale(name, config) {
-          if (config != null) {
-              var locale;
-              if (locales[name] != null) {
-                  config = mergeConfigs(locales[name]._config, config);
-              }
-              locale = new Locale(config);
-              locale.parentLocale = locales[name];
-              locales[name] = locale;
-
-              // backwards compat for now: also set the locale
-              locale_locales__getSetGlobalLocale(name);
-          } else {
-              // pass null for config to unupdate, useful for tests
-              if (locales[name] != null) {
-                  if (locales[name].parentLocale != null) {
-                      locales[name] = locales[name].parentLocale;
-                  } else if (locales[name] != null) {
-                      delete locales[name];
-                  }
-              }
-          }
-          return locales[name];
-      }
-
-      // returns locale data
-      function locale_locales__getLocale (key) {
-          var locale;
-
-          if (key && key._locale && key._locale._abbr) {
-              key = key._locale._abbr;
-          }
-
-          if (!key) {
-              return globalLocale;
-          }
-
-          if (!isArray(key)) {
-              //short-circuit everything else
-              locale = loadLocale(key);
-              if (locale) {
-                  return locale;
-              }
-              key = [key];
-          }
-
-          return chooseLocale(key);
-      }
-
-      function locale_locales__listLocales() {
-          return keys(locales);
+      function pastFuture (diff, output) {
+          var format = this._relativeTime[diff > 0 ? 'future' : 'past'];
+          return isFunction(format) ? format(output) : format.replace(/%s/i, output);
       }
 
       var aliases = {};
@@ -2065,6 +2051,23 @@ return /******/ (function(modules) { // webpackBootstrap
           return normalizedInput;
       }
 
+      var priorities = {};
+
+      function addUnitPriority(unit, priority) {
+          priorities[unit] = priority;
+      }
+
+      function getPrioritizedUnits(unitsObj) {
+          var units = [];
+          for (var u in unitsObj) {
+              units.push({unit: u, priority: priorities[u]});
+          }
+          units.sort(function (a, b) {
+              return a.priority - b.priority;
+          });
+          return units;
+      }
+
       function makeGetSet (unit, keepTime) {
           return function (value) {
               if (value != null) {
@@ -2090,11 +2093,21 @@ return /******/ (function(modules) { // webpackBootstrap
 
       // MOMENTS
 
-      function getSet (units, value) {
-          var unit;
+      function stringGet (units) {
+          units = normalizeUnits(units);
+          if (isFunction(this[units])) {
+              return this[units]();
+          }
+          return this;
+      }
+
+
+      function stringSet (units, value) {
           if (typeof units === 'object') {
-              for (unit in units) {
-                  this.set(unit, units[unit]);
+              units = normalizeObjectUnits(units);
+              var prioritized = getPrioritizedUnits(units);
+              for (var i = 0; i < prioritized.length; i++) {
+                  this[prioritized[i].unit](units[prioritized[i].unit]);
               }
           } else {
               units = normalizeUnits(units);
@@ -2334,6 +2347,10 @@ return /******/ (function(modules) { // webpackBootstrap
 
       addUnitAlias('month', 'M');
 
+      // PRIORITY
+
+      addUnitPriority('month', 8);
+
       // PARSING
 
       addRegexToken('M',    match1to2);
@@ -2361,15 +2378,21 @@ return /******/ (function(modules) { // webpackBootstrap
 
       // LOCALES
 
-      var MONTHS_IN_FORMAT = /D[oD]?(\[[^\[\]]*\]|\s+)+MMMM?/;
+      var MONTHS_IN_FORMAT = /D[oD]?(\[[^\[\]]*\]|\s)+MMMM?/;
       var defaultLocaleMonths = 'January_February_March_April_May_June_July_August_September_October_November_December'.split('_');
       function localeMonths (m, format) {
+          if (!m) {
+              return this._months;
+          }
           return isArray(this._months) ? this._months[m.month()] :
-              this._months[MONTHS_IN_FORMAT.test(format) ? 'format' : 'standalone'][m.month()];
+              this._months[(this._months.isFormat || MONTHS_IN_FORMAT).test(format) ? 'format' : 'standalone'][m.month()];
       }
 
       var defaultLocaleMonthsShort = 'Jan_Feb_Mar_Apr_May_Jun_Jul_Aug_Sep_Oct_Nov_Dec'.split('_');
       function localeMonthsShort (m, format) {
+          if (!m) {
+              return this._monthsShort;
+          }
           return isArray(this._monthsShort) ? this._monthsShort[m.month()] :
               this._monthsShort[MONTHS_IN_FORMAT.test(format) ? 'format' : 'standalone'][m.month()];
       }
@@ -2506,6 +2529,9 @@ return /******/ (function(modules) { // webpackBootstrap
                   return this._monthsShortRegex;
               }
           } else {
+              if (!hasOwnProp(this, '_monthsShortRegex')) {
+                  this._monthsShortRegex = defaultMonthsShortRegex;
+              }
               return this._monthsShortStrictRegex && isStrict ?
                   this._monthsShortStrictRegex : this._monthsShortRegex;
           }
@@ -2523,6 +2549,9 @@ return /******/ (function(modules) { // webpackBootstrap
                   return this._monthsRegex;
               }
           } else {
+              if (!hasOwnProp(this, '_monthsRegex')) {
+                  this._monthsRegex = defaultMonthsRegex;
+              }
               return this._monthsStrictRegex && isStrict ?
                   this._monthsStrictRegex : this._monthsRegex;
           }
@@ -2551,6 +2580,8 @@ return /******/ (function(modules) { // webpackBootstrap
           for (i = 0; i < 12; i++) {
               shortPieces[i] = regexEscape(shortPieces[i]);
               longPieces[i] = regexEscape(longPieces[i]);
+          }
+          for (i = 0; i < 24; i++) {
               mixedPieces[i] = regexEscape(mixedPieces[i]);
           }
 
@@ -2558,6 +2589,876 @@ return /******/ (function(modules) { // webpackBootstrap
           this._monthsShortRegex = this._monthsRegex;
           this._monthsStrictRegex = new RegExp('^(' + longPieces.join('|') + ')', 'i');
           this._monthsShortStrictRegex = new RegExp('^(' + shortPieces.join('|') + ')', 'i');
+      }
+
+      // FORMATTING
+
+      addFormatToken('Y', 0, 0, function () {
+          var y = this.year();
+          return y <= 9999 ? '' + y : '+' + y;
+      });
+
+      addFormatToken(0, ['YY', 2], 0, function () {
+          return this.year() % 100;
+      });
+
+      addFormatToken(0, ['YYYY',   4],       0, 'year');
+      addFormatToken(0, ['YYYYY',  5],       0, 'year');
+      addFormatToken(0, ['YYYYYY', 6, true], 0, 'year');
+
+      // ALIASES
+
+      addUnitAlias('year', 'y');
+
+      // PRIORITIES
+
+      addUnitPriority('year', 1);
+
+      // PARSING
+
+      addRegexToken('Y',      matchSigned);
+      addRegexToken('YY',     match1to2, match2);
+      addRegexToken('YYYY',   match1to4, match4);
+      addRegexToken('YYYYY',  match1to6, match6);
+      addRegexToken('YYYYYY', match1to6, match6);
+
+      addParseToken(['YYYYY', 'YYYYYY'], YEAR);
+      addParseToken('YYYY', function (input, array) {
+          array[YEAR] = input.length === 2 ? utils_hooks__hooks.parseTwoDigitYear(input) : toInt(input);
+      });
+      addParseToken('YY', function (input, array) {
+          array[YEAR] = utils_hooks__hooks.parseTwoDigitYear(input);
+      });
+      addParseToken('Y', function (input, array) {
+          array[YEAR] = parseInt(input, 10);
+      });
+
+      // HELPERS
+
+      function daysInYear(year) {
+          return isLeapYear(year) ? 366 : 365;
+      }
+
+      function isLeapYear(year) {
+          return (year % 4 === 0 && year % 100 !== 0) || year % 400 === 0;
+      }
+
+      // HOOKS
+
+      utils_hooks__hooks.parseTwoDigitYear = function (input) {
+          return toInt(input) + (toInt(input) > 68 ? 1900 : 2000);
+      };
+
+      // MOMENTS
+
+      var getSetYear = makeGetSet('FullYear', true);
+
+      function getIsLeapYear () {
+          return isLeapYear(this.year());
+      }
+
+      function createDate (y, m, d, h, M, s, ms) {
+          //can't just apply() to create a date:
+          //http://stackoverflow.com/questions/181348/instantiating-a-javascript-object-by-calling-prototype-constructor-apply
+          var date = new Date(y, m, d, h, M, s, ms);
+
+          //the date constructor remaps years 0-99 to 1900-1999
+          if (y < 100 && y >= 0 && isFinite(date.getFullYear())) {
+              date.setFullYear(y);
+          }
+          return date;
+      }
+
+      function createUTCDate (y) {
+          var date = new Date(Date.UTC.apply(null, arguments));
+
+          //the Date.UTC function remaps years 0-99 to 1900-1999
+          if (y < 100 && y >= 0 && isFinite(date.getUTCFullYear())) {
+              date.setUTCFullYear(y);
+          }
+          return date;
+      }
+
+      // start-of-first-week - start-of-year
+      function firstWeekOffset(year, dow, doy) {
+          var // first-week day -- which january is always in the first week (4 for iso, 1 for other)
+              fwd = 7 + dow - doy,
+              // first-week day local weekday -- which local weekday is fwd
+              fwdlw = (7 + createUTCDate(year, 0, fwd).getUTCDay() - dow) % 7;
+
+          return -fwdlw + fwd - 1;
+      }
+
+      //http://en.wikipedia.org/wiki/ISO_week_date#Calculating_a_date_given_the_year.2C_week_number_and_weekday
+      function dayOfYearFromWeeks(year, week, weekday, dow, doy) {
+          var localWeekday = (7 + weekday - dow) % 7,
+              weekOffset = firstWeekOffset(year, dow, doy),
+              dayOfYear = 1 + 7 * (week - 1) + localWeekday + weekOffset,
+              resYear, resDayOfYear;
+
+          if (dayOfYear <= 0) {
+              resYear = year - 1;
+              resDayOfYear = daysInYear(resYear) + dayOfYear;
+          } else if (dayOfYear > daysInYear(year)) {
+              resYear = year + 1;
+              resDayOfYear = dayOfYear - daysInYear(year);
+          } else {
+              resYear = year;
+              resDayOfYear = dayOfYear;
+          }
+
+          return {
+              year: resYear,
+              dayOfYear: resDayOfYear
+          };
+      }
+
+      function weekOfYear(mom, dow, doy) {
+          var weekOffset = firstWeekOffset(mom.year(), dow, doy),
+              week = Math.floor((mom.dayOfYear() - weekOffset - 1) / 7) + 1,
+              resWeek, resYear;
+
+          if (week < 1) {
+              resYear = mom.year() - 1;
+              resWeek = week + weeksInYear(resYear, dow, doy);
+          } else if (week > weeksInYear(mom.year(), dow, doy)) {
+              resWeek = week - weeksInYear(mom.year(), dow, doy);
+              resYear = mom.year() + 1;
+          } else {
+              resYear = mom.year();
+              resWeek = week;
+          }
+
+          return {
+              week: resWeek,
+              year: resYear
+          };
+      }
+
+      function weeksInYear(year, dow, doy) {
+          var weekOffset = firstWeekOffset(year, dow, doy),
+              weekOffsetNext = firstWeekOffset(year + 1, dow, doy);
+          return (daysInYear(year) - weekOffset + weekOffsetNext) / 7;
+      }
+
+      // FORMATTING
+
+      addFormatToken('w', ['ww', 2], 'wo', 'week');
+      addFormatToken('W', ['WW', 2], 'Wo', 'isoWeek');
+
+      // ALIASES
+
+      addUnitAlias('week', 'w');
+      addUnitAlias('isoWeek', 'W');
+
+      // PRIORITIES
+
+      addUnitPriority('week', 5);
+      addUnitPriority('isoWeek', 5);
+
+      // PARSING
+
+      addRegexToken('w',  match1to2);
+      addRegexToken('ww', match1to2, match2);
+      addRegexToken('W',  match1to2);
+      addRegexToken('WW', match1to2, match2);
+
+      addWeekParseToken(['w', 'ww', 'W', 'WW'], function (input, week, config, token) {
+          week[token.substr(0, 1)] = toInt(input);
+      });
+
+      // HELPERS
+
+      // LOCALES
+
+      function localeWeek (mom) {
+          return weekOfYear(mom, this._week.dow, this._week.doy).week;
+      }
+
+      var defaultLocaleWeek = {
+          dow : 0, // Sunday is the first day of the week.
+          doy : 6  // The week that contains Jan 1st is the first week of the year.
+      };
+
+      function localeFirstDayOfWeek () {
+          return this._week.dow;
+      }
+
+      function localeFirstDayOfYear () {
+          return this._week.doy;
+      }
+
+      // MOMENTS
+
+      function getSetWeek (input) {
+          var week = this.localeData().week(this);
+          return input == null ? week : this.add((input - week) * 7, 'd');
+      }
+
+      function getSetISOWeek (input) {
+          var week = weekOfYear(this, 1, 4).week;
+          return input == null ? week : this.add((input - week) * 7, 'd');
+      }
+
+      // FORMATTING
+
+      addFormatToken('d', 0, 'do', 'day');
+
+      addFormatToken('dd', 0, 0, function (format) {
+          return this.localeData().weekdaysMin(this, format);
+      });
+
+      addFormatToken('ddd', 0, 0, function (format) {
+          return this.localeData().weekdaysShort(this, format);
+      });
+
+      addFormatToken('dddd', 0, 0, function (format) {
+          return this.localeData().weekdays(this, format);
+      });
+
+      addFormatToken('e', 0, 0, 'weekday');
+      addFormatToken('E', 0, 0, 'isoWeekday');
+
+      // ALIASES
+
+      addUnitAlias('day', 'd');
+      addUnitAlias('weekday', 'e');
+      addUnitAlias('isoWeekday', 'E');
+
+      // PRIORITY
+      addUnitPriority('day', 11);
+      addUnitPriority('weekday', 11);
+      addUnitPriority('isoWeekday', 11);
+
+      // PARSING
+
+      addRegexToken('d',    match1to2);
+      addRegexToken('e',    match1to2);
+      addRegexToken('E',    match1to2);
+      addRegexToken('dd',   function (isStrict, locale) {
+          return locale.weekdaysMinRegex(isStrict);
+      });
+      addRegexToken('ddd',   function (isStrict, locale) {
+          return locale.weekdaysShortRegex(isStrict);
+      });
+      addRegexToken('dddd',   function (isStrict, locale) {
+          return locale.weekdaysRegex(isStrict);
+      });
+
+      addWeekParseToken(['dd', 'ddd', 'dddd'], function (input, week, config, token) {
+          var weekday = config._locale.weekdaysParse(input, token, config._strict);
+          // if we didn't get a weekday name, mark the date as invalid
+          if (weekday != null) {
+              week.d = weekday;
+          } else {
+              getParsingFlags(config).invalidWeekday = input;
+          }
+      });
+
+      addWeekParseToken(['d', 'e', 'E'], function (input, week, config, token) {
+          week[token] = toInt(input);
+      });
+
+      // HELPERS
+
+      function parseWeekday(input, locale) {
+          if (typeof input !== 'string') {
+              return input;
+          }
+
+          if (!isNaN(input)) {
+              return parseInt(input, 10);
+          }
+
+          input = locale.weekdaysParse(input);
+          if (typeof input === 'number') {
+              return input;
+          }
+
+          return null;
+      }
+
+      function parseIsoWeekday(input, locale) {
+          if (typeof input === 'string') {
+              return locale.weekdaysParse(input) % 7 || 7;
+          }
+          return isNaN(input) ? null : input;
+      }
+
+      // LOCALES
+
+      var defaultLocaleWeekdays = 'Sunday_Monday_Tuesday_Wednesday_Thursday_Friday_Saturday'.split('_');
+      function localeWeekdays (m, format) {
+          if (!m) {
+              return this._weekdays;
+          }
+          return isArray(this._weekdays) ? this._weekdays[m.day()] :
+              this._weekdays[this._weekdays.isFormat.test(format) ? 'format' : 'standalone'][m.day()];
+      }
+
+      var defaultLocaleWeekdaysShort = 'Sun_Mon_Tue_Wed_Thu_Fri_Sat'.split('_');
+      function localeWeekdaysShort (m) {
+          return (m) ? this._weekdaysShort[m.day()] : this._weekdaysShort;
+      }
+
+      var defaultLocaleWeekdaysMin = 'Su_Mo_Tu_We_Th_Fr_Sa'.split('_');
+      function localeWeekdaysMin (m) {
+          return (m) ? this._weekdaysMin[m.day()] : this._weekdaysMin;
+      }
+
+      function day_of_week__handleStrictParse(weekdayName, format, strict) {
+          var i, ii, mom, llc = weekdayName.toLocaleLowerCase();
+          if (!this._weekdaysParse) {
+              this._weekdaysParse = [];
+              this._shortWeekdaysParse = [];
+              this._minWeekdaysParse = [];
+
+              for (i = 0; i < 7; ++i) {
+                  mom = create_utc__createUTC([2000, 1]).day(i);
+                  this._minWeekdaysParse[i] = this.weekdaysMin(mom, '').toLocaleLowerCase();
+                  this._shortWeekdaysParse[i] = this.weekdaysShort(mom, '').toLocaleLowerCase();
+                  this._weekdaysParse[i] = this.weekdays(mom, '').toLocaleLowerCase();
+              }
+          }
+
+          if (strict) {
+              if (format === 'dddd') {
+                  ii = indexOf.call(this._weekdaysParse, llc);
+                  return ii !== -1 ? ii : null;
+              } else if (format === 'ddd') {
+                  ii = indexOf.call(this._shortWeekdaysParse, llc);
+                  return ii !== -1 ? ii : null;
+              } else {
+                  ii = indexOf.call(this._minWeekdaysParse, llc);
+                  return ii !== -1 ? ii : null;
+              }
+          } else {
+              if (format === 'dddd') {
+                  ii = indexOf.call(this._weekdaysParse, llc);
+                  if (ii !== -1) {
+                      return ii;
+                  }
+                  ii = indexOf.call(this._shortWeekdaysParse, llc);
+                  if (ii !== -1) {
+                      return ii;
+                  }
+                  ii = indexOf.call(this._minWeekdaysParse, llc);
+                  return ii !== -1 ? ii : null;
+              } else if (format === 'ddd') {
+                  ii = indexOf.call(this._shortWeekdaysParse, llc);
+                  if (ii !== -1) {
+                      return ii;
+                  }
+                  ii = indexOf.call(this._weekdaysParse, llc);
+                  if (ii !== -1) {
+                      return ii;
+                  }
+                  ii = indexOf.call(this._minWeekdaysParse, llc);
+                  return ii !== -1 ? ii : null;
+              } else {
+                  ii = indexOf.call(this._minWeekdaysParse, llc);
+                  if (ii !== -1) {
+                      return ii;
+                  }
+                  ii = indexOf.call(this._weekdaysParse, llc);
+                  if (ii !== -1) {
+                      return ii;
+                  }
+                  ii = indexOf.call(this._shortWeekdaysParse, llc);
+                  return ii !== -1 ? ii : null;
+              }
+          }
+      }
+
+      function localeWeekdaysParse (weekdayName, format, strict) {
+          var i, mom, regex;
+
+          if (this._weekdaysParseExact) {
+              return day_of_week__handleStrictParse.call(this, weekdayName, format, strict);
+          }
+
+          if (!this._weekdaysParse) {
+              this._weekdaysParse = [];
+              this._minWeekdaysParse = [];
+              this._shortWeekdaysParse = [];
+              this._fullWeekdaysParse = [];
+          }
+
+          for (i = 0; i < 7; i++) {
+              // make the regex if we don't have it already
+
+              mom = create_utc__createUTC([2000, 1]).day(i);
+              if (strict && !this._fullWeekdaysParse[i]) {
+                  this._fullWeekdaysParse[i] = new RegExp('^' + this.weekdays(mom, '').replace('.', '\.?') + '$', 'i');
+                  this._shortWeekdaysParse[i] = new RegExp('^' + this.weekdaysShort(mom, '').replace('.', '\.?') + '$', 'i');
+                  this._minWeekdaysParse[i] = new RegExp('^' + this.weekdaysMin(mom, '').replace('.', '\.?') + '$', 'i');
+              }
+              if (!this._weekdaysParse[i]) {
+                  regex = '^' + this.weekdays(mom, '') + '|^' + this.weekdaysShort(mom, '') + '|^' + this.weekdaysMin(mom, '');
+                  this._weekdaysParse[i] = new RegExp(regex.replace('.', ''), 'i');
+              }
+              // test the regex
+              if (strict && format === 'dddd' && this._fullWeekdaysParse[i].test(weekdayName)) {
+                  return i;
+              } else if (strict && format === 'ddd' && this._shortWeekdaysParse[i].test(weekdayName)) {
+                  return i;
+              } else if (strict && format === 'dd' && this._minWeekdaysParse[i].test(weekdayName)) {
+                  return i;
+              } else if (!strict && this._weekdaysParse[i].test(weekdayName)) {
+                  return i;
+              }
+          }
+      }
+
+      // MOMENTS
+
+      function getSetDayOfWeek (input) {
+          if (!this.isValid()) {
+              return input != null ? this : NaN;
+          }
+          var day = this._isUTC ? this._d.getUTCDay() : this._d.getDay();
+          if (input != null) {
+              input = parseWeekday(input, this.localeData());
+              return this.add(input - day, 'd');
+          } else {
+              return day;
+          }
+      }
+
+      function getSetLocaleDayOfWeek (input) {
+          if (!this.isValid()) {
+              return input != null ? this : NaN;
+          }
+          var weekday = (this.day() + 7 - this.localeData()._week.dow) % 7;
+          return input == null ? weekday : this.add(input - weekday, 'd');
+      }
+
+      function getSetISODayOfWeek (input) {
+          if (!this.isValid()) {
+              return input != null ? this : NaN;
+          }
+
+          // behaves the same as moment#day except
+          // as a getter, returns 7 instead of 0 (1-7 range instead of 0-6)
+          // as a setter, sunday should belong to the previous week.
+
+          if (input != null) {
+              var weekday = parseIsoWeekday(input, this.localeData());
+              return this.day(this.day() % 7 ? weekday : weekday - 7);
+          } else {
+              return this.day() || 7;
+          }
+      }
+
+      var defaultWeekdaysRegex = matchWord;
+      function weekdaysRegex (isStrict) {
+          if (this._weekdaysParseExact) {
+              if (!hasOwnProp(this, '_weekdaysRegex')) {
+                  computeWeekdaysParse.call(this);
+              }
+              if (isStrict) {
+                  return this._weekdaysStrictRegex;
+              } else {
+                  return this._weekdaysRegex;
+              }
+          } else {
+              if (!hasOwnProp(this, '_weekdaysRegex')) {
+                  this._weekdaysRegex = defaultWeekdaysRegex;
+              }
+              return this._weekdaysStrictRegex && isStrict ?
+                  this._weekdaysStrictRegex : this._weekdaysRegex;
+          }
+      }
+
+      var defaultWeekdaysShortRegex = matchWord;
+      function weekdaysShortRegex (isStrict) {
+          if (this._weekdaysParseExact) {
+              if (!hasOwnProp(this, '_weekdaysRegex')) {
+                  computeWeekdaysParse.call(this);
+              }
+              if (isStrict) {
+                  return this._weekdaysShortStrictRegex;
+              } else {
+                  return this._weekdaysShortRegex;
+              }
+          } else {
+              if (!hasOwnProp(this, '_weekdaysShortRegex')) {
+                  this._weekdaysShortRegex = defaultWeekdaysShortRegex;
+              }
+              return this._weekdaysShortStrictRegex && isStrict ?
+                  this._weekdaysShortStrictRegex : this._weekdaysShortRegex;
+          }
+      }
+
+      var defaultWeekdaysMinRegex = matchWord;
+      function weekdaysMinRegex (isStrict) {
+          if (this._weekdaysParseExact) {
+              if (!hasOwnProp(this, '_weekdaysRegex')) {
+                  computeWeekdaysParse.call(this);
+              }
+              if (isStrict) {
+                  return this._weekdaysMinStrictRegex;
+              } else {
+                  return this._weekdaysMinRegex;
+              }
+          } else {
+              if (!hasOwnProp(this, '_weekdaysMinRegex')) {
+                  this._weekdaysMinRegex = defaultWeekdaysMinRegex;
+              }
+              return this._weekdaysMinStrictRegex && isStrict ?
+                  this._weekdaysMinStrictRegex : this._weekdaysMinRegex;
+          }
+      }
+
+
+      function computeWeekdaysParse () {
+          function cmpLenRev(a, b) {
+              return b.length - a.length;
+          }
+
+          var minPieces = [], shortPieces = [], longPieces = [], mixedPieces = [],
+              i, mom, minp, shortp, longp;
+          for (i = 0; i < 7; i++) {
+              // make the regex if we don't have it already
+              mom = create_utc__createUTC([2000, 1]).day(i);
+              minp = this.weekdaysMin(mom, '');
+              shortp = this.weekdaysShort(mom, '');
+              longp = this.weekdays(mom, '');
+              minPieces.push(minp);
+              shortPieces.push(shortp);
+              longPieces.push(longp);
+              mixedPieces.push(minp);
+              mixedPieces.push(shortp);
+              mixedPieces.push(longp);
+          }
+          // Sorting makes sure if one weekday (or abbr) is a prefix of another it
+          // will match the longer piece.
+          minPieces.sort(cmpLenRev);
+          shortPieces.sort(cmpLenRev);
+          longPieces.sort(cmpLenRev);
+          mixedPieces.sort(cmpLenRev);
+          for (i = 0; i < 7; i++) {
+              shortPieces[i] = regexEscape(shortPieces[i]);
+              longPieces[i] = regexEscape(longPieces[i]);
+              mixedPieces[i] = regexEscape(mixedPieces[i]);
+          }
+
+          this._weekdaysRegex = new RegExp('^(' + mixedPieces.join('|') + ')', 'i');
+          this._weekdaysShortRegex = this._weekdaysRegex;
+          this._weekdaysMinRegex = this._weekdaysRegex;
+
+          this._weekdaysStrictRegex = new RegExp('^(' + longPieces.join('|') + ')', 'i');
+          this._weekdaysShortStrictRegex = new RegExp('^(' + shortPieces.join('|') + ')', 'i');
+          this._weekdaysMinStrictRegex = new RegExp('^(' + minPieces.join('|') + ')', 'i');
+      }
+
+      // FORMATTING
+
+      function hFormat() {
+          return this.hours() % 12 || 12;
+      }
+
+      function kFormat() {
+          return this.hours() || 24;
+      }
+
+      addFormatToken('H', ['HH', 2], 0, 'hour');
+      addFormatToken('h', ['hh', 2], 0, hFormat);
+      addFormatToken('k', ['kk', 2], 0, kFormat);
+
+      addFormatToken('hmm', 0, 0, function () {
+          return '' + hFormat.apply(this) + zeroFill(this.minutes(), 2);
+      });
+
+      addFormatToken('hmmss', 0, 0, function () {
+          return '' + hFormat.apply(this) + zeroFill(this.minutes(), 2) +
+              zeroFill(this.seconds(), 2);
+      });
+
+      addFormatToken('Hmm', 0, 0, function () {
+          return '' + this.hours() + zeroFill(this.minutes(), 2);
+      });
+
+      addFormatToken('Hmmss', 0, 0, function () {
+          return '' + this.hours() + zeroFill(this.minutes(), 2) +
+              zeroFill(this.seconds(), 2);
+      });
+
+      function meridiem (token, lowercase) {
+          addFormatToken(token, 0, 0, function () {
+              return this.localeData().meridiem(this.hours(), this.minutes(), lowercase);
+          });
+      }
+
+      meridiem('a', true);
+      meridiem('A', false);
+
+      // ALIASES
+
+      addUnitAlias('hour', 'h');
+
+      // PRIORITY
+      addUnitPriority('hour', 13);
+
+      // PARSING
+
+      function matchMeridiem (isStrict, locale) {
+          return locale._meridiemParse;
+      }
+
+      addRegexToken('a',  matchMeridiem);
+      addRegexToken('A',  matchMeridiem);
+      addRegexToken('H',  match1to2);
+      addRegexToken('h',  match1to2);
+      addRegexToken('HH', match1to2, match2);
+      addRegexToken('hh', match1to2, match2);
+
+      addRegexToken('hmm', match3to4);
+      addRegexToken('hmmss', match5to6);
+      addRegexToken('Hmm', match3to4);
+      addRegexToken('Hmmss', match5to6);
+
+      addParseToken(['H', 'HH'], HOUR);
+      addParseToken(['a', 'A'], function (input, array, config) {
+          config._isPm = config._locale.isPM(input);
+          config._meridiem = input;
+      });
+      addParseToken(['h', 'hh'], function (input, array, config) {
+          array[HOUR] = toInt(input);
+          getParsingFlags(config).bigHour = true;
+      });
+      addParseToken('hmm', function (input, array, config) {
+          var pos = input.length - 2;
+          array[HOUR] = toInt(input.substr(0, pos));
+          array[MINUTE] = toInt(input.substr(pos));
+          getParsingFlags(config).bigHour = true;
+      });
+      addParseToken('hmmss', function (input, array, config) {
+          var pos1 = input.length - 4;
+          var pos2 = input.length - 2;
+          array[HOUR] = toInt(input.substr(0, pos1));
+          array[MINUTE] = toInt(input.substr(pos1, 2));
+          array[SECOND] = toInt(input.substr(pos2));
+          getParsingFlags(config).bigHour = true;
+      });
+      addParseToken('Hmm', function (input, array, config) {
+          var pos = input.length - 2;
+          array[HOUR] = toInt(input.substr(0, pos));
+          array[MINUTE] = toInt(input.substr(pos));
+      });
+      addParseToken('Hmmss', function (input, array, config) {
+          var pos1 = input.length - 4;
+          var pos2 = input.length - 2;
+          array[HOUR] = toInt(input.substr(0, pos1));
+          array[MINUTE] = toInt(input.substr(pos1, 2));
+          array[SECOND] = toInt(input.substr(pos2));
+      });
+
+      // LOCALES
+
+      function localeIsPM (input) {
+          // IE8 Quirks Mode & IE7 Standards Mode do not allow accessing strings like arrays
+          // Using charAt should be more compatible.
+          return ((input + '').toLowerCase().charAt(0) === 'p');
+      }
+
+      var defaultLocaleMeridiemParse = /[ap]\.?m?\.?/i;
+      function localeMeridiem (hours, minutes, isLower) {
+          if (hours > 11) {
+              return isLower ? 'pm' : 'PM';
+          } else {
+              return isLower ? 'am' : 'AM';
+          }
+      }
+
+
+      // MOMENTS
+
+      // Setting the hour should keep the time, because the user explicitly
+      // specified which hour he wants. So trying to maintain the same hour (in
+      // a new timezone) makes sense. Adding/subtracting hours does not follow
+      // this rule.
+      var getSetHour = makeGetSet('Hours', true);
+
+      var baseConfig = {
+          calendar: defaultCalendar,
+          longDateFormat: defaultLongDateFormat,
+          invalidDate: defaultInvalidDate,
+          ordinal: defaultOrdinal,
+          ordinalParse: defaultOrdinalParse,
+          relativeTime: defaultRelativeTime,
+
+          months: defaultLocaleMonths,
+          monthsShort: defaultLocaleMonthsShort,
+
+          week: defaultLocaleWeek,
+
+          weekdays: defaultLocaleWeekdays,
+          weekdaysMin: defaultLocaleWeekdaysMin,
+          weekdaysShort: defaultLocaleWeekdaysShort,
+
+          meridiemParse: defaultLocaleMeridiemParse
+      };
+
+      // internal storage for locale config files
+      var locales = {};
+      var globalLocale;
+
+      function normalizeLocale(key) {
+          return key ? key.toLowerCase().replace('_', '-') : key;
+      }
+
+      // pick the locale from the array
+      // try ['en-au', 'en-gb'] as 'en-au', 'en-gb', 'en', as in move through the list trying each
+      // substring from most specific to least, but move to the next array item if it's a more specific variant than the current root
+      function chooseLocale(names) {
+          var i = 0, j, next, locale, split;
+
+          while (i < names.length) {
+              split = normalizeLocale(names[i]).split('-');
+              j = split.length;
+              next = normalizeLocale(names[i + 1]);
+              next = next ? next.split('-') : null;
+              while (j > 0) {
+                  locale = loadLocale(split.slice(0, j).join('-'));
+                  if (locale) {
+                      return locale;
+                  }
+                  if (next && next.length >= j && compareArrays(split, next, true) >= j - 1) {
+                      //the next array item is better than a shallower substring of this one
+                      break;
+                  }
+                  j--;
+              }
+              i++;
+          }
+          return null;
+      }
+
+      function loadLocale(name) {
+          var oldLocale = null;
+          // TODO: Find a better way to register and load all the locales in Node
+          if (!locales[name] && (typeof module !== 'undefined') &&
+                  module && module.exports) {
+              try {
+                  oldLocale = globalLocale._abbr;
+                  !(function webpackMissingModule() { var e = new Error("Cannot find module \"./locale\""); e.code = 'MODULE_NOT_FOUND'; throw e; }());
+                  // because defineLocale currently also sets the global locale, we
+                  // want to undo that for lazy loaded locales
+                  locale_locales__getSetGlobalLocale(oldLocale);
+              } catch (e) { }
+          }
+          return locales[name];
+      }
+
+      // This function will load locale and then set the global locale.  If
+      // no arguments are passed in, it will simply return the current global
+      // locale key.
+      function locale_locales__getSetGlobalLocale (key, values) {
+          var data;
+          if (key) {
+              if (isUndefined(values)) {
+                  data = locale_locales__getLocale(key);
+              }
+              else {
+                  data = defineLocale(key, values);
+              }
+
+              if (data) {
+                  // moment.duration._locale = moment._locale = data;
+                  globalLocale = data;
+              }
+          }
+
+          return globalLocale._abbr;
+      }
+
+      function defineLocale (name, config) {
+          if (config !== null) {
+              var parentConfig = baseConfig;
+              config.abbr = name;
+              if (locales[name] != null) {
+                  deprecateSimple('defineLocaleOverride',
+                          'use moment.updateLocale(localeName, config) to change ' +
+                          'an existing locale. moment.defineLocale(localeName, ' +
+                          'config) should only be used for creating a new locale ' +
+                          'See http://momentjs.com/guides/#/warnings/define-locale/ for more info.');
+                  parentConfig = locales[name]._config;
+              } else if (config.parentLocale != null) {
+                  if (locales[config.parentLocale] != null) {
+                      parentConfig = locales[config.parentLocale]._config;
+                  } else {
+                      // treat as if there is no base config
+                      deprecateSimple('parentLocaleUndefined',
+                              'specified parentLocale is not defined yet. See http://momentjs.com/guides/#/warnings/parent-locale/');
+                  }
+              }
+              locales[name] = new Locale(mergeConfigs(parentConfig, config));
+
+              // backwards compat for now: also set the locale
+              locale_locales__getSetGlobalLocale(name);
+
+              return locales[name];
+          } else {
+              // useful for testing
+              delete locales[name];
+              return null;
+          }
+      }
+
+      function updateLocale(name, config) {
+          if (config != null) {
+              var locale, parentConfig = baseConfig;
+              // MERGE
+              if (locales[name] != null) {
+                  parentConfig = locales[name]._config;
+              }
+              config = mergeConfigs(parentConfig, config);
+              locale = new Locale(config);
+              locale.parentLocale = locales[name];
+              locales[name] = locale;
+
+              // backwards compat for now: also set the locale
+              locale_locales__getSetGlobalLocale(name);
+          } else {
+              // pass null for config to unupdate, useful for tests
+              if (locales[name] != null) {
+                  if (locales[name].parentLocale != null) {
+                      locales[name] = locales[name].parentLocale;
+                  } else if (locales[name] != null) {
+                      delete locales[name];
+                  }
+              }
+          }
+          return locales[name];
+      }
+
+      // returns locale data
+      function locale_locales__getLocale (key) {
+          var locale;
+
+          if (key && key._locale && key._locale._abbr) {
+              key = key._locale._abbr;
+          }
+
+          if (!key) {
+              return globalLocale;
+          }
+
+          if (!isArray(key)) {
+              //short-circuit everything else
+              locale = loadLocale(key);
+              if (locale) {
+                  return locale;
+              }
+              key = [key];
+          }
+
+          return chooseLocale(key);
+      }
+
+      function locale_locales__listLocales() {
+          return keys(locales);
       }
 
       function checkOverflow (m) {
@@ -2697,160 +3598,14 @@ return /******/ (function(modules) { // webpackBootstrap
       }
 
       utils_hooks__hooks.createFromInputFallback = deprecate(
-          'moment construction falls back to js Date. This is ' +
-          'discouraged and will be removed in upcoming major ' +
-          'release. Please refer to ' +
-          'https://github.com/moment/moment/issues/1407 for more info.',
+          'value provided is not in a recognized ISO format. moment construction falls back to js Date(), ' +
+          'which is not reliable across all browsers and versions. Non ISO date formats are ' +
+          'discouraged and will be removed in an upcoming major release. Please refer to ' +
+          'http://momentjs.com/guides/#/warnings/js-date/ for more info.',
           function (config) {
               config._d = new Date(config._i + (config._useUTC ? ' UTC' : ''));
           }
       );
-
-      function createDate (y, m, d, h, M, s, ms) {
-          //can't just apply() to create a date:
-          //http://stackoverflow.com/questions/181348/instantiating-a-javascript-object-by-calling-prototype-constructor-apply
-          var date = new Date(y, m, d, h, M, s, ms);
-
-          //the date constructor remaps years 0-99 to 1900-1999
-          if (y < 100 && y >= 0 && isFinite(date.getFullYear())) {
-              date.setFullYear(y);
-          }
-          return date;
-      }
-
-      function createUTCDate (y) {
-          var date = new Date(Date.UTC.apply(null, arguments));
-
-          //the Date.UTC function remaps years 0-99 to 1900-1999
-          if (y < 100 && y >= 0 && isFinite(date.getUTCFullYear())) {
-              date.setUTCFullYear(y);
-          }
-          return date;
-      }
-
-      // FORMATTING
-
-      addFormatToken('Y', 0, 0, function () {
-          var y = this.year();
-          return y <= 9999 ? '' + y : '+' + y;
-      });
-
-      addFormatToken(0, ['YY', 2], 0, function () {
-          return this.year() % 100;
-      });
-
-      addFormatToken(0, ['YYYY',   4],       0, 'year');
-      addFormatToken(0, ['YYYYY',  5],       0, 'year');
-      addFormatToken(0, ['YYYYYY', 6, true], 0, 'year');
-
-      // ALIASES
-
-      addUnitAlias('year', 'y');
-
-      // PARSING
-
-      addRegexToken('Y',      matchSigned);
-      addRegexToken('YY',     match1to2, match2);
-      addRegexToken('YYYY',   match1to4, match4);
-      addRegexToken('YYYYY',  match1to6, match6);
-      addRegexToken('YYYYYY', match1to6, match6);
-
-      addParseToken(['YYYYY', 'YYYYYY'], YEAR);
-      addParseToken('YYYY', function (input, array) {
-          array[YEAR] = input.length === 2 ? utils_hooks__hooks.parseTwoDigitYear(input) : toInt(input);
-      });
-      addParseToken('YY', function (input, array) {
-          array[YEAR] = utils_hooks__hooks.parseTwoDigitYear(input);
-      });
-      addParseToken('Y', function (input, array) {
-          array[YEAR] = parseInt(input, 10);
-      });
-
-      // HELPERS
-
-      function daysInYear(year) {
-          return isLeapYear(year) ? 366 : 365;
-      }
-
-      function isLeapYear(year) {
-          return (year % 4 === 0 && year % 100 !== 0) || year % 400 === 0;
-      }
-
-      // HOOKS
-
-      utils_hooks__hooks.parseTwoDigitYear = function (input) {
-          return toInt(input) + (toInt(input) > 68 ? 1900 : 2000);
-      };
-
-      // MOMENTS
-
-      var getSetYear = makeGetSet('FullYear', true);
-
-      function getIsLeapYear () {
-          return isLeapYear(this.year());
-      }
-
-      // start-of-first-week - start-of-year
-      function firstWeekOffset(year, dow, doy) {
-          var // first-week day -- which january is always in the first week (4 for iso, 1 for other)
-              fwd = 7 + dow - doy,
-              // first-week day local weekday -- which local weekday is fwd
-              fwdlw = (7 + createUTCDate(year, 0, fwd).getUTCDay() - dow) % 7;
-
-          return -fwdlw + fwd - 1;
-      }
-
-      //http://en.wikipedia.org/wiki/ISO_week_date#Calculating_a_date_given_the_year.2C_week_number_and_weekday
-      function dayOfYearFromWeeks(year, week, weekday, dow, doy) {
-          var localWeekday = (7 + weekday - dow) % 7,
-              weekOffset = firstWeekOffset(year, dow, doy),
-              dayOfYear = 1 + 7 * (week - 1) + localWeekday + weekOffset,
-              resYear, resDayOfYear;
-
-          if (dayOfYear <= 0) {
-              resYear = year - 1;
-              resDayOfYear = daysInYear(resYear) + dayOfYear;
-          } else if (dayOfYear > daysInYear(year)) {
-              resYear = year + 1;
-              resDayOfYear = dayOfYear - daysInYear(year);
-          } else {
-              resYear = year;
-              resDayOfYear = dayOfYear;
-          }
-
-          return {
-              year: resYear,
-              dayOfYear: resDayOfYear
-          };
-      }
-
-      function weekOfYear(mom, dow, doy) {
-          var weekOffset = firstWeekOffset(mom.year(), dow, doy),
-              week = Math.floor((mom.dayOfYear() - weekOffset - 1) / 7) + 1,
-              resWeek, resYear;
-
-          if (week < 1) {
-              resYear = mom.year() - 1;
-              resWeek = week + weeksInYear(resYear, dow, doy);
-          } else if (week > weeksInYear(mom.year(), dow, doy)) {
-              resWeek = week - weeksInYear(mom.year(), dow, doy);
-              resYear = mom.year() + 1;
-          } else {
-              resYear = mom.year();
-              resWeek = week;
-          }
-
-          return {
-              week: resWeek,
-              year: resYear
-          };
-      }
-
-      function weeksInYear(year, dow, doy) {
-          var weekOffset = firstWeekOffset(year, dow, doy),
-              weekOffsetNext = firstWeekOffset(year + 1, dow, doy);
-          return (daysInYear(year) - weekOffset + weekOffsetNext) / 7;
-      }
 
       // Pick the first defined of two or three arguments.
       function defaults(a, b, c) {
@@ -3048,9 +3803,9 @@ return /******/ (function(modules) { // webpackBootstrap
           }
 
           // clear _12h flag if hour is <= 12
-          if (getParsingFlags(config).bigHour === true &&
-                  config._a[HOUR] <= 12 &&
-                  config._a[HOUR] > 0) {
+          if (config._a[HOUR] <= 12 &&
+              getParsingFlags(config).bigHour === true &&
+              config._a[HOUR] > 0) {
               getParsingFlags(config).bigHour = undefined;
           }
 
@@ -3176,11 +3931,11 @@ return /******/ (function(modules) { // webpackBootstrap
               return new Moment(checkOverflow(input));
           } else if (isArray(format)) {
               configFromStringAndArray(config);
-          } else if (format) {
-              configFromStringAndFormat(config);
           } else if (isDate(input)) {
               config._d = input;
-          } else {
+          } else if (format) {
+              configFromStringAndFormat(config);
+          }  else {
               configFromInput(config);
           }
 
@@ -3221,6 +3976,11 @@ return /******/ (function(modules) { // webpackBootstrap
               strict = locale;
               locale = undefined;
           }
+
+          if ((isObject(input) && isObjectEmpty(input)) ||
+                  (isArray(input) && input.length === 0)) {
+              input = undefined;
+          }
           // object construction must be done this way.
           // https://github.com/moment/moment/issues/1423
           c._isAMomentObject = true;
@@ -3238,19 +3998,19 @@ return /******/ (function(modules) { // webpackBootstrap
       }
 
       var prototypeMin = deprecate(
-           'moment().min is deprecated, use moment.max instead. https://github.com/moment/moment/issues/1548',
-           function () {
-               var other = local__createLocal.apply(null, arguments);
-               if (this.isValid() && other.isValid()) {
-                   return other < this ? this : other;
-               } else {
-                   return valid__createInvalid();
-               }
-           }
-       );
+          'moment().min is deprecated, use moment.max instead. http://momentjs.com/guides/#/warnings/min-max/',
+          function () {
+              var other = local__createLocal.apply(null, arguments);
+              if (this.isValid() && other.isValid()) {
+                  return other < this ? this : other;
+              } else {
+                  return valid__createInvalid();
+              }
+          }
+      );
 
       var prototypeMax = deprecate(
-          'moment().max is deprecated, use moment.min instead. https://github.com/moment/moment/issues/1548',
+          'moment().max is deprecated, use moment.min instead. http://momentjs.com/guides/#/warnings/min-max/',
           function () {
               var other = local__createLocal.apply(null, arguments);
               if (this.isValid() && other.isValid()) {
@@ -3337,6 +4097,14 @@ return /******/ (function(modules) { // webpackBootstrap
 
       function isDuration (obj) {
           return obj instanceof Duration;
+      }
+
+      function absRound (number) {
+          if (number < 0) {
+              return Math.round(-1 * number) * -1;
+          } else {
+              return Math.round(number);
+          }
       }
 
       // FORMATTING
@@ -3489,7 +4257,13 @@ return /******/ (function(modules) { // webpackBootstrap
           if (this._tzm) {
               this.utcOffset(this._tzm);
           } else if (typeof this._i === 'string') {
-              this.utcOffset(offsetFromString(matchOffset, this._i));
+              var tZone = offsetFromString(matchOffset, this._i);
+
+              if (tZone === 0) {
+                  this.utcOffset(0, true);
+              } else {
+                  this.utcOffset(offsetFromString(matchOffset, this._i));
+              }
           }
           return this;
       }
@@ -3544,7 +4318,7 @@ return /******/ (function(modules) { // webpackBootstrap
       }
 
       // ASP.NET json date format regex
-      var aspNetRegex = /^(\-)?(?:(\d*)[. ])?(\d+)\:(\d+)(?:\:(\d+)\.?(\d{3})?\d*)?$/;
+      var aspNetRegex = /^(\-)?(?:(\d*)[. ])?(\d+)\:(\d+)(?:\:(\d+)(\.\d*)?)?$/;
 
       // from http://docs.closure-library.googlecode.com/git/closure_goog_date_date.js.source.html
       // somewhat more in line with 4.4.3.2 2004 spec, but allows decimal anywhere
@@ -3576,11 +4350,11 @@ return /******/ (function(modules) { // webpackBootstrap
               sign = (match[1] === '-') ? -1 : 1;
               duration = {
                   y  : 0,
-                  d  : toInt(match[DATE])        * sign,
-                  h  : toInt(match[HOUR])        * sign,
-                  m  : toInt(match[MINUTE])      * sign,
-                  s  : toInt(match[SECOND])      * sign,
-                  ms : toInt(match[MILLISECOND]) * sign
+                  d  : toInt(match[DATE])                         * sign,
+                  h  : toInt(match[HOUR])                         * sign,
+                  m  : toInt(match[MINUTE])                       * sign,
+                  s  : toInt(match[SECOND])                       * sign,
+                  ms : toInt(absRound(match[MILLISECOND] * 1000)) * sign // the millisecond decimal point is included in the match
               };
           } else if (!!(match = isoRegex.exec(input))) {
               sign = (match[1] === '-') ? -1 : 1;
@@ -3655,21 +4429,14 @@ return /******/ (function(modules) { // webpackBootstrap
           return res;
       }
 
-      function absRound (number) {
-          if (number < 0) {
-              return Math.round(-1 * number) * -1;
-          } else {
-              return Math.round(number);
-          }
-      }
-
       // TODO: remove 'name' arg after deprecation is removed
       function createAdder(direction, name) {
           return function (val, period) {
               var dur, tmp;
               //invert the arguments, but complain about it
               if (period !== null && !isNaN(+period)) {
-                  deprecateSimple(name, 'moment().' + name  + '(period, number) is deprecated. Please use moment().' + name + '(number, period).');
+                  deprecateSimple(name, 'moment().' + name  + '(period, number) is deprecated. Please use moment().' + name + '(number, period). ' +
+                  'See http://momentjs.com/guides/#/warnings/add-inverted-param/ for more info.');
                   tmp = val; val = period; period = tmp;
               }
 
@@ -3709,20 +4476,24 @@ return /******/ (function(modules) { // webpackBootstrap
       var add_subtract__add      = createAdder(1, 'add');
       var add_subtract__subtract = createAdder(-1, 'subtract');
 
-      function moment_calendar__calendar (time, formats) {
-          // We want to compare the start of today, vs this.
-          // Getting start-of-today depends on whether we're local/utc/offset or not.
-          var now = time || local__createLocal(),
-              sod = cloneWithOffset(now, this).startOf('day'),
-              diff = this.diff(sod, 'days', true),
-              format = diff < -6 ? 'sameElse' :
+      function getCalendarFormat(myMoment, now) {
+          var diff = myMoment.diff(now, 'days', true);
+          return diff < -6 ? 'sameElse' :
                   diff < -1 ? 'lastWeek' :
                   diff < 0 ? 'lastDay' :
                   diff < 1 ? 'sameDay' :
                   diff < 2 ? 'nextDay' :
                   diff < 7 ? 'nextWeek' : 'sameElse';
+      }
 
-          var output = formats && (isFunction(formats[format]) ? formats[format]() : formats[format]);
+      function moment_calendar__calendar (time, formats) {
+          // We want to compare the start of today, vs this.
+          // Getting start-of-today depends on whether we're local/utc/offset or not.
+          var now = time || local__createLocal(),
+              sod = cloneWithOffset(now, this).startOf('day'),
+              format = utils_hooks__hooks.calendarFormat(this, sod) || 'sameElse';
+
+          var output = formats && (isFunction(formats[format]) ? formats[format].call(this, now) : formats[format]);
 
           return this.format(output || this.localeData().calendar(format, this, local__createLocal(now)));
       }
@@ -3939,27 +4710,27 @@ return /******/ (function(modules) { // webpackBootstrap
           // the following switch intentionally omits break keywords
           // to utilize falling through the cases.
           switch (units) {
-          case 'year':
-              this.month(0);
-              /* falls through */
-          case 'quarter':
-          case 'month':
-              this.date(1);
-              /* falls through */
-          case 'week':
-          case 'isoWeek':
-          case 'day':
-          case 'date':
-              this.hours(0);
-              /* falls through */
-          case 'hour':
-              this.minutes(0);
-              /* falls through */
-          case 'minute':
-              this.seconds(0);
-              /* falls through */
-          case 'second':
-              this.milliseconds(0);
+              case 'year':
+                  this.month(0);
+                  /* falls through */
+              case 'quarter':
+              case 'month':
+                  this.date(1);
+                  /* falls through */
+              case 'week':
+              case 'isoWeek':
+              case 'day':
+              case 'date':
+                  this.hours(0);
+                  /* falls through */
+              case 'hour':
+                  this.minutes(0);
+                  /* falls through */
+              case 'minute':
+                  this.seconds(0);
+                  /* falls through */
+              case 'second':
+                  this.milliseconds(0);
           }
 
           // weeks are a special case
@@ -4001,7 +4772,7 @@ return /******/ (function(modules) { // webpackBootstrap
       }
 
       function toDate () {
-          return this._offset ? new Date(this.valueOf()) : this._d;
+          return new Date(this.valueOf());
       }
 
       function toArray () {
@@ -4072,6 +4843,12 @@ return /******/ (function(modules) { // webpackBootstrap
 
       addUnitAlias('weekYear', 'gg');
       addUnitAlias('isoWeekYear', 'GG');
+
+      // PRIORITY
+
+      addUnitPriority('weekYear', 1);
+      addUnitPriority('isoWeekYear', 1);
+
 
       // PARSING
 
@@ -4148,6 +4925,10 @@ return /******/ (function(modules) { // webpackBootstrap
 
       addUnitAlias('quarter', 'Q');
 
+      // PRIORITY
+
+      addUnitPriority('quarter', 7);
+
       // PARSING
 
       addRegexToken('Q', match1);
@@ -4163,65 +4944,14 @@ return /******/ (function(modules) { // webpackBootstrap
 
       // FORMATTING
 
-      addFormatToken('w', ['ww', 2], 'wo', 'week');
-      addFormatToken('W', ['WW', 2], 'Wo', 'isoWeek');
-
-      // ALIASES
-
-      addUnitAlias('week', 'w');
-      addUnitAlias('isoWeek', 'W');
-
-      // PARSING
-
-      addRegexToken('w',  match1to2);
-      addRegexToken('ww', match1to2, match2);
-      addRegexToken('W',  match1to2);
-      addRegexToken('WW', match1to2, match2);
-
-      addWeekParseToken(['w', 'ww', 'W', 'WW'], function (input, week, config, token) {
-          week[token.substr(0, 1)] = toInt(input);
-      });
-
-      // HELPERS
-
-      // LOCALES
-
-      function localeWeek (mom) {
-          return weekOfYear(mom, this._week.dow, this._week.doy).week;
-      }
-
-      var defaultLocaleWeek = {
-          dow : 0, // Sunday is the first day of the week.
-          doy : 6  // The week that contains Jan 1st is the first week of the year.
-      };
-
-      function localeFirstDayOfWeek () {
-          return this._week.dow;
-      }
-
-      function localeFirstDayOfYear () {
-          return this._week.doy;
-      }
-
-      // MOMENTS
-
-      function getSetWeek (input) {
-          var week = this.localeData().week(this);
-          return input == null ? week : this.add((input - week) * 7, 'd');
-      }
-
-      function getSetISOWeek (input) {
-          var week = weekOfYear(this, 1, 4).week;
-          return input == null ? week : this.add((input - week) * 7, 'd');
-      }
-
-      // FORMATTING
-
       addFormatToken('D', ['DD', 2], 'Do', 'date');
 
       // ALIASES
 
       addUnitAlias('date', 'D');
+
+      // PRIOROITY
+      addUnitPriority('date', 9);
 
       // PARSING
 
@@ -4242,332 +4972,14 @@ return /******/ (function(modules) { // webpackBootstrap
 
       // FORMATTING
 
-      addFormatToken('d', 0, 'do', 'day');
-
-      addFormatToken('dd', 0, 0, function (format) {
-          return this.localeData().weekdaysMin(this, format);
-      });
-
-      addFormatToken('ddd', 0, 0, function (format) {
-          return this.localeData().weekdaysShort(this, format);
-      });
-
-      addFormatToken('dddd', 0, 0, function (format) {
-          return this.localeData().weekdays(this, format);
-      });
-
-      addFormatToken('e', 0, 0, 'weekday');
-      addFormatToken('E', 0, 0, 'isoWeekday');
-
-      // ALIASES
-
-      addUnitAlias('day', 'd');
-      addUnitAlias('weekday', 'e');
-      addUnitAlias('isoWeekday', 'E');
-
-      // PARSING
-
-      addRegexToken('d',    match1to2);
-      addRegexToken('e',    match1to2);
-      addRegexToken('E',    match1to2);
-      addRegexToken('dd',   function (isStrict, locale) {
-          return locale.weekdaysMinRegex(isStrict);
-      });
-      addRegexToken('ddd',   function (isStrict, locale) {
-          return locale.weekdaysShortRegex(isStrict);
-      });
-      addRegexToken('dddd',   function (isStrict, locale) {
-          return locale.weekdaysRegex(isStrict);
-      });
-
-      addWeekParseToken(['dd', 'ddd', 'dddd'], function (input, week, config, token) {
-          var weekday = config._locale.weekdaysParse(input, token, config._strict);
-          // if we didn't get a weekday name, mark the date as invalid
-          if (weekday != null) {
-              week.d = weekday;
-          } else {
-              getParsingFlags(config).invalidWeekday = input;
-          }
-      });
-
-      addWeekParseToken(['d', 'e', 'E'], function (input, week, config, token) {
-          week[token] = toInt(input);
-      });
-
-      // HELPERS
-
-      function parseWeekday(input, locale) {
-          if (typeof input !== 'string') {
-              return input;
-          }
-
-          if (!isNaN(input)) {
-              return parseInt(input, 10);
-          }
-
-          input = locale.weekdaysParse(input);
-          if (typeof input === 'number') {
-              return input;
-          }
-
-          return null;
-      }
-
-      // LOCALES
-
-      var defaultLocaleWeekdays = 'Sunday_Monday_Tuesday_Wednesday_Thursday_Friday_Saturday'.split('_');
-      function localeWeekdays (m, format) {
-          return isArray(this._weekdays) ? this._weekdays[m.day()] :
-              this._weekdays[this._weekdays.isFormat.test(format) ? 'format' : 'standalone'][m.day()];
-      }
-
-      var defaultLocaleWeekdaysShort = 'Sun_Mon_Tue_Wed_Thu_Fri_Sat'.split('_');
-      function localeWeekdaysShort (m) {
-          return this._weekdaysShort[m.day()];
-      }
-
-      var defaultLocaleWeekdaysMin = 'Su_Mo_Tu_We_Th_Fr_Sa'.split('_');
-      function localeWeekdaysMin (m) {
-          return this._weekdaysMin[m.day()];
-      }
-
-      function day_of_week__handleStrictParse(weekdayName, format, strict) {
-          var i, ii, mom, llc = weekdayName.toLocaleLowerCase();
-          if (!this._weekdaysParse) {
-              this._weekdaysParse = [];
-              this._shortWeekdaysParse = [];
-              this._minWeekdaysParse = [];
-
-              for (i = 0; i < 7; ++i) {
-                  mom = create_utc__createUTC([2000, 1]).day(i);
-                  this._minWeekdaysParse[i] = this.weekdaysMin(mom, '').toLocaleLowerCase();
-                  this._shortWeekdaysParse[i] = this.weekdaysShort(mom, '').toLocaleLowerCase();
-                  this._weekdaysParse[i] = this.weekdays(mom, '').toLocaleLowerCase();
-              }
-          }
-
-          if (strict) {
-              if (format === 'dddd') {
-                  ii = indexOf.call(this._weekdaysParse, llc);
-                  return ii !== -1 ? ii : null;
-              } else if (format === 'ddd') {
-                  ii = indexOf.call(this._shortWeekdaysParse, llc);
-                  return ii !== -1 ? ii : null;
-              } else {
-                  ii = indexOf.call(this._minWeekdaysParse, llc);
-                  return ii !== -1 ? ii : null;
-              }
-          } else {
-              if (format === 'dddd') {
-                  ii = indexOf.call(this._weekdaysParse, llc);
-                  if (ii !== -1) {
-                      return ii;
-                  }
-                  ii = indexOf.call(this._shortWeekdaysParse, llc);
-                  if (ii !== -1) {
-                      return ii;
-                  }
-                  ii = indexOf.call(this._minWeekdaysParse, llc);
-                  return ii !== -1 ? ii : null;
-              } else if (format === 'ddd') {
-                  ii = indexOf.call(this._shortWeekdaysParse, llc);
-                  if (ii !== -1) {
-                      return ii;
-                  }
-                  ii = indexOf.call(this._weekdaysParse, llc);
-                  if (ii !== -1) {
-                      return ii;
-                  }
-                  ii = indexOf.call(this._minWeekdaysParse, llc);
-                  return ii !== -1 ? ii : null;
-              } else {
-                  ii = indexOf.call(this._minWeekdaysParse, llc);
-                  if (ii !== -1) {
-                      return ii;
-                  }
-                  ii = indexOf.call(this._weekdaysParse, llc);
-                  if (ii !== -1) {
-                      return ii;
-                  }
-                  ii = indexOf.call(this._shortWeekdaysParse, llc);
-                  return ii !== -1 ? ii : null;
-              }
-          }
-      }
-
-      function localeWeekdaysParse (weekdayName, format, strict) {
-          var i, mom, regex;
-
-          if (this._weekdaysParseExact) {
-              return day_of_week__handleStrictParse.call(this, weekdayName, format, strict);
-          }
-
-          if (!this._weekdaysParse) {
-              this._weekdaysParse = [];
-              this._minWeekdaysParse = [];
-              this._shortWeekdaysParse = [];
-              this._fullWeekdaysParse = [];
-          }
-
-          for (i = 0; i < 7; i++) {
-              // make the regex if we don't have it already
-
-              mom = create_utc__createUTC([2000, 1]).day(i);
-              if (strict && !this._fullWeekdaysParse[i]) {
-                  this._fullWeekdaysParse[i] = new RegExp('^' + this.weekdays(mom, '').replace('.', '\.?') + '$', 'i');
-                  this._shortWeekdaysParse[i] = new RegExp('^' + this.weekdaysShort(mom, '').replace('.', '\.?') + '$', 'i');
-                  this._minWeekdaysParse[i] = new RegExp('^' + this.weekdaysMin(mom, '').replace('.', '\.?') + '$', 'i');
-              }
-              if (!this._weekdaysParse[i]) {
-                  regex = '^' + this.weekdays(mom, '') + '|^' + this.weekdaysShort(mom, '') + '|^' + this.weekdaysMin(mom, '');
-                  this._weekdaysParse[i] = new RegExp(regex.replace('.', ''), 'i');
-              }
-              // test the regex
-              if (strict && format === 'dddd' && this._fullWeekdaysParse[i].test(weekdayName)) {
-                  return i;
-              } else if (strict && format === 'ddd' && this._shortWeekdaysParse[i].test(weekdayName)) {
-                  return i;
-              } else if (strict && format === 'dd' && this._minWeekdaysParse[i].test(weekdayName)) {
-                  return i;
-              } else if (!strict && this._weekdaysParse[i].test(weekdayName)) {
-                  return i;
-              }
-          }
-      }
-
-      // MOMENTS
-
-      function getSetDayOfWeek (input) {
-          if (!this.isValid()) {
-              return input != null ? this : NaN;
-          }
-          var day = this._isUTC ? this._d.getUTCDay() : this._d.getDay();
-          if (input != null) {
-              input = parseWeekday(input, this.localeData());
-              return this.add(input - day, 'd');
-          } else {
-              return day;
-          }
-      }
-
-      function getSetLocaleDayOfWeek (input) {
-          if (!this.isValid()) {
-              return input != null ? this : NaN;
-          }
-          var weekday = (this.day() + 7 - this.localeData()._week.dow) % 7;
-          return input == null ? weekday : this.add(input - weekday, 'd');
-      }
-
-      function getSetISODayOfWeek (input) {
-          if (!this.isValid()) {
-              return input != null ? this : NaN;
-          }
-          // behaves the same as moment#day except
-          // as a getter, returns 7 instead of 0 (1-7 range instead of 0-6)
-          // as a setter, sunday should belong to the previous week.
-          return input == null ? this.day() || 7 : this.day(this.day() % 7 ? input : input - 7);
-      }
-
-      var defaultWeekdaysRegex = matchWord;
-      function weekdaysRegex (isStrict) {
-          if (this._weekdaysParseExact) {
-              if (!hasOwnProp(this, '_weekdaysRegex')) {
-                  computeWeekdaysParse.call(this);
-              }
-              if (isStrict) {
-                  return this._weekdaysStrictRegex;
-              } else {
-                  return this._weekdaysRegex;
-              }
-          } else {
-              return this._weekdaysStrictRegex && isStrict ?
-                  this._weekdaysStrictRegex : this._weekdaysRegex;
-          }
-      }
-
-      var defaultWeekdaysShortRegex = matchWord;
-      function weekdaysShortRegex (isStrict) {
-          if (this._weekdaysParseExact) {
-              if (!hasOwnProp(this, '_weekdaysRegex')) {
-                  computeWeekdaysParse.call(this);
-              }
-              if (isStrict) {
-                  return this._weekdaysShortStrictRegex;
-              } else {
-                  return this._weekdaysShortRegex;
-              }
-          } else {
-              return this._weekdaysShortStrictRegex && isStrict ?
-                  this._weekdaysShortStrictRegex : this._weekdaysShortRegex;
-          }
-      }
-
-      var defaultWeekdaysMinRegex = matchWord;
-      function weekdaysMinRegex (isStrict) {
-          if (this._weekdaysParseExact) {
-              if (!hasOwnProp(this, '_weekdaysRegex')) {
-                  computeWeekdaysParse.call(this);
-              }
-              if (isStrict) {
-                  return this._weekdaysMinStrictRegex;
-              } else {
-                  return this._weekdaysMinRegex;
-              }
-          } else {
-              return this._weekdaysMinStrictRegex && isStrict ?
-                  this._weekdaysMinStrictRegex : this._weekdaysMinRegex;
-          }
-      }
-
-
-      function computeWeekdaysParse () {
-          function cmpLenRev(a, b) {
-              return b.length - a.length;
-          }
-
-          var minPieces = [], shortPieces = [], longPieces = [], mixedPieces = [],
-              i, mom, minp, shortp, longp;
-          for (i = 0; i < 7; i++) {
-              // make the regex if we don't have it already
-              mom = create_utc__createUTC([2000, 1]).day(i);
-              minp = this.weekdaysMin(mom, '');
-              shortp = this.weekdaysShort(mom, '');
-              longp = this.weekdays(mom, '');
-              minPieces.push(minp);
-              shortPieces.push(shortp);
-              longPieces.push(longp);
-              mixedPieces.push(minp);
-              mixedPieces.push(shortp);
-              mixedPieces.push(longp);
-          }
-          // Sorting makes sure if one weekday (or abbr) is a prefix of another it
-          // will match the longer piece.
-          minPieces.sort(cmpLenRev);
-          shortPieces.sort(cmpLenRev);
-          longPieces.sort(cmpLenRev);
-          mixedPieces.sort(cmpLenRev);
-          for (i = 0; i < 7; i++) {
-              shortPieces[i] = regexEscape(shortPieces[i]);
-              longPieces[i] = regexEscape(longPieces[i]);
-              mixedPieces[i] = regexEscape(mixedPieces[i]);
-          }
-
-          this._weekdaysRegex = new RegExp('^(' + mixedPieces.join('|') + ')', 'i');
-          this._weekdaysShortRegex = this._weekdaysRegex;
-          this._weekdaysMinRegex = this._weekdaysRegex;
-
-          this._weekdaysStrictRegex = new RegExp('^(' + longPieces.join('|') + ')', 'i');
-          this._weekdaysShortStrictRegex = new RegExp('^(' + shortPieces.join('|') + ')', 'i');
-          this._weekdaysMinStrictRegex = new RegExp('^(' + minPieces.join('|') + ')', 'i');
-      }
-
-      // FORMATTING
-
       addFormatToken('DDD', ['DDDD', 3], 'DDDo', 'dayOfYear');
 
       // ALIASES
 
       addUnitAlias('dayOfYear', 'DDD');
+
+      // PRIORITY
+      addUnitPriority('dayOfYear', 4);
 
       // PARSING
 
@@ -4588,136 +5000,15 @@ return /******/ (function(modules) { // webpackBootstrap
 
       // FORMATTING
 
-      function hFormat() {
-          return this.hours() % 12 || 12;
-      }
-
-      function kFormat() {
-          return this.hours() || 24;
-      }
-
-      addFormatToken('H', ['HH', 2], 0, 'hour');
-      addFormatToken('h', ['hh', 2], 0, hFormat);
-      addFormatToken('k', ['kk', 2], 0, kFormat);
-
-      addFormatToken('hmm', 0, 0, function () {
-          return '' + hFormat.apply(this) + zeroFill(this.minutes(), 2);
-      });
-
-      addFormatToken('hmmss', 0, 0, function () {
-          return '' + hFormat.apply(this) + zeroFill(this.minutes(), 2) +
-              zeroFill(this.seconds(), 2);
-      });
-
-      addFormatToken('Hmm', 0, 0, function () {
-          return '' + this.hours() + zeroFill(this.minutes(), 2);
-      });
-
-      addFormatToken('Hmmss', 0, 0, function () {
-          return '' + this.hours() + zeroFill(this.minutes(), 2) +
-              zeroFill(this.seconds(), 2);
-      });
-
-      function meridiem (token, lowercase) {
-          addFormatToken(token, 0, 0, function () {
-              return this.localeData().meridiem(this.hours(), this.minutes(), lowercase);
-          });
-      }
-
-      meridiem('a', true);
-      meridiem('A', false);
-
-      // ALIASES
-
-      addUnitAlias('hour', 'h');
-
-      // PARSING
-
-      function matchMeridiem (isStrict, locale) {
-          return locale._meridiemParse;
-      }
-
-      addRegexToken('a',  matchMeridiem);
-      addRegexToken('A',  matchMeridiem);
-      addRegexToken('H',  match1to2);
-      addRegexToken('h',  match1to2);
-      addRegexToken('HH', match1to2, match2);
-      addRegexToken('hh', match1to2, match2);
-
-      addRegexToken('hmm', match3to4);
-      addRegexToken('hmmss', match5to6);
-      addRegexToken('Hmm', match3to4);
-      addRegexToken('Hmmss', match5to6);
-
-      addParseToken(['H', 'HH'], HOUR);
-      addParseToken(['a', 'A'], function (input, array, config) {
-          config._isPm = config._locale.isPM(input);
-          config._meridiem = input;
-      });
-      addParseToken(['h', 'hh'], function (input, array, config) {
-          array[HOUR] = toInt(input);
-          getParsingFlags(config).bigHour = true;
-      });
-      addParseToken('hmm', function (input, array, config) {
-          var pos = input.length - 2;
-          array[HOUR] = toInt(input.substr(0, pos));
-          array[MINUTE] = toInt(input.substr(pos));
-          getParsingFlags(config).bigHour = true;
-      });
-      addParseToken('hmmss', function (input, array, config) {
-          var pos1 = input.length - 4;
-          var pos2 = input.length - 2;
-          array[HOUR] = toInt(input.substr(0, pos1));
-          array[MINUTE] = toInt(input.substr(pos1, 2));
-          array[SECOND] = toInt(input.substr(pos2));
-          getParsingFlags(config).bigHour = true;
-      });
-      addParseToken('Hmm', function (input, array, config) {
-          var pos = input.length - 2;
-          array[HOUR] = toInt(input.substr(0, pos));
-          array[MINUTE] = toInt(input.substr(pos));
-      });
-      addParseToken('Hmmss', function (input, array, config) {
-          var pos1 = input.length - 4;
-          var pos2 = input.length - 2;
-          array[HOUR] = toInt(input.substr(0, pos1));
-          array[MINUTE] = toInt(input.substr(pos1, 2));
-          array[SECOND] = toInt(input.substr(pos2));
-      });
-
-      // LOCALES
-
-      function localeIsPM (input) {
-          // IE8 Quirks Mode & IE7 Standards Mode do not allow accessing strings like arrays
-          // Using charAt should be more compatible.
-          return ((input + '').toLowerCase().charAt(0) === 'p');
-      }
-
-      var defaultLocaleMeridiemParse = /[ap]\.?m?\.?/i;
-      function localeMeridiem (hours, minutes, isLower) {
-          if (hours > 11) {
-              return isLower ? 'pm' : 'PM';
-          } else {
-              return isLower ? 'am' : 'AM';
-          }
-      }
-
-
-      // MOMENTS
-
-      // Setting the hour should keep the time, because the user explicitly
-      // specified which hour he wants. So trying to maintain the same hour (in
-      // a new timezone) makes sense. Adding/subtracting hours does not follow
-      // this rule.
-      var getSetHour = makeGetSet('Hours', true);
-
-      // FORMATTING
-
       addFormatToken('m', ['mm', 2], 0, 'minute');
 
       // ALIASES
 
       addUnitAlias('minute', 'm');
+
+      // PRIORITY
+
+      addUnitPriority('minute', 14);
 
       // PARSING
 
@@ -4736,6 +5027,10 @@ return /******/ (function(modules) { // webpackBootstrap
       // ALIASES
 
       addUnitAlias('second', 's');
+
+      // PRIORITY
+
+      addUnitPriority('second', 15);
 
       // PARSING
 
@@ -4781,6 +5076,10 @@ return /******/ (function(modules) { // webpackBootstrap
       // ALIASES
 
       addUnitAlias('millisecond', 'ms');
+
+      // PRIORITY
+
+      addUnitPriority('millisecond', 16);
 
       // PARSING
 
@@ -4831,7 +5130,7 @@ return /******/ (function(modules) { // webpackBootstrap
       momentPrototype__proto.fromNow           = fromNow;
       momentPrototype__proto.to                = to;
       momentPrototype__proto.toNow             = toNow;
-      momentPrototype__proto.get               = getSet;
+      momentPrototype__proto.get               = stringGet;
       momentPrototype__proto.invalidAt         = invalidAt;
       momentPrototype__proto.isAfter           = isAfter;
       momentPrototype__proto.isBefore          = isBefore;
@@ -4846,7 +5145,7 @@ return /******/ (function(modules) { // webpackBootstrap
       momentPrototype__proto.max               = prototypeMax;
       momentPrototype__proto.min               = prototypeMin;
       momentPrototype__proto.parsingFlags      = parsingFlags;
-      momentPrototype__proto.set               = getSet;
+      momentPrototype__proto.set               = stringSet;
       momentPrototype__proto.startOf           = startOf;
       momentPrototype__proto.subtract          = add_subtract__subtract;
       momentPrototype__proto.toArray           = toArray;
@@ -4906,7 +5205,6 @@ return /******/ (function(modules) { // webpackBootstrap
       momentPrototype__proto.parseZone            = setOffsetToParsedOffset;
       momentPrototype__proto.hasAlignedHourOffset = hasAlignedHourOffset;
       momentPrototype__proto.isDST                = isDaylightSavingTime;
-      momentPrototype__proto.isDSTShifted         = isDaylightSavingTimeShifted;
       momentPrototype__proto.isLocal              = isLocal;
       momentPrototype__proto.isUtcOffset          = isUtcOffset;
       momentPrototype__proto.isUtc                = isUtc;
@@ -4920,7 +5218,8 @@ return /******/ (function(modules) { // webpackBootstrap
       momentPrototype__proto.dates  = deprecate('dates accessor is deprecated. Use date instead.', getSetDayOfMonth);
       momentPrototype__proto.months = deprecate('months accessor is deprecated. Use month instead', getSetMonth);
       momentPrototype__proto.years  = deprecate('years accessor is deprecated. Use year instead', getSetYear);
-      momentPrototype__proto.zone   = deprecate('moment().zone is deprecated, use moment().utcOffset instead. https://github.com/moment/moment/issues/1779', getSetZone);
+      momentPrototype__proto.zone   = deprecate('moment().zone is deprecated, use moment().utcOffset instead. http://momentjs.com/guides/#/warnings/zone/', getSetZone);
+      momentPrototype__proto.isDSTShifted = deprecate('isDSTShifted is deprecated. See http://momentjs.com/guides/#/warnings/dst-shifted/ for more information', isDaylightSavingTimeShifted);
 
       var momentPrototype = momentPrototype__proto;
 
@@ -4932,143 +5231,46 @@ return /******/ (function(modules) { // webpackBootstrap
           return local__createLocal.apply(null, arguments).parseZone();
       }
 
-      var defaultCalendar = {
-          sameDay : '[Today at] LT',
-          nextDay : '[Tomorrow at] LT',
-          nextWeek : 'dddd [at] LT',
-          lastDay : '[Yesterday at] LT',
-          lastWeek : '[Last] dddd [at] LT',
-          sameElse : 'L'
-      };
-
-      function locale_calendar__calendar (key, mom, now) {
-          var output = this._calendar[key];
-          return isFunction(output) ? output.call(mom, now) : output;
-      }
-
-      var defaultLongDateFormat = {
-          LTS  : 'h:mm:ss A',
-          LT   : 'h:mm A',
-          L    : 'MM/DD/YYYY',
-          LL   : 'MMMM D, YYYY',
-          LLL  : 'MMMM D, YYYY h:mm A',
-          LLLL : 'dddd, MMMM D, YYYY h:mm A'
-      };
-
-      function longDateFormat (key) {
-          var format = this._longDateFormat[key],
-              formatUpper = this._longDateFormat[key.toUpperCase()];
-
-          if (format || !formatUpper) {
-              return format;
-          }
-
-          this._longDateFormat[key] = formatUpper.replace(/MMMM|MM|DD|dddd/g, function (val) {
-              return val.slice(1);
-          });
-
-          return this._longDateFormat[key];
-      }
-
-      var defaultInvalidDate = 'Invalid date';
-
-      function invalidDate () {
-          return this._invalidDate;
-      }
-
-      var defaultOrdinal = '%d';
-      var defaultOrdinalParse = /\d{1,2}/;
-
-      function ordinal (number) {
-          return this._ordinal.replace('%d', number);
-      }
-
       function preParsePostFormat (string) {
           return string;
       }
 
-      var defaultRelativeTime = {
-          future : 'in %s',
-          past   : '%s ago',
-          s  : 'a few seconds',
-          m  : 'a minute',
-          mm : '%d minutes',
-          h  : 'an hour',
-          hh : '%d hours',
-          d  : 'a day',
-          dd : '%d days',
-          M  : 'a month',
-          MM : '%d months',
-          y  : 'a year',
-          yy : '%d years'
-      };
-
-      function relative__relativeTime (number, withoutSuffix, string, isFuture) {
-          var output = this._relativeTime[string];
-          return (isFunction(output)) ?
-              output(number, withoutSuffix, string, isFuture) :
-              output.replace(/%d/i, number);
-      }
-
-      function pastFuture (diff, output) {
-          var format = this._relativeTime[diff > 0 ? 'future' : 'past'];
-          return isFunction(format) ? format(output) : format.replace(/%s/i, output);
-      }
-
       var prototype__proto = Locale.prototype;
 
-      prototype__proto._calendar       = defaultCalendar;
       prototype__proto.calendar        = locale_calendar__calendar;
-      prototype__proto._longDateFormat = defaultLongDateFormat;
       prototype__proto.longDateFormat  = longDateFormat;
-      prototype__proto._invalidDate    = defaultInvalidDate;
       prototype__proto.invalidDate     = invalidDate;
-      prototype__proto._ordinal        = defaultOrdinal;
       prototype__proto.ordinal         = ordinal;
-      prototype__proto._ordinalParse   = defaultOrdinalParse;
       prototype__proto.preparse        = preParsePostFormat;
       prototype__proto.postformat      = preParsePostFormat;
-      prototype__proto._relativeTime   = defaultRelativeTime;
       prototype__proto.relativeTime    = relative__relativeTime;
       prototype__proto.pastFuture      = pastFuture;
       prototype__proto.set             = locale_set__set;
 
       // Month
       prototype__proto.months            =        localeMonths;
-      prototype__proto._months           = defaultLocaleMonths;
       prototype__proto.monthsShort       =        localeMonthsShort;
-      prototype__proto._monthsShort      = defaultLocaleMonthsShort;
       prototype__proto.monthsParse       =        localeMonthsParse;
-      prototype__proto._monthsRegex      = defaultMonthsRegex;
       prototype__proto.monthsRegex       = monthsRegex;
-      prototype__proto._monthsShortRegex = defaultMonthsShortRegex;
       prototype__proto.monthsShortRegex  = monthsShortRegex;
 
       // Week
       prototype__proto.week = localeWeek;
-      prototype__proto._week = defaultLocaleWeek;
       prototype__proto.firstDayOfYear = localeFirstDayOfYear;
       prototype__proto.firstDayOfWeek = localeFirstDayOfWeek;
 
       // Day of Week
       prototype__proto.weekdays       =        localeWeekdays;
-      prototype__proto._weekdays      = defaultLocaleWeekdays;
       prototype__proto.weekdaysMin    =        localeWeekdaysMin;
-      prototype__proto._weekdaysMin   = defaultLocaleWeekdaysMin;
       prototype__proto.weekdaysShort  =        localeWeekdaysShort;
-      prototype__proto._weekdaysShort = defaultLocaleWeekdaysShort;
       prototype__proto.weekdaysParse  =        localeWeekdaysParse;
 
-      prototype__proto._weekdaysRegex      = defaultWeekdaysRegex;
       prototype__proto.weekdaysRegex       =        weekdaysRegex;
-      prototype__proto._weekdaysShortRegex = defaultWeekdaysShortRegex;
       prototype__proto.weekdaysShortRegex  =        weekdaysShortRegex;
-      prototype__proto._weekdaysMinRegex   = defaultWeekdaysMinRegex;
       prototype__proto.weekdaysMinRegex    =        weekdaysMinRegex;
 
       // Hours
       prototype__proto.isPM = localeIsPM;
-      prototype__proto._meridiemParse = defaultLocaleMeridiemParse;
       prototype__proto.meridiem = localeMeridiem;
 
       function lists__get (format, index, field, setter) {
@@ -5397,6 +5599,18 @@ return /******/ (function(modules) { // webpackBootstrap
           return substituteTimeAgo.apply(null, a);
       }
 
+      // This function allows you to set the rounding function for relative time strings
+      function duration_humanize__getSetRelativeTimeRounding (roundingFunction) {
+          if (roundingFunction === undefined) {
+              return round;
+          }
+          if (typeof(roundingFunction) === 'function') {
+              round = roundingFunction;
+              return true;
+          }
+          return false;
+      }
+
       // This function allows you to set a threshold for relative time strings
       function duration_humanize__getSetRelativeTimeThreshold (threshold, limit) {
           if (thresholds[threshold] === undefined) {
@@ -5529,7 +5743,7 @@ return /******/ (function(modules) { // webpackBootstrap
       // Side effect imports
 
 
-      utils_hooks__hooks.version = '2.13.0';
+      utils_hooks__hooks.version = '2.15.2';
 
       setHookCallback(local__createLocal);
 
@@ -5556,7 +5770,9 @@ return /******/ (function(modules) { // webpackBootstrap
       utils_hooks__hooks.locales               = locale_locales__listLocales;
       utils_hooks__hooks.weekdaysShort         = lists__listWeekdaysShort;
       utils_hooks__hooks.normalizeUnits        = normalizeUnits;
+      utils_hooks__hooks.relativeTimeRounding = duration_humanize__getSetRelativeTimeRounding;
       utils_hooks__hooks.relativeTimeThreshold = duration_humanize__getSetRelativeTimeThreshold;
+      utils_hooks__hooks.calendarFormat        = getCalendarFormat;
       utils_hooks__hooks.prototype             = momentPrototype;
 
       var _moment = utils_hooks__hooks;
@@ -5839,8 +6055,8 @@ return /******/ (function(modules) { // webpackBootstrap
 
   // bundled external libraries
   exports.moment = __webpack_require__(2);
-  exports.Hammer = __webpack_require__(20);
-  exports.keycharm = __webpack_require__(23);
+  exports.Hammer = __webpack_require__(22);
+  exports.keycharm = __webpack_require__(25);
 
 /***/ },
 /* 8 */
@@ -6006,6 +6222,7 @@ return /******/ (function(modules) { // webpackBootstrap
     point.setAttributeNS(null, "class", groupTemplate.className + " vis-point");
     //handle label
 
+
     if (labelObj) {
       var label = exports.getSVGElement('text', JSONcontainer, svgContainer);
       if (labelObj.xOffset) {
@@ -6060,7 +6277,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   'use strict';
 
-  var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
+  var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
 
   var util = __webpack_require__(1);
   var Queue = __webpack_require__(10);
@@ -6720,26 +6937,29 @@ return /******/ (function(modules) { // webpackBootstrap
    */
   DataSet.prototype.remove = function (id, senderId) {
     var removedIds = [],
+        removedItems = [],
+        ids = [],
         i,
         len,
-        removedId;
+        itemId,
+        item;
 
-    if (Array.isArray(id)) {
-      for (i = 0, len = id.length; i < len; i++) {
-        removedId = this._remove(id[i]);
-        if (removedId != null) {
-          removedIds.push(removedId);
+    // force everything to be an array for simplicity
+    ids = Array.isArray(id) ? id : [id];
+
+    for (i = 0, len = ids.length; i < len; i++) {
+      item = this._remove(ids[i]);
+      if (item) {
+        itemId = item[this._fieldId];
+        if (itemId) {
+          removedIds.push(itemId);
+          removedItems.push(item);
         }
-      }
-    } else {
-      removedId = this._remove(id);
-      if (removedId != null) {
-        removedIds.push(removedId);
       }
     }
 
     if (removedIds.length) {
-      this._trigger('remove', { items: removedIds }, senderId);
+      this._trigger('remove', { items: removedIds, oldData: removedItems }, senderId);
     }
 
     return removedIds;
@@ -6752,19 +6972,21 @@ return /******/ (function(modules) { // webpackBootstrap
    * @private
    */
   DataSet.prototype._remove = function (id) {
+    var item, ident;
+
+    // confirm the id to use based on the args type
     if (util.isNumber(id) || util.isString(id)) {
-      if (this._data[id]) {
-        delete this._data[id];
-        this.length--;
-        return id;
-      }
+      ident = id;
     } else if (id instanceof Object) {
-      var itemId = id[this._fieldId];
-      if (itemId !== undefined && this._data[itemId]) {
-        delete this._data[itemId];
-        this.length--;
-        return itemId;
-      }
+      ident = id[this._fieldId]; // look for the identifier field using _fieldId
+    }
+
+    // do the remove if the item is found
+    if (ident !== undefined && this._data[ident]) {
+      item = this._data[ident];
+      delete this._data[ident];
+      this.length--;
+      return item;
     }
     return null;
   };
@@ -6775,12 +6997,18 @@ return /******/ (function(modules) { // webpackBootstrap
    * @return {Array} removedIds    The ids of all removed items
    */
   DataSet.prototype.clear = function (senderId) {
+    var i, len;
     var ids = Object.keys(this._data);
+    var items = [];
+
+    for (i = 0, len = ids.length; i < len; i++) {
+      items.push(this._data[ids[i]]);
+    }
 
     this._data = {};
     this.length = 0;
 
-    this._trigger('remove', { items: ids }, senderId);
+    this._trigger('remove', { items: ids, oldData: items }, senderId);
 
     return ids;
   };
@@ -7231,7 +7459,7 @@ return /******/ (function(modules) { // webpackBootstrap
    * @param {DataSet | DataView} data
    */
   DataView.prototype.setData = function (data) {
-    var ids, id, i, len;
+    var ids, id, i, len, items;
 
     if (this._data) {
       // unsubscribe from current dataset
@@ -7240,10 +7468,16 @@ return /******/ (function(modules) { // webpackBootstrap
       }
 
       // trigger a remove of all items in memory
-      ids = Object.keys(this._ids);
+      ids = this._data.getIds({ filter: this._options && this._options.filter });
+      items = [];
+
+      for (i = 0, len = ids.length; i < len; i++) {
+        items.push(this._data._data[ids[i]]);
+      }
+
       this._ids = {};
       this.length = 0;
-      this._trigger('remove', { items: ids });
+      this._trigger('remove', { items: ids, oldData: items });
     }
 
     this._data = data;
@@ -7274,18 +7508,19 @@ return /******/ (function(modules) { // webpackBootstrap
    */
   DataView.prototype.refresh = function () {
     var id, i, len;
-    var ids = this._data.getIds({ filter: this._options && this._options.filter });
-    var oldIds = Object.keys(this._ids);
-    var newIds = {};
-    var added = [];
-    var removed = [];
+    var ids = this._data.getIds({ filter: this._options && this._options.filter }),
+        oldIds = Object.keys(this._ids),
+        newIds = {},
+        addedIds = [],
+        removedIds = [],
+        removedItems = [];
 
     // check for additions
     for (i = 0, len = ids.length; i < len; i++) {
       id = ids[i];
       newIds[id] = true;
       if (!this._ids[id]) {
-        added.push(id);
+        addedIds.push(id);
         this._ids[id] = true;
       }
     }
@@ -7294,19 +7529,20 @@ return /******/ (function(modules) { // webpackBootstrap
     for (i = 0, len = oldIds.length; i < len; i++) {
       id = oldIds[i];
       if (!newIds[id]) {
-        removed.push(id);
+        removedIds.push(id);
+        removedItems.push(this._data[id]);
         delete this._ids[id];
       }
     }
 
-    this.length += added.length - removed.length;
+    this.length += addedIds.length - removedIds.length;
 
     // trigger events
-    if (added.length) {
-      this._trigger('add', { items: added });
+    if (addedIds.length) {
+      this._trigger('add', { items: addedIds });
     }
-    if (removed.length) {
-      this._trigger('remove', { items: removed });
+    if (removedIds.length) {
+      this._trigger('remove', { items: removedIds, oldData: removedItems });
     }
   };
 
@@ -7485,13 +7721,14 @@ return /******/ (function(modules) { // webpackBootstrap
   DataView.prototype._onEvent = function (event, params, senderId) {
     var i, len, id, item;
     var ids = params && params.items;
-    var data = this._data;
-    var updatedData = [];
-    var added = [];
-    var updated = [];
-    var removed = [];
+    var addedIds = [],
+        updatedIds = [],
+        removedIds = [],
+        oldItems = [],
+        updatedItems = [],
+        removedItems = [];
 
-    if (ids && data) {
+    if (ids && this._data) {
       switch (event) {
         case 'add':
           // filter the ids of the added items
@@ -7500,7 +7737,7 @@ return /******/ (function(modules) { // webpackBootstrap
             item = this.get(id);
             if (item) {
               this._ids[id] = true;
-              added.push(id);
+              addedIds.push(id);
             }
           }
 
@@ -7515,16 +7752,18 @@ return /******/ (function(modules) { // webpackBootstrap
 
             if (item) {
               if (this._ids[id]) {
-                updated.push(id);
-                updatedData.push(params.data[i]);
+                updatedIds.push(id);
+                updatedItems.push(params.data[i]);
+                oldItems.push(params.oldData[i]);
               } else {
                 this._ids[id] = true;
-                added.push(id);
+                addedIds.push(id);
               }
             } else {
               if (this._ids[id]) {
                 delete this._ids[id];
-                removed.push(id);
+                removedIds.push(id);
+                removedItems.push(params.oldData[i]);
               } else {
                 // nothing interesting for me :-(
               }
@@ -7539,23 +7778,24 @@ return /******/ (function(modules) { // webpackBootstrap
             id = ids[i];
             if (this._ids[id]) {
               delete this._ids[id];
-              removed.push(id);
+              removedIds.push(id);
+              removedItems.push(params.oldData[i]);
             }
           }
 
           break;
       }
 
-      this.length += added.length - removed.length;
+      this.length += addedIds.length - removedIds.length;
 
-      if (added.length) {
-        this._trigger('add', { items: added }, senderId);
+      if (addedIds.length) {
+        this._trigger('add', { items: addedIds }, senderId);
       }
-      if (updated.length) {
-        this._trigger('update', { items: updated, data: updatedData }, senderId);
+      if (updatedIds.length) {
+        this._trigger('update', { items: updatedIds, oldData: oldItems, data: updatedItems }, senderId);
       }
-      if (removed.length) {
-        this._trigger('remove', { items: removed }, senderId);
+      if (removedIds.length) {
+        this._trigger('remove', { items: removedIds, oldData: removedItems }, senderId);
       }
     }
   };
@@ -7577,10 +7817,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   'use strict';
 
-  var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
-
-  var Emitter = __webpack_require__(13);
-  var DataSet = __webpack_require__(9);
+  var Emitter = __webpack_require__(13);var DataSet = __webpack_require__(9);
   var DataView = __webpack_require__(11);
   var util = __webpack_require__(1);
   var Point3d = __webpack_require__(14);
@@ -7589,6 +7826,100 @@ return /******/ (function(modules) { // webpackBootstrap
   var Filter = __webpack_require__(17);
   var Slider = __webpack_require__(18);
   var StepNumber = __webpack_require__(19);
+  var Range = __webpack_require__(20);
+  var Settings = __webpack_require__(21);
+
+  /// enumerate the available styles
+  Graph3d.STYLE = Settings.STYLE;
+
+  /**
+   * Following label is used in the settings to describe values which should be
+   * determined by the code while running, from the current data and graph style.
+   * 
+   * Using 'undefined' directly achieves the same thing, but this is more
+   * descriptive by describing the intent.
+   */
+  var autoByDefault = undefined;
+
+  /**
+   * Default values for option settings.
+   *
+   * These are the values used when a Graph3d instance is initialized without
+   * custom settings.
+   *
+   * If a field is not in this list, a default value of 'autoByDefault' is assumed,
+   * which is just an alias for 'undefined'.
+   */
+  var DEFAULTS = {
+    width: '400px',
+    height: '400px',
+    filterLabel: 'time',
+    legendLabel: 'value',
+    xLabel: 'x',
+    yLabel: 'y',
+    zLabel: 'z',
+    xValueLabel: function xValueLabel(v) {
+      return v;
+    },
+    yValueLabel: function yValueLabel(v) {
+      return v;
+    },
+    zValueLabel: function zValueLabel(v) {
+      return v;
+    },
+    showGrid: true,
+    showPerspective: true,
+    showShadow: false,
+    keepAspectRatio: true,
+    verticalRatio: 0.5, // 0.1 to 1.0, where 1.0 results in a 'cube'
+    dotSizeRatio: 0.02, // size of the dots as a fraction of the graph width
+
+    showAnimationControls: autoByDefault,
+    animationInterval: 1000, // milliseconds
+    animationPreload: false,
+    animationAutoStart: autoByDefault,
+
+    axisColor: '#4D4D4D',
+    gridColor: '#D3D3D3',
+    xCenter: '55%',
+    yCenter: '50%',
+
+    style: Graph3d.STYLE.DOT,
+    tooltip: false,
+    showLegend: autoByDefault, // determined by graph style
+    backgroundColor: autoByDefault,
+
+    dataColor: {
+      fill: '#7DC1FF',
+      stroke: '#3267D2',
+      strokeWidth: 1 // px
+    },
+
+    cameraPosition: {
+      horizontal: 1.0,
+      vertical: 0.5,
+      distance: 1.7
+    },
+
+    xBarWidth: autoByDefault,
+    yBarWidth: autoByDefault,
+    valueMin: autoByDefault,
+    valueMax: autoByDefault,
+    xMin: autoByDefault,
+    xMax: autoByDefault,
+    xStep: autoByDefault,
+    yMin: autoByDefault,
+    yMax: autoByDefault,
+    yStep: autoByDefault,
+    zMin: autoByDefault,
+    zMax: autoByDefault,
+    zStep: autoByDefault
+  };
+
+  // -----------------------------------------------------------------------------
+  // Class Graph3d
+  // -----------------------------------------------------------------------------
+
 
   /**
    * @constructor Graph3d
@@ -7608,45 +7939,14 @@ return /******/ (function(modules) { // webpackBootstrap
 
     // create variables and set default values
     this.containerElement = container;
-    this.width = '400px';
-    this.height = '400px';
-    this.margin = 10; // px
-    this.defaultXCenter = '55%';
-    this.defaultYCenter = '50%';
-
-    this.xLabel = 'x';
-    this.yLabel = 'y';
-    this.zLabel = 'z';
-
-    var passValueFn = function passValueFn(v) {
-      return v;
-    };
-    this.xValueLabel = passValueFn;
-    this.yValueLabel = passValueFn;
-    this.zValueLabel = passValueFn;
-
-    this.filterLabel = 'time';
-    this.legendLabel = 'value';
-
-    this.style = Graph3d.STYLE.DOT;
-    this.showPerspective = true;
-    this.showGrid = true;
-    this.keepAspectRatio = true;
-    this.showShadow = false;
-    this.showGrayBottom = false; // TODO: this does not work correctly
-    this.showTooltip = false;
-    this.verticalRatio = 0.5; // 0.1 to 1.0, where 1.0 results in a 'cube'
-
-    this.animationInterval = 1000; // milliseconds
-    this.animationPreload = false;
-
-    this.camera = new Camera();
-    this.camera.setArmRotation(1.0, 0.5);
-    this.camera.setArmLength(1.7);
-    this.eye = new Point3d(0, 0, -1); // TODO: set eye.z about 3/4 of the width of the window?
 
     this.dataTable = null; // The original data table
     this.dataPoints = null; // The table with point objects
+
+    // create a frame and canvas
+    this.create();
+
+    Settings.setDefaults(DEFAULTS, this);
 
     // the column indexes
     this.colX = undefined;
@@ -7655,34 +7955,7 @@ return /******/ (function(modules) { // webpackBootstrap
     this.colValue = undefined;
     this.colFilter = undefined;
 
-    this.xMin = 0;
-    this.xStep = undefined; // auto by default
-    this.xMax = 1;
-    this.yMin = 0;
-    this.yStep = undefined; // auto by default
-    this.yMax = 1;
-    this.zMin = 0;
-    this.zStep = undefined; // auto by default
-    this.zMax = 1;
-    this.valueMin = 0;
-    this.valueMax = 1;
-    this.xBarWidth = 1;
-    this.yBarWidth = 1;
     // TODO: customize axis range
-
-    // colors
-    this.axisColor = '#4D4D4D';
-    this.gridColor = '#D3D3D3';
-    this.dataColor = {
-      fill: '#7DC1FF',
-      stroke: '#3267D2',
-      strokeWidth: 1 // px
-    };
-
-    this.dotSizeRatio = 0.02; // size of the dots as a fraction of the graph width
-
-    // create a frame and canvas
-    this.create();
 
     // apply options (also when undefined)
     this.setOptions(options);
@@ -7700,7 +7973,7 @@ return /******/ (function(modules) { // webpackBootstrap
    * Calculate the scaling values, dependent on the range in x, y, and z direction
    */
   Graph3d.prototype._setScale = function () {
-    this.scale = new Point3d(1 / (this.xMax - this.xMin), 1 / (this.yMax - this.yMin), 1 / (this.zMax - this.zMin));
+    this.scale = new Point3d(1 / this.xRange.range(), 1 / this.yRange.range(), 1 / this.zRange.range());
 
     // keep aspect ration between x and y scale if desired
     if (this.keepAspectRatio) {
@@ -7718,20 +7991,23 @@ return /******/ (function(modules) { // webpackBootstrap
     // TODO: can this be automated? verticalRatio?
 
     // determine scale for (optional) value
-    this.scale.value = 1 / (this.valueMax - this.valueMin);
+    if (this.valueRange !== undefined) {
+      this.scale.value = 1 / this.valueRange.range();
+    }
 
     // position the camera arm
-    var xCenter = (this.xMax + this.xMin) / 2 * this.scale.x;
-    var yCenter = (this.yMax + this.yMin) / 2 * this.scale.y;
-    var zCenter = (this.zMax + this.zMin) / 2 * this.scale.z;
+    var xCenter = this.xRange.center() * this.scale.x;
+    var yCenter = this.yRange.center() * this.scale.y;
+    var zCenter = this.zRange.center() * this.scale.z;
     this.camera.setArmLocation(xCenter, yCenter, zCenter);
   };
 
   /**
    * Convert a 3D location to a 2D location on screen
-   * http://en.wikipedia.org/wiki/3D_projection
-   * @param {Point3d} point3d   A 3D point with parameters x, y, z
-   * @return {Point2d} point2d  A 2D point with parameters x, y
+   * Source: ttp://en.wikipedia.org/wiki/3D_projection
+   *
+   * @param   {Point3d} point3d  A 3D point with parameters x, y, z
+   * @returns {Point2d} point2d  A 2D point with parameters x, y
    */
   Graph3d.prototype._convert3Dto2D = function (point3d) {
     var translation = this._convertPointToTranslation(point3d);
@@ -7740,28 +8016,31 @@ return /******/ (function(modules) { // webpackBootstrap
 
   /**
    * Convert a 3D location its translation seen from the camera
-   * http://en.wikipedia.org/wiki/3D_projection
-   * @param {Point3d} point3d    A 3D point with parameters x, y, z
-   * @return {Point3d} translation A 3D point with parameters x, y, z This is
-   *                   the translation of the point, seen from the
-   *                   camera
+   * Source: http://en.wikipedia.org/wiki/3D_projection
+   *
+   * @param   {Point3d} point3d     A 3D point with parameters x, y, z
+   * @returns {Point3d} translation A 3D point with parameters x, y, z This is
+   *                                the translation of the point, seen from the
+   *                                camera.
    */
   Graph3d.prototype._convertPointToTranslation = function (point3d) {
-    var ax = point3d.x * this.scale.x,
+    var cameraLocation = this.camera.getCameraLocation(),
+        cameraRotation = this.camera.getCameraRotation(),
+        ax = point3d.x * this.scale.x,
         ay = point3d.y * this.scale.y,
         az = point3d.z * this.scale.z,
-        cx = this.camera.getCameraLocation().x,
-        cy = this.camera.getCameraLocation().y,
-        cz = this.camera.getCameraLocation().z,
+        cx = cameraLocation.x,
+        cy = cameraLocation.y,
+        cz = cameraLocation.z,
 
 
     // calculate angles
-    sinTx = Math.sin(this.camera.getCameraRotation().x),
-        cosTx = Math.cos(this.camera.getCameraRotation().x),
-        sinTy = Math.sin(this.camera.getCameraRotation().y),
-        cosTy = Math.cos(this.camera.getCameraRotation().y),
-        sinTz = Math.sin(this.camera.getCameraRotation().z),
-        cosTz = Math.cos(this.camera.getCameraRotation().z),
+    sinTx = Math.sin(cameraRotation.x),
+        cosTx = Math.cos(cameraRotation.x),
+        sinTy = Math.sin(cameraRotation.y),
+        cosTy = Math.cos(cameraRotation.y),
+        sinTz = Math.sin(cameraRotation.z),
+        cosTz = Math.cos(cameraRotation.z),
 
 
     // calculate translation
@@ -7774,10 +8053,11 @@ return /******/ (function(modules) { // webpackBootstrap
 
   /**
    * Convert a translation point to a point on the screen
-   * @param {Point3d} translation   A 3D point with parameters x, y, z This is
-   *                    the translation of the point, seen from the
-   *                    camera
-   * @return {Point2d} point2d    A 2D point with parameters x, y
+   *
+   * @param   {Point3d} translation A 3D point with parameters x, y, z This is
+   *                                the translation of the point, seen from the
+   *                                camera.
+   * @returns {Point2d} point2d     A 2D point with parameters x, y
    */
   Graph3d.prototype._convertTranslationToScreen = function (translation) {
     var ex = this.eye.x,
@@ -7800,114 +8080,36 @@ return /******/ (function(modules) { // webpackBootstrap
 
     // shift and scale the point to the center of the screen
     // use the width of the graph to scale both horizontally and vertically.
-    return new Point2d(this.xcenter + bx * this.frame.canvas.clientWidth, this.ycenter - by * this.frame.canvas.clientWidth);
+    return new Point2d(this.currentXCenter + bx * this.frame.canvas.clientWidth, this.currentYCenter - by * this.frame.canvas.clientWidth);
   };
 
   /**
-   * Set the background styling for the graph
-   * @param {string | {fill: string, stroke: string, strokeWidth: string}} backgroundColor
+   * Calculate the translations and screen positions of all points
    */
-  Graph3d.prototype._setBackgroundColor = function (backgroundColor) {
-    var fill = 'white';
-    var stroke = 'gray';
-    var strokeWidth = 1;
-
-    if (typeof backgroundColor === 'string') {
-      fill = backgroundColor;
-      stroke = 'none';
-      strokeWidth = 0;
-    } else if ((typeof backgroundColor === 'undefined' ? 'undefined' : _typeof(backgroundColor)) === 'object') {
-      if (backgroundColor.fill !== undefined) fill = backgroundColor.fill;
-      if (backgroundColor.stroke !== undefined) stroke = backgroundColor.stroke;
-      if (backgroundColor.strokeWidth !== undefined) strokeWidth = backgroundColor.strokeWidth;
-    } else if (backgroundColor === undefined) {
-      // use use defaults
-    } else {
-        throw 'Unsupported type of backgroundColor';
-      }
-
-    this.frame.style.backgroundColor = fill;
-    this.frame.style.borderColor = stroke;
-    this.frame.style.borderWidth = strokeWidth + 'px';
-    this.frame.style.borderStyle = 'solid';
-  };
-
-  /// enumerate the available styles
-  Graph3d.STYLE = {
-    BAR: 0,
-    BARCOLOR: 1,
-    BARSIZE: 2,
-    DOT: 3,
-    DOTLINE: 4,
-    DOTCOLOR: 5,
-    DOTSIZE: 6,
-    GRID: 7,
-    LINE: 8,
-    SURFACE: 9
-  };
-
-  /**
-   * Retrieve the style index from given styleName
-   * @param {string} styleName  Style name such as 'dot', 'grid', 'dot-line'
-   * @return {Number} styleNumber Enumeration value representing the style, or -1
-   *                when not found
-   */
-  Graph3d.prototype._getStyleNumber = function (styleName) {
-    switch (styleName) {
-      case 'dot':
-        return Graph3d.STYLE.DOT;
-      case 'dot-line':
-        return Graph3d.STYLE.DOTLINE;
-      case 'dot-color':
-        return Graph3d.STYLE.DOTCOLOR;
-      case 'dot-size':
-        return Graph3d.STYLE.DOTSIZE;
-      case 'line':
-        return Graph3d.STYLE.LINE;
-      case 'grid':
-        return Graph3d.STYLE.GRID;
-      case 'surface':
-        return Graph3d.STYLE.SURFACE;
-      case 'bar':
-        return Graph3d.STYLE.BAR;
-      case 'bar-color':
-        return Graph3d.STYLE.BARCOLOR;
-      case 'bar-size':
-        return Graph3d.STYLE.BARSIZE;
+  Graph3d.prototype._calcTranslations = function (points, sort) {
+    if (sort === undefined) {
+      sort = true;
     }
 
-    return -1;
-  };
+    for (var i = 0; i < points.length; i++) {
+      var point = points[i];
+      point.trans = this._convertPointToTranslation(point.point);
+      point.screen = this._convertTranslationToScreen(point.trans);
 
-  /**
-   * Determine the indexes of the data columns, based on the given style and data
-   * @param {DataSet} data
-   * @param {Number}  style
-   */
-  Graph3d.prototype._determineColumnIndexes = function (data, style) {
-    if (this.style === Graph3d.STYLE.DOT || this.style === Graph3d.STYLE.DOTLINE || this.style === Graph3d.STYLE.LINE || this.style === Graph3d.STYLE.GRID || this.style === Graph3d.STYLE.SURFACE || this.style === Graph3d.STYLE.BAR) {
-      // 3 columns expected, and optionally a 4th with filter values
-      this.colX = 0;
-      this.colY = 1;
-      this.colZ = 2;
-      this.colValue = undefined;
-
-      if (data.getNumberOfColumns() > 3) {
-        this.colFilter = 3;
-      }
-    } else if (this.style === Graph3d.STYLE.DOTCOLOR || this.style === Graph3d.STYLE.DOTSIZE || this.style === Graph3d.STYLE.BARCOLOR || this.style === Graph3d.STYLE.BARSIZE) {
-      // 4 columns expected, and optionally a 5th with filter values
-      this.colX = 0;
-      this.colY = 1;
-      this.colZ = 2;
-      this.colValue = 3;
-
-      if (data.getNumberOfColumns() > 4) {
-        this.colFilter = 4;
-      }
-    } else {
-      throw 'Unknown style "' + this.style + '"';
+      // calculate the translation of the point at the bottom (needed for sorting)
+      var transBottom = this._convertPointToTranslation(point.bottom);
+      point.dist = this.showPerspective ? transBottom.length() : -transBottom.z;
     }
+
+    if (!sort) {
+      return;
+    }
+
+    // sort the points on depth of their (x,y) position (not on z)
+    var sortDepth = function sortDepth(a, b) {
+      return b.dist - a.dist;
+    };
+    points.sort(sortDepth);
   };
 
   Graph3d.prototype.getNumberOfRows = function (data) {
@@ -7934,24 +8136,78 @@ return /******/ (function(modules) { // webpackBootstrap
     return distinctValues;
   };
 
+  /**
+   * Get the absolute min/max values for the passed data column.
+   *
+   * @returns {Range} A Range instance with min/max members properly set.
+   */
   Graph3d.prototype.getColumnRange = function (data, column) {
-    var minMax = { min: data[0][column], max: data[0][column] };
+    var range = new Range();
+
+    // Adjust the range so that it covers all values in the passed data elements.
     for (var i = 0; i < data.length; i++) {
-      if (minMax.min > data[i][column]) {
-        minMax.min = data[i][column];
-      }
-      if (minMax.max < data[i][column]) {
-        minMax.max = data[i][column];
-      }
+      var item = data[i][column];
+      range.adjust(item);
     }
-    return minMax;
+
+    return range;
+  };
+
+  /**
+   * Check if the state is consistent for the use of the value field.
+   *
+   * Throws if a problem is detected.
+   */
+  Graph3d.prototype._checkValueField = function (data) {
+
+    var hasValueField = this.style === Graph3d.STYLE.BARCOLOR || this.style === Graph3d.STYLE.BARSIZE || this.style === Graph3d.STYLE.DOTCOLOR || this.style === Graph3d.STYLE.DOTSIZE;
+
+    if (!hasValueField) {
+      return; // No need to check further
+    }
+
+    // Following field must be present for the current graph style
+    if (this.colValue === undefined) {
+      throw new Error('Expected data to have ' + ' field \'style\' ' + ' for graph style \'' + this.style + '\'');
+    }
+
+    // The data must also contain this field.
+    // Note that only first data element is checked.
+    if (data[0][this.colValue] === undefined) {
+      throw new Error('Expected data to have ' + ' field \'' + this.colValue + '\' ' + ' for graph style \'' + this.style + '\'');
+    }
+  };
+
+  /**
+   * Set default values for range
+   *
+   * The default values override the range values, if defined.
+   *
+   * Because it's possible that only defaultMin or defaultMax is set, it's better
+   * to pass in a range already set with the min/max set from the data. Otherwise,
+   * it's quite hard to process the min/max properly.
+   */
+  Graph3d.prototype._setRangeDefaults = function (range, defaultMin, defaultMax) {
+    if (defaultMin !== undefined) {
+      range.min = defaultMin;
+    }
+
+    if (defaultMax !== undefined) {
+      range.max = defaultMax;
+    }
+
+    // This is the original way that the default min/max values were adjusted.
+    // TODO: Perhaps it's better if an error is thrown if the values do not agree.
+    //       But this will change the behaviour.
+    if (range.max <= range.min) range.max = range.min + 1;
   };
 
   /**
    * Initialize the data from the data table. Calculate minimum and maximum values
    * and column index values
-   * @param {Array | DataSet | DataView} rawData   The data containing the items for the Graph.
-   * @param {Number}     style   Style Number
+   * @param {Array | DataSet | DataView} rawData The data containing the items for
+   *                                             the Graph.
+   * @param {Number}                     style   Style Number
    */
   Graph3d.prototype._dataInitialize = function (rawData, style) {
     var me = this;
@@ -7985,28 +8241,10 @@ return /******/ (function(modules) { // webpackBootstrap
     };
     this.dataSet.on('*', this._onChange);
 
-    // _determineColumnIndexes
-    // getNumberOfRows (points)
-    // getNumberOfColumns (x,y,z,v,t,t1,t2...)
-    // getDistinctValues (unique values?)
-    // getColumnRange
-
     // determine the location of x,y,z,value,filter columns
     this.colX = 'x';
     this.colY = 'y';
     this.colZ = 'z';
-    this.colValue = 'style';
-    this.colFilter = 'filter';
-
-    // check if a filter column is provided
-    if (data[0].hasOwnProperty('filter')) {
-      if (this.dataFilter === undefined) {
-        this.dataFilter = new Filter(rawData, this.colFilter, this);
-        this.dataFilter.setOnLoadCallback(function () {
-          me.redraw();
-        });
-      }
-    }
 
     var withBars = this.style == Graph3d.STYLE.BAR || this.style == Graph3d.STYLE.BARCOLOR || this.style == Graph3d.STYLE.BARSIZE;
 
@@ -8028,37 +8266,48 @@ return /******/ (function(modules) { // webpackBootstrap
     }
 
     // calculate minimums and maximums
+    var NUMSTEPS = 5;
+
     var xRange = this.getColumnRange(data, this.colX);
     if (withBars) {
-      xRange.min -= this.xBarWidth / 2;
-      xRange.max += this.xBarWidth / 2;
+      xRange.expand(this.xBarWidth / 2);
     }
-    this.xMin = this.defaultXMin !== undefined ? this.defaultXMin : xRange.min;
-    this.xMax = this.defaultXMax !== undefined ? this.defaultXMax : xRange.max;
-    if (this.xMax <= this.xMin) this.xMax = this.xMin + 1;
-    this.xStep = this.defaultXStep !== undefined ? this.defaultXStep : (this.xMax - this.xMin) / 5;
+    this._setRangeDefaults(xRange, this.defaultXMin, this.defaultXMax);
+    this.xRange = xRange;
+    this.xStep = this.defaultXStep !== undefined ? this.defaultXStep : xRange.range() / NUMSTEPS;
 
     var yRange = this.getColumnRange(data, this.colY);
     if (withBars) {
-      yRange.min -= this.yBarWidth / 2;
-      yRange.max += this.yBarWidth / 2;
+      yRange.expand(this.yBarWidth / 2);
     }
-    this.yMin = this.defaultYMin !== undefined ? this.defaultYMin : yRange.min;
-    this.yMax = this.defaultYMax !== undefined ? this.defaultYMax : yRange.max;
-    if (this.yMax <= this.yMin) this.yMax = this.yMin + 1;
-    this.yStep = this.defaultYStep !== undefined ? this.defaultYStep : (this.yMax - this.yMin) / 5;
+    this._setRangeDefaults(yRange, this.defaultYMin, this.defaultYMax);
+    this.yRange = yRange;
+    this.yStep = this.defaultYStep !== undefined ? this.defaultYStep : yRange.range() / NUMSTEPS;
 
     var zRange = this.getColumnRange(data, this.colZ);
-    this.zMin = this.defaultZMin !== undefined ? this.defaultZMin : zRange.min;
-    this.zMax = this.defaultZMax !== undefined ? this.defaultZMax : zRange.max;
-    if (this.zMax <= this.zMin) this.zMax = this.zMin + 1;
-    this.zStep = this.defaultZStep !== undefined ? this.defaultZStep : (this.zMax - this.zMin) / 5;
+    this._setRangeDefaults(zRange, this.defaultZMin, this.defaultZMax);
+    this.zRange = zRange;
+    this.zStep = this.defaultZStep !== undefined ? this.defaultZStep : zRange.range() / NUMSTEPS;
 
-    if (this.colValue !== undefined) {
+    if (data[0].hasOwnProperty('style')) {
+      this.colValue = 'style';
       var valueRange = this.getColumnRange(data, this.colValue);
-      this.valueMin = this.defaultValueMin !== undefined ? this.defaultValueMin : valueRange.min;
-      this.valueMax = this.defaultValueMax !== undefined ? this.defaultValueMax : valueRange.max;
-      if (this.valueMax <= this.valueMin) this.valueMax = this.valueMin + 1;
+      this._setRangeDefaults(valueRange, this.defaultValueMin, this.defaultValueMax);
+      this.valueRange = valueRange;
+    }
+
+    // check if a filter column is provided
+    // Needs to be started after zRange is defined
+    if (data[0].hasOwnProperty('filter')) {
+      // Only set this field if it's actually present
+      this.colFilter = 'filter';
+
+      if (this.dataFilter === undefined) {
+        this.dataFilter = new Filter(rawData, this.colFilter, this);
+        this.dataFilter.setOnLoadCallback(function () {
+          me.redraw();
+        });
+      }
     }
 
     // set the scale dependent on the ranges.
@@ -8067,11 +8316,14 @@ return /******/ (function(modules) { // webpackBootstrap
 
   /**
    * Filter the data based on the current filter
-   * @param {Array} data
-   * @return {Array} dataPoints   Array with point objects which can be drawn on screen
+   *
+   * @param   {Array} data
+   * @returns {Array} dataPoints Array with point objects which can be drawn on
+   *                             screen
    */
   Graph3d.prototype._getDataPoints = function (data) {
-    // TODO: store the created matrix dataPoints in the filters instead of reloading each time
+    // TODO: store the created matrix dataPoints in the filters instead of
+    //       reloading each time.
     var x, y, i, z, obj, point;
 
     var dataPoints = [];
@@ -8108,7 +8360,8 @@ return /******/ (function(modules) { // webpackBootstrap
         y = data[i][this.colY] || 0;
         z = data[i][this.colZ] || 0;
 
-        var xIndex = dataX.indexOf(x); // TODO: implement Array().indexOf() for Internet Explorer
+        // TODO: implement Array().indexOf() for Internet Explorer
+        var xIndex = dataX.indexOf(x);
         var yIndex = dataY.indexOf(y);
 
         if (dataMatrix[xIndex] === undefined) {
@@ -8119,12 +8372,13 @@ return /******/ (function(modules) { // webpackBootstrap
         point3d.x = x;
         point3d.y = y;
         point3d.z = z;
+        point3d.data = data[i];
 
         obj = {};
         obj.point = point3d;
         obj.trans = undefined;
         obj.screen = undefined;
-        obj.bottom = new Point3d(x, y, this.zMin);
+        obj.bottom = new Point3d(x, y, this.zRange.min);
 
         dataMatrix[xIndex][yIndex] = obj;
 
@@ -8143,12 +8397,15 @@ return /******/ (function(modules) { // webpackBootstrap
       }
     } else {
       // 'dot', 'dot-line', etc.
+      this._checkValueField(data);
+
       // copy all values from the google data table to a list with Point3d objects
       for (i = 0; i < data.length; i++) {
         point = new Point3d();
         point.x = data[i][this.colX] || 0;
         point.y = data[i][this.colY] || 0;
         point.z = data[i][this.colZ] || 0;
+        point.data = data[i];
 
         if (this.colValue !== undefined) {
           point.value = data[i][this.colValue] || 0;
@@ -8156,9 +8413,16 @@ return /******/ (function(modules) { // webpackBootstrap
 
         obj = {};
         obj.point = point;
-        obj.bottom = new Point3d(point.x, point.y, this.zMin);
+        obj.bottom = new Point3d(point.x, point.y, this.zRange.min);
         obj.trans = undefined;
         obj.screen = undefined;
+
+        if (this.style === Graph3d.STYLE.LINE) {
+          if (i > 0) {
+            // Add next point for line drawing
+            dataPoints[i - 1].pointNext = obj;
+          }
+        }
 
         dataPoints.push(obj);
       }
@@ -8169,6 +8433,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   /**
    * Create the main frame for the Graph3d.
+   *
    * This function is executed once when a Graph3d object is created. The frame
    * contains a canvas, and this canvas contains all objects like the axis and
    * nodes.
@@ -8232,10 +8497,11 @@ return /******/ (function(modules) { // webpackBootstrap
 
   /**
    * Set a new size for the graph
-   * @param {string} width   Width in pixels or percentage (for example '800px'
-   *             or '50%')
-   * @param {string} height  Height in pixels or percentage  (for example '400px'
-   *             or '30%')
+   *
+   * @param {string} width  Width in pixels or percentage (for example '800px'
+   *                        or '50%')
+   * @param {string} height Height in pixels or percentage  (for example '400px'
+   *                        or '30%')
    */
   Graph3d.prototype.setSize = function (width, height) {
     this.frame.style.width = width;
@@ -8262,7 +8528,7 @@ return /******/ (function(modules) { // webpackBootstrap
    * Start animation
    */
   Graph3d.prototype.animationStart = function () {
-    if (!this.frame.filter || !this.frame.filter.slider) throw 'No animation available';
+    if (!this.frame.filter || !this.frame.filter.slider) throw new Error('No animation available');
 
     this.frame.filter.slider.play();
   };
@@ -8277,63 +8543,32 @@ return /******/ (function(modules) { // webpackBootstrap
   };
 
   /**
-   * Resize the center position based on the current values in this.defaultXCenter
-   * and this.defaultYCenter (which are strings with a percentage or a value
-   * in pixels). The center positions are the variables this.xCenter
-   * and this.yCenter
+   * Resize the center position based on the current values in this.xCenter
+   * and this.yCenter (which are strings with a percentage or a value
+   * in pixels). The center positions are the variables this.currentXCenter
+   * and this.currentYCenter
    */
   Graph3d.prototype._resizeCenter = function () {
     // calculate the horizontal center position
-    if (this.defaultXCenter.charAt(this.defaultXCenter.length - 1) === '%') {
-      this.xcenter = parseFloat(this.defaultXCenter) / 100 * this.frame.canvas.clientWidth;
+    if (this.xCenter.charAt(this.xCenter.length - 1) === '%') {
+      this.currentXCenter = parseFloat(this.xCenter) / 100 * this.frame.canvas.clientWidth;
     } else {
-      this.xcenter = parseFloat(this.defaultXCenter); // supposed to be in px
+      this.currentXCenter = parseFloat(this.xCenter); // supposed to be in px
     }
 
     // calculate the vertical center position
-    if (this.defaultYCenter.charAt(this.defaultYCenter.length - 1) === '%') {
-      this.ycenter = parseFloat(this.defaultYCenter) / 100 * (this.frame.canvas.clientHeight - this.frame.filter.clientHeight);
+    if (this.yCenter.charAt(this.yCenter.length - 1) === '%') {
+      this.currentYCenter = parseFloat(this.yCenter) / 100 * (this.frame.canvas.clientHeight - this.frame.filter.clientHeight);
     } else {
-      this.ycenter = parseFloat(this.defaultYCenter); // supposed to be in px
+      this.currentYCenter = parseFloat(this.yCenter); // supposed to be in px
     }
-  };
-
-  /**
-   * Set the rotation and distance of the camera
-   * @param {Object} pos   An object with the camera position. The object
-   *             contains three parameters:
-   *             - horizontal {Number}
-   *             The horizontal rotation, between 0 and 2*PI.
-   *             Optional, can be left undefined.
-   *             - vertical {Number}
-   *             The vertical rotation, between 0 and 0.5*PI
-   *             if vertical=0.5*PI, the graph is shown from the
-   *             top. Optional, can be left undefined.
-   *             - distance {Number}
-   *             The (normalized) distance of the camera to the
-   *             center of the graph, a value between 0.71 and 5.0.
-   *             Optional, can be left undefined.
-   */
-  Graph3d.prototype.setCameraPosition = function (pos) {
-    if (pos === undefined) {
-      return;
-    }
-
-    if (pos.horizontal !== undefined && pos.vertical !== undefined) {
-      this.camera.setArmRotation(pos.horizontal, pos.vertical);
-    }
-
-    if (pos.distance !== undefined) {
-      this.camera.setArmLength(pos.distance);
-    }
-
-    this.redraw();
   };
 
   /**
    * Retrieve the current camera rotation
-   * @return {object}   An object with parameters horizontal, vertical, and
-   *          distance
+   *
+   * @returns {object} An object with parameters horizontal, vertical, and
+   *                   distance
    */
   Graph3d.prototype.getCameraPosition = function () {
     var pos = this.camera.getArmRotation();
@@ -8362,6 +8597,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   /**
    * Replace the dataset of the Graph3d
+   *
    * @param {Array | DataSet | DataView} data
    */
   Graph3d.prototype.setData = function (data) {
@@ -8376,6 +8612,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   /**
    * Update the options. Options will be merged with current options
+   *
    * @param {Object} options
    */
   Graph3d.prototype.setOptions = function (options) {
@@ -8383,88 +8620,9 @@ return /******/ (function(modules) { // webpackBootstrap
 
     this.animationStop();
 
-    if (options !== undefined) {
-      // retrieve parameter values
-      if (options.width !== undefined) this.width = options.width;
-      if (options.height !== undefined) this.height = options.height;
+    Settings.setOptions(options, this);
 
-      if (options.xCenter !== undefined) this.defaultXCenter = options.xCenter;
-      if (options.yCenter !== undefined) this.defaultYCenter = options.yCenter;
-
-      if (options.filterLabel !== undefined) this.filterLabel = options.filterLabel;
-      if (options.legendLabel !== undefined) this.legendLabel = options.legendLabel;
-      if (options.xLabel !== undefined) this.xLabel = options.xLabel;
-      if (options.yLabel !== undefined) this.yLabel = options.yLabel;
-      if (options.zLabel !== undefined) this.zLabel = options.zLabel;
-
-      if (options.xValueLabel !== undefined) this.xValueLabel = options.xValueLabel;
-      if (options.yValueLabel !== undefined) this.yValueLabel = options.yValueLabel;
-      if (options.zValueLabel !== undefined) this.zValueLabel = options.zValueLabel;
-
-      if (options.dotSizeRatio !== undefined) this.dotSizeRatio = options.dotSizeRatio;
-
-      if (options.style !== undefined) {
-        var styleNumber = this._getStyleNumber(options.style);
-        if (styleNumber !== -1) {
-          this.style = styleNumber;
-        }
-      }
-      if (options.showGrid !== undefined) this.showGrid = options.showGrid;
-      if (options.showPerspective !== undefined) this.showPerspective = options.showPerspective;
-      if (options.showShadow !== undefined) this.showShadow = options.showShadow;
-      if (options.tooltip !== undefined) this.showTooltip = options.tooltip;
-      if (options.showAnimationControls !== undefined) this.showAnimationControls = options.showAnimationControls;
-      if (options.keepAspectRatio !== undefined) this.keepAspectRatio = options.keepAspectRatio;
-      if (options.verticalRatio !== undefined) this.verticalRatio = options.verticalRatio;
-
-      if (options.animationInterval !== undefined) this.animationInterval = options.animationInterval;
-      if (options.animationPreload !== undefined) this.animationPreload = options.animationPreload;
-      if (options.animationAutoStart !== undefined) this.animationAutoStart = options.animationAutoStart;
-
-      if (options.xBarWidth !== undefined) this.defaultXBarWidth = options.xBarWidth;
-      if (options.yBarWidth !== undefined) this.defaultYBarWidth = options.yBarWidth;
-
-      if (options.xMin !== undefined) this.defaultXMin = options.xMin;
-      if (options.xStep !== undefined) this.defaultXStep = options.xStep;
-      if (options.xMax !== undefined) this.defaultXMax = options.xMax;
-      if (options.yMin !== undefined) this.defaultYMin = options.yMin;
-      if (options.yStep !== undefined) this.defaultYStep = options.yStep;
-      if (options.yMax !== undefined) this.defaultYMax = options.yMax;
-      if (options.zMin !== undefined) this.defaultZMin = options.zMin;
-      if (options.zStep !== undefined) this.defaultZStep = options.zStep;
-      if (options.zMax !== undefined) this.defaultZMax = options.zMax;
-      if (options.valueMin !== undefined) this.defaultValueMin = options.valueMin;
-      if (options.valueMax !== undefined) this.defaultValueMax = options.valueMax;
-      if (options.backgroundColor !== undefined) this._setBackgroundColor(options.backgroundColor);
-
-      if (options.cameraPosition !== undefined) cameraPosition = options.cameraPosition;
-
-      if (cameraPosition !== undefined) {
-        this.camera.setArmRotation(cameraPosition.horizontal, cameraPosition.vertical);
-        this.camera.setArmLength(cameraPosition.distance);
-      }
-
-      // colors
-      if (options.axisColor !== undefined) this.axisColor = options.axisColor;
-      if (options.gridColor !== undefined) this.gridColor = options.gridColor;
-      if (options.dataColor) {
-        if (typeof options.dataColor === 'string') {
-          this.dataColor.fill = options.dataColor;
-          this.dataColor.stroke = options.dataColor;
-        } else {
-          if (options.dataColor.fill) {
-            this.dataColor.fill = options.dataColor.fill;
-          }
-          if (options.dataColor.stroke) {
-            this.dataColor.stroke = options.dataColor.stroke;
-          }
-          if (options.dataColor.strokeWidth !== undefined) {
-            this.dataColor.strokeWidth = options.dataColor.strokeWidth;
-          }
-        }
-      }
-    }
-
+    this.setPointDrawingMethod();
     this.setSize(this.width, this.height);
 
     // re-load the data
@@ -8479,11 +8637,56 @@ return /******/ (function(modules) { // webpackBootstrap
   };
 
   /**
+   * Determine which point drawing method to use for the current graph style.
+   */
+  Graph3d.prototype.setPointDrawingMethod = function () {
+    var method = undefined;
+
+    switch (this.style) {
+      case Graph3d.STYLE.BAR:
+        method = Graph3d.prototype._redrawBarGraphPoint;
+        break;
+      case Graph3d.STYLE.BARCOLOR:
+        method = Graph3d.prototype._redrawBarColorGraphPoint;
+        break;
+      case Graph3d.STYLE.BARSIZE:
+        method = Graph3d.prototype._redrawBarSizeGraphPoint;
+        break;
+      case Graph3d.STYLE.DOT:
+        method = Graph3d.prototype._redrawDotGraphPoint;
+        break;
+      case Graph3d.STYLE.DOTLINE:
+        method = Graph3d.prototype._redrawDotLineGraphPoint;
+        break;
+      case Graph3d.STYLE.DOTCOLOR:
+        method = Graph3d.prototype._redrawDotColorGraphPoint;
+        break;
+      case Graph3d.STYLE.DOTSIZE:
+        method = Graph3d.prototype._redrawDotSizeGraphPoint;
+        break;
+      case Graph3d.STYLE.SURFACE:
+        method = Graph3d.prototype._redrawSurfaceGraphPoint;
+        break;
+      case Graph3d.STYLE.GRID:
+        method = Graph3d.prototype._redrawGridGraphPoint;
+        break;
+      case Graph3d.STYLE.LINE:
+        method = Graph3d.prototype._redrawLineGraphPoint;
+        break;
+      default:
+        throw new Error('Can not determine point drawing method ' + 'for graph style \'' + this.style + '\'');
+        break;
+    }
+
+    this._pointDrawingMethod = method;
+  };
+
+  /**
    * Redraw the Graph.
    */
   Graph3d.prototype.redraw = function () {
     if (this.dataPoints === undefined) {
-      throw 'Error: graph data not initialized';
+      throw new Error('Graph data not initialized');
     }
 
     this._resizeCanvas();
@@ -8492,19 +8695,23 @@ return /******/ (function(modules) { // webpackBootstrap
     this._redrawClear();
     this._redrawAxis();
 
-    if (this.style === Graph3d.STYLE.GRID || this.style === Graph3d.STYLE.SURFACE) {
-      this._redrawDataGrid();
-    } else if (this.style === Graph3d.STYLE.LINE) {
-      this._redrawDataLine();
-    } else if (this.style === Graph3d.STYLE.BAR || this.style === Graph3d.STYLE.BARCOLOR || this.style === Graph3d.STYLE.BARSIZE) {
-      this._redrawDataBar();
-    } else {
-      // style is DOT, DOTLINE, DOTCOLOR, DOTSIZE
-      this._redrawDataDot();
-    }
+    this._redrawDataGraph();
 
     this._redrawInfo();
     this._redrawLegend();
+  };
+
+  /**
+   * Get drawing context without exposing canvas
+   */
+  Graph3d.prototype._getContext = function () {
+    var canvas = this.frame.canvas;
+    var ctx = canvas.getContext('2d');
+
+    ctx.lineJoin = 'round';
+    ctx.lineCap = 'round';
+
+    return ctx;
   };
 
   /**
@@ -8517,45 +8724,68 @@ return /******/ (function(modules) { // webpackBootstrap
     ctx.clearRect(0, 0, canvas.width, canvas.height);
   };
 
+  Graph3d.prototype._dotSize = function () {
+    return this.frame.clientWidth * this.dotSizeRatio;
+  };
+
   /**
-   * Redraw the legend showing the colors
+   * Get legend width 
+   */
+  Graph3d.prototype._getLegendWidth = function () {
+    var width;
+
+    if (this.style === Graph3d.STYLE.DOTSIZE) {
+      var dotSize = this._dotSize();
+      width = dotSize / 2 + dotSize * 2;
+    } else if (this.style === Graph3d.STYLE.BARSIZE) {
+      width = this.xBarWidth;
+    } else {
+      width = 20;
+    }
+    return width;
+  };
+
+  /**
+   * Redraw the legend based on size, dot color, or surface height 
    */
   Graph3d.prototype._redrawLegend = function () {
-    var y;
 
-    if (this.style === Graph3d.STYLE.DOTCOLOR || this.style === Graph3d.STYLE.DOTSIZE) {
-
-      var dotSize = this.frame.clientWidth * this.dotSizeRatio;
-
-      var widthMin, widthMax;
-      if (this.style === Graph3d.STYLE.DOTSIZE) {
-        widthMin = dotSize / 2; // px
-        widthMax = dotSize / 2 + dotSize * 2; // Todo: put this in one function
-      } else {
-          widthMin = 20; // px
-          widthMax = 20; // px
-        }
-
-      var height = Math.max(this.frame.clientHeight * 0.25, 100);
-      var top = this.margin;
-      var right = this.frame.clientWidth - this.margin;
-      var left = right - widthMax;
-      var bottom = top + height;
+    //Return without drawing anything, if no legend is specified 
+    if (this.showLegend !== true) {
+      return;
     }
 
-    var canvas = this.frame.canvas;
-    var ctx = canvas.getContext('2d');
+    // Do not draw legend when graph style does not support
+    if (this.style === Graph3d.STYLE.LINE || this.style === Graph3d.STYLE.BARSIZE //TODO add legend support for BARSIZE 
+    ) {
+        return;
+      }
+
+    // Legend types - size and color. Determine if size legend.  
+    var isSizeLegend = this.style === Graph3d.STYLE.BARSIZE || this.style === Graph3d.STYLE.DOTSIZE;
+
+    // Legend is either tracking z values or style values. This flag if false means use z values. 
+    var isValueLegend = this.style === Graph3d.STYLE.DOTSIZE || this.style === Graph3d.STYLE.DOTCOLOR || this.style === Graph3d.STYLE.BARCOLOR;
+
+    var height = Math.max(this.frame.clientHeight * 0.25, 100);
+    var top = this.margin;
+    var width = this._getLegendWidth(); // px - overwritten by size legend  
+    var right = this.frame.clientWidth - this.margin;
+    var left = right - width;
+    var bottom = top + height;
+
+    var ctx = this._getContext();
     ctx.lineWidth = 1;
     ctx.font = '14px arial'; // TODO: put in options
 
-    if (this.style === Graph3d.STYLE.DOTCOLOR) {
+    if (isSizeLegend === false) {
       // draw the color bar
       var ymin = 0;
       var ymax = height; // Todo: make height customizable
+      var y;
+
       for (y = ymin; y < ymax; y++) {
         var f = (y - ymin) / (ymax - ymin);
-
-        //var width = (dotSize / 2 + (1-f) * dotSize * 2); // Todo: put this in one function
         var hue = f * 240;
         var color = this._hsv2rgb(hue, 1, 1);
 
@@ -8565,54 +8795,59 @@ return /******/ (function(modules) { // webpackBootstrap
         ctx.lineTo(right, top + y);
         ctx.stroke();
       }
-
       ctx.strokeStyle = this.axisColor;
-      ctx.strokeRect(left, top, widthMax, height);
-    }
+      ctx.strokeRect(left, top, width, height);
+    } else {
 
-    if (this.style === Graph3d.STYLE.DOTSIZE) {
-      // draw border around color bar
+      // draw the size legend box 
+      var widthMin;
+      if (this.style === Graph3d.STYLE.DOTSIZE) {
+        var dotSize = this._dotSize();
+        widthMin = dotSize / 2; // px
+      } else if (this.style === Graph3d.STYLE.BARSIZE) {
+        //widthMin = this.xBarWidth * 0.2 this is wrong - barwidth measures in terms of xvalues 
+      }
       ctx.strokeStyle = this.axisColor;
       ctx.fillStyle = this.dataColor.fill;
       ctx.beginPath();
       ctx.moveTo(left, top);
       ctx.lineTo(right, top);
-      ctx.lineTo(right - widthMax + widthMin, bottom);
+      ctx.lineTo(right - width + widthMin, bottom);
       ctx.lineTo(left, bottom);
       ctx.closePath();
       ctx.fill();
       ctx.stroke();
     }
 
-    if (this.style === Graph3d.STYLE.DOTCOLOR || this.style === Graph3d.STYLE.DOTSIZE) {
-      // print values along the color bar
-      var gridLineLen = 5; // px
-      var step = new StepNumber(this.valueMin, this.valueMax, (this.valueMax - this.valueMin) / 5, true);
-      step.start();
-      if (step.getCurrent() < this.valueMin) {
-        step.next();
-      }
-      while (!step.end()) {
-        y = bottom - (step.getCurrent() - this.valueMin) / (this.valueMax - this.valueMin) * height;
+    // print value text along the legend edge 
+    var gridLineLen = 5; // px
 
-        ctx.beginPath();
-        ctx.moveTo(left - gridLineLen, y);
-        ctx.lineTo(left, y);
-        ctx.stroke();
+    var legendMin = isValueLegend ? this.valueRange.min : this.zRange.min;
+    var legendMax = isValueLegend ? this.valueRange.max : this.zRange.max;
+    var step = new StepNumber(legendMin, legendMax, (legendMax - legendMin) / 5, true);
+    step.start(true);
 
-        ctx.textAlign = 'right';
-        ctx.textBaseline = 'middle';
-        ctx.fillStyle = this.axisColor;
-        ctx.fillText(step.getCurrent(), left - 2 * gridLineLen, y);
-
-        step.next();
-      }
+    var y;
+    var from;
+    var to;
+    while (!step.end()) {
+      y = bottom - (step.getCurrent() - legendMin) / (legendMax - legendMin) * height;
+      from = new Point2d(left - gridLineLen, y);
+      to = new Point2d(left, y);
+      this._line(ctx, from, to);
 
       ctx.textAlign = 'right';
-      ctx.textBaseline = 'top';
-      var label = this.legendLabel;
-      ctx.fillText(label, right, bottom + this.margin);
+      ctx.textBaseline = 'middle';
+      ctx.fillStyle = this.axisColor;
+      ctx.fillText(step.getCurrent(), left - 2 * gridLineLen, y);
+
+      step.next();
     }
+
+    ctx.textAlign = 'right';
+    ctx.textBaseline = 'top';
+    var label = this.legendLabel;
+    ctx.fillText(label, right, bottom + this.margin);
   };
 
   /**
@@ -8665,8 +8900,7 @@ return /******/ (function(modules) { // webpackBootstrap
    */
   Graph3d.prototype._redrawInfo = function () {
     if (this.dataFilter) {
-      var canvas = this.frame.canvas;
-      var ctx = canvas.getContext('2d');
+      var ctx = this._getContext();
 
       ctx.font = '14px arial'; // TODO: put in options
       ctx.lineStyle = 'gray';
@@ -8681,11 +8915,99 @@ return /******/ (function(modules) { // webpackBootstrap
   };
 
   /**
+   * Draw a line between 2d points 'from' and 'to'.
+   *
+   * If stroke style specified, set that as well.
+   */
+  Graph3d.prototype._line = function (ctx, from, to, strokeStyle) {
+    if (strokeStyle !== undefined) {
+      ctx.strokeStyle = strokeStyle;
+    }
+
+    ctx.beginPath();
+    ctx.moveTo(from.x, from.y);
+    ctx.lineTo(to.x, to.y);
+    ctx.stroke();
+  };
+
+  Graph3d.prototype.drawAxisLabelX = function (ctx, point3d, text, armAngle, yMargin) {
+    if (yMargin === undefined) {
+      yMargin = 0;
+    }
+
+    var point2d = this._convert3Dto2D(point3d);
+
+    if (Math.cos(armAngle * 2) > 0) {
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'top';
+      point2d.y += yMargin;
+    } else if (Math.sin(armAngle * 2) < 0) {
+      ctx.textAlign = 'right';
+      ctx.textBaseline = 'middle';
+    } else {
+      ctx.textAlign = 'left';
+      ctx.textBaseline = 'middle';
+    }
+
+    ctx.fillStyle = this.axisColor;
+    ctx.fillText(text, point2d.x, point2d.y);
+  };
+
+  Graph3d.prototype.drawAxisLabelY = function (ctx, point3d, text, armAngle, yMargin) {
+    if (yMargin === undefined) {
+      yMargin = 0;
+    }
+
+    var point2d = this._convert3Dto2D(point3d);
+
+    if (Math.cos(armAngle * 2) < 0) {
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'top';
+      point2d.y += yMargin;
+    } else if (Math.sin(armAngle * 2) > 0) {
+      ctx.textAlign = 'right';
+      ctx.textBaseline = 'middle';
+    } else {
+      ctx.textAlign = 'left';
+      ctx.textBaseline = 'middle';
+    }
+
+    ctx.fillStyle = this.axisColor;
+    ctx.fillText(text, point2d.x, point2d.y);
+  };
+
+  Graph3d.prototype.drawAxisLabelZ = function (ctx, point3d, text, offset) {
+    if (offset === undefined) {
+      offset = 0;
+    }
+
+    var point2d = this._convert3Dto2D(point3d);
+    ctx.textAlign = 'right';
+    ctx.textBaseline = 'middle';
+    ctx.fillStyle = this.axisColor;
+    ctx.fillText(text, point2d.x - offset, point2d.y);
+  };
+
+  /**
+
+
+  /**
+   * Draw a line between 2d points 'from' and 'to'.
+   *
+   * If stroke style specified, set that as well.
+   */
+  Graph3d.prototype._line3d = function (ctx, from, to, strokeStyle) {
+    var from2d = this._convert3Dto2D(from);
+    var to2d = this._convert3Dto2D(to);
+
+    this._line(ctx, from2d, to2d, strokeStyle);
+  };
+
+  /**
    * Redraw the axis
    */
   Graph3d.prototype._redrawAxis = function () {
-    var canvas = this.frame.canvas,
-        ctx = canvas.getContext('2d'),
+    var ctx = this._getContext(),
         from,
         to,
         step,
@@ -8696,9 +9018,7 @@ return /******/ (function(modules) { // webpackBootstrap
         zText,
         offset,
         xOffset,
-        yOffset,
-        xMin2d,
-        xMax2d;
+        yOffset;
 
     // TODO: get the actual rendered style of the containerElement
     //ctx.font = this.containerElement.style.font;
@@ -8709,59 +9029,39 @@ return /******/ (function(modules) { // webpackBootstrap
     var gridLenY = 0.025 / this.scale.y;
     var textMargin = 5 / this.camera.getArmLength(); // px
     var armAngle = this.camera.getArmRotation().horizontal;
+    var armVector = new Point2d(Math.cos(armAngle), Math.sin(armAngle));
+
+    var xRange = this.xRange;
+    var yRange = this.yRange;
+    var zRange = this.zRange;
 
     // draw x-grid lines
     ctx.lineWidth = 1;
     prettyStep = this.defaultXStep === undefined;
-    step = new StepNumber(this.xMin, this.xMax, this.xStep, prettyStep);
-    step.start();
-    if (step.getCurrent() < this.xMin) {
-      step.next();
-    }
+    step = new StepNumber(xRange.min, xRange.max, this.xStep, prettyStep);
+    step.start(true);
+
     while (!step.end()) {
       var x = step.getCurrent();
 
       if (this.showGrid) {
-        from = this._convert3Dto2D(new Point3d(x, this.yMin, this.zMin));
-        to = this._convert3Dto2D(new Point3d(x, this.yMax, this.zMin));
-        ctx.strokeStyle = this.gridColor;
-        ctx.beginPath();
-        ctx.moveTo(from.x, from.y);
-        ctx.lineTo(to.x, to.y);
-        ctx.stroke();
+        from = new Point3d(x, yRange.min, zRange.min);
+        to = new Point3d(x, yRange.max, zRange.min);
+        this._line3d(ctx, from, to, this.gridColor);
       } else {
-        from = this._convert3Dto2D(new Point3d(x, this.yMin, this.zMin));
-        to = this._convert3Dto2D(new Point3d(x, this.yMin + gridLenX, this.zMin));
-        ctx.strokeStyle = this.axisColor;
-        ctx.beginPath();
-        ctx.moveTo(from.x, from.y);
-        ctx.lineTo(to.x, to.y);
-        ctx.stroke();
+        from = new Point3d(x, yRange.min, zRange.min);
+        to = new Point3d(x, yRange.min + gridLenX, zRange.min);
+        this._line3d(ctx, from, to, this.axisColor);
 
-        from = this._convert3Dto2D(new Point3d(x, this.yMax, this.zMin));
-        to = this._convert3Dto2D(new Point3d(x, this.yMax - gridLenX, this.zMin));
-        ctx.strokeStyle = this.axisColor;
-        ctx.beginPath();
-        ctx.moveTo(from.x, from.y);
-        ctx.lineTo(to.x, to.y);
-        ctx.stroke();
+        from = new Point3d(x, yRange.max, zRange.min);
+        to = new Point3d(x, yRange.max - gridLenX, zRange.min);
+        this._line3d(ctx, from, to, this.axisColor);
       }
 
-      yText = Math.cos(armAngle) > 0 ? this.yMin : this.yMax;
-      text = this._convert3Dto2D(new Point3d(x, yText, this.zMin));
-      if (Math.cos(armAngle * 2) > 0) {
-        ctx.textAlign = 'center';
-        ctx.textBaseline = 'top';
-        text.y += textMargin;
-      } else if (Math.sin(armAngle * 2) < 0) {
-        ctx.textAlign = 'right';
-        ctx.textBaseline = 'middle';
-      } else {
-        ctx.textAlign = 'left';
-        ctx.textBaseline = 'middle';
-      }
-      ctx.fillStyle = this.axisColor;
-      ctx.fillText('  ' + this.xValueLabel(step.getCurrent()) + '  ', text.x, text.y);
+      yText = armVector.x > 0 ? yRange.min : yRange.max;
+      var point3d = new Point3d(x, yText, zRange.min);
+      var msg = '  ' + this.xValueLabel(x) + '  ';
+      this.drawAxisLabelX(ctx, point3d, msg, armAngle, textMargin);
 
       step.next();
     }
@@ -8769,53 +9069,30 @@ return /******/ (function(modules) { // webpackBootstrap
     // draw y-grid lines
     ctx.lineWidth = 1;
     prettyStep = this.defaultYStep === undefined;
-    step = new StepNumber(this.yMin, this.yMax, this.yStep, prettyStep);
-    step.start();
-    if (step.getCurrent() < this.yMin) {
-      step.next();
-    }
+    step = new StepNumber(yRange.min, yRange.max, this.yStep, prettyStep);
+    step.start(true);
+
     while (!step.end()) {
+      var y = step.getCurrent();
+
       if (this.showGrid) {
-        from = this._convert3Dto2D(new Point3d(this.xMin, step.getCurrent(), this.zMin));
-        to = this._convert3Dto2D(new Point3d(this.xMax, step.getCurrent(), this.zMin));
-        ctx.strokeStyle = this.gridColor;
-        ctx.beginPath();
-        ctx.moveTo(from.x, from.y);
-        ctx.lineTo(to.x, to.y);
-        ctx.stroke();
+        from = new Point3d(xRange.min, y, zRange.min);
+        to = new Point3d(xRange.max, y, zRange.min);
+        this._line3d(ctx, from, to, this.gridColor);
       } else {
-        from = this._convert3Dto2D(new Point3d(this.xMin, step.getCurrent(), this.zMin));
-        to = this._convert3Dto2D(new Point3d(this.xMin + gridLenY, step.getCurrent(), this.zMin));
-        ctx.strokeStyle = this.axisColor;
-        ctx.beginPath();
-        ctx.moveTo(from.x, from.y);
-        ctx.lineTo(to.x, to.y);
-        ctx.stroke();
+        from = new Point3d(xRange.min, y, zRange.min);
+        to = new Point3d(xRange.min + gridLenY, y, zRange.min);
+        this._line3d(ctx, from, to, this.axisColor);
 
-        from = this._convert3Dto2D(new Point3d(this.xMax, step.getCurrent(), this.zMin));
-        to = this._convert3Dto2D(new Point3d(this.xMax - gridLenY, step.getCurrent(), this.zMin));
-        ctx.strokeStyle = this.axisColor;
-        ctx.beginPath();
-        ctx.moveTo(from.x, from.y);
-        ctx.lineTo(to.x, to.y);
-        ctx.stroke();
+        from = new Point3d(xRange.max, y, zRange.min);
+        to = new Point3d(xRange.max - gridLenY, y, zRange.min);
+        this._line3d(ctx, from, to, this.axisColor);
       }
 
-      xText = Math.sin(armAngle) > 0 ? this.xMin : this.xMax;
-      text = this._convert3Dto2D(new Point3d(xText, step.getCurrent(), this.zMin));
-      if (Math.cos(armAngle * 2) < 0) {
-        ctx.textAlign = 'center';
-        ctx.textBaseline = 'top';
-        text.y += textMargin;
-      } else if (Math.sin(armAngle * 2) > 0) {
-        ctx.textAlign = 'right';
-        ctx.textBaseline = 'middle';
-      } else {
-        ctx.textAlign = 'left';
-        ctx.textBaseline = 'middle';
-      }
-      ctx.fillStyle = this.axisColor;
-      ctx.fillText('  ' + this.yValueLabel(step.getCurrent()) + '  ', text.x, text.y);
+      xText = armVector.y > 0 ? xRange.min : xRange.max;
+      point3d = new Point3d(xText, y, zRange.min);
+      var msg = '  ' + this.yValueLabel(y) + '  ';
+      this.drawAxisLabelY(ctx, point3d, msg, armAngle, textMargin);
 
       step.next();
     }
@@ -8823,130 +9100,88 @@ return /******/ (function(modules) { // webpackBootstrap
     // draw z-grid lines and axis
     ctx.lineWidth = 1;
     prettyStep = this.defaultZStep === undefined;
-    step = new StepNumber(this.zMin, this.zMax, this.zStep, prettyStep);
-    step.start();
-    if (step.getCurrent() < this.zMin) {
-      step.next();
-    }
-    xText = Math.cos(armAngle) > 0 ? this.xMin : this.xMax;
-    yText = Math.sin(armAngle) < 0 ? this.yMin : this.yMax;
+    step = new StepNumber(zRange.min, zRange.max, this.zStep, prettyStep);
+    step.start(true);
+
+    xText = armVector.x > 0 ? xRange.min : xRange.max;
+    yText = armVector.y < 0 ? yRange.min : yRange.max;
+
     while (!step.end()) {
-      // TODO: make z-grid lines really 3d?
-      from = this._convert3Dto2D(new Point3d(xText, yText, step.getCurrent()));
-      ctx.strokeStyle = this.axisColor;
-      ctx.beginPath();
-      ctx.moveTo(from.x, from.y);
-      ctx.lineTo(from.x - textMargin, from.y);
-      ctx.stroke();
+      var z = step.getCurrent();
 
-      ctx.textAlign = 'right';
-      ctx.textBaseline = 'middle';
-      ctx.fillStyle = this.axisColor;
-      ctx.fillText(this.zValueLabel(step.getCurrent()) + ' ', from.x - 5, from.y);
+      // TODO: make z-grid lines really 3d?
+      var from3d = new Point3d(xText, yText, z);
+      var from2d = this._convert3Dto2D(from3d);
+      to = new Point2d(from2d.x - textMargin, from2d.y);
+      this._line(ctx, from2d, to, this.axisColor);
+
+      var msg = this.zValueLabel(z) + ' ';
+      this.drawAxisLabelZ(ctx, from3d, msg, 5);
 
       step.next();
     }
+
     ctx.lineWidth = 1;
-    from = this._convert3Dto2D(new Point3d(xText, yText, this.zMin));
-    to = this._convert3Dto2D(new Point3d(xText, yText, this.zMax));
-    ctx.strokeStyle = this.axisColor;
-    ctx.beginPath();
-    ctx.moveTo(from.x, from.y);
-    ctx.lineTo(to.x, to.y);
-    ctx.stroke();
+    from = new Point3d(xText, yText, zRange.min);
+    to = new Point3d(xText, yText, zRange.max);
+    this._line3d(ctx, from, to, this.axisColor);
 
     // draw x-axis
+    var xMin2d;
+    var xMax2d;
     ctx.lineWidth = 1;
+
     // line at yMin
-    xMin2d = this._convert3Dto2D(new Point3d(this.xMin, this.yMin, this.zMin));
-    xMax2d = this._convert3Dto2D(new Point3d(this.xMax, this.yMin, this.zMin));
-    ctx.strokeStyle = this.axisColor;
-    ctx.beginPath();
-    ctx.moveTo(xMin2d.x, xMin2d.y);
-    ctx.lineTo(xMax2d.x, xMax2d.y);
-    ctx.stroke();
+    xMin2d = new Point3d(xRange.min, yRange.min, zRange.min);
+    xMax2d = new Point3d(xRange.max, yRange.min, zRange.min);
+    this._line3d(ctx, xMin2d, xMax2d, this.axisColor);
     // line at ymax
-    xMin2d = this._convert3Dto2D(new Point3d(this.xMin, this.yMax, this.zMin));
-    xMax2d = this._convert3Dto2D(new Point3d(this.xMax, this.yMax, this.zMin));
-    ctx.strokeStyle = this.axisColor;
-    ctx.beginPath();
-    ctx.moveTo(xMin2d.x, xMin2d.y);
-    ctx.lineTo(xMax2d.x, xMax2d.y);
-    ctx.stroke();
+    xMin2d = new Point3d(xRange.min, yRange.max, zRange.min);
+    xMax2d = new Point3d(xRange.max, yRange.max, zRange.min);
+    this._line3d(ctx, xMin2d, xMax2d, this.axisColor);
 
     // draw y-axis
     ctx.lineWidth = 1;
     // line at xMin
-    from = this._convert3Dto2D(new Point3d(this.xMin, this.yMin, this.zMin));
-    to = this._convert3Dto2D(new Point3d(this.xMin, this.yMax, this.zMin));
-    ctx.strokeStyle = this.axisColor;
-    ctx.beginPath();
-    ctx.moveTo(from.x, from.y);
-    ctx.lineTo(to.x, to.y);
-    ctx.stroke();
+    from = new Point3d(xRange.min, yRange.min, zRange.min);
+    to = new Point3d(xRange.min, yRange.max, zRange.min);
+    this._line3d(ctx, from, to, this.axisColor);
     // line at xMax
-    from = this._convert3Dto2D(new Point3d(this.xMax, this.yMin, this.zMin));
-    to = this._convert3Dto2D(new Point3d(this.xMax, this.yMax, this.zMin));
-    ctx.strokeStyle = this.axisColor;
-    ctx.beginPath();
-    ctx.moveTo(from.x, from.y);
-    ctx.lineTo(to.x, to.y);
-    ctx.stroke();
+    from = new Point3d(xRange.max, yRange.min, zRange.min);
+    to = new Point3d(xRange.max, yRange.max, zRange.min);
+    this._line3d(ctx, from, to, this.axisColor);
 
     // draw x-label
     var xLabel = this.xLabel;
     if (xLabel.length > 0) {
       yOffset = 0.1 / this.scale.y;
-      xText = (this.xMin + this.xMax) / 2;
-      yText = Math.cos(armAngle) > 0 ? this.yMin - yOffset : this.yMax + yOffset;
-      text = this._convert3Dto2D(new Point3d(xText, yText, this.zMin));
-      if (Math.cos(armAngle * 2) > 0) {
-        ctx.textAlign = 'center';
-        ctx.textBaseline = 'top';
-      } else if (Math.sin(armAngle * 2) < 0) {
-        ctx.textAlign = 'right';
-        ctx.textBaseline = 'middle';
-      } else {
-        ctx.textAlign = 'left';
-        ctx.textBaseline = 'middle';
-      }
-      ctx.fillStyle = this.axisColor;
-      ctx.fillText(xLabel, text.x, text.y);
+      xText = xRange.center() / 2;
+      yText = armVector.x > 0 ? yRange.min - yOffset : yRange.max + yOffset;
+      text = new Point3d(xText, yText, zRange.min);
+      this.drawAxisLabelX(ctx, text, xLabel, armAngle);
     }
 
     // draw y-label
     var yLabel = this.yLabel;
     if (yLabel.length > 0) {
       xOffset = 0.1 / this.scale.x;
-      xText = Math.sin(armAngle) > 0 ? this.xMin - xOffset : this.xMax + xOffset;
-      yText = (this.yMin + this.yMax) / 2;
-      text = this._convert3Dto2D(new Point3d(xText, yText, this.zMin));
-      if (Math.cos(armAngle * 2) < 0) {
-        ctx.textAlign = 'center';
-        ctx.textBaseline = 'top';
-      } else if (Math.sin(armAngle * 2) > 0) {
-        ctx.textAlign = 'right';
-        ctx.textBaseline = 'middle';
-      } else {
-        ctx.textAlign = 'left';
-        ctx.textBaseline = 'middle';
-      }
-      ctx.fillStyle = this.axisColor;
-      ctx.fillText(yLabel, text.x, text.y);
+      xText = armVector.y > 0 ? xRange.min - xOffset : xRange.max + xOffset;
+      yText = yRange.center() / 2;
+      text = new Point3d(xText, yText, zRange.min);
+
+      this.drawAxisLabelY(ctx, text, yLabel, armAngle);
     }
 
     // draw z-label
     var zLabel = this.zLabel;
     if (zLabel.length > 0) {
       offset = 30; // pixels.  // TODO: relate to the max width of the values on the z axis?
-      xText = Math.cos(armAngle) > 0 ? this.xMin : this.xMax;
-      yText = Math.sin(armAngle) < 0 ? this.yMin : this.yMax;
-      zText = (this.zMin + this.zMax) / 2;
-      text = this._convert3Dto2D(new Point3d(xText, yText, zText));
-      ctx.textAlign = 'right';
-      ctx.textBaseline = 'middle';
-      ctx.fillStyle = this.axisColor;
-      ctx.fillText(zLabel, text.x - offset, text.y);
+      xText = armVector.x > 0 ? xRange.min : xRange.max;
+      yText = armVector.y < 0 ? yRange.min : yRange.max;
+      zText = zRange.center() / 2;
+      text = new Point3d(xText, yText, zText);
+
+      this.drawAxisLabelZ(ctx, text, zLabel, offset);
     }
   };
 
@@ -8984,145 +9219,6 @@ return /******/ (function(modules) { // webpackBootstrap
     return 'RGB(' + parseInt(R * 255) + ',' + parseInt(G * 255) + ',' + parseInt(B * 255) + ')';
   };
 
-  /**
-   * Draw all datapoints as a grid
-   * This function can be used when the style is 'grid'
-   */
-  Graph3d.prototype._redrawDataGrid = function () {
-    var canvas = this.frame.canvas,
-        ctx = canvas.getContext('2d'),
-        point,
-        right,
-        top,
-        cross,
-        i,
-        topSideVisible,
-        fillStyle,
-        strokeStyle,
-        lineWidth,
-        h,
-        s,
-        v,
-        zAvg;
-
-    ctx.lineJoin = 'round';
-    ctx.lineCap = 'round';
-
-    if (this.dataPoints === undefined || this.dataPoints.length <= 0) return; // TODO: throw exception?
-
-    // calculate the translations and screen position of all points
-    for (i = 0; i < this.dataPoints.length; i++) {
-      var trans = this._convertPointToTranslation(this.dataPoints[i].point);
-      var screen = this._convertTranslationToScreen(trans);
-
-      this.dataPoints[i].trans = trans;
-      this.dataPoints[i].screen = screen;
-
-      // calculate the translation of the point at the bottom (needed for sorting)
-      var transBottom = this._convertPointToTranslation(this.dataPoints[i].bottom);
-      this.dataPoints[i].dist = this.showPerspective ? transBottom.length() : -transBottom.z;
-    }
-
-    // sort the points on depth of their (x,y) position (not on z)
-    var sortDepth = function sortDepth(a, b) {
-      return b.dist - a.dist;
-    };
-    this.dataPoints.sort(sortDepth);
-
-    if (this.style === Graph3d.STYLE.SURFACE) {
-      for (i = 0; i < this.dataPoints.length; i++) {
-        point = this.dataPoints[i];
-        right = this.dataPoints[i].pointRight;
-        top = this.dataPoints[i].pointTop;
-        cross = this.dataPoints[i].pointCross;
-
-        if (point !== undefined && right !== undefined && top !== undefined && cross !== undefined) {
-
-          if (this.showGrayBottom || this.showShadow) {
-            // calculate the cross product of the two vectors from center
-            // to left and right, in order to know whether we are looking at the
-            // bottom or at the top side. We can also use the cross product
-            // for calculating light intensity
-            var aDiff = Point3d.subtract(cross.trans, point.trans);
-            var bDiff = Point3d.subtract(top.trans, right.trans);
-            var crossproduct = Point3d.crossProduct(aDiff, bDiff);
-            var len = crossproduct.length();
-            // FIXME: there is a bug with determining the surface side (shadow or colored)
-
-            topSideVisible = crossproduct.z > 0;
-          } else {
-            topSideVisible = true;
-          }
-
-          if (topSideVisible) {
-            // calculate Hue from the current value. At zMin the hue is 240, at zMax the hue is 0
-            zAvg = (point.point.z + right.point.z + top.point.z + cross.point.z) / 4;
-            h = (1 - (zAvg - this.zMin) * this.scale.z / this.verticalRatio) * 240;
-            s = 1; // saturation
-
-            if (this.showShadow) {
-              v = Math.min(1 + crossproduct.x / len / 2, 1); // value. TODO: scale
-              fillStyle = this._hsv2rgb(h, s, v);
-              strokeStyle = fillStyle;
-            } else {
-              v = 1;
-              fillStyle = this._hsv2rgb(h, s, v);
-              strokeStyle = this.axisColor; // TODO: should be customizable
-            }
-          } else {
-              fillStyle = 'gray';
-              strokeStyle = this.axisColor;
-            }
-
-          ctx.lineWidth = this._getStrokeWidth(point);
-          ctx.fillStyle = fillStyle;
-          ctx.strokeStyle = strokeStyle;
-          ctx.beginPath();
-          ctx.moveTo(point.screen.x, point.screen.y);
-          ctx.lineTo(right.screen.x, right.screen.y);
-          ctx.lineTo(cross.screen.x, cross.screen.y);
-          ctx.lineTo(top.screen.x, top.screen.y);
-          ctx.closePath();
-          ctx.fill();
-          ctx.stroke(); // TODO: only draw stroke when strokeWidth > 0
-        }
-      }
-    } else {
-        // grid style
-        for (i = 0; i < this.dataPoints.length; i++) {
-          point = this.dataPoints[i];
-          right = this.dataPoints[i].pointRight;
-          top = this.dataPoints[i].pointTop;
-
-          if (point !== undefined && right !== undefined) {
-            // calculate Hue from the current value. At zMin the hue is 240, at zMax the hue is 0
-            zAvg = (point.point.z + right.point.z) / 2;
-            h = (1 - (zAvg - this.zMin) * this.scale.z / this.verticalRatio) * 240;
-
-            ctx.lineWidth = this._getStrokeWidth(point) * 2;
-            ctx.strokeStyle = this._hsv2rgb(h, 1, 1);
-            ctx.beginPath();
-            ctx.moveTo(point.screen.x, point.screen.y);
-            ctx.lineTo(right.screen.x, right.screen.y);
-            ctx.stroke();
-          }
-
-          if (point !== undefined && top !== undefined) {
-            // calculate Hue from the current value. At zMin the hue is 240, at zMax the hue is 0
-            zAvg = (point.point.z + top.point.z) / 2;
-            h = (1 - (zAvg - this.zMin) * this.scale.z / this.verticalRatio) * 240;
-
-            ctx.lineWidth = this._getStrokeWidth(point) * 2;
-            ctx.strokeStyle = this._hsv2rgb(h, 1, 1);
-            ctx.beginPath();
-            ctx.moveTo(point.screen.x, point.screen.y);
-            ctx.lineTo(top.screen.x, top.screen.y);
-            ctx.stroke();
-          }
-        }
-      }
-  };
-
   Graph3d.prototype._getStrokeWidth = function (point) {
     if (point !== undefined) {
       if (this.showPerspective) {
@@ -9135,261 +9231,389 @@ return /******/ (function(modules) { // webpackBootstrap
     return this.dataColor.strokeWidth;
   };
 
+  // -----------------------------------------------------------------------------
+  // Drawing primitives for the graphs
+  // -----------------------------------------------------------------------------
+
+
   /**
-   * Draw all datapoints as dots.
-   * This function can be used when the style is 'dot' or 'dot-line'
+   * Draw a bar element in the view with the given properties.
    */
-  Graph3d.prototype._redrawDataDot = function () {
-    var canvas = this.frame.canvas;
-    var ctx = canvas.getContext('2d');
+  Graph3d.prototype._redrawBar = function (ctx, point, xWidth, yWidth, color, borderColor) {
+    var i, j, surface;
+
+    // calculate all corner points
+    var me = this;
+    var point3d = point.point;
+    var zMin = this.zRange.min;
+    var top = [{ point: new Point3d(point3d.x - xWidth, point3d.y - yWidth, point3d.z) }, { point: new Point3d(point3d.x + xWidth, point3d.y - yWidth, point3d.z) }, { point: new Point3d(point3d.x + xWidth, point3d.y + yWidth, point3d.z) }, { point: new Point3d(point3d.x - xWidth, point3d.y + yWidth, point3d.z) }];
+    var bottom = [{ point: new Point3d(point3d.x - xWidth, point3d.y - yWidth, zMin) }, { point: new Point3d(point3d.x + xWidth, point3d.y - yWidth, zMin) }, { point: new Point3d(point3d.x + xWidth, point3d.y + yWidth, zMin) }, { point: new Point3d(point3d.x - xWidth, point3d.y + yWidth, zMin) }];
+
+    // calculate screen location of the points
+    top.forEach(function (obj) {
+      obj.screen = me._convert3Dto2D(obj.point);
+    });
+    bottom.forEach(function (obj) {
+      obj.screen = me._convert3Dto2D(obj.point);
+    });
+
+    // create five sides, calculate both corner points and center points
+    var surfaces = [{ corners: top, center: Point3d.avg(bottom[0].point, bottom[2].point) }, { corners: [top[0], top[1], bottom[1], bottom[0]], center: Point3d.avg(bottom[1].point, bottom[0].point) }, { corners: [top[1], top[2], bottom[2], bottom[1]], center: Point3d.avg(bottom[2].point, bottom[1].point) }, { corners: [top[2], top[3], bottom[3], bottom[2]], center: Point3d.avg(bottom[3].point, bottom[2].point) }, { corners: [top[3], top[0], bottom[0], bottom[3]], center: Point3d.avg(bottom[0].point, bottom[3].point) }];
+    point.surfaces = surfaces;
+
+    // calculate the distance of each of the surface centers to the camera
+    for (j = 0; j < surfaces.length; j++) {
+      surface = surfaces[j];
+      var transCenter = this._convertPointToTranslation(surface.center);
+      surface.dist = this.showPerspective ? transCenter.length() : -transCenter.z;
+      // TODO: this dept calculation doesn't work 100% of the cases due to perspective,
+      //     but the current solution is fast/simple and works in 99.9% of all cases
+      //     the issue is visible in example 14, with graph.setCameraPosition({horizontal: 2.97, vertical: 0.5, distance: 0.9})
+    }
+
+    // order the surfaces by their (translated) depth
+    surfaces.sort(function (a, b) {
+      var diff = b.dist - a.dist;
+      if (diff) return diff;
+
+      // if equal depth, sort the top surface last
+      if (a.corners === top) return 1;
+      if (b.corners === top) return -1;
+
+      // both are equal
+      return 0;
+    });
+
+    // draw the ordered surfaces
+    ctx.lineWidth = this._getStrokeWidth(point);
+    ctx.strokeStyle = borderColor;
+    ctx.fillStyle = color;
+    // NOTE: we start at j=2 instead of j=0 as we don't need to draw the two surfaces at the backside
+    for (j = 2; j < surfaces.length; j++) {
+      surface = surfaces[j];
+      this._polygon(ctx, surface.corners);
+    }
+  };
+
+  /**
+   * Draw a polygon using the passed points and fill it with the passed style and stroke.
+   *
+   * @param points      an array of points. 
+   * @param fillStyle   optional; the fill style to set
+   * @param strokeStyle optional; the stroke style to set
+   */
+  Graph3d.prototype._polygon = function (ctx, points, fillStyle, strokeStyle) {
+    if (points.length < 2) {
+      return;
+    }
+
+    if (fillStyle !== undefined) {
+      ctx.fillStyle = fillStyle;
+    }
+    if (strokeStyle !== undefined) {
+      ctx.strokeStyle = strokeStyle;
+    }
+    ctx.beginPath();
+    ctx.moveTo(points[0].screen.x, points[0].screen.y);
+
+    for (var i = 1; i < points.length; ++i) {
+      var point = points[i];
+      ctx.lineTo(point.screen.x, point.screen.y);
+    }
+
+    ctx.closePath();
+    ctx.fill();
+    ctx.stroke(); // TODO: only draw stroke when strokeWidth > 0
+  };
+
+  /**
+   * @param size optional; if not specified use value from 'this._dotSize()`
+   */
+  Graph3d.prototype._drawCircle = function (ctx, point, color, borderColor, size) {
+    var radius = this._calcRadius(point, size);
+
+    ctx.lineWidth = this._getStrokeWidth(point);
+    ctx.strokeStyle = borderColor;
+    ctx.fillStyle = color;
+    ctx.beginPath();
+    ctx.arc(point.screen.x, point.screen.y, radius, 0, Math.PI * 2, true);
+    ctx.fill();
+    ctx.stroke();
+  };
+
+  /**
+   * Determine the colors for the 'regular' graph styles.
+   */
+  Graph3d.prototype._getColorsRegular = function (point) {
+    // calculate Hue from the current value. At zMin the hue is 240, at zMax the hue is 0
+    var hue = (1 - (point.point.z - this.zRange.min) * this.scale.z / this.verticalRatio) * 240;
+    var color = this._hsv2rgb(hue, 1, 1);
+    var borderColor = this._hsv2rgb(hue, 1, 0.8);
+
+    return {
+      fill: color,
+      border: borderColor
+    };
+  };
+
+  /**
+   * Get the colors for the 'color' graph styles.
+   * These styles are currently: 'bar-color' and 'dot-color'
+   */
+  Graph3d.prototype._getColorsColor = function (point) {
+    // calculate the color based on the value
+    var hue = (1 - (point.point.value - this.valueRange.min) * this.scale.value) * 240;
+    var color = this._hsv2rgb(hue, 1, 1);
+    var borderColor = this._hsv2rgb(hue, 1, 0.8);
+
+    return {
+      fill: color,
+      border: borderColor
+    };
+  };
+
+  /**
+   * Get the colors for the 'size' graph styles.
+   * These styles are currently: 'bar-size' and 'dot-size'
+   */
+  Graph3d.prototype._getColorsSize = function () {
+    return {
+      fill: this.dataColor.fill,
+      border: this.dataColor.stroke
+    };
+  };
+
+  /**
+   * Determine the size of a point on-screen, as determined by the
+   * distance to the camera.
+   *
+   * @param size the size that needs to be translated to screen coordinates.
+   *             optional; if not passed, use the default point size.
+   */
+  Graph3d.prototype._calcRadius = function (point, size) {
+    if (size === undefined) {
+      size = this._dotSize();
+    }
+
+    var radius;
+    if (this.showPerspective) {
+      radius = size / -point.trans.z;
+    } else {
+      radius = size * -(this.eye.z / this.camera.getArmLength());
+    }
+    if (radius < 0) {
+      radius = 0;
+    }
+
+    return radius;
+  };
+
+  // -----------------------------------------------------------------------------
+  // Methods for drawing points per graph style.
+  // -----------------------------------------------------------------------------
+
+
+  /**
+   * Draw single datapoint for graph style 'bar'.
+   */
+  Graph3d.prototype._redrawBarGraphPoint = function (ctx, point) {
+    var xWidth = this.xBarWidth / 2;
+    var yWidth = this.yBarWidth / 2;
+    var colors = this._getColorsRegular(point);
+
+    this._redrawBar(ctx, point, xWidth, yWidth, colors.fill, colors.border);
+  };
+
+  /**
+   * Draw single datapoint for graph style 'bar-color'.
+   */
+  Graph3d.prototype._redrawBarColorGraphPoint = function (ctx, point) {
+    var xWidth = this.xBarWidth / 2;
+    var yWidth = this.yBarWidth / 2;
+    var colors = this._getColorsColor(point);
+
+    this._redrawBar(ctx, point, xWidth, yWidth, colors.fill, colors.border);
+  };
+
+  /**
+   * Draw single datapoint for graph style 'bar-size'.
+   */
+  Graph3d.prototype._redrawBarSizeGraphPoint = function (ctx, point) {
+    // calculate size for the bar
+    var fraction = (point.point.value - this.valueRange.min) / this.valueRange.range();
+    var xWidth = this.xBarWidth / 2 * (fraction * 0.8 + 0.2);
+    var yWidth = this.yBarWidth / 2 * (fraction * 0.8 + 0.2);
+
+    var colors = this._getColorsSize();
+
+    this._redrawBar(ctx, point, xWidth, yWidth, colors.fill, colors.border);
+  };
+
+  /**
+   * Draw single datapoint for graph style 'dot'.
+   */
+  Graph3d.prototype._redrawDotGraphPoint = function (ctx, point) {
+    var colors = this._getColorsRegular(point);
+
+    this._drawCircle(ctx, point, colors.fill, colors.border);
+  };
+
+  /**
+   * Draw single datapoint for graph style 'dot-line'.
+   */
+  Graph3d.prototype._redrawDotLineGraphPoint = function (ctx, point) {
+    // draw a vertical line from the XY-plane to the graph value
+    var from = this._convert3Dto2D(point.bottom);
+    ctx.lineWidth = 1;
+    this._line(ctx, from, point.screen, this.gridColor);
+
+    this._redrawDotGraphPoint(ctx, point);
+  };
+
+  /**
+   * Draw single datapoint for graph style 'dot-color'.
+   */
+  Graph3d.prototype._redrawDotColorGraphPoint = function (ctx, point) {
+    var colors = this._getColorsColor(point);
+
+    this._drawCircle(ctx, point, colors.fill, colors.border);
+  };
+
+  /**
+   * Draw single datapoint for graph style 'dot-size'.
+   */
+  Graph3d.prototype._redrawDotSizeGraphPoint = function (ctx, point) {
+    var dotSize = this._dotSize();
+    var fraction = (point.point.value - this.valueRange.min) / this.valueRange.range();
+    var size = dotSize / 2 + 2 * dotSize * fraction;
+    var colors = this._getColorsSize();
+
+    this._drawCircle(ctx, point, colors.fill, colors.border, size);
+  };
+
+  /**
+   * Draw single datapoint for graph style 'surface'.
+   */
+  Graph3d.prototype._redrawSurfaceGraphPoint = function (ctx, point) {
+    var right = point.pointRight;
+    var top = point.pointTop;
+    var cross = point.pointCross;
+
+    if (point === undefined || right === undefined || top === undefined || cross === undefined) {
+      return;
+    }
+
+    var topSideVisible = true;
+    var fillStyle;
+    var strokeStyle;
+    var lineWidth;
+
+    if (this.showGrayBottom || this.showShadow) {
+      // calculate the cross product of the two vectors from center
+      // to left and right, in order to know whether we are looking at the
+      // bottom or at the top side. We can also use the cross product
+      // for calculating light intensity
+      var aDiff = Point3d.subtract(cross.trans, point.trans);
+      var bDiff = Point3d.subtract(top.trans, right.trans);
+      var crossproduct = Point3d.crossProduct(aDiff, bDiff);
+      var len = crossproduct.length();
+      // FIXME: there is a bug with determining the surface side (shadow or colored)
+
+      topSideVisible = crossproduct.z > 0;
+    }
+
+    if (topSideVisible) {
+
+      // calculate Hue from the current value. At zMin the hue is 240, at zMax the hue is 0
+      var zAvg = (point.point.z + right.point.z + top.point.z + cross.point.z) / 4;
+      var h = (1 - (zAvg - this.zRange.min) * this.scale.z / this.verticalRatio) * 240;
+      var s = 1; // saturation
+      var v;
+
+      if (this.showShadow) {
+        v = Math.min(1 + crossproduct.x / len / 2, 1); // value. TODO: scale
+        fillStyle = this._hsv2rgb(h, s, v);
+        strokeStyle = fillStyle;
+      } else {
+        v = 1;
+        fillStyle = this._hsv2rgb(h, s, v);
+        strokeStyle = this.axisColor; // TODO: should be customizable
+      }
+    } else {
+      fillStyle = 'gray';
+      strokeStyle = this.axisColor;
+    }
+
+    ctx.lineWidth = this._getStrokeWidth(point);
+    // TODO: only draw stroke when strokeWidth > 0
+
+    var points = [point, right, cross, top];
+    this._polygon(ctx, points, fillStyle, strokeStyle);
+  };
+
+  /**
+   * Helper method for _redrawGridGraphPoint()
+   */
+  Graph3d.prototype._drawGridLine = function (ctx, from, to) {
+    if (from === undefined || to === undefined) {
+      return;
+    }
+
+    // calculate Hue from the current value. At zMin the hue is 240, at zMax the hue is 0
+    var zAvg = (from.point.z + to.point.z) / 2;
+    var h = (1 - (zAvg - this.zRange.min) * this.scale.z / this.verticalRatio) * 240;
+
+    ctx.lineWidth = this._getStrokeWidth(from) * 2;
+    ctx.strokeStyle = this._hsv2rgb(h, 1, 1);
+    this._line(ctx, from.screen, to.screen);
+  };
+
+  /**
+   * Draw single datapoint for graph style 'Grid'.
+   */
+  Graph3d.prototype._redrawGridGraphPoint = function (ctx, point) {
+    this._drawGridLine(ctx, point, point.pointRight);
+    this._drawGridLine(ctx, point, point.pointTop);
+  };
+
+  /**
+   * Draw single datapoint for graph style 'line'.
+   */
+  Graph3d.prototype._redrawLineGraphPoint = function (ctx, point) {
+    if (point.pointNext === undefined) {
+      return;
+    }
+
+    ctx.lineWidth = this._getStrokeWidth(point);
+    ctx.strokeStyle = this.dataColor.stroke;
+
+    this._line(ctx, point.screen, point.pointNext.screen);
+  };
+
+  /**
+   * Draw all datapoints for currently selected graph style.
+   *
+   */
+  Graph3d.prototype._redrawDataGraph = function () {
+    var ctx = this._getContext();
     var i;
 
     if (this.dataPoints === undefined || this.dataPoints.length <= 0) return; // TODO: throw exception?
 
-    // calculate the translations of all points
-    for (i = 0; i < this.dataPoints.length; i++) {
-      var trans = this._convertPointToTranslation(this.dataPoints[i].point);
-      var screen = this._convertTranslationToScreen(trans);
-      this.dataPoints[i].trans = trans;
-      this.dataPoints[i].screen = screen;
+    this._calcTranslations(this.dataPoints);
 
-      // calculate the distance from the point at the bottom to the camera
-      var transBottom = this._convertPointToTranslation(this.dataPoints[i].bottom);
-      this.dataPoints[i].dist = this.showPerspective ? transBottom.length() : -transBottom.z;
-    }
-
-    // order the translated points by depth
-    var sortDepth = function sortDepth(a, b) {
-      return b.dist - a.dist;
-    };
-    this.dataPoints.sort(sortDepth);
-
-    // draw the datapoints as colored circles
-    var dotSize = this.frame.clientWidth * this.dotSizeRatio; // px
     for (i = 0; i < this.dataPoints.length; i++) {
       var point = this.dataPoints[i];
 
-      if (this.style === Graph3d.STYLE.DOTLINE) {
-        // draw a vertical line from the bottom to the graph value
-        //var from = this._convert3Dto2D(new Point3d(point.point.x, point.point.y, this.zMin));
-        var from = this._convert3Dto2D(point.bottom);
-        ctx.lineWidth = 1;
-        ctx.strokeStyle = this.gridColor;
-        ctx.beginPath();
-        ctx.moveTo(from.x, from.y);
-        ctx.lineTo(point.screen.x, point.screen.y);
-        ctx.stroke();
-      }
-
-      // calculate radius for the circle
-      var size;
-      if (this.style === Graph3d.STYLE.DOTSIZE) {
-        size = dotSize / 2 + 2 * dotSize * (point.point.value - this.valueMin) / (this.valueMax - this.valueMin);
-      } else {
-        size = dotSize;
-      }
-
-      var radius;
-      if (this.showPerspective) {
-        radius = size / -point.trans.z;
-      } else {
-        radius = size * -(this.eye.z / this.camera.getArmLength());
-      }
-      if (radius < 0) {
-        radius = 0;
-      }
-
-      var hue, color, borderColor;
-      if (this.style === Graph3d.STYLE.DOTCOLOR) {
-        // calculate the color based on the value
-        hue = (1 - (point.point.value - this.valueMin) * this.scale.value) * 240;
-        color = this._hsv2rgb(hue, 1, 1);
-        borderColor = this._hsv2rgb(hue, 1, 0.8);
-      } else if (this.style === Graph3d.STYLE.DOTSIZE) {
-        color = this.dataColor.fill;
-        borderColor = this.dataColor.stroke;
-      } else {
-        // calculate Hue from the current value. At zMin the hue is 240, at zMax the hue is 0
-        hue = (1 - (point.point.z - this.zMin) * this.scale.z / this.verticalRatio) * 240;
-        color = this._hsv2rgb(hue, 1, 1);
-        borderColor = this._hsv2rgb(hue, 1, 0.8);
-      }
-
-      // draw the circle
-      ctx.lineWidth = this._getStrokeWidth(point);
-      ctx.strokeStyle = borderColor;
-      ctx.fillStyle = color;
-      ctx.beginPath();
-      ctx.arc(point.screen.x, point.screen.y, radius, 0, Math.PI * 2, true);
-      ctx.fill();
-      ctx.stroke();
+      // Using call() ensures that the correct context is used
+      this._pointDrawingMethod.call(this, ctx, point);
     }
   };
 
-  /**
-   * Draw all datapoints as bars.
-   * This function can be used when the style is 'bar', 'bar-color', or 'bar-size'
-   */
-  Graph3d.prototype._redrawDataBar = function () {
-    var canvas = this.frame.canvas;
-    var ctx = canvas.getContext('2d');
-    var i, j, surface, corners;
+  // -----------------------------------------------------------------------------
+  // End methods for drawing points per graph style.
+  // -----------------------------------------------------------------------------
 
-    if (this.dataPoints === undefined || this.dataPoints.length <= 0) return; // TODO: throw exception?
-
-    // calculate the translations of all points
-    for (i = 0; i < this.dataPoints.length; i++) {
-      var trans = this._convertPointToTranslation(this.dataPoints[i].point);
-      var screen = this._convertTranslationToScreen(trans);
-      this.dataPoints[i].trans = trans;
-      this.dataPoints[i].screen = screen;
-
-      // calculate the distance from the point at the bottom to the camera
-      var transBottom = this._convertPointToTranslation(this.dataPoints[i].bottom);
-      this.dataPoints[i].dist = this.showPerspective ? transBottom.length() : -transBottom.z;
-    }
-
-    // order the translated points by depth
-    var sortDepth = function sortDepth(a, b) {
-      return b.dist - a.dist;
-    };
-    this.dataPoints.sort(sortDepth);
-
-    ctx.lineJoin = 'round';
-    ctx.lineCap = 'round';
-
-    // draw the datapoints as bars
-    var xWidth = this.xBarWidth / 2;
-    var yWidth = this.yBarWidth / 2;
-    for (i = 0; i < this.dataPoints.length; i++) {
-      var point = this.dataPoints[i];
-
-      // determine color
-      var hue, color, borderColor;
-      if (this.style === Graph3d.STYLE.BARCOLOR) {
-        // calculate the color based on the value
-        hue = (1 - (point.point.value - this.valueMin) * this.scale.value) * 240;
-        color = this._hsv2rgb(hue, 1, 1);
-        borderColor = this._hsv2rgb(hue, 1, 0.8);
-      } else if (this.style === Graph3d.STYLE.BARSIZE) {
-        color = this.dataColor.fill;
-        borderColor = this.dataColor.stroke;
-      } else {
-        // calculate Hue from the current value. At zMin the hue is 240, at zMax the hue is 0
-        hue = (1 - (point.point.z - this.zMin) * this.scale.z / this.verticalRatio) * 240;
-        color = this._hsv2rgb(hue, 1, 1);
-        borderColor = this._hsv2rgb(hue, 1, 0.8);
-      }
-
-      // calculate size for the bar
-      if (this.style === Graph3d.STYLE.BARSIZE) {
-        xWidth = this.xBarWidth / 2 * ((point.point.value - this.valueMin) / (this.valueMax - this.valueMin) * 0.8 + 0.2);
-        yWidth = this.yBarWidth / 2 * ((point.point.value - this.valueMin) / (this.valueMax - this.valueMin) * 0.8 + 0.2);
-      }
-
-      // calculate all corner points
-      var me = this;
-      var point3d = point.point;
-      var top = [{ point: new Point3d(point3d.x - xWidth, point3d.y - yWidth, point3d.z) }, { point: new Point3d(point3d.x + xWidth, point3d.y - yWidth, point3d.z) }, { point: new Point3d(point3d.x + xWidth, point3d.y + yWidth, point3d.z) }, { point: new Point3d(point3d.x - xWidth, point3d.y + yWidth, point3d.z) }];
-      var bottom = [{ point: new Point3d(point3d.x - xWidth, point3d.y - yWidth, this.zMin) }, { point: new Point3d(point3d.x + xWidth, point3d.y - yWidth, this.zMin) }, { point: new Point3d(point3d.x + xWidth, point3d.y + yWidth, this.zMin) }, { point: new Point3d(point3d.x - xWidth, point3d.y + yWidth, this.zMin) }];
-
-      // calculate screen location of the points
-      top.forEach(function (obj) {
-        obj.screen = me._convert3Dto2D(obj.point);
-      });
-      bottom.forEach(function (obj) {
-        obj.screen = me._convert3Dto2D(obj.point);
-      });
-
-      // create five sides, calculate both corner points and center points
-      var surfaces = [{ corners: top, center: Point3d.avg(bottom[0].point, bottom[2].point) }, { corners: [top[0], top[1], bottom[1], bottom[0]], center: Point3d.avg(bottom[1].point, bottom[0].point) }, { corners: [top[1], top[2], bottom[2], bottom[1]], center: Point3d.avg(bottom[2].point, bottom[1].point) }, { corners: [top[2], top[3], bottom[3], bottom[2]], center: Point3d.avg(bottom[3].point, bottom[2].point) }, { corners: [top[3], top[0], bottom[0], bottom[3]], center: Point3d.avg(bottom[0].point, bottom[3].point) }];
-      point.surfaces = surfaces;
-
-      // calculate the distance of each of the surface centers to the camera
-      for (j = 0; j < surfaces.length; j++) {
-        surface = surfaces[j];
-        var transCenter = this._convertPointToTranslation(surface.center);
-        surface.dist = this.showPerspective ? transCenter.length() : -transCenter.z;
-        // TODO: this dept calculation doesn't work 100% of the cases due to perspective,
-        //     but the current solution is fast/simple and works in 99.9% of all cases
-        //     the issue is visible in example 14, with graph.setCameraPosition({horizontal: 2.97, vertical: 0.5, distance: 0.9})
-      }
-
-      // order the surfaces by their (translated) depth
-      surfaces.sort(function (a, b) {
-        var diff = b.dist - a.dist;
-        if (diff) return diff;
-
-        // if equal depth, sort the top surface last
-        if (a.corners === top) return 1;
-        if (b.corners === top) return -1;
-
-        // both are equal
-        return 0;
-      });
-
-      // draw the ordered surfaces
-      ctx.lineWidth = this._getStrokeWidth(point);
-      ctx.strokeStyle = borderColor;
-      ctx.fillStyle = color;
-      // NOTE: we start at j=2 instead of j=0 as we don't need to draw the two surfaces at the backside
-      for (j = 2; j < surfaces.length; j++) {
-        surface = surfaces[j];
-        corners = surface.corners;
-        ctx.beginPath();
-        ctx.moveTo(corners[3].screen.x, corners[3].screen.y);
-        ctx.lineTo(corners[0].screen.x, corners[0].screen.y);
-        ctx.lineTo(corners[1].screen.x, corners[1].screen.y);
-        ctx.lineTo(corners[2].screen.x, corners[2].screen.y);
-        ctx.lineTo(corners[3].screen.x, corners[3].screen.y);
-        ctx.fill();
-        ctx.stroke();
-      }
-    }
-  };
-
-  /**
-   * Draw a line through all datapoints.
-   * This function can be used when the style is 'line'
-   */
-  Graph3d.prototype._redrawDataLine = function () {
-    var canvas = this.frame.canvas,
-        ctx = canvas.getContext('2d'),
-        point,
-        i;
-
-    if (this.dataPoints === undefined || this.dataPoints.length <= 0) return; // TODO: throw exception?
-
-    // calculate the translations of all points
-    for (i = 0; i < this.dataPoints.length; i++) {
-      var trans = this._convertPointToTranslation(this.dataPoints[i].point);
-      var screen = this._convertTranslationToScreen(trans);
-
-      this.dataPoints[i].trans = trans;
-      this.dataPoints[i].screen = screen;
-    }
-
-    // start the line
-    if (this.dataPoints.length > 0) {
-      point = this.dataPoints[0];
-
-      ctx.lineWidth = this._getStrokeWidth(point);
-      ctx.lineJoin = 'round';
-      ctx.lineCap = 'round';
-      ctx.strokeStyle = this.dataColor.stroke;
-      ctx.beginPath();
-      ctx.moveTo(point.screen.x, point.screen.y);
-
-      // draw the datapoints as colored circles
-      for (i = 1; i < this.dataPoints.length; i++) {
-        point = this.dataPoints[i];
-        ctx.lineTo(point.screen.x, point.screen.y);
-      }
-
-      // finish the line
-      ctx.stroke();
-    }
-  };
 
   /**
    * Start a moving operation inside the provided parent element
@@ -9628,9 +9852,11 @@ return /******/ (function(modules) { // webpackBootstrap
 
   /**
    * Test whether a point lies inside given 2D triangle
-   * @param {Point2d} point
-   * @param {Point2d[]} triangle
-   * @return {boolean} Returns true if given point lies inside or on the edge of the triangle
+   *
+   * @param   {Point2d}   point
+   * @param   {Point2d[]} triangle
+   * @returns {boolean}   true if given point lies inside or on the edge of the
+   *                      triangle, false otherwise
    * @private
    */
   Graph3d.prototype._insideTriangle = function (point, triangle) {
@@ -9652,9 +9878,11 @@ return /******/ (function(modules) { // webpackBootstrap
 
   /**
    * Find a data point close to given screen position (x, y)
-   * @param {Number} x
-   * @param {Number} y
-   * @return {Object | null} The closest data point or null if not close to any data point
+   *
+   * @param   {Number} x
+   * @param   {Number} y
+   * @returns {Object | null} The closest data point or null if not close to any
+   *                          data point
    * @private
    */
   Graph3d.prototype._dataPointFromXY = function (x, y) {
@@ -9807,8 +10035,9 @@ return /******/ (function(modules) { // webpackBootstrap
 
   /**
    * Get the horizontal mouse position from a mouse event
-   * @param {Event} event
-   * @return {Number} mouse x
+   *
+   * @param   {Event}  event
+   * @returns {Number} mouse x
    */
   function getMouseX(event) {
     if ('clientX' in event) return event.clientX;
@@ -9817,13 +10046,41 @@ return /******/ (function(modules) { // webpackBootstrap
 
   /**
    * Get the vertical mouse position from a mouse event
-   * @param {Event} event
-   * @return {Number} mouse y
+   *
+   * @param   {Event}  event
+   * @returns {Number} mouse y
    */
   function getMouseY(event) {
     if ('clientY' in event) return event.clientY;
     return event.targetTouches[0] && event.targetTouches[0].clientY || 0;
   }
+
+  // -----------------------------------------------------------------------------
+  //  Public methods for specific settings
+  // -----------------------------------------------------------------------------
+
+  /**
+   * Set the rotation and distance of the camera
+   *
+   * @param {Object}  pos            An object with the camera position
+   * @param {?Number} pos.horizontal The horizontal rotation, between 0 and 2*PI.
+   *                                 Optional, can be left undefined.
+   * @param {?Number} pos.vertical   The vertical rotation, between 0 and 0.5*PI.
+   *                                 if vertical=0.5*PI, the graph is shown from
+   *                                 the top. Optional, can be left undefined.
+   * @param {?Number} pos.distance   The (normalized) distance of the camera to the
+   *                                 center of the graph, a value between 0.71 and
+   *                                 5.0. Optional, can be left undefined.
+   */
+  Graph3d.prototype.setCameraPosition = function (pos) {
+    Settings.setCameraPosition(pos, this);
+    this.redraw();
+  };
+
+  // -----------------------------------------------------------------------------
+  //  End public methods for specific settings
+  // -----------------------------------------------------------------------------
+
 
   module.exports = Graph3d;
 
@@ -10351,7 +10608,7 @@ return /******/ (function(modules) { // webpackBootstrap
    * @return {*} value
    */
   Filter.prototype.getValue = function (index) {
-    if (index >= this.values.length) throw 'Error: index out of range';
+    if (index >= this.values.length) throw new Error('Index out of range');
 
     return this.values[index];
   };
@@ -10398,7 +10655,7 @@ return /******/ (function(modules) { // webpackBootstrap
    * @param {Number} index
    */
   Filter.prototype.selectValue = function (index) {
-    if (index >= this.values.length) throw 'Error: index out of range';
+    if (index >= this.values.length) throw new Error('Index out of range');
 
     this.index = index;
     this.value = this.values[index];
@@ -10469,7 +10726,7 @@ return /******/ (function(modules) { // webpackBootstrap
    */
   function Slider(container, options) {
     if (container === undefined) {
-      throw 'Error: No container element defined';
+      throw new Error('No container element defined');
     }
     this.container = container;
     this.visible = options && options.visible != undefined ? options.visible : true;
@@ -10710,7 +10967,7 @@ return /******/ (function(modules) { // webpackBootstrap
       this.redraw();
       this.onChange();
     } else {
-      throw 'Error: index out of range';
+      throw new Error('Index out of range');
     }
   };
 
@@ -10802,7 +11059,7 @@ return /******/ (function(modules) { // webpackBootstrap
 /* 19 */
 /***/ function(module, exports) {
 
-  "use strict";
+  'use strict';
 
   /**
    * @prototype StepNumber
@@ -10842,6 +11099,15 @@ return /******/ (function(modules) { // webpackBootstrap
   };
 
   /**
+   * Check for input values, to prevent disasters from happening
+   *
+   * Source: http://stackoverflow.com/a/1830844
+   */
+  StepNumber.prototype.isNumeric = function (n) {
+    return !isNaN(parseFloat(n)) && isFinite(n);
+  };
+
+  /**
    * Set a new range: start, end and step.
    *
    * @param {Number} start     The start value
@@ -10851,6 +11117,16 @@ return /******/ (function(modules) { // webpackBootstrap
    *               To a pretty step size (like 1, 2, 5, 10, 20, 50, ...)
    */
   StepNumber.prototype.setRange = function (start, end, step, prettyStep) {
+    if (!this.isNumeric(start)) {
+      throw new Error('Parameter \'start\' is not numeric; value: ' + start);
+    }
+    if (!this.isNumeric(end)) {
+      throw new Error('Parameter \'end\' is not numeric; value: ' + start);
+    }
+    if (!this.isNumeric(step)) {
+      throw new Error('Parameter \'step\' is not numeric; value: ' + start);
+    }
+
     this._start = start ? start : 0;
     this._end = end ? end : 0;
 
@@ -10918,11 +11194,26 @@ return /******/ (function(modules) { // webpackBootstrap
   };
 
   /**
-   * Set the current value to the largest value smaller than start, which
-   * is a multiple of the step size
+   * Set the current to its starting value.
+   *
+   * By default, this will be the largest value smaller than start, which
+   * is a multiple of the step size.
+   *
+   * Parameters checkFirst is optional, default false.
+   * If set to true, move the current value one step if smaller than start.
    */
-  StepNumber.prototype.start = function () {
+  StepNumber.prototype.start = function (checkFirst) {
+    if (checkFirst === undefined) {
+      checkFirst = false;
+    }
+
     this._current = this._start - this._start % this._step;
+
+    if (checkFirst) {
+      if (this.getCurrent() < this._start) {
+        this.next();
+      }
+    }
   };
 
   /**
@@ -10944,6 +11235,482 @@ return /******/ (function(modules) { // webpackBootstrap
 
 /***/ },
 /* 20 */
+/***/ function(module, exports) {
+
+  'use strict';
+
+  /**
+   * @prototype Range
+   *
+   * Helper class to make working with related min and max values easier.
+   *
+   * The range is inclusive; a given value is considered part of the range if:
+   *
+   *    this.min <= value <= this.max
+   */
+  function Range() {
+    this.min = undefined;
+    this.max = undefined;
+  }
+
+  /**
+   * Adjust the range so that the passed value fits in it.
+   *
+   * If the value is outside of the current extremes, adjust
+   * the min or max so that the value is within the range.
+   *
+   * @param {number} value Numeric value to fit in range
+   */
+  Range.prototype.adjust = function (value) {
+    if (value === undefined) return;
+
+    if (this.min === undefined || this.min > value) {
+      this.min = value;
+    }
+
+    if (this.max === undefined || this.max < value) {
+      this.max = value;
+    }
+  };
+
+  /**
+   * Adjust the current range so that the passed range fits in it.
+   *
+   * @param {Range} range Range instance to fit in current instance
+   */
+  Range.prototype.combine = function (range) {
+    this.add(range.min);
+    this.add(range.max);
+  };
+
+  /**
+   * Expand the range by the given value
+   *
+   * min will be lowered by given value;
+   * max will be raised by given value
+   *
+   * Shrinking by passing a negative value is allowed.
+   *
+   * @param {number} val Amount by which to expand or shrink current range with
+   */
+  Range.prototype.expand = function (val) {
+    if (val === undefined) {
+      return;
+    }
+
+    var newMin = this.min - val;
+    var newMax = this.max + val;
+
+    // Note that following allows newMin === newMax.
+    // This should be OK, since method expand() allows this also.
+    if (newMin > newMax) {
+      throw new Error('Passed expansion value makes range invalid');
+    }
+
+    this.min = newMin;
+    this.max = newMax;
+  };
+
+  /**
+   * Determine the full range width of current instance.
+   *
+   * @returns {num} The calculated width of this range
+   */
+  Range.prototype.range = function () {
+    return this.max - this.min;
+  };
+
+  /**
+   * Determine the central point of current instance.
+   *
+   * @returns {number} the value in the middle of min and max
+   */
+  Range.prototype.center = function () {
+    return (this.min + this.max) / 2;
+  };
+
+  module.exports = Range;
+
+/***/ },
+/* 21 */
+/***/ function(module, exports, __webpack_require__) {
+
+  'use strict';
+
+  var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
+
+  ////////////////////////////////////////////////////////////////////////////////
+  // This modules handles the options for Graph3d.
+  //
+  ////////////////////////////////////////////////////////////////////////////////
+  var Camera = __webpack_require__(16);
+  var Point3d = __webpack_require__(14);
+
+  // enumerate the available styles
+  var STYLE = {
+    BAR: 0,
+    BARCOLOR: 1,
+    BARSIZE: 2,
+    DOT: 3,
+    DOTLINE: 4,
+    DOTCOLOR: 5,
+    DOTSIZE: 6,
+    GRID: 7,
+    LINE: 8,
+    SURFACE: 9
+  };
+
+  // The string representations of the styles
+  var STYLENAME = {
+    'dot': STYLE.DOT,
+    'dot-line': STYLE.DOTLINE,
+    'dot-color': STYLE.DOTCOLOR,
+    'dot-size': STYLE.DOTSIZE,
+    'line': STYLE.LINE,
+    'grid': STYLE.GRID,
+    'surface': STYLE.SURFACE,
+    'bar': STYLE.BAR,
+    'bar-color': STYLE.BARCOLOR,
+    'bar-size': STYLE.BARSIZE
+  };
+
+  /**
+   * Field names in the options hash which are of relevance to the user.
+   *
+   * Specifically, these are the fields which require no special handling,
+   * and can be directly copied over.
+   */
+  var OPTIONKEYS = ['width', 'height', 'filterLabel', 'legendLabel', 'xLabel', 'yLabel', 'zLabel', 'xValueLabel', 'yValueLabel', 'zValueLabel', 'showGrid', 'showPerspective', 'showShadow', 'keepAspectRatio', 'verticalRatio', 'dotSizeRatio', 'showAnimationControls', 'animationInterval', 'animationPreload', 'animationAutoStart', 'axisColor', 'gridColor', 'xCenter', 'yCenter'];
+
+  /**
+   * Field names in the options hash which are of relevance to the user.
+   *
+   * Same as OPTIONKEYS, but internally these fields are stored with 
+   * prefix 'default' in the name.
+   */
+  var PREFIXEDOPTIONKEYS = ['xBarWidth', 'yBarWidth', 'valueMin', 'valueMax', 'xMin', 'xMax', 'xStep', 'yMin', 'yMax', 'yStep', 'zMin', 'zMax', 'zStep'];
+
+  // Placeholder for DEFAULTS reference
+  var DEFAULTS = undefined;
+
+  /**
+   * Check if given hash is empty.
+   *
+   * Source: http://stackoverflow.com/a/679937
+   */
+  function isEmpty(obj) {
+    for (var prop in obj) {
+      if (obj.hasOwnProperty(prop)) return false;
+    }
+
+    return true;
+  }
+
+  /**
+   * Make first letter of parameter upper case.
+   *
+   * Source: http://stackoverflow.com/a/1026087
+   */
+  function capitalize(str) {
+    if (str === undefined || str === "") {
+      return str;
+    }
+
+    return str.charAt(0).toUpperCase() + str.slice(1);
+  }
+
+  /**
+   * Add a prefix to a field name, taking style guide into account
+   */
+  function prefixFieldName(prefix, fieldName) {
+    if (prefix === undefined || prefix === "") {
+      return fieldName;
+    }
+
+    return prefix + capitalize(fieldName);
+  }
+
+  /**
+   * Forcibly copy fields from src to dst in a controlled manner.
+   *
+   * A given field in dst will always be overwitten. If this field
+   * is undefined or not present in src, the field in dst will 
+   * be explicitly set to undefined.
+   * 
+   * The intention here is to be able to reset all option fields.
+   * 
+   * Only the fields mentioned in array 'fields' will be handled.
+   *
+   * @param fields array with names of fields to copy
+   * @param prefix optional; prefix to use for the target fields.
+   */
+  function forceCopy(src, dst, fields, prefix) {
+    var srcKey;
+    var dstKey;
+
+    for (var i in fields) {
+      srcKey = fields[i];
+      dstKey = prefixFieldName(prefix, srcKey);
+
+      dst[dstKey] = src[srcKey];
+    }
+  }
+
+  /**
+   * Copy fields from src to dst in a safe and controlled manner.
+   *
+   * Only the fields mentioned in array 'fields' will be copied over,
+   * and only if these are actually defined.
+   *
+   * @param fields array with names of fields to copy
+   * @param prefix optional; prefix to use for the target fields.
+   */
+  function safeCopy(src, dst, fields, prefix) {
+    var srcKey;
+    var dstKey;
+
+    for (var i in fields) {
+      srcKey = fields[i];
+      if (src[srcKey] === undefined) continue;
+
+      dstKey = prefixFieldName(prefix, srcKey);
+
+      dst[dstKey] = src[srcKey];
+    }
+  }
+
+  /**
+   * Initialize dst with the values in src.
+   *
+   * src is the hash with the default values. 
+   * A reference DEFAULTS to this hash is stored locally for 
+   * further handling.
+   *
+   * For now, dst is assumed to be a Graph3d instance.
+   */
+  function setDefaults(src, dst) {
+    if (src === undefined || isEmpty(src)) {
+      throw new Error('No DEFAULTS passed');
+    }
+    if (dst === undefined) {
+      throw new Error('No dst passed');
+    }
+
+    // Remember defaults for future reference
+    DEFAULTS = src;
+
+    // Handle the defaults which can be simply copied over
+    forceCopy(src, dst, OPTIONKEYS);
+    forceCopy(src, dst, PREFIXEDOPTIONKEYS, 'default');
+
+    // Handle the more complex ('special') fields
+    setSpecialSettings(src, dst);
+
+    // Following are internal fields, not part of the user settings
+    dst.margin = 10; // px
+    dst.showGrayBottom = false; // TODO: this does not work correctly
+    dst.showTooltip = false;
+    dst.eye = new Point3d(0, 0, -1); // TODO: set eye.z about 3/4 of the width of the window?
+  }
+
+  function setOptions(options, dst) {
+    if (options === undefined) {
+      return;
+    }
+    if (dst === undefined) {
+      throw new Error('No dst passed');
+    }
+
+    if (DEFAULTS === undefined || isEmpty(DEFAULTS)) {
+      throw new Error('DEFAULTS not set for module Settings');
+    }
+
+    // Handle the parameters which can be simply copied over
+    safeCopy(options, dst, OPTIONKEYS);
+    safeCopy(options, dst, PREFIXEDOPTIONKEYS, 'default');
+
+    // Handle the more complex ('special') fields
+    setSpecialSettings(options, dst);
+  }
+
+  /**
+   * Special handling for certain parameters
+   *
+   * 'Special' here means: setting requires more than a simple copy
+   */
+  function setSpecialSettings(src, dst) {
+    if (src.backgroundColor !== undefined) {
+      setBackgroundColor(src.backgroundColor, dst);
+    }
+
+    setDataColor(src.dataColor, dst);
+    setStyle(src.style, dst);
+    setShowLegend(src.showLegend, dst);
+    setCameraPosition(src.cameraPosition, dst);
+
+    // As special fields go, this is an easy one; just a translation of the name.
+    // Can't use this.tooltip directly, because that field exists internally
+    if (src.tooltip !== undefined) {
+      dst.showTooltip = src.tooltip;
+    }
+  }
+
+  /**
+   * Set the value of setting 'showLegend'
+   *
+   * This depends on the value of the style fields, so it must be called
+   * after the style field has been initialized.
+   */
+  function setShowLegend(showLegend, dst) {
+    if (showLegend === undefined) {
+      // If the default was auto, make a choice for this field
+      var isAutoByDefault = DEFAULTS.showLegend === undefined;
+
+      if (isAutoByDefault) {
+        // these styles default to having legends
+        var isLegendGraphStyle = dst.style === STYLE.DOTCOLOR || dst.style === STYLE.DOTSIZE;
+
+        dst.showLegend = isLegendGraphStyle;
+      } else {
+        // Leave current value as is
+      }
+    } else {
+      dst.showLegend = showLegend;
+    }
+  }
+
+  /**
+   * Retrieve the style index from given styleName
+   * @param {string} styleName  Style name such as 'dot', 'grid', 'dot-line'
+   * @return {Number} styleNumber Enumeration value representing the style, or -1
+   *                when not found
+   */
+  function getStyleNumberByName(styleName) {
+    var number = STYLENAME[styleName];
+
+    if (number === undefined) {
+      return -1;
+    }
+
+    return number;
+  }
+
+  /**
+   * Check if given number is a valid style number.
+   *
+   * @return true if valid, false otherwise
+   */
+  function checkStyleNumber(style) {
+    var valid = false;
+
+    for (var n in STYLE) {
+      if (STYLE[n] === style) {
+        valid = true;
+        break;
+      }
+    }
+
+    return valid;
+  }
+
+  function setStyle(style, dst) {
+    if (style === undefined) {
+      return; // Nothing to do
+    }
+
+    var styleNumber;
+
+    if (typeof style === 'string') {
+      styleNumber = getStyleNumberByName(style);
+
+      if (styleNumber === -1) {
+        throw new Error('Style \'' + style + '\' is invalid');
+      }
+    } else {
+      // Do a pedantic check on style number value
+      if (!checkStyleNumber(style)) {
+        throw new Error('Style \'' + style + '\' is invalid');
+      }
+
+      styleNumber = style;
+    }
+
+    dst.style = styleNumber;
+  }
+
+  /**
+   * Set the background styling for the graph
+   * @param {string | {fill: string, stroke: string, strokeWidth: string}} backgroundColor
+   */
+  function setBackgroundColor(backgroundColor, dst) {
+    var fill = 'white';
+    var stroke = 'gray';
+    var strokeWidth = 1;
+
+    if (typeof backgroundColor === 'string') {
+      fill = backgroundColor;
+      stroke = 'none';
+      strokeWidth = 0;
+    } else if ((typeof backgroundColor === 'undefined' ? 'undefined' : _typeof(backgroundColor)) === 'object') {
+      if (backgroundColor.fill !== undefined) fill = backgroundColor.fill;
+      if (backgroundColor.stroke !== undefined) stroke = backgroundColor.stroke;
+      if (backgroundColor.strokeWidth !== undefined) strokeWidth = backgroundColor.strokeWidth;
+    } else {
+      throw new Error('Unsupported type of backgroundColor');
+    }
+
+    dst.frame.style.backgroundColor = fill;
+    dst.frame.style.borderColor = stroke;
+    dst.frame.style.borderWidth = strokeWidth + 'px';
+    dst.frame.style.borderStyle = 'solid';
+  }
+
+  function setDataColor(dataColor, dst) {
+    if (dataColor === undefined) {
+      return; // Nothing to do
+    }
+
+    if (dst.dataColor === undefined) {
+      dst.dataColor = {};
+    }
+
+    if (typeof dataColor === 'string') {
+      dst.dataColor.fill = dataColor;
+      dst.dataColor.stroke = dataColor;
+    } else {
+      if (dataColor.fill) {
+        dst.dataColor.fill = dataColor.fill;
+      }
+      if (dataColor.stroke) {
+        dst.dataColor.stroke = dataColor.stroke;
+      }
+      if (dataColor.strokeWidth !== undefined) {
+        dst.dataColor.strokeWidth = dataColor.strokeWidth;
+      }
+    }
+  }
+
+  function setCameraPosition(cameraPosition, dst) {
+    var camPos = cameraPosition;
+    if (camPos === undefined) {
+      return;
+    }
+
+    if (dst.camera === undefined) {
+      dst.camera = new Camera();
+    }
+
+    dst.camera.setArmRotation(camPos.horizontal, camPos.vertical);
+    dst.camera.setArmLength(camPos.distance);
+  }
+
+  module.exports.STYLE = STYLE;
+  module.exports.setDefaults = setDefaults;
+  module.exports.setOptions = setOptions;
+  module.exports.setCameraPosition = setCameraPosition;
+
+/***/ },
+/* 22 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -10951,8 +11718,8 @@ return /******/ (function(modules) { // webpackBootstrap
   // Only load hammer.js when in a browser environment
   // (loading hammer.js in a node.js environment gives errors)
   if (typeof window !== 'undefined') {
-    var propagating = __webpack_require__(21);
-    var Hammer = window['Hammer'] || __webpack_require__(22);
+    var propagating = __webpack_require__(23);
+    var Hammer = window['Hammer'] || __webpack_require__(24);
     module.exports = propagating(Hammer, {
       preventDefault: 'mouse'
     });
@@ -10963,7 +11730,7 @@ return /******/ (function(modules) { // webpackBootstrap
   }
 
 /***/ },
-/* 21 */
+/* 23 */
 /***/ function(module, exports, __webpack_require__) {
 
   var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;'use strict';
@@ -11200,14 +11967,14 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 22 */
+/* 24 */
 /***/ function(module, exports, __webpack_require__) {
 
-  var __WEBPACK_AMD_DEFINE_RESULT__;/*! Hammer.JS - v2.0.6 - 2015-12-23
+  var __WEBPACK_AMD_DEFINE_RESULT__;/*! Hammer.JS - v2.0.7 - 2016-04-22
    * http://hammerjs.github.io/
    *
-   * Copyright (c) 2015 Jorik Tangelder;
-   * Licensed under the  license */
+   * Copyright (c) 2016 Jorik Tangelder;
+   * Licensed under the MIT license */
   (function(window, document, exportName, undefined) {
     'use strict';
 
@@ -11335,7 +12102,7 @@ return /******/ (function(modules) { // webpackBootstrap
    * means that properties in dest will be overwritten by the ones in src.
    * @param {Object} dest
    * @param {Object} src
-   * @param {Boolean=false} [merge]
+   * @param {Boolean} [merge=false]
    * @returns {Object} dest
    */
   var extend = deprecate(function extend(dest, src, merge) {
@@ -11996,7 +12763,6 @@ return /******/ (function(modules) { // webpackBootstrap
       this.evEl = MOUSE_ELEMENT_EVENTS;
       this.evWin = MOUSE_WINDOW_EVENTS;
 
-      this.allow = true; // used by Input.TouchMouse to disable mouse events
       this.pressed = false; // mousedown state
 
       Input.apply(this, arguments);
@@ -12019,8 +12785,8 @@ return /******/ (function(modules) { // webpackBootstrap
               eventType = INPUT_END;
           }
 
-          // mouse must be down, and mouse events are allowed (see the TouchMouse input)
-          if (!this.pressed || !this.allow) {
+          // mouse must be down
+          if (!this.pressed) {
               return;
           }
 
@@ -12303,12 +13069,19 @@ return /******/ (function(modules) { // webpackBootstrap
    * @constructor
    * @extends Input
    */
+
+  var DEDUP_TIMEOUT = 2500;
+  var DEDUP_DISTANCE = 25;
+
   function TouchMouseInput() {
       Input.apply(this, arguments);
 
       var handler = bindFn(this.handler, this);
       this.touch = new TouchInput(this.manager, handler);
       this.mouse = new MouseInput(this.manager, handler);
+
+      this.primaryTouch = null;
+      this.lastTouches = [];
   }
 
   inherit(TouchMouseInput, Input, {
@@ -12322,17 +13095,15 @@ return /******/ (function(modules) { // webpackBootstrap
           var isTouch = (inputData.pointerType == INPUT_TYPE_TOUCH),
               isMouse = (inputData.pointerType == INPUT_TYPE_MOUSE);
 
-          // when we're in a touch event, so  block all upcoming mouse events
-          // most mobile browser also emit mouseevents, right after touchstart
-          if (isTouch) {
-              this.mouse.allow = false;
-          } else if (isMouse && !this.mouse.allow) {
+          if (isMouse && inputData.sourceCapabilities && inputData.sourceCapabilities.firesTouchEvents) {
               return;
           }
 
-          // reset the allowMouse when we're done
-          if (inputEvent & (INPUT_END | INPUT_CANCEL)) {
-              this.mouse.allow = true;
+          // when we're in a touch event, record touches to  de-dupe synthetic mouse event
+          if (isTouch) {
+              recordTouches.call(this, inputEvent, inputData);
+          } else if (isMouse && isSyntheticEvent.call(this, inputData)) {
+              return;
           }
 
           this.callback(manager, inputEvent, inputData);
@@ -12347,6 +13118,44 @@ return /******/ (function(modules) { // webpackBootstrap
       }
   });
 
+  function recordTouches(eventType, eventData) {
+      if (eventType & INPUT_START) {
+          this.primaryTouch = eventData.changedPointers[0].identifier;
+          setLastTouch.call(this, eventData);
+      } else if (eventType & (INPUT_END | INPUT_CANCEL)) {
+          setLastTouch.call(this, eventData);
+      }
+  }
+
+  function setLastTouch(eventData) {
+      var touch = eventData.changedPointers[0];
+
+      if (touch.identifier === this.primaryTouch) {
+          var lastTouch = {x: touch.clientX, y: touch.clientY};
+          this.lastTouches.push(lastTouch);
+          var lts = this.lastTouches;
+          var removeLastTouch = function() {
+              var i = lts.indexOf(lastTouch);
+              if (i > -1) {
+                  lts.splice(i, 1);
+              }
+          };
+          setTimeout(removeLastTouch, DEDUP_TIMEOUT);
+      }
+  }
+
+  function isSyntheticEvent(eventData) {
+      var x = eventData.srcEvent.clientX, y = eventData.srcEvent.clientY;
+      for (var i = 0; i < this.lastTouches.length; i++) {
+          var t = this.lastTouches[i];
+          var dx = Math.abs(x - t.x), dy = Math.abs(y - t.y);
+          if (dx <= DEDUP_DISTANCE && dy <= DEDUP_DISTANCE) {
+              return true;
+          }
+      }
+      return false;
+  }
+
   var PREFIXED_TOUCH_ACTION = prefixed(TEST_ELEMENT.style, 'touchAction');
   var NATIVE_TOUCH_ACTION = PREFIXED_TOUCH_ACTION !== undefined;
 
@@ -12357,6 +13166,7 @@ return /******/ (function(modules) { // webpackBootstrap
   var TOUCH_ACTION_NONE = 'none';
   var TOUCH_ACTION_PAN_X = 'pan-x';
   var TOUCH_ACTION_PAN_Y = 'pan-y';
+  var TOUCH_ACTION_MAP = getTouchActionProps();
 
   /**
    * Touch Action
@@ -12381,7 +13191,7 @@ return /******/ (function(modules) { // webpackBootstrap
               value = this.compute();
           }
 
-          if (NATIVE_TOUCH_ACTION && this.manager.element.style) {
+          if (NATIVE_TOUCH_ACTION && this.manager.element.style && TOUCH_ACTION_MAP[value]) {
               this.manager.element.style[PREFIXED_TOUCH_ACTION] = value;
           }
           this.actions = value.toLowerCase().trim();
@@ -12413,11 +13223,6 @@ return /******/ (function(modules) { // webpackBootstrap
        * @param {Object} input
        */
       preventDefaults: function(input) {
-          // not needed with native support for the touchAction property
-          if (NATIVE_TOUCH_ACTION) {
-              return;
-          }
-
           var srcEvent = input.srcEvent;
           var direction = input.offsetDirection;
 
@@ -12428,9 +13233,9 @@ return /******/ (function(modules) { // webpackBootstrap
           }
 
           var actions = this.actions;
-          var hasNone = inStr(actions, TOUCH_ACTION_NONE);
-          var hasPanY = inStr(actions, TOUCH_ACTION_PAN_Y);
-          var hasPanX = inStr(actions, TOUCH_ACTION_PAN_X);
+          var hasNone = inStr(actions, TOUCH_ACTION_NONE) && !TOUCH_ACTION_MAP[TOUCH_ACTION_NONE];
+          var hasPanY = inStr(actions, TOUCH_ACTION_PAN_Y) && !TOUCH_ACTION_MAP[TOUCH_ACTION_PAN_Y];
+          var hasPanX = inStr(actions, TOUCH_ACTION_PAN_X) && !TOUCH_ACTION_MAP[TOUCH_ACTION_PAN_X];
 
           if (hasNone) {
               //do not prevent defaults if this is a tap gesture
@@ -12499,6 +13304,21 @@ return /******/ (function(modules) { // webpackBootstrap
       }
 
       return TOUCH_ACTION_AUTO;
+  }
+
+  function getTouchActionProps() {
+      if (!NATIVE_TOUCH_ACTION) {
+          return false;
+      }
+      var touchMap = {};
+      var cssSupports = window.CSS && window.CSS.supports;
+      ['auto', 'manipulation', 'pan-y', 'pan-x', 'pan-x pan-y', 'none'].forEach(function(val) {
+
+          // If css.supports is not supported but there is native touch-action assume it supports
+          // all values. This is the case for IE 10 and 11.
+          touchMap[val] = cssSupports ? window.CSS.supports('touch-action', val) : true;
+      });
+      return touchMap;
   }
 
   /**
@@ -13297,7 +14117,7 @@ return /******/ (function(modules) { // webpackBootstrap
   /**
    * @const {string}
    */
-  Hammer.VERSION = '2.0.6';
+  Hammer.VERSION = '2.0.7';
 
   /**
    * default settings
@@ -13428,6 +14248,7 @@ return /******/ (function(modules) { // webpackBootstrap
       this.handlers = {};
       this.session = {};
       this.recognizers = [];
+      this.oldCssProps = {};
 
       this.element = element;
       this.input = createInputInstance(this);
@@ -13606,6 +14427,13 @@ return /******/ (function(modules) { // webpackBootstrap
        * @returns {EventEmitter} this
        */
       on: function(events, handler) {
+          if (events === undefined) {
+              return;
+          }
+          if (handler === undefined) {
+              return;
+          }
+
           var handlers = this.handlers;
           each(splitStr(events), function(event) {
               handlers[event] = handlers[event] || [];
@@ -13621,6 +14449,10 @@ return /******/ (function(modules) { // webpackBootstrap
        * @returns {EventEmitter} this
        */
       off: function(events, handler) {
+          if (events === undefined) {
+              return;
+          }
+
           var handlers = this.handlers;
           each(splitStr(events), function(event) {
               if (!handler) {
@@ -13685,9 +14517,19 @@ return /******/ (function(modules) { // webpackBootstrap
       if (!element.style) {
           return;
       }
+      var prop;
       each(manager.options.cssProps, function(value, name) {
-          element.style[prefixed(element.style, name)] = add ? value : '';
+          prop = prefixed(element.style, name);
+          if (add) {
+              manager.oldCssProps[prop] = element.style[prop];
+              element.style[prop] = value;
+          } else {
+              element.style[prop] = manager.oldCssProps[prop] || '';
+          }
       });
+      if (!add) {
+          manager.oldCssProps = {};
+      }
   }
 
   /**
@@ -13774,7 +14616,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 23 */
+/* 25 */
 /***/ function(module, exports, __webpack_require__) {
 
   var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_ARRAY__, __WEBPACK_AMD_DEFINE_RESULT__;"use strict";
@@ -13973,7 +14815,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
 
 /***/ },
-/* 24 */
+/* 26 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -13988,76 +14830,76 @@ return /******/ (function(modules) { // webpackBootstrap
   exports.Queue = __webpack_require__(10);
 
   // Timeline
-  exports.Timeline = __webpack_require__(25);
-  exports.Graph2d = __webpack_require__(50);
+  exports.Timeline = __webpack_require__(27);
+  exports.Graph2d = __webpack_require__(52);
   exports.timeline = {
-    Core: __webpack_require__(33),
-    DateUtil: __webpack_require__(32),
-    Range: __webpack_require__(30),
-    stack: __webpack_require__(37),
-    TimeStep: __webpack_require__(35),
+    Core: __webpack_require__(35),
+    DateUtil: __webpack_require__(34),
+    Range: __webpack_require__(32),
+    stack: __webpack_require__(39),
+    TimeStep: __webpack_require__(37),
 
     components: {
       items: {
-        Item: __webpack_require__(39),
-        BackgroundItem: __webpack_require__(43),
-        BoxItem: __webpack_require__(41),
-        PointItem: __webpack_require__(42),
-        RangeItem: __webpack_require__(38)
+        Item: __webpack_require__(41),
+        BackgroundItem: __webpack_require__(45),
+        BoxItem: __webpack_require__(43),
+        PointItem: __webpack_require__(44),
+        RangeItem: __webpack_require__(40)
       },
 
-      BackgroundGroup: __webpack_require__(40),
-      Component: __webpack_require__(31),
-      CurrentTime: __webpack_require__(48),
-      CustomTime: __webpack_require__(46),
-      DataAxis: __webpack_require__(52),
-      DataScale: __webpack_require__(53),
-      GraphGroup: __webpack_require__(54),
-      Group: __webpack_require__(36),
-      ItemSet: __webpack_require__(34),
-      Legend: __webpack_require__(58),
-      LineGraph: __webpack_require__(51),
-      TimeAxis: __webpack_require__(44)
+      BackgroundGroup: __webpack_require__(42),
+      Component: __webpack_require__(33),
+      CurrentTime: __webpack_require__(50),
+      CustomTime: __webpack_require__(48),
+      DataAxis: __webpack_require__(54),
+      DataScale: __webpack_require__(55),
+      GraphGroup: __webpack_require__(56),
+      Group: __webpack_require__(38),
+      ItemSet: __webpack_require__(36),
+      Legend: __webpack_require__(60),
+      LineGraph: __webpack_require__(53),
+      TimeAxis: __webpack_require__(46)
     }
   };
 
   // bundled external libraries
   exports.moment = __webpack_require__(2);
-  exports.Hammer = __webpack_require__(20);
-  exports.keycharm = __webpack_require__(23);
+  exports.Hammer = __webpack_require__(22);
+  exports.keycharm = __webpack_require__(25);
 
 /***/ },
-/* 25 */
+/* 27 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
 
-  var _Configurator = __webpack_require__(26);
+  var _Configurator = __webpack_require__(28);
 
   var _Configurator2 = _interopRequireDefault(_Configurator);
 
-  var _Validator = __webpack_require__(29);
+  var _Validator = __webpack_require__(31);
 
   var _Validator2 = _interopRequireDefault(_Validator);
 
   function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
   var Emitter = __webpack_require__(13);
-  var Hammer = __webpack_require__(20);
+  var Hammer = __webpack_require__(22);
   var moment = __webpack_require__(2);
   var util = __webpack_require__(1);
   var DataSet = __webpack_require__(9);
   var DataView = __webpack_require__(11);
-  var Range = __webpack_require__(30);
-  var Core = __webpack_require__(33);
-  var TimeAxis = __webpack_require__(44);
-  var CurrentTime = __webpack_require__(48);
-  var CustomTime = __webpack_require__(46);
-  var ItemSet = __webpack_require__(34);
+  var Range = __webpack_require__(32);
+  var Core = __webpack_require__(35);
+  var TimeAxis = __webpack_require__(46);
+  var CurrentTime = __webpack_require__(50);
+  var CustomTime = __webpack_require__(48);
+  var ItemSet = __webpack_require__(36);
 
-  var printStyle = __webpack_require__(29).printStyle;
-  var allOptions = __webpack_require__(49).allOptions;
-  var configureOptions = __webpack_require__(49).configureOptions;
+  var printStyle = __webpack_require__(31).printStyle;
+  var allOptions = __webpack_require__(51).allOptions;
+  var configureOptions = __webpack_require__(51).configureOptions;
 
   /**
    * Create a timeline visualization
@@ -14085,17 +14927,12 @@ return /******/ (function(modules) { // webpackBootstrap
     this.defaultOptions = {
       start: null,
       end: null,
-
       autoResize: true,
-      throttleRedraw: 0, // ms
-
       orientation: {
         axis: 'bottom', // axis orientation: 'bottom', 'top', or 'both'
         item: 'bottom' // not relevant
       },
-      rtl: false,
       moment: moment,
-
       width: null,
       height: null,
       maxHeight: null,
@@ -14105,6 +14942,18 @@ return /******/ (function(modules) { // webpackBootstrap
 
     // Create the DOM, props, and emitter
     this._create(container);
+
+    if (!options || options && typeof options.rtl == "undefined") {
+      var directionFromDom,
+          domNode = this.dom.root;
+      while (!directionFromDom && domNode) {
+        directionFromDom = window.getComputedStyle(domNode, null).direction;
+        domNode = domNode.parentElement;
+      }
+      this.options.rtl = directionFromDom && directionFromDom.toLowerCase() == "rtl";
+    } else {
+      this.options.rtl = options.rtl;
+    }
 
     // all components listed here will be repainted automatically
     this.components = [];
@@ -14134,17 +14983,17 @@ return /******/ (function(modules) { // webpackBootstrap
     };
 
     // range
-    this.range = new Range(this.body);
+    this.range = new Range(this.body, this.options);
     this.components.push(this.range);
     this.body.range = this.range;
 
     // time axis
-    this.timeAxis = new TimeAxis(this.body);
+    this.timeAxis = new TimeAxis(this.body, this.options);
     this.timeAxis2 = null; // used in case of orientation option 'both'
     this.components.push(this.timeAxis);
 
     // current time bar
-    this.currentTime = new CurrentTime(this.body);
+    this.currentTime = new CurrentTime(this.body, this.options);
     this.components.push(this.currentTime);
 
     // item set
@@ -14235,7 +15084,6 @@ return /******/ (function(modules) { // webpackBootstrap
     if (errorFound === true) {
       console.log('%cErrors have been found in the supplied options object.', printStyle);
     }
-
     Core.prototype.setOptions.call(this, options);
 
     if ('type' in options) {
@@ -14500,9 +15348,9 @@ return /******/ (function(modules) { // webpackBootstrap
               min = getStart(minItem) - rhs * interval / delta; // ms
               max = getEnd(maxItem) + lhs * interval / delta; // ms
             } else {
-                min = getStart(minItem) - lhs * interval / delta; // ms
-                max = getEnd(maxItem) + rhs * interval / delta; // ms
-              }
+              min = getStart(minItem) - lhs * interval / delta; // ms
+              max = getEnd(maxItem) + rhs * interval / delta; // ms
+            }
           }
         }
       })();
@@ -14603,7 +15451,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = Timeline;
 
 /***/ },
-/* 26 */
+/* 28 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -14612,11 +15460,11 @@ return /******/ (function(modules) { // webpackBootstrap
     value: true
   });
 
-  var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
+  var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
 
   var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
-  var _ColorPicker = __webpack_require__(27);
+  var _ColorPicker = __webpack_require__(29);
 
   var _ColorPicker2 = _interopRequireDefault(_ColorPicker);
 
@@ -14640,10 +15488,9 @@ return /******/ (function(modules) { // webpackBootstrap
    * @param configureOptions    | the fully configured and predefined options set found in allOptions.js
    * @param pixelRatio          | canvas pixel ratio
    */
-
   var Configurator = function () {
     function Configurator(parentModule, defaultContainer, configureOptions) {
-      var pixelRatio = arguments.length <= 3 || arguments[3] === undefined ? 1 : arguments[3];
+      var pixelRatio = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : 1;
 
       _classCallCheck(this, Configurator);
 
@@ -14932,7 +15779,7 @@ return /******/ (function(modules) { // webpackBootstrap
     }, {
       key: '_makeLabel',
       value: function _makeLabel(name, path) {
-        var objectLabel = arguments.length <= 2 || arguments[2] === undefined ? false : arguments[2];
+        var objectLabel = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : false;
 
         var div = document.createElement('div');
         div.className = 'vis-configuration vis-config-label vis-config-s' + path.length;
@@ -15263,8 +16110,8 @@ return /******/ (function(modules) { // webpackBootstrap
     }, {
       key: '_handleObject',
       value: function _handleObject(obj) {
-        var path = arguments.length <= 1 || arguments[1] === undefined ? [] : arguments[1];
-        var checkOnly = arguments.length <= 2 || arguments[2] === undefined ? false : arguments[2];
+        var path = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : [];
+        var checkOnly = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : false;
 
         var show = false;
         var filter = this.options.filter;
@@ -15384,7 +16231,7 @@ return /******/ (function(modules) { // webpackBootstrap
     }, {
       key: '_constructOptions',
       value: function _constructOptions(value, path) {
-        var optionsObj = arguments.length <= 2 || arguments[2] === undefined ? {} : arguments[2];
+        var optionsObj = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : {};
 
         var pointer = optionsObj;
 
@@ -15429,7 +16276,7 @@ return /******/ (function(modules) { // webpackBootstrap
   exports.default = Configurator;
 
 /***/ },
-/* 27 */
+/* 29 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -15442,13 +16289,13 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
-  var Hammer = __webpack_require__(20);
-  var hammerUtil = __webpack_require__(28);
+  var Hammer = __webpack_require__(22);
+  var hammerUtil = __webpack_require__(30);
   var util = __webpack_require__(1);
 
   var ColorPicker = function () {
     function ColorPicker() {
-      var pixelRatio = arguments.length <= 0 || arguments[0] === undefined ? 1 : arguments[0];
+      var pixelRatio = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : 1;
 
       _classCallCheck(this, ColorPicker);
 
@@ -15544,7 +16391,7 @@ return /******/ (function(modules) { // webpackBootstrap
     }, {
       key: 'setColor',
       value: function setColor(color) {
-        var setInitial = arguments.length <= 1 || arguments[1] === undefined ? true : arguments[1];
+        var setInitial = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : true;
 
         if (color === 'none') {
           return;
@@ -15619,7 +16466,7 @@ return /******/ (function(modules) { // webpackBootstrap
       value: function _hide() {
         var _this = this;
 
-        var storePrevious = arguments.length <= 0 || arguments[0] === undefined ? true : arguments[0];
+        var storePrevious = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : true;
 
         // store the previous color for next time;
         if (storePrevious === true) {
@@ -15693,7 +16540,7 @@ return /******/ (function(modules) { // webpackBootstrap
     }, {
       key: '_setColor',
       value: function _setColor(rgba) {
-        var setInitial = arguments.length <= 1 || arguments[1] === undefined ? true : arguments[1];
+        var setInitial = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : true;
 
         // store the initial color
         if (setInitial === true) {
@@ -15753,7 +16600,7 @@ return /******/ (function(modules) { // webpackBootstrap
     }, {
       key: '_updatePicker',
       value: function _updatePicker() {
-        var rgba = arguments.length <= 0 || arguments[0] === undefined ? this.color : arguments[0];
+        var rgba = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : this.color;
 
         var hsv = util.RGBToHSV(rgba.r, rgba.g, rgba.b);
         var ctx = this.colorPickerCanvas.getContext('2d');
@@ -16058,12 +16905,12 @@ return /******/ (function(modules) { // webpackBootstrap
   exports.default = ColorPicker;
 
 /***/ },
-/* 28 */
+/* 30 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
 
-  var Hammer = __webpack_require__(20);
+  var Hammer = __webpack_require__(22);
 
   /**
    * Register a touch event, taking place before a gesture
@@ -16132,7 +16979,7 @@ return /******/ (function(modules) { // webpackBootstrap
   };
 
 /***/ },
-/* 29 */
+/* 31 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -16141,7 +16988,7 @@ return /******/ (function(modules) { // webpackBootstrap
     value: true
   });
 
-  var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
+  var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
 
   var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
@@ -16342,7 +17189,7 @@ return /******/ (function(modules) { // webpackBootstrap
     }, {
       key: 'findInOptions',
       value: function findInOptions(option, options, path) {
-        var recursive = arguments.length <= 3 || arguments[3] === undefined ? false : arguments[3];
+        var recursive = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : false;
 
         var min = 1e9;
         var closestMatch = '';
@@ -16376,7 +17223,7 @@ return /******/ (function(modules) { // webpackBootstrap
     }, {
       key: 'printLocation',
       value: function printLocation(path, option) {
-        var prefix = arguments.length <= 2 || arguments[2] === undefined ? 'Problem value found at: \n' : arguments[2];
+        var prefix = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : 'Problem value found at: \n';
 
         var str = '\n\n' + prefix + 'options = {\n';
         for (var i = 0; i < path.length; i++) {
@@ -16456,18 +17303,18 @@ return /******/ (function(modules) { // webpackBootstrap
   exports.printStyle = printStyle;
 
 /***/ },
-/* 30 */
+/* 32 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
 
-  var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
+  var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
 
   var util = __webpack_require__(1);
-  var hammerUtil = __webpack_require__(28);
+  var hammerUtil = __webpack_require__(30);
   var moment = __webpack_require__(2);
-  var Component = __webpack_require__(31);
-  var DateUtil = __webpack_require__(32);
+  var Component = __webpack_require__(33);
+  var DateUtil = __webpack_require__(34);
 
   /**
    * @constructor Range
@@ -16544,7 +17391,7 @@ return /******/ (function(modules) { // webpackBootstrap
   Range.prototype.setOptions = function (options) {
     if (options) {
       // copy the options that we know
-      var fields = ['direction', 'min', 'max', 'zoomMin', 'zoomMax', 'moveable', 'zoomable', 'moment', 'activate', 'hiddenDates', 'zoomKey', 'rtl'];
+      var fields = ['direction', 'min', 'max', 'zoomMin', 'zoomMax', 'moveable', 'zoomable', 'moment', 'activate', 'hiddenDates', 'zoomKey', 'rtl', 'horizontalScroll'];
       util.selectiveExtend(fields, this.options, options);
 
       if ('start' in options || 'end' in options) {
@@ -16845,6 +17692,8 @@ return /******/ (function(modules) { // webpackBootstrap
    * @private
    */
   Range.prototype._onDrag = function (event) {
+    if (!event) return;
+
     if (!this.props.touch.dragging) return;
 
     // only allow dragging when configured as movable
@@ -16899,6 +17748,9 @@ return /******/ (function(modules) { // webpackBootstrap
       end: endDate,
       byUser: true
     });
+
+    // fire a panmove event
+    this.body.emitter.emit('panmove');
   };
 
   /**
@@ -16937,14 +17789,9 @@ return /******/ (function(modules) { // webpackBootstrap
    * @private
    */
   Range.prototype._onMouseWheel = function (event) {
-    // only allow zooming when configured as zoomable and moveable
-    if (!(this.options.zoomable && this.options.moveable)) return;
-
-    // only zoom when the mouse is inside the current range
-    if (!this._isInsideRange(event)) return;
-
-    // only zoom when the according key is pressed and the zoomKey option is set
-    if (this.options.zoomKey && !event[this.options.zoomKey]) return;
+    // Prevent default actions caused by mouse wheel
+    // (else the page and timeline both zoom and scroll)
+    event.preventDefault();
 
     // retrieve delta
     var delta = 0;
@@ -16957,6 +17804,26 @@ return /******/ (function(modules) { // webpackBootstrap
       // Also, delta is multiple of 3.
       delta = -event.detail / 3;
     }
+
+    // don't allow zoom when the according key is pressed and the zoomKey option or not zoomable but movable
+    if (this.options.zoomKey && !event[this.options.zoomKey] && this.options.zoomable || !this.options.zoomable && this.options.moveable) {
+      if (this.options.horizontalScroll) {
+        // calculate a single scroll jump relative to the range scale
+        var diff = delta * (this.end - this.start) / 20;
+        // calculate new start and end
+        var newStart = this.start - diff;
+        var newEnd = this.end - diff;
+
+        this.setRange(newStart, newEnd);
+      }
+      return;
+    }
+
+    // only allow zooming when configured as zoomable and moveable
+    if (!(this.options.zoomable && this.options.moveable)) return;
+
+    // only zoom when the mouse is inside the current range
+    if (!this._isInsideRange(event)) return;
 
     // If delta is nonzero, handle it.
     // Basically, delta is now positive if wheel was scrolled up,
@@ -16979,10 +17846,6 @@ return /******/ (function(modules) { // webpackBootstrap
 
       this.zoom(scale, pointerDate, delta);
     }
-
-    // Prevent default actions caused by mouse wheel
-    // (else the page and timeline both zoom and scroll)
-    event.preventDefault();
   };
 
   /**
@@ -17186,10 +18049,12 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = Range;
 
 /***/ },
-/* 31 */
-/***/ function(module, exports) {
+/* 33 */
+/***/ function(module, exports, __webpack_require__) {
 
-  "use strict";
+  'use strict';
+
+  var util = __webpack_require__(1);
 
   /**
    * Prototype for visual components
@@ -17246,7 +18111,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = Component;
 
 /***/ },
-/* 32 */
+/* 34 */
 /***/ function(module, exports) {
 
   "use strict";
@@ -17554,10 +18419,22 @@ return /******/ (function(modules) { // webpackBootstrap
       }
 
       var duration = exports.getHiddenDurationBetween(Core.body.hiddenDates, Core.range.start, Core.range.end);
-      time = exports.correctTimeForHidden(Core.options.moment, Core.body.hiddenDates, Core.range, time);
-
-      var conversion = Core.range.conversion(width, duration);
-      return (time.valueOf() - conversion.offset) * conversion.scale;
+      if (time < Core.range.start) {
+        var conversion = Core.range.conversion(width, duration);
+        var hiddenBeforeStart = exports.getHiddenDurationBeforeStart(Core.body.hiddenDates, time, conversion.offset);
+        time = Core.options.moment(time).toDate().valueOf();
+        time = time + hiddenBeforeStart;
+        return -(conversion.offset - time.valueOf()) * conversion.scale;
+      } else if (time > Core.range.end) {
+        var rangeAfterEnd = { start: Core.range.start, end: time };
+        time = exports.correctTimeForHidden(Core.options.moment, Core.body.hiddenDates, rangeAfterEnd, time);
+        var conversion = Core.range.conversion(width, duration);
+        return (time.valueOf() - conversion.offset) * conversion.scale;
+      } else {
+        time = exports.correctTimeForHidden(Core.options.moment, Core.body.hiddenDates, Core.range, time);
+        var conversion = Core.range.conversion(width, duration);
+        return (time.valueOf() - conversion.offset) * conversion.scale;
+      }
     }
   };
 
@@ -17598,6 +18475,27 @@ return /******/ (function(modules) { // webpackBootstrap
       var endDate = hiddenDates[i].end;
       // if time after the cutout, and the
       if (startDate >= start && endDate < end) {
+        duration += endDate - startDate;
+      }
+    }
+    return duration;
+  };
+
+  /**
+     * Support function
+     *
+     * @param hiddenDates
+     * @param start
+     * @param end
+     * @returns {number}
+     */
+  exports.getHiddenDurationBeforeStart = function (hiddenDates, start, end) {
+    var duration = 0;
+    for (var i = 0; i < hiddenDates.length; i++) {
+      var startDate = hiddenDates[i].start;
+      var endDate = hiddenDates[i].end;
+
+      if (startDate >= start && endDate <= end) {
         duration += endDate - startDate;
       }
     }
@@ -17717,25 +18615,25 @@ return /******/ (function(modules) { // webpackBootstrap
   };
 
 /***/ },
-/* 33 */
+/* 35 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
 
-  var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
+  var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
 
   var Emitter = __webpack_require__(13);
-  var Hammer = __webpack_require__(20);
-  var hammerUtil = __webpack_require__(28);
+  var Hammer = __webpack_require__(22);
+  var hammerUtil = __webpack_require__(30);
   var util = __webpack_require__(1);
   var DataSet = __webpack_require__(9);
   var DataView = __webpack_require__(11);
-  var Range = __webpack_require__(30);
-  var ItemSet = __webpack_require__(34);
-  var TimeAxis = __webpack_require__(44);
-  var Activator = __webpack_require__(45);
-  var DateUtil = __webpack_require__(32);
-  var CustomTime = __webpack_require__(46);
+  var Range = __webpack_require__(32);
+  var ItemSet = __webpack_require__(36);
+  var TimeAxis = __webpack_require__(46);
+  var Activator = __webpack_require__(47);
+  var DateUtil = __webpack_require__(34);
+  var CustomTime = __webpack_require__(48);
 
   /**
    * Create a timeline visualization
@@ -17808,7 +18706,6 @@ return /******/ (function(modules) { // webpackBootstrap
     this.dom.centerContainer.appendChild(this.dom.center);
     this.dom.leftContainer.appendChild(this.dom.left);
     this.dom.rightContainer.appendChild(this.dom.right);
-
     this.dom.centerContainer.appendChild(this.dom.shadowTop);
     this.dom.centerContainer.appendChild(this.dom.shadowBottom);
     this.dom.leftContainer.appendChild(this.dom.shadowTopLeft);
@@ -17816,13 +18713,30 @@ return /******/ (function(modules) { // webpackBootstrap
     this.dom.rightContainer.appendChild(this.dom.shadowTopRight);
     this.dom.rightContainer.appendChild(this.dom.shadowBottomRight);
 
+    // size properties of each of the panels
+    this.props = {
+      root: {},
+      background: {},
+      centerContainer: {},
+      leftContainer: {},
+      rightContainer: {},
+      center: {},
+      left: {},
+      right: {},
+      top: {},
+      bottom: {},
+      border: {},
+      scrollTop: 0,
+      scrollTopMin: 0
+    };
+
     this.on('rangechange', function () {
       if (this.initialDrawDone === true) {
-        this._redraw(); // this allows overriding the _redraw method
+        this._redraw();
       }
     }.bind(this));
     this.on('touch', this._onTouch.bind(this));
-    this.on('pan', this._onDrag.bind(this));
+    this.on('panmove', this._onDrag.bind(this));
 
     var me = this;
     this.on('_change', function (properties) {
@@ -17876,29 +18790,108 @@ return /******/ (function(modules) { // webpackBootstrap
     }.bind(this));
 
     function onMouseWheel(event) {
+      if (this.isActive()) {
+        this.emit('mousewheel', event);
+      }
+
+      // prevent scrolling when zoomKey defined or activated
+      if (!this.options.zoomKey || event[this.options.zoomKey]) return;
+
+      // prevent scrolling vertically when horizontalScroll is true
+      if (this.options.horizontalScroll) return;
+
+      var delta = 0;
+      if (event.wheelDelta) {
+        /* IE/Opera. */
+        delta = event.wheelDelta / 120;
+      } else if (event.detail) {
+        /* Mozilla case. */
+        // In Mozilla, sign of delta is different than in IE.
+        // Also, delta is multiple of 3.
+        delta = -event.detail / 3;
+      }
+
+      var current = this.props.scrollTop;
+      var adjusted = current + delta * 120;
+
+      if (this.isActive()) {
+        this._setScrollTop(adjusted);
+        if (this.options.verticalScroll) {
+          this.dom.left.parentNode.scrollTop = -adjusted;
+          this.dom.right.parentNode.scrollTop = -adjusted;
+        }
+        this._redraw();
+        this.emit('scroll', event);
+      }
+
+      // Prevent default actions caused by mouse wheel
+      // (else the page and timeline both scroll)
+      event.preventDefault();
+    }
+
+    if (this.dom.centerContainer.addEventListener) {
+      // IE9, Chrome, Safari, Opera
+      this.dom.centerContainer.addEventListener("mousewheel", onMouseWheel.bind(this), false);
+      // Firefox
+      this.dom.centerContainer.addEventListener("DOMMouseScroll", onMouseWheel.bind(this), false);
+    } else {
+      // IE 6/7/8
+      this.dom.centerContainer.attachEvent("onmousewheel", onMouseWheel.bind(this));
+    }
+
+    function onMouseScrollSide(event) {
+      if (!me.options.verticalScroll) return;
+      event.preventDefault();
       if (me.isActive()) {
-        me.emit('mousewheel', event);
+        var adjusted = -event.target.scrollTop;
+        me._setScrollTop(adjusted);
+        me._redraw();
+        me.emit('scrollSide', event);
       }
     }
-    this.dom.root.addEventListener('mousewheel', onMouseWheel);
-    this.dom.root.addEventListener('DOMMouseScroll', onMouseWheel);
 
-    // size properties of each of the panels
-    this.props = {
-      root: {},
-      background: {},
-      centerContainer: {},
-      leftContainer: {},
-      rightContainer: {},
-      center: {},
-      left: {},
-      right: {},
-      top: {},
-      bottom: {},
-      border: {},
-      scrollTop: 0,
-      scrollTopMin: 0
-    };
+    this.dom.left.parentNode.addEventListener('scroll', onMouseScrollSide.bind(this));
+    this.dom.right.parentNode.addEventListener('scroll', onMouseScrollSide.bind(this));
+
+    var itemAddedToTimeline = false;
+
+    function handleDragOver(event) {
+      if (event.preventDefault) {
+        event.preventDefault(); // Necessary. Allows us to drop.
+      }
+
+      // make sure your target is a vis element
+      if (!event.target.className.includes('vis')) return;
+
+      // make sure only one item is added every time you're over the timeline
+      if (itemAddedToTimeline) return;
+
+      event.dataTransfer.dropEffect = 'move';
+      itemAddedToTimeline = true;
+      return false;
+    }
+
+    function handleDrop(event) {
+      // return when dropping non-vis items 
+      try {
+        var itemData = JSON.parse(event.dataTransfer.getData("text/plain"));
+        if (!itemData.content) return;
+      } catch (err) {
+        return false;
+      }
+
+      itemAddedToTimeline = false;
+      event.center = {
+        x: event.x,
+        y: event.y
+      };
+      me.itemSet._onAddItem(event);
+
+      return false;
+    }
+
+    this.dom.center.addEventListener('dragover', handleDragOver.bind(this), false);
+    this.dom.center.addEventListener('drop', handleDrop.bind(this), false);
 
     this.customTimes = [];
 
@@ -17941,15 +18934,20 @@ return /******/ (function(modules) { // webpackBootstrap
   Core.prototype.setOptions = function (options) {
     if (options) {
       // copy the known options
-      var fields = ['width', 'height', 'minHeight', 'maxHeight', 'autoResize', 'start', 'end', 'clickToUse', 'dataAttributes', 'hiddenDates', 'locale', 'locales', 'moment', 'rtl', 'throttleRedraw'];
+      var fields = ['width', 'height', 'minHeight', 'maxHeight', 'autoResize', 'start', 'end', 'clickToUse', 'dataAttributes', 'hiddenDates', 'locale', 'locales', 'moment', 'rtl', 'zoomKey', 'horizontalScroll', 'verticalScroll'];
       util.selectiveExtend(fields, this.options, options);
 
       if (this.options.rtl) {
-        var contentContainer = this.dom.leftContainer;
-        this.dom.leftContainer = this.dom.rightContainer;
-        this.dom.rightContainer = contentContainer;
         this.dom.container.style.direction = "rtl";
         this.dom.backgroundVertical.className = 'vis-panel vis-background vis-vertical-rtl';
+      }
+
+      if (this.options.verticalScroll) {
+        if (this.options.rtl) {
+          this.dom.rightContainer.className = 'vis-panel vis-right vis-vertical-scroll';
+        } else {
+          this.dom.leftContainer.className = 'vis-panel vis-left vis-vertical-scroll';
+        }
       }
 
       this.options.orientation = { item: undefined, axis: undefined };
@@ -18046,7 +19044,7 @@ return /******/ (function(modules) { // webpackBootstrap
     // override redraw with a throttled version
     if (!this._origRedraw) {
       this._origRedraw = this._redraw.bind(this);
-      this._redraw = util.throttle(this._origRedraw, this.options.throttleRedraw);
+      this._redraw = util.throttle(this._origRedraw);
     } else {
       // Not the initial run: redraw everything
       this._redraw();
@@ -18332,6 +19330,46 @@ return /******/ (function(modules) { // webpackBootstrap
   };
 
   /**
+   * Zoom in the window such that given time is centered on screen.
+   * @param {Number} percentage - must be between [0..1]
+   */
+  Core.prototype.zoomIn = function (percentage) {
+    if (!percentage || percentage < 0 || percentage > 1) return;
+    var range = this.getWindow();
+    var start = range.start.valueOf();
+    var end = range.end.valueOf();
+    var interval = end - start;
+    var newInterval = interval / (1 + percentage);
+    var distance = (interval - newInterval) / 2;
+    var newStart = start + distance;
+    var newEnd = end - distance;
+
+    this.setWindow({
+      start: newStart,
+      end: newEnd
+    });
+  };
+
+  /**
+   * Zoom out the window such that given time is centered on screen.
+   * @param {Number} percentage - must be between [0..1]
+   */
+  Core.prototype.zoomOut = function (percentage) {
+    if (!percentage || percentage < 0 || percentage > 1) return;
+    var range = this.getWindow();
+    var start = range.start.valueOf();
+    var end = range.end.valueOf();
+    var interval = end - start;
+    var newStart = start - interval * percentage / 2;
+    var newEnd = end + interval * percentage / 2;
+
+    this.setWindow({
+      start: newStart,
+      end: newEnd
+    });
+  };
+
+  /**
    * Force a redraw. Can be overridden by implementations of Core
    *
    * Note: this function will be overridden on construction with a trottled version
@@ -18415,9 +19453,25 @@ return /******/ (function(modules) { // webpackBootstrap
     // calculate the widths of the panels
     props.root.width = dom.root.offsetWidth;
     props.background.width = props.root.width - borderRootWidth;
-    props.left.width = dom.leftContainer.clientWidth || -props.border.left;
+
+    if (!this.initialDrawDone) {
+      props.scrollbarWidth = util.getScrollBarWidth();
+    }
+
+    if (this.options.verticalScroll) {
+      if (this.options.rtl) {
+        props.left.width = dom.leftContainer.clientWidth || -props.border.left;
+        props.right.width = dom.rightContainer.clientWidth + props.scrollbarWidth || -props.border.right;
+      } else {
+        props.left.width = dom.leftContainer.clientWidth + props.scrollbarWidth || -props.border.left;
+        props.right.width = dom.rightContainer.clientWidth || -props.border.right;
+      }
+    } else {
+      props.left.width = dom.leftContainer.clientWidth || -props.border.left;
+      props.right.width = dom.rightContainer.clientWidth || -props.border.right;
+    }
+
     props.leftContainer.width = props.left.width;
-    props.right.width = dom.rightContainer.clientWidth || -props.border.right;
     props.rightContainer.width = props.right.width;
     var centerWidth = props.root.width - props.left.width - props.right.width - borderRootWidth;
     props.center.width = centerWidth;
@@ -18460,19 +19514,16 @@ return /******/ (function(modules) { // webpackBootstrap
 
     // update the scrollTop, feasible range for the offset can be changed
     // when the height of the Core or of the contents of the center changed
-    this._updateScrollTop();
+    var offset = this._updateScrollTop();
 
     // reposition the scrollable contents
-    var offset = this.props.scrollTop;
     if (options.orientation.item != 'top') {
       offset += Math.max(this.props.centerContainer.height - this.props.center.height - this.props.border.top - this.props.border.bottom, 0);
     }
     dom.center.style.left = '0';
     dom.center.style.top = offset + 'px';
     dom.left.style.left = '0';
-    dom.left.style.top = offset + 'px';
     dom.right.style.left = '0';
-    dom.right.style.top = offset + 'px';
 
     // show shadows when vertical scrolling is available
     var visibilityTop = this.props.scrollTop == 0 ? 'hidden' : '';
@@ -18483,6 +19534,16 @@ return /******/ (function(modules) { // webpackBootstrap
     dom.shadowBottomLeft.style.visibility = visibilityBottom;
     dom.shadowTopRight.style.visibility = visibilityTop;
     dom.shadowBottomRight.style.visibility = visibilityBottom;
+
+    if (this.options.verticalScroll) {
+      dom.shadowTopRight.style.visibility = "hidden";
+      dom.shadowBottomRight.style.visibility = "hidden";
+      dom.shadowTopLeft.style.visibility = "hidden";
+      dom.shadowBottomLeft.style.visibility = "hidden";
+    } else {
+      dom.left.style.top = offset + 'px';
+      dom.right.style.top = offset + 'px';
+    }
 
     // enable/disable vertical panning
     var contentsOverflow = this.props.center.height > this.props.centerContainer.height;
@@ -18505,6 +19566,7 @@ return /******/ (function(modules) { // webpackBootstrap
     } else {
       this.redrawCount = 0;
     }
+
     this.initialDrawDone = true;
 
     //Emit public 'changed' event for UI updates, see issue #1592
@@ -18692,6 +19754,7 @@ return /******/ (function(modules) { // webpackBootstrap
    * @private
    */
   Core.prototype._onDrag = function (event) {
+    if (!event) return;
     // refuse to drag when we where pinching to prevent the timeline make a jump
     // when releasing the fingers in opposite order from the touch screen
     if (!this.touch.allowDragging) return;
@@ -18700,6 +19763,11 @@ return /******/ (function(modules) { // webpackBootstrap
 
     var oldScrollTop = this._getScrollTop();
     var newScrollTop = this._setScrollTop(this.touch.initialScrollTop + delta);
+
+    if (this.options.verticalScroll) {
+      this.dom.left.parentNode.scrollTop = -this.props.scrollTop;
+      this.dom.right.parentNode.scrollTop = -this.props.scrollTop;
+    }
 
     if (newScrollTop != oldScrollTop) {
       this.emit("verticalDrag");
@@ -18763,25 +19831,25 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = Core;
 
 /***/ },
-/* 34 */
+/* 36 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
 
-  var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
+  var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
 
-  var Hammer = __webpack_require__(20);
+  var Hammer = __webpack_require__(22);
   var util = __webpack_require__(1);
   var DataSet = __webpack_require__(9);
   var DataView = __webpack_require__(11);
-  var TimeStep = __webpack_require__(35);
-  var Component = __webpack_require__(31);
-  var Group = __webpack_require__(36);
-  var BackgroundGroup = __webpack_require__(40);
-  var BoxItem = __webpack_require__(41);
-  var PointItem = __webpack_require__(42);
-  var RangeItem = __webpack_require__(38);
-  var BackgroundItem = __webpack_require__(43);
+  var TimeStep = __webpack_require__(37);
+  var Component = __webpack_require__(33);
+  var Group = __webpack_require__(38);
+  var BackgroundGroup = __webpack_require__(42);
+  var BoxItem = __webpack_require__(43);
+  var PointItem = __webpack_require__(44);
+  var RangeItem = __webpack_require__(40);
+  var BackgroundItem = __webpack_require__(45);
 
   var UNGROUPED = '__ungrouped__'; // reserved group id for ungrouped items
   var BACKGROUND = '__background__'; // reserved group id for background items without group
@@ -18798,7 +19866,6 @@ return /******/ (function(modules) { // webpackBootstrap
   function ItemSet(body, options) {
     this.body = body;
     this.defaultOptions = {
-      rtl: false,
       type: null, // 'box', 'point', 'range', 'background'
       orientation: {
         item: 'bottom' // item orientation: 'top' or 'bottom'
@@ -18862,11 +19929,14 @@ return /******/ (function(modules) { // webpackBootstrap
           vertical: 10
         },
         axis: 20
-      }
+      },
+
+      tooltipOnItemUpdateTime: false
     };
 
     // options is shared by this ItemSet and all its items
     this.options = util.extend({}, this.defaultOptions);
+    this.options.rtl = options.rtl;
 
     // options for getting items from the DataSet with the correct type
     this.itemOptions = {
@@ -19001,12 +20071,20 @@ return /******/ (function(modules) { // webpackBootstrap
 
     // add item on doubletap
     this.hammer.on('doubletap', this._onAddItem.bind(this));
-    this.groupHammer = new Hammer(this.body.dom.leftContainer);
+
+    if (this.options.rtl) {
+      this.groupHammer = new Hammer(this.body.dom.rightContainer);
+    } else {
+      this.groupHammer = new Hammer(this.body.dom.leftContainer);
+    }
 
     this.groupHammer.on('panstart', this._onGroupDragStart.bind(this));
     this.groupHammer.on('panmove', this._onGroupDrag.bind(this));
     this.groupHammer.on('panend', this._onGroupDragEnd.bind(this));
     this.groupHammer.get('pan').set({ threshold: 5, direction: Hammer.DIRECTION_HORIZONTAL });
+
+    this.body.dom.centerContainer.addEventListener('mouseover', this._onMouseOver.bind(this));
+    this.body.dom.centerContainer.addEventListener('mouseout', this._onMouseOut.bind(this));
 
     // attach to the DOM
     this.show();
@@ -19079,7 +20157,7 @@ return /******/ (function(modules) { // webpackBootstrap
   ItemSet.prototype.setOptions = function (options) {
     if (options) {
       // copy all options that we know
-      var fields = ['type', 'rtl', 'align', 'order', 'stack', 'selectable', 'multiselect', 'itemsAlwaysDraggable', 'multiselectPerGroup', 'groupOrder', 'dataAttributes', 'template', 'groupTemplate', 'hide', 'snap', 'groupOrderSwap'];
+      var fields = ['type', 'rtl', 'align', 'order', 'stack', 'selectable', 'multiselect', 'itemsAlwaysDraggable', 'multiselectPerGroup', 'groupOrder', 'dataAttributes', 'template', 'groupTemplate', 'hide', 'snap', 'groupOrderSwap', 'tooltipOnItemUpdateTime'];
       util.selectiveExtend(fields, this.options, options);
 
       if ('orientation' in options) {
@@ -19214,7 +20292,11 @@ return /******/ (function(modules) { // webpackBootstrap
 
     // show labelset containing labels
     if (!this.dom.labelSet.parentNode) {
-      this.body.dom.left.appendChild(this.dom.labelSet);
+      if (this.options.rtl) {
+        this.body.dom.right.appendChild(this.dom.labelSet);
+      } else {
+        this.body.dom.left.appendChild(this.dom.labelSet);
+      }
     }
   };
 
@@ -19635,7 +20717,7 @@ return /******/ (function(modules) { // webpackBootstrap
     ids.forEach(function (id) {
       var itemData = me.itemsData.get(id, me.itemOptions);
       var item = me.items[id];
-      var type = me._getType(itemData);
+      var type = itemData ? me._getType(itemData) : null;
 
       var constructor = ItemSet.types[type];
       var selected;
@@ -19652,7 +20734,7 @@ return /******/ (function(modules) { // webpackBootstrap
         }
       }
 
-      if (!item) {
+      if (!item && itemData) {
         // create item
         if (constructor) {
           item = new constructor(itemData, me.conversion, me.options);
@@ -19959,6 +21041,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
       var dragLeftItem = this.touchParams.dragLeftItem;
       var dragRightItem = this.touchParams.dragRightItem;
+      this.touchParams.itemIsDragging = true;
 
       if (dragLeftItem) {
         props = {
@@ -20016,9 +21099,9 @@ return /******/ (function(modules) { // webpackBootstrap
       var xAbs = util.getAbsoluteRight(this.dom.frame);
       var x = xAbs - event.center.x + 10; // plus 10 to compensate for the drag starting as soon as you've moved 10px
     } else {
-        var xAbs = util.getAbsoluteLeft(this.dom.frame);
-        var x = event.center.x - xAbs - 10; // minus 10 to compensate for the drag starting as soon as you've moved 10px
-      }
+      var xAbs = util.getAbsoluteLeft(this.dom.frame);
+      var x = event.center.x - xAbs - 10; // minus 10 to compensate for the drag starting as soon as you've moved 10px
+    }
 
     var time = this.body.util.toTime(x);
     var scale = this.body.util.getScale();
@@ -20106,8 +21189,8 @@ return /******/ (function(modules) { // webpackBootstrap
         if (this.options.rtl) {
           var offset = -(current - initial); // ms
         } else {
-            var offset = current - initial; // ms
-          }
+          var offset = current - initial; // ms
+        }
 
         var itemData = this._cloneItemData(props.item.data); // clone the data
         if (props.item.editable === false) {
@@ -20232,6 +21315,7 @@ return /******/ (function(modules) { // webpackBootstrap
       var dataset = this.itemsData.getDataSet();
       var itemProps = this.touchParams.itemProps;
       this.touchParams.itemProps = null;
+      this.touchParams.itemIsDragging = false;
 
       itemProps.forEach(function (props) {
         var id = props.item.id;
@@ -20359,7 +21443,7 @@ return /******/ (function(modules) { // webpackBootstrap
                 orgOffset = 1;
                 continue;
               }
-              // found a group (apart from dragged group) that has the wrong position -> switch with the
+              // found a group (apart from dragged group) that has the wrong position -> switch with the 
               // group at the position where other one should be, fix index arrays and continue
               else {
                   var slippedPosition = newOrder.indexOf(origOrder[curPos + orgOffset]);
@@ -20418,7 +21502,7 @@ return /******/ (function(modules) { // webpackBootstrap
                 break;
               }
 
-              // found a group that has the wrong position -> switch with the
+              // found a group that has the wrong position -> switch with the 
               // group at the position where other one should be, fix index arrays and continue
               var slippedPosition = newOrder.indexOf(origOrder[curPos]);
               var switchGroup = dataset.get(newOrder[curPos]);
@@ -20475,6 +21559,28 @@ return /******/ (function(modules) { // webpackBootstrap
   };
 
   /**
+   * Handle hovering an item
+   * @param {Event} event
+   * @private
+   */
+  ItemSet.prototype._onMouseOver = function (event) {
+    var item = this.itemFromTarget(event);
+    if (!item) return;
+    this.body.emitter.emit('itemover', {
+      item: item.id,
+      event: event
+    });
+  };
+  ItemSet.prototype._onMouseOut = function (event) {
+    var item = this.itemFromTarget(event);
+    if (!item) return;
+    this.body.emitter.emit('itemout', {
+      item: item.id,
+      event: event
+    });
+  };
+
+  /**
    * Handle creation and updates of an item on double tap
    * @param event
    * @private
@@ -20517,13 +21623,30 @@ return /******/ (function(modules) { // webpackBootstrap
         content: 'new item'
       };
 
-      // when default type is a range, add a default end date to the new item
-      if (this.options.type === 'range') {
-        var end = this.body.util.toTime(x + this.props.width / 5);
-        newItemData.end = snap ? snap(end, scale, step) : end;
-      }
+      if (event.type == 'drop') {
+        var itemData = JSON.parse(event.dataTransfer.getData("text/plain"));
+        newItemData.content = itemData.content; // content is required 
+        newItemData.type = itemData.type || 'box';
+        newItemData[this.itemsData._fieldId] = itemData.id || util.randomUUID();
 
-      newItemData[this.itemsData._fieldId] = util.randomUUID();
+        if (itemData.type == 'range' || itemData.end && itemData.start) {
+
+          if (!itemData.end) {
+            var end = this.body.util.toTime(x + this.props.width / 5);
+            newItemData.end = snap ? snap(end, scale, step) : end;
+          } else {
+            newItemData.end = new Date(newItemData.start._i).getTime() + new Date(itemData.end).getTime() - new Date(itemData.start).getTime();
+          }
+        }
+      } else {
+        newItemData[this.itemsData._fieldId] = util.randomUUID();
+
+        // when default type is a range, add a default end date to the new item
+        if (this.options.type === 'range') {
+          var end = this.body.util.toTime(x + this.props.width / 5);
+          newItemData.end = snap ? snap(end, scale, step) : end;
+        }
+      }
 
       var group = this.groupFromTarget(event);
       if (group) {
@@ -20535,6 +21658,9 @@ return /******/ (function(modules) { // webpackBootstrap
       this.options.onAdd(newItemData, function (item) {
         if (item) {
           me.itemsData.getDataSet().add(item);
+          if (event.type == 'drop') {
+            me.setSelection([item.id]);
+          }
           // TODO: need to trigger a redraw?
         }
       });
@@ -20593,16 +21719,16 @@ return /******/ (function(modules) { // webpackBootstrap
           }
         }
       } else {
-          // add/remove this item from the current selection
-          var index = selection.indexOf(item.id);
-          if (index == -1) {
-            // item is not yet selected -> select it
-            selection.push(item.id);
-          } else {
-            // item is already selected -> deselect it
-            selection.splice(index, 1);
-          }
+        // add/remove this item from the current selection
+        var index = selection.indexOf(item.id);
+        if (index == -1) {
+          // item is not yet selected -> select it
+          selection.push(item.id);
+        } else {
+          // item is already selected -> deselect it
+          selection.splice(index, 1);
         }
+      }
 
       this.setSelection(selection);
 
@@ -20742,13 +21868,13 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = ItemSet;
 
 /***/ },
-/* 35 */
+/* 37 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
 
   var moment = __webpack_require__(2);
-  var DateUtil = __webpack_require__(32);
+  var DateUtil = __webpack_require__(34);
   var util = __webpack_require__(1);
 
   /**
@@ -20840,9 +21966,9 @@ return /******/ (function(modules) { // webpackBootstrap
     this.moment = moment;
 
     // update the date properties, can have a new utcOffset
-    this.current = this.moment(this.current);
-    this._start = this.moment(this._start);
-    this._end = this.moment(this._end);
+    this.current = this.moment(this.current.valueOf());
+    this._start = this.moment(this._start.valueOf());
+    this._end = this.moment(this._end.valueOf());
   };
 
   /**
@@ -21027,6 +22153,11 @@ return /******/ (function(modules) { // webpackBootstrap
       this.current = this._end.clone();
     }
 
+    // Reset switches for year, month and day. Will get set to true where appropriate in DateUtil.stepOverHiddenDates
+    this.switchedDay = false;
+    this.switchedMonth = false;
+    this.switchedYear = false;
+
     DateUtil.stepOverHiddenDates(this.moment, this, prev);
   };
 
@@ -21203,8 +22334,8 @@ return /******/ (function(modules) { // webpackBootstrap
         clone.add(1, 'month');
         // important: first set Date to 1, after that change the month.
       } else {
-          clone.date(1);
-        }
+        clone.date(1);
+      }
 
       clone.hours(0);
       clone.minutes(0);
@@ -21285,7 +22416,6 @@ return /******/ (function(modules) { // webpackBootstrap
    */
   TimeStep.prototype.isMajor = function () {
     if (this.switchedYear == true) {
-      this.switchedYear = false;
       switch (this.scale) {
         case 'year':
         case 'month':
@@ -21300,7 +22430,6 @@ return /******/ (function(modules) { // webpackBootstrap
           return false;
       }
     } else if (this.switchedMonth == true) {
-      this.switchedMonth = false;
       switch (this.scale) {
         case 'weekday':
         case 'day':
@@ -21313,7 +22442,6 @@ return /******/ (function(modules) { // webpackBootstrap
           return false;
       }
     } else if (this.switchedDay == true) {
-      this.switchedDay = false;
       switch (this.scale) {
         case 'millisecond':
         case 'second':
@@ -21358,6 +22486,10 @@ return /******/ (function(modules) { // webpackBootstrap
       date = this.current;
     }
 
+    if (typeof this.format.minorLabels === "function") {
+      return this.format.minorLabels(date, this.scale, this.step);
+    }
+
     var format = this.format.minorLabels[this.scale];
     return format && format.length > 0 ? this.moment(date).format(format) : '';
   };
@@ -21371,6 +22503,10 @@ return /******/ (function(modules) { // webpackBootstrap
   TimeStep.prototype.getLabelMajor = function (date) {
     if (date == undefined) {
       date = this.current;
+    }
+
+    if (typeof this.format.majorLabels === "function") {
+      return this.format.majorLabels(date, this.scale, this.step);
     }
 
     var format = this.format.majorLabels[this.scale];
@@ -21414,28 +22550,22 @@ return /******/ (function(modules) { // webpackBootstrap
 
     switch (this.scale) {
       case 'millisecond':
-        return even(current.milliseconds()).trim();
+        return today(current) + even(current.milliseconds()).trim();
 
       case 'second':
-        return even(current.seconds()).trim();
+        return today(current) + even(current.seconds()).trim();
 
       case 'minute':
-        return even(current.minutes()).trim();
+        return today(current) + even(current.minutes()).trim();
 
       case 'hour':
-        var hours = current.hours();
-        if (this.step == 4) {
-          hours = hours + '-h' + (hours + 4);
-        }
-        return 'vis-h' + hours + today(current) + even(current.hours());
+        return 'vis-h' + current.hours() + (this.step == 4 ? '-h' + (current.hours() + 4) : '') + today(current) + even(current.hours());
 
       case 'weekday':
         return 'vis-' + current.format('dddd').toLowerCase() + today(current) + currentWeek(current) + even(current.date());
 
       case 'day':
-        var day = current.date();
-        var month = current.format('MMMM').toLowerCase();
-        return 'vis-day' + day + ' vis-' + month + currentMonth(current) + even(day - 1);
+        return 'vis-day' + current.date() + ' vis-' + current.format('MMMM').toLowerCase() + today(current) + currentMonth(current) + this.step <= 2 ? today(current) : '' + this.step <= 2 ? ' vis-' + current.format('dddd').toLowerCase() : '' + even(current.date() - 1);
 
       case 'month':
         return 'vis-' + current.format('MMMM').toLowerCase() + currentMonth(current) + even(current.month());
@@ -21452,14 +22582,14 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = TimeStep;
 
 /***/ },
-/* 36 */
+/* 38 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
 
   var util = __webpack_require__(1);
-  var stack = __webpack_require__(37);
-  var RangeItem = __webpack_require__(38);
+  var stack = __webpack_require__(39);
+  var RangeItem = __webpack_require__(40);
 
   /**
    * @constructor Group
@@ -21473,6 +22603,7 @@ return /******/ (function(modules) { // webpackBootstrap
     this.subgroupIndex = 0;
     this.subgroupOrderer = data && data.subgroupOrder;
     this.itemSet = itemSet;
+    this.isVisible = null;
 
     this.dom = {};
     this.props = {
@@ -21545,8 +22676,11 @@ return /******/ (function(modules) { // webpackBootstrap
   Group.prototype.setData = function (data) {
     // update contents
     var content;
+    var templateFunction;
+
     if (this.itemSet.options && this.itemSet.options.groupTemplate) {
-      content = this.itemSet.options.groupTemplate(data);
+      templateFunction = this.itemSet.options.groupTemplate.bind(this);
+      content = templateFunction(data, this.dom.inner);
     } else {
       content = data && data.content;
     }
@@ -21557,6 +22691,8 @@ return /******/ (function(modules) { // webpackBootstrap
         this.dom.inner.removeChild(this.dom.inner.firstChild);
       }
       this.dom.inner.appendChild(content);
+    } else if (content instanceof Object) {
+      templateFunction(data, this.dom.inner);
     } else if (content !== undefined && content !== null) {
       this.dom.inner.innerHTML = content;
     } else {
@@ -21634,6 +22770,15 @@ return /******/ (function(modules) { // webpackBootstrap
     // recalculate the height of the subgroups
     this._calculateSubGroupHeights();
 
+    this.isVisible = this._isGroupVisible(range, margin);
+
+    // calculate actual size and position
+    var foreground = this.dom.foreground;
+    this.top = foreground.offsetTop;
+    this.right = foreground.offsetLeft;
+    this.width = foreground.offsetWidth;
+
+    this.isVisible = this._isGroupVisible(range, margin);
     // reposition visible items vertically
     if (typeof this.itemSet.options.order === 'function') {
       // a custom order function
@@ -21671,6 +22816,10 @@ return /******/ (function(modules) { // webpackBootstrap
         // no stacking
         stack.nostack(this.visibleItems, margin, this.subgroups);
       }
+    }
+
+    if (!this.isVisible && this.height) {
+      return resized = false;
     }
 
     // recalculate the height of the group
@@ -21717,6 +22866,15 @@ return /******/ (function(modules) { // webpackBootstrap
         }
       });
     }
+  };
+
+  /**
+   * check if group is visible
+   * @private
+    */
+  Group.prototype._isGroupVisible = function (range, margin) {
+    var isVisible = this.top <= range.body.domProps.centerContainer.height - range.body.domProps.scrollTop + margin.axis && this.top + this.height + margin.axis >= -range.body.domProps.scrollTop;
+    return isVisible;
   };
 
   /**
@@ -21924,10 +23082,17 @@ return /******/ (function(modules) { // webpackBootstrap
   Group.prototype._updateVisibleItems = function (orderedItems, oldVisibleItems, range) {
     var visibleItems = [];
     var visibleItemsLookup = {}; // we keep this to quickly look up if an item already exists in the list without using indexOf on visibleItems
+    if (!this.isVisible && this.groupId != "__background__") {
+      for (var i = 0; i < oldVisibleItems.length; i++) {
+        var item = oldVisibleItems[i];
+        if (item.displayed) item.hide();
+      }
+      return visibleItems;
+    }
+
     var interval = (range.end - range.start) / 4;
     var lowerBound = range.start - interval;
     var upperBound = range.end + interval;
-    var item, i;
 
     // this function is used to do the binary search.
     var searchFunction = function searchFunction(value) {
@@ -21944,7 +23109,7 @@ return /******/ (function(modules) { // webpackBootstrap
     // IMPORTANT: this handles the case for the items with startdate before the window and enddate after the window!
     // also cleans up invisible items.
     if (oldVisibleItems.length > 0) {
-      for (i = 0; i < oldVisibleItems.length; i++) {
+      for (var i = 0; i < oldVisibleItems.length; i++) {
         this._checkIfVisibleWithReference(oldVisibleItems[i], visibleItems, visibleItemsLookup, range);
       }
     }
@@ -21975,36 +23140,20 @@ return /******/ (function(modules) { // webpackBootstrap
     }
 
     // finally, we reposition all the visible items.
-    for (i = 0; i < visibleItems.length; i++) {
-      item = visibleItems[i];
+    for (var i = 0; i < visibleItems.length; i++) {
+      var item = visibleItems[i];
       if (!item.displayed) item.show();
       // reposition item horizontally
       item.repositionX();
     }
 
-    // debug
-    //console.log("new line")
-    //if (this.groupId == null) {
-    //  for (i = 0; i < orderedItems.byStart.length; i++) {
-    //    item = orderedItems.byStart[i].data;
-    //    console.log('start',i,initialPosByStart, item.start.valueOf(), item.content, item.start >= lowerBound && item.start <= upperBound,i == initialPosByStart ? "<------------------- HEREEEE" : "")
-    //  }
-    //  for (i = 0; i < orderedItems.byEnd.length; i++) {
-    //    item = orderedItems.byEnd[i].data;
-    //    console.log('rangeEnd',i,initialPosByEnd, item.end.valueOf(), item.content, item.end >= range.start && item.end <= range.end,i == initialPosByEnd ? "<------------------- HEREEEE" : "")
-    //  }
-    //}
-
     return visibleItems;
   };
 
   Group.prototype._traceVisible = function (initialPos, items, visibleItems, visibleItemsLookup, breakCondition) {
-    var item;
-    var i;
-
     if (initialPos != -1) {
-      for (i = initialPos; i >= 0; i--) {
-        item = items[i];
+      for (var i = initialPos; i >= 0; i--) {
+        var item = items[i];
         if (breakCondition(item)) {
           break;
         } else {
@@ -22015,8 +23164,8 @@ return /******/ (function(modules) { // webpackBootstrap
         }
       }
 
-      for (i = initialPos + 1; i < items.length; i++) {
-        item = items[i];
+      for (var i = initialPos + 1; i < items.length; i++) {
+        var item = items[i];
         if (breakCondition(item)) {
           break;
         } else {
@@ -22076,7 +23225,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = Group;
 
 /***/ },
-/* 37 */
+/* 39 */
 /***/ function(module, exports) {
 
   'use strict';
@@ -22204,13 +23353,13 @@ return /******/ (function(modules) { // webpackBootstrap
   };
 
 /***/ },
-/* 38 */
+/* 40 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
 
-  var Hammer = __webpack_require__(20);
-  var Item = __webpack_require__(39);
+  var Hammer = __webpack_require__(22);
+  var Item = __webpack_require__(41);
 
   /**
    * @constructor RangeItem
@@ -22329,7 +23478,10 @@ return /******/ (function(modules) { // webpackBootstrap
 
       this.dirty = false;
     }
+
+    this._repaintOnItemUpdateTimeTooltip(dom.box);
     this._repaintDeleteButton(dom.box);
+    this._repaintDragCenter();
     this._repaintDragLeft();
     this._repaintDragRight();
   };
@@ -22385,7 +23537,9 @@ return /******/ (function(modules) { // webpackBootstrap
         end = 2 * parentWidth;
       }
     }
-    var boxWidth = Math.max(end - start, 1);
+
+    // add 0.5 to compensate floating-point values rounding
+    var boxWidth = Math.max(end - start + 0.5, 1);
 
     if (this.overflow) {
       if (this.options.rtl) {
@@ -22400,14 +23554,14 @@ return /******/ (function(modules) { // webpackBootstrap
       //       a width which will not change when moving the Timeline
       //       So no re-stacking needed, which is nicer for the eye;
     } else {
-        if (this.options.rtl) {
-          this.right = start;
-        } else {
-          this.left = start;
-        }
-        this.width = boxWidth;
-        contentWidth = Math.min(end - start, this.props.content.width);
+      if (this.options.rtl) {
+        this.right = start;
+      } else {
+        this.left = start;
       }
+      this.width = boxWidth;
+      contentWidth = Math.min(end - start, this.props.content.width);
+    }
 
     if (this.options.rtl) {
       this.dom.box.style.right = this.right + 'px';
@@ -22452,16 +23606,17 @@ return /******/ (function(modules) { // webpackBootstrap
             contentStartPosition = -contentWidth; // ensure it's not visible anymore
           }
         } else {
-            if (start < 0) {
-              contentStartPosition = -start;
-            } else {
-              contentStartPosition = 0;
-            }
+          if (start < 0) {
+            contentStartPosition = -start;
+          } else {
+            contentStartPosition = 0;
           }
+        }
         if (this.options.rtl) {
           this.dom.content.style.right = contentStartPosition + 'px';
         } else {
           this.dom.content.style.left = contentStartPosition + 'px';
+          this.dom.content.style.width = 'calc(100% - ' + contentStartPosition + 'px)';
         }
     }
   };
@@ -22528,13 +23683,14 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = RangeItem;
 
 /***/ },
-/* 39 */
+/* 41 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
 
-  var Hammer = __webpack_require__(20);
+  var Hammer = __webpack_require__(22);
   var util = __webpack_require__(1);
+  var moment = __webpack_require__(2);
 
   /**
    * @constructor Item
@@ -22552,7 +23708,6 @@ return /******/ (function(modules) { // webpackBootstrap
     this.dom = null;
     this.conversion = conversion || {};
     this.options = options || {};
-
     this.selected = false;
     this.displayed = false;
     this.dirty = true;
@@ -22631,7 +23786,6 @@ return /******/ (function(modules) { // webpackBootstrap
    * @returns {boolean} True if visible
    */
   Item.prototype.isVisible = function (range) {
-    // Should be implemented by Item implementations
     return false;
   };
 
@@ -22711,34 +23865,120 @@ return /******/ (function(modules) { // webpackBootstrap
   };
 
   /**
+   * Repaint a onChange tooltip on the top right of the item when the item is selected
+   * @param {HTMLElement} anchor
+   * @protected
+   */
+  Item.prototype._repaintOnItemUpdateTimeTooltip = function (anchor) {
+    if (!this.options.tooltipOnItemUpdateTime) return;
+
+    var editable = (this.options.editable.updateTime || this.data.editable === true) && this.data.editable !== false;
+
+    if (this.selected && editable && !this.dom.onItemUpdateTimeTooltip) {
+      // create and show tooltip
+      var me = this;
+
+      var onItemUpdateTimeTooltip = document.createElement('div');
+
+      onItemUpdateTimeTooltip.className = 'vis-onUpdateTime-tooltip';
+      anchor.appendChild(onItemUpdateTimeTooltip);
+      this.dom.onItemUpdateTimeTooltip = onItemUpdateTimeTooltip;
+    } else if (!this.selected && this.dom.onItemUpdateTimeTooltip) {
+      // remove button
+      if (this.dom.onItemUpdateTimeTooltip.parentNode) {
+        this.dom.onItemUpdateTimeTooltip.parentNode.removeChild(this.dom.onItemUpdateTimeTooltip);
+      }
+      this.dom.onItemUpdateTimeTooltip = null;
+    }
+
+    // position onChange tooltip
+    if (this.dom.onItemUpdateTimeTooltip) {
+
+      // only show when editing
+      this.dom.onItemUpdateTimeTooltip.style.visibility = this.parent.itemSet.touchParams.itemIsDragging ? 'visible' : 'hidden';
+
+      // position relative to item's content
+      if (this.options.rtl) {
+        this.dom.onItemUpdateTimeTooltip.style.right = this.dom.content.style.right;
+      } else {
+        this.dom.onItemUpdateTimeTooltip.style.left = this.dom.content.style.left;
+      }
+
+      // position above or below the item depending on the item's position in the window
+      var tooltipOffset = 50; // TODO: should be tooltip height (depends on template)
+      var scrollTop = this.parent.itemSet.body.domProps.scrollTop;
+
+      // TODO: this.top for orientation:true is actually the items distance from the bottom... 
+      // (should be this.bottom)
+      var itemDistanceFromTop;
+      if (this.options.orientation.item == 'top') {
+        itemDistanceFromTop = this.top;
+      } else {
+        itemDistanceFromTop = this.parent.height - this.top - this.height;
+      }
+      var isCloseToTop = itemDistanceFromTop + this.parent.top - tooltipOffset < -scrollTop;
+
+      if (isCloseToTop) {
+        this.dom.onItemUpdateTimeTooltip.style.bottom = "";
+        this.dom.onItemUpdateTimeTooltip.style.top = this.height + 2 + "px";
+      } else {
+        this.dom.onItemUpdateTimeTooltip.style.top = "";
+        this.dom.onItemUpdateTimeTooltip.style.bottom = this.height + 2 + "px";
+      }
+
+      // handle tooltip content
+      var content;
+      var templateFunction;
+
+      if (this.options.tooltipOnItemUpdateTime && this.options.tooltipOnItemUpdateTime.template) {
+        templateFunction = this.options.tooltipOnItemUpdateTime.template.bind(this);
+        content = templateFunction(this.data);
+      } else {
+        content = 'start: ' + moment(this.data.start).format('MM/DD/YYYY hh:mm');
+        if (this.data.end) {
+          content += '<br> end: ' + moment(this.data.end).format('MM/DD/YYYY hh:mm');
+        }
+      }
+      this.dom.onItemUpdateTimeTooltip.innerHTML = content;
+    }
+  };
+
+  /**
    * Set HTML contents for the item
    * @param {Element} element   HTML element to fill with the contents
    * @private
    */
   Item.prototype._updateContents = function (element) {
     var content;
+    var templateFunction;
+
     if (this.options.template) {
       var itemData = this.parent.itemSet.itemsData.get(this.id); // get a clone of the data from the dataset
-      content = this.options.template(itemData);
+      templateFunction = this.options.template.bind(this);
+      content = templateFunction(itemData, element);
     } else {
       content = this.data.content;
     }
 
-    var changed = this._contentToString(this.content) !== this._contentToString(content);
-    if (changed) {
-      // only replace the content when changed
-      if (content instanceof Element) {
-        element.innerHTML = '';
-        element.appendChild(content);
-      } else if (content != undefined) {
-        element.innerHTML = content;
-      } else {
-        if (!(this.data.type == 'background' && this.data.content === undefined)) {
-          throw new Error('Property "content" missing in item ' + this.id);
+    if (content instanceof Object && !(content instanceof Element)) {
+      templateFunction(itemData, element);
+    } else {
+      var changed = this._contentToString(this.content) !== this._contentToString(content);
+      if (changed) {
+        // only replace the content when changed
+        if (content instanceof Element) {
+          element.innerHTML = '';
+          element.appendChild(content);
+        } else if (content != undefined) {
+          element.innerHTML = content;
+        } else {
+          if (!(this.data.type == 'background' && this.data.content === undefined)) {
+            throw new Error('Property "content" missing in item ' + this.id);
+          }
         }
-      }
 
-      this.content = content;
+        this.content = content;
+      }
     }
   };
 
@@ -22832,16 +24072,43 @@ return /******/ (function(modules) { // webpackBootstrap
     return 0;
   };
 
+  /**
+   * Repaint a drag area on the center of the item when the item is selected
+   * @protected
+   */
+  Item.prototype._repaintDragCenter = function () {
+    if (this.selected && this.options.editable.updateTime && !this.dom.dragCenter) {
+      // create and show drag area
+      var dragCenter = document.createElement('div');
+      dragCenter.className = 'vis-drag-center';
+      dragCenter.dragCenterItem = this;
+
+      if (this.dom.box) {
+        this.dom.box.appendChild(dragCenter);
+      } else if (this.dom.point) {
+        this.dom.point.appendChild(dragCenter);
+      }
+
+      this.dom.dragCenter = dragCenter;
+    } else if (!this.selected && this.dom.dragCenter) {
+      // delete drag area
+      if (this.dom.dragCenter.parentNode) {
+        this.dom.dragCenter.parentNode.removeChild(this.dom.dragCenter);
+      }
+      this.dom.dragCenter = null;
+    }
+  };
+
   module.exports = Item;
 
 /***/ },
-/* 40 */
+/* 42 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
 
   var util = __webpack_require__(1);
-  var Group = __webpack_require__(36);
+  var Group = __webpack_require__(38);
 
   /**
    * @constructor BackgroundGroup
@@ -22899,12 +24166,12 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = BackgroundGroup;
 
 /***/ },
-/* 41 */
+/* 43 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
 
-  var Item = __webpack_require__(39);
+  var Item = __webpack_require__(41);
   var util = __webpack_require__(1);
 
   /**
@@ -22948,9 +24215,20 @@ return /******/ (function(modules) { // webpackBootstrap
    */
   BoxItem.prototype.isVisible = function (range) {
     // determine visibility
-    // TODO: account for the real width of the item. Right now we just add 1/4 to the window
-    var interval = (range.end - range.start) / 4;
-    return this.data.start > range.start - interval && this.data.start < range.end + interval;
+    var isVisible;
+    var align = this.options.align;
+    var msPerPixel = (range.end - range.start) / range.body.dom.center.clientWidth;
+    var widthInMs = this.width * msPerPixel;
+
+    if (align == 'right') {
+      isVisible = this.data.start.getTime() > range.start && this.data.start.getTime() - widthInMs < range.end;
+    } else if (align == 'left') {
+      isVisible = this.data.start.getTime() + widthInMs > range.start && this.data.start.getTime() < range.end;
+    } else {
+      // default or 'center'
+      isVisible = this.data.start.getTime() + widthInMs / 2 > range.start && this.data.start.getTime() - widthInMs / 2 < range.end;
+    }
+    return isVisible;
   };
 
   /**
@@ -23024,6 +24302,17 @@ return /******/ (function(modules) { // webpackBootstrap
       dom.line.className = 'vis-item vis-line' + className;
       dom.dot.className = 'vis-item vis-dot' + className;
 
+      // set initial position in the visible range of the grid so that the
+      // rendered box size can be determinated correctly, even the content
+      // has a dynamic width (fixes #2032).
+      var previousRight = dom.box.style.right;
+      var previousLeft = dom.box.style.left;
+      if (this.options.rtl) {
+        dom.box.style.right = "0px";
+      } else {
+        dom.box.style.left = "0px";
+      }
+
       // recalculate size
       this.props.dot.height = dom.dot.offsetHeight;
       this.props.dot.width = dom.dot.offsetWidth;
@@ -23031,9 +24320,18 @@ return /******/ (function(modules) { // webpackBootstrap
       this.width = dom.box.offsetWidth;
       this.height = dom.box.offsetHeight;
 
+      // restore previous position
+      if (this.options.rtl) {
+        dom.box.style.right = previousRight;
+      } else {
+        dom.box.style.left = previousLeft;
+      }
+
       this.dirty = false;
     }
 
+    this._repaintOnItemUpdateTimeTooltip(dom.box);
+    this._repaintDragCenter();
     this._repaintDeleteButton(dom.box);
   };
 
@@ -23171,12 +24469,12 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = BoxItem;
 
 /***/ },
-/* 42 */
+/* 44 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
 
-  var Item = __webpack_require__(39);
+  var Item = __webpack_require__(41);
 
   /**
    * @constructor PointItem
@@ -23221,9 +24519,10 @@ return /******/ (function(modules) { // webpackBootstrap
    */
   PointItem.prototype.isVisible = function (range) {
     // determine visibility
-    // TODO: account for the real width of the item. Right now we just add 1/4 to the window
-    var interval = (range.end - range.start) / 4;
-    return this.data.start > range.start - interval && this.data.start < range.end + interval;
+    var msPerPixel = (range.end - range.start) / range.body.dom.center.clientWidth;
+    var widthInMs = this.width * msPerPixel;
+
+    return this.data.start.getTime() + widthInMs > range.start && this.data.start < range.end;
   };
 
   /**
@@ -23313,6 +24612,8 @@ return /******/ (function(modules) { // webpackBootstrap
       this.dirty = false;
     }
 
+    this._repaintOnItemUpdateTimeTooltip(dom.point);
+    this._repaintDragCenter();
     this._repaintDeleteButton(dom.point);
   };
 
@@ -23392,15 +24693,15 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = PointItem;
 
 /***/ },
-/* 43 */
+/* 45 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
 
-  var Hammer = __webpack_require__(20);
-  var Item = __webpack_require__(39);
-  var BackgroundGroup = __webpack_require__(40);
-  var RangeItem = __webpack_require__(38);
+  var Hammer = __webpack_require__(22);
+  var Item = __webpack_require__(41);
+  var BackgroundGroup = __webpack_require__(42);
+  var RangeItem = __webpack_require__(40);
 
   /**
    * @constructor BackgroundItem
@@ -23613,17 +24914,17 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = BackgroundItem;
 
 /***/ },
-/* 44 */
+/* 46 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
 
-  var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
+  var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
 
   var util = __webpack_require__(1);
-  var Component = __webpack_require__(31);
-  var TimeStep = __webpack_require__(35);
-  var DateUtil = __webpack_require__(32);
+  var Component = __webpack_require__(33);
+  var TimeStep = __webpack_require__(37);
+  var DateUtil = __webpack_require__(34);
   var moment = __webpack_require__(2);
 
   /**
@@ -24114,14 +25415,14 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = TimeAxis;
 
 /***/ },
-/* 45 */
+/* 47 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
 
-  var keycharm = __webpack_require__(23);
+  var keycharm = __webpack_require__(25);
   var Emitter = __webpack_require__(13);
-  var Hammer = __webpack_require__(20);
+  var Hammer = __webpack_require__(22);
   var util = __webpack_require__(1);
 
   /**
@@ -24273,16 +25574,16 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = Activator;
 
 /***/ },
-/* 46 */
+/* 48 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
 
-  var Hammer = __webpack_require__(20);
+  var Hammer = __webpack_require__(22);
   var util = __webpack_require__(1);
-  var Component = __webpack_require__(31);
+  var Component = __webpack_require__(33);
   var moment = __webpack_require__(2);
-  var locales = __webpack_require__(47);
+  var locales = __webpack_require__(49);
 
   /**
    * A custom time bar
@@ -24398,7 +25699,7 @@ return /******/ (function(modules) { // webpackBootstrap
     var locale = this.options.locales[this.options.locale];
     if (!locale) {
       if (!this.warned) {
-        console.log('WARNING: options.locales[\'' + this.options.locale + '\'] not found. See http://visjs.org/docs/timeline.html#Localization');
+        console.log('WARNING: options.locales[\'' + this.options.locale + '\'] not found. See http://visjs.org/docs/timeline/#Localization');
         this.warned = true;
       }
       locale = this.options.locales['en']; // fall back on english when not available
@@ -24524,7 +25825,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = CustomTime;
 
 /***/ },
-/* 47 */
+/* 49 */
 /***/ function(module, exports) {
 
   'use strict';
@@ -24537,6 +25838,14 @@ return /******/ (function(modules) { // webpackBootstrap
   exports['en_EN'] = exports['en'];
   exports['en_US'] = exports['en'];
 
+  // Italiano
+  exports['it'] = {
+    current: 'attuale',
+    time: 'tempo'
+  };
+  exports['it_IT'] = exports['it'];
+  exports['it_CH'] = exports['it'];
+
   // Dutch
   exports['nl'] = {
     current: 'huidige',
@@ -24545,16 +25854,23 @@ return /******/ (function(modules) { // webpackBootstrap
   exports['nl_NL'] = exports['nl'];
   exports['nl_BE'] = exports['nl'];
 
+  // German
+  exports['de'] = {
+    current: 'Aktuelle',
+    time: 'Zeit'
+  };
+  exports['de_DE'] = exports['de'];
+
 /***/ },
-/* 48 */
+/* 50 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
 
   var util = __webpack_require__(1);
-  var Component = __webpack_require__(31);
+  var Component = __webpack_require__(33);
   var moment = __webpack_require__(2);
-  var locales = __webpack_require__(47);
+  var locales = __webpack_require__(49);
 
   /**
    * A current time bar
@@ -24729,7 +26045,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = CurrentTime;
 
 /***/ },
-/* 49 */
+/* 51 */
 /***/ function(module, exports) {
 
   'use strict';
@@ -24765,8 +26081,9 @@ return /******/ (function(modules) { // webpackBootstrap
     //globals :
     align: { string: string },
     rtl: { boolean: boolean, 'undefined': 'undefined' },
+    verticalScroll: { boolean: boolean, 'undefined': 'undefined' },
+    horizontalScroll: { boolean: boolean, 'undefined': 'undefined' },
     autoResize: { boolean: boolean },
-    throttleRedraw: { number: number },
     clickToUse: { boolean: boolean },
     dataAttributes: { string: string, array: array },
     editable: {
@@ -24787,7 +26104,7 @@ return /******/ (function(modules) { // webpackBootstrap
         day: { string: string, 'undefined': 'undefined' },
         month: { string: string, 'undefined': 'undefined' },
         year: { string: string, 'undefined': 'undefined' },
-        __type__: { object: object }
+        __type__: { object: object, 'function': 'function' }
       },
       majorLabels: {
         millisecond: { string: string, 'undefined': 'undefined' },
@@ -24798,7 +26115,7 @@ return /******/ (function(modules) { // webpackBootstrap
         day: { string: string, 'undefined': 'undefined' },
         month: { string: string, 'undefined': 'undefined' },
         year: { string: string, 'undefined': 'undefined' },
-        __type__: { object: object }
+        __type__: { object: object, 'function': 'function' }
       },
       __type__: { object: object }
     },
@@ -24864,6 +26181,10 @@ return /******/ (function(modules) { // webpackBootstrap
     start: { date: date, number: number, string: string, moment: moment },
     template: { 'function': 'function' },
     groupTemplate: { 'function': 'function' },
+    tooltipOnItemUpdateTime: {
+      template: { 'function': 'function' },
+      __type__: { boolean: boolean, object: object }
+    },
     timeAxis: {
       scale: { string: string, 'undefined': 'undefined' },
       step: { number: number, 'undefined': 'undefined' },
@@ -24884,7 +26205,6 @@ return /******/ (function(modules) { // webpackBootstrap
       align: ['center', 'left', 'right'],
       direction: false,
       autoResize: true,
-      throttleRedraw: [10, 0, 1000, 10],
       clickToUse: false,
       // dataAttributes: ['all'], // FIXME: can be 'all' or string[]
       editable: {
@@ -24959,6 +26279,7 @@ return /******/ (function(modules) { // webpackBootstrap
       //  scale: ['millisecond', 'second', 'minute', 'hour', 'weekday', 'day', 'month', 'year'],
       //  step: [1, 1, 10, 1]
       //},
+      tooltipOnItemUpdateTime: false,
       type: ['box', 'point', 'range', 'background'],
       width: '100%',
       zoomable: true,
@@ -24972,37 +26293,37 @@ return /******/ (function(modules) { // webpackBootstrap
   exports.configureOptions = configureOptions;
 
 /***/ },
-/* 50 */
+/* 52 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
 
-  var _Configurator = __webpack_require__(26);
+  var _Configurator = __webpack_require__(28);
 
   var _Configurator2 = _interopRequireDefault(_Configurator);
 
-  var _Validator = __webpack_require__(29);
+  var _Validator = __webpack_require__(31);
 
   var _Validator2 = _interopRequireDefault(_Validator);
 
   function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
   var Emitter = __webpack_require__(13);
-  var Hammer = __webpack_require__(20);
+  var Hammer = __webpack_require__(22);
   var moment = __webpack_require__(2);
   var util = __webpack_require__(1);
   var DataSet = __webpack_require__(9);
   var DataView = __webpack_require__(11);
-  var Range = __webpack_require__(30);
-  var Core = __webpack_require__(33);
-  var TimeAxis = __webpack_require__(44);
-  var CurrentTime = __webpack_require__(48);
-  var CustomTime = __webpack_require__(46);
-  var LineGraph = __webpack_require__(51);
+  var Range = __webpack_require__(32);
+  var Core = __webpack_require__(35);
+  var TimeAxis = __webpack_require__(46);
+  var CurrentTime = __webpack_require__(50);
+  var CustomTime = __webpack_require__(48);
+  var LineGraph = __webpack_require__(53);
 
-  var printStyle = __webpack_require__(29).printStyle;
-  var allOptions = __webpack_require__(59).allOptions;
-  var configureOptions = __webpack_require__(59).configureOptions;
+  var printStyle = __webpack_require__(31).printStyle;
+  var allOptions = __webpack_require__(61).allOptions;
+  var configureOptions = __webpack_require__(61).configureOptions;
 
   /**
    * Create a timeline visualization
@@ -25085,6 +26406,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
     this.itemsData = null; // DataSet
     this.groupsData = null; // DataSet
+
 
     this.on('tap', function (event) {
       me.emit('click', me.getEventProperties(event));
@@ -25320,24 +26642,24 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = Graph2d;
 
 /***/ },
-/* 51 */
+/* 53 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
 
-  var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
+  var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
 
   var util = __webpack_require__(1);
   var DOMutil = __webpack_require__(8);
   var DataSet = __webpack_require__(9);
   var DataView = __webpack_require__(11);
-  var Component = __webpack_require__(31);
-  var DataAxis = __webpack_require__(52);
-  var GraphGroup = __webpack_require__(54);
-  var Legend = __webpack_require__(58);
-  var Bars = __webpack_require__(55);
-  var Lines = __webpack_require__(57);
-  var Points = __webpack_require__(56);
+  var Component = __webpack_require__(33);
+  var DataAxis = __webpack_require__(54);
+  var GraphGroup = __webpack_require__(56);
+  var Legend = __webpack_require__(60);
+  var Bars = __webpack_require__(57);
+  var Lines = __webpack_require__(59);
+  var Points = __webpack_require__(58);
 
   var UNGROUPED = '__ungrouped__'; // reserved group id for ungrouped items
 
@@ -26352,15 +27674,15 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = LineGraph;
 
 /***/ },
-/* 52 */
+/* 54 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
 
   var util = __webpack_require__(1);
   var DOMutil = __webpack_require__(8);
-  var Component = __webpack_require__(31);
-  var DataScale = __webpack_require__(53);
+  var Component = __webpack_require__(33);
+  var DataScale = __webpack_require__(55);
   /**
    * A horizontal time axis
    * @param {Object} [options]        See DataAxis.setOptions for the available
@@ -26556,10 +27878,10 @@ return /******/ (function(modules) { // webpackBootstrap
   DataAxis.prototype.show = function () {
     this.hidden = false;
     if (!this.dom.frame.parentNode) {
-      if (this.options.rtl) {
+      if (this.options.orientation === 'left') {
         this.body.dom.left.appendChild(this.dom.frame);
       } else {
-        this.body.dom.left.appendChild(this.dom.frame);
+        this.body.dom.right.appendChild(this.dom.frame);
       }
     }
 
@@ -26912,7 +28234,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = DataAxis;
 
 /***/ },
-/* 53 */
+/* 55 */
 /***/ function(module, exports) {
 
   'use strict';
@@ -26922,8 +28244,8 @@ return /******/ (function(modules) { // webpackBootstrap
    */
 
   function DataScale(start, end, autoScaleStart, autoScaleEnd, containerHeight, majorCharHeight) {
-    var zeroAlign = arguments.length <= 6 || arguments[6] === undefined ? false : arguments[6];
-    var formattingFunction = arguments.length <= 7 || arguments[7] === undefined ? false : arguments[7];
+    var zeroAlign = arguments.length > 6 && arguments[6] !== undefined ? arguments[6] : false;
+    var formattingFunction = arguments.length > 7 && arguments[7] !== undefined ? arguments[7] : false;
 
     this.majorSteps = [1, 2, 5, 10];
     this.minorSteps = [0.25, 0.5, 1, 2];
@@ -27064,24 +28386,24 @@ return /******/ (function(modules) { // webpackBootstrap
     if (other.minorStepIdx <= 1 && this.minorStepIdx <= 1 || other.minorStepIdx > 1 && this.minorStepIdx > 1) {
       //easy, no need to change stepIdx nor multiplication factor
     } else if (other.minorStepIdx < this.minorStepIdx) {
-        //I'm 5, they are 4 per major.
-        this.minorStepIdx = 1;
-        if (oldStepIdx == 2) {
-          increaseMagnitude();
-        } else {
-          increaseMagnitude();
-          increaseMagnitude();
-        }
+      //I'm 5, they are 4 per major.
+      this.minorStepIdx = 1;
+      if (oldStepIdx == 2) {
+        increaseMagnitude();
       } else {
-        //I'm 4, they are 5 per major
-        this.minorStepIdx = 2;
-        if (oldStepIdx == 1) {
-          decreaseMagnitude();
-        } else {
-          decreaseMagnitude();
-          decreaseMagnitude();
-        }
+        increaseMagnitude();
+        increaseMagnitude();
       }
+    } else {
+      //I'm 4, they are 5 per major
+      this.minorStepIdx = 2;
+      if (oldStepIdx == 1) {
+        decreaseMagnitude();
+      } else {
+        decreaseMagnitude();
+        decreaseMagnitude();
+      }
+    }
 
     //Get masters stats:
     var lines = other.getLines();
@@ -27154,18 +28476,18 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = DataScale;
 
 /***/ },
-/* 54 */
+/* 56 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
 
-  var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
+  var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
 
   var util = __webpack_require__(1);
   var DOMutil = __webpack_require__(8);
-  var Bars = __webpack_require__(55);
-  var Lines = __webpack_require__(57);
-  var Points = __webpack_require__(56);
+  var Bars = __webpack_require__(57);
+  var Lines = __webpack_require__(59);
+  var Points = __webpack_require__(58);
 
   /**
    * /**
@@ -27317,13 +28639,13 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = GraphGroup;
 
 /***/ },
-/* 55 */
+/* 57 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
 
   var DOMutil = __webpack_require__(8);
-  var Points = __webpack_require__(56);
+  var Points = __webpack_require__(58);
 
   function Bargraph(groupId, options) {}
 
@@ -27578,12 +28900,12 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = Bargraph;
 
 /***/ },
-/* 56 */
+/* 58 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
 
-  var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
+  var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
 
   var DOMutil = __webpack_require__(8);
 
@@ -27657,7 +28979,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = Points;
 
 /***/ },
-/* 57 */
+/* 59 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
@@ -27946,14 +29268,14 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = Line;
 
 /***/ },
-/* 58 */
+/* 60 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
 
   var util = __webpack_require__(1);
   var DOMutil = __webpack_require__(8);
-  var Component = __webpack_require__(31);
+  var Component = __webpack_require__(33);
 
   /**
    * Legend for Graph2d
@@ -28165,7 +29487,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = Legend;
 
 /***/ },
-/* 59 */
+/* 61 */
 /***/ function(module, exports) {
 
   'use strict';
@@ -28274,7 +29596,6 @@ return /******/ (function(modules) { // webpackBootstrap
     },
 
     autoResize: { boolean: boolean },
-    throttleRedraw: { number: number },
     clickToUse: { boolean: boolean },
     end: { number: number, date: date, string: string, moment: moment },
     format: {
@@ -28399,7 +29720,6 @@ return /******/ (function(modules) { // webpackBootstrap
       },
 
       autoResize: true,
-      throttleRedraw: [10, 0, 1000, 10],
       clickToUse: false,
       end: '',
       format: {
@@ -28451,7 +29771,7 @@ return /******/ (function(modules) { // webpackBootstrap
   exports.configureOptions = configureOptions;
 
 /***/ },
-/* 60 */
+/* 62 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -28466,12 +29786,12 @@ return /******/ (function(modules) { // webpackBootstrap
   exports.Queue = __webpack_require__(10);
 
   // Network
-  exports.Network = __webpack_require__(61);
+  exports.Network = __webpack_require__(63);
   exports.network = {
-    Images: __webpack_require__(62),
-    dotparser: __webpack_require__(118),
-    gephiParser: __webpack_require__(119),
-    allOptions: __webpack_require__(114)
+    Images: __webpack_require__(64),
+    dotparser: __webpack_require__(120),
+    gephiParser: __webpack_require__(121),
+    allOptions: __webpack_require__(116)
   };
   exports.network.convertDot = function (input) {
     return exports.network.dotparser.DOTToGraph(input);
@@ -28482,94 +29802,94 @@ return /******/ (function(modules) { // webpackBootstrap
 
   // bundled external libraries
   exports.moment = __webpack_require__(2);
-  exports.Hammer = __webpack_require__(20);
-  exports.keycharm = __webpack_require__(23);
+  exports.Hammer = __webpack_require__(22);
+  exports.keycharm = __webpack_require__(25);
 
 /***/ },
-/* 61 */
+/* 63 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
 
-  var _Images = __webpack_require__(62);
+  var _Images = __webpack_require__(64);
 
   var _Images2 = _interopRequireDefault(_Images);
 
-  var _Groups = __webpack_require__(63);
+  var _Groups = __webpack_require__(65);
 
   var _Groups2 = _interopRequireDefault(_Groups);
 
-  var _NodesHandler = __webpack_require__(64);
+  var _NodesHandler = __webpack_require__(66);
 
   var _NodesHandler2 = _interopRequireDefault(_NodesHandler);
 
-  var _EdgesHandler = __webpack_require__(84);
+  var _EdgesHandler = __webpack_require__(86);
 
   var _EdgesHandler2 = _interopRequireDefault(_EdgesHandler);
 
-  var _PhysicsEngine = __webpack_require__(93);
+  var _PhysicsEngine = __webpack_require__(95);
 
   var _PhysicsEngine2 = _interopRequireDefault(_PhysicsEngine);
 
-  var _Clustering = __webpack_require__(102);
+  var _Clustering = __webpack_require__(104);
 
   var _Clustering2 = _interopRequireDefault(_Clustering);
 
-  var _CanvasRenderer = __webpack_require__(105);
+  var _CanvasRenderer = __webpack_require__(107);
 
   var _CanvasRenderer2 = _interopRequireDefault(_CanvasRenderer);
 
-  var _Canvas = __webpack_require__(106);
+  var _Canvas = __webpack_require__(108);
 
   var _Canvas2 = _interopRequireDefault(_Canvas);
 
-  var _View = __webpack_require__(107);
+  var _View = __webpack_require__(109);
 
   var _View2 = _interopRequireDefault(_View);
 
-  var _InteractionHandler = __webpack_require__(108);
+  var _InteractionHandler = __webpack_require__(110);
 
   var _InteractionHandler2 = _interopRequireDefault(_InteractionHandler);
 
-  var _SelectionHandler = __webpack_require__(111);
+  var _SelectionHandler = __webpack_require__(113);
 
   var _SelectionHandler2 = _interopRequireDefault(_SelectionHandler);
 
-  var _LayoutEngine = __webpack_require__(112);
+  var _LayoutEngine = __webpack_require__(114);
 
   var _LayoutEngine2 = _interopRequireDefault(_LayoutEngine);
 
-  var _ManipulationSystem = __webpack_require__(113);
+  var _ManipulationSystem = __webpack_require__(115);
 
   var _ManipulationSystem2 = _interopRequireDefault(_ManipulationSystem);
 
-  var _Configurator = __webpack_require__(26);
+  var _Configurator = __webpack_require__(28);
 
   var _Configurator2 = _interopRequireDefault(_Configurator);
 
-  var _Validator = __webpack_require__(29);
+  var _Validator = __webpack_require__(31);
 
   var _Validator2 = _interopRequireDefault(_Validator);
 
-  var _options = __webpack_require__(114);
+  var _options = __webpack_require__(116);
 
-  var _KamadaKawai = __webpack_require__(115);
+  var _KamadaKawai = __webpack_require__(117);
 
   var _KamadaKawai2 = _interopRequireDefault(_KamadaKawai);
 
   function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
   // Load custom shapes into CanvasRenderingContext2D
-  __webpack_require__(117);
+  __webpack_require__(119);
 
   var Emitter = __webpack_require__(13);
   var util = __webpack_require__(1);
   var DataSet = __webpack_require__(9);
   var DataView = __webpack_require__(11);
-  var dotparser = __webpack_require__(118);
-  var gephiParser = __webpack_require__(119);
-  var Activator = __webpack_require__(45);
-  var locales = __webpack_require__(120);
+  var dotparser = __webpack_require__(120);
+  var gephiParser = __webpack_require__(121);
+  var Activator = __webpack_require__(47);
+  var locales = __webpack_require__(122);
 
   /**
    * @constructor Network
@@ -28853,14 +30173,14 @@ return /******/ (function(modules) { // webpackBootstrap
     this.setOptions(data && data.options);
     // set all data
     if (data && data.dot) {
-      console.log('The dot property has been depricated. Please use the static convertDot method to convert DOT into vis.network format and use the normal data format with nodes and edges. This converter is used like this: var data = vis.network.convertDot(dotString);');
+      console.log('The dot property has been deprecated. Please use the static convertDot method to convert DOT into vis.network format and use the normal data format with nodes and edges. This converter is used like this: var data = vis.network.convertDot(dotString);');
       // parse DOT file
       var dotData = dotparser.DOTToGraph(data.dot);
       this.setData(dotData);
       return;
     } else if (data && data.gephi) {
       // parse DOT file
-      console.log('The gephi property has been depricated. Please use the static convertGephi method to convert gephi into vis.network format and use the normal data format with nodes and edges. This converter is used like this: var data = vis.network.convertGephi(gephiJson);');
+      console.log('The gephi property has been deprecated. Please use the static convertGephi method to convert gephi into vis.network format and use the normal data format with nodes and edges. This converter is used like this: var data = vis.network.convertGephi(gephiJson);');
       var gephiData = gephiParser.parseGephi(data.gephi);
       this.setData(gephiData);
       return;
@@ -29121,7 +30441,7 @@ return /******/ (function(modules) { // webpackBootstrap
   module.exports = Network;
 
 /***/ },
-/* 62 */
+/* 64 */
 /***/ function(module, exports) {
 
   "use strict";
@@ -29138,7 +30458,6 @@ return /******/ (function(modules) { // webpackBootstrap
    * @class Images
    * This class loads images and keeps them stored.
    */
-
   var Images = function () {
       function Images(callback) {
           _classCallCheck(this, Images);
@@ -29216,14 +30535,14 @@ return /******/ (function(modules) { // webpackBootstrap
           value: function load(url, brokenUrl, id) {
               var _this2 = this;
 
-              //Try and get the image from the cache, if successful then return the cached image  
+              //Try and get the image from the cache, if successful then return the cached image   
               var cachedImage = this.images[url];
               if (cachedImage) return cachedImage;
 
               //Create a new image
               var img = new Image();
 
-              //Subscribe to the event that is raised if the image loads successfully
+              //Subscribe to the event that is raised if the image loads successfully 
               img.onload = function () {
                   //Add the image to the cache and then request a redraw
                   _this2._addImageToCache(url, img);
@@ -29251,7 +30570,7 @@ return /******/ (function(modules) { // webpackBootstrap
   exports.default = Images;
 
 /***/ },
-/* 63 */
+/* 65 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
@@ -29395,7 +30714,7 @@ return /******/ (function(modules) { // webpackBootstrap
   exports.default = Groups;
 
 /***/ },
-/* 64 */
+/* 66 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -29406,11 +30725,11 @@ return /******/ (function(modules) { // webpackBootstrap
 
   var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
-  var _Node = __webpack_require__(65);
+  var _Node = __webpack_require__(67);
 
   var _Node2 = _interopRequireDefault(_Node);
 
-  var _Label = __webpack_require__(66);
+  var _Label = __webpack_require__(68);
 
   var _Label2 = _interopRequireDefault(_Label);
 
@@ -29609,7 +30928,7 @@ return /******/ (function(modules) { // webpackBootstrap
       value: function setData(nodes) {
         var _this3 = this;
 
-        var doNotEmit = arguments.length <= 1 || arguments[1] === undefined ? false : arguments[1];
+        var doNotEmit = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : false;
 
         var oldNodesData = this.body.data.nodes;
 
@@ -29662,7 +30981,7 @@ return /******/ (function(modules) { // webpackBootstrap
     }, {
       key: 'add',
       value: function add(ids) {
-        var doNotEmit = arguments.length <= 1 || arguments[1] === undefined ? false : arguments[1];
+        var doNotEmit = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : false;
 
         var id = void 0;
         var newNodes = [];
@@ -29741,14 +31060,14 @@ return /******/ (function(modules) { // webpackBootstrap
     }, {
       key: 'create',
       value: function create(properties) {
-        var constructorClass = arguments.length <= 1 || arguments[1] === undefined ? _Node2.default : arguments[1];
+        var constructorClass = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : _Node2.default;
 
         return new constructorClass(properties, this.body, this.images, this.groups, this.options);
       }
     }, {
       key: 'refresh',
       value: function refresh() {
-        var clearPositions = arguments.length <= 0 || arguments[0] === undefined ? false : arguments[0];
+        var clearPositions = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : false;
 
         var nodes = this.body.nodes;
         for (var nodeId in nodes) {
@@ -29920,7 +31239,7 @@ return /******/ (function(modules) { // webpackBootstrap
   exports.default = NodesHandler;
 
 /***/ },
-/* 65 */
+/* 67 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -29931,67 +31250,67 @@ return /******/ (function(modules) { // webpackBootstrap
 
   var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
-  var _Label = __webpack_require__(66);
+  var _Label = __webpack_require__(68);
 
   var _Label2 = _interopRequireDefault(_Label);
 
-  var _Box = __webpack_require__(67);
+  var _Box = __webpack_require__(69);
 
   var _Box2 = _interopRequireDefault(_Box);
 
-  var _Circle = __webpack_require__(69);
+  var _Circle = __webpack_require__(71);
 
   var _Circle2 = _interopRequireDefault(_Circle);
 
-  var _CircularImage = __webpack_require__(71);
+  var _CircularImage = __webpack_require__(73);
 
   var _CircularImage2 = _interopRequireDefault(_CircularImage);
 
-  var _Database = __webpack_require__(72);
+  var _Database = __webpack_require__(74);
 
   var _Database2 = _interopRequireDefault(_Database);
 
-  var _Diamond = __webpack_require__(73);
+  var _Diamond = __webpack_require__(75);
 
   var _Diamond2 = _interopRequireDefault(_Diamond);
 
-  var _Dot = __webpack_require__(75);
+  var _Dot = __webpack_require__(77);
 
   var _Dot2 = _interopRequireDefault(_Dot);
 
-  var _Ellipse = __webpack_require__(76);
+  var _Ellipse = __webpack_require__(78);
 
   var _Ellipse2 = _interopRequireDefault(_Ellipse);
 
-  var _Icon = __webpack_require__(77);
+  var _Icon = __webpack_require__(79);
 
   var _Icon2 = _interopRequireDefault(_Icon);
 
-  var _Image = __webpack_require__(78);
+  var _Image = __webpack_require__(80);
 
   var _Image2 = _interopRequireDefault(_Image);
 
-  var _Square = __webpack_require__(79);
+  var _Square = __webpack_require__(81);
 
   var _Square2 = _interopRequireDefault(_Square);
 
-  var _Star = __webpack_require__(80);
+  var _Star = __webpack_require__(82);
 
   var _Star2 = _interopRequireDefault(_Star);
 
-  var _Text = __webpack_require__(81);
+  var _Text = __webpack_require__(83);
 
   var _Text2 = _interopRequireDefault(_Text);
 
-  var _Triangle = __webpack_require__(82);
+  var _Triangle = __webpack_require__(84);
 
   var _Triangle2 = _interopRequireDefault(_Triangle);
 
-  var _TriangleDown = __webpack_require__(83);
+  var _TriangleDown = __webpack_require__(85);
 
   var _TriangleDown2 = _interopRequireDefault(_TriangleDown);
 
-  var _Validator = __webpack_require__(29);
+  var _Validator = __webpack_require__(31);
 
   var _Validator2 = _interopRequireDefault(_Validator);
 
@@ -30026,7 +31345,6 @@ return /******/ (function(modules) { // webpackBootstrap
    *                                            example for the color
    *
    */
-
   var Node = function () {
     function Node(options, body, imagelist, grouplist, globalOptions) {
       _classCallCheck(this, Node);
@@ -30413,8 +31731,8 @@ return /******/ (function(modules) { // webpackBootstrap
     }], [{
       key: 'parseOptions',
       value: function parseOptions(parentOptions, newOptions) {
-        var allowDeletion = arguments.length <= 2 || arguments[2] === undefined ? false : arguments[2];
-        var globalOptions = arguments.length <= 3 || arguments[3] === undefined ? {} : arguments[3];
+        var allowDeletion = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : false;
+        var globalOptions = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : {};
 
         var fields = ['color', 'font', 'fixed', 'shadow'];
         util.selectiveNotDeepExtend(fields, parentOptions, newOptions, allowDeletion);
@@ -30465,7 +31783,7 @@ return /******/ (function(modules) { // webpackBootstrap
   exports.default = Node;
 
 /***/ },
-/* 66 */
+/* 68 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -30476,7 +31794,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   var _slicedToArray = function () { function sliceIterator(arr, i) { var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i["return"]) _i["return"](); } finally { if (_d) throw _e; } } return _arr; } return function (arr, i) { if (Array.isArray(arr)) { return arr; } else if (Symbol.iterator in Object(arr)) { return sliceIterator(arr, i); } else { throw new TypeError("Invalid attempt to destructure non-iterable instance"); } }; }();
 
-  var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
+  var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
 
   var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
@@ -30486,7 +31804,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   var Label = function () {
     function Label(body, options) {
-      var edgelabel = arguments.length <= 2 || arguments[2] === undefined ? false : arguments[2];
+      var edgelabel = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : false;
 
       _classCallCheck(this, Label);
 
@@ -30503,7 +31821,7 @@ return /******/ (function(modules) { // webpackBootstrap
     _createClass(Label, [{
       key: 'setOptions',
       value: function setOptions(options) {
-        var allowDeletion = arguments.length <= 1 || arguments[1] === undefined ? false : arguments[1];
+        var allowDeletion = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : false;
 
         this.nodeOptions = options;
 
@@ -30539,7 +31857,7 @@ return /******/ (function(modules) { // webpackBootstrap
        * @param baseline
        */
       value: function draw(ctx, x, y, selected) {
-        var baseline = arguments.length <= 4 || arguments[4] === undefined ? 'middle' : arguments[4];
+        var baseline = arguments.length > 4 && arguments[4] !== undefined ? arguments[4] : 'middle';
 
         // if no label, return
         if (this.nodeOptions.label === undefined) return;
@@ -30603,7 +31921,7 @@ return /******/ (function(modules) { // webpackBootstrap
     }, {
       key: '_drawText',
       value: function _drawText(ctx, selected, x, y) {
-        var baseline = arguments.length <= 4 || arguments[4] === undefined ? 'middle' : arguments[4];
+        var baseline = arguments.length > 4 && arguments[4] !== undefined ? arguments[4] : 'middle';
 
         var fontSize = this.fontOptions.size;
         var viewFontSize = fontSize * this.body.view.scale;
@@ -30614,16 +31932,12 @@ return /******/ (function(modules) { // webpackBootstrap
 
         var yLine = this.size.yLine;
 
-        var _getColor2 = this._getColor(viewFontSize);
-
-        var _getColor3 = _slicedToArray(_getColor2, 2);
-
-        var fontColor = _getColor3[0];
-        var strokeColor = _getColor3[1];
-
+        var _getColor2 = this._getColor(viewFontSize),
+            _getColor3 = _slicedToArray(_getColor2, 2),
+            fontColor = _getColor3[0],
+            strokeColor = _getColor3[1];
 
         // configure context for drawing the text
-
         var _setAlignment2 = this._setAlignment(ctx, x, yLine, baseline);
 
         var _setAlignment3 = _slicedToArray(_setAlignment2, 2);
@@ -30637,8 +31951,8 @@ return /******/ (function(modules) { // webpackBootstrap
           ctx.textAlign = this.fontOptions.align;
           x = x - 0.5 * this.size.width; // Shift label 1/2-distance to the left
         } else {
-            ctx.textAlign = 'center';
-          }
+          ctx.textAlign = 'center';
+        }
 
         // set the strokeWidth
         if (this.fontOptions.strokeWidth > 0) {
@@ -30670,11 +31984,11 @@ return /******/ (function(modules) { // webpackBootstrap
             ctx.textBaseline = 'alphabetic';
             yLine -= 2 * lineMargin; // distance from edge, required because we use alphabetic. Alphabetic has less difference between browsers
           } else if (this.fontOptions.align === 'bottom') {
-              ctx.textBaseline = 'hanging';
-              yLine += 2 * lineMargin; // distance from edge, required because we use hanging. Hanging has less difference between browsers
-            } else {
-                ctx.textBaseline = 'middle';
-              }
+            ctx.textBaseline = 'hanging';
+            yLine += 2 * lineMargin; // distance from edge, required because we use hanging. Hanging has less difference between browsers
+          } else {
+            ctx.textBaseline = 'middle';
+          }
         } else {
           ctx.textBaseline = baseline;
         }
@@ -30714,7 +32028,7 @@ return /******/ (function(modules) { // webpackBootstrap
     }, {
       key: 'getTextSize',
       value: function getTextSize(ctx) {
-        var selected = arguments.length <= 1 || arguments[1] === undefined ? false : arguments[1];
+        var selected = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : false;
 
         var size = {
           width: this._processLabel(ctx, selected),
@@ -30736,9 +32050,9 @@ return /******/ (function(modules) { // webpackBootstrap
     }, {
       key: 'calculateLabelSize',
       value: function calculateLabelSize(ctx, selected) {
-        var x = arguments.length <= 2 || arguments[2] === undefined ? 0 : arguments[2];
-        var y = arguments.length <= 3 || arguments[3] === undefined ? 0 : arguments[3];
-        var baseline = arguments.length <= 4 || arguments[4] === undefined ? 'middle' : arguments[4];
+        var x = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : 0;
+        var y = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : 0;
+        var baseline = arguments.length > 4 && arguments[4] !== undefined ? arguments[4] : 'middle';
 
         if (this.labelDirty === true) {
           this.size.width = this._processLabel(ctx, selected);
@@ -30788,7 +32102,7 @@ return /******/ (function(modules) { // webpackBootstrap
     }], [{
       key: 'parseOptions',
       value: function parseOptions(parentOptions, newOptions) {
-        var allowDeletion = arguments.length <= 2 || arguments[2] === undefined ? false : arguments[2];
+        var allowDeletion = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : false;
 
         if (typeof newOptions.font === 'string') {
           var newOptionsArray = newOptions.font.split(" ");
@@ -30808,7 +32122,7 @@ return /******/ (function(modules) { // webpackBootstrap
   exports.default = Label;
 
 /***/ },
-/* 67 */
+/* 69 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -30819,7 +32133,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
-  var _NodeBase2 = __webpack_require__(68);
+  var _NodeBase2 = __webpack_require__(70);
 
   var _NodeBase3 = _interopRequireDefault(_NodeBase2);
 
@@ -30837,7 +32151,7 @@ return /******/ (function(modules) { // webpackBootstrap
     function Box(options, body, labelModule) {
       _classCallCheck(this, Box);
 
-      return _possibleConstructorReturn(this, Object.getPrototypeOf(Box).call(this, options, body, labelModule));
+      return _possibleConstructorReturn(this, (Box.__proto__ || Object.getPrototypeOf(Box)).call(this, options, body, labelModule));
     }
 
     _createClass(Box, [{
@@ -30922,7 +32236,7 @@ return /******/ (function(modules) { // webpackBootstrap
   exports.default = Box;
 
 /***/ },
-/* 68 */
+/* 70 */
 /***/ function(module, exports) {
 
   "use strict";
@@ -31018,7 +32332,7 @@ return /******/ (function(modules) { // webpackBootstrap
   exports.default = NodeBase;
 
 /***/ },
-/* 69 */
+/* 71 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -31029,7 +32343,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
-  var _CircleImageBase2 = __webpack_require__(70);
+  var _CircleImageBase2 = __webpack_require__(72);
 
   var _CircleImageBase3 = _interopRequireDefault(_CircleImageBase2);
 
@@ -31047,7 +32361,7 @@ return /******/ (function(modules) { // webpackBootstrap
     function Circle(options, body, labelModule) {
       _classCallCheck(this, Circle);
 
-      return _possibleConstructorReturn(this, Object.getPrototypeOf(Circle).call(this, options, body, labelModule));
+      return _possibleConstructorReturn(this, (Circle.__proto__ || Object.getPrototypeOf(Circle)).call(this, options, body, labelModule));
     }
 
     _createClass(Circle, [{
@@ -31103,7 +32417,7 @@ return /******/ (function(modules) { // webpackBootstrap
   exports.default = Circle;
 
 /***/ },
-/* 70 */
+/* 72 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -31114,7 +32428,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
-  var _NodeBase2 = __webpack_require__(68);
+  var _NodeBase2 = __webpack_require__(70);
 
   var _NodeBase3 = _interopRequireDefault(_NodeBase2);
 
@@ -31132,7 +32446,7 @@ return /******/ (function(modules) { // webpackBootstrap
     function CircleImageBase(options, body, labelModule) {
       _classCallCheck(this, CircleImageBase);
 
-      var _this = _possibleConstructorReturn(this, Object.getPrototypeOf(CircleImageBase).call(this, options, body, labelModule));
+      var _this = _possibleConstructorReturn(this, (CircleImageBase.__proto__ || Object.getPrototypeOf(CircleImageBase)).call(this, options, body, labelModule));
 
       _this.labelOffset = 0;
       _this.imageLoaded = false;
@@ -31304,7 +32618,7 @@ return /******/ (function(modules) { // webpackBootstrap
   exports.default = CircleImageBase;
 
 /***/ },
-/* 71 */
+/* 73 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -31315,7 +32629,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
-  var _CircleImageBase2 = __webpack_require__(70);
+  var _CircleImageBase2 = __webpack_require__(72);
 
   var _CircleImageBase3 = _interopRequireDefault(_CircleImageBase2);
 
@@ -31333,7 +32647,7 @@ return /******/ (function(modules) { // webpackBootstrap
     function CircularImage(options, body, labelModule, imageObj) {
       _classCallCheck(this, CircularImage);
 
-      var _this = _possibleConstructorReturn(this, Object.getPrototypeOf(CircularImage).call(this, options, body, labelModule));
+      var _this = _possibleConstructorReturn(this, (CircularImage.__proto__ || Object.getPrototypeOf(CircularImage)).call(this, options, body, labelModule));
 
       _this.imageObj = imageObj;
       _this._swapToImageResizeWhenImageLoaded = true;
@@ -31411,7 +32725,7 @@ return /******/ (function(modules) { // webpackBootstrap
   exports.default = CircularImage;
 
 /***/ },
-/* 72 */
+/* 74 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -31422,7 +32736,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
-  var _NodeBase2 = __webpack_require__(68);
+  var _NodeBase2 = __webpack_require__(70);
 
   var _NodeBase3 = _interopRequireDefault(_NodeBase2);
 
@@ -31440,7 +32754,7 @@ return /******/ (function(modules) { // webpackBootstrap
     function Database(options, body, labelModule) {
       _classCallCheck(this, Database);
 
-      return _possibleConstructorReturn(this, Object.getPrototypeOf(Database).call(this, options, body, labelModule));
+      return _possibleConstructorReturn(this, (Database.__proto__ || Object.getPrototypeOf(Database)).call(this, options, body, labelModule));
     }
 
     _createClass(Database, [{
@@ -31520,7 +32834,7 @@ return /******/ (function(modules) { // webpackBootstrap
   exports.default = Database;
 
 /***/ },
-/* 73 */
+/* 75 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -31531,7 +32845,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
-  var _ShapeBase2 = __webpack_require__(74);
+  var _ShapeBase2 = __webpack_require__(76);
 
   var _ShapeBase3 = _interopRequireDefault(_ShapeBase2);
 
@@ -31549,7 +32863,7 @@ return /******/ (function(modules) { // webpackBootstrap
     function Diamond(options, body, labelModule) {
       _classCallCheck(this, Diamond);
 
-      return _possibleConstructorReturn(this, Object.getPrototypeOf(Diamond).call(this, options, body, labelModule));
+      return _possibleConstructorReturn(this, (Diamond.__proto__ || Object.getPrototypeOf(Diamond)).call(this, options, body, labelModule));
     }
 
     _createClass(Diamond, [{
@@ -31575,7 +32889,7 @@ return /******/ (function(modules) { // webpackBootstrap
   exports.default = Diamond;
 
 /***/ },
-/* 74 */
+/* 76 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -31586,7 +32900,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
-  var _NodeBase2 = __webpack_require__(68);
+  var _NodeBase2 = __webpack_require__(70);
 
   var _NodeBase3 = _interopRequireDefault(_NodeBase2);
 
@@ -31604,7 +32918,7 @@ return /******/ (function(modules) { // webpackBootstrap
     function ShapeBase(options, body, labelModule) {
       _classCallCheck(this, ShapeBase);
 
-      return _possibleConstructorReturn(this, Object.getPrototypeOf(ShapeBase).call(this, options, body, labelModule));
+      return _possibleConstructorReturn(this, (ShapeBase.__proto__ || Object.getPrototypeOf(ShapeBase)).call(this, options, body, labelModule));
     }
 
     _createClass(ShapeBase, [{
@@ -31682,7 +32996,7 @@ return /******/ (function(modules) { // webpackBootstrap
   exports.default = ShapeBase;
 
 /***/ },
-/* 75 */
+/* 77 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -31693,7 +33007,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
-  var _ShapeBase2 = __webpack_require__(74);
+  var _ShapeBase2 = __webpack_require__(76);
 
   var _ShapeBase3 = _interopRequireDefault(_ShapeBase2);
 
@@ -31711,7 +33025,7 @@ return /******/ (function(modules) { // webpackBootstrap
     function Dot(options, body, labelModule) {
       _classCallCheck(this, Dot);
 
-      return _possibleConstructorReturn(this, Object.getPrototypeOf(Dot).call(this, options, body, labelModule));
+      return _possibleConstructorReturn(this, (Dot.__proto__ || Object.getPrototypeOf(Dot)).call(this, options, body, labelModule));
     }
 
     _createClass(Dot, [{
@@ -31738,7 +33052,7 @@ return /******/ (function(modules) { // webpackBootstrap
   exports.default = Dot;
 
 /***/ },
-/* 76 */
+/* 78 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -31749,7 +33063,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
-  var _NodeBase2 = __webpack_require__(68);
+  var _NodeBase2 = __webpack_require__(70);
 
   var _NodeBase3 = _interopRequireDefault(_NodeBase2);
 
@@ -31767,7 +33081,7 @@ return /******/ (function(modules) { // webpackBootstrap
     function Ellipse(options, body, labelModule) {
       _classCallCheck(this, Ellipse);
 
-      return _possibleConstructorReturn(this, Object.getPrototypeOf(Ellipse).call(this, options, body, labelModule));
+      return _possibleConstructorReturn(this, (Ellipse.__proto__ || Object.getPrototypeOf(Ellipse)).call(this, options, body, labelModule));
     }
 
     _createClass(Ellipse, [{
@@ -31776,11 +33090,8 @@ return /******/ (function(modules) { // webpackBootstrap
         if (this.width === undefined) {
           var textSize = this.labelModule.getTextSize(ctx, selected);
 
-          this.width = textSize.width * 1.5;
           this.height = textSize.height * 2;
-          if (this.width < this.height) {
-            this.width = this.height;
-          }
+          this.width = textSize.width + this.height;
           this.radius = 0.5 * this.width;
         }
       }
@@ -31856,7 +33167,7 @@ return /******/ (function(modules) { // webpackBootstrap
   exports.default = Ellipse;
 
 /***/ },
-/* 77 */
+/* 79 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -31867,7 +33178,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
-  var _NodeBase2 = __webpack_require__(68);
+  var _NodeBase2 = __webpack_require__(70);
 
   var _NodeBase3 = _interopRequireDefault(_NodeBase2);
 
@@ -31885,7 +33196,7 @@ return /******/ (function(modules) { // webpackBootstrap
     function Icon(options, body, labelModule) {
       _classCallCheck(this, Icon);
 
-      return _possibleConstructorReturn(this, Object.getPrototypeOf(Icon).call(this, options, body, labelModule));
+      return _possibleConstructorReturn(this, (Icon.__proto__ || Object.getPrototypeOf(Icon)).call(this, options, body, labelModule));
     }
 
     _createClass(Icon, [{
@@ -31970,7 +33281,7 @@ return /******/ (function(modules) { // webpackBootstrap
   exports.default = Icon;
 
 /***/ },
-/* 78 */
+/* 80 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -31981,7 +33292,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
-  var _CircleImageBase2 = __webpack_require__(70);
+  var _CircleImageBase2 = __webpack_require__(72);
 
   var _CircleImageBase3 = _interopRequireDefault(_CircleImageBase2);
 
@@ -31999,7 +33310,7 @@ return /******/ (function(modules) { // webpackBootstrap
     function Image(options, body, labelModule, imageObj) {
       _classCallCheck(this, Image);
 
-      var _this = _possibleConstructorReturn(this, Object.getPrototypeOf(Image).call(this, options, body, labelModule));
+      var _this = _possibleConstructorReturn(this, (Image.__proto__ || Object.getPrototypeOf(Image)).call(this, options, body, labelModule));
 
       _this.imageObj = imageObj;
       return _this;
@@ -32087,7 +33398,7 @@ return /******/ (function(modules) { // webpackBootstrap
   exports.default = Image;
 
 /***/ },
-/* 79 */
+/* 81 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -32098,7 +33409,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
-  var _ShapeBase2 = __webpack_require__(74);
+  var _ShapeBase2 = __webpack_require__(76);
 
   var _ShapeBase3 = _interopRequireDefault(_ShapeBase2);
 
@@ -32116,7 +33427,7 @@ return /******/ (function(modules) { // webpackBootstrap
     function Square(options, body, labelModule) {
       _classCallCheck(this, Square);
 
-      return _possibleConstructorReturn(this, Object.getPrototypeOf(Square).call(this, options, body, labelModule));
+      return _possibleConstructorReturn(this, (Square.__proto__ || Object.getPrototypeOf(Square)).call(this, options, body, labelModule));
     }
 
     _createClass(Square, [{
@@ -32142,7 +33453,7 @@ return /******/ (function(modules) { // webpackBootstrap
   exports.default = Square;
 
 /***/ },
-/* 80 */
+/* 82 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -32153,7 +33464,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
-  var _ShapeBase2 = __webpack_require__(74);
+  var _ShapeBase2 = __webpack_require__(76);
 
   var _ShapeBase3 = _interopRequireDefault(_ShapeBase2);
 
@@ -32171,7 +33482,7 @@ return /******/ (function(modules) { // webpackBootstrap
     function Star(options, body, labelModule) {
       _classCallCheck(this, Star);
 
-      return _possibleConstructorReturn(this, Object.getPrototypeOf(Star).call(this, options, body, labelModule));
+      return _possibleConstructorReturn(this, (Star.__proto__ || Object.getPrototypeOf(Star)).call(this, options, body, labelModule));
     }
 
     _createClass(Star, [{
@@ -32197,7 +33508,7 @@ return /******/ (function(modules) { // webpackBootstrap
   exports.default = Star;
 
 /***/ },
-/* 81 */
+/* 83 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -32208,7 +33519,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
-  var _NodeBase2 = __webpack_require__(68);
+  var _NodeBase2 = __webpack_require__(70);
 
   var _NodeBase3 = _interopRequireDefault(_NodeBase2);
 
@@ -32226,7 +33537,7 @@ return /******/ (function(modules) { // webpackBootstrap
     function Text(options, body, labelModule) {
       _classCallCheck(this, Text);
 
-      return _possibleConstructorReturn(this, Object.getPrototypeOf(Text).call(this, options, body, labelModule));
+      return _possibleConstructorReturn(this, (Text.__proto__ || Object.getPrototypeOf(Text)).call(this, options, body, labelModule));
     }
 
     _createClass(Text, [{
@@ -32282,7 +33593,7 @@ return /******/ (function(modules) { // webpackBootstrap
   exports.default = Text;
 
 /***/ },
-/* 82 */
+/* 84 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -32293,7 +33604,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
-  var _ShapeBase2 = __webpack_require__(74);
+  var _ShapeBase2 = __webpack_require__(76);
 
   var _ShapeBase3 = _interopRequireDefault(_ShapeBase2);
 
@@ -32311,7 +33622,7 @@ return /******/ (function(modules) { // webpackBootstrap
     function Triangle(options, body, labelModule) {
       _classCallCheck(this, Triangle);
 
-      return _possibleConstructorReturn(this, Object.getPrototypeOf(Triangle).call(this, options, body, labelModule));
+      return _possibleConstructorReturn(this, (Triangle.__proto__ || Object.getPrototypeOf(Triangle)).call(this, options, body, labelModule));
     }
 
     _createClass(Triangle, [{
@@ -32337,7 +33648,7 @@ return /******/ (function(modules) { // webpackBootstrap
   exports.default = Triangle;
 
 /***/ },
-/* 83 */
+/* 85 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -32348,7 +33659,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
-  var _ShapeBase2 = __webpack_require__(74);
+  var _ShapeBase2 = __webpack_require__(76);
 
   var _ShapeBase3 = _interopRequireDefault(_ShapeBase2);
 
@@ -32366,7 +33677,7 @@ return /******/ (function(modules) { // webpackBootstrap
     function TriangleDown(options, body, labelModule) {
       _classCallCheck(this, TriangleDown);
 
-      return _possibleConstructorReturn(this, Object.getPrototypeOf(TriangleDown).call(this, options, body, labelModule));
+      return _possibleConstructorReturn(this, (TriangleDown.__proto__ || Object.getPrototypeOf(TriangleDown)).call(this, options, body, labelModule));
     }
 
     _createClass(TriangleDown, [{
@@ -32392,7 +33703,7 @@ return /******/ (function(modules) { // webpackBootstrap
   exports.default = TriangleDown;
 
 /***/ },
-/* 84 */
+/* 86 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -32403,11 +33714,11 @@ return /******/ (function(modules) { // webpackBootstrap
 
   var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
-  var _Edge = __webpack_require__(85);
+  var _Edge = __webpack_require__(87);
 
   var _Edge2 = _interopRequireDefault(_Edge);
 
-  var _Label = __webpack_require__(66);
+  var _Label = __webpack_require__(68);
 
   var _Label2 = _interopRequireDefault(_Label);
 
@@ -32447,9 +33758,9 @@ return /******/ (function(modules) { // webpackBootstrap
       this.options = {};
       this.defaultOptions = {
         arrows: {
-          to: { enabled: false, scaleFactor: 1 }, // boolean / {arrowScaleFactor:1} / {enabled: false, arrowScaleFactor:1}
-          middle: { enabled: false, scaleFactor: 1 },
-          from: { enabled: false, scaleFactor: 1 }
+          to: { enabled: false, scaleFactor: 1, type: 'arrow' }, // boolean / {arrowScaleFactor:1} / {enabled: false, arrowScaleFactor:1}
+          middle: { enabled: false, scaleFactor: 1, type: 'arrow' },
+          from: { enabled: false, scaleFactor: 1, type: 'arrow' }
         },
         arrowStrikethrough: true,
         color: {
@@ -32629,7 +33940,7 @@ return /******/ (function(modules) { // webpackBootstrap
       value: function setData(edges) {
         var _this3 = this;
 
-        var doNotEmit = arguments.length <= 1 || arguments[1] === undefined ? false : arguments[1];
+        var doNotEmit = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : false;
 
         var oldEdgesData = this.body.data.edges;
 
@@ -32681,7 +33992,7 @@ return /******/ (function(modules) { // webpackBootstrap
     }, {
       key: 'add',
       value: function add(ids) {
-        var doNotEmit = arguments.length <= 1 || arguments[1] === undefined ? false : arguments[1];
+        var doNotEmit = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : false;
 
         var edges = this.body.edges;
         var edgesData = this.body.data.edges;
@@ -32838,7 +34149,7 @@ return /******/ (function(modules) { // webpackBootstrap
   exports.default = EdgesHandler;
 
 /***/ },
-/* 85 */
+/* 87 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -32847,27 +34158,27 @@ return /******/ (function(modules) { // webpackBootstrap
     value: true
   });
 
-  var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
+  var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
 
   var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
-  var _Label = __webpack_require__(66);
+  var _Label = __webpack_require__(68);
 
   var _Label2 = _interopRequireDefault(_Label);
 
-  var _CubicBezierEdge = __webpack_require__(86);
+  var _CubicBezierEdge = __webpack_require__(88);
 
   var _CubicBezierEdge2 = _interopRequireDefault(_CubicBezierEdge);
 
-  var _BezierEdgeDynamic = __webpack_require__(90);
+  var _BezierEdgeDynamic = __webpack_require__(92);
 
   var _BezierEdgeDynamic2 = _interopRequireDefault(_BezierEdgeDynamic);
 
-  var _BezierEdgeStatic = __webpack_require__(91);
+  var _BezierEdgeStatic = __webpack_require__(93);
 
   var _BezierEdgeStatic2 = _interopRequireDefault(_BezierEdgeStatic);
 
-  var _StraightEdge = __webpack_require__(92);
+  var _StraightEdge = __webpack_require__(94);
 
   var _StraightEdge2 = _interopRequireDefault(_StraightEdge);
 
@@ -32892,7 +34203,6 @@ return /******/ (function(modules) { // webpackBootstrap
    * @param {Object} constants      An object with default values for
    *                                example for the color
    */
-
   var Edge = function () {
     function Edge(options, body, globalOptions) {
       _classCallCheck(this, Edge);
@@ -32980,7 +34290,6 @@ return /******/ (function(modules) { // webpackBootstrap
       }
     }, {
       key: 'updateLabelModule',
-      // set the object back to the global options
 
 
       /**
@@ -33350,8 +34659,8 @@ return /******/ (function(modules) { // webpackBootstrap
     }], [{
       key: 'parseOptions',
       value: function parseOptions(parentOptions, newOptions) {
-        var allowDeletion = arguments.length <= 2 || arguments[2] === undefined ? false : arguments[2];
-        var globalOptions = arguments.length <= 3 || arguments[3] === undefined ? {} : arguments[3];
+        var allowDeletion = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : false;
+        var globalOptions = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : {};
 
         var fields = ['arrowStrikethrough', 'id', 'from', 'hidden', 'hoverWidth', 'label', 'labelHighlightBold', 'length', 'line', 'opacity', 'physics', 'scaling', 'selectionWidth', 'selfReferenceSize', 'to', 'title', 'value', 'width'];
 
@@ -33437,7 +34746,7 @@ return /******/ (function(modules) { // webpackBootstrap
         if (newOptions.font !== undefined && newOptions.font !== null) {
           _Label2.default.parseOptions(parentOptions.font, newOptions);
         } else if (allowDeletion === true && newOptions.font === null) {
-          parentOptions.font = util.bridgeObject(globalOptions.font);
+          parentOptions.font = util.bridgeObject(globalOptions.font); // set the object back to the global options
         }
       }
     }]);
@@ -33448,7 +34757,7 @@ return /******/ (function(modules) { // webpackBootstrap
   exports.default = Edge;
 
 /***/ },
-/* 86 */
+/* 88 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -33461,7 +34770,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
-  var _CubicBezierEdgeBase2 = __webpack_require__(87);
+  var _CubicBezierEdgeBase2 = __webpack_require__(89);
 
   var _CubicBezierEdgeBase3 = _interopRequireDefault(_CubicBezierEdgeBase2);
 
@@ -33479,7 +34788,7 @@ return /******/ (function(modules) { // webpackBootstrap
     function CubicBezierEdge(options, body, labelModule) {
       _classCallCheck(this, CubicBezierEdge);
 
-      return _possibleConstructorReturn(this, Object.getPrototypeOf(CubicBezierEdge).call(this, options, body, labelModule));
+      return _possibleConstructorReturn(this, (CubicBezierEdge.__proto__ || Object.getPrototypeOf(CubicBezierEdge)).call(this, options, body, labelModule));
     }
 
     /**
@@ -33551,12 +34860,11 @@ return /******/ (function(modules) { // webpackBootstrap
     }, {
       key: '_getDistanceToEdge',
       value: function _getDistanceToEdge(x1, y1, x2, y2, x3, y3) {
-        var _ref = arguments.length <= 6 || arguments[6] === undefined ? this._getViaCoordinates() : arguments[6];
+        var _ref = arguments.length > 6 && arguments[6] !== undefined ? arguments[6] : this._getViaCoordinates(),
+            _ref2 = _slicedToArray(_ref, 2),
+            via1 = _ref2[0],
+            via2 = _ref2[1];
 
-        var _ref2 = _slicedToArray(_ref, 2);
-
-        var via1 = _ref2[0];
-        var via2 = _ref2[1];
         // x3,y3 is the point
         return this._getDistanceToBezierEdge(x1, y1, x2, y2, x3, y3, via1, via2);
       }
@@ -33572,12 +34880,10 @@ return /******/ (function(modules) { // webpackBootstrap
     }, {
       key: 'getPoint',
       value: function getPoint(percentage) {
-        var _ref3 = arguments.length <= 1 || arguments[1] === undefined ? this._getViaCoordinates() : arguments[1];
-
-        var _ref4 = _slicedToArray(_ref3, 2);
-
-        var via1 = _ref4[0];
-        var via2 = _ref4[1];
+        var _ref3 = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : this._getViaCoordinates(),
+            _ref4 = _slicedToArray(_ref3, 2),
+            via1 = _ref4[0],
+            via2 = _ref4[1];
 
         var t = percentage;
         var vec = [];
@@ -33598,7 +34904,7 @@ return /******/ (function(modules) { // webpackBootstrap
   exports.default = CubicBezierEdge;
 
 /***/ },
-/* 87 */
+/* 89 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -33609,7 +34915,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
-  var _BezierEdgeBase2 = __webpack_require__(88);
+  var _BezierEdgeBase2 = __webpack_require__(90);
 
   var _BezierEdgeBase3 = _interopRequireDefault(_BezierEdgeBase2);
 
@@ -33627,7 +34933,7 @@ return /******/ (function(modules) { // webpackBootstrap
     function CubicBezierEdgeBase(options, body, labelModule) {
       _classCallCheck(this, CubicBezierEdgeBase);
 
-      return _possibleConstructorReturn(this, Object.getPrototypeOf(CubicBezierEdgeBase).call(this, options, body, labelModule));
+      return _possibleConstructorReturn(this, (CubicBezierEdgeBase.__proto__ || Object.getPrototypeOf(CubicBezierEdgeBase)).call(this, options, body, labelModule));
     }
 
     /**
@@ -33684,7 +34990,7 @@ return /******/ (function(modules) { // webpackBootstrap
   exports.default = CubicBezierEdgeBase;
 
 /***/ },
-/* 88 */
+/* 90 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -33695,7 +35001,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
-  var _EdgeBase2 = __webpack_require__(89);
+  var _EdgeBase2 = __webpack_require__(91);
 
   var _EdgeBase3 = _interopRequireDefault(_EdgeBase2);
 
@@ -33713,7 +35019,7 @@ return /******/ (function(modules) { // webpackBootstrap
     function BezierEdgeBase(options, body, labelModule) {
       _classCallCheck(this, BezierEdgeBase);
 
-      return _possibleConstructorReturn(this, Object.getPrototypeOf(BezierEdgeBase).call(this, options, body, labelModule));
+      return _possibleConstructorReturn(this, (BezierEdgeBase.__proto__ || Object.getPrototypeOf(BezierEdgeBase)).call(this, options, body, labelModule));
     }
 
     /**
@@ -33734,7 +35040,7 @@ return /******/ (function(modules) { // webpackBootstrap
     _createClass(BezierEdgeBase, [{
       key: '_findBorderPositionBezier',
       value: function _findBorderPositionBezier(nearNode, ctx) {
-        var viaNode = arguments.length <= 2 || arguments[2] === undefined ? this._getViaCoordinates() : arguments[2];
+        var viaNode = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : this._getViaCoordinates();
 
         var maxIterations = 10;
         var iteration = 0;
@@ -33760,19 +35066,19 @@ return /******/ (function(modules) { // webpackBootstrap
           if (Math.abs(difference) < threshold) {
             break; // found
           } else if (difference < 0) {
-              // distance to nodes is larger than distance to border --> t needs to be bigger if we're looking at the to node.
-              if (from === false) {
-                low = middle;
-              } else {
-                high = middle;
-              }
+            // distance to nodes is larger than distance to border --> t needs to be bigger if we're looking at the to node.
+            if (from === false) {
+              low = middle;
             } else {
-              if (from === false) {
-                high = middle;
-              } else {
-                low = middle;
-              }
+              high = middle;
             }
+          } else {
+            if (from === false) {
+              high = middle;
+            } else {
+              low = middle;
+            }
+          }
 
           iteration++;
         }
@@ -33828,7 +35134,7 @@ return /******/ (function(modules) { // webpackBootstrap
   exports.default = BezierEdgeBase;
 
 /***/ },
-/* 89 */
+/* 91 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -33909,13 +35215,11 @@ return /******/ (function(modules) { // webpackBootstrap
           // draw line
           this._line(ctx, viaNode, fromPoint, toPoint);
         } else {
-          var _getCircleData2 = this._getCircleData(ctx);
-
-          var _getCircleData3 = _slicedToArray(_getCircleData2, 3);
-
-          var x = _getCircleData3[0];
-          var y = _getCircleData3[1];
-          var radius = _getCircleData3[2];
+          var _getCircleData2 = this._getCircleData(ctx),
+              _getCircleData3 = _slicedToArray(_getCircleData2, 3),
+              x = _getCircleData3[0],
+              y = _getCircleData3[1],
+              radius = _getCircleData3[2];
 
           this._circle(ctx, x, y, radius);
         }
@@ -33942,13 +35246,11 @@ return /******/ (function(modules) { // webpackBootstrap
             // draw line
             this._line(ctx, viaNode);
           } else {
-            var _getCircleData4 = this._getCircleData(ctx);
-
-            var _getCircleData5 = _slicedToArray(_getCircleData4, 3);
-
-            var x = _getCircleData5[0];
-            var y = _getCircleData5[1];
-            var radius = _getCircleData5[2];
+            var _getCircleData4 = this._getCircleData(ctx),
+                _getCircleData5 = _slicedToArray(_getCircleData4, 3),
+                x = _getCircleData5[0],
+                y = _getCircleData5[1],
+                radius = _getCircleData5[2];
 
             this._circle(ctx, x, y, radius);
           }
@@ -33963,13 +35265,11 @@ return /******/ (function(modules) { // webpackBootstrap
             // draw line
             ctx.dashedLine(this.from.x, this.from.y, this.to.x, this.to.y, pattern);
           } else {
-            var _getCircleData6 = this._getCircleData(ctx);
-
-            var _getCircleData7 = _slicedToArray(_getCircleData6, 3);
-
-            var _x = _getCircleData7[0];
-            var _y = _getCircleData7[1];
-            var _radius = _getCircleData7[2];
+            var _getCircleData6 = this._getCircleData(ctx),
+                _getCircleData7 = _slicedToArray(_getCircleData6, 3),
+                _x = _getCircleData7[0],
+                _y = _getCircleData7[1],
+                _radius = _getCircleData7[2];
 
             this._circle(ctx, _x, _y, _radius);
           }
@@ -34000,14 +35300,11 @@ return /******/ (function(modules) { // webpackBootstrap
           from = this._findBorderPosition(this.from, ctx);
           to = this._findBorderPosition(this.to, ctx);
         } else {
-          var _getCircleData8 = this._getCircleData(ctx);
-
-          var _getCircleData9 = _slicedToArray(_getCircleData8, 3);
-
-          var x = _getCircleData9[0];
-          var y = _getCircleData9[1];
-          var radius = _getCircleData9[2];
-
+          var _getCircleData8 = this._getCircleData(ctx),
+              _getCircleData9 = _slicedToArray(_getCircleData8, 3),
+              x = _getCircleData9[0],
+              y = _getCircleData9[1],
+              radius = _getCircleData9[2];
 
           from = this._findBorderPositionCircle(this.from, ctx, { x: x, y: y, low: 0.25, high: 0.6, direction: -1 });
           to = this._findBorderPositionCircle(this.from, ctx, { x: x, y: y, low: 0.6, high: 0.8, direction: 1 });
@@ -34099,19 +35396,19 @@ return /******/ (function(modules) { // webpackBootstrap
           if (Math.abs(difference) < threshold) {
             break; // found
           } else if (difference > 0) {
-              // distance to nodes is larger than distance to border --> t needs to be bigger if we're looking at the to node.
-              if (direction > 0) {
-                low = middle;
-              } else {
-                high = middle;
-              }
+            // distance to nodes is larger than distance to border --> t needs to be bigger if we're looking at the to node.
+            if (direction > 0) {
+              low = middle;
             } else {
-              if (direction > 0) {
-                high = middle;
-              } else {
-                low = middle;
-              }
+              high = middle;
             }
+          } else {
+            if (direction > 0) {
+              high = middle;
+            } else {
+              low = middle;
+            }
+          }
           iteration++;
         }
         pos.t = middle;
@@ -34242,13 +35539,11 @@ return /******/ (function(modules) { // webpackBootstrap
         if (this.from != this.to) {
           returnValue = this._getDistanceToEdge(x1, y1, x2, y2, x3, y3, via);
         } else {
-          var _getCircleData10 = this._getCircleData();
-
-          var _getCircleData11 = _slicedToArray(_getCircleData10, 3);
-
-          var x = _getCircleData11[0];
-          var y = _getCircleData11[1];
-          var radius = _getCircleData11[2];
+          var _getCircleData10 = this._getCircleData(),
+              _getCircleData11 = _slicedToArray(_getCircleData10, 3),
+              x = _getCircleData11[0],
+              y = _getCircleData11[1],
+              radius = _getCircleData11[2];
 
           var dx = x - x3;
           var dy = y - y3;
@@ -34306,6 +35601,7 @@ return /******/ (function(modules) { // webpackBootstrap
         var node2 = void 0;
         var guideOffset = void 0;
         var scaleFactor = void 0;
+        var type = void 0;
         var lineWidth = this.getLineWidth(selected, hover);
 
         if (position === 'from') {
@@ -34313,15 +35609,18 @@ return /******/ (function(modules) { // webpackBootstrap
           node2 = this.to;
           guideOffset = 0.1;
           scaleFactor = this.options.arrows.from.scaleFactor;
+          type = this.options.arrows.from.type;
         } else if (position === 'to') {
           node1 = this.to;
           node2 = this.from;
           guideOffset = -0.1;
           scaleFactor = this.options.arrows.to.scaleFactor;
+          type = this.options.arrows.to.type;
         } else {
           node1 = this.to;
           node2 = this.from;
           scaleFactor = this.options.arrows.middle.scaleFactor;
+          type = this.options.arrows.middle.type;
         }
 
         // if not connected to itself
@@ -34341,28 +35640,24 @@ return /******/ (function(modules) { // webpackBootstrap
             arrowPoint = this.getPoint(0.5, viaNode); // this is 0.6 to account for the size of the arrow.
           }
         } else {
-            // draw circle
+          // draw circle
+          var _getCircleData12 = this._getCircleData(ctx),
+              _getCircleData13 = _slicedToArray(_getCircleData12, 3),
+              x = _getCircleData13[0],
+              y = _getCircleData13[1],
+              radius = _getCircleData13[2];
 
-            var _getCircleData12 = this._getCircleData(ctx);
-
-            var _getCircleData13 = _slicedToArray(_getCircleData12, 3);
-
-            var x = _getCircleData13[0];
-            var y = _getCircleData13[1];
-            var radius = _getCircleData13[2];
-
-
-            if (position === 'from') {
-              arrowPoint = this.findBorderPosition(this.from, ctx, { x: x, y: y, low: 0.25, high: 0.6, direction: -1 });
-              angle = arrowPoint.t * -2 * Math.PI + 1.5 * Math.PI + 0.1 * Math.PI;
-            } else if (position === 'to') {
-              arrowPoint = this.findBorderPosition(this.from, ctx, { x: x, y: y, low: 0.6, high: 1.0, direction: 1 });
-              angle = arrowPoint.t * -2 * Math.PI + 1.5 * Math.PI - 1.1 * Math.PI;
-            } else {
-              arrowPoint = this._pointOnCircle(x, y, radius, 0.175);
-              angle = 3.9269908169872414; // === 0.175 * -2 * Math.PI + 1.5 * Math.PI + 0.1 * Math.PI;
-            }
+          if (position === 'from') {
+            arrowPoint = this.findBorderPosition(this.from, ctx, { x: x, y: y, low: 0.25, high: 0.6, direction: -1 });
+            angle = arrowPoint.t * -2 * Math.PI + 1.5 * Math.PI + 0.1 * Math.PI;
+          } else if (position === 'to') {
+            arrowPoint = this.findBorderPosition(this.from, ctx, { x: x, y: y, low: 0.6, high: 1.0, direction: 1 });
+            angle = arrowPoint.t * -2 * Math.PI + 1.5 * Math.PI - 1.1 * Math.PI;
+          } else {
+            arrowPoint = this._pointOnCircle(x, y, radius, 0.175);
+            angle = 3.9269908169872414; // === 0.175 * -2 * Math.PI + 1.5 * Math.PI + 0.1 * Math.PI;
           }
+        }
 
         var length = 15 * scaleFactor + 3 * lineWidth; // 3* lineWidth is the width of the edge.
 
@@ -34370,7 +35665,7 @@ return /******/ (function(modules) { // webpackBootstrap
         var yi = arrowPoint.y - length * 0.9 * Math.sin(angle);
         var arrowCore = { x: xi, y: yi };
 
-        return { point: arrowPoint, core: arrowCore, angle: angle, length: length };
+        return { point: arrowPoint, core: arrowCore, angle: angle, length: length, type: type };
       }
 
       /**
@@ -34389,8 +35684,13 @@ return /******/ (function(modules) { // webpackBootstrap
         ctx.fillStyle = ctx.strokeStyle;
         ctx.lineWidth = this.getLineWidth(selected, hover);
 
-        // draw arrow at the end of the line
-        ctx.arrow(arrowData.point.x, arrowData.point.y, arrowData.angle, arrowData.length);
+        if (arrowData.type && arrowData.type.toLowerCase() === 'circle') {
+          // draw circle at the end of the line
+          ctx.circleEndpoint(arrowData.point.x, arrowData.point.y, arrowData.angle, arrowData.length);
+        } else {
+          // draw arrow at the end of the line
+          ctx.arrowEndpoint(arrowData.point.x, arrowData.point.y, arrowData.angle, arrowData.length);
+        }
 
         // draw shadow if enabled
         this.enableShadow(ctx);
@@ -34426,7 +35726,7 @@ return /******/ (function(modules) { // webpackBootstrap
   exports.default = EdgeBase;
 
 /***/ },
-/* 90 */
+/* 92 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
@@ -34435,9 +35735,11 @@ return /******/ (function(modules) { // webpackBootstrap
     value: true
   });
 
+  var _slicedToArray = function () { function sliceIterator(arr, i) { var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i["return"]) _i["return"](); } finally { if (_d) throw _e; } } return _arr; } return function (arr, i) { if (Array.isArray(arr)) { return arr; } else if (Symbol.iterator in Object(arr)) { return sliceIterator(arr, i); } else { throw new TypeError("Invalid attempt to destructure non-iterable instance"); } }; }();
+
   var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
-  var _BezierEdgeBase2 = __webpack_require__(88);
+  var _BezierEdgeBase2 = __webpack_require__(90);
 
   var _BezierEdgeBase3 = _interopRequireDefault(_BezierEdgeBase2);
 
@@ -34456,8 +35758,7 @@ return /******/ (function(modules) { // webpackBootstrap
       _classCallCheck(this, BezierEdgeDynamic);
 
       // --> this calls the setOptions below
-
-      var _this = _possibleConstructorReturn(this, Object.getPrototypeOf(BezierEdgeDynamic).call(this, options, body, labelModule));
+      var _this = _possibleConstructorReturn(this, (BezierEdgeDynamic.__proto__ || Object.getPrototypeOf(BezierEdgeDynamic)).call(this, options, body, labelModule));
       //this.via = undefined; // Here for completeness but not allowed to defined before super() is invoked.
 
 
@@ -34604,11 +35905,25 @@ return /******/ (function(modules) { // webpackBootstrap
     }, {
       key: "getPoint",
       value: function getPoint(percentage) {
-        var viaNode = arguments.length <= 1 || arguments[1] === undefined ? this.via : arguments[1];
+        var viaNode = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : this.via;
 
         var t = percentage;
-        var x = Math.pow(1 - t, 2) * this.fromPoint.x + 2 * t * (1 - t) * viaNode.x + Math.pow(t, 2) * this.toPoint.x;
-        var y = Math.pow(1 - t, 2) * this.fromPoint.y + 2 * t * (1 - t) * viaNode.y + Math.pow(t, 2) * this.toPoint.y;
+        var x = void 0,
+            y = void 0;
+        if (this.from === this.to) {
+          var _getCircleData = this._getCircleData(this.from),
+              _getCircleData2 = _slicedToArray(_getCircleData, 3),
+              cx = _getCircleData2[0],
+              cy = _getCircleData2[1],
+              cr = _getCircleData2[2];
+
+          var a = 2 * Math.PI * (1 - t);
+          x = cx + cr * Math.sin(a);
+          y = cy + cr - cr * (1 - Math.cos(a));
+        } else {
+          x = Math.pow(1 - t, 2) * this.fromPoint.x + 2 * t * (1 - t) * viaNode.x + Math.pow(t, 2) * this.toPoint.x;
+          y = Math.pow(1 - t, 2) * this.fromPoint.y + 2 * t * (1 - t) * viaNode.y + Math.pow(t, 2) * this.toPoint.y;
+        }
 
         return { x: x, y: y };
       }
@@ -34631,7 +35946,7 @@ return /******/ (function(modules) { // webpackBootstrap
   exports.default = BezierEdgeDynamic;
 
 /***/ },
-/* 91 */
+/* 93 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -34642,7 +35957,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
-  var _BezierEdgeBase2 = __webpack_require__(88);
+  var _BezierEdgeBase2 = __webpack_require__(90);
 
   var _BezierEdgeBase3 = _interopRequireDefault(_BezierEdgeBase2);
 
@@ -34660,7 +35975,7 @@ return /******/ (function(modules) { // webpackBootstrap
     function BezierEdgeStatic(options, body, labelModule) {
       _classCallCheck(this, BezierEdgeStatic);
 
-      return _possibleConstructorReturn(this, Object.getPrototypeOf(BezierEdgeStatic).call(this, options, body, labelModule));
+      return _possibleConstructorReturn(this, (BezierEdgeStatic.__proto__ || Object.getPrototypeOf(BezierEdgeStatic)).call(this, options, body, labelModule));
     }
 
     /**
@@ -34860,14 +36175,14 @@ return /******/ (function(modules) { // webpackBootstrap
     }, {
       key: '_findBorderPosition',
       value: function _findBorderPosition(nearNode, ctx) {
-        var options = arguments.length <= 2 || arguments[2] === undefined ? {} : arguments[2];
+        var options = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : {};
 
         return this._findBorderPositionBezier(nearNode, ctx, options.via);
       }
     }, {
       key: '_getDistanceToEdge',
       value: function _getDistanceToEdge(x1, y1, x2, y2, x3, y3) {
-        var viaNode = arguments.length <= 6 || arguments[6] === undefined ? this._getViaCoordinates() : arguments[6];
+        var viaNode = arguments.length > 6 && arguments[6] !== undefined ? arguments[6] : this._getViaCoordinates();
         // x3,y3 is the point
         return this._getDistanceToBezierEdge(x1, y1, x2, y2, x3, y3, viaNode);
       }
@@ -34883,7 +36198,7 @@ return /******/ (function(modules) { // webpackBootstrap
     }, {
       key: 'getPoint',
       value: function getPoint(percentage) {
-        var viaNode = arguments.length <= 1 || arguments[1] === undefined ? this._getViaCoordinates() : arguments[1];
+        var viaNode = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : this._getViaCoordinates();
 
         var t = percentage;
         var x = Math.pow(1 - t, 2) * this.fromPoint.x + 2 * t * (1 - t) * viaNode.x + Math.pow(t, 2) * this.toPoint.x;
@@ -34899,7 +36214,7 @@ return /******/ (function(modules) { // webpackBootstrap
   exports.default = BezierEdgeStatic;
 
 /***/ },
-/* 92 */
+/* 94 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -34910,7 +36225,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
-  var _EdgeBase2 = __webpack_require__(89);
+  var _EdgeBase2 = __webpack_require__(91);
 
   var _EdgeBase3 = _interopRequireDefault(_EdgeBase2);
 
@@ -34928,7 +36243,7 @@ return /******/ (function(modules) { // webpackBootstrap
     function StraightEdge(options, body, labelModule) {
       _classCallCheck(this, StraightEdge);
 
-      return _possibleConstructorReturn(this, Object.getPrototypeOf(StraightEdge).call(this, options, body, labelModule));
+      return _possibleConstructorReturn(this, (StraightEdge.__proto__ || Object.getPrototypeOf(StraightEdge)).call(this, options, body, labelModule));
     }
 
     /**
@@ -35009,7 +36324,7 @@ return /******/ (function(modules) { // webpackBootstrap
   exports.default = StraightEdge;
 
 /***/ },
-/* 93 */
+/* 95 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -35020,35 +36335,35 @@ return /******/ (function(modules) { // webpackBootstrap
 
   var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
-  var _BarnesHutSolver = __webpack_require__(94);
+  var _BarnesHutSolver = __webpack_require__(96);
 
   var _BarnesHutSolver2 = _interopRequireDefault(_BarnesHutSolver);
 
-  var _RepulsionSolver = __webpack_require__(95);
+  var _RepulsionSolver = __webpack_require__(97);
 
   var _RepulsionSolver2 = _interopRequireDefault(_RepulsionSolver);
 
-  var _HierarchicalRepulsionSolver = __webpack_require__(96);
+  var _HierarchicalRepulsionSolver = __webpack_require__(98);
 
   var _HierarchicalRepulsionSolver2 = _interopRequireDefault(_HierarchicalRepulsionSolver);
 
-  var _SpringSolver = __webpack_require__(97);
+  var _SpringSolver = __webpack_require__(99);
 
   var _SpringSolver2 = _interopRequireDefault(_SpringSolver);
 
-  var _HierarchicalSpringSolver = __webpack_require__(98);
+  var _HierarchicalSpringSolver = __webpack_require__(100);
 
   var _HierarchicalSpringSolver2 = _interopRequireDefault(_HierarchicalSpringSolver);
 
-  var _CentralGravitySolver = __webpack_require__(99);
+  var _CentralGravitySolver = __webpack_require__(101);
 
   var _CentralGravitySolver2 = _interopRequireDefault(_CentralGravitySolver);
 
-  var _FA2BasedRepulsionSolver = __webpack_require__(100);
+  var _FA2BasedRepulsionSolver = __webpack_require__(102);
 
   var _FA2BasedRepulsionSolver2 = _interopRequireDefault(_FA2BasedRepulsionSolver);
 
-  var _FA2BasedCentralGravitySolver = __webpack_require__(101);
+  var _FA2BasedCentralGravitySolver = __webpack_require__(103);
 
   var _FA2BasedCentralGravitySolver2 = _interopRequireDefault(_FA2BasedCentralGravitySolver);
 
@@ -35308,7 +36623,7 @@ return /******/ (function(modules) { // webpackBootstrap
     }, {
       key: 'stopSimulation',
       value: function stopSimulation() {
-        var emit = arguments.length <= 0 || arguments[0] === undefined ? true : arguments[0];
+        var emit = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : true;
 
         this.stabilized = true;
         if (emit === true) {
@@ -35359,7 +36674,7 @@ return /******/ (function(modules) { // webpackBootstrap
       value: function _emitStabilized() {
         var _this2 = this;
 
-        var amountOfIterations = arguments.length <= 0 || arguments[0] === undefined ? this.stabilizationIterations : arguments[0];
+        var amountOfIterations = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : this.stabilizationIterations;
 
         if (this.stabilizationIterations > 1 || this.startedStabilization === true) {
           setTimeout(function () {
@@ -35616,9 +36931,9 @@ return /******/ (function(modules) { // webpackBootstrap
           velocities[nodeId].x = Math.abs(velocities[nodeId].x) > maxVelocity ? velocities[nodeId].x > 0 ? maxVelocity : -maxVelocity : velocities[nodeId].x;
           node.x += velocities[nodeId].x * timestep; // position
         } else {
-            forces[nodeId].x = 0;
-            velocities[nodeId].x = 0;
-          }
+          forces[nodeId].x = 0;
+          velocities[nodeId].x = 0;
+        }
 
         if (node.options.fixed.y === false) {
           var dy = this.modelOptions.damping * velocities[nodeId].y; // damping force
@@ -35627,9 +36942,9 @@ return /******/ (function(modules) { // webpackBootstrap
           velocities[nodeId].y = Math.abs(velocities[nodeId].y) > maxVelocity ? velocities[nodeId].y > 0 ? maxVelocity : -maxVelocity : velocities[nodeId].y;
           node.y += velocities[nodeId].y * timestep; // position
         } else {
-            forces[nodeId].y = 0;
-            velocities[nodeId].y = 0;
-          }
+          forces[nodeId].y = 0;
+          velocities[nodeId].y = 0;
+        }
 
         var totalVelocity = Math.sqrt(Math.pow(velocities[nodeId].x, 2) + Math.pow(velocities[nodeId].y, 2));
         return totalVelocity;
@@ -35699,7 +37014,7 @@ return /******/ (function(modules) { // webpackBootstrap
       value: function stabilize() {
         var _this3 = this;
 
-        var iterations = arguments.length <= 0 || arguments[0] === undefined ? this.options.stabilization.iterations : arguments[0];
+        var iterations = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : this.options.stabilization.iterations;
 
         if (typeof iterations !== 'number') {
           console.log('The stabilize method needs a numeric amount of iterations. Switching to default: ', this.options.stabilization.iterations);
@@ -35818,7 +37133,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
           var angle = Math.atan2(force.y, force.x);
           ctx.fillStyle = color;
-          ctx.arrow(node.x + factor * force.x + Math.cos(angle) * arrowSize, node.y + factor * force.y + Math.sin(angle) * arrowSize, angle, arrowSize);
+          ctx.arrowEndpoint(node.x + factor * force.x + Math.cos(angle) * arrowSize, node.y + factor * force.y + Math.sin(angle) * arrowSize, angle, arrowSize);
           ctx.fill();
         }
       }
@@ -35830,7 +37145,7 @@ return /******/ (function(modules) { // webpackBootstrap
   exports.default = PhysicsEngine;
 
 /***/ },
-/* 94 */
+/* 96 */
 /***/ function(module, exports) {
 
   "use strict";
@@ -35972,7 +37287,7 @@ return /******/ (function(modules) { // webpackBootstrap
           dx = distance;
         }
 
-        if (this.overlapAvoidanceFactor < 1) {
+        if (this.overlapAvoidanceFactor < 1 && node.shape.radius) {
           distance = Math.max(0.1 + this.overlapAvoidanceFactor * node.shape.radius, distance - node.shape.radius);
         }
 
@@ -36034,6 +37349,7 @@ return /******/ (function(modules) { // webpackBootstrap
             minX += 0.5 * sizeDiff;
             maxX -= 0.5 * sizeDiff;
           } // xSize < ySize
+
 
         var minimumTreeSize = 1e-5;
         var rootSize = Math.max(minimumTreeSize, Math.abs(maxX - minX));
@@ -36265,6 +37581,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
       //---------------------------  DEBUGGING BELOW  ---------------------------//
 
+
       /**
        * This function is for debugging purposed, it draws the tree.
        *
@@ -36342,7 +37659,7 @@ return /******/ (function(modules) { // webpackBootstrap
   exports.default = BarnesHutSolver;
 
 /***/ },
-/* 95 */
+/* 97 */
 /***/ function(module, exports) {
 
   "use strict";
@@ -36436,7 +37753,7 @@ return /******/ (function(modules) { // webpackBootstrap
   exports.default = RepulsionSolver;
 
 /***/ },
-/* 96 */
+/* 98 */
 /***/ function(module, exports) {
 
   "use strict";
@@ -36527,7 +37844,7 @@ return /******/ (function(modules) { // webpackBootstrap
   exports.default = HierarchicalRepulsionSolver;
 
 /***/ },
-/* 97 */
+/* 99 */
 /***/ function(module, exports) {
 
   "use strict";
@@ -36638,7 +37955,7 @@ return /******/ (function(modules) { // webpackBootstrap
   exports.default = SpringSolver;
 
 /***/ },
-/* 98 */
+/* 100 */
 /***/ function(module, exports) {
 
   "use strict";
@@ -36767,7 +38084,7 @@ return /******/ (function(modules) { // webpackBootstrap
   exports.default = HierarchicalSpringSolver;
 
 /***/ },
-/* 99 */
+/* 101 */
 /***/ function(module, exports) {
 
   "use strict";
@@ -36836,7 +38153,7 @@ return /******/ (function(modules) { // webpackBootstrap
   exports.default = CentralGravitySolver;
 
 /***/ },
-/* 100 */
+/* 102 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
@@ -36847,7 +38164,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
-  var _BarnesHutSolver2 = __webpack_require__(94);
+  var _BarnesHutSolver2 = __webpack_require__(96);
 
   var _BarnesHutSolver3 = _interopRequireDefault(_BarnesHutSolver2);
 
@@ -36865,7 +38182,7 @@ return /******/ (function(modules) { // webpackBootstrap
     function ForceAtlas2BasedRepulsionSolver(body, physicsBody, options) {
       _classCallCheck(this, ForceAtlas2BasedRepulsionSolver);
 
-      return _possibleConstructorReturn(this, Object.getPrototypeOf(ForceAtlas2BasedRepulsionSolver).call(this, body, physicsBody, options));
+      return _possibleConstructorReturn(this, (ForceAtlas2BasedRepulsionSolver.__proto__ || Object.getPrototypeOf(ForceAtlas2BasedRepulsionSolver)).call(this, body, physicsBody, options));
     }
 
     /**
@@ -36888,7 +38205,7 @@ return /******/ (function(modules) { // webpackBootstrap
           dx = distance;
         }
 
-        if (this.overlapAvoidanceFactor < 1) {
+        if (this.overlapAvoidanceFactor < 1 && node.shape.radius) {
           distance = Math.max(0.1 + this.overlapAvoidanceFactor * node.shape.radius, distance - node.shape.radius);
         }
 
@@ -36910,7 +38227,7 @@ return /******/ (function(modules) { // webpackBootstrap
   exports.default = ForceAtlas2BasedRepulsionSolver;
 
 /***/ },
-/* 101 */
+/* 103 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
@@ -36921,7 +38238,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
-  var _CentralGravitySolver2 = __webpack_require__(99);
+  var _CentralGravitySolver2 = __webpack_require__(101);
 
   var _CentralGravitySolver3 = _interopRequireDefault(_CentralGravitySolver2);
 
@@ -36939,7 +38256,7 @@ return /******/ (function(modules) { // webpackBootstrap
     function ForceAtlas2BasedCentralGravitySolver(body, physicsBody, options) {
       _classCallCheck(this, ForceAtlas2BasedCentralGravitySolver);
 
-      return _possibleConstructorReturn(this, Object.getPrototypeOf(ForceAtlas2BasedCentralGravitySolver).call(this, body, physicsBody, options));
+      return _possibleConstructorReturn(this, (ForceAtlas2BasedCentralGravitySolver.__proto__ || Object.getPrototypeOf(ForceAtlas2BasedCentralGravitySolver)).call(this, body, physicsBody, options));
     }
 
     /**
@@ -36966,7 +38283,7 @@ return /******/ (function(modules) { // webpackBootstrap
   exports.default = ForceAtlas2BasedCentralGravitySolver;
 
 /***/ },
-/* 102 */
+/* 104 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -36975,15 +38292,15 @@ return /******/ (function(modules) { // webpackBootstrap
     value: true
   });
 
-  var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
+  var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
 
   var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
-  var _NetworkUtil = __webpack_require__(103);
+  var _NetworkUtil = __webpack_require__(105);
 
   var _NetworkUtil2 = _interopRequireDefault(_NetworkUtil);
 
-  var _Cluster = __webpack_require__(104);
+  var _Cluster = __webpack_require__(106);
 
   var _Cluster2 = _interopRequireDefault(_Cluster);
 
@@ -37012,19 +38329,14 @@ return /******/ (function(modules) { // webpackBootstrap
       });
     }
 
+    /**
+    *
+    * @param hubsize
+    * @param options
+    */
+
+
     _createClass(ClusterEngine, [{
-      key: 'setOptions',
-      value: function setOptions(options) {
-        if (options !== undefined) {}
-      }
-
-      /**
-      *
-      * @param hubsize
-      * @param options
-      */
-
-    }, {
       key: 'clusterByHubsize',
       value: function clusterByHubsize(hubsize, options) {
         if (hubsize === undefined) {
@@ -37058,8 +38370,8 @@ return /******/ (function(modules) { // webpackBootstrap
     }, {
       key: 'cluster',
       value: function cluster() {
-        var options = arguments.length <= 0 || arguments[0] === undefined ? {} : arguments[0];
-        var refreshData = arguments.length <= 1 || arguments[1] === undefined ? true : arguments[1];
+        var options = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
+        var refreshData = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : true;
 
         if (options.joinCondition === undefined) {
           throw new Error("Cannot call clusterByNodeData without a joinCondition function in the options.");
@@ -37102,7 +38414,7 @@ return /******/ (function(modules) { // webpackBootstrap
     }, {
       key: 'clusterByEdgeCount',
       value: function clusterByEdgeCount(edgeCount, options) {
-        var refreshData = arguments.length <= 2 || arguments[2] === undefined ? true : arguments[2];
+        var refreshData = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : true;
 
         options = this._checkOptions(options);
         var clusters = [];
@@ -37185,7 +38497,7 @@ return /******/ (function(modules) { // webpackBootstrap
     }, {
       key: 'clusterOutliers',
       value: function clusterOutliers(options) {
-        var refreshData = arguments.length <= 1 || arguments[1] === undefined ? true : arguments[1];
+        var refreshData = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : true;
 
         this.clusterByEdgeCount(1, options, refreshData);
       }
@@ -37199,7 +38511,7 @@ return /******/ (function(modules) { // webpackBootstrap
     }, {
       key: 'clusterBridges',
       value: function clusterBridges(options) {
-        var refreshData = arguments.length <= 1 || arguments[1] === undefined ? true : arguments[1];
+        var refreshData = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : true;
 
         this.clusterByEdgeCount(2, options, refreshData);
       }
@@ -37214,7 +38526,7 @@ return /******/ (function(modules) { // webpackBootstrap
     }, {
       key: 'clusterByConnection',
       value: function clusterByConnection(nodeId, options) {
-        var refreshData = arguments.length <= 2 || arguments[2] === undefined ? true : arguments[2];
+        var refreshData = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : true;
 
         // kill conditions
         if (nodeId === undefined) {
@@ -37271,7 +38583,19 @@ return /******/ (function(modules) { // webpackBootstrap
             }
           }
         }
+        var childNodeIDs = Object.keys(childNodesObj).map(function (childNode) {
+          return childNodesObj[childNode].id;
+        });
 
+        for (childNode in childNodesObj) {
+          var childNode = childNodesObj[childNode];
+          for (var y = 0; y < childNode.edges.length; y++) {
+            var childEdge = childNode.edges[y];
+            if (childNodeIDs.indexOf(this._getConnectedId(childEdge, childNode.id)) > -1) {
+              childEdgesObj[childEdge.id] = childEdge;
+            }
+          }
+        }
         this._cluster(childNodesObj, childEdgesObj, options, refreshData);
       }
 
@@ -37353,6 +38677,9 @@ return /******/ (function(modules) { // webpackBootstrap
           var newEdge = this.body.functions.createEdge(clonedOptions);
           newEdge.clusteringEdgeReplacingId = _edge.id;
 
+          // also reference the new edge in the old edge
+          this.body.edges[_edge.id].edgeReplacedById = newEdge.id;
+
           // connect the edge.
           this.body.edges[newEdge.id] = newEdge;
           newEdge.connect();
@@ -37374,7 +38701,7 @@ return /******/ (function(modules) { // webpackBootstrap
     }, {
       key: '_checkOptions',
       value: function _checkOptions() {
-        var options = arguments.length <= 0 || arguments[0] === undefined ? {} : arguments[0];
+        var options = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
 
         if (options.clusterEdgeProperties === undefined) {
           options.clusterEdgeProperties = {};
@@ -37398,10 +38725,15 @@ return /******/ (function(modules) { // webpackBootstrap
     }, {
       key: '_cluster',
       value: function _cluster(childNodesObj, childEdgesObj, options) {
-        var refreshData = arguments.length <= 3 || arguments[3] === undefined ? true : arguments[3];
+        var refreshData = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : true;
 
-        // kill condition: no children so can't cluster or only one node in the cluster, don't bother
-        if (Object.keys(childNodesObj).length < 2) {
+        // kill condition: no nodes don't bother
+        if (Object.keys(childNodesObj).length == 0) {
+          return;
+        }
+
+        // allow clusters of 1 if options allow
+        if (Object.keys(childNodesObj).length == 1 && options.clusterNodeProperties.allowSingleNodeCluster != true) {
           return;
         }
 
@@ -37584,7 +38916,7 @@ return /******/ (function(modules) { // webpackBootstrap
     }, {
       key: 'openCluster',
       value: function openCluster(clusterNodeId, options) {
-        var refreshData = arguments.length <= 2 || arguments[2] === undefined ? true : arguments[2];
+        var refreshData = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : true;
 
         // kill conditions
         if (clusterNodeId === undefined) {
@@ -37768,6 +39100,101 @@ return /******/ (function(modules) { // webpackBootstrap
       }
 
       /**
+      * Using a clustered nodeId, update with the new options
+      * @param clusteredNodeId
+      * @param {object} newOptions
+      */
+
+    }, {
+      key: 'updateClusteredNode',
+      value: function updateClusteredNode(clusteredNodeId, newOptions) {
+        if (clusteredNodeId === undefined) {
+          throw new Error("No clusteredNodeId supplied to updateClusteredNode.");
+        }
+        if (newOptions === undefined) {
+          throw new Error("No newOptions supplied to updateClusteredNode.");
+        }
+        if (this.body.nodes[clusteredNodeId] === undefined) {
+          throw new Error("The clusteredNodeId supplied to updateClusteredNode does not exist.");
+        }
+
+        this.body.nodes[clusteredNodeId].setOptions(newOptions);
+        this.body.emitter.emit('_dataChanged');
+      }
+
+      /**
+      * Using a base edgeId, update all related clustered edges with the new options
+      * @param startEdgeId
+      * @param {object} newOptions
+      */
+
+    }, {
+      key: 'updateEdge',
+      value: function updateEdge(startEdgeId, newOptions) {
+        if (startEdgeId === undefined) {
+          throw new Error("No startEdgeId supplied to updateEdge.");
+        }
+        if (newOptions === undefined) {
+          throw new Error("No newOptions supplied to updateEdge.");
+        }
+        if (this.body.edges[startEdgeId] === undefined) {
+          throw new Error("The startEdgeId supplied to updateEdge does not exist.");
+        }
+
+        var allEdgeIds = this.getClusteredEdges(startEdgeId);
+        for (var i = 0; i < allEdgeIds.length; i++) {
+          var edge = this.body.edges[allEdgeIds[i]];
+          edge.setOptions(newOptions);
+        }
+        this.body.emitter.emit('_dataChanged');
+      }
+
+      /**
+      * Get a stack of clusterEdgeId's (+base edgeid) that a base edge is the same as. cluster edge C -> cluster edge B -> cluster edge A -> base edge(edgeId)
+      * @param edgeId
+      * @returns {Array}
+      */
+
+    }, {
+      key: 'getClusteredEdges',
+      value: function getClusteredEdges(edgeId) {
+        var stack = [];
+        var max = 100;
+        var counter = 0;
+
+        while (edgeId !== undefined && this.body.edges[edgeId] !== undefined && counter < max) {
+          stack.push(this.body.edges[edgeId].id);
+          edgeId = this.body.edges[edgeId].edgeReplacedById;
+          counter++;
+        }
+        stack.reverse();
+        return stack;
+      }
+
+      /**
+      * Get the base edge id of clusterEdgeId. cluster edge (clusteredEdgeId) -> cluster edge B -> cluster edge C -> base edge
+      * @param clusteredEdgeId
+      * @returns baseEdgeId
+      */
+
+    }, {
+      key: 'getBaseEdge',
+      value: function getBaseEdge(clusteredEdgeId) {
+        var baseEdgeId = clusteredEdgeId;
+        var max = 100;
+        var counter = 0;
+
+        while (clusteredEdgeId !== undefined && this.body.edges[clusteredEdgeId] !== undefined && counter < max) {
+          clusteredEdgeId = this.body.edges[clusteredEdgeId].clusteringEdgeReplacingId;
+          counter++;
+          if (clusteredEdgeId !== undefined) {
+            baseEdgeId = clusteredEdgeId;
+          }
+        }
+        return baseEdgeId;
+      }
+
+      /**
       * Get the Id the node is connected to
       * @param edge
       * @param nodeId
@@ -37834,7 +39261,7 @@ return /******/ (function(modules) { // webpackBootstrap
   exports.default = ClusterEngine;
 
 /***/ },
-/* 103 */
+/* 105 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
@@ -37862,7 +39289,7 @@ return /******/ (function(modules) { // webpackBootstrap
     _createClass(NetworkUtil, null, [{
       key: "getRange",
       value: function getRange(allNodes) {
-        var specificNodes = arguments.length <= 1 || arguments[1] === undefined ? [] : arguments[1];
+        var specificNodes = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : [];
 
         var minY = 1e9,
             maxY = -1e9,
@@ -37900,7 +39327,7 @@ return /******/ (function(modules) { // webpackBootstrap
     }, {
       key: "getRangeCore",
       value: function getRangeCore(allNodes) {
-        var specificNodes = arguments.length <= 1 || arguments[1] === undefined ? [] : arguments[1];
+        var specificNodes = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : [];
 
         var minY = 1e9,
             maxY = -1e9,
@@ -37972,7 +39399,7 @@ return /******/ (function(modules) { // webpackBootstrap
   exports.default = NetworkUtil;
 
 /***/ },
-/* 104 */
+/* 106 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -37981,7 +39408,7 @@ return /******/ (function(modules) { // webpackBootstrap
     value: true
   });
 
-  var _Node2 = __webpack_require__(65);
+  var _Node2 = __webpack_require__(67);
 
   var _Node3 = _interopRequireDefault(_Node2);
 
@@ -37996,14 +39423,13 @@ return /******/ (function(modules) { // webpackBootstrap
   /**
    *
    */
-
   var Cluster = function (_Node) {
     _inherits(Cluster, _Node);
 
     function Cluster(options, body, imagelist, grouplist, globalOptions) {
       _classCallCheck(this, Cluster);
 
-      var _this = _possibleConstructorReturn(this, Object.getPrototypeOf(Cluster).call(this, options, body, imagelist, grouplist, globalOptions));
+      var _this = _possibleConstructorReturn(this, (Cluster.__proto__ || Object.getPrototypeOf(Cluster)).call(this, options, body, imagelist, grouplist, globalOptions));
 
       _this.isCluster = true;
       _this.containedNodes = {};
@@ -38017,7 +39443,7 @@ return /******/ (function(modules) { // webpackBootstrap
   exports.default = Cluster;
 
 /***/ },
-/* 105 */
+/* 107 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -38127,8 +39553,8 @@ return /******/ (function(modules) { // webpackBootstrap
             if (this.requiresTimeout === true) {
               this.renderTimer = window.setTimeout(this._renderStep.bind(this), this.simulationInterval); // wait this.renderTimeStep milliseconds and perform the animation step function
             } else {
-                this.renderTimer = window.requestAnimationFrame(this._renderStep.bind(this)); // wait this.renderTimeStep milliseconds and perform the animation step function
-              }
+              this.renderTimer = window.requestAnimationFrame(this._renderStep.bind(this)); // wait this.renderTimeStep milliseconds and perform the animation step function
+            }
           }
         }
       }
@@ -38192,7 +39618,7 @@ return /******/ (function(modules) { // webpackBootstrap
     }, {
       key: '_redraw',
       value: function _redraw() {
-        var hidden = arguments.length <= 0 || arguments[0] === undefined ? false : arguments[0];
+        var hidden = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : false;
 
         if (this.allowRedraw === true) {
           this.body.emitter.emit("initRedraw");
@@ -38297,7 +39723,7 @@ return /******/ (function(modules) { // webpackBootstrap
     }, {
       key: '_drawNodes',
       value: function _drawNodes(ctx) {
-        var alwaysShow = arguments.length <= 1 || arguments[1] === undefined ? false : arguments[1];
+        var alwaysShow = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : false;
 
         var nodes = this.body.nodes;
         var nodeIndices = this.body.nodeIndices;
@@ -38390,7 +39816,7 @@ return /******/ (function(modules) { // webpackBootstrap
   exports.default = CanvasRenderer;
 
 /***/ },
-/* 106 */
+/* 108 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -38403,8 +39829,8 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
-  var Hammer = __webpack_require__(20);
-  var hammerUtil = __webpack_require__(28);
+  var Hammer = __webpack_require__(22);
+  var hammerUtil = __webpack_require__(30);
 
   var util = __webpack_require__(1);
 
@@ -38426,6 +39852,7 @@ return /******/ (function(modules) { // webpackBootstrap
       this.resizeFunction = this._onResize.bind(this);
       this.cameraState = {};
       this.initialized = false;
+      this.canvasViewCenter = {};
 
       this.options = {};
       this.defaultOptions = {
@@ -38507,7 +39934,7 @@ return /******/ (function(modules) { // webpackBootstrap
     }, {
       key: '_getCameraState',
       value: function _getCameraState() {
-        var pixelRatio = arguments.length <= 0 || arguments[0] === undefined ? this.pixelRatio : arguments[0];
+        var pixelRatio = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : this.pixelRatio;
 
         if (this.initialized === true) {
           this.cameraState.previousWidth = this.frame.canvas.width / pixelRatio;
@@ -38698,8 +40125,8 @@ return /******/ (function(modules) { // webpackBootstrap
     }, {
       key: 'setSize',
       value: function setSize() {
-        var width = arguments.length <= 0 || arguments[0] === undefined ? this.options.width : arguments[0];
-        var height = arguments.length <= 1 || arguments[1] === undefined ? this.options.height : arguments[1];
+        var width = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : this.options.width;
+        var height = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : this.options.height;
 
         width = this._prepareValue(width);
         height = this._prepareValue(height);
@@ -38727,6 +40154,11 @@ return /******/ (function(modules) { // webpackBootstrap
 
           this.options.width = width;
           this.options.height = height;
+
+          this.canvasViewCenter = {
+            x: 0.5 * this.frame.clientWidth,
+            y: 0.5 * this.frame.clientHeight
+          };
 
           emitEvent = true;
         } else {
@@ -38854,7 +40286,7 @@ return /******/ (function(modules) { // webpackBootstrap
   exports.default = Canvas;
 
 /***/ },
-/* 107 */
+/* 109 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -38865,7 +40297,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
-  var _NetworkUtil = __webpack_require__(103);
+  var _NetworkUtil = __webpack_require__(105);
 
   var _NetworkUtil2 = _interopRequireDefault(_NetworkUtil);
 
@@ -38907,7 +40339,7 @@ return /******/ (function(modules) { // webpackBootstrap
     _createClass(View, [{
       key: 'setOptions',
       value: function setOptions() {
-        var options = arguments.length <= 0 || arguments[0] === undefined ? {} : arguments[0];
+        var options = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
 
         this.options = options;
       }
@@ -38921,8 +40353,8 @@ return /******/ (function(modules) { // webpackBootstrap
     }, {
       key: 'fit',
       value: function fit() {
-        var options = arguments.length <= 0 || arguments[0] === undefined ? { nodes: [] } : arguments[0];
-        var initialZoom = arguments.length <= 1 || arguments[1] === undefined ? false : arguments[1];
+        var options = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : { nodes: [] };
+        var initialZoom = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : false;
 
         var range = void 0;
         var zoomLevel = void 0;
@@ -38990,7 +40422,7 @@ return /******/ (function(modules) { // webpackBootstrap
     }, {
       key: 'focus',
       value: function focus(nodeId) {
-        var options = arguments.length <= 1 || arguments[1] === undefined ? {} : arguments[1];
+        var options = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
 
         if (this.body.nodes[nodeId] !== undefined) {
           var nodePosition = { x: this.body.nodes[nodeId].x, y: this.body.nodes[nodeId].y };
@@ -39162,7 +40594,7 @@ return /******/ (function(modules) { // webpackBootstrap
     }, {
       key: '_transitionRedraw',
       value: function _transitionRedraw() {
-        var finished = arguments.length <= 0 || arguments[0] === undefined ? false : arguments[0];
+        var finished = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : false;
 
         this.easingTime += this.animationSpeed;
         this.easingTime = finished === true ? 1.0 : this.easingTime;
@@ -39204,7 +40636,7 @@ return /******/ (function(modules) { // webpackBootstrap
   exports.default = View;
 
 /***/ },
-/* 108 */
+/* 110 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -39215,11 +40647,11 @@ return /******/ (function(modules) { // webpackBootstrap
 
   var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
-  var _NavigationHandler = __webpack_require__(109);
+  var _NavigationHandler = __webpack_require__(111);
 
   var _NavigationHandler2 = _interopRequireDefault(_NavigationHandler);
 
-  var _Popup = __webpack_require__(110);
+  var _Popup = __webpack_require__(112);
 
   var _Popup2 = _interopRequireDefault(_Popup);
 
@@ -39422,7 +40854,7 @@ return /******/ (function(modules) { // webpackBootstrap
     }, {
       key: 'checkSelectionChanges',
       value: function checkSelectionChanges(pointer, event) {
-        var add = arguments.length <= 2 || arguments[2] === undefined ? false : arguments[2];
+        var add = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : false;
 
         var previouslySelectedEdgeCount = this.selectionHandler._getSelectedEdgeCount();
         var previouslySelectedNodeCount = this.selectionHandler._getSelectedNodeCount();
@@ -39437,10 +40869,9 @@ return /******/ (function(modules) { // webpackBootstrap
         var selectedNodesCount = this.selectionHandler._getSelectedNodeCount();
         var currentSelection = this.selectionHandler.getSelection();
 
-        var _determineIfDifferent2 = this._determineIfDifferent(previousSelection, currentSelection);
-
-        var nodesChanged = _determineIfDifferent2.nodesChanged;
-        var edgesChanged = _determineIfDifferent2.edgesChanged;
+        var _determineIfDifferent2 = this._determineIfDifferent(previousSelection, currentSelection),
+            nodesChanged = _determineIfDifferent2.nodesChanged,
+            edgesChanged = _determineIfDifferent2.edgesChanged;
 
         var nodeSelected = false;
 
@@ -39992,7 +41423,7 @@ return /******/ (function(modules) { // webpackBootstrap
   exports.default = InteractionHandler;
 
 /***/ },
-/* 109 */
+/* 111 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -40006,9 +41437,9 @@ return /******/ (function(modules) { // webpackBootstrap
   function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
   var util = __webpack_require__(1);
-  var Hammer = __webpack_require__(20);
-  var hammerUtil = __webpack_require__(28);
-  var keycharm = __webpack_require__(23);
+  var Hammer = __webpack_require__(22);
+  var hammerUtil = __webpack_require__(30);
+  var keycharm = __webpack_require__(25);
 
   var NavigationHandler = function () {
     function NavigationHandler(body, canvas) {
@@ -40204,13 +41635,29 @@ return /******/ (function(modules) { // webpackBootstrap
     }, {
       key: '_zoomIn',
       value: function _zoomIn() {
-        this.body.view.scale *= 1 + this.options.keyboard.speed.zoom;
+        var scaleOld = this.body.view.scale;
+        var scale = this.body.view.scale * (1 + this.options.keyboard.speed.zoom);
+        var translation = this.body.view.translation;
+        var scaleFrac = scale / scaleOld;
+        var tx = (1 - scaleFrac) * this.canvas.canvasViewCenter.x + translation.x * scaleFrac;
+        var ty = (1 - scaleFrac) * this.canvas.canvasViewCenter.y + translation.y * scaleFrac;
+
+        this.body.view.scale = scale;
+        this.body.view.translation = { x: tx, y: ty };
         this.body.emitter.emit('zoom', { direction: '+', scale: this.body.view.scale });
       }
     }, {
       key: '_zoomOut',
       value: function _zoomOut() {
-        this.body.view.scale /= 1 + this.options.keyboard.speed.zoom;
+        var scaleOld = this.body.view.scale;
+        var scale = this.body.view.scale / (1 + this.options.keyboard.speed.zoom);
+        var translation = this.body.view.translation;
+        var scaleFrac = scale / scaleOld;
+        var tx = (1 - scaleFrac) * this.canvas.canvasViewCenter.x + translation.x * scaleFrac;
+        var ty = (1 - scaleFrac) * this.canvas.canvasViewCenter.y + translation.y * scaleFrac;
+
+        this.body.view.scale = scale;
+        this.body.view.translation = { x: tx, y: ty };
         this.body.emitter.emit('zoom', { direction: '-', scale: this.body.view.scale });
       }
 
@@ -40321,7 +41768,7 @@ return /******/ (function(modules) { // webpackBootstrap
   exports.default = NavigationHandler;
 
 /***/ },
-/* 110 */
+/* 112 */
 /***/ function(module, exports) {
 
   'use strict';
@@ -40343,7 +41790,6 @@ return /******/ (function(modules) { // webpackBootstrap
    * @param {Object} [style]     An object containing borderColor,
    *                             backgroundColor, etc.
    */
-
   var Popup = function () {
     function Popup(container) {
       _classCallCheck(this, Popup);
@@ -40451,7 +41897,7 @@ return /******/ (function(modules) { // webpackBootstrap
   exports.default = Popup;
 
 /***/ },
-/* 111 */
+/* 113 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -40462,11 +41908,11 @@ return /******/ (function(modules) { // webpackBootstrap
 
   var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
-  var _Node = __webpack_require__(65);
+  var _Node = __webpack_require__(67);
 
   var _Node2 = _interopRequireDefault(_Node);
 
-  var _Edge = __webpack_require__(85);
+  var _Edge = __webpack_require__(87);
 
   var _Edge2 = _interopRequireDefault(_Edge);
 
@@ -40557,7 +42003,7 @@ return /******/ (function(modules) { // webpackBootstrap
     }, {
       key: '_generateClickEvent',
       value: function _generateClickEvent(eventType, event, pointer, oldSelection) {
-        var emptySelection = arguments.length <= 4 || arguments[4] === undefined ? false : arguments[4];
+        var emptySelection = arguments.length > 4 && arguments[4] !== undefined ? arguments[4] : false;
 
         var properties = void 0;
         if (emptySelection === true) {
@@ -40579,7 +42025,7 @@ return /******/ (function(modules) { // webpackBootstrap
     }, {
       key: 'selectObject',
       value: function selectObject(obj) {
-        var highlightEdges = arguments.length <= 1 || arguments[1] === undefined ? this.options.selectConnectedEdges : arguments[1];
+        var highlightEdges = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : this.options.selectConnectedEdges;
 
         if (obj !== undefined) {
           if (obj instanceof _Node2.default) {
@@ -40653,7 +42099,7 @@ return /******/ (function(modules) { // webpackBootstrap
     }, {
       key: 'getNodeAt',
       value: function getNodeAt(pointer) {
-        var returnNode = arguments.length <= 1 || arguments[1] === undefined ? true : arguments[1];
+        var returnNode = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : true;
 
         // we first check if this is an navigation controls element
         var positionObject = this._pointerToPositionObject(pointer);
@@ -40716,16 +42162,33 @@ return /******/ (function(modules) { // webpackBootstrap
     }, {
       key: 'getEdgeAt',
       value: function getEdgeAt(pointer) {
-        var returnEdge = arguments.length <= 1 || arguments[1] === undefined ? true : arguments[1];
+        var returnEdge = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : true;
 
-        var positionObject = this._pointerToPositionObject(pointer);
-        var overlappingEdges = this._getAllEdgesOverlappingWith(positionObject);
-
-        if (overlappingEdges.length > 0) {
+        // Iterate over edges, pick closest within 10
+        var canvasPos = this.canvas.DOMtoCanvas(pointer);
+        var mindist = 10;
+        var overlappingEdge = null;
+        var edges = this.body.edges;
+        for (var i = 0; i < this.body.edgeIndices.length; i++) {
+          var edgeId = this.body.edgeIndices[i];
+          var edge = edges[edgeId];
+          if (edge.connected) {
+            var xFrom = edge.from.x;
+            var yFrom = edge.from.y;
+            var xTo = edge.to.x;
+            var yTo = edge.to.y;
+            var dist = edge.edgeType.getDistanceToEdge(xFrom, yFrom, xTo, yTo, canvasPos.x, canvasPos.y);
+            if (dist < mindist) {
+              overlappingEdge = edgeId;
+              mindist = dist;
+            }
+          }
+        }
+        if (overlappingEdge) {
           if (returnEdge === true) {
-            return this.body.edges[overlappingEdges[overlappingEdges.length - 1]];
+            return this.body.edges[overlappingEdge];
           } else {
-            return overlappingEdges[overlappingEdges.length - 1];
+            return overlappingEdge;
           }
         } else {
           return undefined;
@@ -41050,8 +42513,9 @@ return /******/ (function(modules) { // webpackBootstrap
               this.hoverObj.edges[edgeId].hover = false;
               delete this.hoverObj.edges[edgeId];
             }
-            // if the blur remains the same and the object is undefined (mouse off), we blur the edge
-            else if (object === undefined) {
+            // if the blur remains the same and the object is undefined (mouse off) or another
+            // edge has been hovered, we blur the edge
+            else if (object === undefined || object instanceof _Edge2.default) {
                 this.blurObject(this.hoverObj.edges[edgeId]);
                 delete this.hoverObj.edges[edgeId];
                 hoverChanged = true;
@@ -41145,7 +42609,7 @@ return /******/ (function(modules) { // webpackBootstrap
     }, {
       key: 'setSelection',
       value: function setSelection(selection) {
-        var options = arguments.length <= 1 || arguments[1] === undefined ? {} : arguments[1];
+        var options = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
 
         var i = void 0,
             id = void 0;
@@ -41192,7 +42656,7 @@ return /******/ (function(modules) { // webpackBootstrap
     }, {
       key: 'selectNodes',
       value: function selectNodes(selection) {
-        var highlightEdges = arguments.length <= 1 || arguments[1] === undefined ? true : arguments[1];
+        var highlightEdges = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : true;
 
         if (!selection || selection.length === undefined) throw 'Selection must be an array with ids';
 
@@ -41244,7 +42708,7 @@ return /******/ (function(modules) { // webpackBootstrap
   exports.default = SelectionHandler;
 
 /***/ },
-/* 112 */
+/* 114 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -41255,11 +42719,11 @@ return /******/ (function(modules) { // webpackBootstrap
 
   var _slicedToArray = function () { function sliceIterator(arr, i) { var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i["return"]) _i["return"](); } finally { if (_d) throw _e; } } return _arr; } return function (arr, i) { if (Array.isArray(arr)) { return arr; } else if (Symbol.iterator in Object(arr)) { return sliceIterator(arr, i); } else { throw new TypeError("Invalid attempt to destructure non-iterable instance"); } }; }();
 
-  var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol ? "symbol" : typeof obj; };
+  var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
 
   var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
-  var _NetworkUtil = __webpack_require__(103);
+  var _NetworkUtil = __webpack_require__(105);
 
   var _NetworkUtil2 = _interopRequireDefault(_NetworkUtil);
 
@@ -41506,8 +42970,11 @@ return /******/ (function(modules) { // webpackBootstrap
             // perturb the nodes a little bit to force the physics to kick in
             var offset = 70;
             for (var _i = 0; _i < this.body.nodeIndices.length; _i++) {
-              this.body.nodes[this.body.nodeIndices[_i]].x += (0.5 - this.seededRandom()) * offset;
-              this.body.nodes[this.body.nodeIndices[_i]].y += (0.5 - this.seededRandom()) * offset;
+              // Only perturb the nodes that aren't fixed
+              if (this.body.nodes[this.body.nodeIndices[_i]].predefinedPosition === false) {
+                this.body.nodes[this.body.nodeIndices[_i]].x += (0.5 - this.seededRandom()) * offset;
+                this.body.nodes[this.body.nodeIndices[_i]].y += (0.5 - this.seededRandom()) * offset;
+              }
             }
 
             // uncluster all clusters
@@ -41718,7 +43185,7 @@ return /******/ (function(modules) { // webpackBootstrap
         // get a min max width as well as the maximum movement space it has on either sides
         // we use min max terminology because width and height can interchange depending on the direction of the layout
         var getBranchBoundary = function getBranchBoundary(branchMap) {
-          var maxLevel = arguments.length <= 1 || arguments[1] === undefined ? 1e9 : arguments[1];
+          var maxLevel = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 1e9;
 
           var minSpace = 1e9;
           var maxSpace = 1e9;
@@ -41732,12 +43199,10 @@ return /******/ (function(modules) { // webpackBootstrap
 
               // get the space around the node.
 
-              var _getSpaceAroundNode2 = _this2._getSpaceAroundNode(node, branchMap);
-
-              var _getSpaceAroundNode3 = _slicedToArray(_getSpaceAroundNode2, 2);
-
-              var minSpaceNode = _getSpaceAroundNode3[0];
-              var maxSpaceNode = _getSpaceAroundNode3[1];
+              var _getSpaceAroundNode2 = _this2._getSpaceAroundNode(node, branchMap),
+                  _getSpaceAroundNode3 = _slicedToArray(_getSpaceAroundNode2, 2),
+                  minSpaceNode = _getSpaceAroundNode3[0],
+                  maxSpaceNode = _getSpaceAroundNode3[1];
 
               minSpace = Math.min(minSpaceNode, minSpace);
               maxSpace = Math.min(maxSpaceNode, maxSpace);
@@ -41811,7 +43276,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
         // callback for shifting branches
         var branchShiftCallback = function branchShiftCallback(node1, node2) {
-          var centerParent = arguments.length <= 2 || arguments[2] === undefined ? false : arguments[2];
+          var centerParent = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : false;
 
           //window.CALLBACKS.push(() => {
           var pos1 = _this2._getPositionForHierarchy(node1);
@@ -41828,25 +43293,22 @@ return /******/ (function(modules) { // webpackBootstrap
             // check the largest distance between the branches
             var maxLevel = getCollisionLevel(node1, node2);
 
-            var _getBranchBoundary = getBranchBoundary(branchNodes1, maxLevel);
+            var _getBranchBoundary = getBranchBoundary(branchNodes1, maxLevel),
+                _getBranchBoundary2 = _slicedToArray(_getBranchBoundary, 4),
+                min1 = _getBranchBoundary2[0],
+                max1 = _getBranchBoundary2[1],
+                minSpace1 = _getBranchBoundary2[2],
+                maxSpace1 = _getBranchBoundary2[3];
 
-            var _getBranchBoundary2 = _slicedToArray(_getBranchBoundary, 4);
-
-            var min1 = _getBranchBoundary2[0];
-            var max1 = _getBranchBoundary2[1];
-            var minSpace1 = _getBranchBoundary2[2];
-            var maxSpace1 = _getBranchBoundary2[3];
-
-            var _getBranchBoundary3 = getBranchBoundary(branchNodes2, maxLevel);
-
-            var _getBranchBoundary4 = _slicedToArray(_getBranchBoundary3, 4);
-
-            var min2 = _getBranchBoundary4[0];
-            var max2 = _getBranchBoundary4[1];
-            var minSpace2 = _getBranchBoundary4[2];
-            var maxSpace2 = _getBranchBoundary4[3];
+            var _getBranchBoundary3 = getBranchBoundary(branchNodes2, maxLevel),
+                _getBranchBoundary4 = _slicedToArray(_getBranchBoundary3, 4),
+                min2 = _getBranchBoundary4[0],
+                max2 = _getBranchBoundary4[1],
+                minSpace2 = _getBranchBoundary4[2],
+                maxSpace2 = _getBranchBoundary4[3];
 
             //console.log(node1.id, getBranchBoundary(branchNodes1, maxLevel), node2.id, getBranchBoundary(branchNodes2, maxLevel), maxLevel);
+
 
             var diffBranch = Math.abs(max1 - min2);
             if (diffBranch > _this2.options.hierarchical.nodeSpacing) {
@@ -41946,15 +43408,12 @@ return /******/ (function(modules) { // webpackBootstrap
               branches[node.id] = branchNodes;
             }
 
-            var _getBranchBoundary5 = getBranchBoundary(branches[node.id]);
-
-            var _getBranchBoundary6 = _slicedToArray(_getBranchBoundary5, 4);
-
-            var minBranch = _getBranchBoundary6[0];
-            var maxBranch = _getBranchBoundary6[1];
-            var minSpaceBranch = _getBranchBoundary6[2];
-            var maxSpaceBranch = _getBranchBoundary6[3];
-
+            var _getBranchBoundary5 = getBranchBoundary(branches[node.id]),
+                _getBranchBoundary6 = _slicedToArray(_getBranchBoundary5, 4),
+                minBranch = _getBranchBoundary6[0],
+                maxBranch = _getBranchBoundary6[1],
+                minSpaceBranch = _getBranchBoundary6[2],
+                maxSpaceBranch = _getBranchBoundary6[3];
 
             var diff = guess - nodePosition;
 
@@ -41979,12 +43438,10 @@ return /******/ (function(modules) { // webpackBootstrap
 
             // position node if there is space
 
-            var _getSpaceAroundNode4 = _this2._getSpaceAroundNode(node);
-
-            var _getSpaceAroundNode5 = _slicedToArray(_getSpaceAroundNode4, 2);
-
-            var minSpace = _getSpaceAroundNode5[0];
-            var maxSpace = _getSpaceAroundNode5[1];
+            var _getSpaceAroundNode4 = _this2._getSpaceAroundNode(node),
+                _getSpaceAroundNode5 = _slicedToArray(_getSpaceAroundNode4, 2),
+                minSpace = _getSpaceAroundNode5[0],
+                maxSpace = _getSpaceAroundNode5[1];
 
             var diff = guess - nodePosition;
             // check if we are allowed to move the node:
@@ -42155,12 +43612,10 @@ return /******/ (function(modules) { // webpackBootstrap
 
               var position = this._getPositionForHierarchy(parentNode);
 
-              var _getSpaceAroundNode6 = this._getSpaceAroundNode(parentNode);
-
-              var _getSpaceAroundNode7 = _slicedToArray(_getSpaceAroundNode6, 2);
-
-              var minSpace = _getSpaceAroundNode7[0];
-              var maxSpace = _getSpaceAroundNode7[1];
+              var _getSpaceAroundNode6 = this._getSpaceAroundNode(parentNode),
+                  _getSpaceAroundNode7 = _slicedToArray(_getSpaceAroundNode6, 2),
+                  minSpace = _getSpaceAroundNode7[0],
+                  maxSpace = _getSpaceAroundNode7[1];
 
               var newPosition = 0.5 * (minPos + maxPos);
               var diff = position - newPosition;
@@ -42542,7 +43997,7 @@ return /******/ (function(modules) { // webpackBootstrap
       value: function _crawlNetwork() {
         var _this7 = this;
 
-        var callback = arguments.length <= 0 || arguments[0] === undefined ? function () {} : arguments[0];
+        var callback = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : function () {};
         var startingNodeId = arguments[1];
 
         var progress = {};
@@ -42670,7 +44125,7 @@ return /******/ (function(modules) { // webpackBootstrap
     }, {
       key: '_setPositionForHierarchy',
       value: function _setPositionForHierarchy(node, position, level) {
-        var doNotUpdate = arguments.length <= 3 || arguments[3] === undefined ? false : arguments[3];
+        var doNotUpdate = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : false;
 
         //console.log('_setPositionForHierarchy',node.id, position)
         if (doNotUpdate !== true) {
@@ -42739,7 +44194,7 @@ return /******/ (function(modules) { // webpackBootstrap
   exports.default = LayoutEngine;
 
 /***/ },
-/* 113 */
+/* 115 */
 /***/ function(module, exports, __webpack_require__) {
 
   'use strict';
@@ -42753,8 +44208,8 @@ return /******/ (function(modules) { // webpackBootstrap
   function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
   var util = __webpack_require__(1);
-  var Hammer = __webpack_require__(20);
-  var hammerUtil = __webpack_require__(28);
+  var Hammer = __webpack_require__(22);
+  var hammerUtil = __webpack_require__(30);
 
   /**
    * clears the toolbar div element of children
@@ -43458,7 +44913,7 @@ return /******/ (function(modules) { // webpackBootstrap
     }, {
       key: '_createSeperator',
       value: function _createSeperator() {
-        var index = arguments.length <= 0 || arguments[0] === undefined ? 1 : arguments[0];
+        var index = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : 1;
 
         this.manipulationDOM['seperatorLineDiv' + index] = document.createElement('div');
         this.manipulationDOM['seperatorLineDiv' + index].className = 'vis-separator-line';
@@ -43517,7 +44972,7 @@ return /******/ (function(modules) { // webpackBootstrap
     }, {
       key: '_createButton',
       value: function _createButton(id, className, label) {
-        var labelClassName = arguments.length <= 3 || arguments[3] === undefined ? 'vis-label' : arguments[3];
+        var labelClassName = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : 'vis-label';
 
 
         this.manipulationDOM[id + 'Div'] = document.createElement('div');
@@ -43769,6 +45224,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
       // ------------------------------------ END OF EDIT EDGE FUNCTIONS -----------------------------------------//
 
+
       // ------------------------------------------- ADD EDGE FUNCTIONS -----------------------------------------//
       /**
        * the function bound to the selection event. It checks if you want to connect a cluster and changes the description
@@ -43882,6 +45338,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
       // --------------------------------------- END OF ADD EDGE FUNCTIONS -------------------------------------//
 
+
       // ------------------------------ Performing all the actual data manipulation ------------------------//
 
       /**
@@ -43993,7 +45450,7 @@ return /******/ (function(modules) { // webpackBootstrap
   exports.default = ManipulationSystem;
 
 /***/ },
-/* 114 */
+/* 116 */
 /***/ function(module, exports) {
 
   'use strict';
@@ -44026,9 +45483,9 @@ return /******/ (function(modules) { // webpackBootstrap
     },
     edges: {
       arrows: {
-        to: { enabled: { boolean: boolean }, scaleFactor: { number: number }, __type__: { object: object, boolean: boolean } },
-        middle: { enabled: { boolean: boolean }, scaleFactor: { number: number }, __type__: { object: object, boolean: boolean } },
-        from: { enabled: { boolean: boolean }, scaleFactor: { number: number }, __type__: { object: object, boolean: boolean } },
+        to: { enabled: { boolean: boolean }, scaleFactor: { number: number }, type: { string: ['arrow', 'circle'] }, __type__: { object: object, boolean: boolean } },
+        middle: { enabled: { boolean: boolean }, scaleFactor: { number: number }, type: { string: ['arrow', 'circle'] }, __type__: { object: object, boolean: boolean } },
+        from: { enabled: { boolean: boolean }, scaleFactor: { number: number }, type: { string: ['arrow', 'circle'] }, __type__: { object: object, boolean: boolean } },
         __type__: { string: ['from', 'to', 'middle'], object: object }
       },
       arrowStrikethrough: { boolean: boolean },
@@ -44372,9 +45829,9 @@ return /******/ (function(modules) { // webpackBootstrap
     },
     edges: {
       arrows: {
-        to: { enabled: false, scaleFactor: [1, 0, 3, 0.05] }, // boolean / {arrowScaleFactor:1} / {enabled: false, arrowScaleFactor:1}
-        middle: { enabled: false, scaleFactor: [1, 0, 3, 0.05] },
-        from: { enabled: false, scaleFactor: [1, 0, 3, 0.05] }
+        to: { enabled: false, scaleFactor: [1, 0, 3, 0.05], type: 'arrow' },
+        middle: { enabled: false, scaleFactor: [1, 0, 3, 0.05], type: 'arrow' },
+        from: { enabled: false, scaleFactor: [1, 0, 3, 0.05], type: 'arrow' }
       },
       arrowStrikethrough: true,
       color: {
@@ -44502,10 +45959,6 @@ return /******/ (function(modules) { // webpackBootstrap
       minVelocity: [0.1, 0.01, 0.5, 0.01],
       solver: ['barnesHut', 'forceAtlas2Based', 'repulsion', 'hierarchicalRepulsion'],
       timestep: [0.5, 0.01, 1, 0.01]
-    },
-    //adaptiveTimestep: true
-    global: {
-      locale: ['en', 'nl']
     }
   };
 
@@ -44513,7 +45966,7 @@ return /******/ (function(modules) { // webpackBootstrap
   exports.configureOptions = configureOptions;
 
 /***/ },
-/* 115 */
+/* 117 */
 /***/ function(module, exports, __webpack_require__) {
 
   "use strict";
@@ -44527,7 +45980,7 @@ return /******/ (function(modules) { // webpackBootstrap
   var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }(); // distance finding algorithm
 
 
-  var _FloydWarshall = __webpack_require__(116);
+  var _FloydWarshall = __webpack_require__(118);
 
   var _FloydWarshall2 = _interopRequireDefault(_FloydWarshall);
 
@@ -44543,7 +45996,6 @@ return /******/ (function(modules) { // webpackBootstrap
    *
    * Possible optimizations in the distance calculation can be implemented.
    */
-
   var KamadaKawai = function () {
     function KamadaKawai(body, edgeLength, edgeStrength) {
       _classCallCheck(this, KamadaKawai);
@@ -44582,7 +46034,7 @@ return /******/ (function(modules) { // webpackBootstrap
     }, {
       key: "solve",
       value: function solve(nodesArray, edgesArray) {
-        var ignoreClusters = arguments.length <= 2 || arguments[2] === undefined ? false : arguments[2];
+        var ignoreClusters = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : false;
 
         // get distance matrix
         var D_matrix = this.distanceSolver.getDistances(this.body, nodesArray, edgesArray); // distance matrix
@@ -44656,13 +46108,11 @@ return /******/ (function(modules) { // webpackBootstrap
           var m = nodesArray[nodeIdx];
           // by not evaluating nodes with predefined positions we should only move nodes that have no positions.
           if (nodes[m].predefinedPosition === false || nodes[m].isCluster === true && ignoreClusters === true || nodes[m].options.fixed.x === true || nodes[m].options.fixed.y === true) {
-            var _getEnergy4 = this._getEnergy(m);
-
-            var _getEnergy5 = _slicedToArray(_getEnergy4, 3);
-
-            var delta_m = _getEnergy5[0];
-            var dE_dx = _getEnergy5[1];
-            var dE_dy = _getEnergy5[2];
+            var _getEnergy4 = this._getEnergy(m),
+                _getEnergy5 = _slicedToArray(_getEnergy4, 3),
+                delta_m = _getEnergy5[0],
+                dE_dx = _getEnergy5[1],
+                dE_dy = _getEnergy5[2];
 
             if (maxEnergy < delta_m) {
               maxEnergy = delta_m;
@@ -44804,7 +46254,7 @@ return /******/ (function(modules) { // webpackBootstrap
   exports.default = KamadaKawai;
 
 /***/ },
-/* 116 */
+/* 118 */
 /***/ function(module, exports) {
 
   "use strict";
@@ -44874,7 +46324,7 @@ return /******/ (function(modules) { // webpackBootstrap
   exports.default = FloydWarshall;
 
 /***/ },
-/* 117 */
+/* 119 */
 /***/ function(module, exports) {
 
   'use strict';
@@ -44923,6 +46373,7 @@ return /******/ (function(modules) { // webpackBootstrap
       var s2 = s / 2;
       var ir = Math.sqrt(3) / 6 * s; // radius of inner circle
       var h = Math.sqrt(s * s - s2 * s2); // height
+
 
       this.moveTo(x, y - (h - ir));
       this.lineTo(x + s2, y + ir);
@@ -45090,9 +46541,9 @@ return /******/ (function(modules) { // webpackBootstrap
     };
 
     /**
-     * Draw an arrow point (no line)
+     * Draw an arrow at the end of a line with the given angle.
      */
-    CanvasRenderingContext2D.prototype.arrow = function (x, y, angle, length) {
+    CanvasRenderingContext2D.prototype.arrowEndpoint = function (x, y, angle, length) {
       // tail
       var xt = x - length * Math.cos(angle);
       var yt = y - length * Math.sin(angle);
@@ -45115,6 +46566,16 @@ return /******/ (function(modules) { // webpackBootstrap
       this.lineTo(xi, yi);
       this.lineTo(xr, yr);
       this.closePath();
+    };
+
+    /**
+     * Draw an circle an the end of an line with the given angle.
+     */
+    CanvasRenderingContext2D.prototype.circleEndpoint = function (x, y, angle, length) {
+      var radius = length * 0.4;
+      var xc = x - radius * Math.cos(angle);
+      var yc = y - radius * Math.sin(angle);
+      this.circle(xc, yc, radius);
     };
 
     /**
@@ -45161,7 +46622,7 @@ return /******/ (function(modules) { // webpackBootstrap
   }
 
 /***/ },
-/* 118 */
+/* 120 */
 /***/ function(module, exports) {
 
   'use strict';
@@ -45511,10 +46972,10 @@ return /******/ (function(modules) { // webpackBootstrap
       if (token === 'false') {
         token = false; // convert to boolean
       } else if (token === 'true') {
-          token = true; // convert to boolean
-        } else if (!isNaN(Number(token))) {
-            token = Number(token); // convert to number
-          }
+        token = true; // convert to boolean
+      } else if (!isNaN(Number(token))) {
+        token = Number(token); // convert to number
+      }
       tokenType = TOKENTYPE.IDENTIFIER;
       return;
     }
@@ -45656,8 +47117,8 @@ return /******/ (function(modules) { // webpackBootstrap
       getToken();
       // TODO: implement comma separated list with "a_list: ID=ID [','] [a_list] "
     } else {
-        parseNodeStatement(graph, id);
-      }
+      parseNodeStatement(graph, id);
+    }
   }
 
   /**
@@ -46059,7 +47520,7 @@ return /******/ (function(modules) { // webpackBootstrap
   exports.DOTToGraph = DOTToGraph;
 
 /***/ },
-/* 119 */
+/* 121 */
 /***/ function(module, exports) {
 
   'use strict';
@@ -46137,7 +47598,7 @@ return /******/ (function(modules) { // webpackBootstrap
   exports.parseGephi = parseGephi;
 
 /***/ },
-/* 120 */
+/* 122 */
 /***/ function(module, exports) {
 
   'use strict';
@@ -46164,31 +47625,31 @@ return /******/ (function(modules) { // webpackBootstrap
   // German
   exports['de'] = {
     edit: 'Editieren',
-    del: 'Lösche Auswahl',
-    back: 'Zurück',
-    addNode: 'Knoten hinzufügen',
-    addEdge: 'Kante hinzufügen',
+    del: 'L\xF6sche Auswahl',
+    back: 'Zur\xFCck',
+    addNode: 'Knoten hinzuf\xFCgen',
+    addEdge: 'Kante hinzuf\xFCgen',
     editNode: 'Knoten editieren',
     editEdge: 'Kante editieren',
     addDescription: 'Klicke auf eine freie Stelle, um einen neuen Knoten zu plazieren.',
     edgeDescription: 'Klicke auf einen Knoten und ziehe die Kante zu einem anderen Knoten, um diese zu verbinden.',
     editEdgeDescription: 'Klicke auf die Verbindungspunkte und ziehe diese auf einen Knoten, um sie zu verbinden.',
-    createEdgeError: 'Es ist nicht möglich, Kanten mit Clustern zu verbinden.',
-    deleteClusterError: 'Cluster können nicht gelöscht werden.',
-    editClusterError: 'Cluster können nicht editiert werden.'
+    createEdgeError: 'Es ist nicht m\xF6glich, Kanten mit Clustern zu verbinden.',
+    deleteClusterError: 'Cluster k\xF6nnen nicht gel\xF6scht werden.',
+    editClusterError: 'Cluster k\xF6nnen nicht editiert werden.'
   };
   exports['de_DE'] = exports['de'];
 
   // Spanish
   exports['es'] = {
     edit: 'Editar',
-    del: 'Eliminar selección',
-    back: 'Átras',
-    addNode: 'Añadir nodo',
-    addEdge: 'Añadir arista',
+    del: 'Eliminar selecci\xF3n',
+    back: '\xC1tras',
+    addNode: 'A\xF1adir nodo',
+    addEdge: 'A\xF1adir arista',
     editNode: 'Editar nodo',
     editEdge: 'Editar arista',
-    addDescription: 'Haga clic en un lugar vacío para colocar un nuevo nodo.',
+    addDescription: 'Haga clic en un lugar vac\xEDo para colocar un nuevo nodo.',
     edgeDescription: 'Haga clic en un nodo y arrastre la arista hacia otro nodo para conectarlos.',
     editEdgeDescription: 'Haga clic en un punto de control y arrastrelo a un nodo para conectarlo.',
     createEdgeError: 'No se puede conectar una arista a un grupo.',
@@ -46196,6 +47657,24 @@ return /******/ (function(modules) { // webpackBootstrap
     editClusterError: 'No es posible editar grupos.'
   };
   exports['es_ES'] = exports['es'];
+
+  //Italiano
+  exports['it'] = {
+    edit: 'Modifica',
+    del: 'Cancella la selezione',
+    back: 'Indietro',
+    addNode: 'Aggiungi un nodo',
+    addEdge: 'Aggiungi un vertice',
+    editNode: 'Modifica il nodo',
+    editEdge: 'Modifica il vertice',
+    addDescription: 'Clicca per aggiungere un nuovo nodo',
+    edgeDescription: 'Clicca su un nodo e trascinalo ad un altro nodo per connetterli.',
+    editEdgeDescription: 'Clicca sui Punti di controllo e trascinali ad un nodo per connetterli.',
+    createEdgeError: 'Non si possono collegare vertici ad un cluster',
+    deleteClusterError: 'I cluster non possono essere cancellati',
+    editClusterError: 'I clusters non possono essere modificati.'
+  };
+  exports['it_IT'] = exports['it'];
 
   // Dutch
   exports['nl'] = {
@@ -46215,6 +47694,44 @@ return /******/ (function(modules) { // webpackBootstrap
   };
   exports['nl_NL'] = exports['nl'];
   exports['nl_BE'] = exports['nl'];
+
+  // Portuguese Brazil
+  exports['pt-br'] = {
+    edit: 'Editar',
+    del: 'Remover selecionado',
+    back: 'Voltar',
+    addNode: 'Adicionar nó',
+    addEdge: 'Adicionar aresta',
+    editNode: 'Editar nó',
+    editEdge: 'Editar aresta',
+    addDescription: 'Clique em um espaço em branco para adicionar um novo nó',
+    edgeDescription: 'Clique em um nó e arraste a aresta até outro nó para conectá-los',
+    editEdgeDescription: 'Clique nos pontos de controle e os arraste para um nó para conectá-los',
+    createEdgeError: 'Não foi possível linkar arestas a um cluster.',
+    deleteClusterError: 'Clusters não puderam ser removidos.',
+    editClusterError: 'Clusters não puderam ser editados.'
+  };
+  exports['pt-BR'] = exports['pt-br'];
+  exports['pt_BR'] = exports['pt-br'];
+  exports['pt_br'] = exports['pt-br'];
+
+  // Russian
+  exports['ru'] = {
+    edit: 'Редактировать',
+    del: 'Удалить выбранное',
+    back: 'Назад',
+    addNode: 'Добавить узел',
+    addEdge: 'Добавить ребро',
+    editNode: 'Редактировать узел',
+    editEdge: 'Редактировать ребро',
+    addDescription: 'Кликните в свободное место, чтобы добавить новый узел.',
+    edgeDescription: 'Кликните на узел и протяните ребро к другому узлу, чтобы соединить их.',
+    editEdgeDescription: 'Кликните на контрольные точки и перетащите их в узел, чтобы подключиться к нему.',
+    createEdgeError: 'Невозможно соединить ребра в кластер.',
+    deleteClusterError: 'Кластеры не могут быть удалены',
+    editClusterError: 'Кластеры недоступны для редактирования.'
+  };
+  exports['ru_RU'] = exports['ru'];
 
 /***/ }
 /******/ ])

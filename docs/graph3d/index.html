@@ -12,7 +12,7 @@
   <link href="../css/bootstrap.css" rel="stylesheet">
   <!-- Tipue vendor css -->
   <link href="../css/tipuesearch.css" rel="stylesheet">
-
+  
   <link href="../css/style.css" rel="stylesheet">
 
 
@@ -57,6 +57,7 @@
                         <li><a href="http://www.visjs.org/index.html#download_install">Download</a></li>
                         <li><a href="http://www.visjs.org/showcase/index.html">Showcase</a></li>
                         <li><a href="http://www.visjs.org/index.html#contribute">Contribute</a></li>
+                        <li><a href="http://www.visjs.org/featureRequests.html">Feature requests</a></li>
                         <li><a href="http://www.visjs.org/index.html#licenses">License</a></li>
                     </ul>
                     <form class="navbar-form navbar-right" role="search">
@@ -435,6 +436,14 @@ var options = {
       </td>
     </tr>
     <tr>
+      <td>showLegend</td>
+      <td>boolean</td>
+      <td>none</td>
+      <td>If true, a legend is drawn for the graph (if the graph type supports it). 
+          By default a legend is drawn for dot and dot-color style graphs. 
+      </td>
+    </tr>
+    <tr>
       <td>showShadow</td>
       <td>boolean</td>
       <td>false</td>
@@ -465,7 +474,8 @@ var options = {
         The contents of the tooltip can be customized by providing a callback
         function as <code>tooltip</code>. In this case the function is called
         with an object containing parameters <code>x</code>,
-        <code>y</code>, and <code>z</code> argument,
+    <code>y</code>, <code>z</code>, and <code>data</code>
+    (the source JS object for the point) as an argument,
         and must return a string which may contain HTML.
       </td>
     </tr>

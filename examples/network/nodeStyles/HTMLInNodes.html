@@ -17,7 +17,7 @@
     </style>
 
     <script type="text/javascript" src="../../../dist/vis.js"></script>
-    <link href="../../../dist/vis.css" rel="stylesheet" type="text/css" />
+    <link href="../../../dist/vis-network.min.css" rel="stylesheet" type="text/css" />
 
     <script type="text/javascript">
         var nodes = null;
@@ -29,7 +29,7 @@
         var LENGTH_SUB = 50;
 
 
-        var data = '<svg xmlns="http://www.w3.org/2000/svg" width="390" height="65">' +
+        var svg = '<svg xmlns="http://www.w3.org/2000/svg" width="390" height="65">' +
             '<rect x="0" y="0" width="100%" height="100%" fill="#7890A7" stroke-width="20" stroke="#ffffff" ></rect>' +
             '<foreignObject x="15" y="10" width="100%" height="100%">' +
             '<div xmlns="http://www.w3.org/1999/xhtml" style="font-size:40px">' +
@@ -40,11 +40,8 @@
             '</foreignObject>' +
             '</svg>';
 
-        var DOMURL = window.URL || window.webkitURL || window;
 
-        var img = new Image();
-        var svg = new Blob([data], {type: 'image/svg+xml;charset=utf-8'});
-        var url = DOMURL.createObjectURL(svg);
+        var url = "data:image/svg+xml;charset=utf-8,"+ encodeURIComponent(svg);
 
         // Called when the Visualization API is loaded.
         function draw() {
