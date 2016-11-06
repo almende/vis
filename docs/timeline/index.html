@@ -339,7 +339,7 @@ var items = new vis.DataSet([
       <td>editable</td>
       <td>Boolean</td>
       <td>no</td>
-      <td>Override the editable option of the timeline for a specific item.</td>
+      <td>Override the editable option of the timeline for a specific item (assuming <code>timeline.editable.overrideItems</code> is false).</td>
   </table>
 
   <h3 id="groups">Groups</h3>
@@ -544,6 +544,12 @@ function (option, path) {
       <td>boolean</td>
       <td><code>false</code></td>
       <td>If true, items can be dragged to another moment in time. See section <a href="#Editing_Items">Editing Items</a> for a detailed explanation.</td>
+    </tr>
+    <tr parent="editable" class="hidden">
+      <td class="ident">editable.overrideItems</td>
+      <td>boolean</td>
+      <td><code>false</code></td>
+      <td>If true, item specific editable properties are overridden</td>
     </tr>
 
     <tr>
@@ -1041,7 +1047,7 @@ function (option, path) {
       <td>verticalScroll</td>
       <td>Boolean</td>
       <td><code>false</code></td>
-      <td> Show a vertical scroll on the side of the group list and link it to the scroll event when zoom is not triggered. Notice that defining this option as <code>true</code> will NOT override <code>horizontalScroll</code>. The scroll event will be vertically ignored, but a vertical scrollbar will be visible    
+      <td> Show a vertical scroll on the side of the group list and link it to the scroll event when zoom is not triggered. Notice that defining this option as <code>true</code> will NOT override <code>horizontalScroll</code>. The scroll event will be vertically ignored, but a vertical scrollbar will be visible
       </td>
     </tr>
 
@@ -1571,7 +1577,7 @@ var options = {
 };</pre>
 
   <p>
-    Editing can be enabled/disabled for specific items. Setting the property <code>editable</code> to <code>true</code> or <code>false</code> on a data item will override the timeline option.
+    Editing can be enabled/disabled for specific items. Setting the property <code>editable</code> to <code>true</code> or <code>false</code> on a data item will override the timeline option depending on the value of <code>timeline.editable.overrideItems</code>.
   </p>
 
 <pre class="prettyprint lang-js">
