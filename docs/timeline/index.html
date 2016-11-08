@@ -546,10 +546,10 @@ function (option, path) {
       <td>If true, items can be dragged to another moment in time. See section <a href="#Editing_Items">Editing Items</a> for a detailed explanation.</td>
     </tr>
     <tr parent="editable" class="hidden">
-      <td class="ident">editable.overrideItems</td>
+      <td class="indent">editable.overrideItems</td>
       <td>boolean</td>
       <td><code>false</code></td>
-      <td>If true, item specific editable properties are overridden</td>
+      <td>If true, item specific editable properties are overridden by timeline settings</td>
     </tr>
 
     <tr>
@@ -1572,12 +1572,13 @@ var options = {
     add: true,         // add new items by double tapping
     updateTime: true,  // drag items horizontally
     updateGroup: true, // drag items from one group to another
-    remove: true       // delete an item by tapping the delete button top right
+    remove: true,       // delete an item by tapping the delete button top right
+    overrideItems: false  // allow these options to override item.editable
   }
 };</pre>
 
   <p>
-    Editing can be enabled/disabled for specific items. Setting the property <code>editable</code> to <code>true</code> or <code>false</code> on a data item will override the timeline option depending on the value of <code>timeline.editable.overrideItems</code>.
+    Editing can be enabled/disabled for specific items. Setting the property <code>editable</code> to <code>true</code> or <code>false</code> on a data item will override the timeline option except when <code>timeline.editable.overrideItems</code> is set to <code>true</code>.
   </p>
 
 <pre class="prettyprint lang-js">

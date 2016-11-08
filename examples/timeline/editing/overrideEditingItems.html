@@ -32,6 +32,7 @@
 <p>Specify individual items to be editable or readonly. Toggle edit options and override behavior from timeline.editable</p>
 
 <div id="visualization"></div>
+<p>
 <form>
 Timeline.editable = {</br>
 <input name="add" type="checkbox" checked>add</input></br>
@@ -41,6 +42,7 @@ Timeline.editable = {</br>
 <input name="overrideItems" type="checkbox">overrideItems</input><br>
 }
 </form>
+</p>
 <script>
   // create a DataSet with items
   var items = new vis.DataSet([
@@ -52,8 +54,8 @@ Timeline.editable = {</br>
     {id: 6, content: 'Read-only', editable: false, start: '2010-08-29', group: 2},
     {id: 7, content: 'Editable', editable: true, start: '2010-08-31', end: '2010-09-03', group: 1},
     {id: 8, content: 'Read-only', editable: false, start: '2010-09-04T12:00:00', group: 2},
-    {id: 9, content: 'Null', start: '2010-09-04', group: 1},
-    {id: 10, content: 'Null', start: '2010-08-24', group: 2}
+    {id: 9, content: 'Default', start: '2010-09-04', group: 1},
+    {id: 10, content: 'Default', start: '2010-08-24', group: 2}
   ]);
 
   var groups = [
