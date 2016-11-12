@@ -237,7 +237,7 @@ var items = new vis.DataSet([
     The item properties are defined as:
   </p>
 
-  <table class="properties">
+  <table class="properties" id="itemOptionTable">
     <tr>
       <th>Name</th>
       <th>Type</th>
@@ -335,11 +335,30 @@ var items = new vis.DataSet([
         Types 'box' and 'point' need a start date, the types 'range' and 'background' needs both a start and end date.
       </td>
     </tr>
-    <tr>
-      <td>editable</td>
-      <td>Boolean</td>
+    <tr class='toggle collapsible' onclick="toggleTable('itemOptionTable', 'itemEditable', this);">
+      <td><span parent="itemEditable" class="right-caret"></span> editable</td>
+      <td>Boolean or Object</td>
       <td>no</td>
       <td>Override the editable option of the timeline for a specific item (assuming <code>timeline.editable.overrideItems</code> is false).</td>
+    </tr>
+    <tr parent="itemEditable" class="hidden">
+      <td class="indent">editable.remove</td>
+      <td>boolean</td>
+      <td>no</td>
+      <td>If true, item can be deleted by first selecting it, and then clicking the delete button on the top right of the item. See section <a href="#Editing_Items">Editing Items</a> for a detailed explanation.</td>
+    </tr>
+    <tr parent="itemEditable" class="hidden">
+      <td class="indent">editable.updateGroup</td>
+      <td>boolean</td>
+      <td>no</td>
+      <td>If true, item can be dragged from one group to another. Only applicable when the Timeline has groups. See section <a href="#Editing_Items">Editing Items</a> for a detailed explanation.</td>
+    </tr>
+    <tr parent="itemEditable" class="hidden">
+      <td class="indent">editable.updateTime</td>
+      <td>boolean</td>
+      <td>no</td>
+      <td>If true, items can be dragged to another moment int time. See section <a href="#Editing_Items">Editing Items</a> for a detailed explanation.</td>
+    </tr>
   </table>
 
   <h3 id="groups">Groups</h3>
