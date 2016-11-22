@@ -459,6 +459,36 @@ network.setOptions(options);
             <td><code>undefined</code></td>
             <td>When using the hierarchical layout, the level determines where the node is going to be positioned.</td>
         </tr>
+        <tr class='toggle collapsible' onclick="toggleTable('optionTable','margin', this);">
+            <td><span parent="margin" class="right-caret"></span> margin</td>
+            <td>Object or Number</td>
+            <td><code>5</code></td>
+            <td>If a number is specified, the margins of the label are set to that value on all sides. These options are only used when the shape is set to <code>box</code>, <code>circle</code>, <code>database</code>, <code>icon</code> or <code>text</code>.</td>
+        </tr>
+        <tr parent="margin" class="hidden">
+            <td class="indent">margin.top</td>
+            <td>Number</td>
+            <td><code>5</code></td>
+            <td>The top margin of the label is set to this value.</td>
+        </tr>
+        <tr parent="margin" class="hidden">
+            <td class="indent">margin.right</td>
+            <td>Number</td>
+            <td><code>5</code></td>
+            <td>The right margin of the label is set to this value.</td>
+        </tr>
+        <tr parent="margin" class="hidden">
+            <td class="indent">margin.bottom</td>
+            <td>Number</td>
+            <td><code>5</code></td>
+            <td>The bottom margin of the label is set to this value.</td>
+        </tr>
+        <tr parent="margin" class="hidden">
+            <td class="indent">margin.left</td>
+            <td>Number</td>
+            <td><code>5</code></td>
+            <td>The left margin of the label is set to this value.</td>
+        </tr>
         <tr>
             <td>mass</td>
             <td>Number</td>
