@@ -7913,7 +7913,8 @@ return /******/ (function(modules) { // webpackBootstrap
     yStep: autoByDefault,
     zMin: autoByDefault,
     zMax: autoByDefault,
-    zStep: autoByDefault
+    zStep: autoByDefault,
+    customPointColor: false
   };
 
   // -----------------------------------------------------------------------------
@@ -9474,7 +9475,19 @@ return /******/ (function(modules) { // webpackBootstrap
    * Draw single datapoint for graph style 'dot-color'.
    */
   Graph3d.prototype._redrawDotColorGraphPoint = function (ctx, point) {
-    var colors = this._getColorsColor(point);
+	 var colors = {
+      fill: this.dataColor.fill,
+      border: this.dataColor.stroke
+    };
+	
+    if(this.customPointColor != true)
+	  {
+	    colors = this._getColorsColor(point);     
+    } else
+    {
+      colors.fill = point.point.data.fill_color;
+      colors.border = point.point.data.border_color;
+    }
 
     this._drawCircle(ctx, point, colors.fill, colors.border);
   };
@@ -11380,7 +11393,7 @@ return /******/ (function(modules) { // webpackBootstrap
    * Specifically, these are the fields which require no special handling,
    * and can be directly copied over.
    */
-  var OPTIONKEYS = ['width', 'height', 'filterLabel', 'legendLabel', 'xLabel', 'yLabel', 'zLabel', 'xValueLabel', 'yValueLabel', 'zValueLabel', 'showGrid', 'showPerspective', 'showShadow', 'keepAspectRatio', 'verticalRatio', 'dotSizeRatio', 'showAnimationControls', 'animationInterval', 'animationPreload', 'animationAutoStart', 'axisColor', 'gridColor', 'xCenter', 'yCenter'];
+  var OPTIONKEYS = ['width', 'height', 'filterLabel', 'legendLabel', 'xLabel', 'yLabel', 'zLabel', 'xValueLabel', 'yValueLabel', 'zValueLabel', 'showGrid', 'showPerspective', 'showShadow', 'keepAspectRatio', 'verticalRatio', 'dotSizeRatio', 'showAnimationControls', 'animationInterval', 'animationPreload', 'animationAutoStart', 'axisColor', 'gridColor', 'xCenter', 'yCenter', 'customPointColor'];
 
   /**
    * Field names in the options hash which are of relevance to the user.
