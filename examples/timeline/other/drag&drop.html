@@ -123,7 +123,7 @@
       item.end = new Date(1000*60*10 + (new Date()).valueOf());
     }
 
-    event.dataTransfer.setData("text/plain", JSON.stringify(item));
+    event.dataTransfer.setData("text", JSON.stringify(item));
   }
 
   var items = document.querySelectorAll('.items .item');
