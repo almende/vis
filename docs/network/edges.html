@@ -208,8 +208,9 @@ var options = {
       roundness: 0.5
     },
     title:undefined,
+    value: undefined,
     width: 1,
-    value: undefined
+    widthConstraint: false
   }
 }
 
@@ -885,6 +886,18 @@ var options: {
             <td>Number</td>
             <td><code>1</code></td>
             <td>The width of the edge. If value is set, this is not used.</td>
+        </tr>
+        <tr class='toggle collapsible' onclick="toggleTable('optionTable','widthConstraint', this);">
+            <td><span parent="widthConstraint" class="right-caret"></span> widthConstraint</td>
+            <td>Number, Boolean or Object</td>
+            <td><code>false</code></td>
+            <td>If false, no widthConstraint is applied. If a number is specified, the maximum width of the edge's label is set to the value. The edge's label's lines will be broken on spaces to stay below the maximum.</td>
+        </tr>
+        <tr parent="widthConstraint" class="hidden">
+            <td class="indent">widthConstraint.maximum</td>
+            <td>Number</td>
+            <td><code>undefined</code></td>
+            <td>If a number is specified, the maximum width of the edge's label is set to the value. The edge's label's lines will be broken on spaces to stay below the maximum.</td>
         </tr>
     </table>
 

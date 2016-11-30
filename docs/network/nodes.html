@@ -166,6 +166,7 @@ var options = {
       }
     },
     group: undefined,
+    heightConstraint: false,
     hidden: false,
     icon: {
       face: 'FontAwesome',
@@ -217,6 +218,7 @@ var options = {
     size: 25,
     title: undefined,
     value: undefined,
+    widthConstraint: false,
     x: undefined,
     y: undefined
   }
@@ -584,6 +586,25 @@ network.setOptions(options);
                 that group will apply to this node. Node specific styling overrides group styling.
             </td>
         </tr>
+        <tr class='toggle collapsible' onclick="toggleTable('optionTable','heightConstraint', this);">
+            <td><span parent="heightConstraint" class="right-caret"></span> heightConstraint</td>
+            <td>Number, Boolean or Object</td>
+            <td><code>false</code></td>
+            <td>If false, no heightConstraint is applied. If a number is specified, the value is used as the minimum height of the node. The node's height will be be set to the minimum if less than the value.</td>
+        </tr>
+        <tr parent="heightConstraint" class="hidden">
+            <td class="indent">heightConstraint.minimum</td>
+            <td>Number</td>
+            <td><code>undefined</code></td>
+            <td>If a number is specified, the value is used as the minimum height of the node. The node's height will be be set to the minimum if less than the value.</td>
+        </tr>
+        <tr parent="heightConstraint" class="hidden">
+            <td class="indent">heightConstraint.valign</td>
+            <td>String</td>
+            <td><code>'middle'</code></td>
+            <td>Valid values are <code>'top'</code>, <code>'middle'</code>, and <code>'bottom'</code>.
+               When specified, if the height of the label text is less than the minimum (including any top or bottom margins), it will be offset vertically to the designated position.</td>
+        </tr>
         <tr>
             <td>hidden</td>
             <td>Boolean</td>
@@ -925,6 +946,24 @@ mySize = minSize + diff * scale;
             <td><code>undefined</code></td>
             <td>When a value is set, the nodes will be scaled using the options in the scaling object defined above.
             </td>
+        </tr>
+        <tr class='toggle collapsible' onclick="toggleTable('optionTable','widthConstraint', this);">
+            <td><span parent="widthConstraint" class="right-caret"></span> widthConstraint</td>
+            <td>Number, Boolean or Object</td>
+            <td><code>false</code></td>
+            <td>If false, no widthConstraint is applied. If a number is specified, the minimum and maximum widths of the node are set to the value. The node's label's lines will be broken on spaces to stay below the maximum and the node's width will be set to the minimum if less than the value.</td>
+        </tr>
+        <tr parent="widthConstraint" class="hidden">
+            <td class="indent">widthConstraint.minimum</td>
+            <td>Number</td>
+            <td><code>undefined</code></td>
+            <td>If a number is specified, the minimum width of the node is set to the value. The node's width will be set to the minimum if less than the value.</td>
+        </tr>
+        <tr parent="widthConstraint" class="hidden">
+            <td class="indent">widthConstraint.maximum</td>
+            <td>Number</td>
+            <td><code>undefined</code></td>
+            <td>If a number is specified, the maximum width of the node is set to the value. The node's label's lines will be broken on spaces to stay below the maximum.</td>
         </tr>
         <tr>
             <td>x</td>
