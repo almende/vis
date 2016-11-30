@@ -237,7 +237,7 @@ var items = new vis.DataSet([
     The item properties are defined as:
   </p>
 
-  <table class="properties">
+  <table class="properties" id="itemOptionTable">
     <tr>
       <th>Name</th>
       <th>Type</th>
@@ -335,11 +335,30 @@ var items = new vis.DataSet([
         Types 'box' and 'point' need a start date, the types 'range' and 'background' needs both a start and end date.
       </td>
     </tr>
-    <tr>
-      <td>editable</td>
-      <td>Boolean</td>
+    <tr class='toggle collapsible' onclick="toggleTable('itemOptionTable', 'itemEditable', this);">
+      <td><span parent="itemEditable" class="right-caret"></span> editable</td>
+      <td>Boolean or Object</td>
       <td>no</td>
-      <td>Override the editable option of the timeline for a specific item.</td>
+      <td>Override the editable option of the timeline for a specific item (assuming <code>timeline.editable.overrideItems</code> is false).</td>
+    </tr>
+    <tr parent="itemEditable" class="hidden">
+      <td class="indent">editable.remove</td>
+      <td>boolean</td>
+      <td>no</td>
+      <td>If true, item can be deleted by first selecting it, and then clicking the delete button on the top right of the item. See section <a href="#Editing_Items">Editing Items</a> for a detailed explanation.</td>
+    </tr>
+    <tr parent="itemEditable" class="hidden">
+      <td class="indent">editable.updateGroup</td>
+      <td>boolean</td>
+      <td>no</td>
+      <td>If true, item can be dragged from one group to another. Only applicable when the Timeline has groups. See section <a href="#Editing_Items">Editing Items</a> for a detailed explanation.</td>
+    </tr>
+    <tr parent="itemEditable" class="hidden">
+      <td class="indent">editable.updateTime</td>
+      <td>boolean</td>
+      <td>no</td>
+      <td>If true, items can be dragged to another moment int time. See section <a href="#Editing_Items">Editing Items</a> for a detailed explanation.</td>
+    </tr>
   </table>
 
   <h3 id="groups">Groups</h3>
@@ -399,9 +418,9 @@ var groups = [
     </tr>
     <tr>
       <td>content</td>
-      <td>String</td>
+      <td>String or Element</td>
       <td>yes</td>
-      <td>The contents of the group. This can be plain text or html code.</td>
+      <td>The contents of the group. This can be plain text, html code or an html element.</td>
     </tr>
     <tr>
       <td>id</td>
@@ -435,6 +454,12 @@ var groups = [
       <td>A title for the group, displayed when holding the mouse on the groups label.
         The title can only contain plain text.
       </td>
+    </tr>
+    <tr>
+      <td>visible</td>
+      <td>Boolean</td>
+      <td>no</td>
+      <td>Provides a means to toggle the whether a group is displayed or not. Defaults to <code>true</code>.</td>
     </tr>
   </table>
 
@@ -544,6 +569,12 @@ function (option, path) {
       <td>boolean</td>
       <td><code>false</code></td>
       <td>If true, items can be dragged to another moment in time. See section <a href="#Editing_Items">Editing Items</a> for a detailed explanation.</td>
+    </tr>
+    <tr parent="editable" class="hidden">
+      <td class="indent">editable.overrideItems</td>
+      <td>boolean</td>
+      <td><code>false</code></td>
+      <td>If true, item specific editable properties are overridden by timeline settings</td>
     </tr>
 
     <tr>
@@ -1041,7 +1072,7 @@ function (option, path) {
       <td>verticalScroll</td>
       <td>Boolean</td>
       <td><code>false</code></td>
-      <td> Show a vertical scroll on the side of the group list and link it to the scroll event when zoom is not triggered. Notice that defining this option as <code>true</code> will NOT override <code>horizontalScroll</code>. The scroll event will be vertically ignored, but a vertical scrollbar will be visible    
+      <td> Show a vertical scroll on the side of the group list and link it to the scroll event when zoom is not triggered. Notice that defining this option as <code>true</code> will NOT override <code>horizontalScroll</code>. The scroll event will be vertically ignored, but a vertical scrollbar will be visible
       </td>
     </tr>
 
@@ -1566,12 +1597,13 @@ var options = {
     add: true,         // add new items by double tapping
     updateTime: true,  // drag items horizontally
     updateGroup: true, // drag items from one group to another
-    remove: true       // delete an item by tapping the delete button top right
+    remove: true,       // delete an item by tapping the delete button top right
+    overrideItems: false  // allow these options to override item.editable
   }
 };</pre>
 
   <p>
-    Editing can be enabled/disabled for specific items. Setting the property <code>editable</code> to <code>true</code> or <code>false</code> on a data item will override the timeline option.
+    Editing can be enabled/disabled for specific items. Setting the property <code>editable</code> to <code>true</code> or <code>false</code> on a data item will override the timeline option except when <code>timeline.editable.overrideItems</code> is set to <code>true</code>.
   </p>
 
 <pre class="prettyprint lang-js">
