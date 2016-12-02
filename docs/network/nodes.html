@@ -133,9 +133,40 @@ var options = {
       background: 'none',
       strokeWidth: 0, // px
       strokeColor: '#ffffff',
-      align: 'center'
+      align: 'center',
+      multi: false,
+      vadjust: 0,
+      bold: {
+        color: '#343434',
+        size: 14, // px
+        face: 'arial',
+        vadjust: 0,
+        mod: 'bold'
+      },
+      ital: {
+        color: '#343434',
+        size: 14, // px
+        face: 'arial',
+        vadjust: 0,
+        mod: 'italic',
+      },
+      boldital: {
+        color: '#343434',
+        size: 14, // px
+        face: 'arial',
+        vadjust: 0,
+        mod: 'bold italic'
+      },
+      mono: {
+        color: '#343434',
+        size: 15, // px
+        face: 'courier new',
+        vadjust: 2,
+        mod: ''
+      }
     },
     group: undefined,
+    heightConstraint: false,
     hidden: false,
     icon: {
       face: 'FontAwesome',
@@ -187,6 +218,7 @@ var options = {
     size: 25,
     title: undefined,
     value: undefined,
+    widthConstraint: false,
     x: undefined,
     y: undefined
   }
@@ -381,13 +413,197 @@ network.setOptions(options);
             <td>This can be set to 'left' to make the label left-aligned. Otherwise,
                 defaults to 'center'.</td>
         </tr>
+        <tr parent="font" class="hidden">
+            <td class="indent">font.vadjust</td>
+            <td>String</td>
+            <td><code>0</code></td>
+            <td>A font-specific correction to the vertical positioning of the base font in the label text. (Positive is down.)</td>
+        </tr>
+        <tr parent="font" class="hidden">
+            <td class="indent">font.multi</td>
+            <td>Boolean or String</td>
+            <td><code>false</code></td>
+            <td>If <code>false</code>, the label is treated as pure text drawn with the base font. If <code>true</code> or <code>'html'</code> the label may be multifonted, with bold, italic and code markup, interpreted as html. If the value is <code>'markdown'</code> or <code>'md'</code> the label may be multifonted, with bold, italic and code markup, interpreted as markdown.
+              The bold, italic, bold-italic and monospaced fonts may be set up under in the font.bold, font.ital, font.boldital and font.mono properties, respectively.</td>
+        </tr>
+        <tr parent="font" class='hidden toggle collapsible' onclick="toggleTable('optionTable','bold', this);">
+            <td><span parent="bold" class="right-caret"></span> font.bold</td>
+            <td>Object or String</td>
+            <td><code>false</code></td>
+            <td>This object defines the details of the bold font in the label. A shorthand is also supported in the form <code>'size face
+                color'</code> for example: <code>'14px arial red'</code>.
+            </td>
+        </tr>
+        <tr parent="bold" class="hidden">
+            <td class="indent">font.bold.color</td>
+            <td>String</td>
+            <td><code>'#343434'</code></td>
+            <td>Color of the bold font in the label text. Defaults to the base font's color.</td>
+        </tr>
+        <tr parent="bold" class="hidden">
+            <td class="indent">font.bold.size</td>
+            <td>Number</td>
+            <td><code>14</code></td>
+            <td>Size of the bold font in the label text. Defaults to the base font's size.</td>
+        </tr>
+        <tr parent="bold" class="hidden">
+            <td class="indent">font.bold.face</td>
+            <td>String</td>
+            <td><code>'arial'</code></td>
+            <td>Font face (or font family) of the bold font in the label text. Defaults to the base font's face.</td>
+        </tr>
+        <tr parent="bold" class="hidden">
+            <td class="indent">font.bold.mod</td>
+            <td>String</td>
+            <td><code>'bold'</code></td>
+            <td>A string added to the face and size when determining the bold font in the label text.</td>
+        </tr>
+        <tr parent="bold" class="hidden">
+            <td class="indent">font.bold.vadjust</td>
+            <td>String</td>
+            <td><code>0</code></td>
+            <td>A font-specific correction to the vertical positioning of the bold italic font in the label text. (Positive is down.) Defaults to the base font's valign.</td>
+        </tr>
+        <tr parent="font" class='hidden toggle collapsible' onclick="toggleTable('optionTable','ital', this);">
+            <td><span parent="ital" class="right-caret"></span> font.ital</td>
+            <td>Object or String</td>
+            <td><code>false</code></td>
+            <td>This object defines the details of the italic font in the label. A shorthand is also supported in the form <code>'size face
+                color'</code> for example: <code>'14px arial red'</code>.
+            </td>
+        </tr>
+        <tr parent="ital" class="hidden">
+            <td class="indent">font.ital.color</td>
+            <td>String</td>
+            <td><code>'#343434'</code></td>
+            <td>Color of the italic font in the label text. Defaults to the base font's color.</td>
+        </tr>
+        <tr parent="ital" class="hidden">
+            <td class="indent">font.ital.size</td>
+            <td>Number</td>
+            <td><code>14</code></td>
+            <td>Size of the italic font in the label text. Defaults to the base font's size.</td>
+        </tr>
+        <tr parent="ital" class="hidden">
+            <td class="indent">font.ital.face</td>
+            <td>String</td>
+            <td><code>'arial'</code></td>
+            <td>Font face (or font family) of the italic font in the label text. Defaults to the base font's face.</td>
+        </tr>
+        <tr parent="ital" class="hidden">
+            <td class="indent">font.ital.mod</td>
+            <td>String</td>
+            <td><code>'italic'</code></td>
+            <td>A string added to the face and size when determining the italic font in the label text.</td>
+        </tr>
+        <tr parent="ital" class="hidden">
+            <td class="indent">font.ital.vadjust</td>
+            <td>String</td>
+            <td><code>0</code></td>
+            <td>A font-specific correction to the vertical positioning of the italic font in the label text. (Positive is down.) Defaults to the base font's valign.</td>
+        </tr>
+        <tr parent="font" class='hidden toggle collapsible' onclick="toggleTable('optionTable','boldital', this);">
+            <td><span parent="boldital" class="right-caret"></span> font.boldital</td>
+            <td>Object or String</td>
+            <td><code>false</code></td>
+            <td>This object defines the details of the bold italic font in the label. A shorthand is also supported in the form <code>'size face
+                color'</code> for example: <code>'14px arial red'</code>.
+            </td>
+        </tr>
+        <tr parent="boldital" class="hidden">
+            <td class="indent">font.boldital.color</td>
+            <td>String</td>
+            <td><code>'#343434'</code></td>
+            <td>Color of the bold italic font in the label text. Defaults to the base font's color.</td>
+        </tr>
+        <tr parent="boldital" class="hidden">
+            <td class="indent">font.boldital.size</td>
+            <td>Number</td>
+            <td><code>14</code></td>
+            <td>Size of the bold italic font in the label text. Defaults to the base font's size.</td>
+        </tr>
+        <tr parent="boldital" class="hidden">
+            <td class="indent">font.boldital.face</td>
+            <td>String</td>
+            <td><code>'arial'</code></td>
+            <td>Font face (or font family) of the bold italic font in the label text. Defaults to the base font's face.</td>
+        </tr>
+        <tr parent="boldital" class="hidden">
+            <td class="indent">font.boldital.mod</td>
+            <td>String</td>
+            <td><code>'bold'</code></td>
+            <td>A string added to the face and size when determining the bold italic font in the label text.</td>
+        </tr>
+        <tr parent="boldital" class="hidden">
+            <td class="indent">font.boldital.vadjust</td>
+            <td>String</td>
+            <td><code>0</code></td>
+            <td>A font-specific correction to the vertical positioning of the bold italic font in the label text. (Positive is down.) Defaults to the base font's valign.</td>
+        </tr>
+        <tr parent="font" class='hidden toggle collapsible' onclick="toggleTable('optionTable','mono', this);">
+            <td><span parent="mono" class="right-caret"></span> font.mono</td>
+            <td>Object or String</td>
+            <td><code>false</code></td>
+            <td>This object defines the details of the monospaced font in the label. A shorthand is also supported in the form <code>'size face
+                color'</code> for example: <code>'15px courier red'</code>.
+            </td>
+        </tr>
+        <tr parent="mono" class="hidden">
+            <td class="indent">font.mono.color</td>
+            <td>String</td>
+            <td><code>'#343434'</code></td>
+            <td>Color of the monospaced font in the label text. Defaults to the base font's color.</td>
+        </tr>
+        <tr parent="mono" class="hidden">
+            <td class="indent">font.mono.size</td>
+            <td>Number</td>
+            <td><code>15</code></td>
+            <td>Size of the monospaced font in the label text. Defaults to the base font's size.</td>
+        </tr>
+        <tr parent="mono" class="hidden">
+            <td class="indent">font.mono.face</td>
+            <td>String</td>
+            <td><code>'courier new'</code></td>
+            <td>Font face (or font family) of the monospaced font in the label text.</td>
+        </tr>
+        <tr parent="mono" class="hidden">
+            <td class="indent">font.mono.mod</td>
+            <td>String</td>
+            <td><code>''</code></td>
+            <td>A string added to the face and size when determining the monospaced font in the label text.</td>
+        </tr>
+        <tr parent="mono" class="hidden">
+            <td class="indent">font.mono.vadjust</td>
+            <td>String</td>
+            <td><code>2</code></td>
+            <td>A font-specific correction to the vertical positioning of the monospaced font in the label text. (Positive is down.) Defaults to the base font's valign.</td>
+        </tr>
         <tr>
             <td>group</td>
             <td>String</td>
             <td><code>undefined</code></td>
             <td>When not <code>undefined</code>, the node will belong to the defined group. Styling information of
-                that group will apply to this node. Node specific styling overrides group styling. 
+                that group will apply to this node. Node specific styling overrides group styling.
             </td>
+        </tr>
+        <tr class='toggle collapsible' onclick="toggleTable('optionTable','heightConstraint', this);">
+            <td><span parent="heightConstraint" class="right-caret"></span> heightConstraint</td>
+            <td>Number, Boolean or Object</td>
+            <td><code>false</code></td>
+            <td>If false, no heightConstraint is applied. If a number is specified, the value is used as the minimum height of the node. The node's height will be be set to the minimum if less than the value.</td>
+        </tr>
+        <tr parent="heightConstraint" class="hidden">
+            <td class="indent">heightConstraint.minimum</td>
+            <td>Number</td>
+            <td><code>undefined</code></td>
+            <td>If a number is specified, the value is used as the minimum height of the node. The node's height will be be set to the minimum if less than the value.</td>
+        </tr>
+        <tr parent="heightConstraint" class="hidden">
+            <td class="indent">heightConstraint.valign</td>
+            <td>String</td>
+            <td><code>'middle'</code></td>
+            <td>Valid values are <code>'top'</code>, <code>'middle'</code>, and <code>'bottom'</code>.
+               When specified, if the height of the label text is less than the minimum (including any top or bottom margins), it will be offset vertically to the designated position.</td>
         </tr>
         <tr>
             <td>hidden</td>
@@ -730,6 +946,24 @@ mySize = minSize + diff * scale;
             <td><code>undefined</code></td>
             <td>When a value is set, the nodes will be scaled using the options in the scaling object defined above.
             </td>
+        </tr>
+        <tr class='toggle collapsible' onclick="toggleTable('optionTable','widthConstraint', this);">
+            <td><span parent="widthConstraint" class="right-caret"></span> widthConstraint</td>
+            <td>Number, Boolean or Object</td>
+            <td><code>false</code></td>
+            <td>If false, no widthConstraint is applied. If a number is specified, the minimum and maximum widths of the node are set to the value. The node's label's lines will be broken on spaces to stay below the maximum and the node's width will be set to the minimum if less than the value.</td>
+        </tr>
+        <tr parent="widthConstraint" class="hidden">
+            <td class="indent">widthConstraint.minimum</td>
+            <td>Number</td>
+            <td><code>undefined</code></td>
+            <td>If a number is specified, the minimum width of the node is set to the value. The node's width will be set to the minimum if less than the value.</td>
+        </tr>
+        <tr parent="widthConstraint" class="hidden">
+            <td class="indent">widthConstraint.maximum</td>
+            <td>Number</td>
+            <td><code>undefined</code></td>
+            <td>If a number is specified, the maximum width of the node is set to the value. The node's label's lines will be broken on spaces to stay below the maximum.</td>
         </tr>
         <tr>
             <td>x</td>
