@@ -1,5 +1,26 @@
-## other configuration excluded from example...
+languages:
+  JavaScript: true
+engines:
+  eslint:
+    enabled: true
+  csslint:
+    enabled: true
+  markdownlint:
+    enabled: true
+  duplication:
+    enabled: true
+    config:
+      languages:
+        javascript:
+          mass_threshold: 300
+  fixme :
+    enabled: true
+ratings:
+  paths:
+  - "**/*.js"
+  - "**/*.css"
+  - "**/*.md"
 exclude_paths:
-- "docs/"
-- "examples/"
-- "misc/"
+  - "dist/**/*"
+  - "docs/**/*"
+  - "examples/**/*"
