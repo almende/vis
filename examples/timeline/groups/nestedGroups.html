@@ -36,47 +36,58 @@
   var itemCount = 60;
 
   // create a data set with groups
-  var names = ["John", "Alston", "Lee", "Grant"];
-  var groupCount = names.length;
   var groups = new vis.DataSet();
-  for (var g = 0; g < groupCount; g++) {
-    var group = {id: g, content: names[g]};
-    if (names[g] != "Lee") {
-      group.nestedGroups = ["cooking - " + g, "dishes - " + g, "laundry - " + g]
-      var nestedGroups = [
-        { id: ("cooking - " + g), content: ("cooking - " + g) },
-        { id: ("dishes - " + g), content: ("dishes - " + g) },
-        { id: ("laundry - " + g), content: ("laundry - " + g) }
-      ]
-      groups.add(nestedGroups)
+
+  groups.add([
+    {
+      id: 1,
+      content: "Lee",
+      nestedGroups: [11,12,13]
+    },
+    {
+      id: 2,
+      content: "Alson",
+    },
+    {
+      id: 3,
+      content: "John",
+      nestedGroups: [14],
+      showNested: false
     }
-    groups.add(group);
-  }
+
+  ]);
+
+  groups.add([
+    {
+      id: 11,
+      content: "cook",
+    },
+    {
+      id: 12,
+      content: "shop",
+    },
+    {
+      id: 13,
+      content: "clean house",
+
+    },
+    {
+      id: 14,
+      content: "wash dishes",
+    }
+  ]);
+
 
   // create a dataset with items
   var items = new vis.DataSet();
+  var groupIds = groups.getIds()
   for (var i = 0; i < itemCount; i++) {
     var start = now.clone().add(Math.random() * 200, 'hours');
-    var randomGroupType = Math.floor(Math.random() * 4);
-    var group;
-    switch (randomGroupType) {
-      case 0: 
-        group = Math.floor(Math.random() * groupCount);
-        break;
-      case 1: 
-        group = "cooking - " + Math.floor(Math.random() * groupCount);
-        break;
-      case 2: 
-        group = "dishes - " + Math.floor(Math.random() * groupCount);
-        break;
-      case 3: 
-        group = "laundry - " + Math.floor(Math.random() * groupCount);
-        break;
-    }
+    var randomGroupId = groupIds[Math.floor(Math.random() * groupIds.length)];
 
     items.add({
       id: i,
-      group: group,
+      group: randomGroupId,
       content: 'item ' + i,
       start: start,
       type: 'box'
