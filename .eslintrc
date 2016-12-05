@@ -1,0 +1,6 @@
+{
+  "rules": {
+    "complexity": [2, 50],
+    "max-statements": [2, 100]
+  }
+}
