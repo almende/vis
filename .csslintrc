@@ -1,3 +1,4 @@
 {
+  "box-model": false,
   "box-sizing": false
 }
