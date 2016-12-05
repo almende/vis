@@ -33,6 +33,10 @@
   border-bottom: none;
 }
 
+.vis-nested-group {
+  cursor: pointer;
+}
+
 .vis-overlay {
   position: absolute;
   top: 0;
