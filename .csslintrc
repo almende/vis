@@ -1,4 +1,5 @@
 {
+  "adjoining-classes": false,
   "box-model": false,
   "box-sizing": false,
   "order-alphabetical": false
