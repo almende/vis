@@ -1,4 +1,5 @@
 {
   "box-model": false,
-  "box-sizing": false
+  "box-sizing": false,
+  "order-alphabetical": false
 }
