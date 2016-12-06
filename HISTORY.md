@@ -14,7 +14,7 @@ http://visjs.org
 - Fixed #2170: Improved the contribution docs (#1991, #2158, #2178, #2183, #2213, #2218, #2219)
 - Implemented #1969: generate individual css files for network and timeline (#1970)
 - Cleanup bower.json (#1968)
-- Removed feature-request page from website (TODO)
+- Fixed #2114: Removed feature-request page from website
 - Distinguish better between `devDependencies` and `dependencies` (#1967)
 - Typos and minor docs improvements (#1958, #2028, #2050, #2093, #2222, #2223, #2224)
 - Replaced `gulp-minify-css` with `gulp-clean-css` (#1953)
@@ -266,7 +266,7 @@ http://visjs.org
 ### General
 
 - Fixed #1353: Custom bundling with browserify requiring manual installation
-  of `babelify`.  
+  of `babelify`.
 
 ### Network
 
@@ -451,7 +451,7 @@ http://visjs.org
 - Fixed #1033: Moved item data not updated in DataSet when using an asynchronous
   `onMove` handler.
 - Fixed #239: Do not zoom/move the window when the mouse is on the left panel
-  with group labels.   
+  with group labels.
 
 
 ## 2015-07-03, version 4.4.0
