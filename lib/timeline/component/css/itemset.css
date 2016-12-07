@@ -41,6 +41,18 @@
   background: #e5e5e5;
 }
 
+.vis-label.vis-nesting-group.expanded:before {
+  content: "\25BC";
+}
+
+.vis-label.vis-nesting-group.collapsed-rtl:before {
+  content: "\25C0";
+}
+
+.vis-label.vis-nesting-group.collapsed:before {
+  content: "\25B6";
+}
+
 .vis-overlay {
   position: absolute;
   top: 0;
