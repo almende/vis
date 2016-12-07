@@ -1488,6 +1488,7 @@ timeline.off('select', onSelect);
           <li><code>start</code> (Number): timestamp of the current start of the window.</li>
           <li><code>end</code> (Number): timestamp of the current end of the window.</li>
           <li><code>byUser</code> (Boolean): change happened because of user drag/zoom.</li>
+          <li><code>event</code> (Object): original event triggering the rangechange.</li>
         </ul>
       </td>
       <td>Fired repeatedly when the timeline window is being changed.
@@ -1501,6 +1502,7 @@ timeline.off('select', onSelect);
           <li><code>start</code> (Number): timestamp of the current start of the window.</li>
           <li><code>end</code> (Number): timestamp of the current end of the window.</li>
           <li><code>byUser</code> (Boolean): change happened because of user drag/zoom.</li>
+          <li><code>event</code> (Object): original event triggering the rangechanged.</li>
         </ul>
       </td>
       <td>Fired once after the timeline window has been changed.
@@ -1549,6 +1551,7 @@ timeline.off('select', onSelect);
         <ul>
           <li><code>id</code> (Number or String): custom time bar id.</li>
           <li><code>time</code> (Date): the custom time.</li>
+          <li><code>event</code> (Object): original event triggering the timechange.</li>
         </ul>
       </td>
       <td>Fired repeatedly when the user is dragging the custom time bar.
@@ -1562,6 +1565,7 @@ timeline.off('select', onSelect);
         <ul>
           <li><code>id</code> (Number or String): custom time bar id.</li>
           <li><code>time</code> (Date): the custom time.</li>
+          <li><code>event</code> (Object): original event triggering the timechanged.</li>
         </ul>
       </td>
       <td>Fired once after the user has dragged the custom time bar.
