@@ -1,0 +1,42 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+  <title>Timeline | Dynamic Content</title>
+
+  <script src="../../../dist/vis.js"></script>
+  <link href="../../../dist/vis.min.css" rel="stylesheet" type="text/css" />
+
+</head>
+<body>
+
+<div id="myTimeline"></div>
+
+<script type="text/javascript">
+  // DOM element where the Timeline will be attached
+  var container = document.getElementById('myTimeline');
+
+  // Create a DataSet (allows two way data-binding)
+  var items = new vis.DataSet([
+    {id: 1, content: 'item 1 with overflowing text content', start: '2014-04-20', end: '2014-04-26'},
+    {id: 2, content: 'item 2 with overflowing text content', start: '2014-05-14', end: '2014-05-18'},
+    {id: 3, content: 'item 3 with overflowing text content', start: '2014-06-18', end: '2014-06-22'},
+    {id: 4, content: 'item 4 with overflowing text content', start: '2014-06-16', end: '2014-06-17'},
+    {id: 5, content: 'item 5 with overflowing text content', start: '2014-06-25', end: '2014-06-27'},
+    {id: 6, content: 'item 6 with overflowing text content', start: '2014-09-27', end: '2014-09-28'}
+  ]);
+
+  // Configuration for the Timeline
+  var options = {
+    template: function(item) {
+      return '<b>' + item.content + '</b>'
+    },
+    dynamicContentTemplate: function(item) {
+      return '<i>blaaaaaa</i>' + item.id 
+    } 
+  };
+
+  // Create a Timeline
+  var timeline = new vis.Timeline(container, items, options);
+</script>
+</body>
+</html>
