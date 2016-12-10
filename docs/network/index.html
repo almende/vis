@@ -1400,8 +1400,14 @@ var options = {
                 <td>Fired if the option <code>interaction:{hover:true}</code> is enabled and the mouse moved away from an edge it was hovering over before.</td>
             </tr>
             <tr><td id="event_zoom">zoom</td>
-                <td><code>{direction:'+'/'-', scale: Number}</code></td>
-                <td>Fired when the user zooms in or out. The properties tell you which direction the zoom is in. The scale is a number greater than 0, which is the same that you get with network.getScale().</td>
+                <td>Object</td>
+                <td>Fired when the user zooms in or out. The properties tell you which direction the zoom is in. The scale is a number greater than 0, which is the same that you get with network.getScale(), Passes an object with properties structured as:
+<pre class="prettyprint lang-js">{
+  direction: '+'/'-',
+  scale: Number,
+  pointer: {x:pointer_x, y:pointer_y}
+}
+</pre></td>
             </tr>
             <tr><td id="event_showPopup">showPopup</td>
                 <td><code>id of item corresponding to popup</code></td>
