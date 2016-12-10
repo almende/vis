@@ -24,7 +24,7 @@
     items.add({
         id: i,
         content: "item " + i,
-        start: new Date(new Date().getTime() + i*1000000)
+        start: new Date(new Date().getTime() + i*100000)
     });
   }
 
@@ -32,7 +32,7 @@
   // specify options
   var options = {
     start: new Date(),
-    end: new Date(new Date().getTime() + i*1000000),
+    end: new Date(new Date().getTime() + 1000000),
     rollingMode: true
   };
 
