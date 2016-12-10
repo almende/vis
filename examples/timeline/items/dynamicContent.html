@@ -19,19 +19,20 @@
   var items = new vis.DataSet([
     {id: 1, content: 'item 1 with overflowing text content', start: '2014-04-20', end: '2014-04-26'},
     {id: 2, content: 'item 2 with overflowing text content', start: '2014-05-14', end: '2014-05-18'},
-    {id: 3, content: 'item 3 with overflowing text content', start: '2014-06-18', end: '2014-06-22'},
-    {id: 4, content: 'item 4 with overflowing text content', start: '2014-06-16', end: '2014-06-17'},
-    {id: 5, content: 'item 5 with overflowing text content', start: '2014-06-25', end: '2014-06-27'},
+    {id: 3, type: 'point', content: 'item 3 with overflowing text content', start: '2014-06-18'},
+    {id: 4, content: 'item 4 with overflowing text content', start: '2014-06-16'},
+    {id: 5, type: 'background', content: 'item 5 with overflowing text content', start: '2014-06-25', end: '2014-06-27'},
     {id: 6, content: 'item 6 with overflowing text content', start: '2014-09-27', end: '2014-09-28'}
   ]);
 
   // Configuration for the Timeline
   var options = {
+    editable: true,
     template: function(item) {
       return '<b>' + item.content + '</b>'
     },
-    dynamicContentTemplate: function(item) {
-      return '<i>blaaaaaa</i>' + item.id 
+    visibleFrameTemplate: function(item) {
+      return '<i>item id: ' + item.id + '</i>'
     } 
   };
 
