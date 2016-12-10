@@ -66,6 +66,10 @@
   overflow: hidden;
 }
 
+.vis-item-visible-frame {
+  white-space: nowrap;
+}
+
 .vis-item.vis-range .vis-item-content {
   position: relative;
   display: inline-block;
