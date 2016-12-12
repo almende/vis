@@ -8,7 +8,6 @@ var rename = require("gulp-rename");
 var webpack = require('webpack');
 var uglify = require('uglify-js');
 var rimraf = require('rimraf');
-var merge = require('merge-stream');
 var argv = require('yargs').argv;
 
 var ENTRY             = './index.js';
