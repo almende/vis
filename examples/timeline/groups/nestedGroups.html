@@ -20,8 +20,7 @@
   <script src="http://cdnjs.cloudflare.com/ajax/libs/moment.js/2.8.4/moment.min.js"></script>
 
   <script src="../../../dist/vis.js"></script>
-  <link href="../../../dist/vis-timeline-graph2d.min.css" rel="stylesheet" type="text/css" />
-  <script src="../../googleAnalytics.js"></script>
+  <link href="../../../dist/vis.min.css" rel="stylesheet" type="text/css" />
 </head>
 <body>
 <p>
@@ -46,14 +45,19 @@
     },
     {
       id: 2,
-      content: "Alson",
+      content: "invisible group",
+      visible: false
     },
     {
       id: 3,
       content: "John",
       nestedGroups: [14],
       showNested: false
-    }
+    },
+    {
+      id: 4,
+      content: "Alson"
+    },
 
   ]);
 
@@ -81,16 +85,20 @@
   // create a dataset with items
   var items = new vis.DataSet();
   var groupIds = groups.getIds()
+    var types = [ 'box', 'point', 'range', 'background']
   for (var i = 0; i < itemCount; i++) {
     var start = now.clone().add(Math.random() * 200, 'hours');
+    var end = start.clone().add(2, 'hours');
     var randomGroupId = groupIds[Math.floor(Math.random() * groupIds.length)];
+    var type = types[Math.floor(4 * Math.random())]
 
     items.add({
       id: i,
       group: randomGroupId,
       content: 'item ' + i,
       start: start,
-      type: 'box'
+      end: end,
+      type: type
     });
   }
 
