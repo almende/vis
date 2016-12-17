@@ -679,7 +679,7 @@ function (option, path) {
       <td>groupTemplate</td>
       <td>function</td>
       <td>none</td>
-      <td>A template function used to generate the contents of the groups. The function is called by the Timeline with a groups data as the first argument and the group element as the second, and must return HTML code as result. When the option groupTemplate is specified, the groups do not need to have a field <code>content</code>. See section <a href="#Templates">Templates</a> for a detailed explanation.</td>
+      <td>A template function used to generate the contents of the groups. The function is called by the Timeline with a groups data as the first argument and the group element as the second, and must return HTML code, a string or a template as result. When the option groupTemplate is specified, the groups do not need to have a field <code>content</code>. See section <a href="#Templates">Templates</a> for a detailed explanation.</td>
     </tr>
 
     <tr>
@@ -943,7 +943,14 @@ function (option, path) {
       <td>Orientation of the timeline items: 'top' or 'bottom' (default). Determines whether items are aligned to the top or bottom of the Timeline.</td>
     </tr>
 
-     <tr>
+    <tr>
+      <td>rollingMode</td>
+      <td>boolean</td>
+      <td><code>false</code></td>
+      <td>If true, the timeline will initial in a rolling mode - the current time will always be centered. I the user drags the timeline, the timeline will go out of rolling mode and a toggle button will appear. Clicking that button will go back to rolling mode. Zooming in rolling mode will zoom in to the center without consideration of the mouse position.</td>
+    </tr>
+
+    <tr>
       <td>rtl</td>
       <td>boolean</td>
       <td><code>false</code></td>
@@ -1018,7 +1025,15 @@ function (option, path) {
       <td>template</td>
       <td>function</td>
       <td>none</td>
-      <td>A template function used to generate the contents of the items. The function is called by the Timeline with an items data as the first argument and the item element as the second, and must return HTML code as result. When the option template is specified, the items do not need to have a field <code>content</code>. See section <a href="#Templates">Templates</a> for a detailed explanation.</td>
+      <td>A template function used to generate the contents of the items. The function is called by the Timeline with an items' data as the first argument and the item element as the second, and must return HTML code, a string or a template as result. When the option template is specified, the items do not need to have a field <code>content</code>. See section <a href="#Templates">Templates</a> for a detailed explanation.</td>
+    </tr>
+
+    <tr>
+      <td>visibleFrameTemplate</td>
+      <td>function</td>
+      <td>none</td>
+      <td>A template function used to generate the visible frame of the items. The function is called by the Timeline with an items' data as the first argument and the item frame element as the second, and must return HTML code, a string or a template as result. When the option template is specified, the items do not need to have a field <code>content</code>. See section <a href="#Templates">Templates</a> for a detailed explanation.
+      This would be used as an additional way to add content that is constant in size with the visible frame of the item and does not get visibly hidden with the item's internal container: <code>vis-item-overflow</code> which is <code>overflow:hidden</code>.</td>
     </tr>
 
     <tr class='toggle collapsible' onclick="toggleTable('optionTable','timeAxis', this);">
@@ -1065,7 +1080,7 @@ function (option, path) {
       <td class="indent">template</td>
       <td>Function</td>
       <td>none</td>
-      <td>A template function used to generate the contents of the tooltip. The function is called by the Timeline with an item data as the first argument, and must return HTML code as result. See section <a href="#Templates">Templates</a> for a detailed explanation.
+      <td>A template function used to generate the contents of the tooltip. The function is called by the Timeline with an item data as the first argument, and must return HTML code, a string or a template as result. See section <a href="#Templates">Templates</a> for a detailed explanation.
       </td>
     </tr>
     <tr>
