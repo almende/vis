@@ -57,6 +57,38 @@
       setHoveredItem('none');
     });
 
+    timeline.on('click', function (properties) {
+      logEvent('click', properties);
+    });
+
+    timeline.on('doubleClick', function (properties) {
+      logEvent('doubleClick', properties);
+    });
+
+    timeline.on('contextmenu', function (properties) {
+      logEvent('contextmenu', properties);
+    });
+
+    timeline.on('mouseDown', function (properties) {
+      logEvent('mouseDown', properties);
+    });
+
+    timeline.on('mouseOver', function (properties) {
+      logEvent('mouseOver', properties);
+    });
+
+    timeline.on('mouseUp', function (properties) {
+      logEvent('mouseUp', properties);
+    });
+    
+    timeline.on("mousedown", function(properties) {
+      logEvent('mouseDown', properties);
+    });
+
+    timeline.on("mouseup", function(properties) {
+      logEvent('mouseup', properties);
+    });
+
     items.on('*', function (event, properties) {
       logEvent(event, properties);
     });
