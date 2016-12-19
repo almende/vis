@@ -80,14 +80,11 @@
     timeline.on('mouseUp', function (properties) {
       logEvent('mouseUp', properties);
     });
-    
-    timeline.on("mousedown", function(properties) {
-      logEvent('mouseDown', properties);
+
+    timeline.on("mouseMove", function(properties) {
+      logEvent('mouseMove', properties);
     });
 
-    timeline.on("mouseup", function(properties) {
-      logEvent('mouseup', properties);
-    });
 
     items.on('*', function (event, properties) {
       logEvent(event, properties);
