@@ -9424,18 +9424,6 @@ return /******/ (function(modules) { // webpackBootstrap
     };
   };
 
-  function intToHexColorString(num) {
-    var r = ((num & 0xFF0000) >> 16).toString(16);
-    var g = ((num & 0x00FF00) >> 8).toString(16);
-    var b = ((num & 0x0000FF) >> 0).toString(16);
-
-    r = r.length < 2 ? "0" + r : r;
-    g = g.length < 2 ? "0" + g : g;
-    b = b.length < 2 ? "0" + b : b;
-
-    return "#" + r + g + b;
-  }
-
   /**
    * Get the colors for the 'color' graph styles.
    * These styles are currently: 'bar-color' and 'dot-color'
@@ -9453,8 +9441,8 @@ return /******/ (function(modules) { // webpackBootstrap
       borderColor = this._hsv2rgb(hue, 1, 0.8);
     }
     return {
-      fill: color, //point.point.value, //intToHexColorString(point.point.value),
-      border: borderColor //point.point.value  //intToHexColorString(point.point.value)
+      fill: color,
+      border: borderColor
     };
   };
 
