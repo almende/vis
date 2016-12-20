@@ -51,7 +51,8 @@ var webpackModule = {
       loader: 'babel',
       query: {
         cacheDirectory: true,
-        presets: ['es2015']
+        presets: ['es2015'],
+        plugins: ['transform-es3-property-literals', 'transform-es3-member-expression-literals']
       }
     }
   ],
