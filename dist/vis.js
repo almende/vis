@@ -5,7 +5,7 @@
  * A dynamic, browser-based visualization library.
  *
  * @version 4.17.0
- * @date    2016-12-19
+ * @date    2016-12-20
  *
  * @license
  * Copyright (C) 2011-2016 Almende B.V, http://almende.com
@@ -9442,15 +9442,20 @@ return /******/ (function(modules) { // webpackBootstrap
    */
   Graph3d.prototype._getColorsColor = function (point) {
     // calculate the color based on the value
-    //console.log('---EPHRAIM---');
-    //console.log(point.point.value);
-    var hue = (1 - (point.point.value - this.valueRange.min) * this.scale.value) * 240;
-    var color = this._hsv2rgb(hue, 1, 1);
-    var borderColor = this._hsv2rgb(hue, 1, 0.8);
+    var color, borderColor;
 
+    if (typeof point.point.value === "string") {
+      color = point.point.value;
+      borderColor = point.point.value;
+    } else {
+      var hue = (1 - (point.point.value - this.valueRange.min) * this.scale.value) * 240;
+      color = this._hsv2rgb(hue, 1, 1);
+      borderColor = this._hsv2rgb(hue, 1, 0.8);
+    }
     return {
-      fill: intToHexColorString(point.point.value), //"#ff0000",//color,
-      border: intToHexColorString(point.point.value) };
+      fill: color, //point.point.value, //intToHexColorString(point.point.value),
+      border: borderColor //point.point.value  //intToHexColorString(point.point.value)
+    };
   };
 
   /**
