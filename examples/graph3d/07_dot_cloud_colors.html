@@ -30,9 +30,13 @@
         var x = pow(random(), 2);
         var y = pow(random(), 2);
         var z = pow(random(), 2);
-        var dist = sqrt(pow(x, 2) + pow(y, 2) + pow(z, 2));
+        var style;
+        if (i%2==0)
+          style = sqrt(pow(x, 2) + pow(y, 2) + pow(z, 2));
+        else
+          style = "#00ffff";
 
-        data.add({x:x,y:y,z:z,style:dist});
+        data.add({x:x,y:y,z:z,style:style});
       }
 
       // specify options
