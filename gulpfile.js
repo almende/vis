@@ -51,7 +51,8 @@ var webpackModule = {
       loader: 'babel',
       query: {
         cacheDirectory: true,
-        presets: ['es2015']
+        presets: ['es2015'],
+        plugins: ['transform-es3-property-literals', 'transform-es3-member-expression-literals']
       }
     }
   ],
@@ -74,7 +75,7 @@ var webpackConfig = {
   cache: true,
 
   // generate details sourcempas of webpack modules
-  devtool: 'source-map'
+  //devtool: 'source-map'
 
   //debug: true,
   //bail: true
