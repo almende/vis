@@ -13,6 +13,9 @@
     var data = null;
     var graph = null;
 
+    function onclick(point) {
+      console.log(point);
+    }
 
     // Called when the Visualization API is loaded.
     function drawVisualization() {
@@ -49,6 +52,8 @@
         keepAspectRatio: true,
         verticalRatio: 1.0,
         legendLabel: 'distance',
+        //tooltip: true,
+        onclick: onclick,
         cameraPosition: {
           horizontal: -0.35,
           vertical: 0.22,
