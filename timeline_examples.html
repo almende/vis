@@ -17,14 +17,20 @@
     <![endif]-->
 
     <link href="./css/prettify.css" rel="stylesheet" type="text/css" />
+   
     <script type="text/javascript" src="./js/prettify/prettify.js"></script>
     <link href="./css/examples.css" rel="stylesheet" type="text/css" />
+
+    <!-- note: moment.js must be loaded before vis.js, else vis.js uses its embedded version of moment.js -->
+    <script src="http://cdnjs.cloudflare.com/ajax/libs/moment.js/2.8.4/moment.min.js"></script>
 
     <script src="./dist/vis.js"></script>
     <link href="./dist/vis.css" rel="stylesheet" type="text/css" />
 
     <script src="./js/imagesNetwork.js"></script>
     <link href="./css/imagesNetwork.css" rel="stylesheet" type="text/css" />
+
+    <link href="./css/timeline_examples.css" rel="stylesheet" type="text/css" />
 </head>
 <body onload="loadVis(220);">
 
@@ -36,7 +42,7 @@
                 <div class="navbar-header">
                     <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
                         <span class="sr-only">Toggle navigation</span>
-                        <span class="icon-bar"></span>
+                        span class="icon-bar"></span>
                         <span class="icon-bar"></span>
                         <span class="icon-bar"></span>
                     </button>
@@ -59,9 +65,72 @@
 
 <div class="contentWrapper">
     <div id="networkContainer"></div>
-    <div id="contentContainer">
+    <div id="contentContainer">177z
         <h1>Timeline Examples</h1>
-        This page contains examples which show how to use Timeline. For the documentation, please click the button below: <br><br>
+        This page contains examples which show how to use Timeline. For the documentation, please click the button below: 
+        <br><br>
+        <div class="play_ground_setings">
+            <button class="btn btn-primary" id="runCodeBtn">Run »</button> 
+            <span>
+                <input type="radio" name="play_ground_type" checked="checked" value="jsText" id="simple_btn"> Simple <br>
+                <input type="radio" name="play_ground_type" value="jsGroupText" id="group_btn"> Groups 
+            </span>
+        </div>
+        <pre  spellcheck="false" id="jsText"  contenteditable="true" class="prettyprint lang-html" > 
+<span readonly="readonly" contenteditable="false" class="unEditeblae">var container = document.getElementById('visualization');</span>
+
+var data = [
+    {id: 1, content: 'item 1', start: '2013-04-20'},
+    {id: 2, content: 'item 2', start: '2013-04-14'},
+    {id: 3, content: 'item 3', start: '2013-04-18'},
+    {id: 4, content: 'item 4', start: '2013-04-16', end: '2013-04-19'},
+    {id: 5, content: 'item 5', start: '2013-04-25'},
+    {id: 6, content: 'item 6', start: '2013-04-27'}
+];
+
+var options = {};
+var timeline = new vis.Timeline(container, data, options);
+        </pre>
+        <pre hidden="hidden" spellcheck="false" id="jsGroupText"  contenteditable="true" class="prettyprint lang-html" > 
+ var now = moment().minutes(0).seconds(0).milliseconds(0);
+  var groupCount = 3;
+  var itemCount = 10;
+
+  // create a data set with groups
+  var names = ['John', 'Alston', 'Lee', 'Grant'];
+  var groups = new vis.DataSet();
+  for (var g = 0; g < groupCount; g++) {
+    groups.add({id: g, content: names[g]});
+  }
+
+  // create a dataset with items
+  var items = new vis.DataSet();
+  for (var i = 0; i < itemCount; i++) {
+    var start = now.clone().add(Math.random() * 200, 'hours');
+    var group = Math.floor(Math.random() * groupCount);
+    items.add({
+      id: i,
+      group: group,
+      content: 'item ' + i +
+          ' <span style="color:#97B0F8;">(' + names[group] + ')</span>',
+      start: start,
+      type: 'box'
+    });
+  }
+
+  // create visualization
+  var container = document.getElementById('visualization');
+  var options = {
+    groupOrder: 'content'  // groupOrder can be a property name or a sorting function
+  };
+
+  var timeline = new vis.Timeline(container);
+  timeline.setOptions(options);
+  timeline.setGroups(groups);
+  timeline.setItems(items);
+        </pre>
+        <div id="visualization"></div>
+
         <a class="btn btn-primary" href="./docs/timeline" role="button">View docs »</a>
 
         <h3>basic usage</h3>
@@ -125,5 +194,29 @@
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
 <!-- Include all compiled plugins (below), or include individual files as needed -->
 <script src="js/bootstrap.min.js"></script>
+<script>
+  var selectedMethod = 'jsText';
+
+  $('input[name=play_ground_type]').click(function(){
+    selectedMethod = $(this).val();
+    $('pre').hide();
+    $('#' + selectedMethod).show();
+    $("#runCodeBtn").click();
+  });
+
+  $("#runCodeBtn").on('click', function(){
+    var codeText = $('#' + selectedMethod).text();
+    $('#visualization').empty();
+
+    try {
+        eval(codeText);
+    } catch(err){
+        $('#visualization').text(err)
+    }
+    
+  })
+
+  $("#runCodeBtn").click();
+</script>
 </body>
 </html>

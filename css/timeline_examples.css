@@ -1,0 +1,9 @@
+.play_ground_setings span{
+    position: relative;
+    left: 1%;
+    bottom: 5px;
+}
+
+.play_ground_setings button{
+	float: left;
+}
