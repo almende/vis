@@ -52,7 +52,18 @@
     nodes: nodes,
     edges: edges
   };
-  var options = {};
+var options = {
+  edges: {
+    label:'label hi',
+    font: {
+      color: '#A3A9B0',
+      highlight: '#475461',
+      strokeWidth: 0,
+      align: 'top',
+      size:10
+    }
+  }
+};
   var network = new vis.Network(container, data, options);
 </script>
 
