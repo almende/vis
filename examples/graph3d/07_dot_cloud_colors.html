@@ -33,11 +33,7 @@
         var x = pow(random(), 2);
         var y = pow(random(), 2);
         var z = pow(random(), 2);
-        var style;
-        if (i%2==0)
-          style = sqrt(pow(x, 2) + pow(y, 2) + pow(z, 2));
-        else
-          style = "#00ffff";
+        var style = (i%2==0) ? sqrt(pow(x, 2) + pow(y, 2) + pow(z, 2)) : "#00ffff";
 
         data.add({x:x,y:y,z:z,style:style});
       }
@@ -52,7 +48,6 @@
         keepAspectRatio: true,
         verticalRatio: 1.0,
         legendLabel: 'distance',
-        //tooltip: true,
         onclick: onclick,
         cameraPosition: {
           horizontal: -0.35,
