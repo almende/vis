@@ -110,6 +110,7 @@ var options = {
     borderWidth: 1,
     borderWidthSelected: 2,
     brokenImage:undefined,
+    chosen: true,
     color: {
       border: '#2B7CE9',
       background: '#97C2FC',
@@ -269,6 +270,90 @@ network.setOptions(options);
             <td><code>undefined</code></td>
             <td>When the shape is set to <code>image</code> or <code>circularImage</code>, this option can be an URL to
                 a backup image in case the URL supplied in the image option cannot be resolved.
+            </td>
+        </tr>
+        <tr class='toggle collapsible' onclick="toggleTable('optionTable','chosen', this);">
+            <td><span parent="chosen" class="right-caret"></span> chosen</td>
+            <td>Object or Boolean</td>
+            <td><code>true</code></td>
+            <td>
+              When true, selecting or hovering on a node will change it and its label's characteristics according the default.
+              When false, no change to the node or its label will occur when the node is chosen.
+              If an object is supplied, finer-grained adjustment of node and label characteristics is available when a node is chosen.
+            </td>
+        </tr>
+        <tr parent="chosen" class="hidden">
+            <td class="indent">chosen.node</td>
+            <td>Function or Boolean</td>
+            <td>undefined</td>
+            <td>
+              When true, selecting or hovering on a node will change its characteristics according the default.
+              When false, no change to the node will occur when the node is chosen.
+              <p>
+                If a function is supplied, it is called when the node is chosen.
+                <pre class="code">
+  function(values, id, selected, hovering) {
+    values.<i>property</i> = <i>chosenValue</i>;
+  }</pre>
+              </p>
+              <p>
+                Any of the incoming arguments may be used to determine characteristic changes.
+                If a property is not specifically assigned by the supplied function, it will be left unchanged.
+                A specific function may be assigned to each particular node in its options, or to all in the network's <code>nodes</code> options.
+              </p>
+              <p>
+                The properties define the characteristics that can be changed as follows:
+              </p>
+              <table>
+                <tr><th>Property</th><th>Node Reference</th></tr>
+                <tr><td>color</td><td>see color.background</td></tr>
+                <tr><td>borderWidth</td><td>see borderWidth</td></tr>
+                <tr><td>borderColor</td><td>see color.border</td></tr>
+                <tr><td>size</td><td>see size</td></tr>
+                <tr><td>borderDashes</td><td>see shapeProperties.borderDashes</td></tr>
+                <tr><td>borderRadius</td><td>see shapeProperties.borderRadius</td></tr>
+                <tr><td>shadow</td><td>see shadow.enabled</td></tr>
+                <tr><td>shadowColor</td><td>see shadow.color</td></tr>
+                <tr><td>shadowSize</td><td>see shadow.size</td></tr>
+                <tr><td>shadowX</td><td>see shadow.x</td></tr>
+                <tr><td>shadowY</td><td>see shadow.y</td></tr>
+              </table>
+              <br/>
+            </td>
+        </tr>
+        <tr parent="chosen" class="hidden">
+            <td class="indent">chosen.label</td>
+            <td>Function or Boolean</td>
+            <td>undefined</td>
+            <td>
+              When true, selecting or hovering on a node will change its label's characteristics according the default.
+              When false, no change to the node's label will occur when the node is chosen.
+              <p>
+                If a function is supplied, it is called when the node is chosen.
+                <pre class="code">
+  function(values, id, selected, hovering) {
+    values.<i>property</i> = <i>chosenValue</i>;
+  }</pre>
+              </p>
+              <p>
+                Any of the incoming arguments may be used to determine characteristic changes.
+                If a property is not specifically assigned by the supplied function, it will be left unchanged.
+                A specific function may be assigned to each particular node in its options, or to all in the network's <code>nodes</code> options.
+              </p>
+              <p>
+                The properties define the characteristics that can be changed as follows:
+              </p>
+              <table>
+                <tr><th>Property</th><th>Node Reference</th></tr>
+                <tr><td>color</td><td>see font.color</td></tr>
+                <tr><td>size</td><td>see font.size</td></tr>
+                <tr><td>face</td><td>see font.face</td></tr>
+                <tr><td>mod</td><td>font modifier ('bold', 'italic', etc.)</td></tr>
+                <tr><td>vadjust</td><td>see font.vadjust</td></tr>
+                <tr><td>strokeWidth</td><td>see font.strokeWidth</td></tr>
+                <tr><td>strokeColor</td><td>see font.strokeColor</td></tr>
+              </table>
+              <br/>
             </td>
         </tr>
         <tr class='toggle collapsible' onclick="toggleTable('optionTable','color', this);">
