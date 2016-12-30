@@ -382,7 +382,7 @@ var groups = [
   {
     id: 1,
     content: 'Group 1'
-    // Optional: a field 'className', 'style'
+    // Optional: a field 'className', 'style', 'order', [properties]
   }
   // more groups...
 ]);
@@ -460,6 +460,18 @@ var groups = [
       <td>Boolean</td>
       <td>no</td>
       <td>Provides a means to toggle the whether a group is displayed or not. Defaults to <code>true</code>.</td>
+    </tr>
+    <tr>
+      <td>nestedGroups</td>
+      <td>Array</td>
+      <td>no</td>
+      <td>Array of group ids nested in the group. Nested groups will appear under this nesting group.</td>
+    </tr>
+     <tr>
+      <td>showNestedGroups</td>
+      <td>Boolean</td>
+      <td>no</td>
+      <td>Assuming the group has nested groups, this will set the initial state of the group - shown or collapsed. The <code>showNestedGroups</code> is defaulted to <code>true</code>.</td>
     </tr>
   </table>
 
