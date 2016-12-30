@@ -48,7 +48,7 @@ var webpackModule = {
     {
       test: /\.js$/,
       exclude: /node_modules/,
-      loader: 'babel',
+      loader: 'babel-loader',
       query: {
         cacheDirectory: true, // use cache to improve speed
         babelrc: true // use the .baberc file
