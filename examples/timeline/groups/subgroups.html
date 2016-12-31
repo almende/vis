@@ -1,39 +1,36 @@
 <!DOCTYPE HTML>
 <html>
 <head>
-    <title>Timeline | Subgroups</title>
+    <title>Timeline | Background areas</title>
 
     <style>
         body, html {
             font-family: arial, sans-serif;
             font-size: 11pt;
         }
-        .vis-item.expected {
-            background-color: transparent;
-            border-width: 1px;
-            border-style: dashed!important;
-            border-color: grey;
-            z-index: 0;
+
+        .vis-item.vis-background.negative {
+            background-color: rgba(255, 0, 0, 0.2);
         }
-        .vis-item.vis-selected {
-            opacity: 0.6;
+        .vis-item.vis-background.positive {
+            background-color: rgba(105, 255, 98, 0.20);
         }
         .vis-item.vis-background.marker {
             border-left: 2px solid green;
         }
     </style>
+
     <script src="../../../dist/vis.js"></script>
-    <link href="../../../dist/vis.css" rel="stylesheet" type="text/css" />
+    <link href="../../../dist/vis-timeline-graph2d.min.css" rel="stylesheet" type="text/css" />
+    <script src="../../googleAnalytics.js"></script>
 </head>
 <body>
 
-<p>This example shows the workings of the subgroups. Subgroups do not use stacking, and only work when stacking is disabled.
-You can unstack the subgroups with <code>stackSubgroups: false</code></p>
-<button onclick="toggleStackSubgroups()">Toggle stackSubgroups</button>
+<p>This example shows the workings of the subgroups. Subgroups do not use stacking, and only work when stacking is disabled.</p>
+
 <div id="visualization"></div>
 
 <script>
-
     // create a dataset with items
     // we specify the type of the fields `start` and `end` here to be strings
     // containing an ISO date. The fields will be outputted as ISO dates
@@ -41,145 +38,39 @@ You can unstack the subgroups with <code>stackSubgroups: false</code></p>
     var items = new vis.DataSet({
         type: { start: 'ISODate', end: 'ISODate' }
     });
-
-    var groups = new vis.DataSet([
-        {
-            id: 'group1', 
-            content:'group1', 
-            subgroupOrder: function (a, b) { return a.subgroupOrder - b.subgroupOrder; }
-        },
-        {
-            id: 'group2', 
-            content:'group2', 
-            subgroupOrder: 'subgroupOrder' // this group has no subgroups but this would be the other method to do the sorting.
-        }
-    ]);
-
+    var groups = new vis.DataSet([{
+        id: 'bar', content:'bar', subgroupOrder: function (a,b) {return a.subgroupOrder - b.subgroupOrder;}
+    },{
+        id: 'foo', content:'foo', subgroupOrder: 'subgroupOrder' // this group has no subgroups but this would be the other method to do the sorting.
+    }]);
     // add items to the DataSet
     items.add([
-    // group 1
-        {
-            id: 'background1',
-            start: '2014-01-21', 
-            end: '2014-01-22', 
-            type: 'background', 
-            className: 'negative',
-            group:'group1'
-        },
+        {id: 'A',start: '2014-01-20', end: '2014-01-22', type: 'background', group:'foo'},
+        {id: 'B',start: '2014-01-22', end: '2014-01-23', type: 'background', group:'foo', className: 'negative'},
+        {id: 0, content: 'no subgroup', start: '2014-01-20', end: '2014-01-22',group:'foo'},
 
-        // subgroup 1
-        {
-            id: 'b_sg1',
-            start: '2014-01-22 12:00:00', 
-            end: '2014-01-28', 
-            type: 'background', 
-            group:'group1', 
-            subgroup:'sg_1'
-        },
-        {
-            id: 1, 
-            content: 'item 1 (expected time)', 
-            className: 'expected',
-            start: '2014-01-23 12:00:00', 
-            end: '2014-01-26 12:00:00',
-            group:'group1', 
-            subgroup:'sg_1'
-        },
-        {
-            id: 2, 
-            content: 'item 1 (actual time)', 
-            start: '2014-01-24 12:00:00', 
-            end: '2014-01-27 12:00:00',
-            group:'group1', 
-            subgroup:'sg_1'
-        },
+        {id: 'SG_1_1',start: '2014-01-25', end: '2014-01-27', type: 'background', group:'bar', subgroup:'sg_1', subgroupOrder:0},
+        {id: 'SG_1_2', start: '2014-01-26', end: '2014-01-27', type: 'background', className: 'positive',group:'bar', subgroup:'sg_1', subgroupOrder:0},
+        {id: 1, content: 'subgroup0', start: '2014-01-23 12:00:00', end: '2014-01-26 12:00:00',group:'bar', subgroup:'sg_1', subgroupOrder:0},
+        {id: 'SG_2_1', start: '2014-01-27', end: '2014-01-29', type: 'background', group:'bar', subgroup:'sg_2', subgroupOrder:1},
+        {id: 'SG_2_2', start: '2014-01-27', end: '2014-01-28', type: 'background', className: 'negative',group:'bar', subgroup:'sg_2', subgroupOrder:1},
+        {id: 2, content: 'subgroup1', start: '2014-01-27', end: '2014-01-29',group:'bar', subgroup:'sg_2', subgroupOrder:1},
 
-        // subgroup 2
-        {
-            id: 'b_sg2',
-            start: '2014-01-12 12:00:00', 
-            end: '2014-01-18', 
-            type: 'background', 
-            group:'group1', 
-            subgroup:'sg_2'
-        },
-        {
-            id: 3, 
-            content: 'item 2 (expected time)', 
-            className: 'expected',
-            start: '2014-01-13 12:00:00', 
-            end: '2014-01-16 12:00:00',
-            group:'group1', 
-            subgroup:'sg_2'
-        },
-         {
-            id: 4, 
-            content: 'item 2 (actual time)', 
-            start: '2014-01-14 12:00:00', 
-            end: '2014-01-17 12:00:00',
-            group:'group1', 
-            subgroup:'sg_2'
-        },
-        // subgroup 3
-        {
-            id: 'b_sg3',
-            start: '2014-02-03 12:00:00', 
-            end: '2014-02-09', 
-            type: 'background', 
-            group:'group1', 
-            subgroup:'sg_3'
-        },
-        {
-            id: 5, 
-            content: 'item 3 (expected time)', 
-            className: 'expected',
-            start: '2014-02-04 12:00:00', 
-            end: '2014-02-07 12:00:00',
-            group:'group1', 
-            subgroup:'sg_3'
-        },
-         {
-            id: 6, 
-            content: 'item 3 (actual time)', 
-            start: '2014-02-05 12:00:00', 
-            end: '2014-02-08 12:00:00',
-            group:'group1', 
-            subgroup:'sg_3'
-        },
-    // group 2
-        // items without subgroups
-        {
-            id: 0, 
-            content: 'no subgroup', 
-            start: '2014-01-20', 
-            end: '2014-01-22',
-            group:'group2'
-        },
-    // general
-        {
-            id: 'background_all',
-            start: '2014-01-31', 
-            end: '2014-02-02', 
-            type: 'background', 
-            className: 'positive'
-        }
+        {id: 'background', start: '2014-01-29', end: '2014-01-30', type: 'background', className: 'negative',group:'bar'},
+        {id: 'background_all', start: '2014-01-31', end: '2014-02-02', type: 'background', className: 'positive'},
     ]);
 
     var container = document.getElementById('visualization');
     var options = {
+        // orientation:'top'
         start: '2014-01-10',
         end: '2014-02-10',
         editable: true,
-        stack: false,
-        stackSubgroups: true
+        stack: false
     };
 
     var timeline = new vis.Timeline(container, items, groups, options);
 
-    function toggleStackSubgroups() {
-        options.stackSubgroups = !options.stackSubgroups;
-        timeline.setOptions(options);
-    }
 </script>
 </body>
 </html>
