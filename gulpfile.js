@@ -48,11 +48,10 @@ var webpackModule = {
     {
       test: /\.js$/,
       exclude: /node_modules/,
-      loader: 'babel',
+      loader: 'babel-loader',
       query: {
-        cacheDirectory: true,
-        presets: ['es2015'],
-        plugins: ['transform-es3-property-literals', 'transform-es3-member-expression-literals']
+        cacheDirectory: true, // use cache to improve speed
+        babelrc: true // use the .baberc file
       }
     }
   ],
@@ -75,7 +74,7 @@ var webpackConfig = {
   cache: true,
 
   // generate details sourcempas of webpack modules
-  //devtool: 'source-map'
+  devtool: 'source-map'
 
   //debug: true,
   //bail: true

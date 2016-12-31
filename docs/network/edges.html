@@ -120,6 +120,7 @@ var options = {
       from:   {enabled: false, scaleFactor:1, type:'arrow'}
     },
     arrowStrikethrough: true,
+    chosen: true,
     color: {
       color:'#848484',
       highlight:'#848484',
@@ -298,6 +299,101 @@ network.setOptions(options);
             <td><code>true</code></td>
             <td>When false, the edge stops at the arrow. This can be useful if you have thick lines and you want the arrow to end in a point. Middle arrows are not affected by this.</td>
         </tr>
+        <tr class='toggle collapsible' onclick="toggleTable('optionTable','chosen', this);">
+            <td><span parent="chosen" class="right-caret"></span> chosen</td>
+            <td>Object or Boolean</td>
+            <td><code>true</code></td>
+            <td>
+              When true, selecting or hovering on an edge will change it and its label's characteristics according the default.
+              When false, no change to the edge or its label will occur when the edge is chosen.
+              If an object is supplied, finer-grained adjustment of edge and label characteristics is available when an edge is chosen.
+            </td>
+        </tr>
+        <tr parent="chosen" class="hidden">
+            <td class="indent">chosen.edge</td>
+            <td>Function or Boolean</td>
+            <td>undefined</td>
+            <td>
+              When true, selecting or hovering on an edge will change its characteristics according the default.
+              When false, no change to the edge will occur when the edge is chosen.
+              <p>
+                If a function is supplied, it is called when the edge is chosen.
+                <pre class="code">
+  function(values, id, selected, hovering) {
+    values.<i>property</i> = <i>chosenValue</i>;
+  }</pre>
+              </p>
+              <p>
+                Any of the incoming arguments may be used to determine characteristic changes.
+                If a property is not specifically assigned by the supplied function, it will be left unchanged.
+                A specific function may be assigned to each particular edge in its options, or to all in the network's <code>edges</code> options.
+              </p>
+              <p>
+                The properties define the characteristics that can be changed as follows:
+              </p>
+              <table>
+                <tr><th>Property</th><th>Edge Reference</th></tr>
+                <tr><td>dashes</td><td>see dashes</td></tr>
+                <tr><td>toArrow</td><td>see arrows.to.enabled</td></tr>
+                <tr><td>toArrowScale</td><td>see arrows.to.scaleFactor</td></tr>
+                <tr><td>toArrowType</td><td>see arrows.to.type</td></tr>
+                <tr><td>middleArrow</td><td>see arrows.middle.enabled</td></tr>
+                <tr><td>middleArrowScale</td><td>see arrows.middle.scaleFactor</td></tr>
+                <tr><td>middleArrowType</td><td>see arrows.middle.type</td></tr>
+                <tr><td>fromArrow</td><td>see arrows.from.enabled</td></tr>
+                <tr><td>fromArrowScale</td><td>see arrows.from.scaleFactor</td></tr>
+                <tr><td>fromArrowType</td><td>see arrows.from.type</td></tr>
+                <tr><td>arrowStrikethrough</td><td>see arrowStrikethrough</td></tr>
+                <tr><td>color</td><td>see color.color</td></tr>
+                <tr><td>inheritsColor</td><td>see color.inherit</td></tr>
+                <tr><td>opacity</td><td>see color.opacity</td></tr>
+                <tr><td>hidden</td><td>see hidden</td></tr>
+                <tr><td>length</td><td>see length</td></tr>
+                <tr><td>shadow</td><td>see shadow.enabled</td></tr>
+                <tr><td>shadowColor</td><td>see shadow.color</td></tr>
+                <tr><td>shadowSize</td><td>see shadow.size</td></tr>
+                <tr><td>shadowX</td><td>see shadow.x</td></tr>
+                <tr><td>shadowY</td><td>see shadow.y</td></tr>
+                <tr><td>width</td><td>see width</td></tr>
+              </table>
+              <br/>
+            </td>
+        </tr>
+        <tr parent="chosen" class="hidden">
+            <td class="indent">chosen.label</td>
+            <td>Function or Boolean</td>
+            <td>undefined</td>
+            <td>
+              When true, selecting or hovering on an edge will change its label's characteristics according the default.
+              When false, no change to the edge's label will occur when the edge is chosen.
+              <p>
+                If a function is supplied, it is called when the edge is chosen.
+                <pre class="code">
+  function(values, id, selected, hovering) {
+    values.<i>property</i> = <i>chosenValue</i>;
+  }</pre>
+              </p>
+              <p>
+                Any of the incoming arguments may be used to determine characteristic changes.
+                If a property is not specifically assigned by the supplied function, it will be left unchanged.
+                A specific function may be assigned to each particular edge in its options, or to all in the network's <code>edges</code> options.
+              </p>
+              <p>
+                The properties define the characteristics that can be changed as follows:
+              </p>
+              <table>
+                <tr><th>Property</th><th>Edge Reference</th></tr>
+                <tr><td>color</td><td>see font.color</td></tr>
+                <tr><td>size</td><td>see font.size</td></tr>
+                <tr><td>face</td><td>see font.face</td></tr>
+                <tr><td>mod</td><td>font modifier ('bold', 'italic', etc.)</td></tr>
+                <tr><td>vadjust</td><td>see font.vadjust</td></tr>
+                <tr><td>strokeWidth</td><td>see font.strokeWidth</td></tr>
+                <tr><td>strokeColor</td><td>see font.strokeColor</td></tr>
+              </table>
+              <br/>
+            </td>
+        </tr>
         <tr class='toggle collapsible' onclick="toggleTable('optionTable','color', this);">
             <td><span parent="color" class="right-caret"></span> color</td>
             <td>Object or String</td>
@@ -311,7 +407,7 @@ network.setOptions(options);
             <td class="indent">color.color</td>
             <td>String</td>
             <td><code>'#848484'</code></td>
-            <td>The color of the border of the node when it is not selected or hovered over <i>(assuming hover is
+            <td>The color of the edge when it is not selected or hovered over <i>(assuming hover is
                 enabled in the interaction module)</i>.
             </td>
         </tr>
