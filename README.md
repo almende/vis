@@ -19,8 +19,7 @@ The library consists of the following components:
 - Network. Display a network (force directed graph) with nodes and edges.
 - Timeline. Display different types of data on a timeline.
 
-The vis.js library is developed by [Almende B.V](http://almende.com).
-
+The vis.js library was initially developed by [Almende B.V](http://almende.com).
 
 ## Install
 
@@ -37,9 +36,7 @@ Link via cdnjs: http://cdnjs.com
 Or download the library from the github project:
 [https://github.com/almende/vis.git](https://github.com/almende/vis.git).
 
-
 ## Load
-
 
 To use a component, include the javascript and css files of vis in your web page:
 
@@ -47,8 +44,8 @@ To use a component, include the javascript and css files of vis in your web page
 <!DOCTYPE HTML>
 <html>
 <head>
-  <script src="components/vis/dist/vis.js"></script>
-  <link href="components/vis/dist/vis.css" rel="stylesheet" type="text/css" />
+  <script src="webroot/vis/dist/vis.js"></script>
+  <link href="webroot/vis/dist/vis.css" rel="stylesheet" type="text/css" />
 </head>
 <body>
   <script type="text/javascript">
@@ -123,7 +120,6 @@ of the project.
 </html>
 ```
 
-
 ## Build
 
 To build the library from source, clone the project from github
@@ -151,21 +147,19 @@ slow, so when only the non-minified library is needed, one can use the
 
     $ npm run watch-dev
 
-
 ## Custom builds
 
-The folder `dist` contains bundled versions of vis.js for direct use in the browser. These bundles contain all the visualizations and include external dependencies such as hammer.js and moment.js.
+The folder `dist` contains bundled versions of vis.js for direct use in the browser. These bundles contain all the visualizations and include external dependencies such as *hammer.js* and *moment.js*.
 
 The source code of vis.js consists of commonjs modules, which makes it possible to create custom bundles using tools like [Browserify](http://browserify.org/) or [Webpack](http://webpack.github.io/). This can be bundling just one visualization like the Timeline, or bundling vis.js as part of your own browserified web application.
 
 *Note that hammer.js version 2 is required as of v4.*
 
-
-#### Prerequisites
+### Prerequisites
 
 Before you can do a build:
 
-- Install node.js and npm on your system: https://nodejs.org/
+- Install *node.js* and *npm* on your system: https://nodejs.org/
 - Install the following modules using npm: `browserify`, `babelify`, and `uglify-js`:
 
   ```
@@ -185,7 +179,9 @@ Before you can do a build:
   $ npm install
   ```
 
-#### Example 1: Bundle a single visualization
+### Examples of custom builds
+
+#### Example 1: Bundle only a single visualization type
 
 For example, to create a bundle with just the Timeline and DataSet, create an index file named **custom.js** in the root of the project, containing:
 
@@ -219,11 +215,11 @@ The custom bundle can now be loaded like:
 
 #### Example 2: Exclude external libraries
 
-The default bundle `vis.js` is standalone and includes external dependencies such as hammer.js and moment.js. When these libraries are already loaded by the application, vis.js does not need to include these dependencies itself too. To build a custom bundle of vis.js excluding moment.js and hammer.js, run browserify in the root of the project:
+The default bundle `vis.js` is standalone and includes external dependencies such as *hammer.js* and *moment.js*. When these libraries are already loaded by the application, vis.js does not need to include these dependencies itself too. To build a custom bundle of vis.js excluding *moment.js* and *hammer.js*, run browserify in the root of the project:
 
     $ browserify index.js -t babelify -o dist/vis-custom.js -s vis -x moment -x hammerjs
 
-This will generate a custom bundle *vis-custom.js*, which exposes the namespace `vis`, and has moment and hammerjs excluded. The generated bundle can be minified with uglifyjs:
+This will generate a custom bundle *vis-custom.js*, which exposes the namespace `vis`, and has *moment.js* and *hammer.js* excluded. The generated bundle can be minified with uglifyjs:
 
     $ uglifyjs dist/vis-custom.js -o dist/vis-custom.min.js
 
@@ -288,12 +284,10 @@ And loaded into a webpage:
 </head>
 <body>
   <div id="visualization"></div>
-
   <script src="dist/app-bundle.min.js"></script>
 </body>
 </html>
 ```
-
 
 ## Test
 
@@ -303,12 +297,11 @@ To test the library, install the project dependencies once:
 
 Then run the tests:
 
-    $ npm test
-
+    $ npm run test
 
 ## License
 
-Copyright (C) 2010-2015 Almende B.V.
+Copyright (C) 2010-2016 Almende B.V. and Contributors
 
 Vis.js is dual licensed under both
 
