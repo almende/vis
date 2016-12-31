@@ -324,7 +324,7 @@ var items = new vis.DataSet([
       <td>String</td>
       <td>none</td>
       <td>Add a title for the item, displayed when holding the mouse on the item.
-        The title can only contain plain text.
+        The title can be an HTML element or a string containing plain text or HTML.
       </td>
     </tr>
     <tr>
@@ -382,7 +382,7 @@ var groups = [
   {
     id: 1,
     content: 'Group 1'
-    // Optional: a field 'className', 'style'
+    // Optional: a field 'className', 'style', 'order', [properties]
   }
   // more groups...
 ]);
@@ -460,6 +460,18 @@ var groups = [
       <td>Boolean</td>
       <td>no</td>
       <td>Provides a means to toggle the whether a group is displayed or not. Defaults to <code>true</code>.</td>
+    </tr>
+    <tr>
+      <td>nestedGroups</td>
+      <td>Array</td>
+      <td>no</td>
+      <td>Array of group ids nested in the group. Nested groups will appear under this nesting group.</td>
+    </tr>
+     <tr>
+      <td>showNestedGroups</td>
+      <td>Boolean</td>
+      <td>no</td>
+      <td>Assuming the group has nested groups, this will set the initial state of the group - shown or collapsed. The <code>showNestedGroups</code> is defaulted to <code>true</code>.</td>
     </tr>
   </table>
 
@@ -1034,6 +1046,13 @@ function (option, path) {
       <td>none</td>
       <td>A template function used to generate the visible frame of the items. The function is called by the Timeline with an items' data as the first argument and the item frame element as the second, and must return HTML code, a string or a template as result. When the option template is specified, the items do not need to have a field <code>content</code>. See section <a href="#Templates">Templates</a> for a detailed explanation.
       This would be used as an additional way to add content that is constant in size with the visible frame of the item and does not get visibly hidden with the item's internal container: <code>vis-item-overflow</code> which is <code>overflow:hidden</code>.</td>
+    </tr>
+
+    <tr class='depricated'>
+      <td>throttleRedraw</td>
+      <td>number</td>
+      <td><code>0</code></td>
+      <td>This option is <b>DEPRICATED</b> and no longer supported. It will be removed in the next MAJOR release.</td>
     </tr>
 
     <tr class='toggle collapsible' onclick="toggleTable('optionTable','timeAxis', this);">
