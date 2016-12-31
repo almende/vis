@@ -1,7 +1,7 @@
 vis.js
 ==================
 
-<a href="https://github.com/almende/vis/issues/1781" target="_blank">
+<a href="https://github.com/almende/vis/blob/develop/misc/we_need_help.md">
   <img align="right" src="https://raw.githubusercontent.com/almende/vis/master/misc/we_need_help.png">
 </a>
 
