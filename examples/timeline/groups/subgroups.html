@@ -27,11 +27,13 @@
 </head>
 <body>
 
-<p>This example shows the workings of the subgroups. Subgroups do not use stacking, and only work when stacking is disabled.</p>
-
+<p>This example shows the workings of the subgroups. Subgroups do not use stacking, and only work when stacking is disabled.
+You can unstack the subgroups with <code>stackSubgroups: false</code></p>
+<button onclick="toggleStackSubgroups()">Toggle stackSubgroups</button>
 <div id="visualization"></div>
 
 <script>
+
     // create a dataset with items
     // we specify the type of the fields `start` and `end` here to be strings
     // containing an ISO date. The fields will be outputted as ISO dates
@@ -55,17 +57,6 @@
 
     // add items to the DataSet
     items.add([
-        // items without subgroups
-        // {
-        //     id: 0, 
-        //     content: 'no subgroup', 
-        //     start: '2014-01-20', 
-        //     end: '2014-01-22',
-        //     group:'group1'
-        // },
-
-
-
     // group 1
         {
             id: 'background1',
@@ -129,13 +120,11 @@
             group:'group1', 
             subgroup:'sg_2'
         },
-
-
         // subgroup 3
         {
             id: 'b_sg3',
-            start: '2014-01-13 12:00:00', 
-            end: '2014-01-19', 
+            start: '2014-02-03 12:00:00', 
+            end: '2014-02-09', 
             type: 'background', 
             group:'group1', 
             subgroup:'sg_3'
@@ -144,77 +133,53 @@
             id: 5, 
             content: 'item 3 (expected time)', 
             className: 'expected',
-            start: '2014-01-14 12:00:00', 
-            end: '2014-01-17 12:00:00',
+            start: '2014-02-04 12:00:00', 
+            end: '2014-02-07 12:00:00',
             group:'group1', 
             subgroup:'sg_3'
         },
          {
             id: 6, 
             content: 'item 3 (actual time)', 
-            start: '2014-01-15 12:00:00', 
-            end: '2014-01-18 12:00:00',
+            start: '2014-02-05 12:00:00', 
+            end: '2014-02-08 12:00:00',
             group:'group1', 
             subgroup:'sg_3'
         },
-
-
-
-
-        
-
-
-
-
     // group 2
-        // {
-        //     id: 'SG_2',
-        //     start: '2014-01-27', 
-        //     end: '2014-01-29', 
-        //     type: 'background', 
-        //     group:'group2', 
-        //     subgroup:'sg_2', 
-        //     subgroupOrder:1
-        // },
-        // {
-        //     id: 10, 
-        //     content: 'item 10', 
-        //     start: '2014-01-27', 
-        //     end: '2014-01-29',
-        //     group:'group2', 
-        //     subgroup:'sg_2', 
-        //     subgroupOrder:1
-        // },
-
-        // {
-        //     id: 'background2',
-        //     start: '2014-01-29', 
-        //     end: '2014-01-30', 
-        //     type: 'background', 
-        //     className: 'negative',
-        //     group:'group2'
-        // },
-        // {
-        //     id: 'background_all',
-        //     start: '2014-01-31', 
-        //     end: '2014-02-02', 
-        //     type: 'background', 
-        //     className: 'positive'
-        // },
+        // items without subgroups
+        {
+            id: 0, 
+            content: 'no subgroup', 
+            start: '2014-01-20', 
+            end: '2014-01-22',
+            group:'group2'
+        },
+    // general
+        {
+            id: 'background_all',
+            start: '2014-01-31', 
+            end: '2014-02-02', 
+            type: 'background', 
+            className: 'positive'
+        }
     ]);
 
     var container = document.getElementById('visualization');
     var options = {
-        rtl: false,
-        // orientation:'top',
         start: '2014-01-10',
         end: '2014-02-10',
         editable: true,
         stack: false,
+        stackSubgroups: true
     };
 
     var timeline = new vis.Timeline(container, items, groups, options);
 
+    function toggleStackSubgroups() {
+        options.stackSubgroups = !options.stackSubgroups;
+        timeline.setOptions(options);
+    }
 </script>
 </body>
 </html>
