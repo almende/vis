@@ -33,7 +33,6 @@
   </head>
   <body onload="loadVis(220);">
 
-
     <div class="navbar-wrapper">
       <div class="container">
         <nav class="navbar navbar-inverse navbar-static-top" role="navigation">
@@ -63,312 +62,379 @@
     </div>
 
     <div class="contentWrapper">
-    <div id="networkContainer"></div>
-    <div id="contentContainer">
+      <div id="networkContainer"></div>
+      <div id="contentContainer">
         <h1>Timeline Examples</h1>
+        <a class="btn btn-primary" href="./docs/timeline" role="button">View docs »</a><br><br>
         This page contains examples which show how to use Timeline. For the documentation, please click the button below: <br><br>
-        <a class="btn btn-primary" href="./docs/timeline" role="button">View docs »</a>
+        
 
-    <h3>basic usage</h3>
-    <div class="container-fluid">
-      <div class="col-lg-2 col-md-3 col-sm-6">
-        <a href="examples/timeline/editing/updateDataOnEvent.html">
-          <img class="timeline_example img-responsive" src="./images/exampleScreenshots/timeline/basicUsage.png">
-          <div class="exampleTitle">basic usage</div>
-        </a>
-      </div>
-    </div>
+        <div class="play_ground_setings">
+          <button class="btn btn-success" id="runCodeBtn">Run »</button> 
+          <span>
+            <input type="radio" name="play_ground_type" checked="checked" value="jsText" id="simple_btn"> Simple <br>
+            <input type="radio" name="play_ground_type" value="jsGroupText" id="group_btn"> Groups 
+          </span>
+        </div>
 
-    <h3>data handling</h3>
-    <div class="container-fluid">
-      <div class="col-lg-2 col-md-3 col-sm-6">
-        <a href="examples/timeline/dataHandling/dataSerialization.html">
-          <img class="timeline_example img-responsive" src="./images/exampleScreenshots/timeline/dataHandling/dataSerialization.png">
-          <div class="exampleTitle">data serialization</div>
-        </a>
-      </div>
+        <pre  spellcheck="false" id="jsText"  contenteditable="true" class="prettyprint lang-html" > 
+<span readonly="readonly" contenteditable="false" class="unEditeblae">
+var container = document.getElementById('visualization');</span>
 
-       <div class="col-lg-2 col-md-3 col-sm-6">
-        <a href="examples/timeline/dataHandling/loadExternalData.html">
-          <img class="timeline_example img-responsive" src="./images/exampleScreenshots/timeline/dataHandling/loadExternalData.png">
-          <div class="exampleTitle">load external data</div>
-        </a>
-      </div>
-    </div>
+var data = [
+  {id: 1, content: 'item 1', start: '2013-04-20'},
+  {id: 2, content: 'item 2', start: '2013-04-14'},
+  {id: 3, content: 'item 3', start: '2013-04-18'},
+  {id: 4, content: 'item 4', start: '2013-04-16', end: '2013-04-19'},
+  {id: 5, content: 'item 5', start: '2013-04-25'},
+  {id: 6, content: 'item 6', start: '2013-04-27'}
+];
 
-    <h3>editing</h3>
-    <div class="container-fluid">
-      <div class="col-lg-2 col-md-3 col-sm-6">
-        <a href="examples/timeline/editing/customSnappingOfItems.html">
-          <img class="timeline_example img-responsive" src="./images/exampleScreenshots/timeline/editing/customSnappingOfItems.png">
-          <div class="exampleTitle">data serialization</div>
-        </a>
-      </div>
+var options = {};
+var timeline = new vis.Timeline(container, data, options);
+        </pre>
+        <pre hidden="hidden" spellcheck="false" id="jsGroupText"  contenteditable="true" class="prettyprint lang-html" > 
+ var now = moment().minutes(0).seconds(0).milliseconds(0);
+ var groupCount = 3;
+ var itemCount = 10;
 
-      <div class="col-lg-2 col-md-3 col-sm-6">
-        <a href="examples/timeline/editing/editingItems.html">
-          <img class="timeline_example img-responsive" src="./images/exampleScreenshots/timeline/editing/editingItems.png">
-          <div class="exampleTitle">editing items</div>
-        </a>
-      </div>
+   // create a data set with groups
+   var names = ['John', 'Alston', 'Lee', 'Grant'];
+   var groups = new vis.DataSet();
+   for (var g = 0; g < groupCount; g++) {
+   groups.add({id: g, content: names[g]});
+ }
 
-      <div class="col-lg-2 col-md-3 col-sm-6">
-        <a href="examples/timeline/editing/editingItemsCallbacks.html">
-          <img class="timeline_example img-responsive" src="./images/exampleScreenshots/timeline/editing/editingItemsCallbacks.png">
-          <div class="exampleTitle">editing items callbacks</div>
-        </a>
-      </div>
+ // create a dataset with items
+ var items = new vis.DataSet();
+ for (var i = 0; i < itemCount; i++) {
+ var start = now.clone().add(Math.random() * 200, 'hours');
+ var group = Math.floor(Math.random() * groupCount);
+ items.add({
+ id: i,
+ group: group,
+ content: 'item ' + i +
+     ' <span style="color:#97B0F8;">(' + names[group] + ')</span>',
+     start: start,
+     type: 'box'
+   });
+ }
 
-      <div class="col-lg-2 col-md-3 col-sm-6">
-        <a href="examples/timeline/editing/individualEditableItems.html">
-          <img class="timeline_example img-responsive" src="./images/exampleScreenshots/timeline/editing/individualEditableItems.png">
-          <div class="exampleTitle">individual editable items</div>
-        </a>
-      </div>
+ // create visualization
+ var container = document.getElementById('visualization');
+ var options = {
+ groupOrder: 'content'  // groupOrder can be a property name or a sorting function
+};
 
-       <div class="col-lg-2 col-md-3 col-sm-6">
-        <a href="examples/timeline/editing/updateDataOnEvent.html">
-          <img class="timeline_example img-responsive" src="./images/exampleScreenshots/timeline/editing/updateDataOnEvent.png">
-          <div class="exampleTitle">update data on event</div>
-        </a>
-      </div>
-    </div>
+var timeline = new vis.Timeline(container);
+timeline.setOptions(options);
+timeline.setGroups(groups);
+timeline.setItems(items);
+        </pre>
 
-    <h3>groups</h3>
-    <div class="container-fluid">
-      <div class="col-lg-2 col-md-3 col-sm-6">
-        <a href=examples/timeline/groups/groups.html>
-          <img class="timeline_example img-responsive" src="./images/exampleScreenshots/timeline/groups/groups.png">
-          <div class="exampleTitle">groups</div>
-        </a>
-      </div>
+        <div id="visualization"></div>
 
-      <div class="col-lg-2 col-md-3 col-sm-6">
-        <a href="examples/timeline/groups/groupsEditable.html">
-          <img class="timeline_example img-responsive" src="./images/exampleScreenshots/timeline/groups/groupsEditable.png">
-          <div class="exampleTitle">groups editable</div>
-        </a>
-      </div>
+        <h3>basic usage</h3>
+        <div class="container-fluid">
+          <div class="col-lg-2 col-md-3 col-sm-6">
+            <a href="examples/timeline/editing/updateDataOnEvent.html">
+              <img class="timeline_example img-responsive" src="./images/exampleScreenshots/timeline/basicUsage.png">
+              <div class="exampleTitle">basic usage</div>
+            </a>
+          </div>
+        </div>
 
-      <div class="col-lg-2 col-md-3 col-sm-6">
-        <a href="examples/timeline/groups/groupsOrdering.html">
-          <img class="timeline_example img-responsive" src="./images/exampleScreenshots/timeline/groups/groupsOrdering.png">
-          <div class="exampleTitle">groups ordering</div>
-        </a>
-      </div>
+        <h3>data handling</h3>
+        <div class="container-fluid">
+          <div class="col-lg-2 col-md-3 col-sm-6">
+            <a href="examples/timeline/dataHandling/dataSerialization.html">
+              <img class="timeline_example img-responsive" src="./images/exampleScreenshots/timeline/dataHandling/dataSerialization.png">
+              <div class="exampleTitle">data serialization</div>
+            </a>
+          </div>
 
-      <div class="col-lg-2 col-md-3 col-sm-6">
-        <a href="examples/timeline/groups/subgroups.html">
-          <img class="timeline_example img-responsive" src="./images/exampleScreenshots/timeline/groups/subgroups.png">
-          <div class="exampleTitle">subgroups</div>
-        </a>
-      </div>
-    </div>
+          <div class="col-lg-2 col-md-3 col-sm-6">
+            <a href="examples/timeline/dataHandling/loadExternalData.html">
+              <img class="timeline_example img-responsive" src="./images/exampleScreenshots/timeline/dataHandling/loadExternalData.png">
+              <div class="exampleTitle">load external data</div>
+            </a>
+          </div>
+        </div>
 
-    <h3>interaction</h3>
-    <div class="container-fluid">
-      <div class="col-lg-2 col-md-3 col-sm-6">
-        <a href="examples/timeline/interaction/animateWindow.html">
-          <img class="timeline_example img-responsive" src="./images/exampleScreenshots/timeline/interaction/animateWindow.png">
-          <div class="exampleTitle">animate window</div>
-        </a>
-      </div>
+        <h3>editing</h3>
+        <div class="container-fluid">
+          <div class="col-lg-2 col-md-3 col-sm-6">
+            <a href="examples/timeline/editing/customSnappingOfItems.html">
+              <img class="timeline_example img-responsive" src="./images/exampleScreenshots/timeline/editing/customSnappingOfItems.png">
+              <div class="exampleTitle">data serialization</div>
+            </a>
+          </div>
 
-       <div class="col-lg-2 col-md-3 col-sm-6">
-        <a href="examples/timeline/interaction/clickToUse.html">
-          <img class="timeline_example img-responsive" src="./images/exampleScreenshots/timeline/interaction/clickToUse.png">
-          <div class="exampleTitle">click to use</div>
-        </a>
-      </div>
+          <div class="col-lg-2 col-md-3 col-sm-6">
+            <a href="examples/timeline/editing/editingItems.html">
+              <img class="timeline_example img-responsive" src="./images/exampleScreenshots/timeline/editing/editingItems.png">
+              <div class="exampleTitle">editing items</div>
+            </a>
+          </div>
 
-       <div class="col-lg-2 col-md-3 col-sm-6">
-        <a href="examples/timeline/interaction/eventListeners.html">
-          <img class="timeline_example img-responsive" src="./images/exampleScreenshots/timeline/interaction/eventListeners.png">
-          <div class="exampleTitle">event listeners</div>
-        </a>
-      </div>
+          <div class="col-lg-2 col-md-3 col-sm-6">
+            <a href="examples/timeline/editing/editingItemsCallbacks.html">
+              <img class="timeline_example img-responsive" src="./images/exampleScreenshots/timeline/editing/editingItemsCallbacks.png">
+              <div class="exampleTitle">editing items callbacks</div>
+            </a>
+          </div>
 
-       <div class="col-lg-2 col-md-3 col-sm-6">
-        <a href="examples/timeline/interaction/limitMoveAndZoom.html">
-          <img class="timeline_example img-responsive" src="./images/exampleScreenshots/timeline/interaction/limitMoveAndZoom.png">
-          <div class="exampleTitle">limit move and zoom</div>
-        </a>
-      </div>
+          <div class="col-lg-2 col-md-3 col-sm-6">
+            <a href="examples/timeline/editing/individualEditableItems.html">
+              <img class="timeline_example img-responsive" src="./images/exampleScreenshots/timeline/editing/individualEditableItems.png">
+              <div class="exampleTitle">individual editable items</div>
+            </a>
+          </div>
 
-       <div class="col-lg-2 col-md-3 col-sm-6">
-        <a href="examples/timeline/interaction/navigationMenu.html">
-          <img class="timeline_example img-responsive" src="./images/exampleScreenshots/timeline/interaction/navigationMenu.png">
-          <div class="exampleTitle">navigation menu</div>
-        </a>
-      </div>
+          <div class="col-lg-2 col-md-3 col-sm-6">
+            <a href="examples/timeline/editing/updateDataOnEvent.html">
+              <img class="timeline_example img-responsive" src="./images/exampleScreenshots/timeline/editing/updateDataOnEvent.png">
+              <div class="exampleTitle">update data on event</div>
+            </a>
+          </div>
+        </div>
 
-       <div class="col-lg-2 col-md-3 col-sm-6">
-        <a href="examples/timeline/interaction/setSelection.html">
-          <img class="timeline_example img-responsive" src="./images/exampleScreenshots/timeline/interaction/setSelection.png">
-          <div class="exampleTitle">set selection</div>
-        </a>
-      </div>
-    </div>
+        <h3>groups</h3>
+        <div class="container-fluid">
+          <div class="col-lg-2 col-md-3 col-sm-6">
+            <a href=examples/timeline/groups/groups.html>
+              <img class="timeline_example img-responsive" src="./images/exampleScreenshots/timeline/groups/groups.png">
+              <div class="exampleTitle">groups</div>
+            </a>
+          </div>
 
-    <h3>items</h3>
-    <div class="container-fluid">
-      <div class="col-lg-2 col-md-3 col-sm-6">
-        <a href="examples/timeline/items/backgroundAreas.html">
-          <img class="timeline_example img-responsive" src="./images/exampleScreenshots/timeline/items/backgroundAreas.png">
-          <div class="exampleTitle">background areas</div>
-        </a>
-      </div>
+          <div class="col-lg-2 col-md-3 col-sm-6">
+            <a href="examples/timeline/groups/groupsEditable.html">
+              <img class="timeline_example img-responsive" src="./images/exampleScreenshots/timeline/groups/groupsEditable.png">
+              <div class="exampleTitle">groups editable</div>
+            </a>
+          </div>
 
-      <div class="col-lg-2 col-md-3 col-sm-6">
-        <a href="examples/timeline/items/backgroundAreasWithGroups.html">
-          <img class="timeline_example img-responsive" src="./images/exampleScreenshots/timeline/items/backgroundAreasWithGroups.png">
-          <div class="exampleTitle">background areas with groups</div>
-        </a>
-      </div>
+          <div class="col-lg-2 col-md-3 col-sm-6">
+            <a href="examples/timeline/groups/groupsOrdering.html">
+              <img class="timeline_example img-responsive" src="./images/exampleScreenshots/timeline/groups/groupsOrdering.png">
+              <div class="exampleTitle">groups ordering</div>
+            </a>
+          </div>
 
-      <div class="col-lg-2 col-md-3 col-sm-6">
-        <a href="examples/timeline/items/htmlContents.html">
-          <img class="timeline_example img-responsive" src="./images/exampleScreenshots/timeline/items/htmlContents.png">
-          <div class="exampleTitle">html contents</div>
-        </a>
-      </div>
+          <div class="col-lg-2 col-md-3 col-sm-6">
+            <a href="examples/timeline/groups/subgroups.html">
+              <img class="timeline_example img-responsive" src="./images/exampleScreenshots/timeline/groups/subgroups.png">
+              <div class="exampleTitle">subgroups</div>
+            </a>
+          </div>
+        </div>
 
-      <div class="col-lg-2 col-md-3 col-sm-6">
-        <a href="examples/timeline/items/itemOrdering.html">
-          <img class="timeline_example img-responsive" src="./images/exampleScreenshots/timeline/items/itemOrdering.png">
-          <div class="exampleTitle">item ordering</div>
-        </a>
-      </div>
+        <h3>interaction</h3>
+        <div class="container-fluid">
+          <div class="col-lg-2 col-md-3 col-sm-6">
+            <a href="examples/timeline/interaction/animateWindow.html">
+              <img class="timeline_example img-responsive" src="./images/exampleScreenshots/timeline/interaction/animateWindow.png">
+              <div class="exampleTitle">animate window</div>
+            </a>
+          </div>
 
-      <div class="col-lg-2 col-md-3 col-sm-6">
-        <a href="examples/timeline/items/pointItems.html">
-          <img class="timeline_example img-responsive" src="./images/exampleScreenshots/timeline/items/pointItems.png">
-          <div class="exampleTitle">point items</div>
-        </a>
-      </div>
+          <div class="col-lg-2 col-md-3 col-sm-6">
+            <a href="examples/timeline/interaction/clickToUse.html">
+              <img class="timeline_example img-responsive" src="./images/exampleScreenshots/timeline/interaction/clickToUse.png">
+              <div class="exampleTitle">click to use</div>
+            </a>
+          </div>
 
-      <div class="col-lg-2 col-md-3 col-sm-6">
-        <a href="examples/timeline/items/rangeOverflowItem.html">
-          <img class="timeline_example img-responsive" src="./images/exampleScreenshots/timeline/items/rangeOverflowItem.png">
-          <div class="exampleTitle">range over flow item</div>
-        </a>
-      </div>
-    </div>
+          <div class="col-lg-2 col-md-3 col-sm-6">
+            <a href="examples/timeline/interaction/eventListeners.html">
+              <img class="timeline_example img-responsive" src="./images/exampleScreenshots/timeline/interaction/eventListeners.png">
+              <div class="exampleTitle">event listeners</div>
+            </a>
+          </div>
 
-    <h3>other</h3>
-    <div class="container-fluid">
-      <div class="col-lg-2 col-md-3 col-sm-6">
-        <a href="examples/timeline/other/requirejs/requirejs_example.html"">
-          <img class="timeline_example img-responsive" src="./images/exampleScreenshots/timeline/other/requirejs/requirejs_example.png">
-          <div class="exampleTitle">require js</div>
-        </a>
-      </div>
+          <div class="col-lg-2 col-md-3 col-sm-6">
+            <a href="examples/timeline/interaction/limitMoveAndZoom.html">
+              <img class="timeline_example img-responsive" src="./images/exampleScreenshots/timeline/interaction/limitMoveAndZoom.png">
+              <div class="exampleTitle">limit move and zoom</div>
+            </a>
+          </div>
 
-      <div class="col-lg-2 col-md-3 col-sm-6">
-        <a href="examples/timeline/other/customTimeBars.html">
-          <img class="timeline_example img-responsive" src="./images/exampleScreenshots/timeline/other/customTimeBars.png">
-          <div class="exampleTitle">custom time bars</div>
-        </a>
-      </div>
+          <div class="col-lg-2 col-md-3 col-sm-6">
+            <a href="examples/timeline/interaction/navigationMenu.html">
+              <img class="timeline_example img-responsive" src="./images/exampleScreenshots/timeline/interaction/navigationMenu.png">
+              <div class="exampleTitle">navigation menu</div>
+            </a>
+          </div>
 
-      <div class="col-lg-2 col-md-3 col-sm-6">
-        <a href="examples/timeline/other/dataAttributes.html">
-          <img class="timeline_example img-responsive" src="./images/exampleScreenshots/timeline/other/dataAttributes.png">
-          <div class="exampleTitle">data attributes</div>
-        </a>
-      </div>
+          <div class="col-lg-2 col-md-3 col-sm-6">
+            <a href="examples/timeline/interaction/setSelection.html">
+              <img class="timeline_example img-responsive" src="./images/exampleScreenshots/timeline/interaction/setSelection.png">
+              <div class="exampleTitle">set selection</div>
+            </a>
+          </div>
+        </div>
 
-      <div class="col-lg-2 col-md-3 col-sm-6">
-        <a href="examples/timeline/other/dataAttributesAll.html">
-          <img class="timeline_example img-responsive" src="./images/exampleScreenshots/timeline/other/dataAttributesAll.png">
-          <div class="exampleTitle">data attributes all</div>
-        </a>
-      </div>
+        <h3>items</h3>
+        <div class="container-fluid">
+          <div class="col-lg-2 col-md-3 col-sm-6">
+            <a href="examples/timeline/items/backgroundAreas.html">
+              <img class="timeline_example img-responsive" src="./images/exampleScreenshots/timeline/items/backgroundAreas.png">
+              <div class="exampleTitle">background areas</div>
+            </a>
+          </div>
 
-      <div class="col-lg-2 col-md-3 col-sm-6">
-        <a href="examples/timeline/other/groupsPerformance.html">
-          <img class="timeline_example img-responsive" src="./images/exampleScreenshots/timeline/other/groupsPerformance.png">
-          <div class="exampleTitle">groups performance</div>
-        </a>
-      </div>
+          <div class="col-lg-2 col-md-3 col-sm-6">
+            <a href="examples/timeline/items/backgroundAreasWithGroups.html">
+              <img class="timeline_example img-responsive" src="./images/exampleScreenshots/timeline/items/backgroundAreasWithGroups.png">
+              <div class="exampleTitle">background areas with groups</div>
+            </a>
+          </div>
 
-      <div class="col-lg-2 col-md-3 col-sm-6">
-        <a href="examples/timeline/other/hidingPeriods.html">
-          <img class="timeline_example img-responsive" src="./images/exampleScreenshots/timeline/other/hidingPeriods.png">
-          <div class="exampleTitle">hiding periods</div>
-        </a>
-      </div>
+          <div class="col-lg-2 col-md-3 col-sm-6">
+            <a href="examples/timeline/items/htmlContents.html">
+              <img class="timeline_example img-responsive" src="./images/exampleScreenshots/timeline/items/htmlContents.png">
+              <div class="exampleTitle">html contents</div>
+            </a>
+          </div>
 
-      <div class="col-lg-2 col-md-3 col-sm-6">
-        <a href="examples/timeline/other/localization.html">
-          <img class="timeline_example img-responsive" src="./images/exampleScreenshots/timeline/other/localization.png">
-          <div class="exampleTitle">localization</div>
-        </a>
-      </div>
+          <div class="col-lg-2 col-md-3 col-sm-6">
+            <a href="examples/timeline/items/itemOrdering.html">
+              <img class="timeline_example img-responsive" src="./images/exampleScreenshots/timeline/items/itemOrdering.png">
+              <div class="exampleTitle">item ordering</div>
+            </a>
+          </div>
 
-      <div class="col-lg-2 col-md-3 col-sm-6">
-        <a href="examples/timeline/other/performance.html">
-          <img class="timeline_example img-responsive" src="./images/exampleScreenshots/timeline/other/performance.png">
-          <div class="exampleTitle">performance</div>
-        </a>
-      </div>
+          <div class="col-lg-2 col-md-3 col-sm-6">
+            <a href="examples/timeline/items/pointItems.html">
+              <img class="timeline_example img-responsive" src="./images/exampleScreenshots/timeline/items/pointItems.png">
+              <div class="exampleTitle">point items</div>
+            </a>
+          </div>
 
-      <div class="col-lg-2 col-md-3 col-sm-6">
-        <a href="examples/timeline/other/rtl.html">
-          <img class="timeline_example img-responsive" src="./images/exampleScreenshots/timeline/other/rtl.png">
-          <div class="exampleTitle">rtl</div>
-        </a>
-      </div>
+          <div class="col-lg-2 col-md-3 col-sm-6">
+            <a href="examples/timeline/items/rangeOverflowItem.html">
+              <img class="timeline_example img-responsive" src="./images/exampleScreenshots/timeline/items/rangeOverflowItem.png">
+              <div class="exampleTitle">range over flow item</div>
+            </a>
+          </div>
+        </div>
 
-      <div class="col-lg-2 col-md-3 col-sm-6">
-        <a href="examples/timeline/other/timezone.html">
-          <img class="timeline_example img-responsive" src="./images/exampleScreenshots/timeline/other/timezone.png">
-          <div class="exampleTitle">timezone</div>
-        </a>
-      </div>
-    </div>
+        <h3>other</h3>
+        <div class="container-fluid">
+          <div class="col-lg-2 col-md-3 col-sm-6">
+            <a href="examples/timeline/other/requirejs/requirejs_example.html"">
+              <img class="timeline_example img-responsive" src="./images/exampleScreenshots/timeline/other/requirejs/requirejs_example.png">
+              <div class="exampleTitle">require js</div>
+            </a>
+          </div>
 
-    <h3>styling</h3>
-    <div class="container-fluid">
-      <div class="col-lg-2 col-md-3 col-sm-6">
-        <a href="examples/timeline/styling/axisOrientation.html">
-          <img class="timeline_example img-responsive" src="./images/exampleScreenshots/timeline/styling/axisOrientation.png">
-          <div class="exampleTitle">exis orientation</div>
-        </a>
-      </div>
+          <div class="col-lg-2 col-md-3 col-sm-6">
+            <a href="examples/timeline/other/customTimeBars.html">
+              <img class="timeline_example img-responsive" src="./images/exampleScreenshots/timeline/other/customTimeBars.png">
+              <div class="exampleTitle">custom time bars</div>
+            </a>
+          </div>
 
-      <div class="col-lg-2 col-md-3 col-sm-6">
-        <a href="examples/timeline/styling/customCss.html">
-          <img class="timeline_example img-responsive" src="./images/exampleScreenshots/timeline/styling/customCss.png">
-          <div class="exampleTitle">custom css</div>
-        </a>
-      </div>
+          <div class="col-lg-2 col-md-3 col-sm-6">
+            <a href="examples/timeline/other/dataAttributes.html">
+              <img class="timeline_example img-responsive" src="./images/exampleScreenshots/timeline/other/dataAttributes.png">
+              <div class="exampleTitle">data attributes</div>
+            </a>
+          </div>
 
-      <div class="col-lg-2 col-md-3 col-sm-6">
-        <a href="examples/timeline/styling/gridStyling.html">
-          <img class="timeline_example img-responsive" src="./images/exampleScreenshots/timeline/styling/gridStyling.png">
-          <div class="exampleTitle">grid styling</div>
-        </a>
-      </div>
+          <div class="col-lg-2 col-md-3 col-sm-6">
+            <a href="examples/timeline/other/dataAttributesAll.html">
+              <img class="timeline_example img-responsive" src="./images/exampleScreenshots/timeline/other/dataAttributesAll.png">
+              <div class="exampleTitle">data attributes all</div>
+            </a>
+          </div>
 
-      <div class="col-lg-2 col-md-3 col-sm-6">
-        <a href="examples/timeline/styling/itemClassNames.html">
-          <img class="timeline_example img-responsive" src="./images/exampleScreenshots/timeline/styling/itemClassNames.png">
-          <div class="exampleTitle">item class names</div>
-        </a>
-      </div>
+          <div class="col-lg-2 col-md-3 col-sm-6">
+            <a href="examples/timeline/other/groupsPerformance.html">
+              <img class="timeline_example img-responsive" src="./images/exampleScreenshots/timeline/other/groupsPerformance.png">
+              <div class="exampleTitle">groups performance</div>
+            </a>
+          </div>
 
-      <div class="col-lg-2 col-md-3 col-sm-6">
-        <a href="examples/timeline/styling/itemTemplates.html">
-          <img class="timeline_example img-responsive" src="./images/exampleScreenshots/timeline/styling/itemTemplates.png">
-          <div class="exampleTitle">item templates</div>
-        </a>
-      </div>
-    </div>
+          <div class="col-lg-2 col-md-3 col-sm-6">
+            <a href="examples/timeline/other/hidingPeriods.html">
+              <img class="timeline_example img-responsive" src="./images/exampleScreenshots/timeline/other/hidingPeriods.png">
+              <div class="exampleTitle">hiding periods</div>
+            </a>
+          </div>
 
-    <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
-    <!-- Include all compiled plugins (below), or include individual files as needed -->
-    <script src="js/bootstrap.min.js"></script>
-  </body>
-</html>
+          <div class="col-lg-2 col-md-3 col-sm-6">
+            <a href="examples/timeline/other/localization.html">
+              <img class="timeline_example img-responsive" src="./images/exampleScreenshots/timeline/other/localization.png">
+              <div class="exampleTitle">localization</div>
+            </a>
+          </div>
+
+          <div class="col-lg-2 col-md-3 col-sm-6">
+            <a href="examples/timeline/other/performance.html">
+              <img class="timeline_example img-responsive" src="./images/exampleScreenshots/timeline/other/performance.png">
+              <div class="exampleTitle">performance</div>
+            </a>
+          </div>
+
+          <div class="col-lg-2 col-md-3 col-sm-6">
+            <a href="examples/timeline/other/rtl.html">
+              <img class="timeline_example img-responsive" src="./images/exampleScreenshots/timeline/other/rtl.png">
+              <div class="exampleTitle">rtl</div>
+            </a>
+          </div>
+
+          <div class="col-lg-2 col-md-3 col-sm-6">
+            <a href="examples/timeline/other/timezone.html">
+              <img class="timeline_example img-responsive" src="./images/exampleScreenshots/timeline/other/timezone.png">
+              <div class="exampleTitle">timezone</div>
+            </a>
+          </div>
+        </div>
+
+        <h3>styling</h3>
+        <div class="container-fluid">
+          <div class="col-lg-2 col-md-3 col-sm-6">
+            <a href="examples/timeline/styling/axisOrientation.html">
+              <img class="timeline_example img-responsive" src="./images/exampleScreenshots/timeline/styling/axisOrientation.png">
+              <div class="exampleTitle">exis orientation</div>
+            </a>
+          </div>
+
+          <div class="col-lg-2 col-md-3 col-sm-6">
+            <a href="examples/timeline/styling/customCss.html">
+              <img class="timeline_example img-responsive" src="./images/exampleScreenshots/timeline/styling/customCss.png">
+              <div class="exampleTitle">custom css</div>
+            </a>
+          </div>
+
+          <div class="col-lg-2 col-md-3 col-sm-6">
+            <a href="examples/timeline/styling/gridStyling.html">
+              <img class="timeline_example img-responsive" src="./images/exampleScreenshots/timeline/styling/gridStyling.png">
+              <div class="exampleTitle">grid styling</div>
+            </a>
+          </div>
+
+          <div class="col-lg-2 col-md-3 col-sm-6">
+            <a href="examples/timeline/styling/itemClassNames.html">
+              <img class="timeline_example img-responsive" src="./images/exampleScreenshots/timeline/styling/itemClassNames.png">
+              <div class="exampleTitle">item class names</div>
+            </a>
+          </div>
+
+          <div class="col-lg-2 col-md-3 col-sm-6">
+            <a href="examples/timeline/styling/itemTemplates.html">
+              <img class="timeline_example img-responsive" src="./images/exampleScreenshots/timeline/styling/itemTemplates.png">
+              <div class="exampleTitle">item templates</div>
+            </a>
+          </div>
+        </div>
+
+        <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
+        <!-- Include all compiled plugins (below), or include individual files as needed -->
+        <script src="js/bootstrap.min.js"></script>
+        <script type="text/javascript" src="js/timeline_examples.js"></script>
+      </body>
+      </html>
