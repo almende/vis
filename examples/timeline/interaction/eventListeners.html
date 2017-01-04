@@ -15,7 +15,7 @@
 </head>
 <body>
   <p>
-    This example listens for events <code>select</code>, <code>click</code>, <code>doubleClick</code>, <code>rangechange</code>, and <code>rangechanged</code> of the Timeline (other possible events: <code>mouseDown</code>, <code>mouseUp</code>, <code>mouseOver</code>, <code>mouseMove</code>), and listens for changes in the DataSet (<code>add</code>, <code>update</code>, or <code>remove</code> items).
+    This example listens for events <code>select</code>, <code>rangechange</code>, and <code>rangechanged</code> of the Timeline, and listens for changes in the DataSet (<code>add</code>, <code>update</code>, or <code>remove</code> items).
   </p>
   <div id="visualization"></div>
   <p></p>
@@ -56,28 +56,6 @@
       logEvent('itemout', properties);
       setHoveredItem('none');
     });
-
-    timeline.on('click', function (properties) {
-      logEvent('click', properties);
-    });
-
-    timeline.on('doubleClick', function (properties) {
-      logEvent('doubleClick', properties);
-    });
-
-    timeline.on('contextmenu', function (properties) {
-      logEvent('contextmenu', properties);
-    });
-
-    // other possible events:
-
-    // timeline.on('mouseOver', function (properties) {
-    //   logEvent('mouseOver', properties);
-    // });
-
-    // timeline.on("mouseMove", function(properties) {
-    //   logEvent('mouseMove', properties);
-    // });
 
     items.on('*', function (event, properties) {
       logEvent(event, properties);
