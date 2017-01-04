@@ -36,7 +36,6 @@ div.textHTMLContent {
     width:800px;
 }
 
-
 img.example {
     border:1px solid #dddddd;
     width:250px;
@@ -44,6 +43,16 @@ img.example {
     border-radius:10px;
     margin-top:10px;
 }
+
+img.timeline_example {
+    border: 1px solid #dddddd;
+    border-radius: 10px;
+    margin-top: 10px;
+    max-height: 150px;
+    width: 100%;
+    max-width: 250px;
+}
+
 div.exampleTitle {
     position:relative;
     top:-7px;
