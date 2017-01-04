@@ -21,30 +21,16 @@
     <script type="text/javascript" src="./js/prettify/prettify.js"></script>
     <link href="./css/examples.css" rel="stylesheet" type="text/css" />
 
-    <!-- note: moment.js must be loaded before vis.js, else vis.js uses its embedded version of moment.js -->
-    <script src="http://cdnjs.cloudflare.com/ajax/libs/moment.js/2.8.4/moment.min.js"></script>
-
     <script src="./dist/vis.js"></script>
     <link href="./dist/vis.css" rel="stylesheet" type="text/css" />
 
-    <script src="./js/imagesNetwork.js"></script>
-    <link href="./css/imagesNetwork.css" rel="stylesheet" type="text/css" />
-
   </head>
-  <body onload="loadVis(220);">
-
-
+  <body>
     <div class="navbar-wrapper">
       <div class="container">
         <nav class="navbar navbar-inverse navbar-static-top" role="navigation">
           <div class="container">
             <div class="navbar-header">
-              <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
-                <span class="sr-only">Toggle navigation</span>
-                span class="icon-bar"></span>
-                <span class="icon-bar"></span>
-                <span class="icon-bar"></span>
-              </button>
               <a class="navbar-brand hidden-sm" href="./index.html">vis.js</a>
             </div>
             <div id="navbar" class="navbar-collapse collapse">
@@ -96,7 +82,7 @@
       </div>
     </div>
 
-    <h3>editing</h3>
+    <h3>editing</h3> 
     <div class="container-fluid">
       <div class="col-lg-2 col-md-3 col-sm-6">
         <a href="examples/timeline/editing/customSnappingOfItems.html">
@@ -132,6 +118,13 @@
           <div class="exampleTitle">update data on event</div>
         </a>
       </div>
+
+      <div class="col-lg-2 col-md-3 col-sm-6">
+        <a href="examples/timeline/editing/tooltipOnItemChange.html">
+          <img class="timeline_example img-responsive" src="./images/exampleScreenshots/timeline/editing/tooltipOnItemChange.png">
+          <div class="exampleTitle">tooltip on item change</div>
+        </a>
+      </div>
     </div>
 
     <h3>groups</h3>
@@ -161,6 +154,13 @@
         <a href="examples/timeline/groups/subgroups.html">
           <img class="timeline_example img-responsive" src="./images/exampleScreenshots/timeline/groups/subgroups.png">
           <div class="exampleTitle">subgroups</div>
+        </a>
+      </div>
+
+      <div class="col-lg-2 col-md-3 col-sm-6">
+        <a href=examples/timeline/groups/verticalItemsHide.html>
+          <img class="timeline_example img-responsive" src="./images/exampleScreenshots/timeline/groups/verticalItemsHide.png">
+          <div class="exampleTitle">vertical items hide</div>
         </a>
       </div>
     </div>
@@ -326,6 +326,41 @@
           <div class="exampleTitle">timezone</div>
         </a>
       </div>
+
+      <div class="col-lg-2 col-md-3 col-sm-6">
+        <a href="examples/timeline/other/drag&drop.html">
+          <img class="timeline_example img-responsive" src="./images/exampleScreenshots/timeline/other/drag&drop.png">
+          <div class="exampleTitle">drag & drop</div>
+        </a>
+      </div>
+
+      <div class="col-lg-2 col-md-3 col-sm-6">
+        <a href="examples/timeline/other/functionLabelFormats.html">
+          <img class="timeline_example img-responsive" src="./images/exampleScreenshots/timeline/other/functionLabelFormats.png">
+          <div class="exampleTitle">function label formats</div>
+        </a>
+      </div>
+
+      <div class="col-lg-2 col-md-3 col-sm-6">
+        <a href="examples/timeline/other/horizontalScroll.html">
+          <img class="timeline_example img-responsive" src="./images/exampleScreenshots/timeline/other/horizontalScroll.png">
+          <div class="exampleTitle">horizontal scroll</div>
+        </a>
+      </div>
+
+      <div class="col-lg-2 col-md-3 col-sm-6">
+        <a href="examples/timeline/other/usingReact.html">
+          <img class="timeline_example img-responsive" src="./images/exampleScreenshots/timeline/other/usingReact.png">
+          <div class="exampleTitle">using react</div>
+        </a>
+      </div>
+
+      <div class="col-lg-2 col-md-3 col-sm-6">
+        <a href="examples/timeline/other/verticalScroll.html">
+          <img class="timeline_example img-responsive" src="./images/exampleScreenshots/timeline/other/verticalScroll.png">
+          <div class="exampleTitle">vertical sroll</div>
+        </a>
+      </div>
     </div>
 
     <h3>styling</h3>
@@ -365,10 +400,5 @@
         </a>
       </div>
     </div>
-
-    <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
-    <!-- Include all compiled plugins (below), or include individual files as needed -->
-    <script src="js/bootstrap.min.js"></script>
   </body>
 </html>
