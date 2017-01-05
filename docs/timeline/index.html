@@ -1096,6 +1096,30 @@ function (option, path) {
       </td>
     </tr>
 
+    <tr class='toggle collapsible' onclick="toggleTable('optionTable','tooltip', this);">
+      <td><span parent="tooltip" class="right-caret"></span> tooltip</td>
+      <td>Object</td>
+      <td><code>Object</code></td>
+      <td>Specify how the tooltip is positioned.</td>
+    </tr>
+    <tr parent="tooltip" class="hidden">
+      <td class="indent">tooltip.followMouse</td>
+      <td>boolean</td>
+      <td><code>false</code></td>
+      <td>If true, tooltips will follow the mouse as they move around in the item.</td>
+    </tr>
+
+    <tr parent="tooltip" class="hidden">
+      <td class="indent">tooltip.overflowMethod</td>
+      <td>String</td>
+      <td><code>'flip'</code></td>
+      <td>
+        Set how the tooltip should act if it is about to overflow out of the timeline.<br />
+        Choose from <code>'cap'</code> and <code>'flip'</code>. <br />
+        If it is set to <code>'cap'</code>, the tooltip will just cap its position to inside to timeline. <br />
+        While if it is set to <code>'flip'</code>, the position of the tooltip will flip around the cursor so that a corner is at the cursor, and the rest of it is visible. <br />
+    </tr>
+
     <tr class='toggle collapsible' onclick="toggleTable('optionTable','tooltipOnItemUpdateTime', this);">
       <td><span parent="tooltipOnItemUpdateTime" class="right-caret"></span> tooltipOnItemUpdateTime</td>
       <td>Object/Boolean</td>

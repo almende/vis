@@ -24,6 +24,20 @@
 
 <div id="tooltips"></div>
 
+<p>
+  The example below has the tooltip follow the mouse.
+</p>
+
+<div id="tooltips-follow"></div>
+
+<p>
+  The example below has the tooltip overflow set to 'cap'. Compare this to the one above,
+  to see how they differ. For the best results, move the cursor to the top right,
+  where the tool-tip is going to overflow out of the timeline.
+</p>
+
+<div id="tooltips-cap"></div>
+
 <script type="text/javascript">
   // Create a DataSet (allows two way data-binding)
   var items = new vis.DataSet([
@@ -43,6 +57,27 @@
   var timelineTooltips = new vis.Timeline(document.getElementById('tooltips'),
       items, options
   );
+
+  // Follow options
+  var follow_options = {
+    tooltip: {
+      followMouse: true
+    }
+  };
+
+  var timelineFollow = new vis.Timeline(document.getElementById('tooltips-follow'),
+      items, follow_options);
+
+  // Cap options
+  var cap_options = {
+    tooltip: {
+      followMouse: true,
+      overflowMethod: 'cap'
+    }
+  }
+
+  var timelineCap = new vis.Timeline(document.getElementById('tooltips-cap'),
+      items, cap_options);
 </script>
 
 </body>
