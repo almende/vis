@@ -1,6 +1,6 @@
 {
   "name": "vis",
-  "version": "4.17.0-SNAPSHOT",
+  "version": "4.18.0",
   "description": "A dynamic, browser-based visualization library.",
   "homepage": "http://visjs.org/",
   "license": "(Apache-2.0 OR MIT)",
@@ -30,7 +30,7 @@
   },
   "dependencies": {
     "babel-polyfill": "^6.20.0",
-    "babel-runtime": "^6.20.0",    
+    "babel-runtime": "^6.20.0",
     "emitter-component": "^1.1.1",
     "moment": "^2.12.0",
     "propagating-hammerjs": "^1.4.6",
