@@ -60,6 +60,7 @@
         <div id="navbar" class="navbar-collapse collapse">
           <ul class="nav navbar-nav">
             <li><a href="http://www.visjs.org/index.html#modules">Modules</a></li>
+            <li><a href="http://www.visjs.org/blog.html">Blog</a></li>
             <li><a href="http://www.visjs.org/index.html#download_install">Download</a></li>
             <li><a href="http://www.visjs.org/showcase/index.html">Showcase</a></li>
             <li><a href="http://www.visjs.org/index.html#contribute">Contribute</a></li>
@@ -236,7 +237,7 @@ var items = new vis.DataSet([
     The item properties are defined as:
   </p>
 
-  <table class="properties">
+  <table class="properties" id="itemOptionTable">
     <tr>
       <th>Name</th>
       <th>Type</th>
@@ -323,7 +324,7 @@ var items = new vis.DataSet([
       <td>String</td>
       <td>none</td>
       <td>Add a title for the item, displayed when holding the mouse on the item.
-        The title can only contain plain text.
+        The title can be an HTML element or a string containing plain text or HTML.
       </td>
     </tr>
     <tr>
@@ -334,11 +335,30 @@ var items = new vis.DataSet([
         Types 'box' and 'point' need a start date, the types 'range' and 'background' needs both a start and end date.
       </td>
     </tr>
-    <tr>
-      <td>editable</td>
-      <td>Boolean</td>
+    <tr class='toggle collapsible' onclick="toggleTable('itemOptionTable', 'itemEditable', this);">
+      <td><span parent="itemEditable" class="right-caret"></span> editable</td>
+      <td>Boolean or Object</td>
       <td>no</td>
-      <td>Override the editable option of the timeline for a specific item.</td>
+      <td>Override the editable option of the timeline for a specific item (assuming <code>timeline.editable.overrideItems</code> is false).</td>
+    </tr>
+    <tr parent="itemEditable" class="hidden">
+      <td class="indent">editable.remove</td>
+      <td>boolean</td>
+      <td>no</td>
+      <td>If true, item can be deleted by first selecting it, and then clicking the delete button on the top right of the item. See section <a href="#Editing_Items">Editing Items</a> for a detailed explanation.</td>
+    </tr>
+    <tr parent="itemEditable" class="hidden">
+      <td class="indent">editable.updateGroup</td>
+      <td>boolean</td>
+      <td>no</td>
+      <td>If true, item can be dragged from one group to another. Only applicable when the Timeline has groups. See section <a href="#Editing_Items">Editing Items</a> for a detailed explanation.</td>
+    </tr>
+    <tr parent="itemEditable" class="hidden">
+      <td class="indent">editable.updateTime</td>
+      <td>boolean</td>
+      <td>no</td>
+      <td>If true, items can be dragged to another moment int time. See section <a href="#Editing_Items">Editing Items</a> for a detailed explanation.</td>
+    </tr>
   </table>
 
   <h3 id="groups">Groups</h3>
@@ -362,7 +382,7 @@ var groups = [
   {
     id: 1,
     content: 'Group 1'
-    // Optional: a field 'className', 'style'
+    // Optional: a field 'className', 'style', 'order', [properties]
   }
   // more groups...
 ]);
@@ -398,9 +418,9 @@ var groups = [
     </tr>
     <tr>
       <td>content</td>
-      <td>String</td>
+      <td>String or Element</td>
       <td>yes</td>
-      <td>The contents of the group. This can be plain text or html code.</td>
+      <td>The contents of the group. This can be plain text, html code or an html element.</td>
     </tr>
     <tr>
       <td>id</td>
@@ -434,6 +454,24 @@ var groups = [
       <td>A title for the group, displayed when holding the mouse on the groups label.
         The title can only contain plain text.
       </td>
+    </tr>
+    <tr>
+      <td>visible</td>
+      <td>Boolean</td>
+      <td>no</td>
+      <td>Provides a means to toggle the whether a group is displayed or not. Defaults to <code>true</code>.</td>
+    </tr>
+    <tr>
+      <td>nestedGroups</td>
+      <td>Array</td>
+      <td>no</td>
+      <td>Array of group ids nested in the group. Nested groups will appear under this nesting group.</td>
+    </tr>
+     <tr>
+      <td>showNestedGroups</td>
+      <td>Boolean</td>
+      <td>no</td>
+      <td>Assuming the group has nested groups, this will set the initial state of the group - shown or collapsed. The <code>showNestedGroups</code> is defaulted to <code>true</code>.</td>
     </tr>
   </table>
 
@@ -544,6 +582,12 @@ function (option, path) {
       <td><code>false</code></td>
       <td>If true, items can be dragged to another moment in time. See section <a href="#Editing_Items">Editing Items</a> for a detailed explanation.</td>
     </tr>
+    <tr parent="editable" class="hidden">
+      <td class="indent">editable.overrideItems</td>
+      <td>boolean</td>
+      <td><code>false</code></td>
+      <td>If true, item specific editable properties are overridden by timeline settings</td>
+    </tr>
 
     <tr>
       <td>end</td>
@@ -647,7 +691,7 @@ function (option, path) {
       <td>groupTemplate</td>
       <td>function</td>
       <td>none</td>
-      <td>A template function used to generate the contents of the groups. The function is called by the Timeline with a groups data as the first argument and the group element as the second, and must return HTML code as result. When the option groupTemplate is specified, the groups do not need to have a field <code>content</code>. See section <a href="#Templates">Templates</a> for a detailed explanation.</td>
+      <td>A template function used to generate the contents of the groups. The function is called by the Timeline with a groups data as the first argument and the group element as the second, and must return HTML code, a string or a template as result. When the option groupTemplate is specified, the groups do not need to have a field <code>content</code>. See section <a href="#Templates">Templates</a> for a detailed explanation.</td>
     </tr>
 
     <tr>
@@ -911,7 +955,14 @@ function (option, path) {
       <td>Orientation of the timeline items: 'top' or 'bottom' (default). Determines whether items are aligned to the top or bottom of the Timeline.</td>
     </tr>
 
-     <tr>
+    <tr>
+      <td>rollingMode</td>
+      <td>boolean</td>
+      <td><code>false</code></td>
+      <td>If true, the timeline will initial in a rolling mode - the current time will always be centered. I the user drags the timeline, the timeline will go out of rolling mode and a toggle button will appear. Clicking that button will go back to rolling mode. Zooming in rolling mode will zoom in to the center without consideration of the mouse position.</td>
+    </tr>
+
+    <tr>
       <td>rtl</td>
       <td>boolean</td>
       <td><code>false</code></td>
@@ -965,6 +1016,13 @@ function (option, path) {
     </tr>
 
     <tr>
+      <td>stackSubgroups</td>
+      <td>boolean</td>
+      <td><code>true</code></td>
+      <td>If true (default), subgroups will be stacked on top of each other such that they do not overlap.</td>
+    </tr>
+
+    <tr>
       <td>snap</td>
       <td>function or null</td>
       <td>function</td>
@@ -986,7 +1044,22 @@ function (option, path) {
       <td>template</td>
       <td>function</td>
       <td>none</td>
-      <td>A template function used to generate the contents of the items. The function is called by the Timeline with an items data as the first argument and the item element as the second, and must return HTML code as result. When the option template is specified, the items do not need to have a field <code>content</code>. See section <a href="#Templates">Templates</a> for a detailed explanation.</td>
+      <td>A template function used to generate the contents of the items. The function is called by the Timeline with an items' data as the first argument and the item element as the second, and must return HTML code, a string or a template as result. When the option template is specified, the items do not need to have a field <code>content</code>. See section <a href="#Templates">Templates</a> for a detailed explanation.</td>
+    </tr>
+
+    <tr>
+      <td>visibleFrameTemplate</td>
+      <td>function</td>
+      <td>none</td>
+      <td>A template function used to generate the visible frame of the items. The function is called by the Timeline with an items' data as the first argument and the item frame element as the second, and must return HTML code, a string or a template as result. When the option template is specified, the items do not need to have a field <code>content</code>. See section <a href="#Templates">Templates</a> for a detailed explanation.
+      This would be used as an additional way to add content that is constant in size with the visible frame of the item and does not get visibly hidden with the item's internal container: <code>vis-item-overflow</code> which is <code>overflow:hidden</code>.</td>
+    </tr>
+
+    <tr class='depricated'>
+      <td>throttleRedraw</td>
+      <td>number</td>
+      <td><code>0</code></td>
+      <td>This option is <b>DEPRICATED</b> and no longer supported. It will be removed in the next MAJOR release.</td>
     </tr>
 
     <tr class='toggle collapsible' onclick="toggleTable('optionTable','timeAxis', this);">
@@ -1023,6 +1096,30 @@ function (option, path) {
       </td>
     </tr>
 
+    <tr class='toggle collapsible' onclick="toggleTable('optionTable','tooltip', this);">
+      <td><span parent="tooltip" class="right-caret"></span> tooltip</td>
+      <td>Object</td>
+      <td><code>Object</code></td>
+      <td>Specify how the tooltip is positioned.</td>
+    </tr>
+    <tr parent="tooltip" class="hidden">
+      <td class="indent">tooltip.followMouse</td>
+      <td>boolean</td>
+      <td><code>false</code></td>
+      <td>If true, tooltips will follow the mouse as they move around in the item.</td>
+    </tr>
+
+    <tr parent="tooltip" class="hidden">
+      <td class="indent">tooltip.overflowMethod</td>
+      <td>String</td>
+      <td><code>'flip'</code></td>
+      <td>
+        Set how the tooltip should act if it is about to overflow out of the timeline.<br />
+        Choose from <code>'cap'</code> and <code>'flip'</code>. <br />
+        If it is set to <code>'cap'</code>, the tooltip will just cap its position to inside to timeline. <br />
+        While if it is set to <code>'flip'</code>, the position of the tooltip will flip around the cursor so that a corner is at the cursor, and the rest of it is visible. <br />
+    </tr>
+
     <tr class='toggle collapsible' onclick="toggleTable('optionTable','tooltipOnItemUpdateTime', this);">
       <td><span parent="tooltipOnItemUpdateTime" class="right-caret"></span> tooltipOnItemUpdateTime</td>
       <td>Object/Boolean</td>
@@ -1033,7 +1130,7 @@ function (option, path) {
       <td class="indent">template</td>
       <td>Function</td>
       <td>none</td>
-      <td>A template function used to generate the contents of the tooltip. The function is called by the Timeline with an item data as the first argument, and must return HTML code as result. See section <a href="#Templates">Templates</a> for a detailed explanation.
+      <td>A template function used to generate the contents of the tooltip. The function is called by the Timeline with an item data as the first argument, and must return HTML code, a string or a template as result. See section <a href="#Templates">Templates</a> for a detailed explanation.
       </td>
     </tr>
     <tr>
@@ -1433,6 +1530,15 @@ timeline.off('select', onSelect);
     </tr>
 
     <tr>
+      <td>mouseOver</td>
+      <td>
+        Passes a properties object as returned by the method <a href="#getEventProperties"><code>Timeline.getEventProperties(event)</code></a>.
+      </td>
+      <td>Fired when the mouse hovers over a timeline element.
+      </td>
+    </tr>
+
+    <tr>
       <td>groupDragged</td>
       <td>
         Passes the id of the dragged group.
@@ -1456,6 +1562,7 @@ timeline.off('select', onSelect);
           <li><code>start</code> (Number): timestamp of the current start of the window.</li>
           <li><code>end</code> (Number): timestamp of the current end of the window.</li>
           <li><code>byUser</code> (Boolean): change happened because of user drag/zoom.</li>
+          <li><code>event</code> (Object): original event triggering the rangechange.</li>
         </ul>
       </td>
       <td>Fired repeatedly when the timeline window is being changed.
@@ -1469,6 +1576,7 @@ timeline.off('select', onSelect);
           <li><code>start</code> (Number): timestamp of the current start of the window.</li>
           <li><code>end</code> (Number): timestamp of the current end of the window.</li>
           <li><code>byUser</code> (Boolean): change happened because of user drag/zoom.</li>
+          <li><code>event</code> (Object): original event triggering the rangechanged.</li>
         </ul>
       </td>
       <td>Fired once after the timeline window has been changed.
@@ -1517,6 +1625,7 @@ timeline.off('select', onSelect);
         <ul>
           <li><code>id</code> (Number or String): custom time bar id.</li>
           <li><code>time</code> (Date): the custom time.</li>
+          <li><code>event</code> (Object): original event triggering the timechange.</li>
         </ul>
       </td>
       <td>Fired repeatedly when the user is dragging the custom time bar.
@@ -1530,6 +1639,7 @@ timeline.off('select', onSelect);
         <ul>
           <li><code>id</code> (Number or String): custom time bar id.</li>
           <li><code>time</code> (Date): the custom time.</li>
+          <li><code>event</code> (Object): original event triggering the timechanged.</li>
         </ul>
       </td>
       <td>Fired once after the user has dragged the custom time bar.
@@ -1565,12 +1675,13 @@ var options = {
     add: true,         // add new items by double tapping
     updateTime: true,  // drag items horizontally
     updateGroup: true, // drag items from one group to another
-    remove: true       // delete an item by tapping the delete button top right
+    remove: true,       // delete an item by tapping the delete button top right
+    overrideItems: false  // allow these options to override item.editable
   }
 };</pre>
 
   <p>
-    Editing can be enabled/disabled for specific items. Setting the property <code>editable</code> to <code>true</code> or <code>false</code> on a data item will override the timeline option.
+    Editing can be enabled/disabled for specific items. Setting the property <code>editable</code> to <code>true</code> or <code>false</code> on a data item will override the timeline option except when <code>timeline.editable.overrideItems</code> is set to <code>true</code>.
   </p>
 
 <pre class="prettyprint lang-js">

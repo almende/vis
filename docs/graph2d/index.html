@@ -96,6 +96,7 @@
                 <div id="navbar" class="navbar-collapse collapse">
                     <ul class="nav navbar-nav">
                         <li><a href="http://www.visjs.org/index.html#modules">Modules</a></li>
+                        <li><a href="http://www.visjs.org/blog.html">Blog</a></li>
                         <li><a href="http://www.visjs.org/index.html#download_install">Download</a></li>
                         <li><a href="http://www.visjs.org/showcase/index.html">Showcase</a></li>
                         <li><a href="http://www.visjs.org/index.html#contribute">Contribute</a></li>
@@ -568,7 +569,7 @@ function (value) {
             <pre class="prettyprint lang-js">
 drawPoints: true // or false
             </pre>
-
+            
             2. <code>Object</code> (the 'rendering' options): If an object is provided it may contain following properties which all can be optional: <code>onRender</code>, <code>className</code><code>size</code> and/or <code>style</code>. For more information check the property's documentation.<br />
             <pre class="prettyprint lang-js">
 drawPoints: {
@@ -576,7 +577,7 @@ drawPoints: {
   style: 'square'
 }
             </pre>
-
+            
             3. <code>Function</code>: If a function is provided it will be used as a callback. The function may return values from listing 1 or 2.<br />
             <pre class="prettyprint lang-js">
 drawPoints: function(item, group) {
@@ -1161,7 +1162,7 @@ function (option, path) {
                     <li><code>x</code> (Number): relative horizontal position of the click event.</li>
                     <li><code>y</code> (Number): relative vertical position of the click event.</li>
                     <li><code>time</code> (Date): Date of the clicked event.</li>
-                    <li><code>value</code> (Number[]): The data value of the click event. The array contains one value when there is one data axis visible, and two values when there are two visible data axes.</li>
+                    <li><code>value</code> (Number[]): The data value of the click event. The array contains one value when there is one data axis visible, and two values when there are two visible data axes. It is empty when no data is provided.</li>
                     <li><code>what</code> (String or null): name of the clicked thing: <code>background</code>, <code>axis</code>, <code>dat-axis</code>, <code>custom-time</code>, or <code>current-time</code>, <code>legend</code>.</li>
                     <li><code>event</code> (Object): the original click event.</li>
                 </ul>

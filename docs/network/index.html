@@ -88,6 +88,7 @@
                 <div id="navbar" class="navbar-collapse collapse">
                     <ul class="nav navbar-nav">
                         <li><a href="http://www.visjs.org/index.html#modules">Modules</a></li>
+                        <li><a href="http://www.visjs.org/blog.html">Blog</a></li>
                         <li><a href="http://www.visjs.org/index.html#download_install">Download</a></li>
                         <li><a href="http://www.visjs.org/showcase/index.html">Showcase</a></li>
                         <li><a href="http://www.visjs.org/index.html#contribute">Contribute</a></li>
@@ -340,7 +341,7 @@ network.setOptions(options);
                   <code>'it'</code>,
                   <code>'nl'</code>
                   <code>'pt-br'</code>,
-                  <code>'ru'</code>
+                  <code>'ru'</code> 
                   are supported. Take a look at the
                   <a href="#locales" data-scroll="" data-options="{ &quot;easing&quot;: &quot;easeInCubic&quot; }">locales section below</a>
                   for more explaination on how to customize this.
@@ -1399,8 +1400,14 @@ var options = {
                 <td>Fired if the option <code>interaction:{hover:true}</code> is enabled and the mouse moved away from an edge it was hovering over before.</td>
             </tr>
             <tr><td id="event_zoom">zoom</td>
-                <td><code>{direction:'+'/'-', scale: Number}</code></td>
-                <td>Fired when the user zooms in or out. The properties tell you which direction the zoom is in. The scale is a number greater than 0, which is the same that you get with network.getScale().</td>
+                <td>Object</td>
+                <td>Fired when the user zooms in or out. The properties tell you which direction the zoom is in. The scale is a number greater than 0, which is the same that you get with network.getScale(), Passes an object with properties structured as:
+<pre class="prettyprint lang-js">{
+  direction: '+'/'-',
+  scale: Number,
+  pointer: {x:pointer_x, y:pointer_y}
+}
+</pre></td>
             </tr>
             <tr><td id="event_showPopup">showPopup</td>
                 <td><code>id of item corresponding to popup</code></td>
