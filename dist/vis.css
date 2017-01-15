@@ -308,6 +308,28 @@ input.vis-configuration.vis-config-range:focus::-ms-fill-upper {
     border-width: 12px;
     margin-top: -12px;
 }
+div.vis-tooltip {
+  position: absolute;
+  visibility: hidden;
+  padding: 5px;
+  white-space: nowrap;
+
+  font-family: verdana;
+  font-size:14px;
+  color:#000000;
+  background-color: #f5f4ed;
+
+  -moz-border-radius: 3px;
+  -webkit-border-radius: 3px;
+  border-radius: 3px;
+  border: 1px solid #808074;
+
+  box-shadow: 3px 3px 10px rgba(0, 0, 0, 0.2);
+  pointer-events: none;
+
+  z-index: 5;
+}
+
 
 div.vis-color-picker {
   position:absolute;
@@ -696,25 +718,6 @@ div.vis-network div.vis-navigation div.vis-button.vis-zoomExtends {
     bottom:50px;
     right:15px;
 }
-div.vis-network-tooltip {
-  position: absolute;
-  visibility: hidden;
-  padding: 5px;
-  white-space: nowrap;
-
-  font-family: verdana;
-  font-size:14px;
-  color:#000000;
-  background-color: #f5f4ed;
-
-  -moz-border-radius: 3px;
-  -webkit-border-radius: 3px;
-  border-radius: 3px;
-  border: 1px solid #808074;
-
-  box-shadow: 3px 3px 10px rgba(0, 0, 0, 0.2);
-  pointer-events: none;
-}
 .vis-timeline {
   /*
   -webkit-transition: height .4s ease-in-out;
@@ -752,6 +755,30 @@ div.vis-network-tooltip {
   background-color: #FF7F6E;
   width: 2px;
   z-index: 1;
+  pointer-events: none;
+}
+
+.vis-rolling-mode-btn {
+  height: 40px;
+  width: 40px;
+  position: absolute;
+  top: 7px;
+  right: 20px;
+  border-radius: 50%;
+  font-size: 28px;
+  cursor: pointer;
+  opacity: 0.8;
+  color: white;
+  font-weight: bold;
+  text-align: center;
+  background: #3876c2;
+}
+.vis-rolling-mode-btn:before {
+  content: "\26F6";
+}
+
+.vis-rolling-mode-btn:hover {
+  opacity: 1;
 }
 .vis-custom-time {
   background-color: #6E94FF;
@@ -930,6 +957,10 @@ div.vis-network-tooltip {
   overflow: hidden;
 }
 
+.vis-item-visible-frame {
+  white-space: nowrap;
+}
+
 .vis-item.vis-range .vis-item-content {
   position: relative;
   display: inline-block;
@@ -1082,6 +1113,26 @@ div.vis-network-tooltip {
 
 .vis-foreground .vis-group:last-child {
   border-bottom: none;
+}
+
+.vis-nesting-group {
+  cursor: pointer;
+}
+
+.vis-nested-group {
+  background: #f5f5f5;
+}
+
+.vis-label.vis-nesting-group.expanded:before {
+  content: "\25BC";
+}
+
+.vis-label.vis-nesting-group.collapsed-rtl:before {
+  content: "\25C0";
+}
+
+.vis-label.vis-nesting-group.collapsed:before {
+  content: "\25B6";
 }
 
 .vis-overlay {
