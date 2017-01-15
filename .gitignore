@@ -1,7 +1,3 @@
-# vis.js files
-test/
-dist/
-
 # npm files
 node_modules
 npm-debug.log
