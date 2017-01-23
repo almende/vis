@@ -80,21 +80,18 @@
   left: 0;
 }
 
-/*moshe`s code*/
-
-
 .leftZone, .rightZone{
-  width: 10%;
+  width: 3%;
   height: 100%;
   z-index: 99;
   position: absolute
 }
+
 .leftZone{
   left: 0;
 
 }
+
 .rightZone{
   right: 0;
 }
-
-/**/
