@@ -8,7 +8,6 @@ var rename = require("gulp-rename");
 var webpack = require('webpack');
 var uglify = require('uglify-js');
 var rimraf = require('rimraf');
-var merge = require('merge-stream');
 var argv = require('yargs').argv;
 
 var ENTRY             = './index.js';
@@ -49,10 +48,10 @@ var webpackModule = {
     {
       test: /\.js$/,
       exclude: /node_modules/,
-      loader: 'babel',
+      loader: 'babel-loader',
       query: {
-        cacheDirectory: true,
-        presets: ['es2015']
+        cacheDirectory: true, // use cache to improve speed
+        babelrc: true // use the .baberc file
       }
     }
   ],
