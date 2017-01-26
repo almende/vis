@@ -265,10 +265,6 @@ var options = {};
 var timeline = new Timeline(container, data, options);
 ```
 
-Install the application dependencies via npm:
-
-    $ npm install vis moment
-
 The application can be bundled and minified:
 
     $ browserify app.js -o dist/app-bundle.js -t babelify
@@ -287,6 +283,39 @@ And loaded into a webpage:
   <script src="dist/app-bundle.min.js"></script>
 </body>
 </html>
+```
+
+#### Example 4: Integrate vis.js components directly in your webpack build
+
+You can integrate e.g. the timeline component directly in you webpack build.
+Therefor you just import the component-files from root direcory (starting with "index-").
+
+```js
+var visTimeline = require('vis/index-timeline-graph2d');
+
+var container = document.getElementById('visualization');
+var data = new DataSet();
+var timeline = new Timeline(container, data, {});
+```
+
+To get this to work you'll need to add the some babel-loader-setting:
+
+```js
+module: {
+	loaders: [{
+		test: /node_modules[\\\/]vis[\\\/].*\.js$/,
+		loader: 'babel',
+		query: {
+			cacheDirectory: true,
+			presets: ["es2015"],
+			plugins: [
+				"transform-es3-property-literals",
+				"transform-es3-member-expression-literals",
+				"transform-runtime"
+			]
+		}
+	}]
+}
 ```
 
 ## Test
