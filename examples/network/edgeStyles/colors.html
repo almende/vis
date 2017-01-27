@@ -30,14 +30,14 @@
 <script type="text/javascript">
   // create an array with nodes
   var nodes = new vis.DataSet([
-    {id: 1, label: 1, color:'#97C2FC'},
-    {id: 2, label: 2, color:'#FFFF00'},
-    {id: 3, label: 3, color:'#FB7E81'},
-    {id: 4, label: 4, color:'#7BE141'},
-    {id: 5, label: 5, color:'#6E6EFD'},
-    {id: 6, label: 6, color:'#C2FABC'},
-    {id: 7, label: 7, color:'#FFA807'},
-    {id: 8, label: 8, color:'#6E6EFD'}
+    {id: 1, label: 'node\none', shape: 'box', color:'#97C2FC'},
+    {id: 2, label: 'node\ntwo', shape: 'circle', color:'#FFFF00'},
+    {id: 3, label: 'node\nthree', shape: 'diamond', color:'#FB7E81'},
+    {id: 4, label: 'node\nfour', shape: 'dot', size: 10, color:'#7BE141'},
+    {id: 5, label: 'node\nfive', shape: 'ellipse', color:'#6E6EFD'},
+    {id: 6, label: 'node\nsix', shape: 'star', color:'#C2FABC'},
+    {id: 7, label: 'node\nseven', shape: 'triangle', color:'#FFA807'},
+    {id: 8, label: 'node\neight', shape: 'triangleDown', color:'#6E6EFD'}
   ]);
 
   // create an array with edges
@@ -58,7 +58,11 @@
     nodes: nodes,
     edges: edges
   };
-  var options = {};
+  var options = {
+    nodes: {
+      shape: 'circle'
+    }
+  };
   var network = new vis.Network(container, data, options);
 </script>
 
