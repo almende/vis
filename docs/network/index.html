@@ -1401,7 +1401,7 @@ var options = {
             </tr>
             <tr><td id="event_zoom">zoom</td>
                 <td>Object</td>
-                <td>Fired when the user zooms in or out. The properties tell you which direction the zoom is in. The scale is a number greater than 0, which is the same that you get with network.getScale(), Passes an object with properties structured as:
+                <td>Fired when the user zooms in or out. The properties tell you which direction the zoom is in. The scale is a number greater than 0, which is the same that you get with network.getScale(). When fired by clicking the zoom in or zoom out navigation buttons, the pointer property of the object passed will be null.  Passes an object with properties structured as:
 <pre class="prettyprint lang-js">{
   direction: '+'/'-',
   scale: Number,
