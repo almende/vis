@@ -86,7 +86,7 @@ Whole-set node and edge constraints are exclusive.</p>
     { from: 300, to: 301, label: "more minimum height"},
     { from: 100, to: 400, label: "unconstrained to top valign"},
     { from: 400, to: 401, label: "top valign to middle valign"},
-    { from: 401, to: 402, label: "middle valign to bottom valign"},
+    { from: 401, to: 402, widthConstraint: { maximum: 150 }, label: "middle valign to bottom valign"},
   ];
 
   var container = document.getElementById('mynetwork');
@@ -105,7 +105,10 @@ Whole-set node and edge constraints are exclusive.</p>
     },
     nodes: {
       shape: 'box',
-      margin: 10
+      margin: 10,
+      widthConstraint: {
+        maximum: 200
+      }
     },
     physics: {
       enabled: false
