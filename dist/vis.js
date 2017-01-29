@@ -4,8 +4,8 @@
  *
  * A dynamic, browser-based visualization library.
  *
- * @version 4.18.0
- * @date    2017-01-15
+ * @version 4.18.1
+ * @date    2017-01-29
  *
  * @license
  * Copyright (C) 2011-2016 Almende B.V, http://almende.com
@@ -19220,7 +19220,7 @@ return /******/ (function(modules) { // webpackBootstrap
   function Range(body, options) {
     var now = moment().hours(0).minutes(0).seconds(0).milliseconds(0);
     var start = now.clone().add(-3, 'days').valueOf();
-    var end = now.clone().add(-3, 'days').valueOf();
+    var end = now.clone().add(3, 'days').valueOf();
 
     if (options === undefined) {
       this.start = start;
@@ -19454,6 +19454,13 @@ return /******/ (function(modules) { // webpackBootstrap
   };
 
   /**
+   * Get the number of milliseconds per pixel.
+   */
+  Range.prototype.getMillisecondsPerPixel = function () {
+    return (this.end - this.start) / this.body.dom.center.clientWidth;
+  };
+
+  /**
    * Stop an animation
    * @private
    */
@@ -19488,7 +19495,7 @@ return /******/ (function(modules) { // webpackBootstrap
       throw new Error('Invalid end "' + end + '"');
     }
 
-    // prevent start < end
+    // prevent end < start
     if (newEnd < newStart) {
       newEnd = newStart;
     }
@@ -19532,7 +19539,9 @@ return /******/ (function(modules) { // webpackBootstrap
         zoomMin = 0;
       }
       if (newEnd - newStart < zoomMin) {
-        if (this.end - this.start === zoomMin && newStart > this.start && newEnd < this.end) {
+        // compensate for a scale of 0.5 ms
+        var compensation = 0.5;
+        if (this.end - this.start === zoomMin && newStart >= this.start - compensation && newEnd <= this.end) {
           // ignore this action, we are already zoomed to the minimum
           newStart = this.start;
           newEnd = this.end;
@@ -22114,6 +22123,8 @@ return /******/ (function(modules) { // webpackBootstrap
     // right-click on timeline 
     this.body.dom.centerContainer.addEventListener('contextmenu', this._onDragEnd.bind(this));
 
+    this.body.dom.centerContainer.addEventListener('mousewheel', this._onMouseWheel.bind(this));
+
     // attach to the DOM
     this.show();
   };
@@ -23753,6 +23764,17 @@ return /******/ (function(modules) { // webpackBootstrap
           item.popup.show(); // Redraw
         }
       }
+    }
+  };
+
+  /**
+   * Handle mousewheel
+   * @param event
+   * @private
+   */
+  ItemSet.prototype._onMouseWheel = function (event) {
+    if (this.touchParams.itemIsDragging) {
+      this._onDragEnd(event);
     }
   };
 
@@ -26827,15 +26849,14 @@ return /******/ (function(modules) { // webpackBootstrap
 
   /**
    * Check whether this item is visible inside given range
-   * @returns {{start: Number, end: Number}} range with a timestamp for start and end
+   * @param {{start: Number, end: Number}} range with a timestamp for start and end
    * @returns {boolean} True if visible
    */
   BoxItem.prototype.isVisible = function (range) {
     // determine visibility
     var isVisible;
     var align = this.options.align;
-    var msPerPixel = (range.end - range.start) / range.body.dom.center.clientWidth;
-    var widthInMs = this.width * msPerPixel;
+    var widthInMs = this.width * range.getMillisecondsPerPixel();
 
     if (align == 'right') {
       isVisible = this.data.start.getTime() > range.start && this.data.start.getTime() - widthInMs < range.end;
@@ -27131,13 +27152,12 @@ return /******/ (function(modules) { // webpackBootstrap
 
   /**
    * Check whether this item is visible inside given range
-   * @returns {{start: Number, end: Number}} range with a timestamp for start and end
+   * @param {{start: Number, end: Number}} range with a timestamp for start and end
    * @returns {boolean} True if visible
    */
   PointItem.prototype.isVisible = function (range) {
     // determine visibility
-    var msPerPixel = (range.end - range.start) / range.body.dom.center.clientWidth;
-    var widthInMs = this.width * msPerPixel;
+    var widthInMs = this.width * range.getMillisecondsPerPixel();
 
     return this.data.start.getTime() + widthInMs > range.start && this.data.start < range.end;
   };
@@ -32247,15 +32267,15 @@ return /******/ (function(modules) { // webpackBootstrap
       visible: { 'boolean': bool },
       alignZeros: { 'boolean': bool },
       left: {
-        range: { min: { number: number }, max: { number: number }, __type__: { object: object } },
+        range: { min: { number: number, 'undefined': 'undefined' }, max: { number: number, 'undefined': 'undefined' }, __type__: { object: object } },
         format: { 'function': 'function' },
-        title: { text: { string: string, number: number }, style: { string: string }, __type__: { object: object } },
+        title: { text: { string: string, number: number, 'undefined': 'undefined' }, style: { string: string, 'undefined': 'undefined' }, __type__: { object: object } },
         __type__: { object: object }
       },
       right: {
-        range: { min: { number: number }, max: { number: number }, __type__: { object: object } },
+        range: { min: { number: number, 'undefined': 'undefined' }, max: { number: number, 'undefined': 'undefined' }, __type__: { object: object } },
         format: { 'function': 'function' },
-        title: { text: { string: string, number: number }, style: { string: string }, __type__: { object: object } },
+        title: { text: { string: string, number: number, 'undefined': 'undefined' }, style: { string: string, 'undefined': 'undefined' }, __type__: { object: object } },
         __type__: { object: object }
       },
       __type__: { object: object }
@@ -35462,14 +35482,14 @@ return /******/ (function(modules) { // webpackBootstrap
                     var words = blocks[j].text.split(" ");
                     var atStart = true;
                     var text = "";
-                    var measure = void 0;
+                    var measure = { width: 0 };
                     var lastMeasure = void 0;
                     var w = 0;
                     while (w < words.length) {
                       var pre = atStart ? "" : " ";
                       lastMeasure = measure;
                       measure = ctx.measureText(text + pre + words[w]);
-                      if (lineWidth + measure.width > this.fontOptions.maxWdt) {
+                      if (lineWidth + measure.width > this.fontOptions.maxWdt && lastMeasure.width != 0) {
                         lineHeight = _values.height > lineHeight ? _values.height : lineHeight;
                         lines.add(k, text, _values.font, _values.color, lastMeasure.width, _values.height, _values.vadjust, blocks[j].mod, _values.strokeWidth, _values.strokeColor);
                         lines.accumulate(k, lastMeasure.width, lineHeight);
@@ -35515,14 +35535,14 @@ return /******/ (function(modules) { // webpackBootstrap
               if (this.fontOptions.maxWdt > 0) {
                 var _words = _nlLines[_i].split(" ");
                 var _text = "";
-                var _measure2 = void 0;
+                var _measure2 = { width: 0 };
                 var _lastMeasure = void 0;
                 var _w = 0;
                 while (_w < _words.length) {
                   var _pre = _text === "" ? "" : " ";
                   _lastMeasure = _measure2;
                   _measure2 = ctx.measureText(_text + _pre + _words[_w]);
-                  if (_measure2.width > this.fontOptions.maxWdt) {
+                  if (_measure2.width > this.fontOptions.maxWdt && _lastMeasure.width != 0) {
                     lines.addAndAccumulate(k, _text, _values3.font, _values3.color, _lastMeasure.width, _values3.size, _values3.vadjust, "normal", _values3.strokeWidth, _values3.strokeColor);
                     width = lines[k].width > width ? lines[k].width : width;
                     height += lines[k].height;
@@ -36142,7 +36162,7 @@ return /******/ (function(modules) { // webpackBootstrap
         this.boundingBox.bottom = y + values.size;
 
         this.updateBoundingBox(x, y);
-        this.labelModule.draw(ctx, this.left + this.textSize.width / 2 + this.margin.left, this.top + this.textSize.height / 2 + this.margin.top, selected, hover);
+        this.labelModule.draw(ctx, this.left + this.textSize.width / 2 + this.margin.left, y, selected, hover);
       }
     }, {
       key: 'updateBoundingBox',
@@ -36659,9 +36679,10 @@ return /******/ (function(modules) { // webpackBootstrap
 
     (0, _createClass3['default'])(Diamond, [{
       key: 'resize',
-      value: function resize(ctx, values) {
-        var selected = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : this.selected;
-        var hover = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : this.hover;
+      value: function resize(ctx) {
+        var selected = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : this.selected;
+        var hover = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : this.hover;
+        var values = arguments[3];
 
         this._resizeShape(selected, hover, values);
       }
@@ -36846,9 +36867,10 @@ return /******/ (function(modules) { // webpackBootstrap
 
     (0, _createClass3['default'])(Dot, [{
       key: 'resize',
-      value: function resize(ctx, values) {
-        var selected = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : this.selected;
-        var hover = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : this.hover;
+      value: function resize(ctx) {
+        var selected = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : this.selected;
+        var hover = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : this.hover;
+        var values = arguments[3];
 
         this._resizeShape(selected, hover, values);
       }
@@ -37204,11 +37226,11 @@ return /******/ (function(modules) { // webpackBootstrap
           ctx.save();
           // if borders are zero width, they will be drawn with width 1 by default. This prevents that
           if (borderWidth > 0) {
-            this.enableBorderDashes(ctx);
+            this.enableBorderDashes(ctx, values);
             //draw the border
             ctx.stroke();
             //disable dashed border for other elements
-            this.disableBorderDashes(ctx);
+            this.disableBorderDashes(ctx, values);
           }
           ctx.restore();
 
@@ -37361,7 +37383,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
     (0, _createClass3['default'])(Star, [{
       key: 'resize',
-      value: function resize(ctx, values, selected, hover) {
+      value: function resize(ctx, selected, hover, values) {
         this._resizeShape(selected, hover, values);
       }
     }, {
@@ -39266,7 +39288,7 @@ return /******/ (function(modules) { // webpackBootstrap
           // draw line
           this._line(ctx, values, viaNode, fromPoint, toPoint);
         } else {
-          var _getCircleData2 = this._getCircleData(ctx, values),
+          var _getCircleData2 = this._getCircleData(ctx),
               _getCircleData3 = (0, _slicedToArray3['default'])(_getCircleData2, 3),
               x = _getCircleData3[0],
               y = _getCircleData3[1],
@@ -39297,7 +39319,7 @@ return /******/ (function(modules) { // webpackBootstrap
             // draw line
             this._line(ctx, values, viaNode);
           } else {
-            var _getCircleData4 = this._getCircleData(ctx, values),
+            var _getCircleData4 = this._getCircleData(ctx),
                 _getCircleData5 = (0, _slicedToArray3['default'])(_getCircleData4, 3),
                 x = _getCircleData5[0],
                 y = _getCircleData5[1],
@@ -39316,7 +39338,7 @@ return /******/ (function(modules) { // webpackBootstrap
             // draw line
             ctx.dashedLine(this.from.x, this.from.y, this.to.x, this.to.y, pattern);
           } else {
-            var _getCircleData6 = this._getCircleData(ctx, values),
+            var _getCircleData6 = this._getCircleData(ctx),
                 _getCircleData7 = (0, _slicedToArray3['default'])(_getCircleData6, 3),
                 _x = _getCircleData7[0],
                 _y = _getCircleData7[1],
@@ -39570,7 +39592,7 @@ return /******/ (function(modules) { // webpackBootstrap
         if (this.from != this.to) {
           returnValue = this._getDistanceToEdge(x1, y1, x2, y2, x3, y3, via);
         } else {
-          var _getCircleData10 = this._getCircleData(undefined, values),
+          var _getCircleData10 = this._getCircleData(undefined),
               _getCircleData11 = (0, _slicedToArray3['default'])(_getCircleData10, 3),
               x = _getCircleData11[0],
               y = _getCircleData11[1],
@@ -45810,7 +45832,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
         this.body.view.scale = scale;
         this.body.view.translation = { x: tx, y: ty };
-        this.body.emitter.emit('zoom', { direction: '+', scale: this.body.view.scale, pointer: pointer });
+        this.body.emitter.emit('zoom', { direction: '+', scale: this.body.view.scale, pointer: null });
       }
     }, {
       key: '_zoomOut',
@@ -45824,7 +45846,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
         this.body.view.scale = scale;
         this.body.view.translation = { x: tx, y: ty };
-        this.body.emitter.emit('zoom', { direction: '-', scale: this.body.view.scale, pointer: pointer });
+        this.body.emitter.emit('zoom', { direction: '-', scale: this.body.view.scale, pointer: null });
       }
 
       /**
@@ -47176,9 +47198,11 @@ return /******/ (function(modules) { // webpackBootstrap
         // the main method to shift the trees
         var shiftTrees = function shiftTrees() {
           var treeSizes = getTreeSizes();
+          var shiftBy = 0;
           for (var i = 0; i < treeSizes.length - 1; i++) {
             var diff = treeSizes[i].max - treeSizes[i + 1].min;
-            shiftTree(i + 1, diff + _this2.options.hierarchical.treeSpacing);
+            shiftBy += diff + _this2.options.hierarchical.treeSpacing;
+            shiftTree(i + 1, shiftBy);
           }
         };
 
