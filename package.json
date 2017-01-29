@@ -46,7 +46,7 @@
   "devDependencies": {
     "async": "^2.0.0-rc.2",
     "babelify": "^7.3.0",
-    "clean-css": "^3.4.10",
+    "clean-css": "^4.0.2",
     "gulp": "^3.9.1",
     "gulp-clean-css": "^2.0.11",
     "gulp-concat": "^2.6.0",
