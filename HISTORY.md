@@ -2,6 +2,34 @@
 http://visjs.org
 
 
+## 2017-01-29, version 4.18.1
+
+### General
+
+- updated dependencies
+- FIX: moved babel plugins from devDependencies to dependencies (#2629)
+
+### Network
+
+- FIX #2604: Handle label composition for long words (#2650)
+- FIX #2640: Network manipulation styles together with Bootstrap styles (#2654)
+- FIX #2494: Fix tree collision in hierarchical layout (#2625)
+- FIX #2589: Vertically center label in network circle node (#2593)
+- FIX #2591: Self reference edge should now appear in all cases (#2595)
+- FIX #2613: Fixed return value for zoom in/out callback (#2615)
+- FIX #2609: Values should be passed to check values.borderDashes (#2599)
+
+### Timeline / Graph2D
+
+- FIX: Fixed htmlContents example (#2651)
+- FIX #2590: Min zoom bug (#2646)
+- FIX #2597: Zoom while dragging (#2645)
+- FIX: Minor cleanups in Timeline Range. (#2633)
+- FIX #2458: Allow graph2D options to be undefined (#2634)
+- FIX: Fix typo (#2622)
+- FIX #2585: Fixed React example  (#2587)
+
+
 ## 2017-01-15, version 4.18.0
 
 ### General
