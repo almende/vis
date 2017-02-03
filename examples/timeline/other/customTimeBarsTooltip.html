@@ -12,7 +12,7 @@
 
   <script src="../../../dist/vis.js"></script>
   <link href="../../../dist/vis-timeline-graph2d.min.css" rel="stylesheet" type="text/css" />
-  
+  <script src="../../googleAnalytics.js"></script>
 </head>
 <body>
 
@@ -50,12 +50,18 @@
   // Set first time bar
   customDate = new Date(customDate.getFullYear(), customDate.getMonth(), customDate.getDate() + 1);
   timeline.addCustomTime(customDate, 't1');
+  timeline.setCustomTimeTitle(function(time){
+      return "I'm t1!";
+  }, "t1");
 
   document.getElementById('add').onclick = function () {
     try {
       customDate = new Date(customDate.getFullYear(), customDate.getMonth(), customDate.getDate() + 1);
       var barId = document.getElementById('barId').value || undefined;
       timeline.addCustomTime(customDate, barId);
+        timeline.setCustomTimeTitle(function(time){
+            return "I'm "+barId+"!";
+        }, barId);
       document.getElementById('barId').value = '';
     }
     catch (err) {

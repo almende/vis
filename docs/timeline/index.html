@@ -1367,7 +1367,7 @@ document.getElementById('myTimeline').onclick = function (event) {
       <td>setCustomTimeTitle(title [, id])</td>
       <td>none</td>
       <td>Adjust the title attribute of a custom time bar.
-        Parameter <code>title</code> is the string to be set as title. Use empty string to hide the title completely.
+        Parameter <code>title</code> is the string or function to be set as title. Use empty string to hide the title completely.
         Parameter <code>id</code> is the id of the custom time bar, and is <code>undefined</code> by default.
       </td>
     </tr>
@@ -1592,7 +1592,7 @@ timeline.off('select', onSelect);
         </ul>
       </td>
       <td>Fired after the user selects or deselects items by tapping or holding them.
-        When a use taps an already selected item, the select event is fired again.
+        When a user taps an already selected item, the select event is fired again.
         Not fired when the method <code>setSelection</code>is executed.
       </td>
     </tr>
