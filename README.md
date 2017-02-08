@@ -192,8 +192,8 @@ exports.Timeline = require('./lib/timeline/Timeline');
 
 Then create a custom bundle using browserify, like:
 
-    $ browserify custom.js -t babelify -o dist/vis-custom.js -s vis
-
+    $ browserify custom.js -t [ babelify --presets [es2015] ] -o dist/vis-custom.js -s vis
+    
 This will generate a custom bundle *vis-custom.js*, which exposes the namespace `vis` containing only `DataSet` and `Timeline`. The generated bundle can be minified using uglifyjs:
 
     $ uglifyjs dist/vis-custom.js -o dist/vis-custom.min.js
@@ -217,7 +217,7 @@ The custom bundle can now be loaded like:
 
 The default bundle `vis.js` is standalone and includes external dependencies such as *hammer.js* and *moment.js*. When these libraries are already loaded by the application, vis.js does not need to include these dependencies itself too. To build a custom bundle of vis.js excluding *moment.js* and *hammer.js*, run browserify in the root of the project:
 
-    $ browserify index.js -t babelify -o dist/vis-custom.js -s vis -x moment -x hammerjs
+    $ browserify index.js -t [ babelify --presets [es2015] ] -o dist/vis-custom.js -s vis -x moment -x hammerjs
 
 This will generate a custom bundle *vis-custom.js*, which exposes the namespace `vis`, and has *moment.js* and *hammer.js* excluded. The generated bundle can be minified with uglifyjs:
 
