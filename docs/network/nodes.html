@@ -734,12 +734,26 @@ network.setOptions(options);
             <td><code>undefined</code></td>
             <td>The id of the node. The id is mandatory for nodes and they have to be unique. This should obviously be set per node, not globally.</td>
         </tr>
-        <tr>
-            <td>image</td>
-            <td>String</td>
+        <tr class='toggle collapsible' onclick="toggleTable('optionTable','image', this);">
+            <td><span parent="image" class="right-caret"></span> image</td>
+            <td>Object or String</td>
             <td><code>undefined</code></td>
             <td>When the shape is set to <code>image</code> or <code>circularImage</code>, this option should be the URL
                 to an image. If the image cannot be found, the brokenImage option can be used.
+            </td>
+        </tr>
+        <tr parent="image" class="hidden">
+            <td class="indent">image.unselected</td>
+            <td>String</td>
+            <td><code>undefined</code></td>
+            <td>Unselected (default) image URL.
+            </td>
+        </tr>
+        <tr parent="image" class="hidden">
+            <td class="indent">image.selected</td>
+            <td>String</td>
+            <td><code>undefined</code></td>
+            <td>Selected image URL.
             </td>
         </tr>
         <tr>
