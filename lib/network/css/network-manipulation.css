@@ -1,4 +1,6 @@
 div.vis-network div.vis-manipulation {
+  box-sizing: content-box;
+
   border-width: 0;
   border-bottom: 1px;
   border-style:solid;
