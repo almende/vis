@@ -103,6 +103,10 @@
   white-space: nowrap;
   padding: 5px;
   border-radius: 1px;
+  transition: 0.4s;
+  -o-transition: 0.4s;
+  -moz-transition: 0.4s;
+  -webkit-transition: 0.4s;
 }
 
 .vis-item .vis-delete, .vis-item .vis-delete-rtl {
