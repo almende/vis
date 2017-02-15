@@ -15,7 +15,7 @@
       border: 1px solid lightgray;
     }
   </style>
-  
+  <script src="../../googleAnalytics.js"></script>
 </head>
 
 <body>
@@ -99,16 +99,20 @@
         }
       }
       var connectedNodes = network.getConnectedNodes(selectedNode);
-      var allConnectedNodes = [];
+      var allConnectedNodes = connectedNodes.slice(0);
+      var allConnectedNodesTemp = connectedNodes.slice(0);
 
-      // get the second degree nodes
+      // get the n degree nodes
       for (i = 1; i < degrees; i++) {
-        for (j = 0; j < connectedNodes.length; j++) {
-          allConnectedNodes = allConnectedNodes.concat(network.getConnectedNodes(connectedNodes[j]));
+        for (j = 0; j < allConnectedNodes.length; j++) {
+          allConnectedNodesTemp = allConnectedNodesTemp.concat(network.getConnectedNodes(allConnectedNodesTemp[j]));
+
         }
+        allConnectedNodes = allConnectedNodesTemp.filter(function(item, i, ar){ return ar.indexOf(item) === i; }); //Remove duplication
+        allConnectedNodesTemp = allConnectedNodes.slice(0);
       }
 
-      // all second degree nodes get a different color and their label back
+      // all n degree nodes get a different color and their label back
       for (i = 0; i < allConnectedNodes.length; i++) {
         allNodes[allConnectedNodes[i]].color = 'rgba(150,150,150,0.75)';
         if (allNodes[allConnectedNodes[i]].hiddenLabel !== undefined) {
