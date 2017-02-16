@@ -38,7 +38,6 @@
         <input type="button" id="zoomOut" value="Zoom out"/>
         <input type="button" id="moveLeft" value="Move left"/>
         <input type="button" id="moveRight" value="Move right"/>
-        <input type="button" id="toggleRollingMode" value="toggleRollingMode"/>
     </div>
 </div>
 
@@ -75,8 +74,6 @@
     document.getElementById('zoomOut').onclick   = function () { timeline.zoomOut( 0.2); };
     document.getElementById('moveLeft').onclick  = function () { move( 0.2); };
     document.getElementById('moveRight').onclick = function () { move(-0.2); };
-    document.getElementById('toggleRollingMode').onclick = function () { timeline.toggleRollingMode() };
-
 
 </script>
 </body>
