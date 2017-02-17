@@ -89,7 +89,7 @@
     function elementsCensor (object) {
       if (!object) return;
       var replacer = function(key, value) {
-        if (value instanceof Element) {
+        if (value && value.tagName) {
           return "DOM Element";
         } else {
           return value;
