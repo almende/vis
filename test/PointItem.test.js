@@ -62,4 +62,59 @@ describe('Timeline PointItem', function () {
     var pointItem = new PointItem({start: now}, null, null);
     assert(pointItem.isVisible(range));
   });
+
+  it('should redraw() and then not be dirty', function() {
+    var range = new Range(TestSupport.buildSimpleTimelineRangeBody());
+    var now = moment().toDate();
+    var pointItem = new PointItem({start: now}, null, {editable: false});
+    pointItem.setParent(TestSupport.buildMockItemSet());
+    assert(pointItem.dirty);
+    pointItem.redraw();
+    assert(!pointItem.dirty);
+  });
+
+  it('should redraw() and then have point attached to its parent', function() {
+    var range = new Range(TestSupport.buildSimpleTimelineRangeBody());
+    var now = moment().toDate();
+    var pointItem = new PointItem({start: now}, null, {editable: false});
+    var parent = TestSupport.buildMockItemSet();
+    pointItem.setParent(parent);
+    assert(!parent.dom.foreground.hasChildNodes());
+    pointItem.redraw();
+    assert(parent.dom.foreground.hasChildNodes());
+  });
+
+  it('should redraw() and then have the correct classname for a non-editable item', function() {
+    var range = new Range(TestSupport.buildSimpleTimelineRangeBody());
+    var now = moment().toDate();
+    var pointItem = new PointItem({start: now, editable: false}, null, {editable: false});
+    var parent = TestSupport.buildMockItemSet();
+    pointItem.setParent(parent);
+    pointItem.redraw();
+    assert.equal(pointItem.dom.dot.className, "vis-item vis-dot vis-readonly");
+    assert.equal(pointItem.dom.point.className, "vis-item vis-point vis-readonly");
+  });
+
+  it('should redraw() and then have the correct classname for an editable item (with object option)', function() {
+    var range = new Range(TestSupport.buildSimpleTimelineRangeBody());
+    var now = moment().toDate();
+    var pointItem = new PointItem({start: now}, null, {editable: {updateTime: true, updateGroup: false}});
+    var parent = TestSupport.buildMockItemSet();
+    pointItem.setParent(parent);
+    pointItem.redraw();
+    assert.equal(pointItem.dom.dot.className, "vis-item vis-dot vis-editable");
+    assert.equal(pointItem.dom.point.className, "vis-item vis-point vis-editable");
+  });
+
+  it('should redraw() and then have the correct classname for an editable item (with boolean option)', function() {
+    var range = new Range(TestSupport.buildSimpleTimelineRangeBody());
+    var now = moment().toDate();
+    var pointItem = new PointItem({start: now}, null, {editable: true});
+    var parent = TestSupport.buildMockItemSet();
+    pointItem.setParent(parent);
+    pointItem.redraw();
+    assert.equal(pointItem.dom.dot.className, "vis-item vis-dot vis-editable");
+    assert.equal(pointItem.dom.point.className, "vis-item vis-point vis-editable");
+  });
+
 });
