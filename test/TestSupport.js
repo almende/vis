@@ -22,7 +22,12 @@ module.exports = {
           clientWidth: 1000
         }
       },
-      domProps: this.props,
+      domProps: {
+        centerContainer: {
+          width: 900,
+          height: 600
+        }
+      },
       emitter: {
         on: function () {},
         off: function () {},
