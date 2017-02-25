@@ -1,6 +1,6 @@
 {
   "name": "vis",
-  "version": "4.18.1-SNAPSHOT",
+  "version": "4.19.0",
   "description": "A dynamic, browser-based visualization library.",
   "homepage": "http://visjs.org/",
   "license": "(Apache-2.0 OR MIT)",
@@ -28,7 +28,7 @@
     "lint": "eslint lib",
     "watch": "gulp watch",
     "watch-dev": "gulp watch --bundle"
-  }, 
+  },
   "dependencies": {
     "babel-core": "^6.6.5",
     "babel-loader": "^6.2.4",
