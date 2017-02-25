@@ -25,6 +25,7 @@
   "scripts": {
     "test": "mocha",
     "build": "gulp",
+    "lint": "eslint lib",
     "watch": "gulp watch",
     "watch-dev": "gulp watch --bundle"
   }, 
@@ -45,14 +46,17 @@
   },
   "devDependencies": {
     "async": "^2.1.4",
+    "babel-eslint": "^7.1.1",
     "babelify": "^7.3.0",
     "clean-css": "^4.0.2",
+    "eslint": "^3.15.0",
     "gulp": "^3.9.1",
     "gulp-clean-css": "^2.3.2",
     "gulp-concat": "^2.6.1",
     "gulp-rename": "^1.2.2",
     "gulp-util": "^3.0.8",
     "jsdom": "9.9.1",
+    "jsdom-global": "^2.1.1",
     "mocha": "^3.2.0",
     "mocha-jsdom": "^1.1.0",
     "rimraf": "^2.5.4",
