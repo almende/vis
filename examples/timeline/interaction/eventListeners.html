@@ -86,7 +86,7 @@
       logEvent(event, properties);
     });
 
-    function elementsCensor (object) {
+    function stringifyObject (object) {
       if (!object) return;
       var replacer = function(key, value) {
         if (value && value.tagName) {
@@ -102,7 +102,7 @@
       var log = document.getElementById('log');
       var msg = document.createElement('div');
       msg.innerHTML = 'event=' + JSON.stringify(event) + ', ' +
-          'properties=' + elementsCensor(properties);
+          'properties=' + stringifyObject(properties);
       log.firstChild ? log.insertBefore(msg, log.firstChild) : log.appendChild(msg);
     }
 
