@@ -165,4 +165,104 @@ describe('Timeline PointItem', function () {
     assert.equal(pointItem.dom.dot.className, "vis-item vis-dot vis-editable");
     assert.equal(pointItem.dom.point.className, "vis-item vis-point vis-editable");
   });
+
+  it('should redraw() and then have the correct property for an editable: {updateTime} override item (with boolean option)', function() {
+    var pointItem = new PointItem({start: now.toDate(), editable: {updateTime: true}}, null, {editable: true});
+    var parent = TestSupport.buildMockItemSet();
+    pointItem.setParent(parent);
+    pointItem.redraw();
+    assert.equal(pointItem.editable.updateTime, true);
+    assert.equal(pointItem.editable.updateGroup, undefined);
+    assert.equal(pointItem.editable.remove, undefined);
+  });
+
+  it('should redraw() and then have the correct property for an editable: {updateTime} override item (with boolean option false)', function() {
+    var pointItem = new PointItem({start: now.toDate(), editable: {updateTime: true}}, null, {editable: false});
+    var parent = TestSupport.buildMockItemSet();
+    pointItem.setParent(parent);
+    pointItem.redraw();
+    assert.equal(pointItem.editable.updateTime, true);
+    assert.equal(pointItem.editable.updateGroup, undefined);
+    assert.equal(pointItem.editable.remove, undefined);
+  });
+
+  it('should redraw() and then have the correct property for an editable: {updateGroup} override item (with boolean option)', function() {
+    var pointItem = new PointItem({start: now.toDate(), editable: {updateGroup: true}}, null, {editable: true});
+    var parent = TestSupport.buildMockItemSet();
+    pointItem.setParent(parent);
+    pointItem.redraw();
+    assert.equal(pointItem.editable.updateTime, undefined);
+    assert.equal(pointItem.editable.updateGroup, true);
+    assert.equal(pointItem.editable.remove, undefined);
+  });
+
+  it('should redraw() and then have the correct property for an editable: {updateGroup} override item (with boolean option false)', function() {
+    var pointItem = new PointItem({start: now.toDate(), editable: {updateGroup: true}}, null, {editable: false});
+    var parent = TestSupport.buildMockItemSet();
+    pointItem.setParent(parent);
+    pointItem.redraw();
+    assert.equal(pointItem.editable.updateTime, undefined);
+    assert.equal(pointItem.editable.updateGroup, true);
+    assert.equal(pointItem.editable.remove, undefined);
+  });
+
+  it('should redraw() and then have the correct property for an editable: {remove} override item (with boolean option)', function() {
+    var pointItem = new PointItem({start: now.toDate(), editable: {remove: true}}, null, {editable: true});
+    var parent = TestSupport.buildMockItemSet();
+    pointItem.setParent(parent);
+    pointItem.redraw();
+    assert.equal(pointItem.editable.updateTime, undefined);
+    assert.equal(pointItem.editable.updateGroup, undefined);
+    assert.equal(pointItem.editable.remove, true);
+  });
+
+  it('should redraw() and then have the correct property for an editable: {remove} override item (with boolean option false)', function() {
+    var pointItem = new PointItem({start: now.toDate(), editable: {remove: true}}, null, {editable: false});
+    var parent = TestSupport.buildMockItemSet();
+    pointItem.setParent(parent);
+    pointItem.redraw();
+    assert.equal(pointItem.editable.updateTime, undefined);
+    assert.equal(pointItem.editable.updateGroup, undefined);
+    assert.equal(pointItem.editable.remove, true);
+  });
+
+  it('should redraw() and then have the correct property for an editable: {updateTime, remove} override item (with boolean option)', function() {
+    var pointItem = new PointItem({start: now.toDate(), editable: {updateTime: true, remove: true}}, null, {editable: true});
+    var parent = TestSupport.buildMockItemSet();
+    pointItem.setParent(parent);
+    pointItem.redraw();
+    assert.equal(pointItem.editable.updateTime, true);
+    assert.equal(pointItem.editable.updateGroup, undefined);
+    assert.equal(pointItem.editable.remove, true);
+  });
+
+  it('should redraw() and then have the correct property for an editable: {updateTime, remove} override item (with boolean option false)', function() {
+    var pointItem = new PointItem({start: now.toDate(), editable: {updateTime: true, remove: true}}, null, {editable: false});
+    var parent = TestSupport.buildMockItemSet();
+    pointItem.setParent(parent);
+    pointItem.redraw();
+    assert.equal(pointItem.editable.updateTime, true);
+    assert.equal(pointItem.editable.updateGroup, undefined);
+    assert.equal(pointItem.editable.remove, true);
+  });
+
+  it('should redraw() and then have the correct property for an editable: {updateTime, updateGroup, remove} override item (with boolean option)', function() {
+    var pointItem = new PointItem({start: now.toDate(), editable: {updateTime: true, updateGroup: true, remove: true}}, null, {editable: true});
+    var parent = TestSupport.buildMockItemSet();
+    pointItem.setParent(parent);
+    pointItem.redraw();
+    assert.equal(pointItem.editable.updateTime, true);
+    assert.equal(pointItem.editable.updateGroup, true);
+    assert.equal(pointItem.editable.remove, true);
+  });
+
+  it('should redraw() and then have the correct property for an editable: {updateTime, updateGroup, remove} override item (with boolean option false)', function() {
+    var pointItem = new PointItem({start: now.toDate(), editable: {updateTime: true, updateGroup: true, remove: true}}, null, {editable: false});
+    var parent = TestSupport.buildMockItemSet();
+    pointItem.setParent(parent);
+    pointItem.redraw();
+    assert.equal(pointItem.editable.updateTime, true);
+    assert.equal(pointItem.editable.updateGroup, true);
+    assert.equal(pointItem.editable.remove, true);
+  });
 });
