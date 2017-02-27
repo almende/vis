@@ -501,26 +501,29 @@ var options = {
     <tr>
       <td>tooltipStyle</td>
       <td>Object</td>
-      <td>{<br>
-        content&nbsp;:<br>{
-        padding&nbsp;: '10px',
-        border&nbsp;: '1px solid #4d4d4d',
-        color&nbsp;: '#1a1a1a',
-        background&nbsp;: 'rgba(255,255,255,0.7)',
-        borderRadius&nbsp;: '2px',
-        boxShadow&nbsp;: '5px 5px 10px rgba(128,128,128,0.5)'
-      },<br>
-      line&nbsp;:<br>{
-        height&nbsp;: '40px',
-        width&nbsp;: '0',
-        borderLeft&nbsp;: '1px solid #4d4d4d'
-      },<br>
-      dot&nbsp;:<br>{
-        height&nbsp;: '0',
-        width&nbsp;: '0',
-        border&nbsp;: '5px solid #4d4d4d',
-        borderRadius&nbsp;: '5px'
-      }<br>}
+      <td>
+<pre class="prettyprint lang-js">
+{ 
+  content: {
+    padding: '10px',
+    border: '1px solid #4d4d4d',
+    color: '#1a1a1a',
+    background: 'rgba(255,255,255,0.7)',
+    borderRadius: '2px',
+    boxShadow: '5px 5px 10px rgba(128,128,128,0.5)'
+  },
+  line: {
+    height: '40px',
+    width: '0',
+    borderLeft: '1px solid #4d4d4d'
+  },
+  dot: {
+    height: '0',
+    width: '0',
+    border: '5px solid #4d4d4d',
+    borderRadius: '5px'
+  }
+}</pre>
       </td>
       <td>Tooltip style properties.
         Provided properties will be merged with the default object.
