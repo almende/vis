@@ -1,20 +1,5 @@
-var vis = require('../dist/vis');
-var DataSet = vis.DataSet;
 
 module.exports = {
-  buildMockItemSet: function() {
-    var itemset = {
-      dom: {
-        foreground: document.createElement('div'),
-        content: document.createElement('div')
-      },
-      itemSet: {
-        itemsData: new DataSet()
-      }
-    };
-    return itemset;
-  },
-
   buildSimpleTimelineRangeBody: function () {
     var body = {
       dom: {
