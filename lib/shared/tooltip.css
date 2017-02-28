@@ -1,4 +1,4 @@
-div.vis-network-tooltip {
+div.vis-tooltip {
   position: absolute;
   visibility: hidden;
   padding: 5px;
@@ -16,4 +16,6 @@ div.vis-network-tooltip {
 
   box-shadow: 3px 3px 10px rgba(0, 0, 0, 0.2);
   pointer-events: none;
+
+  z-index: 5;
 }
