@@ -10,6 +10,7 @@
 .vis-panel.vis-center,
 .vis-panel.vis-left,
 .vis-panel.vis-right,
+.vis-panel.vis-side,
 .vis-panel.vis-top,
 .vis-panel.vis-bottom {
   border: 1px #bfbfbf;
@@ -17,13 +18,14 @@
 
 .vis-panel.vis-center,
 .vis-panel.vis-left,
-.vis-panel.vis-right {
+.vis-panel.vis-right,
+.vis-panel.vis-side {
   border-top-style: solid;
   border-bottom-style: solid;
   overflow: hidden;
 }
 
-.vis-left.vis-panel.vis-vertical-scroll, .vis-right.vis-panel.vis-vertical-scroll {
+.vis-left.vis-panel.vis-vertical-scroll, .vis-right.vis-panel.vis-vertical-scroll, .vis-side.vis-panel.vis-vertical-scroll {
   height: 100%;
   overflow-x: hidden;
   overflow-y: scroll;
@@ -43,6 +45,14 @@
 
 .vis-right.vis-panel.vis-vertical-scroll .vis-content {
   direction: rtl;
+}
+
+.vis-side.vis-panel.vis-vertical-scroll {
+  direction: rtl;
+}
+
+.vis-side.vis-panel.vis-vertical-scroll .vis-content {
+  direction: ltr;
 }
 
 .vis-panel.vis-center,
