@@ -39,10 +39,11 @@
     height: '300px',
   };
 
-  var options1 = Object.assign({}, options)
+  var options1 = options;
   var timeline1 = new vis.Timeline(container1, items, options1);
 
-  var options2 = Object.assign({rtl: true}, options)
+  var options2 = options;
+  options2.rtl = true;
   var timeline2 = new vis.Timeline(container2, items, options2);
 
 </script>
