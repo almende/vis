@@ -1044,7 +1044,7 @@ function (option, path) {
       <td>template</td>
       <td>function</td>
       <td>none</td>
-      <td>A template function used to generate the contents of the items. The function is called by the Timeline with an items' data as the first argument and the item element as the second, and must return HTML code, a string or a template as result. When the option template is specified, the items do not need to have a field <code>content</code>. See section <a href="#Templates">Templates</a> for a detailed explanation.</td>
+      <td>A template function used to generate the contents of the items. The function is called by the Timeline with an items' data as the first argument, the item element as the second argument and the edited data as the third argument, and must return HTML code, a string or a template as result. When the option template is specified, the items do not need to have a field <code>content</code>. See section <a href="#Templates">Templates</a> for a detailed explanation.</td>
     </tr>
 
     <tr>
@@ -1743,11 +1743,11 @@ var items = new vis.DataSet([
   <h2 id="Templates">Templates</h2>
 
   <p>
-    Timeline supports templates to format item contents. Any template engine (such as <a href="http://handlebarsjs.com/">handlebars</a> or <a href="http://mustache.github.io/">mustache</a>) can be used, and one can also manually build HTML. In the options, one can provide a template handler. This handler is a function accepting an item's data as argument, and outputs formatted HTML:
+    Timeline supports templates to format item contents. Any template engine (such as <a href="http://handlebarsjs.com/">handlebars</a> or <a href="http://mustache.github.io/">mustache</a>) can be used, and one can also manually build HTML. In the options, one can provide a template handler. This handler is a function accepting an item's data as the first argument, the item element as the second argument and the edited data as the third argument, and outputs formatted HTML:
   </p>
 
 <pre class="prettyprint lang-js">var options = {
-  template: function (item) {
+  template: function (item, element, data) {
     var html = ... // generate HTML markup for this item
     return html;
   }
@@ -1759,8 +1759,11 @@ var items = new vis.DataSet([
   The HTML for an item can be created manually:
 
 <pre class="prettyprint lang-js">var options = {
-  template: function (item) {
-    return '&lt;h1&gt;' + item.header + '&lt;/h1&gt;&lt;p&gt;' + item.description + '&lt;/p&gt;';
+  template: function (item, element, data) {
+    return '&lt;h1&gt;' + item.header + data.moving?' '+ data.start:'' + '&lt;/h1&gt;&lt;p&gt;' + item.description + '&lt;/p&gt;';
+  },
+  onMoving: function (item, callback) {
+    item.moving = true;
   }
 };
 </pre>
@@ -1795,7 +1798,7 @@ var template = Handlebars.compile(source);
 You can use a React component for the templates by rendering them to the templates' element directly:
 
 <pre class="prettyprint lang-js">
-  template: function (item, element) {
+  template: function (item, element, data) {
     return ReactDOM.render(&lt;b&gt;{item.content}&lt;/b&gt;, element);
   },
 </pre>
@@ -1814,7 +1817,7 @@ var templates = {
 };
 
 var options = {
-  template: function (item) {
+  template: function (item, element, data) {
     var template = templates[item.template];  // choose the right template
     return template(item);                    // execute the template
   }
