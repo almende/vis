@@ -2,6 +2,7 @@
 <head>
   <title>Timeline | Vertical Scroll Option</title>
 
+  <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.10.1/jquery.min.js"></script>
   <script src="../../../dist/vis.js"></script>
   <link href="../../../dist/vis.css" rel="stylesheet" type="text/css" />
 
@@ -75,12 +76,11 @@ zoomKey: 'ctrlKey'</code>
 
   // create a Timeline
 
-  options1 = options;
+  options1 = jQuery.extend(options, {});
   var container1 = document.getElementById('mytimeline1');
   timeline1 = new vis.Timeline(container1, items, groups, options1);
 
-  options2 = options;
-  options2.horizontalScroll = true;
+  options2 = jQuery.extend(options, {horizontalScroll: true});
   var container2 = document.getElementById('mytimeline2');
   timeline2 = new vis.Timeline(container2, items, groups, options2);
 
