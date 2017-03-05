@@ -357,7 +357,7 @@ var items = new vis.DataSet([
       <td class="indent">editable.updateTime</td>
       <td>boolean</td>
       <td>no</td>
-      <td>If true, items can be dragged to another moment int time. See section <a href="#Editing_Items">Editing Items</a> for a detailed explanation.</td>
+      <td>If true, items can be dragged to another moment in time. See section <a href="#Editing_Items">Editing Items</a> for a detailed explanation.</td>
     </tr>
   </table>
 
@@ -1697,6 +1697,14 @@ var items = new vis.DataSet([
   {id: 2, content: 'editable item', start: '2013-04-14'}
 ]);
 </pre>
+
+  <p>
+    Individual manipulation actions (<code>updateTime</code>, <code>updateGroup</code> and <code>remove</code>) can also be set on individual items. If any of the item-level
+    actions are specified (and <code>overrideItems</code> is not <code>false</code>) then that takes precedence over the settings at the timeline level. Current behavior is
+    that if any of the item-level actions are not specified, those items get <code>undefined</code> value (rather than inheriting from the timeline level). This may change
+    in future major releases, and code that specifies all item level values will handle major release changes better. That is, instead of using
+    <code>editable: {updateTime : true}</code>, use <code>editable: {updateTime : true, updateGroup: false, remove: false}</code>.
+  </p>
 
   <p>
     One can specify callback functions to validate changes made by the user. There are a number of callback functions for this purpose:
