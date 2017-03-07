@@ -80,18 +80,18 @@
   left: 0;
 }
 
-.leftZone, .rightZone{
+.panningZoneLeft, .panningZoneRight{
   width: 3%;
   height: 100%;
   z-index: 99;
   position: absolute
 }
 
-.leftZone{
+.panningZoneLeft{
   left: 0;
 
 }
 
-.rightZone{
+.panningZoneRight{
   right: 0;
 }
