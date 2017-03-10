@@ -5,7 +5,7 @@
  * A dynamic, browser-based visualization library.
  *
  * @version 4.18.1
- * @date    2017-01-29
+ * @date    2017-02-14
  *
  * @license
  * Copyright (C) 2011-2016 Almende B.V, http://almende.com
@@ -17055,8 +17055,6 @@ return /******/ (function(modules) { // webpackBootstrap
    * @return {{min: Date | null, max: Date | null}}
    */
   Timeline.prototype.getItemRange = function () {
-    var _this = this;
-
     // get a rough approximation for the range based on the items start and end dates
     var range = this.getDataRange();
     var min = range.min !== null ? range.min.valueOf() : null;
@@ -17065,74 +17063,66 @@ return /******/ (function(modules) { // webpackBootstrap
     var maxItem = null;
 
     if (min != null && max != null) {
-      var interval;
-      var factor;
-      var lhs;
-      var rhs;
-      var delta;
+      var getStart = function getStart(item) {
+        return util.convert(item.data.start, 'Date').valueOf();
+      };
 
-      (function () {
-        var getStart = function getStart(item) {
-          return util.convert(item.data.start, 'Date').valueOf();
-        };
+      var getEnd = function getEnd(item) {
+        var end = item.data.end != undefined ? item.data.end : item.data.start;
+        return util.convert(end, 'Date').valueOf();
+      };
 
-        var getEnd = function getEnd(item) {
-          var end = item.data.end != undefined ? item.data.end : item.data.start;
-          return util.convert(end, 'Date').valueOf();
-        };
-
-        // calculate the date of the left side and right side of the items given
+      // calculate the date of the left side and right side of the items given
 
 
-        interval = max - min; // ms
+      var interval = max - min; // ms
+      if (interval <= 0) {
+        interval = 10;
+      }
+      var factor = interval / this.props.center.width;
 
-        if (interval <= 0) {
-          interval = 10;
+      util.forEach(this.itemSet.items, function (item) {
+        if (item.groupShowing) {
+          item.show();
+          item.repositionX();
         }
-        factor = interval / _this.props.center.width;
-        util.forEach(_this.itemSet.items, function (item) {
-          if (item.groupShowing) {
-            item.show();
-            item.repositionX();
-          }
 
-          var start = getStart(item);
-          var end = getEnd(item);
+        var start = getStart(item);
+        var end = getEnd(item);
 
+        if (this.options.rtl) {
+          var startSide = start - (item.getWidthRight() + 10) * factor;
+          var endSide = end + (item.getWidthLeft() + 10) * factor;
+        } else {
+          var startSide = start - (item.getWidthLeft() + 10) * factor;
+          var endSide = end + (item.getWidthRight() + 10) * factor;
+        }
+
+        if (startSide < min) {
+          min = startSide;
+          minItem = item;
+        }
+        if (endSide > max) {
+          max = endSide;
+          maxItem = item;
+        }
+      }.bind(this));
+
+      if (minItem && maxItem) {
+        var lhs = minItem.getWidthLeft() + 10;
+        var rhs = maxItem.getWidthRight() + 10;
+        var delta = this.props.center.width - lhs - rhs; // px
+
+        if (delta > 0) {
           if (this.options.rtl) {
-            var startSide = start - (item.getWidthRight() + 10) * factor;
-            var endSide = end + (item.getWidthLeft() + 10) * factor;
+            min = getStart(minItem) - rhs * interval / delta; // ms
+            max = getEnd(maxItem) + lhs * interval / delta; // ms
           } else {
-            var startSide = start - (item.getWidthLeft() + 10) * factor;
-            var endSide = end + (item.getWidthRight() + 10) * factor;
-          }
-
-          if (startSide < min) {
-            min = startSide;
-            minItem = item;
-          }
-          if (endSide > max) {
-            max = endSide;
-            maxItem = item;
-          }
-        }.bind(_this));
-
-        if (minItem && maxItem) {
-          lhs = minItem.getWidthLeft() + 10;
-          rhs = maxItem.getWidthRight() + 10;
-          delta = _this.props.center.width - lhs - rhs; // px
-
-          if (delta > 0) {
-            if (_this.options.rtl) {
-              min = getStart(minItem) - rhs * interval / delta; // ms
-              max = getEnd(maxItem) + lhs * interval / delta; // ms
-            } else {
-              min = getStart(minItem) - lhs * interval / delta; // ms
-              max = getEnd(maxItem) + rhs * interval / delta; // ms
-            }
+            min = getStart(minItem) - lhs * interval / delta; // ms
+            max = getEnd(maxItem) + rhs * interval / delta; // ms
           }
         }
-      })();
+      }
     }
 
     return {
@@ -17415,26 +17405,24 @@ return /******/ (function(modules) { // webpackBootstrap
         }
 
         if (this.options.showButton === true) {
-          (function () {
-            var generateButton = document.createElement('div');
+          var generateButton = document.createElement('div');
+          generateButton.className = 'vis-configuration vis-config-button';
+          generateButton.innerHTML = 'generate options';
+          generateButton.onclick = function () {
+            _this._printOptions();
+          };
+          generateButton.onmouseover = function () {
+            generateButton.className = 'vis-configuration vis-config-button hover';
+          };
+          generateButton.onmouseout = function () {
             generateButton.className = 'vis-configuration vis-config-button';
-            generateButton.innerHTML = 'generate options';
-            generateButton.onclick = function () {
-              _this._printOptions();
-            };
-            generateButton.onmouseover = function () {
-              generateButton.className = 'vis-configuration vis-config-button hover';
-            };
-            generateButton.onmouseout = function () {
-              generateButton.className = 'vis-configuration vis-config-button';
-            };
+          };
 
-            _this.optionsContainer = document.createElement('div');
-            _this.optionsContainer.className = 'vis-configuration vis-config-option-container';
+          this.optionsContainer = document.createElement('div');
+          this.optionsContainer.className = 'vis-configuration vis-config-option-container';
 
-            _this.domElements.push(_this.optionsContainer);
-            _this.domElements.push(generateButton);
-          })();
+          this.domElements.push(this.optionsContainer);
+          this.domElements.push(generateButton);
         }
 
         this._push();
@@ -17512,30 +17500,19 @@ return /******/ (function(modules) { // webpackBootstrap
     }, {
       key: '_makeItem',
       value: function _makeItem(path) {
-        var _arguments = arguments,
-            _this2 = this;
-
         if (this.allowCreation === true) {
-          var _len, domElements, _key;
+          var item = document.createElement('div');
+          item.className = 'vis-configuration vis-config-item vis-config-s' + path.length;
 
-          var _ret2 = function () {
-            var item = document.createElement('div');
-            item.className = 'vis-configuration vis-config-item vis-config-s' + path.length;
+          for (var _len = arguments.length, domElements = Array(_len > 1 ? _len - 1 : 0), _key = 1; _key < _len; _key++) {
+            domElements[_key - 1] = arguments[_key];
+          }
 
-            for (_len = _arguments.length, domElements = Array(_len > 1 ? _len - 1 : 0), _key = 1; _key < _len; _key++) {
-              domElements[_key - 1] = _arguments[_key];
-            }
-
-            domElements.forEach(function (element) {
-              item.appendChild(element);
-            });
-            _this2.domElements.push(item);
-            return {
-              v: _this2.domElements.length
-            };
-          }();
-
-          if ((typeof _ret2 === 'undefined' ? 'undefined' : (0, _typeof3['default'])(_ret2)) === "object") return _ret2.v;
+          domElements.forEach(function (element) {
+            item.appendChild(element);
+          });
+          this.domElements.push(item);
+          return this.domElements.length;
         }
         return 0;
       }
@@ -17699,7 +17676,7 @@ return /******/ (function(modules) { // webpackBootstrap
     }, {
       key: '_setupPopup',
       value: function _setupPopup(string, index) {
-        var _this3 = this;
+        var _this2 = this;
 
         if (this.initialized === true && this.allowCreation === true && this.popupCounter < this.popupLimit) {
           var div = document.createElement("div");
@@ -17707,7 +17684,7 @@ return /******/ (function(modules) { // webpackBootstrap
           div.className = "vis-configuration-popup";
           div.innerHTML = string;
           div.onclick = function () {
-            _this3._removePopup();
+            _this2._removePopup();
           };
           this.popupCounter += 1;
           this.popupDiv = { html: div, index: index };
@@ -17738,7 +17715,7 @@ return /******/ (function(modules) { // webpackBootstrap
     }, {
       key: '_showPopupIfNeeded',
       value: function _showPopupIfNeeded() {
-        var _this4 = this;
+        var _this3 = this;
 
         if (this.popupDiv.html !== undefined) {
           var correspondingElement = this.domElements[this.popupDiv.index];
@@ -17747,10 +17724,10 @@ return /******/ (function(modules) { // webpackBootstrap
           this.popupDiv.html.style.top = rect.top - 30 + "px"; // 30 is the height;
           document.body.appendChild(this.popupDiv.html);
           this.popupDiv.hideTimeout = setTimeout(function () {
-            _this4.popupDiv.html.style.opacity = 0;
+            _this3.popupDiv.html.style.opacity = 0;
           }, 1500);
           this.popupDiv.deleteTimeout = setTimeout(function () {
-            _this4._removePopup();
+            _this3._removePopup();
           }, 1800);
         }
       }
@@ -17831,7 +17808,7 @@ return /******/ (function(modules) { // webpackBootstrap
     }, {
       key: '_makeColorField',
       value: function _makeColorField(arr, value, path) {
-        var _this5 = this;
+        var _this4 = this;
 
         var defaultColor = arr[1];
         var div = document.createElement('div');
@@ -17846,7 +17823,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
         value = value === undefined ? defaultColor : value;
         div.onclick = function () {
-          _this5._showColorPicker(value, div, path);
+          _this4._showColorPicker(value, div, path);
         };
 
         var label = this._makeLabel(path[path.length - 1], path);
@@ -17865,7 +17842,7 @@ return /******/ (function(modules) { // webpackBootstrap
     }, {
       key: '_showColorPicker',
       value: function _showColorPicker(value, div, path) {
-        var _this6 = this;
+        var _this5 = this;
 
         // clear the callback from this div
         div.onclick = function () {};
@@ -17877,13 +17854,13 @@ return /******/ (function(modules) { // webpackBootstrap
         this.colorPicker.setUpdateCallback(function (color) {
           var colorString = 'rgba(' + color.r + ',' + color.g + ',' + color.b + ',' + color.a + ')';
           div.style.backgroundColor = colorString;
-          _this6._update(colorString, path);
+          _this5._update(colorString, path);
         });
 
         // on close of the colorpicker, restore the callback.
         this.colorPicker.setCloseCallback(function () {
           div.onclick = function () {
-            _this6._showColorPicker(value, div, path);
+            _this5._showColorPicker(value, div, path);
           };
         });
       }
@@ -26328,7 +26305,7 @@ return /******/ (function(modules) { // webpackBootstrap
           updateGroup: this.data.editable,
           remove: this.data.editable
         };
-      } else if ((0, _typeof3['default'])(options.editable) === 'object') {
+      } else if ((0, _typeof3['default'])(data.editable) === 'object') {
         this.editable = {};
         util.selectiveExtend(['updateTime', 'updateGroup', 'remove'], this.editable, data.editable);
       }
@@ -33670,8 +33647,6 @@ return /******/ (function(modules) { // webpackBootstrap
     }, {
       key: 'setData',
       value: function setData(nodes) {
-        var _this3 = this;
-
         var doNotEmit = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : false;
 
         var oldNodesData = this.body.data.nodes;
@@ -33698,17 +33673,15 @@ return /******/ (function(modules) { // webpackBootstrap
         this.body.nodes = {};
 
         if (this.body.data.nodes) {
-          (function () {
-            // subscribe to new dataset
-            var me = _this3;
-            util.forEach(_this3.nodesListeners, function (callback, event) {
-              me.body.data.nodes.on(event, callback);
-            });
+          // subscribe to new dataset
+          var me = this;
+          util.forEach(this.nodesListeners, function (callback, event) {
+            me.body.data.nodes.on(event, callback);
+          });
 
-            // draw all new nodes
-            var ids = _this3.body.data.nodes.getIds();
-            _this3.add(ids, true);
-          })();
+          // draw all new nodes
+          var ids = this.body.data.nodes.getIds();
+          this.add(ids, true);
         }
 
         if (doNotEmit === false) {
@@ -33963,13 +33936,13 @@ return /******/ (function(modules) { // webpackBootstrap
     }, {
       key: 'moveNode',
       value: function moveNode(nodeId, x, y) {
-        var _this4 = this;
+        var _this3 = this;
 
         if (this.body.nodes[nodeId] !== undefined) {
           this.body.nodes[nodeId].x = Number(x);
           this.body.nodes[nodeId].y = Number(y);
           setTimeout(function () {
-            _this4.body.emitter.emit("startSimulation");
+            _this3.body.emitter.emit("startSimulation");
           }, 0);
         } else {
           console.log("Node id supplied to moveNode does not exist. Provided: ", nodeId);
@@ -45217,29 +45190,27 @@ return /******/ (function(modules) { // webpackBootstrap
 
         var selection = this.drag.selection;
         if (selection && selection.length && this.options.dragNodes === true) {
-          (function () {
-            _this2.selectionHandler._generateClickEvent('dragging', event, pointer);
+          this.selectionHandler._generateClickEvent('dragging', event, pointer);
 
-            // calculate delta's and new location
-            var deltaX = pointer.x - _this2.drag.pointer.x;
-            var deltaY = pointer.y - _this2.drag.pointer.y;
+          // calculate delta's and new location
+          var deltaX = pointer.x - this.drag.pointer.x;
+          var deltaY = pointer.y - this.drag.pointer.y;
 
-            // update position of all selected nodes
-            selection.forEach(function (selection) {
-              var node = selection.node;
-              // only move the node if it was not fixed initially
-              if (selection.xFixed === false) {
-                node.x = _this2.canvas._XconvertDOMtoCanvas(_this2.canvas._XconvertCanvasToDOM(selection.x) + deltaX);
-              }
-              // only move the node if it was not fixed initially
-              if (selection.yFixed === false) {
-                node.y = _this2.canvas._YconvertDOMtoCanvas(_this2.canvas._YconvertCanvasToDOM(selection.y) + deltaY);
-              }
-            });
+          // update position of all selected nodes
+          selection.forEach(function (selection) {
+            var node = selection.node;
+            // only move the node if it was not fixed initially
+            if (selection.xFixed === false) {
+              node.x = _this2.canvas._XconvertDOMtoCanvas(_this2.canvas._XconvertCanvasToDOM(selection.x) + deltaX);
+            }
+            // only move the node if it was not fixed initially
+            if (selection.yFixed === false) {
+              node.y = _this2.canvas._YconvertDOMtoCanvas(_this2.canvas._YconvertCanvasToDOM(selection.y) + deltaY);
+            }
+          });
 
-            // start the simulation of the physics
-            _this2.body.emitter.emit('startSimulation');
-          })();
+          // start the simulation of the physics
+          this.body.emitter.emit('startSimulation');
         } else {
           // move the network
           if (this.options.dragView === true) {
@@ -48660,8 +48631,6 @@ return /******/ (function(modules) { // webpackBootstrap
     }, {
       key: 'editEdgeMode',
       value: function editEdgeMode() {
-        var _this3 = this;
-
         // when using the gui, enable edit mode if it wasn't already.
         if (this.editMode !== true) {
           this.enableEditMode();
@@ -48692,46 +48661,44 @@ return /******/ (function(modules) { // webpackBootstrap
 
         this.edgeBeingEditedId = this.selectionHandler.getSelectedEdges()[0];
         if (this.edgeBeingEditedId !== undefined) {
-          (function () {
-            var edge = _this3.body.edges[_this3.edgeBeingEditedId];
+          var _edge = this.body.edges[this.edgeBeingEditedId];
 
-            // create control nodes
-            var controlNodeFrom = _this3._getNewTargetNode(edge.from.x, edge.from.y);
-            var controlNodeTo = _this3._getNewTargetNode(edge.to.x, edge.to.y);
+          // create control nodes
+          var controlNodeFrom = this._getNewTargetNode(_edge.from.x, _edge.from.y);
+          var controlNodeTo = this._getNewTargetNode(_edge.to.x, _edge.to.y);
 
-            _this3.temporaryIds.nodes.push(controlNodeFrom.id);
-            _this3.temporaryIds.nodes.push(controlNodeTo.id);
+          this.temporaryIds.nodes.push(controlNodeFrom.id);
+          this.temporaryIds.nodes.push(controlNodeTo.id);
 
-            _this3.body.nodes[controlNodeFrom.id] = controlNodeFrom;
-            _this3.body.nodeIndices.push(controlNodeFrom.id);
-            _this3.body.nodes[controlNodeTo.id] = controlNodeTo;
-            _this3.body.nodeIndices.push(controlNodeTo.id);
+          this.body.nodes[controlNodeFrom.id] = controlNodeFrom;
+          this.body.nodeIndices.push(controlNodeFrom.id);
+          this.body.nodes[controlNodeTo.id] = controlNodeTo;
+          this.body.nodeIndices.push(controlNodeTo.id);
 
-            // temporarily overload UI functions, cleaned up automatically because of _temporaryBindUI
-            _this3._temporaryBindUI('onTouch', _this3._controlNodeTouch.bind(_this3)); // used to get the position
-            _this3._temporaryBindUI('onTap', function () {}); // disabled
-            _this3._temporaryBindUI('onHold', function () {}); // disabled
-            _this3._temporaryBindUI('onDragStart', _this3._controlNodeDragStart.bind(_this3)); // used to select control node
-            _this3._temporaryBindUI('onDrag', _this3._controlNodeDrag.bind(_this3)); // used to drag control node
-            _this3._temporaryBindUI('onDragEnd', _this3._controlNodeDragEnd.bind(_this3)); // used to connect or revert control nodes
-            _this3._temporaryBindUI('onMouseMove', function () {}); // disabled
+          // temporarily overload UI functions, cleaned up automatically because of _temporaryBindUI
+          this._temporaryBindUI('onTouch', this._controlNodeTouch.bind(this)); // used to get the position
+          this._temporaryBindUI('onTap', function () {}); // disabled
+          this._temporaryBindUI('onHold', function () {}); // disabled
+          this._temporaryBindUI('onDragStart', this._controlNodeDragStart.bind(this)); // used to select control node
+          this._temporaryBindUI('onDrag', this._controlNodeDrag.bind(this)); // used to drag control node
+          this._temporaryBindUI('onDragEnd', this._controlNodeDragEnd.bind(this)); // used to connect or revert control nodes
+          this._temporaryBindUI('onMouseMove', function () {}); // disabled
 
-            // create function to position control nodes correctly on movement
-            // automatically cleaned up because we use the temporary bind
-            _this3._temporaryBindEvent('beforeDrawing', function (ctx) {
-              var positions = edge.edgeType.findBorderPositions(ctx);
-              if (controlNodeFrom.selected === false) {
-                controlNodeFrom.x = positions.from.x;
-                controlNodeFrom.y = positions.from.y;
-              }
-              if (controlNodeTo.selected === false) {
-                controlNodeTo.x = positions.to.x;
-                controlNodeTo.y = positions.to.y;
-              }
-            });
+          // create function to position control nodes correctly on movement
+          // automatically cleaned up because we use the temporary bind
+          this._temporaryBindEvent('beforeDrawing', function (ctx) {
+            var positions = _edge.edgeType.findBorderPositions(ctx);
+            if (controlNodeFrom.selected === false) {
+              controlNodeFrom.x = positions.from.x;
+              controlNodeFrom.y = positions.from.y;
+            }
+            if (controlNodeTo.selected === false) {
+              controlNodeTo.x = positions.to.x;
+              controlNodeTo.y = positions.to.y;
+            }
+          });
 
-            _this3.body.emitter.emit('_redraw');
-          })();
+          this.body.emitter.emit('_redraw');
         } else {
           this.showManipulatorToolbar();
         }
@@ -48744,7 +48711,7 @@ return /******/ (function(modules) { // webpackBootstrap
     }, {
       key: 'deleteSelected',
       value: function deleteSelected() {
-        var _this4 = this;
+        var _this3 = this;
 
         // when using the gui, enable edit mode if it wasnt already.
         if (this.editMode !== true) {
@@ -48779,15 +48746,15 @@ return /******/ (function(modules) { // webpackBootstrap
           var data = { nodes: selectedNodes, edges: selectedEdges };
           if (deleteFunction.length === 2) {
             deleteFunction(data, function (finalizedData) {
-              if (finalizedData !== null && finalizedData !== undefined && _this4.inMode === 'delete') {
+              if (finalizedData !== null && finalizedData !== undefined && _this3.inMode === 'delete') {
                 // if for whatever reason the mode has changes (due to dataset change) disregard the callback) {
-                _this4.body.data.edges.getDataSet().remove(finalizedData.edges);
-                _this4.body.data.nodes.getDataSet().remove(finalizedData.nodes);
-                _this4.body.emitter.emit('startSimulation');
-                _this4.showManipulatorToolbar();
+                _this3.body.data.edges.getDataSet().remove(finalizedData.edges);
+                _this3.body.data.nodes.getDataSet().remove(finalizedData.nodes);
+                _this3.body.emitter.emit('startSimulation');
+                _this3.showManipulatorToolbar();
               } else {
-                _this4.body.emitter.emit('startSimulation');
-                _this4.showManipulatorToolbar();
+                _this3.body.emitter.emit('startSimulation');
+                _this3.showManipulatorToolbar();
               }
             });
           } else {
@@ -49448,7 +49415,7 @@ return /******/ (function(modules) { // webpackBootstrap
     }, {
       key: '_performAddNode',
       value: function _performAddNode(clickData) {
-        var _this5 = this;
+        var _this4 = this;
 
         var defaultData = {
           id: util.randomUUID(),
@@ -49460,10 +49427,10 @@ return /******/ (function(modules) { // webpackBootstrap
         if (typeof this.options.addNode === 'function') {
           if (this.options.addNode.length === 2) {
             this.options.addNode(defaultData, function (finalizedData) {
-              if (finalizedData !== null && finalizedData !== undefined && _this5.inMode === 'addNode') {
+              if (finalizedData !== null && finalizedData !== undefined && _this4.inMode === 'addNode') {
                 // if for whatever reason the mode has changes (due to dataset change) disregard the callback
-                _this5.body.data.nodes.getDataSet().add(finalizedData);
-                _this5.showManipulatorToolbar();
+                _this4.body.data.nodes.getDataSet().add(finalizedData);
+                _this4.showManipulatorToolbar();
               }
             });
           } else {
@@ -49485,17 +49452,17 @@ return /******/ (function(modules) { // webpackBootstrap
     }, {
       key: '_performAddEdge',
       value: function _performAddEdge(sourceNodeId, targetNodeId) {
-        var _this6 = this;
+        var _this5 = this;
 
         var defaultData = { from: sourceNodeId, to: targetNodeId };
         if (typeof this.options.addEdge === 'function') {
           if (this.options.addEdge.length === 2) {
             this.options.addEdge(defaultData, function (finalizedData) {
-              if (finalizedData !== null && finalizedData !== undefined && _this6.inMode === 'addEdge') {
+              if (finalizedData !== null && finalizedData !== undefined && _this5.inMode === 'addEdge') {
                 // if for whatever reason the mode has changes (due to dataset change) disregard the callback
-                _this6.body.data.edges.getDataSet().add(finalizedData);
-                _this6.selectionHandler.unselectAll();
-                _this6.showManipulatorToolbar();
+                _this5.body.data.edges.getDataSet().add(finalizedData);
+                _this5.selectionHandler.unselectAll();
+                _this5.showManipulatorToolbar();
               }
             });
           } else {
@@ -49517,7 +49484,7 @@ return /******/ (function(modules) { // webpackBootstrap
     }, {
       key: '_performEditEdge',
       value: function _performEditEdge(sourceNodeId, targetNodeId) {
-        var _this7 = this;
+        var _this6 = this;
 
         var defaultData = { id: this.edgeBeingEditedId, from: sourceNodeId, to: targetNodeId, label: this.body.data.edges._data[this.edgeBeingEditedId].label };
         var eeFunct = this.options.editEdge;
@@ -49527,15 +49494,15 @@ return /******/ (function(modules) { // webpackBootstrap
         if (typeof eeFunct === 'function') {
           if (eeFunct.length === 2) {
             eeFunct(defaultData, function (finalizedData) {
-              if (finalizedData === null || finalizedData === undefined || _this7.inMode !== 'editEdge') {
+              if (finalizedData === null || finalizedData === undefined || _this6.inMode !== 'editEdge') {
                 // if for whatever reason the mode has changes (due to dataset change) disregard the callback) {
-                _this7.body.edges[defaultData.id].updateEdgeType();
-                _this7.body.emitter.emit('_redraw');
-                _this7.showManipulatorToolbar();
+                _this6.body.edges[defaultData.id].updateEdgeType();
+                _this6.body.emitter.emit('_redraw');
+                _this6.showManipulatorToolbar();
               } else {
-                _this7.body.data.edges.getDataSet().update(finalizedData);
-                _this7.selectionHandler.unselectAll();
-                _this7.showManipulatorToolbar();
+                _this6.body.data.edges.getDataSet().update(finalizedData);
+                _this6.selectionHandler.unselectAll();
+                _this6.showManipulatorToolbar();
               }
             });
           } else {
