@@ -1,9 +1,6 @@
-<<<<<<< HEAD
-=======
 # vis.js files
 dist/
 
->>>>>>> refs/remotes/almende/develop
 # npm files
 node_modules
 npm-debug.log
