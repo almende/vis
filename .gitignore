@@ -15,3 +15,7 @@ npm-debug.log
 
 # vim temporary files
 .*.sw[op]
+
+# temporary addition
+/dist
+/dist/**/*
