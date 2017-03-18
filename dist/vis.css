@@ -900,6 +900,7 @@ div.vis-network div.vis-navigation div.vis-button.vis-zoomExtends {
   border-width: 1px;
   background-color: #D5DDF6;
   display: inline-block;
+  z-index: 1;
   /*overflow: hidden;*/
 }
 
@@ -997,6 +998,10 @@ div.vis-network div.vis-navigation div.vis-button.vis-zoomExtends {
   white-space: nowrap;
   padding: 5px;
   border-radius: 1px;
+  transition: 0.4s;
+  -o-transition: 0.4s;
+  -moz-transition: 0.4s;
+  -webkit-transition: 0.4s;
 }
 
 .vis-item .vis-delete, .vis-item .vis-delete-rtl {
