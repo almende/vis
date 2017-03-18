@@ -96,7 +96,6 @@
                 <div id="navbar" class="navbar-collapse collapse">
                     <ul class="nav navbar-nav">
                         <li><a href="http://www.visjs.org/index.html#modules">Modules</a></li>
-                        <li><a href="http://www.visjs.org/blog.html">Blog</a></li>
                         <li><a href="http://www.visjs.org/index.html#download_install">Download</a></li>
                         <li><a href="http://www.visjs.org/showcase/index.html">Showcase</a></li>
                         <li><a href="http://www.visjs.org/index.html#contribute">Contribute</a></li>
@@ -297,7 +296,13 @@ var items = [
             <td>label</td>
             <td>Object</td>
             <td>no</td>
-            <td>A label object which will be displayed near to the item. A label object has one requirement - a <b> content </b> property. In addition you can set the <b> xOffset, yOffset and className </b> for further appearance customisations </td>
+            <td>A label object which will be displayed near to the item. A label object has one requirement - a <b> content </b> property. In addition you can set the <b> xOffset, yOffset and className </b> for further appearance customisations.</td>
+        </tr>
+         <tr>
+            <td>end</td>
+            <td>Date</td>
+            <td>no</td>
+            <td>A location on the x-axis that when supplied will have the bar stretch to the end point and ignore the barChart.width property.</td>
         </tr>
     </table>
 
@@ -569,7 +574,7 @@ function (value) {
             <pre class="prettyprint lang-js">
 drawPoints: true // or false
             </pre>
-            
+
             2. <code>Object</code> (the 'rendering' options): If an object is provided it may contain following properties which all can be optional: <code>onRender</code>, <code>className</code><code>size</code> and/or <code>style</code>. For more information check the property's documentation.<br />
             <pre class="prettyprint lang-js">
 drawPoints: {
@@ -577,7 +582,7 @@ drawPoints: {
   style: 'square'
 }
             </pre>
-            
+
             3. <code>Function</code>: If a function is provided it will be used as a callback. The function may return values from listing 1 or 2.<br />
             <pre class="prettyprint lang-js">
 drawPoints: function(item, group) {
