@@ -2,6 +2,65 @@
 http://visjs.org
 
 
+## 2017-02-25, version 4.19.0
+
+### General
+
+- FIX: Fix eslint problem on Travis. (#2744)
+- added support for eslint (#2695)
+- Trivial typo fix in how_to_help doc. (#2714)
+- add link to a mentioned example (#2709)
+- FEAT: use babel preset2015 for custom builds (#2678)
+- FIX: use babel version compatible with webpack@1.14 (#2693)
+- FEAT: run mocha tests in travis ci (#2687)
+- Add note that PRs should be submitted against the `develop` branch (#2623)
+- FIX: Fixes instanceof Object statements for objects from other windows and iFrames. (#2631)
+- removed google-analytics from all examples (#2670)
+- do not ignore test folder (#2648)
+- updated dependencies and devDependencies (#2649)
+- general improvements (#2652)
+
+### Network
+
+- FEAT: Improve the performance of the network layout engine (#2729)
+- FEAT: Allow for image nodes to have a selected or broken image (#2601)
+
+### Timeline / Graph2D
+
+- FIX #2842: Prevent redirect to blank after drag and drop in FF (#2871)
+- FIX #2810: Nested groups do not use "groupOrder" (#2817)
+- FIX #2795: fix date for custom format function (#2826)
+- FIX #2689: Add animation options for zoomIn/zoomOut funtions (#2830)
+- FIX #2800: Removed all "Object.assign" from examples (#2829)
+- FIX #2725: Background items positioning when orientation: top (#2831)
+- FEAT: Added data as argument to the template function (#2802)
+- FIX #2827: Update "progress bar" example to reflect values (#2828)
+- FIX #2672: Item events original event (#2704)
+- FIX #2696: Update serialization example to use ISOString dates (#2789)
+- FIX #2790: Update examples to use ISOString format (#2791)
+- FEAT: Added support to supply an end-time to bar charts to have them scale (#2760)
+- FIX #1982, #1417: Modify redraw logic to treat scroll as needing restack (#2774)
+- FEAT: Initial tests for timeline ItemSet (#2750)
+- FIX #2720: Problems with option editable (#2743, #2796, #2806)
+- FIX: Range.js "event" is undeclared (#2749)
+- FEAT: added new locales for french and espanol (#2723)
+- FIX: fixes timestep next issue (#2732)
+- FEAT: #2647 Dynamic rolling mode option (#2705)
+- FIX #2679: TypeError: Cannot read property 'hasOwnProperty' of null (#2735)
+- Add initial tests for Timeline PointItem (#2716)
+- FIX #778: Tooltip does not work with background items in timeline (#2703)
+- FIX #2598: Flickering onUpdateTimeTooltip (#2702)
+- FEAT: refactor tooltip to only use one dom-element (#2662)
+- FEAT: Change setCustomTimeTitle title parameter to be a string or a function (#2611)
+
+### Graph3D
+
+- FEAT #2769: Graph3d tooltip styling (#2780)
+- FEAT #2540: Adjusted graph3d doc for autoscaling (#2812)
+- FIX #2536: 3d bar graph data array unsorted (#2803)
+- FEAT: Added showX(YZ)Axis options to Graph3d (#2686)
+
+
 ## 2017-01-29, version 4.18.1
 
 ### General
