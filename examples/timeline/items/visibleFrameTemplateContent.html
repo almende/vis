@@ -45,18 +45,18 @@
     {id: 1, value: 0.2, content: 'item 1', start: '2014-04-20', end: '2014-04-26'},
     {id: 2, value: 0.6, content: 'item 2', start: '2014-05-14', end: '2014-05-18'},
     {id: 3, type: 'point', content: 'item 3', start: '2014-04-15', end: '2014-05-18'},
-    {id: 4, content: 'item 4 with visibleFramTemplate in item', start: '2014-04-16', end: '2014-04-26', visibleFramTemplate: '<div class="progress-wrapper"><div class="progress"></div><label class="progress-label">80%<label></div>'
+    {id: 4, content: 'item 4 with visibleFrameTemplate in item', start: '2014-04-16', end: '2014-04-26', visibleFrameTemplate: '<div class="progress-wrapper"><div class="progress" style="width:80%"></div><label class="progress-label">80 per cent<label></div>'
     }
   ]);
 
   // Configuration for the Timeline
   var options = {
     visibleFrameTemplate: function(item) {
-      if (item.visibleFramTemplate) {
-        return item.visibleFramTemplate;
+      if (item.visibleFrameTemplate) {
+        return item.visibleFrameTemplate;
       }
       var percentage = item.value * 100 + '%';
-      return '<div class="progress-wrapper"><div class="progress"></div><label class="progress-label">' + percentage + '<label></div>';
+      return '<div class="progress-wrapper"><div class="progress" style="width:' + percentage + '"></div><label class="progress-label">' + percentage + '<label></div>';
     } 
   };
 
