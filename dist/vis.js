@@ -4,8 +4,8 @@
  *
  * A dynamic, browser-based visualization library.
  *
- * @version 4.19.0
- * @date    2017-03-18
+ * @version 4.19.1
+ * @date    2017-03-19
  *
  * @license
  * Copyright (C) 2011-2017 Almende B.V, http://almende.com
@@ -3024,7 +3024,7 @@ return /******/ (function(modules) { // webpackBootstrap
 /***/ function(module, exports, __webpack_require__) {
 
   /* WEBPACK VAR INJECTION */(function(module) {//! moment.js
-  //! version : 2.17.1
+  //! version : 2.18.0
   //! authors : Tim Wood, Iskren Chernev, Moment.js contributors
   //! license : MIT
   //! momentjs.com
@@ -3064,6 +3064,10 @@ return /******/ (function(modules) { // webpackBootstrap
           return false;
       }
       return true;
+  }
+
+  function isUndefined(input) {
+      return input === void 0;
   }
 
   function isNumber(input) {
@@ -3122,7 +3126,9 @@ return /******/ (function(modules) { // webpackBootstrap
           userInvalidated : false,
           iso             : false,
           parsedDateParts : [],
-          meridiem        : null
+          meridiem        : null,
+          rfc2822         : false,
+          weekdayMismatch : false
       };
   }
 
@@ -3198,10 +3204,6 @@ return /******/ (function(modules) { // webpackBootstrap
       return m;
   }
 
-  function isUndefined(input) {
-      return input === void 0;
-  }
-
   // Plugins that add properties should also add the key here (null value),
   // so we can properly clone ourselves.
   var momentProperties = hooks.momentProperties = [];
@@ -3241,7 +3243,7 @@ return /******/ (function(modules) { // webpackBootstrap
       }
 
       if (momentProperties.length > 0) {
-          for (i in momentProperties) {
+          for (i = 0; i < momentProperties.length; i++) {
               prop = momentProperties[i];
               val = from[prop];
               if (!isUndefined(val)) {
@@ -3378,8 +3380,11 @@ return /******/ (function(modules) { // webpackBootstrap
       }
       this._config = config;
       // Lenient ordinal parsing accepts just a number in addition to
-      // number + (possibly) stuff coming from _ordinalParseLenient.
-      this._ordinalParseLenient = new RegExp(this._ordinalParse.source + '|' + (/\d{1,2}/).source);
+      // number + (possibly) stuff coming from _dayOfMonthOrdinalParse.
+      // TODO: Remove "ordinalParse" fallback in next major release.
+      this._dayOfMonthOrdinalParseLenient = new RegExp(
+          (this._dayOfMonthOrdinalParse.source || this._ordinalParse.source) +
+              '|' + (/\d{1,2}/).source);
   }
 
   function mergeConfigs(parentConfig, childConfig) {
@@ -3477,7 +3482,7 @@ return /******/ (function(modules) { // webpackBootstrap
   }
 
   var defaultOrdinal = '%d';
-  var defaultOrdinalParse = /\d{1,2}/;
+  var defaultDayOfMonthOrdinalParse = /\d{1,2}/;
 
   function ordinal (number) {
       return this._ordinal.replace('%d', number);
@@ -3487,6 +3492,7 @@ return /******/ (function(modules) { // webpackBootstrap
       future : 'in %s',
       past   : '%s ago',
       s  : 'a few seconds',
+      ss : '%d seconds',
       m  : 'a minute',
       mm : '%d minutes',
       h  : 'an hour',
@@ -3669,7 +3675,7 @@ return /******/ (function(modules) { // webpackBootstrap
       return function (mom) {
           var output = '', i;
           for (i = 0; i < length; i++) {
-              output += array[i] instanceof Function ? array[i].call(mom, format) : array[i];
+              output += isFunction(array[i]) ? array[i].call(mom, format) : array[i];
           }
           return output;
       };
@@ -3872,7 +3878,8 @@ return /******/ (function(modules) { // webpackBootstrap
   var defaultLocaleMonths = 'January_February_March_April_May_June_July_August_September_October_November_December'.split('_');
   function localeMonths (m, format) {
       if (!m) {
-          return this._months;
+          return isArray(this._months) ? this._months :
+              this._months['standalone'];
       }
       return isArray(this._months) ? this._months[m.month()] :
           this._months[(this._months.isFormat || MONTHS_IN_FORMAT).test(format) ? 'format' : 'standalone'][m.month()];
@@ -3881,7 +3888,8 @@ return /******/ (function(modules) { // webpackBootstrap
   var defaultLocaleMonthsShort = 'Jan_Feb_Mar_Apr_May_Jun_Jul_Aug_Sep_Oct_Nov_Dec'.split('_');
   function localeMonthsShort (m, format) {
       if (!m) {
-          return this._monthsShort;
+          return isArray(this._monthsShort) ? this._monthsShort :
+              this._monthsShort['standalone'];
       }
       return isArray(this._monthsShort) ? this._monthsShort[m.month()] :
           this._monthsShort[MONTHS_IN_FORMAT.test(format) ? 'format' : 'standalone'][m.month()];
@@ -4148,11 +4156,11 @@ return /******/ (function(modules) { // webpackBootstrap
   }
 
   function createDate (y, m, d, h, M, s, ms) {
-      //can't just apply() to create a date:
-      //http://stackoverflow.com/questions/181348/instantiating-a-javascript-object-by-calling-prototype-constructor-apply
+      // can't just apply() to create a date:
+      // https://stackoverflow.com/q/181348
       var date = new Date(y, m, d, h, M, s, ms);
 
-      //the date constructor remaps years 0-99 to 1900-1999
+      // the date constructor remaps years 0-99 to 1900-1999
       if (y < 100 && y >= 0 && isFinite(date.getFullYear())) {
           date.setFullYear(y);
       }
@@ -4162,7 +4170,7 @@ return /******/ (function(modules) { // webpackBootstrap
   function createUTCDate (y) {
       var date = new Date(Date.UTC.apply(null, arguments));
 
-      //the Date.UTC function remaps years 0-99 to 1900-1999
+      // the Date.UTC function remaps years 0-99 to 1900-1999
       if (y < 100 && y >= 0 && isFinite(date.getUTCFullYear())) {
           date.setUTCFullYear(y);
       }
@@ -4179,7 +4187,7 @@ return /******/ (function(modules) { // webpackBootstrap
       return -fwdlw + fwd - 1;
   }
 
-  //http://en.wikipedia.org/wiki/ISO_week_date#Calculating_a_date_given_the_year.2C_week_number_and_weekday
+  // https://en.wikipedia.org/wiki/ISO_week_date#Calculating_a_date_given_the_year.2C_week_number_and_weekday
   function dayOfYearFromWeeks(year, week, weekday, dow, doy) {
       var localWeekday = (7 + weekday - dow) % 7,
           weekOffset = firstWeekOffset(year, dow, doy),
@@ -4380,7 +4388,8 @@ return /******/ (function(modules) { // webpackBootstrap
   var defaultLocaleWeekdays = 'Sunday_Monday_Tuesday_Wednesday_Thursday_Friday_Saturday'.split('_');
   function localeWeekdays (m, format) {
       if (!m) {
-          return this._weekdays;
+          return isArray(this._weekdays) ? this._weekdays :
+              this._weekdays['standalone'];
       }
       return isArray(this._weekdays) ? this._weekdays[m.day()] :
           this._weekdays[this._weekdays.isFormat.test(format) ? 'format' : 'standalone'][m.day()];
@@ -4700,8 +4709,10 @@ return /******/ (function(modules) { // webpackBootstrap
   addRegexToken('A',  matchMeridiem);
   addRegexToken('H',  match1to2);
   addRegexToken('h',  match1to2);
+  addRegexToken('k',  match1to2);
   addRegexToken('HH', match1to2, match2);
   addRegexToken('hh', match1to2, match2);
+  addRegexToken('kk', match1to2, match2);
 
   addRegexToken('hmm', match3to4);
   addRegexToken('hmmss', match5to6);
@@ -4709,6 +4720,10 @@ return /******/ (function(modules) { // webpackBootstrap
   addRegexToken('Hmmss', match5to6);
 
   addParseToken(['H', 'HH'], HOUR);
+  addParseToken(['k', 'kk'], function (input, array, config) {
+      var kInput = toInt(input);
+      array[HOUR] = kInput === 24 ? 0 : kInput;
+  });
   addParseToken(['a', 'A'], function (input, array, config) {
       config._isPm = config._locale.isPM(input);
       config._meridiem = input;
@@ -4779,7 +4794,7 @@ return /******/ (function(modules) { // webpackBootstrap
       longDateFormat: defaultLongDateFormat,
       invalidDate: defaultInvalidDate,
       ordinal: defaultOrdinal,
-      ordinalParse: defaultOrdinalParse,
+      dayOfMonthOrdinalParse: defaultDayOfMonthOrdinalParse,
       relativeTime: defaultRelativeTime,
 
       months: defaultLocaleMonths,
@@ -5090,6 +5105,77 @@ return /******/ (function(modules) { // webpackBootstrap
       }
   }
 
+  // RFC 2822 regex: For details see https://tools.ietf.org/html/rfc2822#section-3.3
+  var basicRfcRegex = /^((?:Mon|Tue|Wed|Thu|Fri|Sat|Sun),?\s)?(\d?\d\s(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)\s(?:\d\d)?\d\d\s)(\d\d:\d\d)(\:\d\d)?(\s(?:UT|GMT|[ECMP][SD]T|[A-IK-Za-ik-z]|[+-]\d{4}))$/;
+
+  // date and time from ref 2822 format
+  function configFromRFC2822(config) {
+      var string, match, dayFormat,
+          dateFormat, timeFormat, tzFormat;
+      var timezones = {
+          ' GMT': ' +0000',
+          ' EDT': ' -0400',
+          ' EST': ' -0500',
+          ' CDT': ' -0500',
+          ' CST': ' -0600',
+          ' MDT': ' -0600',
+          ' MST': ' -0700',
+          ' PDT': ' -0700',
+          ' PST': ' -0800'
+      };
+      var military = 'YXWVUTSRQPONZABCDEFGHIKLM';
+      var timezone, timezoneIndex;
+
+      string = config._i
+          .replace(/\([^\)]*\)|[\n\t]/g, ' ') // Remove comments and folding whitespace
+          .replace(/(\s\s+)/g, ' ') // Replace multiple-spaces with a single space
+          .replace(/^\s|\s$/g, ''); // Remove leading and trailing spaces
+      match = basicRfcRegex.exec(string);
+
+      if (match) {
+          dayFormat = match[1] ? 'ddd' + ((match[1].length === 5) ? ', ' : ' ') : '';
+          dateFormat = 'D MMM ' + ((match[2].length > 10) ? 'YYYY ' : 'YY ');
+          timeFormat = 'HH:mm' + (match[4] ? ':ss' : '');
+
+          // TODO: Replace the vanilla JS Date object with an indepentent day-of-week check.
+          if (match[1]) { // day of week given
+              var momentDate = new Date(match[2]);
+              var momentDay = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'][momentDate.getDay()];
+
+              if (match[1].substr(0,3) !== momentDay) {
+                  getParsingFlags(config).weekdayMismatch = true;
+                  config._isValid = false;
+                  return;
+              }
+          }
+
+          switch (match[5].length) {
+              case 2: // military
+                  if (timezoneIndex === 0) {
+                      timezone = ' +0000';
+                  } else {
+                      timezoneIndex = military.indexOf(match[5][1].toUpperCase()) - 12;
+                      timezone = ((timezoneIndex < 0) ? ' -' : ' +') +
+                          (('' + timezoneIndex).replace(/^-?/, '0')).match(/..$/)[0] + '00';
+                  }
+                  break;
+              case 4: // Zone
+                  timezone = timezones[match[5]];
+                  break;
+              default: // UT or +/-9999
+                  timezone = timezones[' GMT'];
+          }
+          match[5] = timezone;
+          config._i = match.splice(1).join('');
+          tzFormat = ' ZZ';
+          config._f = dayFormat + dateFormat + timeFormat + tzFormat;
+          configFromStringAndFormat(config);
+          getParsingFlags(config).rfc2822 = true;
+      } else {
+          config._isValid = false;
+      }
+  }
+
   // date from iso format or fallback
   function configFromString(config) {
       var matched = aspNetJsonRegex.exec(config._i);
@@ -5102,13 +5188,24 @@ return /******/ (function(modules) { // webpackBootstrap
       configFromISO(config);
       if (config._isValid === false) {
           delete config._isValid;
-          hooks.createFromInputFallback(config);
+      } else {
+          return;
       }
+
+      configFromRFC2822(config);
+      if (config._isValid === false) {
+          delete config._isValid;
+      } else {
+          return;
+      }
+
+      // Final attempt, use Input Fallback
+      hooks.createFromInputFallback(config);
   }
 
   hooks.createFromInputFallback = deprecate(
-      'value provided is not in a recognized ISO format. moment construction falls back to js Date(), ' +
-      'which is not reliable across all browsers and versions. Non ISO date formats are ' +
+      'value provided is not in a recognized RFC2822 or ISO format. moment construction falls back to js Date(), ' +
+      'which is not reliable across all browsers and versions. Non RFC2822/ISO date formats are ' +
       'discouraged and will be removed in an upcoming major release. Please refer to ' +
       'http://momentjs.com/guides/#/warnings/js-date/ for more info.',
       function (config) {
@@ -5155,10 +5252,10 @@ return /******/ (function(modules) { // webpackBootstrap
       }
 
       //if the day of the year is set, figure out what it is
-      if (config._dayOfYear) {
+      if (config._dayOfYear != null) {
           yearToUse = defaults(config._a[YEAR], currentDate[YEAR]);
 
-          if (config._dayOfYear > daysInYear(yearToUse)) {
+          if (config._dayOfYear > daysInYear(yearToUse) || config._dayOfYear === 0) {
               getParsingFlags(config)._overflowDayOfYear = true;
           }
 
@@ -5262,6 +5359,9 @@ return /******/ (function(modules) { // webpackBootstrap
   // constant that refers to the ISO standard
   hooks.ISO_8601 = function () {};
 
+  // constant that refers to the RFC 2822 form
+  hooks.RFC_2822 = function () {};
+
   // date from string and format string
   function configFromStringAndFormat(config) {
       // TODO: Move this to another part of the creation flow to prevent circular deps
@@ -5269,7 +5369,10 @@ return /******/ (function(modules) { // webpackBootstrap
           configFromISO(config);
           return;
       }
-
+      if (config._f === hooks.RFC_2822) {
+          configFromRFC2822(config);
+          return;
+      }
       config._a = [];
       getParsingFlags(config).empty = true;
 
@@ -5461,7 +5564,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function configFromInput(config) {
       var input = config._i;
-      if (input === undefined) {
+      if (isUndefined(input)) {
           config._d = new Date(hooks.now());
       } else if (isDate(input)) {
           config._d = new Date(input.valueOf());
@@ -5472,7 +5575,7 @@ return /******/ (function(modules) { // webpackBootstrap
               return parseInt(obj, 10);
           });
           configFromArray(config);
-      } else if (typeof(input) === 'object') {
+      } else if (isObject(input)) {
           configFromObject(config);
       } else if (isNumber(input)) {
           // from milliseconds
@@ -5573,6 +5676,38 @@ return /******/ (function(modules) { // webpackBootstrap
       return Date.now ? Date.now() : +(new Date());
   };
 
+  var ordering = ['year', 'quarter', 'month', 'week', 'day', 'hour', 'minute', 'second', 'millisecond'];
+
+  function isDurationValid(m) {
+      for (var key in m) {
+          if (!(ordering.indexOf(key) !== -1 && (m[key] == null || !isNaN(m[key])))) {
+              return false;
+          }
+      }
+
+      var unitHasDecimal = false;
+      for (var i = 0; i < ordering.length; ++i) {
+          if (m[ordering[i]]) {
+              if (unitHasDecimal) {
+                  return false; // only allow non-integers for smallest unit
+              }
+              if (parseFloat(m[ordering[i]]) !== toInt(m[ordering[i]])) {
+                  unitHasDecimal = true;
+              }
+          }
+      }
+
+      return true;
+  }
+
+  function isValid$1() {
+      return this._isValid;
+  }
+
+  function createInvalid$1() {
+      return createDuration(NaN);
+  }
+
   function Duration (duration) {
       var normalizedInput = normalizeObjectUnits(duration),
           years = normalizedInput.year || 0,
@@ -5584,6 +5719,8 @@ return /******/ (function(modules) { // webpackBootstrap
           minutes = normalizedInput.minute || 0,
           seconds = normalizedInput.second || 0,
           milliseconds = normalizedInput.millisecond || 0;
+
+      this._isValid = isDurationValid(normalizedInput);
 
       // representation for dateAddRemove
       this._milliseconds = +milliseconds +
@@ -5708,7 +5845,7 @@ return /******/ (function(modules) { // webpackBootstrap
   // a second time. In case it wants us to change the offset again
   // _changeInProgress == true case, then we have to adjust, because
   // there is no such time in the given timezone.
-  function getSetOffset (input, keepLocalTime) {
+  function getSetOffset (input, keepLocalTime, keepMinutes) {
       var offset = this._offset || 0,
           localAdjust;
       if (!this.isValid()) {
@@ -5720,7 +5857,7 @@ return /******/ (function(modules) { // webpackBootstrap
               if (input === null) {
                   return this;
               }
-          } else if (Math.abs(input) < 16) {
+          } else if (Math.abs(input) < 16 && !keepMinutes) {
               input = input * 60;
           }
           if (!this._isUTC && keepLocalTime) {
@@ -5778,7 +5915,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function setOffsetToParsedOffset () {
       if (this._tzm != null) {
-          this.utcOffset(this._tzm);
+          this.utcOffset(this._tzm, false, true);
       } else if (typeof this._i === 'string') {
           var tZone = offsetFromString(matchOffset, this._i);
           if (tZone != null) {
@@ -5910,6 +6047,7 @@ return /******/ (function(modules) { // webpackBootstrap
   }
 
   createDuration.fn = Duration.prototype;
+  createDuration.invalid = createInvalid$1;
 
   function parseIso (inp, sign) {
       // We'd normally use ~~inp for this, but unfortunately it also
@@ -6146,18 +6284,19 @@ return /******/ (function(modules) { // webpackBootstrap
       return this.clone().locale('en').format('ddd MMM DD YYYY HH:mm:ss [GMT]ZZ');
   }
 
-  function toISOString () {
+  function toISOString() {
+      if (!this.isValid()) {
+          return null;
+      }
       var m = this.clone().utc();
-      if (0 < m.year() && m.year() <= 9999) {
-          if (isFunction(Date.prototype.toISOString)) {
-              // native implementation is ~50x faster, use it when we can
-              return this.toDate().toISOString();
-          } else {
-              return formatMoment(m, 'YYYY-MM-DD[T]HH:mm:ss.SSS[Z]');
-          }
-      } else {
+      if (m.year() < 0 || m.year() > 9999) {
           return formatMoment(m, 'YYYYYY-MM-DD[T]HH:mm:ss.SSS[Z]');
       }
+      if (isFunction(Date.prototype.toISOString)) {
+          // native implementation is ~50x faster, use it when we can
+          return this.toDate().toISOString();
+      }
+      return formatMoment(m, 'YYYY-MM-DD[T]HH:mm:ss.SSS[Z]');
   }
 
   /**
@@ -6177,7 +6316,7 @@ return /******/ (function(modules) { // webpackBootstrap
           zone = 'Z';
       }
       var prefix = '[' + func + '("]';
-      var year = (0 < this.year() && this.year() <= 9999) ? 'YYYY' : 'YYYYYY';
+      var year = (0 <= this.year() && this.year() <= 9999) ? 'YYYY' : 'YYYYYY';
       var datetime = '-MM-DD[T]HH:mm:ss.SSS';
       var suffix = zone + '[")]';
 
@@ -6345,7 +6484,7 @@ return /******/ (function(modules) { // webpackBootstrap
       return this.isValid() ? this.toISOString() : null;
   }
 
-  function isValid$1 () {
+  function isValid$2 () {
       return isValid(this);
   }
 
@@ -6505,7 +6644,10 @@ return /******/ (function(modules) { // webpackBootstrap
   addRegexToken('D',  match1to2);
   addRegexToken('DD', match1to2, match2);
   addRegexToken('Do', function (isStrict, locale) {
-      return isStrict ? locale._ordinalParse : locale._ordinalParseLenient;
+      // TODO: Remove "ordinalParse" fallback in next major release.
+      return isStrict ?
+        (locale._dayOfMonthOrdinalParse || locale._ordinalParse) :
+        locale._dayOfMonthOrdinalParseLenient;
   });
 
   addParseToken(['D', 'DD'], DATE);
@@ -6685,7 +6827,7 @@ return /******/ (function(modules) { // webpackBootstrap
   proto.isSame            = isSame;
   proto.isSameOrAfter     = isSameOrAfter;
   proto.isSameOrBefore    = isSameOrBefore;
-  proto.isValid           = isValid$1;
+  proto.isValid           = isValid$2;
   proto.lang              = lang;
   proto.locale            = locale;
   proto.localeData        = localeData;
@@ -6910,7 +7052,7 @@ return /******/ (function(modules) { // webpackBootstrap
   }
 
   getSetGlobalLocale('en', {
-      ordinalParse: /\d{1,2}(th|st|nd|rd)/,
+      dayOfMonthOrdinalParse: /\d{1,2}(th|st|nd|rd)/,
       ordinal : function (number) {
           var b = number % 10,
               output = (toInt(number % 100 / 10) === 1) ? 'th' :
@@ -7031,6 +7173,9 @@ return /******/ (function(modules) { // webpackBootstrap
   }
 
   function as (units) {
+      if (!this.isValid()) {
+          return NaN;
+      }
       var days;
       var months;
       var milliseconds = this._milliseconds;
@@ -7059,6 +7204,9 @@ return /******/ (function(modules) { // webpackBootstrap
 
   // TODO: Use this.as('ms')?
   function valueOf$1 () {
+      if (!this.isValid()) {
+          return NaN;
+      }
       return (
           this._milliseconds +
           this._days * 864e5 +
@@ -7084,12 +7232,12 @@ return /******/ (function(modules) { // webpackBootstrap
 
   function get$2 (units) {
       units = normalizeUnits(units);
-      return this[units + 's']();
+      return this.isValid() ? this[units + 's']() : NaN;
   }
 
   function makeGetter(name) {
       return function () {
-          return this._data[name];
+          return this.isValid() ? this._data[name] : NaN;
       };
   }
 
@@ -7107,11 +7255,12 @@ return /******/ (function(modules) { // webpackBootstrap
 
   var round = Math.round;
   var thresholds = {
-      s: 45,  // seconds to minute
-      m: 45,  // minutes to hour
-      h: 22,  // hours to day
-      d: 26,  // days to month
-      M: 11   // months to year
+      ss: 44,         // a few seconds to seconds
+      s : 45,         // seconds to minute
+      m : 45,         // minutes to hour
+      h : 22,         // hours to day
+      d : 26,         // days to month
+      M : 11          // months to year
   };
 
   // helper function for moment.fn.from, moment.fn.fromNow, and moment.duration.fn.humanize
@@ -7128,16 +7277,17 @@ return /******/ (function(modules) { // webpackBootstrap
       var months   = round(duration.as('M'));
       var years    = round(duration.as('y'));
 
-      var a = seconds < thresholds.s && ['s', seconds]  ||
-              minutes <= 1           && ['m']           ||
-              minutes < thresholds.m && ['mm', minutes] ||
-              hours   <= 1           && ['h']           ||
-              hours   < thresholds.h && ['hh', hours]   ||
-              days    <= 1           && ['d']           ||
-              days    < thresholds.d && ['dd', days]    ||
-              months  <= 1           && ['M']           ||
-              months  < thresholds.M && ['MM', months]  ||
-              years   <= 1           && ['y']           || ['yy', years];
+      var a = seconds <= thresholds.ss && ['s', seconds]  ||
+              seconds < thresholds.s   && ['ss', seconds] ||
+              minutes <= 1             && ['m']           ||
+              minutes < thresholds.m   && ['mm', minutes] ||
+              hours   <= 1             && ['h']           ||
+              hours   < thresholds.h   && ['hh', hours]   ||
+              days    <= 1             && ['d']           ||
+              days    < thresholds.d   && ['dd', days]    ||
+              months  <= 1             && ['M']           ||
+              months  < thresholds.M   && ['MM', months]  ||
+              years   <= 1             && ['y']           || ['yy', years];
 
       a[2] = withoutSuffix;
       a[3] = +posNegDuration > 0;
@@ -7166,10 +7316,17 @@ return /******/ (function(modules) { // webpackBootstrap
           return thresholds[threshold];
       }
       thresholds[threshold] = limit;
+      if (threshold === 's') {
+          thresholds.ss = limit - 1;
+      }
       return true;
   }
 
   function humanize (withSuffix) {
+      if (!this.isValid()) {
+          return this.localeData().invalidDate();
+      }
+
       var locale = this.localeData();
       var output = relativeTime$1(this, !withSuffix, locale);
 
@@ -7190,6 +7347,10 @@ return /******/ (function(modules) { // webpackBootstrap
       // This is because there is no context-free conversion between hours and days
       // (think of clock changes)
       // and also not between days and months (28-31 days per month)
+      if (!this.isValid()) {
+          return this.localeData().invalidDate();
+      }
+
       var seconds = abs$1(this._milliseconds) / 1000;
       var days         = abs$1(this._days);
       var months       = abs$1(this._months);
@@ -7234,6 +7395,7 @@ return /******/ (function(modules) { // webpackBootstrap
 
   var proto$2 = Duration.prototype;
 
+  proto$2.isValid        = isValid$1;
   proto$2.abs            = abs;
   proto$2.add            = add$1;
   proto$2.subtract       = subtract$1;
@@ -7289,7 +7451,7 @@ return /******/ (function(modules) { // webpackBootstrap
   // Side effect imports
 
 
-  hooks.version = '2.17.1';
+  hooks.version = '2.18.0';
 
   setHookCallback(createLocal);
 
@@ -23146,6 +23308,11 @@ return /******/ (function(modules) { // webpackBootstrap
     var oldGroupId = item.data.group;
     var oldSubGroupId = item.data.subgroup;
 
+    if (oldGroupId != itemData.group) {
+      var oldGroup = this.groups[oldGroupId];
+      if (oldGroup) oldGroup.remove(item);
+    }
+
     // update the items data (will redraw the item when displayed)
     item.setData(itemData);
 
@@ -23157,10 +23324,12 @@ return /******/ (function(modules) { // webpackBootstrap
       item.groupShowing = true;
     }
     // update group
-    if (oldGroupId != item.data.group || oldSubGroupId != item.data.subgroup) {
-      var oldGroup = this.groups[oldGroupId];
-      if (oldGroup) oldGroup.remove(item);
-      if (group) group.add(item);
+    if (group) {
+      if (oldGroupId != item.data.group) {
+        group.add(item);
+      } else if (oldSubGroupId != item.data.subgroup) {
+        group.changeSubgroup(item, oldSubGroupId);
+      }
     }
   };
 
@@ -23572,7 +23741,7 @@ return /******/ (function(modules) { // webpackBootstrap
   ItemSet.prototype._onGroupClick = function (event) {
     var group = this.groupFromTarget(event);
 
-    if (!group.nestedGroups) return;
+    if (!group || !group.nestedGroups) return;
 
     var groupsData = this.groupsData;
     if (this.groupsData instanceof DataView) {
@@ -25228,21 +25397,34 @@ return /******/ (function(modules) { // webpackBootstrap
     }
 
     if (data && data.nestedGroups) {
-      if (data.showNested == false) {
-        this.showNested = false;
-      } else {
-        this.showNested = true;
+      if (!this.nestedGroups || this.nestedGroups != data.nestedGroups) {
+        this.nestedGroups = data.nestedGroups;
+      }
+
+      if (data.showNested !== undefined || this.showNested === undefined) {
+        if (data.showNested == false) {
+          this.showNested = false;
+        } else {
+          this.showNested = true;
+        }
       }
 
       util.addClassName(this.dom.label, 'vis-nesting-group');
+      var collapsedDirClassName = this.itemSet.options.rtl ? 'collapsed-rtl' : 'collapsed';
       if (this.showNested) {
-        util.removeClassName(this.dom.label, 'collapsed');
+        util.removeClassName(this.dom.label, collapsedDirClassName);
         util.addClassName(this.dom.label, 'expanded');
       } else {
         util.removeClassName(this.dom.label, 'expanded');
-        var collapsedDirClassName = this.itemSet.options.rtl ? 'collapsed-rtl' : 'collapsed';
         util.addClassName(this.dom.label, collapsedDirClassName);
       }
+    } else if (this.nestedGroups) {
+      this.nestedGroups = null;
+
+      var collapsedDirClassName = this.itemSet.options.rtl ? 'collapsed-rtl' : 'collapsed';
+      util.removeClassName(this.dom.label, collapsedDirClassName);
+      util.removeClassName(this.dom.label, 'expanded');
+      util.removeClassName(this.dom.label, 'vis-nesting-group');
     }
 
     if (data && data.nestedInGroup) {
@@ -25516,34 +25698,39 @@ return /******/ (function(modules) { // webpackBootstrap
 
     // add to
     if (item.data.subgroup !== undefined) {
-      if (this.subgroups[item.data.subgroup] === undefined) {
-        this.subgroups[item.data.subgroup] = {
-          height: 0,
-          top: 0,
-          start: item.data.start,
-          end: item.data.end,
-          visible: false,
-          index: this.subgroupIndex,
-          items: []
-        };
-        this.subgroupIndex++;
-      }
-
-      if (new Date(item.data.start) < new Date(this.subgroups[item.data.subgroup].start)) {
-        this.subgroups[item.data.subgroup].start = item.data.start;
-      }
-      if (new Date(item.data.end) > new Date(this.subgroups[item.data.subgroup].end)) {
-        this.subgroups[item.data.subgroup].end = item.data.end;
-      }
-
-      this.subgroups[item.data.subgroup].items.push(item);
+      this._addToSubgroup(item);
+      this.orderSubgroups();
     }
-    this.orderSubgroups();
 
     if (this.visibleItems.indexOf(item) == -1) {
       var range = this.itemSet.body.range; // TODO: not nice accessing the range like this
       this._checkIfVisible(item, this.visibleItems, range);
     }
+  };
+
+  Group.prototype._addToSubgroup = function (item, subgroupId) {
+    subgroupId = subgroupId || item.data.subgroup;
+    if (subgroupId != undefined && this.subgroups[subgroupId] === undefined) {
+      this.subgroups[subgroupId] = {
+        height: 0,
+        top: 0,
+        start: item.data.start,
+        end: item.data.end,
+        visible: false,
+        index: this.subgroupIndex,
+        items: []
+      };
+      this.subgroupIndex++;
+    }
+
+    if (new Date(item.data.start) < new Date(this.subgroups[subgroupId].start)) {
+      this.subgroups[subgroupId].start = item.data.start;
+    }
+    if (new Date(item.data.end) > new Date(this.subgroups[subgroupId].end)) {
+      this.subgroups[subgroupId].end = item.data.end;
+    }
+
+    this.subgroups[subgroupId].items.push(item);
   };
 
   Group.prototype._updateSubgroupsSizes = function () {
@@ -25614,17 +25801,26 @@ return /******/ (function(modules) { // webpackBootstrap
     if (index != -1) this.visibleItems.splice(index, 1);
 
     if (item.data.subgroup !== undefined) {
-      var subgroup = this.subgroups[item.data.subgroup];
+      this._removeFromSubgroup(item);
+      this.orderSubgroups();
+    }
+  };
+
+  Group.prototype._removeFromSubgroup = function (item, subgroupId) {
+    subgroupId = subgroupId || item.data.subgroup;
+    if (subgroupId != undefined) {
+      var subgroup = this.subgroups[subgroupId];
       if (subgroup) {
         var itemIndex = subgroup.items.indexOf(item);
-        subgroup.items.splice(itemIndex, 1);
-        if (!subgroup.items.length) {
-          delete this.subgroups[item.data.subgroup];
-          this.subgroupIndex--;
-        } else {
-          this._updateSubgroupsSizes();
+        //  Check the item is actually in this subgroup. How should items not in the group be handled?
+        if (itemIndex >= 0) {
+          subgroup.items.splice(itemIndex, 1);
+          if (!subgroup.items.length) {
+            delete this.subgroups[subgroupId];
+          } else {
+            this._updateSubgroupsSizes();
+          }
         }
-        this.orderSubgroups();
       }
     }
   };
@@ -25802,6 +25998,12 @@ return /******/ (function(modules) { // webpackBootstrap
     } else {
       if (item.displayed) item.hide();
     }
+  };
+
+  Group.prototype.changeSubgroup = function (item, oldSubgroup, newSubgroup) {
+    this._removeFromSubgroup(item, oldSubgroup);
+    this._addToSubgroup(item, newSubgroup);
+    this.orderSubgroups();
   };
 
   module.exports = Group;
