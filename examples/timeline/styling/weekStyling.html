@@ -1,0 +1,57 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+  <title>Timeline | Grid styling</title>
+
+  <script src="../../../dist/vis.min.js"></script>
+  <link href="../../../dist/vis-timeline-graph2d.min.css" rel="stylesheet" type="text/css" />
+
+  <style type="text/css">
+    body, html {
+      font-family: sans-serif;
+    }
+
+    /* alternating column backgrounds */
+    .vis-time-axis .vis-grid.vis-odd {
+      background: #f5f5f5;
+    }
+
+    /* gray background in weekends, white text color */
+    .vis-time-axis .vis-grid.vis-saturday,
+    .vis-time-axis .vis-grid.vis-sunday {
+      background: gray;
+    }
+    .vis-time-axis .vis-text.vis-saturday,
+    .vis-time-axis .vis-text.vis-sunday {
+      color: white;
+    }
+  </style>
+  
+</head>
+<body>
+<div id="visualization"></div>
+
+<script type="text/javascript">
+  // DOM element where the Timeline will be attached
+  var container = document.getElementById('visualization');
+
+  // Create a DataSet (allows two way data-binding)
+  var items = new vis.DataSet([
+    {id: 1, content: 'ISO week 10 in 2017', start: '2017-03-06', end: '2017-03-12'},
+    {id: 2, content: 'ISO week 11 in 2017', start: '2017-03-13', end: '2017-03-19'},
+    {id: 3, content: 'ISO week 12 in 2017', start: '2017-03-20', end: '2017-03-26'},
+    {id: 4, content: 'ISO week 13 in 2017', start: '2017-03-27', end: '2017-04-02'},
+    {id: 5, content: 'US week 10 in 2017', start: '2017-03-05', end: '2017-03-11'},
+    {id: 6, content: 'US week 11 in 2017', start: '2017-03-12', end: '2017-03-18'},
+    {id: 7, content: 'US week 12 in 2017', start: '2017-03-19', end: '2017-03-25'},
+    {id: 8, content: 'US week 13 in 2017', start: '2017-03-26', end: '2017-04-02'}
+  ]);
+
+  // Configuration for the Timeline
+  var options = {timeAxis: {scale: 'week', step: 1}};
+
+  // Create a Timeline
+  var timeline = new vis.Timeline(container, items, options);
+</script>
+</body>
+</html>
