@@ -12,7 +12,7 @@ A better way to ask questions on how to use vis.js is [stackoverflow](https://st
 
 ### Closing old issues
 
-A new issue is often opened fast and then forgotten. Please help go trough [the old issues](//github.com/almende/vis/issues?q=is%3Aissue+is%3Aopen+sort%3Acreated-asc) (especially the [questions](//github.com/almende/vis/issues?q=is%3Aissue+is%3Aopen+sort%3Acreated-asc+label%3AQuestion)) and ask the creator of the issues if the problem still exists before closing the issue. The support team uses the **issue inactive** label to mark these issues.
+A new issue is often opened fast and then forgotten. Please help go through [the old issues](//github.com/almende/vis/issues?q=is%3Aissue+is%3Aopen+sort%3Acreated-asc) (especially the [questions](//github.com/almende/vis/issues?q=is%3Aissue+is%3Aopen+sort%3Acreated-asc+label%3AQuestion)) and ask the creator of the issues if the problem still exists before closing the issue. The support team uses the **issue inactive** label to mark these issues.
 
 ### Improve the webpage
 

@@ -192,8 +192,8 @@ exports.Timeline = require('./lib/timeline/Timeline');
 
 Then create a custom bundle using browserify, like:
 
-    $ browserify custom.js -t babelify -o dist/vis-custom.js -s vis
-
+    $ browserify custom.js -t [ babelify --presets [es2015] ] -o dist/vis-custom.js -s vis
+    
 This will generate a custom bundle *vis-custom.js*, which exposes the namespace `vis` containing only `DataSet` and `Timeline`. The generated bundle can be minified using uglifyjs:
 
     $ uglifyjs dist/vis-custom.js -o dist/vis-custom.min.js
@@ -217,7 +217,7 @@ The custom bundle can now be loaded like:
 
 The default bundle `vis.js` is standalone and includes external dependencies such as *hammer.js* and *moment.js*. When these libraries are already loaded by the application, vis.js does not need to include these dependencies itself too. To build a custom bundle of vis.js excluding *moment.js* and *hammer.js*, run browserify in the root of the project:
 
-    $ browserify index.js -t babelify -o dist/vis-custom.js -s vis -x moment -x hammerjs
+    $ browserify index.js -t [ babelify --presets [es2015] ] -o dist/vis-custom.js -s vis -x moment -x hammerjs
 
 This will generate a custom bundle *vis-custom.js*, which exposes the namespace `vis`, and has *moment.js* and *hammer.js* excluded. The generated bundle can be minified with uglifyjs:
 
@@ -265,10 +265,6 @@ var options = {};
 var timeline = new Timeline(container, data, options);
 ```
 
-Install the application dependencies via npm:
-
-    $ npm install vis moment
-
 The application can be bundled and minified:
 
     $ browserify app.js -o dist/app-bundle.js -t babelify
@@ -289,6 +285,39 @@ And loaded into a webpage:
 </html>
 ```
 
+#### Example 4: Integrate vis.js components directly in your webpack build
+
+You can integrate e.g. the timeline component directly in you webpack build.
+Therefor you just import the component-files from root direcory (starting with "index-").
+
+```js
+var visTimeline = require('vis/index-timeline-graph2d');
+
+var container = document.getElementById('visualization');
+var data = new DataSet();
+var timeline = new Timeline(container, data, {});
+```
+
+To get this to work you'll need to add the some babel-loader-setting:
+
+```js
+module: {
+	loaders: [{
+		test: /node_modules[\\\/]vis[\\\/].*\.js$/,
+		loader: 'babel',
+		query: {
+			cacheDirectory: true,
+			presets: ["es2015"],
+			plugins: [
+				"transform-es3-property-literals",
+				"transform-es3-member-expression-literals",
+				"transform-runtime"
+			]
+		}
+	}]
+}
+```
+
 ## Test
 
 To test the library, install the project dependencies once:
@@ -301,7 +330,7 @@ Then run the tests:
 
 ## License
 
-Copyright (C) 2010-2016 Almende B.V. and Contributors
+Copyright (C) 2010-2017 Almende B.V. and Contributors
 
 Vis.js is dual licensed under both
 

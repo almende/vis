@@ -64,11 +64,25 @@
         showShadow: false,
 
         // Option tooltip can be true, false, or a function returning a string with HTML contents
-        //tooltip: true,
         tooltip: function (point) {
           // parameter point contains properties x, y, z, and data
           // data is the original object passed to the point constructor
           return 'value: <b>' + point.z + '</b><br>' + point.data.extra;
+        },
+  
+        // Tooltip default styling can be overridden
+        tooltipStyle: {
+          content: {
+            background    : 'rgba(255, 255, 255, 0.7)',
+            padding       : '10px',
+            borderRadius  : '10px'
+          },
+          line: {
+            borderLeft    : '1px dotted rgba(0, 0, 0, 0.5)'
+          },
+          dot: {
+            border        : '5px solid rgba(0, 0, 0, 0.5)'
+          }
         },
 
         keepAspectRatio: true,
@@ -86,7 +100,7 @@
       document.getElementById('style').onchange = drawVisualization;
     }
   </script>
-  <script src="../googleAnalytics.js"></script>
+  
 </head>
 
 <body onload="drawVisualization()">
