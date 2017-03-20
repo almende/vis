@@ -1,8 +1,20 @@
 # vis.js history
 http://visjs.org
 
+## 2017-03-19, version 4.19.1
 
-## 2017-02-25, version 4.19.0
+### General
+
+* FIX: #2685 Fixed babel dependencies (#2875)
+
+### Timeline / Graph2D
+
+* FIX #2809: Fix docs typo in "showNested" (#2879)
+* FIX #2594: Fixes for removing and adding items to subgroups (#2821)
+* FIX: Allow nested groups to be removed (#2852)
+
+
+## 2017-03-18, version 4.19.0
 
 ### General
 
