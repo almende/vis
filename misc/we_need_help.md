@@ -15,3 +15,4 @@ If you have shown some commitment to the project you can ask [@ludost](//github.
 * [@yotamberk](//github.com/yotamberk)
 * [@Tooa](//github.com/Tooa)
 * [@eymiha](//github.com/eymiha)
+* [@bradh](//github.com/bradh)
