@@ -13,6 +13,9 @@
     var data = null;
     var graph = null;
 
+    function onclick(point) {
+      console.log(point);
+    }
 
     // Called when the Visualization API is loaded.
     function drawVisualization() {
@@ -30,9 +33,9 @@
         var x = pow(random(), 2);
         var y = pow(random(), 2);
         var z = pow(random(), 2);
-        var dist = sqrt(pow(x, 2) + pow(y, 2) + pow(z, 2));
+        var style = (i%2==0) ? sqrt(pow(x, 2) + pow(y, 2) + pow(z, 2)) : "#00ffff";
 
-        data.add({x:x,y:y,z:z,style:dist});
+        data.add({x:x,y:y,z:z,style:style});
       }
 
       // specify options
@@ -45,6 +48,7 @@
         keepAspectRatio: true,
         verticalRatio: 1.0,
         legendLabel: 'distance',
+        onclick: onclick,
         cameraPosition: {
           horizontal: -0.35,
           vertical: 0.22,
@@ -57,7 +61,7 @@
       graph = new vis.Graph3d(container, data, options);
     }
   </script>
-  <script src="../googleAnalytics.js"></script>
+  
 </head>
 
 <body onload="drawVisualization()">

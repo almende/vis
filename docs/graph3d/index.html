@@ -422,8 +422,26 @@ var options = {
       <td>showGrid</td>
       <td>boolean</td>
       <td>true</td>
-      <td>If true, grid lines are draw in the x-y surface (the bottom of the 3d
+      <td>If true, grid lines are drawn in the x-y surface (the bottom of the 3d
         graph).</td>
+    </tr>
+    <tr>
+      <td>showXAxis</td>
+      <td>boolean</td>
+      <td>true</td>
+      <td>If true, X axis and X axis labels are drawn.</td>
+    </tr>
+    <tr>
+      <td>showYAxis</td>
+      <td>boolean</td>
+      <td>true</td>
+      <td>If true, Y axis and Y axis labels are drawn.</td>
+    </tr>
+    <tr>
+      <td>showZAxis</td>
+      <td>boolean</td>
+      <td>true</td>
+      <td>If true, Z axis and Z axis labels are drawn.</td>
     </tr>
     <tr>
       <td>showPerspective</td>
@@ -481,6 +499,38 @@ var options = {
     </tr>
 
     <tr>
+      <td>tooltipStyle</td>
+      <td>Object</td>
+      <td>
+<pre class="prettyprint lang-js">
+{ 
+  content: {
+    padding: '10px',
+    border: '1px solid #4d4d4d',
+    color: '#1a1a1a',
+    background: 'rgba(255,255,255,0.7)',
+    borderRadius: '2px',
+    boxShadow: '5px 5px 10px rgba(128,128,128,0.5)'
+  },
+  line: {
+    height: '40px',
+    width: '0',
+    borderLeft: '1px solid #4d4d4d'
+  },
+  dot: {
+    height: '0',
+    width: '0',
+    border: '5px solid #4d4d4d',
+    borderRadius: '5px'
+  }
+}</pre>
+      </td>
+      <td>Tooltip style properties.
+        Provided properties will be merged with the default object.
+      </td>
+    </tr>
+
+    <tr>
       <td>valueMax</td>
       <td>number</td>
       <td>none</td>
@@ -514,8 +564,8 @@ var options = {
       <td>xBarWidth</td>
       <td>number</td>
       <td>none</td>
-      <td>The width of bars in x direction. By default, the width is equal to the distance
-        between the data points, such that bars adjoin each other.
+      <td>The width of bars in x direction. By default, the width is equal to the smallest distance
+        between the data points.
         Only applicable for styles <code>'bar'</code> and <code>'bar-color'</code>.</td>
     </tr>
 
@@ -529,14 +579,18 @@ var options = {
     <tr>
       <td>xMax</td>
       <td>number</td>
-      <td>none</td>
-      <td>The maximum value for the x-axis.</td>
+      <td>from data</td>
+      <td>The maximum value for the x-axis.
+         If not set, the largest value for x in the data set is used.
+      </td>
     </tr>
     <tr>
       <td>xMin</td>
       <td>number</td>
-      <td>none</td>
-      <td>The minimum value for the x-axis.</td>
+      <td>from data</td>
+      <td>The minimum value for the x-axis.
+         If not set, the smallest value for x in the data set is used.
+      </td>
     </tr>
     <tr>
       <td>xStep</td>
@@ -557,8 +611,8 @@ var options = {
       <td>yBarWidth</td>
       <td>number</td>
       <td>none</td>
-      <td>The width of bars in y direction. By default, the width is equal to the distance
-        between the data points, such that bars adjoin each other.
+      <td>The width of bars in y direction. By default, the width is equal to the smallest distance
+        between the data points.
         Only applicable for styles <code>'bar'</code> and <code>'bar-color'</code>.</td>
     </tr>
 
@@ -572,14 +626,18 @@ var options = {
     <tr>
       <td>yMax</td>
       <td>number</td>
-      <td>none</td>
-      <td>The maximum value for the y-axis.</td>
+      <td>from data</td>
+      <td>The maximum value for the y-axis.
+         If not set, the largest value for y in the data set is used.
+      </td>
     </tr>
     <tr>
       <td>yMin</td>
       <td>number</td>
-      <td>none</td>
-      <td>The minimum value for the y-axis.</td>
+      <td>from data</td>
+      <td>The minimum value for the y-axis.
+         If not set, the smallest value for y in the data set is used.
+      </td>
     </tr>
     <tr>
       <td>yStep</td>
@@ -597,16 +655,20 @@ var options = {
     </tr>
 
     <tr>
-      <td>zMin</td>
-      <td>number</td>
-      <td>none</td>
-      <td>The minimum value for the z-axis.</td>
-    </tr>
-    <tr>
       <td>zMax</td>
       <td>number</td>
-      <td>none</td>
-      <td>The maximum value for the z-axis.</td>
+      <td>from data</td>
+      <td>The maximum value for the z-axis.
+         If not set, the largest value for z in the data set is used.
+      </td>
+    </tr>
+    <tr>
+      <td>zMin</td>
+      <td>number</td>
+      <td>from data</td>
+      <td>The minimum value for the z-axis.
+         If not set, the smallest value for z in the data set is used.
+      </td>
     </tr>
     <tr>
       <td>zStep</td>
