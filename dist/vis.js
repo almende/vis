@@ -26220,7 +26220,7 @@ return /******/ (function(modules) { // webpackBootstrap
         throw new Error('Property "start" missing in item ' + data.id);
       }
       if (data.end == undefined) {
-        throw new Error('Property "end" missing in item ' + data.id);
+        data.end = new Date();
       }
     }
 
