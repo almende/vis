@@ -3,6 +3,7 @@
 <head>
     <title>Timeline | Grid styling</title>
 
+    <script src="http://cdnjs.cloudflare.com/ajax/libs/moment.js/2.8.1/moment-with-locales.min.js"></script>
     <script src="../../../dist/vis.js"></script>
     <link href="../../../dist/vis-timeline-graph2d.min.css" rel="stylesheet" type="text/css"/>
 
@@ -15,21 +16,21 @@
         .vis-time-axis .vis-grid.vis-odd {
             background: #f5f5f5;
         }
-
-        /* gray background in weekends, white text color */
-        .vis-time-axis .vis-grid.vis-saturday,
-        .vis-time-axis .vis-grid.vis-sunday {
-            background: gray;
-        }
-
-        .vis-time-axis .vis-text.vis-saturday,
-        .vis-time-axis .vis-text.vis-sunday {
-            color: white;
-        }
     </style>
 
 </head>
 <body>
+
+<p>
+    <label for="locale">Select a locale:</label>
+    <select id="locale">
+        <option value="en">en</option>
+        <option value="it">it</option>
+        <option value="nl" selected>nl</option>
+        <option value="de">de</option>
+    </select>
+</p>
+
 <div id="visualization"></div>
 
 <script type="text/javascript">
@@ -61,10 +62,19 @@
     ]);
 
     // Configuration for the Timeline
-    var options = {timeAxis: {scale: 'week', step: 1}};
+    var options = {timeAxis: {scale: 'week', step: 1}, locale: 'nl'};
 
     // Create a Timeline
-    var timeline = new vis.Timeline(container, items, options);
+    var timeline = new vis.Timeline(container, items, groups, options);
+
+    // update the locale when changing the select box value
+    var select = document.getElementById('locale');
+    select.onchange = function () {
+        timeline.setOptions({
+            locale: this.value
+        });
+    };
+    select.onchange();
 </script>
 </body>
 </html>
