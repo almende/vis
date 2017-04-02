@@ -71,15 +71,6 @@
                 draw();
             }
 
-            function addContextualInformation(elem, index, array) {
-                //addId(elem, index);
-                addConnections(elem, index);
-            }
-
-            function addId(elem, index) {
-                elem.id = index;
-            }
-
             function addConnections(elem, index) {
                 // need to replace this with a tree of the network, then get child direct children of the element
                 elem.connections = network.getConnectedNodes(index);
@@ -107,7 +98,7 @@
 
                 var nodes = objectToArray(network.getPositions());
 
-                nodes.forEach(addContextualInformation);
+                nodes.forEach(addConnections);
 
                 // pretty print node data
                 var exportValue = JSON.stringify(nodes, undefined, 2);
@@ -142,19 +133,19 @@
             }
 
             function getNodeById(data, id) {
-              var foundNode;
+                var foundNode;
 
-              data.forEach(function(node) {
-                if (node.id == id) {  // double equals since id can be numeric or string
-                  foundNode = node;
+                data.forEach(function(node) {
+                    if (node.id == id) {  // double equals since id can be numeric or string
+                      foundNode = node;
+                    }
+                });
+
+                if (foundNode === undefined) {
+                    throw 'Can not find id \'' + id + '\' in data';
                 }
-              });
 
-              if (foundNode === undefined) {
-                throw 'Can not find id \'' + id + '\' in data';
-              }
-
-              return foundNode;
+                return foundNode;
             }
 
             function getEdgeData(data) {
