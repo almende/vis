@@ -5,7 +5,7 @@
  * A dynamic, browser-based visualization library.
  *
  * @version 4.19.1
- * @date    2017-03-19
+ * @date    2017-04-03
  *
  * @license
  * Copyright (C) 2011-2017 Almende B.V, http://almende.com
@@ -3024,7 +3024,7 @@ return /******/ (function(modules) { // webpackBootstrap
 /***/ function(module, exports, __webpack_require__) {
 
   /* WEBPACK VAR INJECTION */(function(module) {//! moment.js
-  //! version : 2.18.0
+  //! version : 2.18.1
   //! authors : Tim Wood, Iskren Chernev, Moment.js contributors
   //! license : MIT
   //! momentjs.com
@@ -3383,7 +3383,7 @@ return /******/ (function(modules) { // webpackBootstrap
       // number + (possibly) stuff coming from _dayOfMonthOrdinalParse.
       // TODO: Remove "ordinalParse" fallback in next major release.
       this._dayOfMonthOrdinalParseLenient = new RegExp(
-          (this._dayOfMonthOrdinalParse.source || this._ordinalParse.source) +
+          (this._dayOfMonthOrdinalParse.source || this._ordinalParse.source) +
               '|' + (/\d{1,2}/).source);
   }
 
@@ -7451,7 +7451,7 @@ return /******/ (function(modules) { // webpackBootstrap
   // Side effect imports
 
 
-  hooks.version = '2.18.0';
+  hooks.version = '2.18.1';
 
   setHookCallback(createLocal);
 
@@ -19504,7 +19504,11 @@ return /******/ (function(modules) { // webpackBootstrap
       min: null,
       max: null,
       zoomMin: 10, // milliseconds
-      zoomMax: 1000 * 60 * 60 * 24 * 365 * 10000 // milliseconds
+      zoomMax: 1000 * 60 * 60 * 24 * 365 * 10000, // milliseconds
+      rollingMode: {
+        follow: false,
+        offset: 0.5
+      }
     };
     this.options = util.extend({}, this.defaultOptions);
     this.props = {
@@ -19551,10 +19555,10 @@ return /******/ (function(modules) { // webpackBootstrap
   Range.prototype.setOptions = function (options) {
     if (options) {
       // copy the options that we know
-      var fields = ['animation', 'direction', 'min', 'max', 'zoomMin', 'zoomMax', 'moveable', 'zoomable', 'moment', 'activate', 'hiddenDates', 'zoomKey', 'rtl', 'showCurrentTime', 'rollMode', 'horizontalScroll'];
+      var fields = ['animation', 'direction', 'min', 'max', 'zoomMin', 'zoomMax', 'moveable', 'zoomable', 'moment', 'activate', 'hiddenDates', 'zoomKey', 'rtl', 'showCurrentTime', 'rollingMode', 'horizontalScroll'];
       util.selectiveExtend(fields, this.options, options);
 
-      if (options.rollingMode) {
+      if (options.rollingMode && options.rollingMode.follow) {
         this.startRolling();
       }
       if ('start' in options || 'end' in options) {
@@ -19587,8 +19591,8 @@ return /******/ (function(modules) { // webpackBootstrap
       var interval = me.end - me.start;
       var t = util.convert(new Date(), 'Date').valueOf();
 
-      var start = t - interval / 2;
-      var end = t + interval / 2;
+      var start = t - interval * me.options.rollingMode.offset;
+      var end = t + interval * (1 - me.options.rollingMode.offset);
       var animation = me.options && me.options.animation !== undefined ? me.options.animation : true;
 
       me.setRange(start, end, false);
@@ -20076,7 +20080,7 @@ return /******/ (function(modules) { // webpackBootstrap
       // calculate center, the date to zoom around
       var pointerDate;
       if (this.rolling) {
-        pointerDate = (this.start + this.end) / 2;
+        pointerDate = this.start + (this.end - this.start) * this.options.rollingMode.offset;
       } else {
         var pointer = this.getPointer({ x: event.clientX, y: event.clientY }, this.body.dom.center);
         pointerDate = this._pointerToDate(pointer);
@@ -29004,7 +29008,11 @@ return /******/ (function(modules) { // webpackBootstrap
     //globals :
     align: { string: string },
     rtl: { 'boolean': bool, 'undefined': 'undefined' },
-    rollingMode: { 'boolean': bool, 'undefined': 'undefined' },
+    rollingMode: {
+      follow: { 'boolean': bool },
+      offset: { number: number, 'undefined': 'undefined' },
+      __type__: { object: object }
+    },
     verticalScroll: { 'boolean': bool, 'undefined': 'undefined' },
     horizontalScroll: { 'boolean': bool, 'undefined': 'undefined' },
     autoResize: { 'boolean': bool },
