@@ -1,3 +1,6 @@
+# vis.js files
+dist/
+
 # npm files
 node_modules
 npm-debug.log
