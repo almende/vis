@@ -955,11 +955,27 @@ function (option, path) {
       <td>Orientation of the timeline items: 'top' or 'bottom' (default). Determines whether items are aligned to the top or bottom of the Timeline.</td>
     </tr>
 
-    <tr>
-      <td>rollingMode</td>
+    <tr class='toggle collapsible' onclick="toggleTable('optionTable','rollingMode', this);">
+      <td><span parent="rollingMode" class="right-caret"></span> rollingMode</td>
+      <td>Object</td>
+      <td><code>Object</code></td>
+      <td>Specify how the timeline implements rolling mode.</td>
+    </tr>
+    <tr parent="rollingMode" class="hidden">
+      <td class="indent">rollingMode.follow</td>
       <td>boolean</td>
       <td><code>false</code></td>
       <td>If true, the timeline will initial in a rolling mode - the current time will always be centered. I the user drags the timeline, the timeline will go out of rolling mode and a toggle button will appear. Clicking that button will go back to rolling mode. Zooming in rolling mode will zoom in to the center without consideration of the mouse position.</td>
+    </tr>
+
+    <tr parent="rollingMode" class="hidden">
+      <td class="indent">rollingMode.offset</td>
+      <td>Number</td>
+      <td><code>'0.5'</code></td>
+      <td>
+        Set how far from the left the rolling mode is implemented from. A percentage (i.e. a decimal between 0 and 1)
+        Defaults to the middle or 0.5 (50%)
+      </td>
     </tr>
 
     <tr>
