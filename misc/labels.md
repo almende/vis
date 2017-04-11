@@ -16,7 +16,7 @@ Questions should be closed within 3 months.
 
 ### `Problem`
 This issues points to a potential bug that needs to be confirmed.<br>
-If the problem most likely originates from the user's code it should be better labeled as [`Question`](#question).<br>
+If the problem most likely originates from the user's code it should be labeled as [`Question`](#question) instead.<br>
 The support team should try to reproduce this issue and then close it or mark it as [`Confirmed Bug`](#confirmed-bug).
 
 ### `Confirmed Bug`
@@ -34,11 +34,6 @@ All issues MUST have one of the following type labels. These labels are usually 
 
 ### `DataSet`
 Concerns the DataSet implementation.
-
-### `Docs`
-This issue concerns only the documentation.<br>
-If an existing issue is documented wrongly this is a [`Problem`](#problem) in the component and not a [`docs`](#docs) issue.<br>
-This can be used for typos or requests for an improvement of the docs.
 
 ### `Graph2D`
 Concerns the 2D-Graph implementation.
@@ -58,12 +53,17 @@ Concerns the Timeline-Graph implementation.
 
 ## Additional labels
 
+### `Docs`
+This issue concerns only the documentation.<br>
+If an existing issue is documented wrongly this is a [`Problem`](#problem) in the component and not a [`docs`](#docs) issue.<br>
+This can be used for typos or requests for an improvement of the docs.
+
 ### `Duplicate`
 This issues is a duplicate of an existing issue. The duplicate should be closed. In addition, add a reference to the original issue with a comment.
 
 ### `Fixed awaiting release`
-This Issues is fixed or implemented in the "develop" branch but is not released yet and therefore should be still open.<br>
-This issues should be closed if after the changes are merged into the "master" branch.
+This Issue is fixed or implemented in the "develop" branch but is not released yet and therefore should be still open.<br>
+This issues should be closed after the changes are merged into the "master" branch.
 
 ### `For everyone!`
 This is a good issue to start working on if you are new to vis.js and want to help.<br>
