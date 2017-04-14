@@ -24,6 +24,7 @@
 <pre id="eventSpan"></pre>
 
 <script type="text/javascript">
+
     // create an array with nodes
     var nodes = new vis.DataSet([
         {id: 1, label: 'Node 1', title: 'I have a popup!'},
@@ -53,6 +54,7 @@
     network.on("click", function (params) {
         params.event = "[original event]";
         document.getElementById('eventSpan').innerHTML = '<h2>Click event:</h2>' + JSON.stringify(params, null, 4);
+        console.log('click event, getNodeAt returns: ' + this.getNodeAt(params.pointer.DOM));
     });
     network.on("doubleClick", function (params) {
         params.event = "[original event]";
