@@ -12,6 +12,7 @@
     <link rel="icon" HREF="favicon.ico">
     <title>vis.js - A dynamic, browser based visualization library.</title>
 
+    <link href="./css/post-it.css" rel="stylesheet">
 
     <!-- Bootstrap core CSS -->
     <link href="./css/bootstrap.css" rel="stylesheet">
@@ -28,7 +29,7 @@
 
     <script src="./js/smooth-scroll.min.js"></script>
 
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/vis/4.15.1/vis.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/vis/4.19.1/vis.min.js"></script>
 
     <script language="JavaScript">
         smoothScroll.init();
@@ -36,7 +37,7 @@
         function evalLinks() {
             if (typeof vis === 'undefined') {
                 console.log(document.getElementById("linkStatus"));
-                document.getElementById("linkStatus").innerHTML = "Note: The latest version (4.15.1) is not yet available on cdnjs, <a href='https://cdnjs.com/libraries/vis'>click here</a> to to pick the latest available version.<br />";
+                document.getElementById("linkStatus").innerHTML = "Note: The latest version (4.19.1) is not yet available on cdnjs, <a href='https://cdnjs.com/libraries/vis'>click here</a> to to pick the latest available version.<br />";
                 document.getElementById("cdn_vis").style.color = "rgb(150,150,150)";
                 document.getElementById("cdn_vis_css").style.color = "rgb(150,150,150)";
             }
@@ -72,11 +73,9 @@
                 <div id="navbar" class="navbar-collapse collapse">
                     <ul class="nav navbar-nav">
                         <li class="active"><a href="#modules">Modules</a></li>
-                        <li><a href="./blog.html">Blog</a></li>
                         <li><a data-scroll href="#download_install">Download</a></li>
                         <li><a href="./showcase/index.html">Showcase</a></li>
                         <li><a data-scroll href="#contribute">Contribute</a></li>
-                        <li><a href="./featureRequests.html">Feature requests</a></li>
                         <li><a data-scroll href="#licenses">License</a></li>
                     </ul>
                 </div>
@@ -94,23 +93,12 @@
     <div class="jumbotron trans">
         <div class="container jumbo">
             <h1>vis.js</h1>
-            <!--<p class="kickstarter">Our colleagues at <a href="https://dobots.nl/" class="kickstarter">DoBots</a> are currently doing a kickstarter for <br>-->
-                <!--the <a class="kickstarter" href="https://www.kickstarter.com/projects/dobots/crownstone"> Crownstone: the smart power outlet that recognizes you and your devices!</a>-->
-            <!--We have helped them with their campaign preperations and code. Please take a look and support them! <br>-->
-                <!--<a href="./blog.html" class="kickstarter">More information on why this is on vis.js here</a>-->
-            <!--</p>-->
             <p>A dynamic, browser based visualization library.
             The library is designed to be easy to use, to handle large amounts
             of dynamic data, and to enable manipulation of and interaction with the data.
             The library consists of the components DataSet, Timeline, Network, Graph2d and Graph3d. <a href="#download_install" class="header">Get it over here!</a></p>
         </div>
     </div>
-    <!--<div class="container">-->
-        <!--<div class="carousel-caption">-->
-            <!--<h1>vis.js</h1>-->
-
-        <!--</div>-->
-    <!--</div>-->
 </div>
 
 <img src="./images/wall_small.png" class="header img-responsive visible-xs">
@@ -122,6 +110,13 @@
     <br /><hr class="featurette-divider"><br />
 </div>
 
+
+<div class="post-it post-it-top-right">
+    We're looking for people to help maintain and improve vis.js.
+    <br/>
+    <br/>
+    Interested? <a href="https://github.com/almende/vis/blob/develop/misc/we_need_help.md" target="_blank">Click here</a>
+</div>
 
 <!-- Marketing messaging and featurettes
 ================================================== -->
@@ -202,7 +197,7 @@
                     <p class="text-justify">
                         The vis.js library is developed by <a href="http://almende.com" target="_blank">Almende B.V</a>.
                         Vis.js runs fine on Chrome, Firefox, Opera, Safari, IE9+, and most mobile browsers (with full touch support).
-                        This site contains documentation, downloads and live examples of vis.js. The <a href="https://github.com/almende/vis/issues">sourcecode of vis.js</a> is available at Github. For questions, issues, and suggestions please use the <a href="https://github.com/almende/vis/issues">issues section</a> of the Github project.
+                        This site contains documentation, downloads and live examples of vis.js. The <a href="https://github.com/almende/vis">sourcecode of vis.js</a> is available at Github. For questions, issues, and suggestions please use the <a href="https://github.com/almende/vis/issues">issues section</a> of the Github project.
                     </p>
                     <h3>install with npm (recommended)</h3>
                     <pre class="prettyprint">npm install vis</pre>
@@ -210,13 +205,13 @@
                     <pre class="prettyprint">bower install vis</pre>
                     <h3>link from cdnjs.com</h3>
                     <p>
-                        <a id="cdn_vis" href="https://cdnjs.cloudflare.com/ajax/libs/vis/4.15.1/vis.min.js" target="_blank">vis.min.js</a> <br>
-                        <a id="cdn_vis_css" href="https://cdnjs.cloudflare.com/ajax/libs/vis/4.15.1/vis.min.css" target="_blank">vis.min.css</a> <br>
+                        <a id="cdn_vis" href="https://cdnjs.cloudflare.com/ajax/libs/vis/4.19.1/vis.min.js" target="_blank">vis.min.js</a> <br>
+                        <a id="cdn_vis_css" href="https://cdnjs.cloudflare.com/ajax/libs/vis/4.19.1/vis.min.css" target="_blank">vis.min.css</a> <br>
                         <span id="linkStatus"></span>
                     </p>
                     <h3>download</h3>
                     <p>
-                        <a href="download/vis.zip">vis.zip (version <span class="version">4.15.1</span>)</a>
+                        <a href="https://github.com/almende/vis/archive/v4.19.1.zip">v4.19.1.zip</a>
                     </p>
                 </div>
             </div>
@@ -246,23 +241,25 @@
 
     <div class="row featurette" id="contribute">
         <div class="col-md-5">
-            <a href="https://github.com/almende/vis/" target="_blank"><img class="featurette-image img-responsive hidden-xs hidden-sm  " data-src="holder.js/500x500/auto" alt="500x500" src="./images/octocat.png" data-holder-rendered="true"></a>
+            <a href="https://github.com/almende/vis/blob/develop/misc/how_to_help.md" target="_blank">
+              <img class="featurette-image img-responsive hidden-xs hidden-sm  " data-src="holder.js/500x500/auto" alt="500x500" src="./images/octocat.png" data-holder-rendered="true"></a>
         </div>
         <div class="col-md-7">
             <div class="valign_parent">
                 <div class="valign_child">
-                    <h2 class="featurette-heading">Contribute; <span class="text-muted">join the project</span></h2>
+                    <h2 class="featurette-heading">
+                      Contribute;
+                      <a href="https://github.com/almende/vis/blob/develop/misc/how_to_help.md">join the project!</a>
+                    </h2>
                     <p class="lead">Since vis.js is an open source project, everybody can contribute to it. If you want to contribute, great! Here's how:</p>
                     <p class="text-justify">
                         First, fork vis on Github, then add your feature, fix a bug,
-                        rephrase our writing etc. and do a <a href="https://help.github.com/articles/using-pull-requests/">pull request</a> to the develop branch on Github!
-                        Pull requests to the master branch will not be merged.
-                        <br /><br />
-                        If you fork the codebase, you'll find all modules in seperate files. This makes it a lot easier to work on than the distributed and combined vis.js file.
-                        <br /><br />
-                        If you want to contribute but don't know how, feel free to pick up <a href="./featureRequests.html">a feature request described below</a>!
-                        These come from ourselves as well as from Github issues. If you do, <a href="https://github.com/almende/vis/issues" target="_blank">please post an issue on Github letting us know</a>, so we can mark the feature
-                        under development as well as help out when needed. If we are about to implement something from <a href="./featureRequests.html">the list</a>, we'll remove it before starting.
+                        rephrase our writing etc. and do a <a href="https://help.github.com/articles/using-pull-requests/">pull request</a> to the <b>develop branch</b> on Github! Pull requests to the master branch will not be merged.<br />
+                        <br />
+                        If you fork the codebase, you'll find all modules in seperate files. This makes it a lot easier to work on than the distributed and combined vis.js file.<br />
+                        <br />
+                        If you want to contribute please
+                        <a href="https://github.com/almende/vis/blob/develop/misc/how_to_help.md">read this HowTo!</a>!
                     </p>
                 </div>
             </div>
@@ -277,19 +274,18 @@
             <div class="valign_parent">
                 <div class="valign_child">
                     <h2 class="featurette-heading">Feature requests</h2>
-                    <p class="lead">We get a lot of feature requests on Github. <a href="./featureRequests.html">Here's a list of them!</a></p>
+                    <p class="lead">
+                      We get a lot of feature requests on Github.
+                      <a href="https://github.com/almende/vis/issues?q=is%3Aissue+is%3Aopen+label%3AFeature-Request">Here's a list of them!</a>
+                    </p>
                     <p class="text-justify">
-                        The requests that come in on Github usually have a good argumentation and a lot of these ideas have made it into vis! To keep a nice overview of them, to clean up
-                        our Github issues and to supply a pool of ideas for people to contribute, we have made <a href="./featureRequests.html">this list.</a>
-                        <br /><br />
-                        This is by no means an end-of-the-line for your feature, but just something that we cannot pick up right away or cannot use in our projects at this time.
-                        We'd like to invite people who want to contribute to pick up one (or more!) of these features. <a href="./featureRequests.html">View the list here.</a>
+                        The requests that come in on Github usually have a good argumentation and a lot of these ideas have made it into vis! To keep a nice overview of them. We label them as "Feature-Request" to supply a pool of ideas for people to want to contribute. <a href="https://github.com/almende/vis/issues?q=is%3Aissue+is%3Aopen+label%3AFeature-Request">View the list here.</a>
                     </p>
                 </div>
             </div>
         </div>
         <div class="col-md-5">
-            <a href="./featureRequests.html"><img class="featurette-image img-responsive hidden-xs hidden-sm  " data-src="holder.js/500x500/auto" alt="500x500" src="./images/feature_requests.png" data-holder-rendered="true"></a>
+            <img class="featurette-image img-responsive hidden-xs hidden-sm  " data-src="holder.js/500x500/auto" alt="500x500" src="./images/feature_requests.png" data-holder-rendered="true">
         </div>
     </div>
 
@@ -304,7 +300,7 @@
                 <div class="valign_child">
                     <h2 class="featurette-heading">Licenses</h2>
                     <p class="lead">
-                        Copyright (C) 2010-2016 Almende B.V. <br /><br />
+                        Copyright (C) 2010-2017 Almende B.V. <br /><br />
                         Vis.js is dual licensed under both Apache 2.0 and MIT.<br /><br />
                         Vis.js may be distributed under either license.
                         <ul>
@@ -326,7 +322,7 @@
     <!-- FOOTER -->
     <footer>
         <p class="pull-right"><a href="#">Back to top</a></p>
-        <p>© 2015-2016 Almende B.V.</p>
+        <p>© 2015-2017 Almende B.V.</p>
     </footer>
 
 </div><!-- /.container -->
@@ -339,4 +335,3 @@
 <script src="./js/bootstrap.min.js"></script>
 <!-- IE10 viewport hack for Surface/desktop Windows 8 bug -->
 <script src="./js/ie10-viewport-bug-workaround.js"></script>
-

@@ -18,9 +18,10 @@
 
     <link href="./css/prettify.css" rel="stylesheet" type="text/css" />
     <script type="text/javascript" src="./js/prettify/prettify.js"></script>
+    <link href="./css/examples.css" rel="stylesheet" type="text/css" />
+
     <script src="./dist/vis.js"></script>
     <link href="./dist/vis.css" rel="stylesheet" type="text/css" />
-    <link href="./css/examples.css" rel="stylesheet" type="text/css" />
 
     <script src="./js/imagesNetwork.js"></script>
     <link href="./css/imagesNetwork.css" rel="stylesheet" type="text/css" />
@@ -44,11 +45,9 @@
                 <div id="navbar" class="navbar-collapse collapse">
                     <ul class="nav navbar-nav">
                         <li class="active"><a href="./index.html#modules">Modules</a></li>
-                        <li><a href="./blog.html">Blog</a></li>
                         <li><a href="./index.html#download_install">Download</a></li>
                         <li><a href="./showcase/index.html">Showcase</a></li>
                         <li><a href="./index.html#contribute">Contribute</a></li>
-                        <li><a href="./featureRequests.html">Feature requests</a></li>
                         <li><a href="./index.html#licenses">License</a></li>
                     </ul>
                 </div>
@@ -74,6 +73,7 @@
         <a class='exampleLink' href="examples/timeline/interaction/eventListeners.html">event listeners</a><br />
         <a class='exampleLink' href="examples/timeline/interaction/limitMoveAndZoom.html">limit move and zoom of the window</a><br />
         <a class='exampleLink' href="examples/timeline/interaction/navigationMenu.html">navigation menu</a><br />
+        <a class='exampleLink' href="examples/timeline/interaction/rollingMode.html">rolling mode</a><br />
         <a class='exampleLink' href="examples/timeline/interaction/setSelection.html">set selection</a><br />
 
         <h3>editing</h3>
@@ -81,28 +81,35 @@
         <a class='exampleLink' href="examples/timeline/editing/editingItems.html">editing items</a><br />
         <a class='exampleLink' href="examples/timeline/editing/editingItemsCallbacks.html">editing items, manipulate using callbacks</a><br />
         <a class='exampleLink' href="examples/timeline/editing/individualEditableItems.html">individually editable items</a><br />
+        <a class='exampleLink' href="examples/timeline/editing/overrideEditingItems.html">override editable items</a><br />
+        <a class='exampleLink' href="examples/timeline/editing/tooltipOnItemChange.html">tooltip on item change</a><br />
         <a class='exampleLink' href="examples/timeline/editing/updateDataOnEvent.html">update data on event</a><br />
 
         <h3>items</h3>
-        <a class='exampleLink' href="examples/timeline/items/htmlContents.html">HTML contents</a><br />
-        <a class='exampleLink' href="examples/timeline/items/pointItems.html">point items</a><br />
         <a class='exampleLink' href="examples/timeline/items/backgroundAreas.html">background areas</a><br />
         <a class='exampleLink' href="examples/timeline/items/backgroundAreasWithGroups.html">background areas with groups</a><br />
-        <a class='exampleLink' href="examples/timeline/items/itemOrdering.html">item ordering</a><br />
-        <a class='exampleLink' href="examples/timeline/items/rangeOverflowItem.html">range overflow item</a><br />
+        <a class='exampleLink' href="examples/timeline/items/expectedVsActualTimesItems.html">expected vs actual times items</a><br />
+        <a class='exampleLink' href="examples/timeline/items/htmlContents.html">HTML contents</a><br />
+        <a class='exampleLink' href="examples/timeline/items/itemOrdering.html">Item ordering</a><br />
+        <a class='exampleLink' href="examples/timeline/items/pointItems.html">point items</a><br />
+        <a class='exampleLink' href="examples/timeline/items/rangeOverflowItem.html">range overflow</a><br />
+        <a class='exampleLink' href="examples/timeline/items/tooltip.html">Tooltips</a><br />
+        <a class='exampleLink' href="examples/timeline/items/visibleFrameTemplateContent.html">Dynamic Content</a><br />
 
         <h3>groups</h3>
         <a class='exampleLink' href="examples/timeline/groups/groups.html">groups</a><br />
-        <a class='exampleLink' href="examples/timeline/groups/groupsOrdering.html">ordering of groups</a><br />
-        <a class='exampleLink' href="examples/timeline/groups/subgroups.html">subgroups</a><br />
         <a class='exampleLink' href="examples/timeline/groups/groupsEditable.html">editable groups</a><br />
+        <a class='exampleLink' href="examples/timeline/groups/groupsOrdering.html">ordering of groups</a><br />
+        <a class='exampleLink' href="examples/timeline/groups/nestedGroups.html">nested groups</a><br />
+        <a class='exampleLink' href="examples/timeline/groups/subgroups.html">subgroups</a><br />
+        <a class='exampleLink' href="examples/timeline/groups/verticalItemsHide.html">hide vertical items</a><br />
 
         <h3>styling</h3>
-        <a class='exampleLink' href="examples/timeline/styling/itemClassNames.html">item class names</a><br />
-        <a class='exampleLink' href="examples/timeline/styling/itemTemplates.html">item templates</a><br />
         <a class='exampleLink' href="examples/timeline/styling/axisOrientation.html">axis orientation</a><br />
         <a class='exampleLink' href="examples/timeline/styling/customCss.html">custom CSS</a><br />
         <a class='exampleLink' href="examples/timeline/styling/gridStyling.html">grid styling</a><br />
+        <a class='exampleLink' href="examples/timeline/styling/itemClassNames.html">item class names</a><br />
+        <a class='exampleLink' href="examples/timeline/styling/itemTemplates.html">item templates</a><br />
 
         <h3>data handling</h3>
         <a class='exampleLink' href="examples/timeline/dataHandling/dataSerialization.html">data serialization</a><br />
@@ -112,20 +119,22 @@
         <a class='exampleLink' href="examples/timeline/other/customTimeBars.html">custom time bars</a><br />
         <a class='exampleLink' href="examples/timeline/other/dataAttributes.html">data attributes</a><br />
         <a class='exampleLink' href="examples/timeline/other/dataAttributesAll.html">all data attributes</a><br />
+
+        <a class='exampleLink' href="examples/timeline/other/drag&drop.html">Drag and Drop</a><br />
+        <a class='exampleLink' href="examples/timeline/other/functionLabelFormats.html">label formats function</a><br />
+        <a class='exampleLink' href="examples/timeline/other/groupsPerformance.html">performance of groups</a><br />
         <a class='exampleLink' href="examples/timeline/other/hidingPeriods.html">hiding periods</a><br />
+        <a class='exampleLink' href="examples/timeline/other/horizontalScroll.html">horizontal scroll</a><br />
         <a class='exampleLink' href="examples/timeline/other/localization.html">localization</a><br />
         <a class='exampleLink' href="examples/timeline/other/performance.html">performance</a><br />
-        <a class='exampleLink' href="examples/timeline/other/groupsPerformance.html">perforance of groups</a><br />
-        <a class='exampleLink' href="examples/timeline/other/requirejs/requirejs_example.html">require.js example</a><br />
+        <a class='exampleLink' href="examples/timeline/other/rtl.html">right to left (rtl)</a><br />
         <a class='exampleLink' href="examples/timeline/other/timezone.html">timezone</a><br />
+        <a class='exampleLink' href="examples/timeline/other/usingReact.html">React example</a><br />
+        <a class='exampleLink' href="examples/timeline/other/verticalScroll.html">vertical scroll</a><br />
+        <a class='exampleLink' href="examples/timeline/other/requirejs/requirejs_example.html">require.js example</a><br />
     </div>
 </div>
-<br />
-<br />
-<br />
-<br />
 
-</div>
 <!-- jQuery (necessary for Bootstrap's JavaScript plugins) -->
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
 <!-- Include all compiled plugins (below), or include individual files as needed -->

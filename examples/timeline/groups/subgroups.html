@@ -1,7 +1,10 @@
 <!DOCTYPE HTML>
 <html>
 <head>
-    <title>Timeline | Background areas</title>
+    <title>Timeline | Subgroups</title>
+
+    <script src="../../../dist/vis.js"></script>
+    <link href="../../../dist/vis.css" rel="stylesheet" type="text/css" />
 
     <style>
         body, html {
@@ -19,14 +22,11 @@
             border-left: 2px solid green;
         }
     </style>
-
-    <script src="../../../dist/vis.js"></script>
-    <link href="../../../dist/vis.css" rel="stylesheet" type="text/css" />
-    <script src="../../googleAnalytics.js"></script>
 </head>
 <body>
 
 <p>This example shows the workings of the subgroups. Subgroups do not use stacking, and only work when stacking is disabled.</p>
+<button onclick="toggleStackSubgroups()">Toggle stackSubgroups</button>
 
 <div id="visualization"></div>
 
@@ -51,7 +51,7 @@
 
         {id: 'SG_1_1',start: '2014-01-25', end: '2014-01-27', type: 'background', group:'bar', subgroup:'sg_1', subgroupOrder:0},
         {id: 'SG_1_2', start: '2014-01-26', end: '2014-01-27', type: 'background', className: 'positive',group:'bar', subgroup:'sg_1', subgroupOrder:0},
-        {id: 1, content: 'subgroup0', start: '2014-01-23 12:00:00', end: '2014-01-26 12:00:00',group:'bar', subgroup:'sg_1', subgroupOrder:0},
+        {id: 1, content: 'subgroup0', start: '2014-01-23T12:00:00', end: '2014-01-26T12:00:00',group:'bar', subgroup:'sg_1', subgroupOrder:0},
         {id: 'SG_2_1', start: '2014-01-27', end: '2014-01-29', type: 'background', group:'bar', subgroup:'sg_2', subgroupOrder:1},
         {id: 'SG_2_2', start: '2014-01-27', end: '2014-01-28', type: 'background', className: 'negative',group:'bar', subgroup:'sg_2', subgroupOrder:1},
         {id: 2, content: 'subgroup1', start: '2014-01-27', end: '2014-01-29',group:'bar', subgroup:'sg_2', subgroupOrder:1},
@@ -66,11 +66,16 @@
         start: '2014-01-10',
         end: '2014-02-10',
         editable: true,
-        stack: false
+        stack: false,
+        stackSubgroups: true
     };
 
     var timeline = new vis.Timeline(container, items, groups, options);
 
+    function toggleStackSubgroups() {
+        options.stackSubgroups = !options.stackSubgroups;
+        timeline.setOptions(options);
+    }
 </script>
 </body>
 </html>
