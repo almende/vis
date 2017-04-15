@@ -1,5 +1,20 @@
+var vis = require('../dist/vis');
+var DataSet = vis.DataSet;
 
 module.exports = {
+  buildMockItemSet: function() {
+    var itemset = {
+      dom: {
+        foreground: document.createElement('div'),
+        content: document.createElement('div')
+      },
+      itemSet: {
+        itemsData: new DataSet()
+      }
+    };
+    return itemset;
+  },
+
   buildSimpleTimelineRangeBody: function () {
     var body = {
       dom: {
@@ -7,7 +22,12 @@ module.exports = {
           clientWidth: 1000
         }
       },
-      domProps: this.props,
+      domProps: {
+        centerContainer: {
+          width: 900,
+          height: 600
+        }
+      },
       emitter: {
         on: function () {},
         off: function () {},
