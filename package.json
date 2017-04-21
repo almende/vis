@@ -31,7 +31,7 @@
   },
   "dependencies": {
     "emitter-component": "^1.1.1",
-    "moment": "^2.17.1",
+    "moment": "^2.18.1",
     "propagating-hammerjs": "^1.4.6",
     "hammerjs": "^2.0.8",
     "keycharm": "^0.2.0"

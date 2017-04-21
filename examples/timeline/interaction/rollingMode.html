@@ -33,7 +33,10 @@
   var options = {
     start: new Date(),
     end: new Date(new Date().getTime() + 1000000),
-    rollingMode: true
+    rollingMode: {
+      follow: true,
+      offset: 0.5
+    }
   };
 
   // create a Timeline
