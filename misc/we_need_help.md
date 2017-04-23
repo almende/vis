@@ -14,8 +14,6 @@ If you have shown some commitment to the project you can ask [@ludost](//github.
 * [@mojoaxel](//github.com/mojoaxel)
 * [@yotamberk](//github.com/yotamberk)
 * [@Tooa](//github.com/Tooa)
-<<<<<<< HEAD
-=======
 * [@eymiha](//github.com/eymiha)
 * [@bradh](//github.com/bradh)
->>>>>>> refs/remotes/almende/develop
+* [@wimrijnders](//github.com/wimrijnders)
