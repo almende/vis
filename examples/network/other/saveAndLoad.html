@@ -133,25 +133,19 @@
             }
 
             function getNodeById(data, id) {
-                var foundNode;
-
-                data.forEach(function(node) {
-                    if (node.id == id) {  // double equals since id can be numeric or string
-                      foundNode = node;
+                for (var n = 0; n < data.length; n++) {
+                    if (data[n].id == id) {  // double equals since id can be numeric or string
+                      return data[n];
                     }
-                });
+                };
 
-                if (foundNode === undefined) {
-                    throw 'Can not find id \'' + id + '\' in data';
-                }
-
-                return foundNode;
+                throw 'Can not find id \'' + id + '\' in data';
             }
 
             function getEdgeData(data) {
                 var networkEdges = [];
 
-                data.forEach(function(node, index, array) {
+                data.forEach(function(node) {
                     // add the connection
                     node.connections.forEach(function(connId, cIndex, conns) {
                         networkEdges.push({from: node.id, to: connId});
