@@ -22,11 +22,14 @@
 <body>
 
 <p>
-    Week numbers are calculated based on locales. For this to properly work, the timeline must be loaded with locales.
-    To localize the Timeline, one has to load a version of moment.js including locales. To set a locale, specify option <code>{locale: STRING}</code>.
-    To set the scale to use week numbers, use for example <code>{scale: 'week', step: 1}</code>. For example, the 'en' locale supports week number
-    calculations using US week numbers. Check out what's happening if you select another locale.
-</p>
+    Week numbers are calculated based on locales. For this to properly work, the timeline must be loaded with a version
+    of moment.js including locales.</p>
+<p>To set a locale for the timeline, specify the option
+    <code>{locale: STRING}</code>.</p>
+<p>To set the scale to use week numbers, use for example <code>{scale: 'week', step: 1}</code>.</p>
+<p>The following timeline is initialized with the 'de' locale and items are added with locally localized moment.js
+    objects. The timeline locale can be switched to another locale at runtime. If you choose the 'en' locale, the week
+    numbers will be calculated according to the US week calendar numbering scheme.</p>
 
 <p>
     <label for="locale">Select a locale:</label>
@@ -41,7 +44,8 @@
 <div id="visualization"></div>
 
 <script type="text/javascript">
-    var itemCount = 50;
+    var itemCount = 26;
+
     // DOM element where the Timeline will be attached
     var container = document.getElementById('visualization');
 
@@ -50,48 +54,43 @@
     groups.add([{id: 1, content: "ISO Weeks"}, {id: 2, content: "US Weeks"}]);
 
     // Create a DataSet (allows two way data-binding)
-    var items = new vis.DataSet([
-        {id: 1, group: 1, content: 'ISO week 51 in 2016', start: '2016-12-19 00:00:00', end: '2016-12-25 23:59:59'},
-        {id: 2, group: 1, content: 'ISO week 52 in 2016', start: '2016-12-26 00:00:00', end: '2017-01-01 23:59:59'},
-        {id: 3, group: 1, content: 'ISO week 1 in 2017', start: '2017-01-02 00:00:00', end: '2017-01-08 23:59:59'},
-        {id: 4, group: 1, content: 'ISO week 2 in 2017', start: '2017-01-09 00:00:00', end: '2017-01-15 23:59:59'},
-        {id: 5, group: 1, content: 'ISO week 3 in 2017', start: '2017-01-16 00:00:00', end: '2017-01-22 23:59:59'},
-        {id: 6, group: 1, content: 'ISO week 4 in 2017', start: '2017-01-23 00:00:00', end: '2017-01-29 23:59:59'},
-        {id: 7, group: 1, content: 'ISO week 5 in 2017', start: '2017-01-30 00:00:00', end: '2017-02-05 23:59:59'},
-        {id: 8, group: 1, content: 'ISO week 6 in 2017', start: '2017-02-06 00:00:00', end: '2017-02-12 23:59:59'},
-        {id: 9, group: 1, content: 'ISO week 7 in 2017', start: '2017-02-13 00:00:00', end: '2017-02-19 23:59:59'},
-        {id: 10, group: 1, content: 'ISO week 8 in 2017', start: '2017-02-20 00:00:00', end: '2017-02-26 23:59:59'},
-        {id: 11, group: 1, content: 'ISO week 9 in 2017', start: '2017-02-27 00:00:00', end: '2017-03-05 23:59:59'},
-        {id: 12, group: 1, content: 'ISO week 10 in 2017', start: '2017-03-06 00:00:00', end: '2017-03-12 23:59:59'},
-        {id: 13, group: 1, content: 'ISO week 11 in 2017', start: '2017-03-13 00:00:00', end: '2017-03-19 23:59:59'},
-        {id: 14, group: 1, content: 'ISO week 12 in 2017', start: '2017-03-20 00:00:00', end: '2017-03-26 23:59:59'},
-        {id: 15, group: 1, content: 'ISO week 13 in 2017', start: '2017-03-27 00:00:00', end: '2017-04-02 23:59:59'},
-        {id: 16, group: 1, content: 'ISO week 14 in 2017', start: '2017-04-03 00:00:00', end: '2017-04-09 23:59:59'},
-        {id: 17, group: 1, content: 'ISO week 15 in 2017', start: '2017-04-10 00:00:00', end: '2017-04-16 23:59:59'},
-        {id: 18, group: 1, content: 'ISO week 16 in 2017', start: '2017-04-17 00:00:00', end: '2017-04-23 23:59:59'},
-        {id: 19, group: 1, content: 'ISO week 17 in 2017', start: '2017-04-24 00:00:00', end: '2017-04-30 23:59:59'},
-        {id: 20, group: 1, content: 'ISO week 18 in 2017', start: '2017-05-01 00:00:00', end: '2017-05-07 23:59:59'},
-        {id: 21, group: 2, content: 'US week 52 in 2017', start: '2016-12-18 00:00:00', end: '2016-12-24 23:59:59'},
-        {id: 22, group: 2, content: 'US week 53 in 2017', start: '2016-12-25 00:00:00', end: '2016-12-31 23:59:59'},
-        {id: 23, group: 2, content: 'US week 1 in 2017', start: '2017-01-01 00:00:00', end: '2017-01-07 23:59:59'},
-        {id: 24, group: 2, content: 'US week 2 in 2017', start: '2017-01-08 00:00:00', end: '2017-01-14 23:59:59'},
-        {id: 25, group: 2, content: 'US week 3 in 2017', start: '2017-01-15 00:00:00', end: '2017-01-21 23:59:59'},
-        {id: 26, group: 2, content: 'US week 4 in 2017', start: '2017-01-22 00:00:00', end: '2017-01-28 23:59:59'},
-        {id: 27, group: 2, content: 'US week 5 in 2017', start: '2017-01-29 00:00:00', end: '2017-02-04 23:59:59'},
-        {id: 28, group: 2, content: 'US week 6 in 2017', start: '2017-02-05 00:00:00', end: '2017-02-11 23:59:59'},
-        {id: 29, group: 2, content: 'US week 7 in 2017', start: '2017-02-12 00:00:00', end: '2017-02-18 23:59:59'},
-        {id: 30, group: 2, content: 'US week 8 in 2017', start: '2017-02-19 00:00:00', end: '2017-02-25 23:59:59'},
-        {id: 31, group: 2, content: 'US week 9 in 2017', start: '2017-02-26 00:00:00', end: '2017-03-04 23:59:59'},
-        {id: 32, group: 2, content: 'US week 10 in 2017', start: '2017-03-05 00:00:00', end: '2017-03-11 23:59:59'},
-        {id: 33, group: 2, content: 'US week 11 in 2017', start: '2017-03-12 00:00:00', end: '2017-03-18 23:59:59'},
-        {id: 34, group: 2, content: 'US week 12 in 2017', start: '2017-03-19 00:00:00', end: '2017-03-25 23:59:59'},
-        {id: 35, group: 2, content: 'US week 13 in 2017', start: '2017-03-26 00:00:00', end: '2017-04-01 23:59:59'},
-        {id: 36, group: 2, content: 'US week 14 in 2017', start: '2017-04-02 00:00:00', end: '2017-04-08 23:59:59'},
-        {id: 37, group: 2, content: 'US week 15 in 2017', start: '2017-04-09 00:00:00', end: '2017-04-15 23:59:59'},
-        {id: 38, group: 2, content: 'US week 16 in 2017', start: '2017-04-16 00:00:00', end: '2017-04-22 23:59:59'},
-        {id: 39, group: 2, content: 'US week 17 in 2017', start: '2017-04-23 00:00:00', end: '2017-04-29 23:59:59'},
-        {id: 40, group: 2, content: 'US week 18 in 2017', start: '2017-04-30 00:00:00', end: '2017-05-06 23:59:59'}
-    ]);
+    var items = new vis.DataSet();
+
+    // create a localized moment object based on the current date
+    var USdate = moment().locale('en').hours(0).minutes(0).seconds(0).milliseconds(0);
+
+    // use the locale-aware weekday function to move to the begin of the current week
+    USdate.weekday(0);
+
+    // Iterate and just add a week to use it again in the next iteration
+    for (var i = 0; i < itemCount; i++) {
+        var USweekNumber = USdate.format('w');
+        var USweekStart = USdate.format();
+        var USweekEnd = USdate.add(1, 'week').format();
+        items.add({
+            id: i,
+            group: 2,
+            content: 'US week ' + USweekNumber,
+            start: USweekStart,
+            end: USweekEnd
+        });
+    }
+
+    // create another localized moment object - the 'de' locale works according to the ISO8601 leap week calendar system
+    var DEdate = moment().locale('de').hours(0).minutes(0).seconds(0).milliseconds(0);
+    DEdate.weekday(0);
+    for (var j = 0; j < itemCount; j++) {
+        var DEweekNumber = DEdate.format('w');
+        var DEweekStart = DEdate.format();
+        var DEweekEnd = DEdate.add(1, 'week').format();
+        items.add({
+            id: itemCount + j,
+            group: 1,
+            content: 'ISO week ' + DEweekNumber,
+            start: DEweekStart,
+            end: DEweekEnd
+        });
+    }
 
     // Configuration for the Timeline
     var options = {timeAxis: {scale: 'week', step: 1}, locale: 'de'};
