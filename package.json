@@ -23,7 +23,7 @@
   ],
   "main": "./dist/vis.js",
   "scripts": {
-    "test": "mocha",
+    "test": "mocha --compilers js:babel-core/register",
     "build": "gulp",
     "lint": "eslint lib",
     "watch": "gulp watch",
