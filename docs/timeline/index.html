@@ -612,6 +612,7 @@ function (option, path) {
     hour:       'HH:mm',
     weekday:    'ddd D',
     day:        'D',
+    week:       'w',
     month:      'MMM',
     year:       'YYYY'
   },
@@ -622,6 +623,7 @@ function (option, path) {
     hour:       'ddd D MMMM',
     weekday:    'MMMM YYYY',
     day:        'MMMM YYYY',
+    week:       'MMMM YYYY',
     month:      'YYYY',
     year:       ''
   }
@@ -1025,6 +1027,13 @@ function (option, path) {
     </tr>
 
     <tr>
+      <td>showTooltips</td>
+      <td>boolean</td>
+      <td><code>true</code></td>
+      <td>If true, items with titles will display a tooltip. If false, item tooltips are prevented from showing.</td>
+    </tr>
+
+    <tr>
       <td>stack</td>
       <td>boolean</td>
       <td><code>true</code></td>
@@ -1044,7 +1053,7 @@ function (option, path) {
       <td>function</td>
       <td>When moving items on the Timeline, they will be snapped to nice dates like full hours or days, depending on the current scale. The <code>snap</code> function can be replaced with a custom function, or can be set to <code>null</code> to disable snapping. The signature of the snap function is:
         <pre class="prettyprint lang-js">function snap(date: Date, scale: string, step: number) : Date or number</pre>
-        The parameter <code>scale</code> can be can be 'millisecond', 'second', 'minute', 'hour', 'weekday, 'day, 'month, or 'year'. The parameter <code>step</code> is a number like 1, 2, 4, 5.
+        The parameter <code>scale</code> can be can be 'millisecond', 'second', 'minute', 'hour', 'weekday, 'week', 'day, 'month, or 'year'. The parameter <code>step</code> is a number like 1, 2, 4, 5.
       </td>
     </tr>
 
@@ -1088,10 +1097,11 @@ function (option, path) {
       <td class="indent">timeAxis.scale</td>
       <td>String</td>
       <td>none</td>
-      <td>Set a fixed scale for the time axis of the Timeline. Choose from <code>'millisecond'</code>, <code>'second'</code>, <code>'minute'</code>, <code>'hour'</code>, <code>'weekday'</code>, <code>'day'</code>, <code>'month'</code>, <code>'year'</code>. Example usage:
+      <td>Set a fixed scale for the time axis of the Timeline. Choose from <code>'millisecond'</code>, <code>'second'</code>, <code>'minute'</code>, <code>'hour'</code>, <code>'weekday'</code>, <code>'week'</code>, <code>'day'</code>, <code>'month'</code>, <code>'year'</code>. Example usage:
   <pre class="prettyprint lang-js">var options = {
   timeAxis: {scale: 'minute', step: 5}
 }</pre>
+        <p>Note: The 'week' scale only works properly when <a href="#Localization">locales</a> are enabled.</p>
       </td>
     </tr>
 
@@ -1582,6 +1592,33 @@ timeline.off('select', onSelect);
     </tr>
 
     <tr>
+      <td>mouseDown</td>
+      <td>
+        Passes a properties object as returned by the method <a href="#getEventProperties"><code>Timeline.getEventProperties(event)</code></a>.
+      </td>
+      <td>Fired when the mouse down event is triggered over a timeline element.
+      </td>
+    </tr>
+
+    <tr>
+      <td>mouseUp</td>
+      <td>
+        Passes a properties object as returned by the method <a href="#getEventProperties"><code>Timeline.getEventProperties(event)</code></a>.
+      </td>
+      <td>Fired when the mouse up event is triggered over a timeline element.
+      </td>
+    </tr>
+
+    <tr>
+      <td>mouseMove</td>
+      <td>
+        Passes a properties object as returned by the method <a href="#getEventProperties"><code>Timeline.getEventProperties(event)</code></a>.
+      </td>
+      <td>Fired when the mouse is moved over a timeline element.
+      </td>
+    </tr>
+
+    <tr>
       <td>groupDragged</td>
       <td>
         Passes the id of the dragged group.
@@ -2024,12 +2061,18 @@ var options = {
       <td>Days</td><td><code>vis-day1</code>, <code>vis-day2</code>, ..., <code>vis-day31</code></td>
     </tr>
     <tr>
+      <td>Week</td><td><code>vis-week1</code>, <code>vis-week2</code>, ..., <code>vis-week53</code></td>
+    </tr>
+    <tr>
       <td>Months</td><td><code>vis-january</code>, <code>vis-february</code>, <code>vis-march</code>, <code>vis-april</code>, <code>vis-may</code>, <code>vis-june</code>, <code>vis-july</code>, <code>vis-august</code>, <code>vis-september</code>, <code>vis-october</code>, <code>vis-november</code>, <code>vis-december</code></td>
     </tr>
     <tr>
       <td>Years</td><td><code>vis-year2014</code>, <code>vis-year2015</code>, ...</td>
     </tr>
   </table>
+  <p>
+    Note: the 'week' scale is not included in the automatic zoom levels as its scale is not a direct logical successor of 'days' nor a logical predecessor of 'months'
+  </p>
 
   <p>Examples:</p>
 
