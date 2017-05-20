@@ -1,0 +1,110 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+  <title>Timeline | Group Side example</title>
+
+  <style>
+    body, html {
+      font-family: arial, sans-serif;
+      font-size: 11pt;
+    }
+
+    .vis-sidelabelset .vis-label.special {
+        background-color: #F3E25A;
+    }
+
+    .fixed-side-width .vis-panel.vis-side {
+        width: 100px;
+    }
+  </style>
+
+  <!-- note: moment.js must be loaded before vis.js, else vis.js uses its embedded version of moment.js -->
+  <script src="http://cdnjs.cloudflare.com/ajax/libs/moment.js/2.8.4/moment.min.js"></script>
+
+  <script src="../../../dist/vis.js"></script>
+  <link href="../../../dist/vis-timeline-graph2d.min.css" rel="stylesheet" type="text/css" />
+
+</head>
+<body>
+<p>
+  This example demonstrate using groups with side panel.
+</p>
+
+<h2>Using "sideContent"</h2>
+<div id="visualization1"></div>
+
+<h2>Using "sideContent" and RTL</h2>
+<h3 style="color:red">Needs some CSS fixes</h3>
+<div id="visualization1rtl"></div>
+
+<h2>Using "sideTemplate" configuration option and CSS</h2>
+<div id="visualization2" class="fixed-side-width"></div>
+
+<script>
+  var now = moment().minutes(0).seconds(0).milliseconds(0);
+  var groupCount = 4;
+  var itemCount = 20;
+
+  // create a data set with groups
+  var names = ['John', 'Alston', 'Lee', 'Grant'];
+
+  // Use sideContent
+  var friends = ['Goku, Donald and Trump', '', 'Bruce Lee and Superman', 'Spiderman, Hulk and Thor'];
+  var groups = new vis.DataSet();
+  for (var g = 0; g < groupCount; g++) {
+    groups.add({id: g, content: names[g], sideContent: friends[g]});
+  }
+
+  // Use sideTemplate
+  var friendsList = [['Goku', 'Donald', 'Trump'], [], ['Bruce Lee', 'Superman'], ['Spiderman', 'Hulk', 'Thor']];
+  var groups2 = new vis.DataSet();
+  for (var g = 0; g < groupCount; g++) {
+    groups2.add({id: g, content: names[g], sideItems: friendsList[g], className: 'special'});
+  }
+
+  // create a dataset with items
+  var items = new vis.DataSet();
+  for (var i = 0; i < itemCount; i++) {
+    var start = now.clone().add(Math.random() * 200, 'hours');
+    var group = Math.floor(Math.random() * groupCount);
+    items.add({
+      id: i,
+      group: group,
+      content: 'item ' + i +
+          ' <span style="color:#97B0F8;">(' + names[group] + ')</span>',
+      start: start,
+      type: 'box'
+    });
+  }
+
+  // create visualization
+  var options = {
+    groupOrder: 'content',  // groupOrder can be a property name or a sorting function
+    height: '400px'
+  };
+
+  var sideTemplateFunction = function (data, domElem) {
+      var s = '';
+      if (data) {
+          data.sideItems.forEach(function (sideItem) {
+              s += '<div><h6 style="color:black">' + sideItem + '</h6></div>';
+          });
+      }
+      return s;
+  };
+
+  var container1 = document.getElementById('visualization1');
+  var options1 = Object.assign({}, options);
+  new vis.Timeline(container1, items, groups, options1);
+
+  var container1rtl = document.getElementById('visualization1rtl');
+  var options1rtl = Object.assign({rtl:true}, options);
+  new vis.Timeline(container1rtl, items, groups, options1rtl);
+
+  var container2 = document.getElementById('visualization2');
+  var options2 = Object.assign({ sideTemplate: sideTemplateFunction}, options);
+  new vis.Timeline(container2, items, groups2, options2);
+
+</script>
+</body>
+</html>
