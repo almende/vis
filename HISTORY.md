@@ -36,6 +36,9 @@ http://visjs.org
 
 ### Timeline / Graph2D
 
+- FEAT: Add support for multiple class names in utils add/remove class methods (#3079)
+- FEAT: Adds 'showTooltips' option to override popups displayed for items with titles (#3046)
+- FIX #2818: LineGraph: Add an existingItemsMap to check if items are new or not before skipping (#3075)
 - FEAT #2835: Improve timeline stack performance (#2848, #3078)
 - FIX #3032: mouseup and mousedown events (#3059)
 - FIX #2421: Fix click and doubleclick events on items (#2988)
