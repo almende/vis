@@ -48,6 +48,8 @@ If we would merge the development branch would overwrite this. To solve this we 
 - [ ] FORCE-Push the branches to github: `git push --force && git push --tag`
 - [ ] [Re-Enable branch protection](https://github.com/almende/vis/settings/branches/master) (enable ALL checkboxes) for `master`.
 - [ ] Publish with npm: `npm publish` (check [npmjs.com](https://www.npmjs.com/package/vis))
+- [ ] Create a [new Release](https://github.com/almende/vis/releases/new) with the tang and the name "vX.X.Y" and copy the data vom [HISTORY.md](../HISTORY.md) into the body.
+
 
 ## Test
 - [ ] Go to a temp directory (e.g. "vis_vX.X.Y"): `cd .. && mkdir vis_vX.X.Y && cd vis_vX.X.Y`
