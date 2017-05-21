@@ -1,7 +1,7 @@
 # vis.js history
 http://visjs.org
 
-## 2017-05-20, version 4.20.0
+## 2017-05-21, version 4.20.0
 
 ### General
 
