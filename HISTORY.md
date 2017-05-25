@@ -1,6 +1,68 @@
 # vis.js history
 http://visjs.org
 
+## 2017-05-21, version 4.20.0
+
+### General
+
+- FIX #2934: Replacing all ES6 imports with CJS require calls (#3063)
+- Add command line options to mocha for running tests (#3064)
+- Added documentation on how labels are used (#2873)
+- FIX: Fix typo in PR template (#2908)
+- FIX #2912: updated moment.js (#2925)
+- Added @wimrijnders to the support team (#2886)
+
+### Network
+
+- FIX: Fixes for loading images into image nodes (#2964)
+- FIX #3025: Added check on mission var 'options', refactoring. (#3055)
+- FIX #3057: Use get() to get data from DataSet/View instead of directly accessing member \_data. (#3069)
+- FIX #3065: Avoid overriding standard context method ellipse() (#3072)
+- FIX #2922: bold label for selected ShapeBase classes (#2924)
+- FIX #2952: Pre-render node images for interpolation (#3010)
+- FIX #1735: Fix for exploding directed network, first working version; refactored hierarchical state in LayoutEngine.(#3017)
+- Refactoring of Label.propagateFonts() (#3052)
+- FIX #2894: Set CircleImageBase.imageObjAlt always when options change (#3053)
+- FIX #3047: Label.getFormattingValues() fix option fallback to main font for mod-fonts (#3054)
+- FIX #2938: Fix handling of node id's in saveAndLoad example (#2943)
+- FIX: Refactoring in Canvas.js (#3030)
+- FIX #2968: Fix placement label for dot shape (#3018)
+- FIX #2994: select edge with id zero (#2996)
+- FIX #1847, #2436: Network: use separate refresh indicator in NodeBase, instead of width… (#2885)
+- Fix #2914: Use option edges.chosen if present in global options (#2917)
+- FIX #2940: Gephi consolidate double assignment of node title (#2962)
+- FIX 2936: Fix check for nodes not present in EdgesHandler (#2963)
+- FEAT: Reduce the time-complexity of the network initial positioning (#2759)
+
+### Timeline / Graph2D
+
+- FEAT: Add support for multiple class names in utils add/remove class methods (#3079)
+- FEAT: Adds 'showTooltips' option to override popups displayed for items with titles (#3046)
+- FIX #2818: LineGraph: Add an existingItemsMap to check if items are new or not before skipping (#3075)
+- FEAT #2835: Improve timeline stack performance (#2848, #3078)
+- FIX #3032: mouseup and mousedown events (#3059)
+- FIX #2421: Fix click and doubleclick events on items (#2988)
+- FEAT #1405, #1715, #3002: Implementation of a week scale feature (#3009)
+- FIX #397: Eliminate repeatedly fired `rangechanged` events on mousewheel (#2989)
+- FIX #2939: Add check for parent existence when changing group in Item.setData (#2985)
+- FIX #2877: Add check for empty groupIds array and get full list from data set (#2986)
+- FIX #2614: Timeline docs border overlaps (#2992)
+- FIX: Doubleclick add (#2987)
+- FIX #2679: Cannot read property 'hasOwnProperty' of null (#2973)
+- FEAT #2863: Drag and drop custom fields (#2872)
+- FEAT #2834: Control over the drop event (#2974)
+- FIX #2918: Remove usages of elementsCensor (#2947)
+- FEAT #2948: Rolling mode offset (#2950)
+- FEAT #2805: Add callback functions to moveTo, zoomIn, zoomOut and setWindow (#2870)
+- FIX: Do not corrupt class names at high zoom levels (#2909)
+- FIX #2888: Fix error in class names (#2911)
+- FIX #2835: Visible items bug (#2878)
+
+### Graph3D
+
+- FEAT: Configurable minimum and maximum sizes for dot-size graphs (#2849)
+
+
 ## 2017-03-19, version 4.19.1
 
 ### General
