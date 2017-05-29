@@ -185,18 +185,7 @@ describe('dotparser', function () {
 
 
   /**
-   * From docs (quote #3015):
-   * 
-   *  the escape sequences "\n", "\l" and "\r" divide the label into lines, centered, 
-   * left-justified, and right-justified, respectively.
-   *
-   * http://www.graphviz.org/content/attrs#kescString
-   *
-   * - only '\\n' is handled
-   * - Note that text explicitly says 'labels'; the dot parser currently handles escape
-   *   sequences in **all** strings.
-   *
-   * dot-format examples taken from #3015
+   * DOT-format examples taken from #3015
    */
   it('properly handles newline escape sequences in strings', function (done) {
 		var data = 'dinetwork {1 [label="new\\nline"];}';
