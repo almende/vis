@@ -729,11 +729,23 @@ function (option, path) {
       </td>
     </tr>
 
-    <tr>
-      <td>itemsAlwaysDraggable</td>
+    <tr class='toggle collapsible' onclick="toggleTable('optionTable','itemsAlwaysDraggable', this);">
+      <td><span parent="itemsAlwaysDraggable" class="right-caret"></span> itemsAlwaysDraggable</td>
+      <td>boolean or Object</td>
+      <td>Object</td>
+      <td>When a boolean, applies the value only to <code>itemsAlwaysDraggable.item</code>.</td>
+    </tr>
+    <tr parent="itemsAlwaysDraggable" class="hidden">
+      <td class="indent">itemsAlwaysDraggable.item</td>
       <td>boolean</td>
       <td><code>false</code></td>
       <td>If true, all items in the Timeline are draggable without being selected. If false, only the selected item(s) are draggable.</td>
+    </tr>
+    <tr parent="itemsAlwaysDraggable" class="hidden">
+      <td class="indent">itemsAlwaysDraggable.range</td>
+      <td>boolean</td>
+      <td><code>false</code></td>
+      <td>If true, range of all items in the Timeline is draggable without being selected. If false, range is only draggable for the selected item(s). Only applicable when option <code>itemsAlwaysDraggable.item</code> is set <code>true</code>. </td>
     </tr>
 
     <tr>
