@@ -58,24 +58,36 @@ let allOptions = {
 
 describe('Validator', function() {
 
-  function run_validator(options, check_correct) {
+  function run_validator(options, check_correct, definition = undefined) {
     let errorFound;
     let output;
 
+    if (definition === undefined) {
+      definition = allOptions;
+    }
+
     output = stdout.inspectSync(function() {
-      errorFound = Validator.validate(options, allOptions);
+      errorFound = Validator.validate(options, definition);
     });
 
     if (check_correct) {
       assert(!errorFound);
       assert(output.length === 0, 'No error expected');
     } else {
-      //sometimes useful here: console.log(output);
+      //console.log(output); //sometimes useful here
       assert(errorFound, 'Validation should have failed');
       assert(output.length !== 0, 'must return errors');
     }
 
     return output;
+  }
+
+
+  function testExpected(output, expectedErrors) {
+    for (let i = 0; i < expectedErrors.length; ++i) {
+      assert(expectedErrors[i].test(output[i]), 'Regular expression at index ' + i + ' failed');
+    }
+    assert(output.length === expectedErrors.length, 'Number of expected errors does not match returned errors');
   }
 
 
@@ -150,13 +162,103 @@ describe('Validator', function() {
       /Unknown option detected: "labe"[\s\S]*Perhaps it was incomplete\? Did you mean:/gm,
       /Unknown option detected: "labell"\. Did you mean "label"\?/
     ];
+    testExpected(output, expectedErrors);
+
+    done();
+  });
 
 
-   for (let i = 0; i < expectedErrors.length; ++i) {
-     assert(expectedErrors[i].test(output[i]), 'Regular expression at index ' + i + ' failed');
-   }
-   assert(output.length === expectedErrors.length, 'Number of expected errors does not match returned errors');
+  /**
+   * Explicit tests on explicit 'undefined', to be really sure it works as expected.
+   */
+  it('properly handles explicit `undefined`', function(done) {
+    // Option definitions with 'undefined'
+    let undefinedOptions = {
+      width        : { number, 'undefined': 'undefined' },
+      undefOnly    : { 'undefined': 'undefined' },
+      colorOptions : {
+        fill       : { string },
+        stroke     : { string, 'undefined': 'undefined' },
+        strokeWidth: { number },
+        __type__   : { string, object, 'undefined': 'undefined' }
+      },
+      moreOptions : {
+        hello      : { string },
+        world      : { string, 'undefined': 'undefined' },
+        __type__   : { object }
+      }
+    }
 
+    //
+    // Test good actual option values
+    //
+    let correct1 = {
+      width       : 42,
+      colorOptions: 'I am a string',
+      moreOptions : {
+        hello: 'world',
+        world: '!'
+			}
+    }
+    var output = run_validator(correct1, true, undefinedOptions);
+
+    let correct2 = {
+      width       : undefined,
+      colorOptions: {
+        fill  : 'I am a string',
+        stroke: 'I am a string'
+      },
+      moreOptions : {
+        world: undefined 
+			}
+    }
+    var output = run_validator(correct2, true, undefinedOptions);
+
+    let correct3 = {
+      width       : undefined,
+      undefOnly   : undefined,
+      colorOptions: undefined
+    }
+    var output = run_validator(correct3, true, undefinedOptions);
+
+    //
+    // Test bad actual option values
+    //
+    let bad1 = {
+      width       : 'string',
+      undefOnly   : 42,
+      colorOptions: 42,
+      moreOptions : undefined
+    }
+    var output = run_validator(bad1, false, undefinedOptions);
+
+    let expectedErrors = [
+      /Invalid type received for "width"\. Expected: number, undefined\. Received \[string\]/,
+      /Invalid type received for "undefOnly"\. Expected: undefined\. Received \[number\]/,
+      /Invalid type received for "colorOptions"\. Expected: string, object, undefined\. Received \[number\]/,
+      /Invalid type received for "moreOptions"\. Expected: object\. Received \[undefined\]/
+    ];
+    testExpected(output, expectedErrors);
+
+    let bad2 = {
+      undefOnly   : 'undefined',
+      colorOptions: {
+        fill: undefined
+      } ,
+      moreOptions: {
+        hello: undefined,
+        world: 42
+      } 
+    }
+    var output = run_validator(bad2, false, undefinedOptions);
+
+    let expectedErrors2= [
+      /Invalid type received for "undefOnly"\. Expected: undefined\. Received \[string\]/,
+      /Invalid type received for "fill"\. Expected: string\. Received \[undefined\]/,
+      /Invalid type received for "hello"\. Expected: string\. Received \[undefined\]/,
+      /Invalid type received for "world"\. Expected: string, undefined\. Received \[number\]/
+    ];
+    testExpected(output, expectedErrors2);
 
     done();
   });
