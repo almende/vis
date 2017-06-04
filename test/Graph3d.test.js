@@ -17,9 +17,11 @@ describe('Graph3d', function () {
     output = stdout.inspectSync(function() {
       errorFound = Validator.validate(Graph3d.DEFAULTS, allOptions);
     });
-    if (errorFound === true) {
-      console.log(JSON.stringify(output, null, 2));
-    }
+
+    // Useful during debugging:
+    //if (errorFound === true) {
+    //  console.log(JSON.stringify(output, null, 2));
+    //}
     assert(!errorFound, 'DEFAULTS options object does not pass validation');
   });
 
