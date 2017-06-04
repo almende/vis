@@ -443,13 +443,6 @@ function getOptions() {
     yBarWidth:         Number(document.getElementById("yBarWidth").value) || undefined
   };
 
-  // Remove all options explicitly set to undefined
-  for (let opt in options) {
-    if (options.hasOwnProperty(opt) && options[opt] === undefined) {
-      delete options[opt];
-    }
-  }
-
   return options;
 }
 

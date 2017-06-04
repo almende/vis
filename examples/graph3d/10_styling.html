@@ -59,13 +59,6 @@
         verticalRatio: 0.5
       };
   
-      // Remove all options explicitly set to undefined
-      for (let opt in options) {
-        if (options.hasOwnProperty(opt) && options[opt] === undefined) {
-          delete options[opt];
-        }
-      }
-
       var camera = graph ? graph.getCameraPosition() : null;
 
       // create our graph

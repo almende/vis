@@ -63,6 +63,7 @@
     "uglify-js": "^2.7.5",
     "uuid": "^3.0.1",
     "webpack": "^1.14.0",
-    "yargs": "^6.6.0"
+    "yargs": "^6.6.0",
+    "test-console": "^1.0.0"
   }
 }
