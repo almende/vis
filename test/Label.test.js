@@ -2,9 +2,9 @@ var assert = require('assert')
 var Label = require('../lib/network/modules/components/shared/Label').default;
 var NodesHandler = require('../lib/network/modules/NodesHandler').default;
 
-/**
+/**************************************************************
  * Dummy class definitions for minimal required functionality.
- */
+ **************************************************************/
 
 class DummyContext {
   measureText(text) {
@@ -20,11 +20,17 @@ class DummyLayoutEngine {
 	positionInitially() {}
 }
 
+/**************************************************************
+ * End Dummy class definitions
+ **************************************************************/
+
 
 describe('Network Label', function() {
 
   /**
    * Retrieve options object from a NodesHandler instance
+   *
+   * NOTE: these are options at the node-level
    */
   function getOptions() {
     var options = {};
@@ -69,7 +75,8 @@ describe('Network Label', function() {
 
         assert(retBlock.mod !== undefined);
         if (retBlock.mod === 'normal') {
-         assert(expBlock.mod === undefined || expBlock.mod === 'normal', 'No mod field expected in returned, ' + showBlocks());
+         assert(expBlock.mod === undefined || expBlock.mod === 'normal',
+           'No mod field expected in returned, ' + showBlocks());
         } else {
          assert(retBlock.mod === expBlock.mod, 'Mod fields do not match, line: ' + i + ', block: ' + j +
            '; ret: ' + retBlock.mod + ', exp: ' + expBlock.mod + '\n' + showBlocks());
@@ -90,17 +97,37 @@ describe('Network Label', function() {
   }
 
 
-  var text = [
+/**************************************************************
+ * Test data
+ **************************************************************/
+
+  var normal_text = [
     "label text",
     "OnereallylongwordthatshouldgooverwidthConstraint.maximumifdefined",
-    "label\nwith\nnewlines",
+    "label\nwith\nnewlines"
+	]
+
+  var html_text = [
     "label <b>with</b> <code>some</code> <i>multi <b>tags</b></i>",
 
     // Note funky spaces around \n's in following
     "label <b>with</b> <code>some</code> \n <i>multi <b>tags</b></i>\n and newlines"
   ];
 
-  var expected = [{
+  var markdown_text = [
+    "label *with* `some` _multi *tags*_",
+
+    // Note funky spaces around \n's in following
+    "label *with* `some` \n _multi *tags*_\n and newlines"
+  ];
+
+
+
+/**************************************************************
+ * Expected Results
+ **************************************************************/
+
+  var normal_expected = [{
     // In first item, width/height kept in for reference
     width: 120,
     height: 14,
@@ -118,94 +145,120 @@ describe('Network Label', function() {
     lines: [{
       blocks: [{text: "OnereallylongwordthatshouldgooverwidthConstraint.maximumifdefined"}]
     }]
-  },
-  {
+  }, {
     lines: [{
       blocks: [{text: "label"}]
-    },
-    {
+    }, {
       blocks: [{text: "with"}]
-    },
-    {
+    }, {
       blocks: [{text: "newlines"}]
     }]
-  },
-  // If multi not enabled, following passed verbatim
-  {
+  }]
+
+
+  var html_unchanged_expected = [{
     lines: [{
       blocks: [{text: "label <b>with</b> <code>some</code> <i>multi <b>tags</b></i>"}]
     }]
-  },
-  {
+  }, {
     lines: [{
       blocks: [{text: "label <b>with</b> <code>some</code> "}]
-    },
-    {
+    }, {
       blocks: [{text: " <i>multi <b>tags</b></i>"}]
-    },
-    {
+    }, {
       blocks: [{text: " and newlines"}]
     }]
   }]
 
 
+  var markdown_unchanged_expected = [{
+    lines: [{
+      blocks: [{text: "label *with* `some` _multi *tags*_"}]
+    }]
+  }, {
+    lines: [{
+      blocks: [{text: "label *with* `some` "}]
+    }, {
+      blocks: [{text: " _multi *tags*_"}]
+    }, {
+      blocks: [{text: " and newlines"}]
+    }]
+  }]
+
+
+  var multi_expected = [{
+    lines: [{
+      blocks: [
+        {text: "label "},
+        {text: "with"  , mod: 'bold'},
+        {text: " "},
+        {text: "some"  , mod: 'mono'},
+        {text: " "},
+        {text: "multi ", mod: 'ital'},
+        {text: "tags"  , mod: 'boldital'}
+      ]
+    }]
+  }, {
+    lines: [{
+      blocks: [
+        {text: "label "},
+        {text: "with"  , mod: 'bold'},
+        {text: " "},
+        {text: "some"  , mod: 'mono'},
+        {text: " "}
+      ]
+    }, {
+      blocks: [
+        {text: " "},
+        {text: "multi ", mod: 'ital'},
+        {text: "tags"  , mod: 'boldital'}
+      ]
+    }, {
+      blocks: [{text: " and newlines"}]
+    }]
+  }];
+
+
+
+/**************************************************************
+ * End Expected Results
+ **************************************************************/
+
   it('parses regular text labels', function (done) {
     var label = new Label({}, getOptions());
-    checkProcessedLabels(label, text, expected);
+
+    checkProcessedLabels(label, normal_text  , normal_expected);
+    checkProcessedLabels(label, html_text    , html_unchanged_expected);     // html unchanged
+    checkProcessedLabels(label, markdown_text, markdown_unchanged_expected); // markdown unchanged
 
     done();
   });
 
 
   it('parses html labels', function (done) {
-    // NOTE: these are options at the node-level
     var options = getOptions(options);
-
-    // Need to set these explicitly
     options.font.multi = true;   // TODO: also test 'html', also test illegal value here
 
-    var localExpected = expected.slice(0,3);
-    Array.prototype.push.apply(localExpected, [
-      {
-        lines: [{
-          blocks: [
-            {text: "label "},
-            {text: "with"  , mod: 'bold'},
-            {text: " "},
-            {text: "some"  , mod: 'mono'},
-            {text: " "},
-            {text: "multi ", mod: 'ital'},
-            {text: "tags"  , mod: 'boldital'}
-          ]
-        }]
-      },
-      {
-        lines: [{
-          blocks: [
-            {text: "label "},
-            {text: "with"  , mod: 'bold'},
-            {text: " "},
-            {text: "some"  , mod: 'mono'},
-            {text: " "}
-          ]
-        },
-        {
-          blocks: [
-            {text: " "},
-            {text: "multi ", mod: 'ital'},
-            {text: "tags"  , mod: 'boldital'}
-          ]
-        },
-        {
-          blocks: [{text: " and newlines"}]
-        }]
-      }
-    ]);
-    //console.log(JSON.stringify(localExpected, null, 2));
+    var label = new Label({}, options);
 
+    // normal should pass through unchanged
+    checkProcessedLabels(label, normal_text  , normal_expected);             // normal unchanged
+    checkProcessedLabels(label, html_text    , multi_expected);
+    checkProcessedLabels(label, markdown_text, markdown_unchanged_expected); // markdown unchanged
+
+    done();
+  });
+
+
+  it('parses markdown labels', function (done) {
+    var options = getOptions(options);
+    options.font.multi = 'markdown';   // TODO: also test 'md', also test illegal value here
 
     var label = new Label({}, options);
-    checkProcessedLabels(label, text, localExpected);
+
+    checkProcessedLabels(label, normal_text  , normal_expected);             // normal unchanged
+    checkProcessedLabels(label, html_text    , html_unchanged_expected);     // html unchanged
+    checkProcessedLabels(label, markdown_text, multi_expected);
 
     done();
   });
