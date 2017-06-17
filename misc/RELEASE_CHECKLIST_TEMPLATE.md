@@ -1,17 +1,17 @@
 # Release Checklist
 
 ## Communication
-- [ ] Create a new issue and copy&past this checklist into it (Yeah! First Step done!)
+- [ ] Create a new issue and copy&paste this checklist into it (Yeah! First Step done!)
 - [ ] Talk to the team: Who should make the release?
 - [ ] Announce a "Code-Freeze". No new Pull-Request until the release is done!
 - [ ] Checkout if we have MAJOR or MINOR changes. If not we do a PATCH release.
-- [ ] The new version will be: `vX.X.Y`
+- [ ] The new version will be: `vX.Y.Z`
 - [ ] Identify open BUGS and add them to the next PATCH milestone (optional).
 - [ ] Identify MINOR issues and add them to the next MINOR milestone (optional).
 
 ## Update to the newest version
 - [ ] Update to the current version: `git checkout develop && git pull`.
-- [ ] Create a new release branch. (`git checkout -b vX.X.Y develop`)
+- [ ] Create a new release branch. (`git checkout -b vX.Y.Z develop`)
 
 ## Build & Test
 - [ ] Update the version number of the library in `package.json` (remove the "SNAPSHOT").
@@ -30,7 +30,7 @@
  - New Features start with `FEAT #issue:`
 
 ## Commit
-- [ ] Commit the new version: `git commit -am "Release vX.X.Y"`
+- [ ] Commit the new version: `git commit -am "Release vX.Y.Z"`
 - [ ] Push the release branch: `git push`
 - [ ] Open a Pull-Request for the release-branch to the develop-branch.
 - [ ] Wait until somebody of the team looked over your changes and merges the Pull-Request.
@@ -42,17 +42,17 @@ If we would merge the development branch would overwrite this. To solve this we 
 
 - [ ] Update: `git fetch && git checkout develop && git pull`
 - [ ] Rebase the `master` branch on the `develop` branch: `git checkout master && git rebase develop`
-- [ ] Generate new dist files: `npm prune && rm -rf node_modules && npm install && npm run build && npm run test && git commit -am "generated dist files for vX.X.Y"
-- [ ] Create a version tag: `git tag "vX.X.Y"`
+- [ ] Generate new dist files: `npm prune && rm -rf node_modules && npm install && npm run build && npm run test && git commit -am "generated dist files for vX.Y.Z"
+- [ ] Create a version tag: `git tag "vX.Y.Z"`
 - [ ] [Remove the protection](https://github.com/almende/vis/settings/branches/master) from `master`.
 - [ ] FORCE-Push the branches to github: `git push --force && git push --tag`
 - [ ] [Re-Enable branch protection](https://github.com/almende/vis/settings/branches/master) (enable ALL checkboxes) for `master`.
 - [ ] Publish with npm: `npm publish` (check [npmjs.com](https://www.npmjs.com/package/vis))
-- [ ] Create a [new Release](https://github.com/almende/vis/releases/new) with the tang and the name "vX.X.Y" and copy the data vom [HISTORY.md](../HISTORY.md) into the body.
+- [ ] Create a [new Release](https://github.com/almende/vis/releases/new) with the tang and the name "vX.Y.Z" and copy the data vom [HISTORY.md](../HISTORY.md) into the body.
 
 
 ## Test
-- [ ] Go to a temp directory (e.g. "vis_vX.X.Y"): `cd .. && mkdir vis_vX.X.Y && cd vis_vX.X.Y`
+- [ ] Go to a temp directory (e.g. "vis_vX.Y.Z"): `cd .. && mkdir vis_vX.Y.Z && cd vis_vX.Y.Z`
 - [ ] Install the library from npm: `npm init -f && npm install vis`
 - [ ] Verify if it installs the just released version, and verify if it works: `cd node_modules/vis/
 - [ ] Install the library via bower: `cd ../.. && bower install vis`
@@ -61,15 +61,15 @@ If we would merge the development branch would overwrite this. To solve this we 
 - [ ] Verify if it installs the just released version, and verify if it works. `cd vis`
 
 ## Update website
-- [ ] update the gh-pages branch: `git checkout gh-pages && git pull && git checkout -b "gh-pages_vX.X.Y"`
-- [ ] Copy the `dist` folder from the `master` branch to the `github-pages` branch in another directory, overwriting existing files: `cp -rf ../vis_vX.X.Y/vis/dist .`
-- [ ] Copy the `docs` folder from the `master` branch to the `github-pages` branch in another directory, overwriting existing files: `cp -rf ../vis_vX.X.Y/vis/docs .`
-- [ ] Copy the `examples` folder from the `master` branch to the `github-pages` branch in another directory, overwriting existing files: `cp -rf ../vis_vX.X.Y/vis/examples .`
+- [ ] update the gh-pages branch: `git checkout gh-pages && git pull && git checkout -b "gh-pages_vX.Y.Z"`
+- [ ] Copy the `dist` folder from the `master` branch to the `github-pages` branch in another directory, overwriting existing files: `cp -rf ../vis_vX.Y.Z/vis/dist .`
+- [ ] Copy the `docs` folder from the `master` branch to the `github-pages` branch in another directory, overwriting existing files: `cp -rf ../vis_vX.Y.Z/vis/docs .`
+- [ ] Copy the `examples` folder from the `master` branch to the `github-pages` branch in another directory, overwriting existing files: `cp -rf ../vis_vX.Y.Z/vis/examples .`
 - [ ] Check if there are new or updated examples, and update the gallery screenshots accordingly.
 - [ ] Update the library version number in the `index.html` page.
 - [ ] Update the CDN links at the download section of index.html AND the CDN link at the top. (search-replace all!!)
-- [ ] Commit the changes: `git add -A && git commit -m "updates for vX.X.Y"`
-- [ ] Push the changes `git push --set-upstream origin gh-pages_vX.X.Y`
+- [ ] Commit the changes: `git add -A && git commit -m "updates for vX.Y.Z"`
+- [ ] Push the changes `git push --set-upstream origin gh-pages_vX.Y.Z`
 
 ## Prepare next version
 - [ ] Switch to the "develop" branch: `git checkout develop`.
