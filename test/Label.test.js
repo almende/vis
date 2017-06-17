@@ -56,8 +56,8 @@ describe('Network Label', function() {
    */
   function checkBlocks(returned, expected) {
     let showBlocks = () => {
-      return 'returned: ' + JSON.stringify(returned, null, 2) + '\n' +
-             'expected: ' + JSON.stringify(expected, null, 2);
+      return '\nreturned: ' + JSON.stringify(returned, null, 2) + '\n' +
+               'expected: ' + JSON.stringify(expected, null, 2);
 		}
 
     assert(returned.lines.length === expected.lines.length, 'Number of lines does not match, ' + showBlocks());
@@ -104,21 +104,18 @@ describe('Network Label', function() {
   var normal_text = [
     "label text",
     "OnereallylongwordthatshouldgooverwidthConstraint.maximumifdefined",
-    "label\nwith\nnewlines"
+    "label\nwith\nnewlines",
+    "One really long sentence that should go over widthConstraint.maximum if defined",
 	]
 
   var html_text = [
     "label <b>with</b> <code>some</code> <i>multi <b>tags</b></i>",
-
-    // Note funky spaces around \n's in following
-    "label <b>with</b> <code>some</code> \n <i>multi <b>tags</b></i>\n and newlines"
+    "label <b>with</b> <code>some</code> \n <i>multi <b>tags</b></i>\n and newlines" // NB spaces around \n's
   ];
 
   var markdown_text = [
     "label *with* `some` _multi *tags*_",
-
-    // Note funky spaces around \n's in following
-    "label *with* `some` \n _multi *tags*_\n and newlines"
+    "label *with* `some` \n _multi *tags*_\n and newlines" // NB spaces around \n's
   ];
 
 
@@ -140,8 +137,7 @@ describe('Network Label', function() {
         height: 14,
       }]
     }]
-  },
-  {
+  }, {
     lines: [{
       blocks: [{text: "OnereallylongwordthatshouldgooverwidthConstraint.maximumifdefined"}]
     }]
@@ -152,6 +148,10 @@ describe('Network Label', function() {
       blocks: [{text: "with"}]
     }, {
       blocks: [{text: "newlines"}]
+    }]
+  }, {
+    lines: [{
+      blocks: [{text: "One really long sentence that should go over widthConstraint.maximum if defined"}]
     }]
   }]
 
@@ -224,7 +224,7 @@ describe('Network Label', function() {
  * End Expected Results
  **************************************************************/
 
-  it('parses regular text labels', function (done) {
+  it('parses normal text labels', function (done) {
     var label = new Label({}, getOptions());
 
     checkProcessedLabels(label, normal_text  , normal_expected);
@@ -241,8 +241,7 @@ describe('Network Label', function() {
 
     var label = new Label({}, options);
 
-    // normal should pass through unchanged
-    checkProcessedLabels(label, normal_text  , normal_expected);             // normal unchanged
+    checkProcessedLabels(label, normal_text  , normal_expected);             // normal as usual
     checkProcessedLabels(label, html_text    , multi_expected);
     checkProcessedLabels(label, markdown_text, markdown_unchanged_expected); // markdown unchanged
 
@@ -256,9 +255,21 @@ describe('Network Label', function() {
 
     var label = new Label({}, options);
 
-    checkProcessedLabels(label, normal_text  , normal_expected);             // normal unchanged
+    checkProcessedLabels(label, normal_text  , normal_expected);             // normal as usual
     checkProcessedLabels(label, html_text    , html_unchanged_expected);     // html unchanged
     checkProcessedLabels(label, markdown_text, multi_expected);
+
+    done();
+  });
+
+  it('handles normal text labels with widthConstraint', function (done) {
+    var options = getOptions(options);
+    options.widthConstraint = { minimum: 100, maximum: 200};
+    var label = new Label({}, options);
+
+    checkProcessedLabels(label, normal_text  , normal_expected);
+    checkProcessedLabels(label, html_text    , html_unchanged_expected);     // html unchanged
+    checkProcessedLabels(label, markdown_text, markdown_unchanged_expected); // markdown unchanged
 
     done();
   });
