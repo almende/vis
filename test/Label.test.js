@@ -113,6 +113,7 @@ describe('Network Label', function() {
     "OnereallylongwordthatshouldgooverwidthConstraint.maximumifdefined",
     "label\nwith\nnewlines",
     "One really long sentence that should go over widthConstraint.maximum if defined",
+    "Reallyonehellalargelabel withtwobigwordsgoingovermax"
 	]
 
   var html_text = [
@@ -158,13 +159,17 @@ describe('Network Label', function() {
       blocks: [{text: "newlines"}]
     }]
   }, {
-    // Changes width max width set
+    // From here onwared, changes width max width set
     lines: [{
       blocks: [{text: "One really long sentence that should go over widthConstraint.maximum if defined"}]
     }]
+  }, {
+    lines: [{
+      blocks: [{text: "Reallyonehellalargelabel withtwobigwordsgoingovermax"}]
+    }]
   }];
 
-  const indexWidthConstrained = normal_expected.length - 1;  // index of first item that will be different with max width set
+  const indexWidthConstrained = normal_expected.length - 2;  // index of first item that will be different with max width set
 
   var normal_widthConstraint_expected = normal_expected.slice(0, indexWidthConstrained);
   Array.prototype.push.apply(normal_widthConstraint_expected, [{
@@ -176,6 +181,12 @@ describe('Network Label', function() {
       blocks: [{text: "widthConstraint.maximum"}]
     }, {
       blocks: [{text: "if defined"}]
+    }]
+  }, {
+    lines: [{
+      blocks: [{text: "Reallyonehellalargelabel"}]
+    }, {
+      blocks: [{text: "withtwobigwordsgoingovermax"}]
     }]
   }]);
 
