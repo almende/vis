@@ -32,8 +32,7 @@ describe('Network Label', function() {
    *
    * NOTE: these are options at the node-level
    */
-  function getOptions() {
-    var options = {};
+  function getOptions(options = {}) {
     var body = {
       functions: {},
       emitter: {
@@ -60,7 +59,7 @@ describe('Network Label', function() {
                'expected: ' + JSON.stringify(expected, null, 2);
 		}
 
-    assert(returned.lines.length === expected.lines.length, 'Number of lines does not match, ' + showBlocks());
+    assert.equal(expected.lines.length, returned.lines.length, 'Number of lines does not match, ' + showBlocks());
 
     for (let i = 0; i < returned.lines.length; ++i) {
       let retLine = returned.lines[i];
@@ -153,7 +152,22 @@ describe('Network Label', function() {
     lines: [{
       blocks: [{text: "One really long sentence that should go over widthConstraint.maximum if defined"}]
     }]
-  }]
+  }];
+
+
+  // First three same as normal_expected
+  var normal_widthConstraint_expected = normal_expected.slice(0,3);
+  Array.prototype.push.apply(normal_widthConstraint_expected, [{
+    lines: [{
+      blocks: [{text: "One really long sentence"}]
+    }, {
+      blocks: [{text: "that should go over"}]
+    }, {
+      blocks: [{text: "widthConstraint.maximum"}]
+    }, {
+      blocks: [{text: "if defined"}]
+    }]
+  }]);
 
 
   var html_unchanged_expected = [{
@@ -168,7 +182,27 @@ describe('Network Label', function() {
     }, {
       blocks: [{text: " and newlines"}]
     }]
-  }]
+  }];
+
+  var html_widthConstraint_unchanged = [{
+    lines: [{
+      blocks: [{text: "label <b>with</b>"}]
+    }, {
+      blocks: [{text: "<code>some</code>"}]
+    }, {
+      blocks: [{text: "<i>multi <b>tags</b></i>"}]
+    }]
+  }, {
+    lines: [{
+      blocks: [{text: "label <b>with</b>"}]
+    }, {
+      blocks: [{text: "<code>some</code> "}]
+    }, {
+      blocks: [{text: " <i>multi <b>tags</b></i>"}]
+    }, {
+      blocks: [{text: " and newlines"}]
+    }]
+  }];
 
 
   var markdown_unchanged_expected = [{
@@ -183,7 +217,24 @@ describe('Network Label', function() {
     }, {
       blocks: [{text: " and newlines"}]
     }]
-  }]
+  }];
+
+
+  var markdown_widthConstraint_expected = [{
+    lines: [{
+      blocks: [{text: "label *with* `some`"}]
+    }, {
+      blocks: [{text: "_multi *tags*_"}]
+    }]
+  }, {
+    lines: [{
+      blocks: [{text: "label *with* `some` "}]
+    }, {
+      blocks: [{text: " _multi *tags*_"}]
+    }, {
+      blocks: [{text: " and newlines"}]
+    }]
+  }];
 
 
   var multi_expected = [{
@@ -262,14 +313,41 @@ describe('Network Label', function() {
     done();
   });
 
-  it('handles normal text labels with widthConstraint', function (done) {
+
+  it('handles normal text with widthConstraint.maximum', function (done) {
     var options = getOptions(options);
-    options.widthConstraint = { minimum: 100, maximum: 200};
+
+    //
+    // What the user would set:
+    //
+    //   options.widthConstraint = { minimum: 100, maximum: 200};
+    //
+    // No sense in adding minWdt, not used when splitting labels into lines
+    //
+    // This comment also applies to the usage of maxWdt in the test cases below
+    //
+    options.font.maxWdt = 300;
+
     var label = new Label({}, options);
 
-    checkProcessedLabels(label, normal_text  , normal_expected);
-    checkProcessedLabels(label, html_text    , html_unchanged_expected);     // html unchanged
-    checkProcessedLabels(label, markdown_text, markdown_unchanged_expected); // markdown unchanged
+    checkProcessedLabels(label, normal_text  , normal_widthConstraint_expected);
+    checkProcessedLabels(label, html_text    , html_widthConstraint_unchanged);    // html unchanged
+    checkProcessedLabels(label, markdown_text, markdown_widthConstraint_expected); // markdown unchanged
+
+    done();
+  });
+
+
+  it('handles html tags with widthConstraint.maximum', function (done) {
+    var options = getOptions(options);
+    options.font.multi = true;   // TODO: also test 'html', also test illegal value here
+    options.font.maxWdt = 300;
+
+    var label = new Label({}, options);
+
+    checkProcessedLabels(label, normal_text  , normal_widthConstraint_expected);
+    checkProcessedLabels(label, html_text    , multi_expected); 
+    checkProcessedLabels(label, markdown_text, markdown_widthConstraint_expected); // markdown unchanged
 
     done();
   });
