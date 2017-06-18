@@ -1,3 +1,11 @@
+/**
+ * TODO - add tests for:
+ * ====
+ *
+ * - pathological cases of spaces (and other whitespace!)
+ * - html unclosed or unopened tags
+ * - html tag combinations with no font defined (e.g. bold within mono) 
+ */
 var assert = require('assert')
 var Label = require('../lib/network/modules/components/shared/Label').default;
 var NodesHandler = require('../lib/network/modules/NodesHandler').default;
@@ -123,6 +131,7 @@ describe('Network Label', function() {
  * Expected Results
  **************************************************************/
 
+
   var normal_expected = [{
     // In first item, width/height kept in for reference
     width: 120,
@@ -149,14 +158,15 @@ describe('Network Label', function() {
       blocks: [{text: "newlines"}]
     }]
   }, {
+    // Changes width max width set
     lines: [{
       blocks: [{text: "One really long sentence that should go over widthConstraint.maximum if defined"}]
     }]
   }];
 
+  const indexWidthConstrained = normal_expected.length - 1;  // index of first item that will be different with max width set
 
-  // First three same as normal_expected
-  var normal_widthConstraint_expected = normal_expected.slice(0,3);
+  var normal_widthConstraint_expected = normal_expected.slice(0, indexWidthConstrained);
   Array.prototype.push.apply(normal_widthConstraint_expected, [{
     lines: [{
       blocks: [{text: "One really long sentence"}]
@@ -340,14 +350,29 @@ describe('Network Label', function() {
 
   it('handles html tags with widthConstraint.maximum', function (done) {
     var options = getOptions(options);
-    options.font.multi = true;   // TODO: also test 'html', also test illegal value here
+    options.font.multi = true;
     options.font.maxWdt = 300;
 
     var label = new Label({}, options);
 
     checkProcessedLabels(label, normal_text  , normal_widthConstraint_expected);
     checkProcessedLabels(label, html_text    , multi_expected); 
-    checkProcessedLabels(label, markdown_text, markdown_widthConstraint_expected); // markdown unchanged
+    checkProcessedLabels(label, markdown_text, markdown_widthConstraint_expected);
+
+    done();
+  });
+
+
+  it('handles markdown tags with widthConstraint.maximum', function (done) {
+    var options = getOptions(options);
+    options.font.multi = 'markdown';
+    options.font.maxWdt = 300;
+
+    var label = new Label({}, options);
+
+    checkProcessedLabels(label, normal_text  , normal_widthConstraint_expected);
+    checkProcessedLabels(label, html_text    , html_widthConstraint_unchanged); 
+    checkProcessedLabels(label, markdown_text, multi_expected);
 
     done();
   });
