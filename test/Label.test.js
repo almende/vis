@@ -111,10 +111,10 @@ describe('Network Label', function() {
 
   var normal_text = [
     "label text",
-    "OnereallylongwordthatshouldgooverwidthConstraint.maximumifdefined",
     "label\nwith\nnewlines",
+    "OnereallylongwordthatshouldgooverwidthConstraint.maximumifdefined",
     "One really long sentence that should go over widthConstraint.maximum if defined",
-    "Reallyonehellalargelabel withtwobigwordsgoingovermax"
+    "Reallyoneenormouslylargelabel withtwobigwordsgoingoverwayovermax"
 	]
 
   var html_text = [
@@ -149,10 +149,6 @@ describe('Network Label', function() {
     }]
   }, {
     lines: [{
-      blocks: [{text: "OnereallylongwordthatshouldgooverwidthConstraint.maximumifdefined"}]
-    }]
-  }, {
-    lines: [{
       blocks: [{text: "label"}]
     }, {
       blocks: [{text: "with"}]
@@ -162,18 +158,30 @@ describe('Network Label', function() {
   }, {
     // From here onward, changes width max width set
     lines: [{
+      blocks: [{text: "OnereallylongwordthatshouldgooverwidthConstraint.maximumifdefined"}]
+    }]
+  }, {
+    lines: [{
       blocks: [{text: "One really long sentence that should go over widthConstraint.maximum if defined"}]
     }]
   }, {
     lines: [{
-      blocks: [{text: "Reallyonehellalargelabel withtwobigwordsgoingovermax"}]
+      blocks: [{text: "Reallyoneenormouslylargelabel withtwobigwordsgoingoverwayovermax"}]
     }]
   }];
 
-  const indexWidthConstrained = normal_expected.length - 2;  // index of first item that will be different with max width set
+  const indexWidthConstrained = 2;  // index of first item that will be different with max width set
 
   var normal_widthConstraint_expected = normal_expected.slice(0, indexWidthConstrained);
   Array.prototype.push.apply(normal_widthConstraint_expected, [{
+    lines: [{
+      blocks: [{text: "Onereallylongwordthatshoul"}]
+    }, {
+      blocks: [{text: "dgooverwidthConstraint.max"}]
+    }, {
+      blocks: [{text: "imumifdefined"}]
+    }]
+  }, {
     lines: [{
       blocks: [{text: "One really long sentence"}]
     }, {
@@ -185,9 +193,13 @@ describe('Network Label', function() {
     }]
   }, {
     lines: [{
-      blocks: [{text: "Reallyonehellalargelabel"}]
+      blocks: [{text: "Reallyoneenormouslylargela"}]
     }, {
-      blocks: [{text: "withtwobigwordsgoingovermax"}]
+      blocks: [{text: "bel"}]
+    }, {
+      blocks: [{text: "withtwobigwordsgoingoverwa"}]
+    }, {
+      blocks: [{text: "yovermax"}]
     }]
   }]);
 
