@@ -2,6 +2,7 @@
  * TODO - add tests for:
  * ====
  *
+ * - !!! good test case with the tags for max width
  * - pathological cases of spaces (and other whitespace!)
  * - html unclosed or unopened tags
  * - html tag combinations with no font defined (e.g. bold within mono) 
@@ -81,8 +82,8 @@ describe('Network Label', function() {
         assert(retBlock.text === expBlock.text, 'Text does not match, ' + showBlocks());
 
         assert(retBlock.mod !== undefined);
-        if (retBlock.mod === 'normal') {
-         assert(expBlock.mod === undefined || expBlock.mod === 'normal',
+        if (retBlock.mod === 'normal' || retBlock.mod === '') {
+         assert(expBlock.mod === undefined || expBlock.mod === 'normal' || expBlock === '',
            'No mod field expected in returned, ' + showBlocks());
         } else {
          assert(retBlock.mod === expBlock.mod, 'Mod fields do not match, line: ' + i + ', block: ' + j +
@@ -159,7 +160,7 @@ describe('Network Label', function() {
       blocks: [{text: "newlines"}]
     }]
   }, {
-    // From here onwared, changes width max width set
+    // From here onward, changes width max width set
     lines: [{
       blocks: [{text: "One really long sentence that should go over widthConstraint.maximum if defined"}]
     }]
