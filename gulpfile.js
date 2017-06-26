@@ -1,6 +1,7 @@
 var fs = require('fs');
 var async = require('async');
 var gulp = require('gulp');
+var opn = require('opn');
 var gutil = require('gulp-util');
 var concat = require('gulp-concat');
 var cleanCSS = require('gulp-clean-css');
@@ -9,24 +10,34 @@ var webpack = require('webpack');
 var uglify = require('uglify-js');
 var rimraf = require('rimraf');
 var argv = require('yargs').argv;
+var exec = require('child_process').exec;
+var spawn = require('child_process').spawn;
 
-var ENTRY             = './index.js';
-var HEADER            = './lib/header.js';
-var DIST              = './dist';
-var VIS_JS            = 'vis.js';
-var VIS_MAP           = 'vis.map';
-var VIS_MIN_JS        = 'vis.min.js';
-var VIS_CSS           = 'vis.css';
-var VIS_MIN_CSS       = 'vis.min.css';
-var INDIVIDUAL_JS_BUNDLES = [
-  {entry: './index-timeline-graph2d.js', filename: 'vis-timeline-graph2d.min.js'},
-  {entry: './index-network.js', filename: 'vis-network.min.js'},
-  {entry: './index-graph3d.js', filename: 'vis-graph3d.min.js'}
-];
-var INDIVIDUAL_CSS_BUNDLES = [
-  {entry: ['./lib/shared/**/*.css', './lib/timeline/**/*.css'], filename: 'vis-timeline-graph2d.min.css'},
-  {entry: ['./lib/shared/**/*.css', './lib/network/**/*.css'], filename: 'vis-network.min.css'}
-];
+var ENTRY = './index.js';
+var HEADER = './lib/header.js';
+var DIST = './dist';
+var VIS_JS = 'vis.js';
+var VIS_MAP = 'vis.map';
+var VIS_MIN_JS = 'vis.min.js';
+var VIS_CSS = 'vis.css';
+var VIS_MIN_CSS = 'vis.min.css';
+var INDIVIDUAL_JS_BUNDLES = [{
+  entry: './index-timeline-graph2d.js',
+  filename: 'vis-timeline-graph2d.min.js'
+}, {
+  entry: './index-network.js',
+  filename: 'vis-network.min.js'
+}, {
+  entry: './index-graph3d.js',
+  filename: 'vis-graph3d.min.js'
+}];
+var INDIVIDUAL_CSS_BUNDLES = [{
+  entry: ['./lib/shared/**/*.css', './lib/timeline/**/*.css'],
+  filename: 'vis-timeline-graph2d.min.css'
+}, {
+  entry: ['./lib/shared/**/*.css', './lib/network/**/*.css'],
+  filename: 'vis-network.min.css'
+}];
 
 // generate banner with today's date and correct version
 function createBanner() {
@@ -34,8 +45,8 @@ function createBanner() {
   var version = require('./package.json').version;
 
   return String(fs.readFileSync(HEADER))
-      .replace('@@date', today)
-      .replace('@@version', version);
+    .replace('@@date', today)
+    .replace('@@version', version);
 }
 
 var bannerPlugin = new webpack.BannerPlugin(createBanner(), {
@@ -44,17 +55,15 @@ var bannerPlugin = new webpack.BannerPlugin(createBanner(), {
 });
 
 var webpackModule = {
-  loaders: [
-    {
-      test: /\.js$/,
-      exclude: /node_modules/,
-      loader: 'babel-loader',
-      query: {
-        cacheDirectory: true, // use cache to improve speed
-        babelrc: true // use the .baberc file
-      }
+  loaders: [{
+    test: /\.js$/,
+    exclude: /node_modules/,
+    loader: 'babel-loader',
+    query: {
+      cacheDirectory: true, // use cache to improve speed
+      babelrc: true // use the .baberc file
     }
-  ],
+  }],
 
   // exclude requires of moment.js language files
   wrappedContextRegExp: /$^/
@@ -70,7 +79,7 @@ var webpackConfig = {
     sourcePrefix: '  '
   },
   module: webpackModule,
-  plugins: [ bannerPlugin ],
+  plugins: [bannerPlugin],
   cache: true,
 
   // generate details sourcempas of webpack modules
@@ -90,14 +99,14 @@ var uglifyConfig = {
 // create a single instance of the compiler to allow caching
 var compiler = webpack(webpackConfig);
 
-function handleCompilerCallback (err, stats) {
+function handleCompilerCallback(err, stats) {
   if (err) {
     gutil.log(err.toString());
   }
 
   if (stats && stats.compilation && stats.compilation.errors) {
     // output soft errors
-    stats.compilation.errors.forEach(function (err) {
+    stats.compilation.errors.forEach(function(err) {
       gutil.log(err.toString());
     });
 
@@ -107,27 +116,83 @@ function handleCompilerCallback (err, stats) {
   }
 }
 
+var phantomjsPort = 4444;
+gulp.task('gemini-tests', function(cb) {
+  var phantomjsProcess = spawn('phantomjs', ['--webdriver=' + phantomjsPort]);
+  var completed = false;
+  var hasError = false;
+
+  phantomjsProcess.stdout.on('data', function(data) {
+    if (data.toString().indexOf('running on port') >= 0) {
+      gutil.log("Started phantomjs webdriver");
+
+      var geminiProcess = spawn('gemini', ['test', 'test/gemini']);
+      geminiProcess.stdout.on('data', function(data) {
+        var msg = data.toString().replace(/\n$/g, '');
+        if (msg.startsWith('✓')) {
+          gutil.log(gutil.colors.green(msg));
+        } else if (msg.startsWith('✘')) {
+          hasError = true;
+          gutil.log(gutil.colors.red(msg));
+        } else {
+          gutil.log(msg);
+        }
+      });
+      geminiProcess.stderr.on('data', function(data) {
+        if (!(data.toString().indexOf('DeprecationWarning:') >= 0)) {
+          hasError = true;
+          gutil.log(gutil.colors.red(data.toString().replace(/\n$/g,
+            '')));
+        }
+      });
+      geminiProcess.on('close', function(code) {
+        completed = true;
+        phantomjsProcess.kill();
+      });
+    }
+  });
+  phantomjsProcess.stderr.on('data', function(data) {
+    gutil.log(gutil.colors.red(data));
+  });
+  phantomjsProcess.on('close', function(code) {
+    if (code && !completed) {
+      return cb(new Error('✘ phantomjs failed with code: ' + code +
+        '\n' +
+        'Check that port ' + phantomjsPort +
+        ' is free and that there are no other ' +
+        'instances of phantomjs running. (`killall phantomjs`)'));
+    }
+    gutil.log("Stoped phantomjs webdriver");
+
+    if (hasError) {
+      opn('./gemini/reports/index.html');
+    }
+
+    cb();
+  });
+});
+
 // clean the dist/img directory
-gulp.task('clean', function (cb) {
+gulp.task('clean', function(cb) {
   rimraf(DIST + '/img', cb);
 });
 
-gulp.task('bundle-js', function (cb) {
+gulp.task('bundle-js', function(cb) {
   // update the banner contents (has a date in it which should stay up to date)
   bannerPlugin.banner = createBanner();
 
-  compiler.run(function (err, stats) {
+  compiler.run(function(err, stats) {
     handleCompilerCallback(err, stats);
     cb();
   });
 });
 
 // create individual bundles for timeline+graph2d, network, graph3d
-gulp.task('bundle-js-individual', function (cb) {
+gulp.task('bundle-js-individual', function(cb) {
   // update the banner contents (has a date in it which should stay up to date)
   bannerPlugin.banner = createBanner();
 
-  async.each(INDIVIDUAL_JS_BUNDLES, function (item, callback) {
+  async.each(INDIVIDUAL_JS_BUNDLES, function(item, callback) {
     var webpackTimelineConfig = {
       entry: item.entry,
       output: {
@@ -138,12 +203,12 @@ gulp.task('bundle-js-individual', function (cb) {
         sourcePrefix: '  '
       },
       module: webpackModule,
-      plugins: [ bannerPlugin, new webpack.optimize.UglifyJsPlugin() ],
+      plugins: [bannerPlugin, new webpack.optimize.UglifyJsPlugin()],
       cache: true
     };
 
     var compiler = webpack(webpackTimelineConfig);
-    compiler.run(function (err, stats) {
+    compiler.run(function(err, stats) {
       handleCompilerCallback(err, stats);
       callback();
     });
@@ -152,48 +217,51 @@ gulp.task('bundle-js-individual', function (cb) {
 });
 
 // bundle and minify css
-gulp.task('bundle-css', function () {
+gulp.task('bundle-css', function() {
   return gulp.src('./lib/**/*.css')
-      .pipe(concat(VIS_CSS))
-      .pipe(gulp.dest(DIST))
-      // TODO: nicer to put minifying css in a separate task?
-      .pipe(cleanCSS())
-      .pipe(rename(VIS_MIN_CSS))
-      .pipe(gulp.dest(DIST));
+    .pipe(concat(VIS_CSS))
+    .pipe(gulp.dest(DIST))
+    // TODO: nicer to put minifying css in a separate task?
+    .pipe(cleanCSS())
+    .pipe(rename(VIS_MIN_CSS))
+    .pipe(gulp.dest(DIST));
 });
 
 // bundle and minify individual css
-gulp.task('bundle-css-individual', function (cb) {
-  async.each(INDIVIDUAL_CSS_BUNDLES, function (item, callback) {
+gulp.task('bundle-css-individual', function(cb) {
+  async.each(INDIVIDUAL_CSS_BUNDLES, function(item, callback) {
     return gulp.src(item.entry)
-        .pipe(concat(item.filename))
-        .pipe(cleanCSS())
-        .pipe(rename(item.filename))
-        .pipe(gulp.dest(DIST))
-        .on('end', callback);
+      .pipe(concat(item.filename))
+      .pipe(cleanCSS())
+      .pipe(rename(item.filename))
+      .pipe(gulp.dest(DIST))
+      .on('end', callback);
   }, cb);
 });
 
-gulp.task('copy', ['clean'], function () {
-    var network = gulp.src('./lib/network/img/**/*')
-      .pipe(gulp.dest(DIST + '/img/network'));
+gulp.task('copy', ['clean'], function() {
+  var network = gulp.src('./lib/network/img/**/*')
+    .pipe(gulp.dest(DIST + '/img/network'));
 
-    return network;
+  return network;
 });
 
-gulp.task('minify', ['bundle-js'], function (cb) {
+gulp.task('minify', ['bundle-js'], function(cb) {
   var result = uglify.minify([DIST + '/' + VIS_JS], uglifyConfig);
 
   // note: we add a newline '\n' to the end of the minified file to prevent
   //       any issues when concatenating the file downstream (the file ends
   //       with a comment).
   fs.writeFileSync(DIST + '/' + VIS_MIN_JS, result.code + '\n');
-  fs.writeFileSync(DIST + '/' + VIS_MAP, result.map.replace(/"\.\/dist\//g, '"'));
+  fs.writeFileSync(DIST + '/' + VIS_MAP, result.map.replace(/"\.\/dist\//g,
+    '"'));
 
   cb();
 });
 
-gulp.task('bundle', ['bundle-js', 'bundle-js-individual', 'bundle-css', 'bundle-css-individual', 'copy']);
+gulp.task('bundle', ['bundle-js', 'bundle-js-individual', 'bundle-css',
+  'bundle-css-individual', 'copy'
+]);
 
 // read command line arguments --bundle and --minify
 var bundle = 'bundle' in argv;
@@ -204,14 +272,13 @@ if (bundle || minify) {
   watchTasks = [];
   if (bundle) watchTasks.push('bundle');
   if (minify) watchTasks.push('minify');
-}
-else {
+} else {
   // by default, do both bundling and minifying
   watchTasks = ['bundle', 'minify'];
 }
 
 // The watch task (to automatically rebuild when the source code changes)
-gulp.task('watch', watchTasks, function () {
+gulp.task('watch', watchTasks, function() {
   gulp.watch(['index.js', 'lib/**/*'], watchTasks);
 });
 

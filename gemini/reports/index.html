@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Gemini report</title>
+        <link rel="stylesheet" type="text/css" href="report.css">
+    </head>
+
+    <body class="report">
+        <dl class="summary">
+            <dt class="summary__key">Total Tests</dt><dd class="summary__value">3</dd>
+            <dt class="summary__key">Passed</dt><dd class="summary__value">2</dd>
+            <dt class="summary__key summary__key_has-fails">Failed</dt><dd class="summary__value">1</dd>
+            <dt class="summary__key">Skipped</dt><dd class="summary__value">0</dd>
+            <dt class="summary__key">Retries</dt><dd class="summary__value">0</dd>
+        </dl>
+
+        <button id="expandAll" class="button">Expand all</button>
+        <button id="collapseAll" class="button">Collapse all</button>
+        <button id="expandErrors" class="button">Expand errors</button>
+        <button id="showSkipped" class="button">Show skipped</button>
+        <button id="showRetries" class="button">Expand retries</button>
+        <button id="showOnlyDiff" class="button">Show only diff</button>
+        <input id="viewHostInput" class="text-input" size="40" placeholder="change original host for view in browser"/>
+
+        <div id="skippedList" class="skipped__list collapsed">
+                There are no skipped tests
+        </div>
+
+            <div class="section  section_status_success ">
+    <div class="section__title">
+        yandex-search
+            <button
+                class="button section__icon section__icon_copy-to-clipboard"
+                title="copy to clipboard"
+                data-clipboard-text="yandex-search">
+            </button>
+    </div>
+    <div class="section__body section__body_guided">
+
+            <div class="section  section_status_success ">
+    <div class="section__title">
+        plain
+            <button
+                class="button section__icon section__icon_copy-to-clipboard"
+                title="copy to clipboard"
+                data-clipboard-text="yandex-search,plain">
+            </button>
+    </div>
+    <div class="section__body section__body_guided">
+            <div class="section section_collapsed section_status_success ">
+                    <div class="section__title">
+                        PhantomJS
+                        <a
+                            class="button section__icon section__icon_view-local"
+                            data-suite-view-link="http://yandex.com/" href="http://yandex.com/"
+                            title="view in browser"
+                            target="_blank">
+                        </a>
+                    </div>
+                    <div class="section__body">
+                        <div class="image-box ">
+                            <div class="cswitcher">
+                                <button data-id="1" class="state-button cswitcher__item cswitcher_color_1 cswitcher__item_selected">&nbsp;</button>
+                                <button data-id="2" class="state-button cswitcher__item cswitcher_color_2">&nbsp;</button>
+                                <button data-id="3" class="state-button cswitcher__item cswitcher_color_3">&nbsp;</button>
+                            </div>
+                            <div class="tab">
+                                    <div class="tab__item tab__item_active" data-position="0">
+                                        <div class="meta-info meta-info_collapsed">
+    <div class="meta-info__switcher">Meta-info</div>
+    <div class="meta-info__content">
+        <pre>{
+    &quot;url&quot;: &quot;/&quot;,
+    &quot;file&quot;: &quot;test/gemini/demo1.js&quot;,
+    &quot;sessionId&quot;: &quot;20cafe60-5a4f-11e7-8dde-e99d1aa2245a&quot;
+}</pre>
+    </div>
+</div>
+    <div class="image-box__image">
+        <img data-src="images/yandex-search/plain/PhantomJS~ref.png">
+    </div>
+                                    </div>
+                            </div>
+                        </div>
+                    </div>
+            </div>
+
+    </div>
+</div>
+            <div class="section  section_status_success ">
+    <div class="section__title">
+        with text
+            <button
+                class="button section__icon section__icon_copy-to-clipboard"
+                title="copy to clipboard"
+                data-clipboard-text="yandex-search,with text">
+            </button>
+    </div>
+    <div class="section__body section__body_guided">
+            <div class="section section_collapsed section_status_success ">
+                    <div class="section__title">
+                        PhantomJS
+                        <a
+                            class="button section__icon section__icon_view-local"
+                            data-suite-view-link="http://yandex.com/" href="http://yandex.com/"
+                            title="view in browser"
+                            target="_blank">
+                        </a>
+                    </div>
+                    <div class="section__body">
+                        <div class="image-box ">
+                            <div class="cswitcher">
+                                <button data-id="1" class="state-button cswitcher__item cswitcher_color_1 cswitcher__item_selected">&nbsp;</button>
+                                <button data-id="2" class="state-button cswitcher__item cswitcher_color_2">&nbsp;</button>
+                                <button data-id="3" class="state-button cswitcher__item cswitcher_color_3">&nbsp;</button>
+                            </div>
+                            <div class="tab">
+                                    <div class="tab__item tab__item_active" data-position="0">
+                                        <div class="meta-info meta-info_collapsed">
+    <div class="meta-info__switcher">Meta-info</div>
+    <div class="meta-info__content">
+        <pre>{
+    &quot;url&quot;: &quot;/&quot;,
+    &quot;file&quot;: &quot;test/gemini/demo1.js&quot;,
+    &quot;sessionId&quot;: &quot;20cafe60-5a4f-11e7-8dde-e99d1aa2245a&quot;
+}</pre>
+    </div>
+</div>
+    <div class="image-box__image">
+        <img data-src="images/yandex-search/with%20text/PhantomJS~ref.png">
+    </div>
+                                    </div>
+                            </div>
+                        </div>
+                    </div>
+            </div>
+
+    </div>
+</div>
+    </div>
+</div>
+            <div class="section  section_status_fail ">
+    <div class="section__title">
+        yandex-icons
+            <button
+                class="button section__icon section__icon_copy-to-clipboard"
+                title="copy to clipboard"
+                data-clipboard-text="yandex-icons">
+            </button>
+    </div>
+    <div class="section__body section__body_guided">
+
+            <div class="section  section_status_fail ">
+    <div class="section__title">
+        plain
+            <button
+                class="button section__icon section__icon_copy-to-clipboard"
+                title="copy to clipboard"
+                data-clipboard-text="yandex-icons,plain">
+            </button>
+    </div>
+    <div class="section__body section__body_guided">
+            <div class="section section_collapsed section_status_fail ">
+                    <div class="section__title">
+                        PhantomJS
+                        <a
+                            class="button section__icon section__icon_view-local"
+                            data-suite-view-link="http://yandex.com/foo" href="http://yandex.com/foo"
+                            title="view in browser"
+                            target="_blank">
+                        </a>
+                    </div>
+                    <div class="section__body">
+                        <div class="image-box image-box_error">
+                            <div class="cswitcher">
+                                <button data-id="1" class="state-button cswitcher__item cswitcher_color_1 cswitcher__item_selected">&nbsp;</button>
+                                <button data-id="2" class="state-button cswitcher__item cswitcher_color_2">&nbsp;</button>
+                                <button data-id="3" class="state-button cswitcher__item cswitcher_color_3">&nbsp;</button>
+                            </div>
+                            <div class="tab">
+                                    <div class="tab__item tab__item_active" data-position="0">
+                                        <div class="meta-info meta-info_collapsed">
+    <div class="meta-info__switcher">Meta-info</div>
+    <div class="meta-info__content">
+        <pre>{
+    &quot;url&quot;: &quot;/foo&quot;,
+    &quot;file&quot;: &quot;test/gemini/demo2.js&quot;,
+    &quot;sessionId&quot;: &quot;20cafe60-5a4f-11e7-8dde-e99d1aa2245a&quot;
+}</pre>
+    </div>
+</div>
+    <div class="image-box__image">
+        <pre class="reason">Error
+    at /home/delphin/workspaces/workspace_vis/vis/node_modules/gemini/lib/browser/client-bridge.js:42:39
+    at tryCatcher (/home/delphin/workspaces/workspace_vis/vis/node_modules/bluebird/js/release/util.js:16:23)
+    at Promise._settlePromiseFromHandler (/home/delphin/workspaces/workspace_vis/vis/node_modules/bluebird/js/release/promise.js:512:31)
+    at Promise._settlePromise (/home/delphin/workspaces/workspace_vis/vis/node_modules/bluebird/js/release/promise.js:569:18)
+    at Promise._settlePromise0 (/home/delphin/workspaces/workspace_vis/vis/node_modules/bluebird/js/release/promise.js:614:10)
+    at Promise._settlePromises (/home/delphin/workspaces/workspace_vis/vis/node_modules/bluebird/js/release/promise.js:693:18)
+    at Async._drainQueue (/home/delphin/workspaces/workspace_vis/vis/node_modules/bluebird/js/release/async.js:133:16)
+    at Async._drainQueues (/home/delphin/workspaces/workspace_vis/vis/node_modules/bluebird/js/release/async.js:143:10)
+    at Immediate.Async.drainQueues (/home/delphin/workspaces/workspace_vis/vis/node_modules/bluebird/js/release/async.js:17:14)
+    at runCallback (timers.js:651:20)
+    at tryOnImmediate (timers.js:624:5)
+    at processImmediate [as _immediateCallback] (timers.js:596:5)</pre>
+            <img data-src="images/yandex-icons/plain/PhantomJS~current.png">
+    </div>
+                                    </div>
+                            </div>
+                        </div>
+                    </div>
+            </div>
+
+    </div>
+</div>
+    </div>
+</div>
+
+        <script src="report.min.js"></script>
+    </body>
+</html>
