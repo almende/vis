@@ -118,26 +118,37 @@ function handleCompilerCallback(err, stats) {
   }
 }
 
-
-function startDevWebserver(cb) {
-  return gulp.src('./').pipe(webserver({
+function startDevWebserver(options, cb) {
+  var opt = options || {};
+  return gulp.src('./').pipe(webserver(Object.assign(opt, {
     path: '/',
     port: geminiConfig.webserver.port
-  }));
+  })));
 }
 
-gulp.task('gemini-webserver', function(cb) {
-  startDevWebserver(cb);
+// Starts a static webserver that serve files from the root-dir of the project
+// during development. This is also used for gemini-testing.
+gulp.task('webserver', function(cb) {
+  startDevWebserver({
+    livereload: true,
+    directoryListing: true,
+    open: true
+  }, cb);
 });
 
 function runGemini(mode, cb) {
-  var server = startDevWebserver();
-  var phantomjsProcess = spawn('phantomjs', [
-    '--webdriver=' + geminiConfig.phantomjs.port
-  ]);
   var completed = false;
   var hasError = false;
 
+  // start development webserver to server the test-files
+  var server = startDevWebserver();
+
+  // start phantomjs in webdriver mode
+  var phantomjsProcess = spawn('phantomjs', [
+    '--webdriver=' + geminiConfig.phantomjs.port
+  ]);
+
+  // read output from the phantomjs process
   phantomjsProcess.stdout.on('data', function(data) {
     if (data.toString().indexOf('running on port') >= 0) {
       gutil.log("Started phantomjs webdriver");
@@ -165,35 +176,46 @@ function runGemini(mode, cb) {
       geminiProcess.on('close', function(code) {
         completed = true;
         phantomjsProcess.kill();
-        server.emit('kill');
       });
     }
   });
+
+  // Log all error output from the phantomjs process to the console
   phantomjsProcess.stderr.on('data', function(data) {
     gutil.log(gutil.colors.red(data));
   });
+
+  // Cleanup after phantomjs closes
   phantomjsProcess.on('close', function(code) {
+    gutil.log("Phantomjs webdriver stopped");
+
     if (code && !completed) {
+      // phantomjs closed with an error
+      server.emit('kill');
       return cb(new Error('✘ phantomjs failed with code: ' + code + '\n' +
         'Check that port ' + geminiConfig.phantomjs.port +
         ' is free and that there are no other ' +
         'instances of phantomjs running. (`killall phantomjs`)'));
     }
-    gutil.log("Stoped phantomjs webdriver");
 
     if (hasError) {
-      gutil.log("Opening report in webbrowser");
-      opn(geminiConfig.gemini.reports);
+      // The tests returned with an error. Show the report. Keep dev-webserver running for debugging.
+      gutil.log(gutil.colors.red("Opening error-report in webbrowser"));
+      opn(geminiConfig.gemini.reports + 'index.html');
+    } else {
+      // The tests returned no error. Kill the dev-webserver and exit
+      server.emit('kill');
+      cb();
     }
-
-    cb();
   });
 }
 
+// Update the screenshots. Do this everytime you introduced a new test or introduced a major change.
 gulp.task('gemini-update', function(cb) {
   runGemini('update', cb);
 });
 
+// Test the current (dist) version against the existing screenshots.
 gulp.task('gemini-test', function(cb) {
   runGemini('test', cb);
 });
