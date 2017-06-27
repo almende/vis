@@ -1,5 +1,9 @@
+var geminiConfig = require('./test/gemini/gemini.config.js');
+
 module.exports = {
-  rootUrl: "http://yandex.com",
+  rootUrl: 'http://localhost' + ':' + geminiConfig.webserver.port,
+
+  screenshotsDir: geminiConfig.gemini.screens,
 
   browsers: {
     PhantomJS: {
@@ -13,7 +17,7 @@ module.exports = {
     plugins: {
       'html-reporter': {
         enabled: true,
-        path: 'gemini/reports'
+        path: geminiConfig.gemini.reports
       }
     }
   }

@@ -24,7 +24,9 @@
   "main": "./dist/vis.js",
   "scripts": {
     "test": "mocha --compilers js:babel-core/register",
-    "gemini": "gulp gemini-tests",
+    "gemini": "gemini",
+    "gemini-tests": "gulp gemini-tests",
+    "gulp": "gulp",
     "build": "gulp",
     "lint": "eslint lib",
     "watch": "gulp watch",
@@ -57,6 +59,7 @@
     "gulp-concat": "^2.6.1",
     "gulp-rename": "^1.2.2",
     "gulp-util": "^3.0.8",
+    "gulp-webserver": "^0.9.1",
     "jsdom": "9.9.1",
     "jsdom-global": "^2.1.1",
     "mocha": "^3.2.0",

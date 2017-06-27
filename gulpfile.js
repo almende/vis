@@ -1,7 +1,6 @@
 var fs = require('fs');
 var async = require('async');
 var gulp = require('gulp');
-var opn = require('opn');
 var gutil = require('gulp-util');
 var concat = require('gulp-concat');
 var cleanCSS = require('gulp-clean-css');
@@ -10,8 +9,11 @@ var webpack = require('webpack');
 var uglify = require('uglify-js');
 var rimraf = require('rimraf');
 var argv = require('yargs').argv;
+var opn = require('opn');
 var exec = require('child_process').exec;
 var spawn = require('child_process').spawn;
+var webserver = require('gulp-webserver');
+var geminiConfig = require('./test/gemini/gemini.config.js');
 
 var ENTRY = './index.js';
 var HEADER = './lib/header.js';
@@ -82,7 +84,7 @@ var webpackConfig = {
   plugins: [bannerPlugin],
   cache: true,
 
-  // generate details sourcempas of webpack modules
+  // generate details s    tests: root + 'tests/',ourcempas of webpack modules
   devtool: 'source-map'
 
   //debug: true,
@@ -116,9 +118,23 @@ function handleCompilerCallback(err, stats) {
   }
 }
 
-var phantomjsPort = 4444;
-gulp.task('gemini-tests', function(cb) {
-  var phantomjsProcess = spawn('phantomjs', ['--webdriver=' + phantomjsPort]);
+
+function startDevWebserver(cb) {
+  return gulp.src('./').pipe(webserver({
+    path: '/',
+    port: geminiConfig.webserver.port
+  }));
+}
+
+gulp.task('gemini-webserver', function(cb) {
+  startDevWebserver(cb);
+});
+
+function runGemini(mode, cb) {
+  var server = startDevWebserver();
+  var phantomjsProcess = spawn('phantomjs', [
+    '--webdriver=' + geminiConfig.phantomjs.port
+  ]);
   var completed = false;
   var hasError = false;
 
@@ -126,7 +142,7 @@ gulp.task('gemini-tests', function(cb) {
     if (data.toString().indexOf('running on port') >= 0) {
       gutil.log("Started phantomjs webdriver");
 
-      var geminiProcess = spawn('gemini', ['test', 'test/gemini']);
+      var geminiProcess = spawn('gemini', [mode, geminiConfig.gemini.tests]);
       geminiProcess.stdout.on('data', function(data) {
         var msg = data.toString().replace(/\n$/g, '');
         if (msg.startsWith('✓')) {
@@ -141,13 +157,15 @@ gulp.task('gemini-tests', function(cb) {
       geminiProcess.stderr.on('data', function(data) {
         if (!(data.toString().indexOf('DeprecationWarning:') >= 0)) {
           hasError = true;
-          gutil.log(gutil.colors.red(data.toString().replace(/\n$/g,
-            '')));
+          gutil.log(gutil.colors.red(
+            data.toString().replace(/\n$/g, '')
+          ));
         }
       });
       geminiProcess.on('close', function(code) {
         completed = true;
         phantomjsProcess.kill();
+        server.emit('kill');
       });
     }
   });
@@ -156,20 +174,28 @@ gulp.task('gemini-tests', function(cb) {
   });
   phantomjsProcess.on('close', function(code) {
     if (code && !completed) {
-      return cb(new Error('✘ phantomjs failed with code: ' + code +
-        '\n' +
-        'Check that port ' + phantomjsPort +
+      return cb(new Error('✘ phantomjs failed with code: ' + code + '\n' +
+        'Check that port ' + geminiConfig.phantomjs.port +
         ' is free and that there are no other ' +
         'instances of phantomjs running. (`killall phantomjs`)'));
     }
     gutil.log("Stoped phantomjs webdriver");
 
     if (hasError) {
-      opn('./gemini/reports/index.html');
+      gutil.log("Opening report in webbrowser");
+      opn(geminiConfig.gemini.reports);
     }
 
     cb();
   });
+}
+
+gulp.task('gemini-update', function(cb) {
+  runGemini('update', cb);
+});
+
+gulp.task('gemini-test', function(cb) {
+  runGemini('test', cb);
 });
 
 // clean the dist/img directory
