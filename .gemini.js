@@ -10,10 +10,31 @@ module.exports = {
       desiredCapabilities: {
         browserName: "phantomjs"
       }
+    },
+
+    /*
+    chrome: {
+      desiredCapabilities: {
+        browserName: 'chrome',
+        chromeOptions: {
+          args: ["disable-gpu", "no-sandbox"]
+        }
+      }
     }
+    */
+
+    /*
+    firefox: {
+      desiredCapabilities: {
+        browserName: "firefox"
+        version: "47.0"
+      }
+    }
+    */
   },
 
   system: {
+    parallelLimit: 3,
     plugins: {
       'html-reporter': {
         enabled: true,
