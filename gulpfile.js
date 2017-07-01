@@ -13,6 +13,7 @@ var opn = require('opn');
 var exec = require('child_process').exec;
 var spawn = require('child_process').spawn;
 var webserver = require('gulp-webserver');
+var ejs = require('ejs');
 var geminiConfig = require('./test/gemini/gemini.config.js');
 
 var ENTRY = './index.js';
@@ -122,7 +123,37 @@ function startDevWebserver(options, cb) {
   var opt = options || {};
   return gulp.src('./').pipe(webserver(Object.assign(opt, {
     path: '/',
-    port: geminiConfig.webserver.port
+    port: geminiConfig.webserver.port,
+    middleware: function(req, res, next) {
+      var dynamicTestBase = '/test/gemini/tests/dynamic/';
+      var url = req.url;
+      if (url.startsWith(dynamicTestBase)) {
+        // get testcase from url
+        var testName = url.split(dynamicTestBase)[1];
+
+        // if testcase exists open settings
+        var testConfig = require('.' + req.url + '.test');
+        testConfig.name = testName;
+
+        // render and send
+        var templateFile = '.' + dynamicTestBase + 'dynamic.tmpl.html';
+        ejs.renderFile(templateFile, testConfig, {}, function(err, html){
+          if (err) {
+            res.statusCode = 500;
+            res.write('error rendering "'+ templateFile + '" (' + err + ')');
+            res.end();
+            return err;
+          }
+          res.writeHead(200, {
+            'Content-Length': Buffer.byteLength(html),
+            'Content-Type': 'text/html; charset=utf-8'
+          });
+          res.write(html);
+          res.end();
+        });
+      }
+      next();
+    }
   })));
 }
 
@@ -205,6 +236,7 @@ function runGemini(mode, cb) {
     } else {
       // The tests returned no error. Kill the dev-webserver and exit
       server.emit('kill');
+      gutil.log("Webbrowser stopped");
       cb();
     }
   });

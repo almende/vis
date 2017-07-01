@@ -1,0 +1,22 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+  <title>Timeline | <%- name %></title>
+  <script src="/dist/vis.js"></script>
+  <link href="/dist/vis-timeline-graph2d.min.css" rel="stylesheet" type="text/css" />
+	<style type="text/css">
+		#timeline {
+			width: 1024px;
+		}
+	</style>
+</head>
+<body>
+<div id="timeline" class="gemini-test-timeline"></div>
+<script type="text/javascript">
+  var container = document.getElementById('timeline');
+  var items = new vis.DataSet(<%- JSON.stringify(data) %>);
+  var options = <%- JSON.stringify(options) %>;
+  var timeline = new vis.Timeline(container, items, options);
+</script>
+</body>
+</html>

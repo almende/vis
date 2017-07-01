@@ -1,0 +1,38 @@
+{
+  "data": [
+    {
+      "content": "item 1",
+      "id": 1,
+      "start": "2014-04-20"
+    },
+    {
+      "content": "item 2",
+      "id": 2,
+      "start": "2014-04-14"
+    },
+    {
+      "content": "item 3",
+      "id": 3,
+      "start": "2014-04-18"
+    },
+    {
+      "content": "item 4",
+      "end": "2014-04-19",
+      "id": 4,
+      "start": "2014-04-16"
+    },
+    {
+      "content": "item 5",
+      "id": 5,
+      "start": "2014-04-25"
+    },
+    {
+      "content": "item 6",
+      "id": 6,
+      "start": "2014-04-27",
+      "type": "point"
+    }
+  ],
+
+	"options": {}
+}

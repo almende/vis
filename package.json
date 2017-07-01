@@ -25,6 +25,7 @@
   "scripts": {
     "gulp": "gulp",
     "test": "mocha --compilers js:babel-core/register",
+    "dev-server": "gulp webserver",
     "gemini-update": "gulp gemini-update",
     "gemini-test": "gulp gemini-test",
     "build": "gulp",
@@ -52,6 +53,7 @@
     "babel-runtime": "^6.22.0",
     "babelify": "^7.3.0",
     "clean-css": "^4.0.2",
+    "ejs": "^2.5.6",
     "eslint": "^3.15.0",
     "gemini": "^5.0.0-alpha.3",
     "gulp": "^3.9.1",
