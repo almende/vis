@@ -13,7 +13,6 @@ http://visjs.org
 - FIX #3198: Small fix on ref usage in DataGroup
 - FIX #3170: Refactoring of Node Drawing 
 - FIX #3108: Reverse nodes returned with 'from' and 'to' directions
-- FEAT #3154: Caching to Range getMillisecondsPerPixel function
 - FIX #3122: Refactored line drawing for Bezier edges
 - FIX #3121: Refactoring of `BezierEdgeStatic._getViaCoordinates()` 
 - FIX #3088: Consolidate code for determining the pixel ratio
@@ -35,6 +34,7 @@ http://visjs.org
 ### Timeline
 - FIX #3172: Fix stacking when setting option
 - FIX #3183: Fixes a race condition that set an item's group to be set to undefined
+- FEAT #3154: Caching to Range getMillisecondsPerPixel function
 - FIX #3105: Adjusting timeline TimeStep.roundToMinor
 - FEAT #3107: Allow overriding `align` per item
 
