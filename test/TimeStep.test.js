@@ -41,4 +41,50 @@ describe('TimeStep', function () {
     assert.equal(timestep.scale, "second", "should have right scale");
     assert.equal(timestep.step, 10, "should have right step size");
   });
+
+  it('should perform the step with a specified scale (1 year)', function () {
+    var timestep = new TimeStep(new Date(2017, 3, 3), new Date(2017, 3, 5));
+    timestep.setScale({ scale: 'year', step: 1 });
+    timestep.start();
+    assert.equal(timestep.getCurrent().unix(), moment("2017-01-01T00:00:00.000").unix(), "should have the right initial value");
+    timestep.next();
+    assert.equal(timestep.getCurrent().unix(), moment("2018-01-01T00:00:00.000").unix(), "should have the right value after a step");
+  });
+
+  it('should perform the step with a specified scale (1 month)', function () {
+    var timestep = new TimeStep(new Date(2017, 3, 3), new Date(2017, 3, 5));
+    timestep.setScale({ scale: 'month', step: 1 });
+    timestep.start();
+    assert.equal(timestep.getCurrent().unix(), moment("2017-04-01T00:00:00.000").unix(), "should have the right initial value");
+    timestep.next();
+    assert.equal(timestep.getCurrent().unix(), moment("2017-05-01T00:00:00.000").unix(), "should have the right value after a step");
+  });
+
+  it('should perform the step with a specified scale (1 week)', function () {
+    var timestep = new TimeStep(new Date(2017, 3, 3), new Date(2017, 3, 5));
+    timestep.setScale({ scale: 'week', step: 1 });
+    timestep.start();
+    assert.equal(timestep.getCurrent().unix(), moment("2017-04-02T00:00:00.000").unix(), "should have the right initial value");
+    timestep.next();
+    assert.equal(timestep.getCurrent().unix(), moment("2017-04-09T00:00:00.000").unix(), "should have the right value after a step");
+  });
+
+  it('should perform the step with a specified scale (1 day)', function () {
+    var timestep = new TimeStep(new Date(2017, 3, 3), new Date(2017, 3, 5));
+    timestep.setScale({ scale: 'day', step: 1 });
+    timestep.start();
+    assert.equal(timestep.getCurrent().unix(), moment("2017-04-03T00:00:00.000").unix(), "should have the right initial value");
+    timestep.next();
+    assert.equal(timestep.getCurrent().unix(), moment("2017-04-04T00:00:00.000").unix(), "should have the right value after a step");
+  });
+
+  it('should perform the step with a specified scale (1 hour)', function () {
+    var timestep = new TimeStep(new Date(2017, 3, 3), new Date(2017, 3, 5));
+    timestep.setScale({ scale: 'hour', step: 1 });
+    timestep.start();
+    assert.equal(timestep.getCurrent().unix(), moment("2017-04-03T00:00:00.000").unix(), "should have the right initial value");
+    timestep.next();
+    assert.equal(timestep.getCurrent().unix(), moment("2017-04-03T01:00:00.000").unix(), "should have the right value after a step");
+  });
+
 });
