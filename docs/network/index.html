@@ -611,13 +611,18 @@ var locales = {
             </tr>
             <tr class="collapsible toggle" onclick="toggleTable('methodTable','findNode', this);">
                 <td colspan="2"><span parent="findNode" class="right-caret" id="method_findNode"></span> findNode(
-                    <code>String nodeId</code>)
+                    <code>String/Number nodeId</code>)
             </tr>
             <tr class="hidden" parent="findNode">
                 <td class="midMethods">Returns: Array</td>
                 <td>Nodes can be in clusters. Clusters can also be in clusters. This function returns and array of
-                    nodeIds
-                    showing where the node is. <br><br> Example:
+                    nodeIds showing where the node is.
+
+                    <br><br>
+                    If any nodeId in the chain, especially the first passed in as a parameter, is not present in
+                    the current nodes list, an empty array is returned.
+
+                    <br><br> Example:
                     cluster 'A' contains cluster 'B',
                     cluster 'B' contains cluster 'C',
                     cluster 'C' contains node 'fred'.
