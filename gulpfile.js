@@ -1,6 +1,7 @@
 var fs = require('fs');
 var async = require('async');
 var gulp = require('gulp');
+var eslint = require('gulp-eslint');
 var gutil = require('gulp-util');
 var concat = require('gulp-concat');
 var cleanCSS = require('gulp-clean-css');
@@ -217,3 +218,11 @@ gulp.task('watch', watchTasks, function () {
 
 // The default task (called when you run `gulp`)
 gulp.task('default', ['clean', 'bundle', 'minify']);
+
+gulp.task('lint', function () {
+  //return gulp.src(['lib/**/*.js', '!node_modules/**'])
+  return gulp.src(['lib/graph3d/**/*.js', '!node_modules/**'])
+    .pipe(eslint())
+    .pipe(eslint.format())
+    .pipe(eslint.failAfterError());
+});
