@@ -1,6 +1,6 @@
 {
   "name": "vis",
-  "version": "4.19.1-SNAPSHOT",
+  "version": "4.20.1-SNAPSHOT",
   "description": "A dynamic, browser-based visualization library.",
   "homepage": "http://visjs.org/",
   "license": "(Apache-2.0 OR MIT)",
@@ -23,7 +23,7 @@
   ],
   "main": "./dist/vis.js",
   "scripts": {
-    "test": "mocha",
+    "test": "mocha --compilers js:babel-core/register",
     "build": "gulp",
     "lint": "eslint lib",
     "watch": "gulp watch",

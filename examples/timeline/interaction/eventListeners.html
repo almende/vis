@@ -72,6 +72,14 @@
       logEvent('contextmenu', properties);
     });
 
+    timeline.on('mouseDown', function (properties) {
+        logEvent('mouseDown', properties);
+    });
+
+    timeline.on('mouseUp', function (properties) {
+        logEvent('mouseUp', properties);
+    });
+
     // other possible events:
 
     // timeline.on('mouseOver', function (properties) {

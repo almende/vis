@@ -809,7 +809,10 @@ network.setOptions(options);
             <td>Number</td>
             <td><code>1</code></td>
             <td>The barnesHut physics model (which is enabled by default) is based on an inverted gravity model. By
-                increasing the mass of a node, you increase it's repulsion. Values lower than 1 are not recommended.
+                increasing the mass of a node, you increase it's repulsion.
+                <br><br>
+                Values between 0 and 1 are not recommended.<br>
+                Negative or zero values are not allowed. These will generate a console error and will be set to 1.
             </td>
         </tr>
         <tr>

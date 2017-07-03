@@ -611,13 +611,18 @@ var locales = {
             </tr>
             <tr class="collapsible toggle" onclick="toggleTable('methodTable','findNode', this);">
                 <td colspan="2"><span parent="findNode" class="right-caret" id="method_findNode"></span> findNode(
-                    <code>String nodeId</code>)
+                    <code>String/Number nodeId</code>)
             </tr>
             <tr class="hidden" parent="findNode">
                 <td class="midMethods">Returns: Array</td>
                 <td>Nodes can be in clusters. Clusters can also be in clusters. This function returns and array of
-                    nodeIds
-                    showing where the node is. <br><br> Example:
+                    nodeIds showing where the node is.
+
+                    <br><br>
+                    If any nodeId in the chain, especially the first passed in as a parameter, is not present in
+                    the current nodes list, an empty array is returned.
+
+                    <br><br> Example:
                     cluster 'A' contains cluster 'B',
                     cluster 'B' contains cluster 'C',
                     cluster 'C' contains node 'fred'.
@@ -866,13 +871,19 @@ function releaseFunction (clusterPosition, containedNodesPositions) {
             </tr>
             <tr class="collapsible toggle" onclick="toggleTable('methodTable','getConnectedNodes', this);">
                 <td colspan="2"><span parent="getConnectedNodes" class="right-caret" id="method_getConnectedNodes"></span> getConnectedNodes(<code><i>String
-                    nodeId or edgeId</i></code>)
+                    nodeId or edgeId, [String direction]</i></code>)
                 </td>
             </tr>
             <tr class="hidden" parent="getConnectedNodes">
                 <td class="midMethods">Returns: Array</td>
-                <td>Returns an array of nodeIds of the all the nodes that are directly connected to this node. If you supply an edgeId,
-                vis will first match the id to nodes. If no match is found, it will search in the edgelist and return an array: <code>[fromId, toId]</code>.</td>
+                <td>Returns an array of nodeIds of all the nodes that are directly connected to this node or edge.<br><br>
+                For a node id, returns an array with the id's of the connected nodes.<br>
+                If optional parameter <code>direction</code> is set to string <i>'from'</i>, only parent nodes are returned.<br>
+                If <code>direction</code> is set to <i>'to'</i>, only child nodes are returned.<br>
+                Any other value or <code>undefined</code> returns both parent and child nodes.
+                <br><br>
+                For an edge id, returns an array: <code>[fromId, toId]</code>.
+                Parameter <i>direction</i> is ignored for edges.</td>
             </tr>
             <tr class="collapsible toggle" onclick="toggleTable('methodTable','getConnectedEdges', this);">
                 <td colspan="2"><span parent="getConnectedEdges" class="right-caret" id="method_getConnectedEdges"></span> getConnectedEdges(<code><i>String
