@@ -1,6 +1,43 @@
 # vis.js history
 http://visjs.org
 
+
+## 2017-07-01, version 4.20.1
+
+### General
+- Added Release checklist 
+- Added collapsible items for objects in graph3d doc
+
+### Network
+- FIX #3203: Set dimensions properly of images on initialization
+- FIX #3198: Small fix on ref usage in DataGroup
+- FIX #3170: Refactoring of Node Drawing 
+- FIX #3108: Reverse nodes returned with 'from' and 'to' directions
+- FIX #3122: Refactored line drawing for Bezier edges
+- FIX #3121: Refactoring of `BezierEdgeStatic._getViaCoordinates()` 
+- FIX #3088: Consolidate code for determining the pixel ratio
+- FIX #3036: Smooth type 'dynamic' adjusted for node-specific option in hierarchical
+- FIX #1105: Fix usage of clustering with hierarchical networks
+- FIX #3133: Protect Network from zero and negative mass values
+- FIX #3163: Prevent crashes from invalid id's in `Clustering.findNode()`
+- FIX #3106: Ensure start and end of stabilization progress events is sent
+- FIX #3015: Properly handle newline escape sequences in strings for DOT
+- FIX Refactoring of LayoutEngine
+- FIX #2990: Edge labels turn bold on select and hover
+- FIX #2959: Changed order of (de)select events for network
+- FIX #3091: Added param 'direction' to Network.getConnectedNodes()
+- FIX #3085: Add prefix  to cancelAnimationFrame()
+
+### Graph3D
+- FIX #2804: Add data group class to Graph3d
+
+### Timeline
+- FIX #3172: Fix stacking when setting option
+- FIX #3183: Fixes a race condition that set an item's group to be set to undefined
+- FEAT #3154: Caching to Range getMillisecondsPerPixel function
+- FIX #3105: Adjusting timeline TimeStep.roundToMinor
+- FEAT #3107: Allow overriding `align` per item
+
 ## 2017-05-21, version 4.20.0
 
 ### General
