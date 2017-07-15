@@ -57,6 +57,7 @@
     "gulp-util": "^3.0.8",
     "jsdom": "9.9.1",
     "jsdom-global": "^2.1.1",
+    "canvas": "^1.6.5",
     "mocha": "^3.2.0",
     "mocha-jsdom": "^1.1.0",
     "rimraf": "^2.5.4",
