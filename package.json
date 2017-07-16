@@ -54,7 +54,6 @@
     "canvas": "^1.6.5",
     "clean-css": "^4.0.2",
     "eslint": "^3.15.0",
-    "glob-wather": "^4.0.0",
     "gulp": "^3.9.1",
     "gulp-clean-css": "^3.7.0",
     "gulp-concat": "^2.6.1",
