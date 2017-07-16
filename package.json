@@ -37,7 +37,7 @@
     "moment": "^2.18.1",
     "propagating-hammerjs": "^1.4.6",
     "hammerjs": "^2.0.8",
-    "keycharm": "^0.2.0"
+    "keycharm": "^0.2.0",
   },
   "devDependencies": {
     "async": "^2.1.4",
@@ -67,8 +67,7 @@
     "uglify-js": "^2.7.5",
     "uuid": "^3.0.1",
     "webpack": "^2.0.0",
-    "yargs": "^6.6.0",
-    "minimatch": "^3.0.4",
-    "graceful-fs": "^4.1.11"
+    "yargs": "^6.6.0"
+    "graceful-fs": "^4.1.11",
   }
 }

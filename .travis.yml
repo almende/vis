@@ -12,6 +12,7 @@ addons:
       - g++-4.8
 before_script:
   - npm run lint
+  - npm install -g minimatch@3.0.4
   - npm install -g gulp
 script:
   - gulp
