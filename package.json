@@ -67,6 +67,8 @@
     "uglify-js": "^2.7.5",
     "uuid": "^3.0.1",
     "webpack": "^2.0.0",
-    "yargs": "^6.6.0"
+    "yargs": "^6.6.0",
+    "minimatch": "^3.0.4",
+    "graceful-fs": "^4.1.11"
   }
 }
