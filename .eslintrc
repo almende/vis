@@ -22,5 +22,6 @@
     "no-redeclare": 0,
     "no-unreachable": 1,
     "no-unused-vars": 0,
+    "no-useless-escape": 0,
   }
 }
