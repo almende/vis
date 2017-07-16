@@ -26,9 +26,8 @@
     "no-mixed-spaces-and-tabs": 0,
     "no-redeclare": 0,
     "no-unused-vars": 0,
-
+     "no-useless-escape": 0,
     // following will flag presence of console.log as error.
     "no-console": ["error", { allow: ["warn", "error"] }],
-*/
   }
 }

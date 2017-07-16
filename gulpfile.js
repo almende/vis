@@ -13,7 +13,7 @@ var argv = require('yargs').argv;
 
 var ENTRY             = './index.js';
 var HEADER            = './lib/header.js';
-var DIST              = './dist';
+var DIST              = __dirname + '/dist';
 var VIS_JS            = 'vis.js';
 var VIS_MAP           = 'vis.map';
 var VIS_MIN_JS        = 'vis.min.js';
@@ -39,7 +39,8 @@ function createBanner() {
       .replace('@@version', version);
 }
 
-var bannerPlugin = new webpack.BannerPlugin(createBanner(), {
+var bannerPlugin = new webpack.BannerPlugin({
+  banner: createBanner(),
   entryOnly: true,
   raw: true
 });
