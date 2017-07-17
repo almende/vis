@@ -7,7 +7,7 @@ var Graph3d = vis.Graph3d;
 describe('Graph3d', function () {
 
   before(function() {
-    console.log('before!');
+    //console.log('before!');
     this.jsdom_global = jsdom_global(
       "<div id='mynetwork'></div>",
       { skipWindowCheck: true}
@@ -35,13 +35,13 @@ describe('Graph3d', function () {
     var graph = new vis.Graph3d(this.container, data, options);
     assert.equal(graph.style, DOT_STYLE, "Style not set to expected 'dot'");
 
-    graph.setOptions({ style: 'bar'});  // Call fails without PR #3255
+    graph.setOptions({ style: 'bar'});  // Call should just work, no exception thrown
     assert.equal(graph.style, BAR_STYLE, "Style not set to expected 'bar'");
   });
 
 
   after(function() {
-    console.log('after!');
+    //console.log('after!');
     this.jsdom_global();
   });
 });
