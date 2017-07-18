@@ -6,13 +6,18 @@
     "mocha": true
   },
 
-  "parser": "babel-eslint",
+  "parserOptions": {
+    "sourceType": "module",
+  },
 
   "extends": "eslint:recommended",
 
   "rules": {
     "complexity": [2, 55],
     "max-statements": [2, 115],
+    "no-unreachable": 1,
+/*
+    // some disabled options which might be useful
     "no-console": 0,
     "no-empty": 0,
     "no-extra-semi": 0,
@@ -20,8 +25,9 @@
     "no-inner-declarations": 0,
     "no-mixed-spaces-and-tabs": 0,
     "no-redeclare": 0,
-    "no-unreachable": 1,
     "no-unused-vars": 0,
-    "no-useless-escape": 0,
+     "no-useless-escape": 0,
+    // following will flag presence of console.log as error.
+    "no-console": ["error", { allow: ["warn", "error"] }],
   }
 }
