@@ -1,6 +1,7 @@
 var fs = require('fs');
 var async = require('async');
 var gulp = require('gulp');
+var eslint = require('gulp-eslint');
 var gutil = require('gulp-util');
 var concat = require('gulp-concat');
 var cleanCSS = require('gulp-clean-css');
@@ -215,6 +216,40 @@ else {
 gulp.task('watch', watchTasks, function () {
   gulp.watch(['index.js', 'lib/**/*'], watchTasks);
 });
+
+
+////////////////////////////////////////////////////////////////////////////////////////
+// Linting
+//
+// Linting has intentionally NOT been added yet to the default task; there are simply
+// too many errors at the moment to make this comfortable. Run it separately with:
+//
+//    > gulp lint    or   > gulp lint-<module name>
+//
+// This is set up so that 'gulp lint' runs the linting over the complete lib directory.
+// You can also run linting on the separate modules, e.g. 'gulp lint-network' for just
+// the network module. Scan the tasks below for the available lint commands.
+//
+// Note that currently a separate lint is missing for Graph2d,  DataSet and DataGroup.
+////////////////////////////////////////////////////////////////////////////////////////
+
+
+function runLintTask(pathPrefix) {
+  return gulp.src([ pathPrefix + '/**/*.js', '!node_modules/**'])
+    .pipe(eslint())
+    .pipe(eslint.format())
+    .pipe(eslint.failAfterError());
+}
+
+gulp.task('lint',          function () {return runLintTask('lib');});
+gulp.task('lint-timeline', function () {return runLintTask('lib/timeline');});
+gulp.task('lint-network',  function () {return runLintTask('lib/network');});
+gulp.task('lint-graph3d',  function () {return runLintTask('lib/graph3d');});
+
+
+////////////////////////////////////////////////////////////////////////////////////////
+// End Linting
+////////////////////////////////////////////////////////////////////////////////////////
 
 // The default task (called when you run `gulp`)
 gulp.task('default', ['clean', 'bundle', 'minify']);

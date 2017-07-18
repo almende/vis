@@ -42,7 +42,6 @@
   "devDependencies": {
     "async": "^2.1.4",
     "babel-core": "^6.6.5",
-    "babel-eslint": "^7.1.1",
     "babel-loader": "^6.2.4",
     "babel-polyfill": "^6.22.0",
     "babel-plugin-transform-es3-member-expression-literals": "^6.22.0",
@@ -55,9 +54,9 @@
     "clean-css": "^4.0.2",
     "eslint": "^4.2.0",
     "gulp": "^3.9.1",
+    "gulp-eslint": "^4.0.0",
     "gulp-clean-css": "^3.7.0",
     "gulp-concat": "^2.6.1",
-    "gulp-eslint": "^4.0.0",
     "gulp-rename": "^1.2.2",
     "gulp-util": "^3.0.8",
     "jsdom": "9.9.1",
