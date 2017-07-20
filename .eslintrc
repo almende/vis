@@ -16,7 +16,7 @@
     "complexity": [2, 55],
     "max-statements": [2, 115],
     "no-unreachable": 1,
-     "no-useless-escape": 0,
+    "no-useless-escape": 0,
 /*
     // some disabled options which might be useful
     "no-console": 0,
