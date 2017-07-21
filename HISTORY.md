@@ -10,7 +10,6 @@ http://visjs.org
 
 ### Network
 - FIX #3203: Set dimensions properly of images on initialization
-- FIX #3198: Small fix on ref usage in DataGroup
 - FIX #3170: Refactoring of Node Drawing 
 - FIX #3108: Reverse nodes returned with 'from' and 'to' directions
 - FIX #3122: Refactored line drawing for Bezier edges
@@ -22,13 +21,14 @@ http://visjs.org
 - FIX #3163: Prevent crashes from invalid id's in `Clustering.findNode()`
 - FIX #3106: Ensure start and end of stabilization progress events is sent
 - FIX #3015: Properly handle newline escape sequences in strings for DOT
-- FIX Refactoring of LayoutEngine
+- FIX: Refactoring of LayoutEngine (#3110)
 - FIX #2990: Edge labels turn bold on select and hover
 - FIX #2959: Changed order of (de)select events for network
 - FIX #3091: Added param 'direction' to Network.getConnectedNodes()
 - FIX #3085: Add prefix  to cancelAnimationFrame()
 
 ### Graph3D
+- FIX #3198: Small fix on ref usage in DataGroup
 - FIX #2804: Add data group class to Graph3d
 
 ### Timeline
