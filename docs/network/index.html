@@ -645,7 +645,20 @@ var locales = {
             <tr class="hidden" parent="getBaseEdge">
                 <td class="midMethods">Returns: Value</td>
                 <td>When a clusteredEdgeId is available, this method will return the original baseEdgeId provided in <code>data.edges</code><br/>
-                    ie. After clustering the 'SelectEdge' event is fired but provides only the clustered edge. This method can then be used to return the baseEdgeId.
+                    ie. After clustering the 'SelectEdge' event is fired but provides only the clustered edge. This method can then be used to return the baseEdgeId.<br><br>
+                    <b>This method is deprecated. Please use <code>getBaseEdges()</code> instead.</b>
+                </td>
+            </tr>
+            <tr class="collapsible toggle" onclick="toggleTable('methodTable','getBaseEdges', this);">
+                <td colspan="2"><span parent="getBaseEdges" class="right-caret" id="method_getBaseEdges"></span>
+                  getBaseEdges(<code>String clusteredEdgeId</code>)
+                </td>
+            </tr>
+            <tr class="hidden" parent="getBaseEdges">
+                <td class="midMethods">Returns: Array</td>
+                <td>For the given <code>clusteredEdgeId</code>, this method will return all the original base edge id's provided in <code>data.edges</code>.
+                    For a non-clustered (i.e. 'base') edge, <code>clusteredEdgeId</code> is returned.<br/><br/>
+                    Only the base edge id's are returned. All clustered edges id's under <code>clusteredEdgeId</code> are skipped, but scanned recursively to return their base id's.<br/>
                 </td>
             </tr>
             <tr class="collapsible toggle" onclick="toggleTable('methodTable','updateEdge', this);">
