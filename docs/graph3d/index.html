@@ -272,7 +272,7 @@ var options = {
     The following options are available.
   </p>
 
-  <table class="options">
+  <table class="options" id="optionTable">
     <tr>
       <th>Name</th>
       <th>Type</th>
@@ -311,69 +311,83 @@ var options = {
       <td>The color of the axis lines and the text along the axis.</td>
     </tr>
 
-    <tr>
-      <td>backgroundColor</td>
+    <tr class='toggle collapsible' onclick="toggleTable('optionTable','backgroundColor', this);">
+      <td><span parent="backgroundColor" class="right-caret"></span> backgroundColor</td>
       <td>string or Object</td>
-      <td>{fill:&nbsp;'white', stroke:&nbsp;'gray', strokeWidth:&nbsp;1}</td>
+      <td>Object</td>
       <td>The background color for the main area of the chart.
         Can be either a simple HTML color string, for example: 'red' or '#00cc00',
         or an object with the following properties.</td>
     </tr>
-    <tr>
-      <td>backgroundColor.fill</td>
+    <tr parent="backgroundColor" class="hidden">
+      <td class="indent">backgroundColor.fill</td>
       <td>string</td>
       <td>'white'</td>
       <td>The chart fill color, as an HTML color string.</td>
     </tr>
-    <tr>
-      <td>backgroundColor.stroke</td>
+    <tr parent="backgroundColor" class="hidden">
+      <td class="indent">backgroundColor.stroke</td>
       <td>string</td>
       <td>'gray'</td>
       <td>The color of the chart border, as an HTML color string.</td>
     </tr>
     <tr>
-      <td>backgroundColor.strokeWidth</td>
+    <tr parent="backgroundColor" class="hidden">
+      <td class="indent">backgroundColor.strokeWidth</td>
       <td>number</td>
       <td>1</td>
       <td>The border width, in pixels.</td>
     </tr>
 
-    <tr>
-      <td>cameraPosition</td>
+    <tr class='toggle collapsible' onclick="toggleTable('optionTable','cameraPosition', this);">
+      <td><span parent="cameraPosition" class="right-caret"></span> cameraPosition</td>
       <td>Object</td>
-      <td>{horizontal:&nbsp;1.0, vertical:&nbsp;0.5, distance:&nbsp;1.7}</td>
+      <td>Object</td>
       <td>Set the initial rotation and position of the camera.
-        The object <code>cameraPosition</code> contains three parameters:
-        <code>horizontal</code>, <code>vertical</code>, and <code>distance</code>.
-        Parameter <code>horizontal</code> is a value in radians and can have any
-        value (but normally in the range of 0 and 2*Pi).
-        Parameter <code>vertical</code> is a value in radians between 0 and 0.5*Pi.
-        Parameter <code>distance</code> is the (normalized) distance from the
-        camera to the center of the graph, in the range of 0.71 to 5.0. A
-        larger distance puts the graph further away, making it smaller.
         All parameters are optional.
     </tr>
+    <tr parent="cameraPosition" class="hidden">
+      <td class="indent">cameraPosition.horizontal</td>
+      <td>number</td>
+      <td>1.0</td>
+      <td>Value in radians. It can have any
+        value, but is normally in the range of 0 and 2*Pi.</td>
+    </tr>
+    <tr parent="cameraPosition" class="hidden">
+      <td class="indent">cameraPosition.vertical</td>
+      <td>number</td>
+      <td>0.5</td>
+      <td>Value in radians between 0 and 0.5*Pi.</td>
+    </tr>
+    <tr parent="cameraPosition" class="hidden">
+      <td class="indent">cameraPosition.distance</td>
+      <td>number</td>
+      <td>1.7</td>
+      <td>The (normalized) distance from the
+        camera to the center of the graph, in the range of 0.71 to 5.0. A
+        larger distance puts the graph further away, making it smaller.</p>
+    </tr>
 
-    <tr>
-      <td>dataColor</td>
+    <tr class='toggle collapsible' onclick="toggleTable('optionTable','dataColor', this);">
+      <td><span parent="dataColor" class="right-caret"></span> dataColor</td>
       <td>string or object</td>
-      <td>{fill:&nbsp;'#7DC1FF', stroke:&nbsp;'#3267D2', strokeWidth:&nbsp;1}</td>
+      <td>Object</td>
       <td>When <code>dataColor</code> is a string, it will set the color for both border and fill color of dots and bars. Applicable for styles <code>dot-size</code>, <code>bar-size</code>, and <code>line</code>. When an object, it can contain the properties descibed below.</td>
     </tr>
-    <tr>
-      <td>dataColor.fill</td>
+    <tr parent="dataColor" class="hidden">
+      <td class="indent">dataColor.fill</td>
       <td>string</td>
       <td>'#7DC1FF'</td>
       <td>The fill color of the dots or bars. Applicable when using styles <code>dot-size</code>, <code>bar-size</code>, or <code>line</code>.</td>  
     </tr>
-    <tr>
-      <td>dataColor.stroke</td>
+    <tr parent="dataColor" class="hidden">
+      <td class="indent">dataColor.stroke</td>
       <td>string</td>
       <td>'#3267D2'</td>
       <td>The border color of the dots or bars. Applicable when using styles <code>dot-size</code> or <code>bar-size</code>.</td>
     </tr>
-    <tr>
-      <td>dataColor.strokeWidth</td>
+    <tr parent="dataColor" class="hidden">
+      <td class="indent">dataColor.strokeWidth</td>
       <td>number</td>
       <td>1</td>
       <td>The line width of dots, bars and lines. Applicable for all styles.</td>
@@ -384,6 +398,24 @@ var options = {
       <td>number</td>
       <td>0.02</td>
       <td>Ratio of the size of the dots with respect to the width of the graph.</td>
+    </tr>
+
+    <tr>
+      <td>dotSizeMinFraction</td>
+      <td>number</td>
+      <td>0.5</td>
+      <td>Size of minimum-value dot as a fraction of dotSizeRatio.
+          Applicable when using style <code>dot-size</code>.</td>
+      </td>
+    </tr>
+
+    <tr>
+      <td>dotSizeMaxFraction</td>
+      <td>number</td>
+      <td>2.5</td>
+      <td>Size of maximum-value dot as a fraction of dotSizeRatio.
+          Applicable when using style <code>dot-size</code>.</td>
+      </td>
     </tr>
 
     <tr>
@@ -498,36 +530,94 @@ var options = {
       </td>
     </tr>
 
-    <tr>
-      <td>tooltipStyle</td>
+    <tr class='toggle collapsible' onclick="toggleTable('optionTable','tooltipStyle', this);">
+      <td><span parent="tooltipStyle" class="right-caret"></span> tooltipStyle</td>
       <td>Object</td>
-      <td>
-<pre class="prettyprint lang-js">
-{ 
-  content: {
-    padding: '10px',
-    border: '1px solid #4d4d4d',
-    color: '#1a1a1a',
-    background: 'rgba(255,255,255,0.7)',
-    borderRadius: '2px',
-    boxShadow: '5px 5px 10px rgba(128,128,128,0.5)'
-  },
-  line: {
-    height: '40px',
-    width: '0',
-    borderLeft: '1px solid #4d4d4d'
-  },
-  dot: {
-    height: '0',
-    width: '0',
-    border: '5px solid #4d4d4d',
-    borderRadius: '5px'
-  }
-}</pre>
+      <td>Object</td>
       </td>
       <td>Tooltip style properties.
         Provided properties will be merged with the default object.
       </td>
+    </tr>
+    <!-- Can't define separate entries for content, line and dot objects here,
+         because toggleTable() can't handle multiple levels of collapsibles --> 
+    <tr parent="tooltipStyle" class="hidden">
+      <td class="indent">tooltipStyle.content.padding</td>
+      <td>string</td>
+      <td>'10px'</td>
+      <td></td>
+    </tr>
+    <tr parent="tooltipStyle" class="hidden">
+      <td class="indent">tooltipStyle.content.border</td>
+      <td>string</td>
+      <td>'1px solid #4d4d4d'</td>
+      <td></td>
+    </tr>
+    <tr parent="tooltipStyle" class="hidden">
+      <td class="indent">tooltipStyle.content.color</td>
+      <td>string</td>
+      <td>'#1a1a1a'</td>
+      <td></td>
+    </tr>
+    <tr parent="tooltipStyle" class="hidden">
+      <td class="indent">tooltipStyle.content.background</td>
+      <td>string</td>
+      <td>'rgba(255,255,255,0.7)'</td>
+      <td></td>
+    </tr>
+    <tr parent="tooltipStyle" class="hidden">
+      <td class="indent">tooltipStyle.content.borderRadius</td>
+      <td>string</td>
+      <td>'2px'</td>
+      <td></td>
+    </tr>
+    <tr parent="tooltipStyle" class="hidden">
+      <td class="indent">tooltipStyle.content.boxShadow</td>
+      <td>string</td>
+      <td>'5px 5px 10px rgba(128,128,128,0.5)'</td>
+      <td></td>
+    </tr>
+    <tr parent="tooltipStyle" class="hidden">
+      <td class="indent">tooltipStyle.line.height</td>
+      <td>string</td>
+      <td>'40px'</td>
+      <td></td>
+    </tr>
+    <tr parent="tooltipStyle" class="hidden">
+      <td class="indent">tooltipStyle.line.width</td>
+      <td>string</td>
+      <td>'0'</td>
+      <td></td>
+    </tr>
+    <tr parent="tooltipStyle" class="hidden">
+      <td class="indent">tooltipStyle.line.borderLeft</td>
+      <td>string</td>
+      <td>'1px solid #4d4d4d'</td>
+      <td></td>
+    </tr>
+    <tr parent="tooltipStyle" class="hidden">
+      <td class="indent">tooltipStyle.dot.height</td>
+      <td>string</td>
+      <td>'0'</td>
+      <td></td>
+    </tr>
+    <tr parent="tooltipStyle" class="hidden">
+      <td class="indent">tooltipStyle.dot.width</td>
+      <td>string</td>
+      <td>'0'</td>
+      <td></td>
+    </tr>
+    <tr parent="tooltipStyle" class="hidden">
+      <td class="indent">tooltipStyle.dot.border</td>
+      <td>string</td>
+      <td>'5px solid #4d4d4d'</td>
+      <td></td>
+    </tr>
+    <tr parent="tooltipStyle" class="hidden">
+      <td class="indent">tooltipStyle.dot.borderRadius</td>
+      <td>string</td>
+      <td>'5px'</td>
+      <td></td>
     </tr>
 
     <tr>
