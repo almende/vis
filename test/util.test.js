@@ -101,7 +101,6 @@ describe('util.mergeOptions', function () {
 
 
   it('handles good input with global options', function () {
-    // Test all paths with good input 
     var mergeTarget  = {
     };
     var options = {
