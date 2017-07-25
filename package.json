@@ -68,7 +68,7 @@
     "test-console": "^1.0.0",
     "uglify-js": "^2.8.29",
     "uuid": "^3.1.0",
-    "webpack": "^2.7.0",
+    "webpack": "^3.3.0",
     "yargs": "^8.0.2"
   }
 }
