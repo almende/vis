@@ -312,7 +312,7 @@ var data = new vis.DataSet([data] [, options])
       <td>Object | Array</td>
       <td>
         Get a single item, multiple items, or all items from the DataSet.
-        Usage examples can be found in section <a href="#Getting_Data">Getting Data</a>, and the available <code>options</code> are described in section <a href="#Data_Selection">Data Selection</a>. When no item is found, <code>null</code> is returned when a single item was requested, and and empty Array is returned in case of multiple id's.
+        Usage examples can be found in section <a href="#Getting_Data">Getting Data</a>. The available <code>options</code> are described in section <a href="#Data_Selection">Data Selection</a>. When a single id is requested and not found <code>null</code> is returned. When multiple ids are requested and not found an Array containing <code>null</code>s is returned.
       </td>
     </tr>
 
