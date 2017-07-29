@@ -6,14 +6,13 @@ var stdout = require('test-console').stdout;
 var Validator = require("./../lib/shared/Validator").default;
 //var {printStyle} = require('./../lib/shared/Validator');
 
-var now = new Date();
-
-    // Useful during debugging:
-    //if (errorFound === true) {
-    //  console.log(JSON.stringify(output, null, 2));
-    //}
+// Useful during debugging:
+//  console.log(JSON.stringify(output, null, 2));
 
 describe('Network', function () {
+  var data;   // DataSet instance used internally for testing
+
+
   before(function() {
     this.jsdom_global = jsdom_global(
       "<div id='mynetwork'></div>",
@@ -28,8 +27,15 @@ describe('Network', function () {
   });
 
 
+  /**
+   * Defined network consists of two sub-networks:
+   *
+   * - 1-2-3-4
+   * - 11-12-13-14
+   *
+   * For reference, this is the sample network of issue #1218
+   */
   function createSampleNetwork() {
-    // create an array with nodes
     var nodes = new vis.DataSet([
         {id: 1, label: '1'},
         {id: 2, label: '2'},
@@ -51,7 +57,7 @@ describe('Network', function () {
 
     // create a network
     var container = document.getElementById('mynetwork');
-    var data = {
+    data = {
         nodes: nodes,
         edges: edges
     };
@@ -82,5 +88,78 @@ describe('Network', function () {
     assert(Object.keys(network.body.edges).length === 6);
 
     //console.log(Object.keys(network.body.nodes));
+  });
+
+
+  /**
+   * Check on fix for #1218
+   */
+  it('connects a new edge to a clustering node instead of the clustered node', function () {
+    // Display node/edge state, useful during debugging
+    var log = function() {
+      console.log(Object.keys(network.body.nodes));
+      console.log(network.body.nodeIndices);
+      console.log(Object.keys(network.body.edges));
+      console.log(network.body.edgeIndices);
+    };
+
+    // Note that only the node and edges counts are asserted
+    // This might be done more thoroughly by explicitly checking the id's
+    var assertNumNodes = function(expectedPresent, expectedVisible) {
+      if (expectedVisible === undefined) expectedVisible = expectedPresent;
+
+      assert.equal(Object.keys(network.body.nodes).length, expectedPresent);
+      assert.equal(network.body.nodeIndices.length, expectedVisible);
+    };
+
+    // See comment above
+    var assertNumEdges = function(expectedPresent, expectedVisible) {
+      if (expectedVisible === undefined) expectedVisible = expectedPresent;
+
+      assert.equal(Object.keys(network.body.edges).length, expectedPresent);
+      assert.equal(network.body.edgeIndices.length, expectedVisible);
+    };
+
+    var NumInitialNodes = 8;
+    var NumInitialEdges = 6;
+
+    var numNodes = NumInitialNodes;  // Expected number of nodes per step
+    var numEdges = NumInitialEdges;  // Expected number of edges per step
+
+    var network = createSampleNetwork();
+    assertNumNodes(numNodes);
+    assertNumEdges(numEdges);
+
+    // Create a cluster
+    //
+    // This is actually a pathological case; there are two separate sub-networks and 
+    // a cluster is made of two nodes, each from one of the sub-networks.
+    //console.log("clustering 1 and 11")
+    var clusterOptionsByData = {
+      joinCondition: function(node) {
+        if (node.id == 1 || node.id == 11) return true;
+        return false;
+      },
+      clusterNodeProperties: {id:"c1", label:'c1'}
+    }
+    network.cluster(clusterOptionsByData);
+    numNodes += 1;                           // A clustering node is now hiding two nodes
+    assertNumNodes(numNodes, numNodes - 2);
+    numEdges += 2;                           // Two clustering edges now hide two edges
+    assertNumEdges(numEdges, numEdges - 2);
+
+    //console.log("Creating node 21")
+    data.nodes.update([{id: 21, label: '21'}]);
+    numNodes += 1;                           // New unconnected node added
+    assertNumNodes(numNodes, numNodes - 2);
+    assertNumEdges(numEdges, numEdges - 2);  // edges unchanged
+
+    //console.log("Creating edge 21 pointing to 1");
+    // '1' is part of the cluster so should
+    // connect to cluster instead
+	  data.edges.update([{from: 21, to: 1}]);
+    assertNumNodes(numNodes, numNodes - 2);  // nodes unchanged
+    numEdges += 2;                           // A new clustering edge is hiding a new edge
+    assertNumEdges(numEdges, numEdges - 3);
   });
 });
