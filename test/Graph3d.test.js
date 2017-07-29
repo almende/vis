@@ -13,10 +13,10 @@ describe('Graph3d', function () {
   before(function() {
     //console.log('before!');
     this.jsdom_global = jsdom_global(
-      "<div id='mynetwork'></div>",
+      "<div id='mygraph'></div>",
       { skipWindowCheck: true}
     );
-    this.container = document.getElementById('mynetwork');
+    this.container = document.getElementById('mygraph');
   });
 
 
