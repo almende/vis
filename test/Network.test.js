@@ -78,11 +78,9 @@ describe('Network', function () {
     // The following should now just plain succeed
     var network = createSampleNetwork();
 
-    console.log(Object.keys(network.body.nodes).length);
-    //console.log(Object.keys(network.body.edges).length);
+    assert(Object.keys(network.body.nodes).length === 8);
     assert(Object.keys(network.body.edges).length === 6);
 
-    console.log(Object.keys(network.body.nodes));
-    // console.log(network.body.edges);
+    //console.log(Object.keys(network.body.nodes));
   });
 });
