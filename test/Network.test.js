@@ -202,6 +202,7 @@ describe('Network', function () {
     assertNumEdges(network, numEdges, numEdges - 2);
     // End block same as previous test
 
+		log(network);
 
     //console.log("removing 12");
     data.nodes.remove(12);
@@ -211,6 +212,8 @@ describe('Network', function () {
     // If you want to do the delete correctly, these should also be deleted explictly from
     // the edges DataSet. In the Network instance, however, this.body.nodes and this.body.edges
     // should be correct, with the edges of 12 all cleared out.
+
+		log(network);
 
     // 12 was connected to 11, which is clustered
     numNodes -= 1;                                    // 12 removed, one less node
