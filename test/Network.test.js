@@ -202,9 +202,8 @@ describe('Network', function () {
     assertNumEdges(network, numEdges, numEdges - 2);
     // End block same as previous test
 
-		log(network);
 
-    console.log("removing 12");
+    //console.log("removing 12");
     data.nodes.remove(12);
 
     // NOTE:
@@ -213,13 +212,20 @@ describe('Network', function () {
     // the edges DataSet. In the Network instance, however, this.body.nodes and this.body.edges
     // should be correct, with the edges of 12 all cleared out.
 
-		log(network);
-
-    // 12 is connected to 11, which is clustered
+    // 12 was connected to 11, which is clustered
     numNodes -= 1;                                    // 12 removed, one less node
     assertNumNodes(network, numNodes, numNodes - 2);
     numEdges -= 3;                                    // clustering edge c1-12 and 2 edges of 12 gone
     assertNumEdges(network, numEdges, numEdges - 1);
+
+		log(network);
+
+		console.log("Unclustering c1");
+    network.openCluster("c1");
+    numNodes -= 1;                                    // cluster node removed, one less node
+    assertNumNodes(network, numNodes, numNodes);      // all are visible again
+    numEdges -= 1;                                    // clustering edge gone, regular edge visible
+    assertNumEdges(network, numEdges, numEdges);      // all are visible again
 
 		log(network);
   });
