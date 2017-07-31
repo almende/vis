@@ -241,7 +241,7 @@ describe('Network', function () {
     data.nodes.remove(2);
     numNodes -= 1;                                    // clustered node removed
     assertNumNodes(network, numNodes, numNodes - 2);  // view doesn't change
-    numEdges -= 2;                                    // 3 edges removed hidden in cluster
+    numEdges -= 2;                                    // edges removed hidden in cluster
     assertNumEdges(network, numEdges, numEdges - 1);  // view doesn't change
 
 		//console.log("Unclustering c1");
