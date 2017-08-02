@@ -8,7 +8,7 @@ var Validator = require("./../lib/shared/Validator").default;
 //var {printStyle} = require('./../lib/shared/Validator');
 
 /**
- * Load legacy-style (i.e. not module) javascript files into context.
+ * Load legacy-style (i.e. not module) javascript files into the given context.
  */
 function include(list, context) {
   if (!(list instanceof Array)) {
@@ -22,11 +22,11 @@ function include(list, context) {
 	}
 }
 
-
 // Useful during debugging:
 //if (errorFound === true) {
 //  console.log(JSON.stringify(output, null, 2));
 //}
+
 
 describe('Network', function () {
   before(function() {
@@ -110,9 +110,14 @@ describe('runs example ', function () {
       edges: new vis.DataSet(edges)
     };
 
+    // Avoid excessive processor time due to load.
+    // We're just interested that the load itself is good
+    options.physics = false;
+
     var network = new vis.Network(container, data, options);
     return network;
   };
+
 
   it('basicUsage', function () {
     var network = loadExample('./test/network/basicUsage.js', this);
@@ -123,7 +128,7 @@ describe('runs example ', function () {
     assert.equal(Object.keys(network.body.edges).length, 5);
   });
 
-/*
+
   it('WorlCup2014', function () {
     // This is a huge example (which is why it's tested here!), so it takes a long time to load.
     this.timeout(10000);
@@ -136,20 +141,17 @@ describe('runs example ', function () {
     assert.equal(Object.keys(network.body.nodes).length, 9964);
     assert.equal(Object.keys(network.body.edges).length, 9228);
   });
-*/
+
 
   // This actually failed to load, added for this reason
   it('disassemblerExample', function () {
     var network = loadExample('./examples/network/exampleApplications/disassemblerExample.js', this);
-    console.log(Object.keys(network.body.nodes).length);
-    console.log(Object.keys(network.body.edges).length);
 
     // Count in following also contains the helper nodes for dynamic edges
-    assert.equal(Object.keys(network.body.nodes).length, 9964);
-    assert.equal(Object.keys(network.body.edges).length, 9228);
+    assert.equal(Object.keys(network.body.nodes).length,  9);
+    assert.equal(Object.keys(network.body.edges).length, 14);
   });
-});
 
-});
-
-});
+});  // runs example
+});  // on node.js
+});  // Network
