@@ -1,3 +1,4 @@
+var fs = require('fs');
 var assert = require('assert');
 var vis = require('../dist/vis');
 var Network = vis.network;
@@ -6,12 +7,26 @@ var stdout = require('test-console').stdout;
 var Validator = require("./../lib/shared/Validator").default;
 //var {printStyle} = require('./../lib/shared/Validator');
 
-var now = new Date();
+/**
+ * Load legacy-style (i.e. not module) javascript files into context.
+ */
+function include(list, context) {
+  if (!(list instanceof Array)) {
+    list = [list];
+  }
 
-    // Useful during debugging:
-    //if (errorFound === true) {
-    //  console.log(JSON.stringify(output, null, 2));
-    //}
+	for (var n in list) {
+  	var path = list[n];
+  	var arr = [fs.readFileSync(path) + ''];
+  	eval.apply(context, arr);
+	}
+}
+
+
+// Useful during debugging:
+//if (errorFound === true) {
+//  console.log(JSON.stringify(output, null, 2));
+//}
 
 describe('Network', function () {
   before(function() {
@@ -72,15 +87,69 @@ describe('Network', function () {
   }
 
 
-  it('should be running on node.js', function () {
+describe('on node.js', function () {
+  it('should be running', function () {
     assert(this.container !== null, 'Container div not found');
 
     // The following should now just plain succeed
     var network = createSampleNetwork();
 
-    assert(Object.keys(network.body.nodes).length === 8);
-    assert(Object.keys(network.body.edges).length === 6);
-
-    //console.log(Object.keys(network.body.nodes));
+    assert.equal(Object.keys(network.body.nodes).length, 8);
+    assert.equal(Object.keys(network.body.edges).length, 6);
   });
+
+
+describe('runs example ', function () {
+  function loadExample(path) {
+    include(path, this);
+    var container = document.getElementById('mynetwork');
+
+    // create a network
+    var data = {
+      nodes: new vis.DataSet(nodes),
+      edges: new vis.DataSet(edges)
+    };
+
+    var network = new vis.Network(container, data, options);
+    return network;
+  };
+
+  it('basicUsage', function () {
+    var network = loadExample('./test/network/basicUsage.js', this);
+    //console.log(Object.keys(network.body.edges));
+
+    // Count in following also contains the helper nodes for dynamic edges
+    assert.equal(Object.keys(network.body.nodes).length, 10);
+    assert.equal(Object.keys(network.body.edges).length, 5);
+  });
+
+/*
+  it('WorlCup2014', function () {
+    // This is a huge example (which is why it's tested here!), so it takes a long time to load.
+    this.timeout(10000);
+
+    var network = loadExample('./examples/network/datasources/WorldCup2014.js', this);
+    // console.log(Object.keys(network.body.nodes).length);
+    // console.log(Object.keys(network.body.edges).length);
+
+    // Count in following also contains the helper nodes for dynamic edges
+    assert.equal(Object.keys(network.body.nodes).length, 9964);
+    assert.equal(Object.keys(network.body.edges).length, 9228);
+  });
+*/
+
+  // This actually failed to load, added for this reason
+  it('disassemblerExample', function () {
+    var network = loadExample('./examples/network/exampleApplications/disassemblerExample.js', this);
+    console.log(Object.keys(network.body.nodes).length);
+    console.log(Object.keys(network.body.edges).length);
+
+    // Count in following also contains the helper nodes for dynamic edges
+    assert.equal(Object.keys(network.body.nodes).length, 9964);
+    assert.equal(Object.keys(network.body.edges).length, 9228);
+  });
+});
+
+});
+
 });
