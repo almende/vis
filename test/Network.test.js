@@ -224,7 +224,7 @@ describe('Network', function () {
 
 
   /**
-   * Check on fix for #1219
+   * Check on fix for #1291
    */
   it('can remove a node inside a cluster and then open that cluster', function () {
     var [network, data, numNodes, numEdges] = createSampleNetwork();
