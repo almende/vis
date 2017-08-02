@@ -12,23 +12,14 @@
 
   "extends": "eslint:recommended",
 
+  // For the full list of rules, see: http://eslint.org/docs/rules/
   "rules": {
     "complexity": [2, 55],
     "max-statements": [2, 115],
     "no-unreachable": 1,
+    "no-useless-escape": 0,
     "no-console": 0,
-    "no-useless-escape": 0
-/*
-    // some disabled options which might be useful
-    "no-empty": 0,
-    "no-extra-semi": 0,
-    "no-fallthrough": 0,
-    "no-inner-declarations": 0,
-    "no-mixed-spaces-and-tabs": 0,
-    "no-redeclare": 0,
-    "no-unused-vars": 0,
-    // following will flag presence of console.log as error.
-    "no-console": ["error", { allow: ["warn", "error"] }],
-*/
+    // To flag presence of console.log without breaking linting:
+    //"no-console": ["warn", { allow: ["warn", "error"] }],
   }
 }
