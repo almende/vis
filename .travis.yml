@@ -11,7 +11,7 @@ addons:
       - libgif-dev
       - g++-4.8
 before_script:
-#  - npm run lint
+  - npm run lint
   - npm install gulp
 script:
   - gulp
