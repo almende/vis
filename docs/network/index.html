@@ -1193,9 +1193,11 @@ function releaseFunction (clusterPosition, containedNodesPositions) {
                 <th>Type</th>
                 <th>Description</th>
             </tr>
-            <tr><td>joinCondition(<br>&nbsp;&nbsp;<code>nodeOptions:&nbsp;Object</code><br>)</td>
+            <tr><td>joinCondition(<br>&nbsp;&nbsp;<code>nodeOptions:&nbsp;Object</code><br>)<br>or<br>joinCondition(<br>&nbsp;&nbsp;<code>parentNodeOptions:&nbsp;Object,</code><br>&nbsp;&nbsp;<code>childNodeOptions:&nbsp;Object</code><br>)</td>
                 <td>Function</td>
-                <td><i>Optional for all but the cluster method. </i> The cluster module loops over all nodes that are
+                <td><i>Optional for all but the cluster method. </i> <br>
+                    <code>clusterByConnection</code> is the only function that will pass 2 nodeOptions objects as arguments to the joinCondition callback.<br>
+                    The cluster module loops over all nodes that are
                     selected to be in the cluster and calls this function with their data as argument.
                     If this function returns true, this node will be added to the cluster. You have access to all
                     options
@@ -1219,6 +1221,7 @@ var options = {
 
 network.clustering.cluster(options);
 </pre>
+                    <code>clusterByConnection</code><b> will pass 2 nodeOptions objects as arguments to the joinCondition callback.</b>
                 </td>
             </tr>
             <tr><td>processProperties(<br>&nbsp;&nbsp;<code>clusterOptions:&nbsp;Object</code>,<br>
