@@ -35,11 +35,10 @@ function waitFor(testFx, onReady, timeOutMillis) {
         }, 250); //< repeat check every 20ms
 }
 
-var examplePaths = ["examples/graph2d/01_basic.html", 
+var examplePaths = ["examples/graph2d/01_basic.html",
 					"examples/graph2d/02_bars.html",
 					"examples/graph2d/03_groups.html",
-					"examples/graph2d/04_rightAxis.html",
-					];
+					"examples/graph2d/04_rightAxis.html"];
 var tasks = examplePaths.length*2;
 
 function renderLivePage(example, index) {
@@ -83,5 +82,3 @@ function renderPageToPNG(input, output) {
 
 examplePaths.forEach(renderLivePage);
 examplePaths.forEach(renderLocalPage);
-
-//magick compare -metric RMSE 01_basic_live.png 01_basic_local.png NULL:
