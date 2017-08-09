@@ -28,7 +28,7 @@
   "scripts": {
     "test": "mocha --compilers js:babel-core/register",
     "build": "gulp",
-    "lint": "eslint lib",
+    "lint": "gulp lint",
     "watch": "gulp watch",
     "watch-dev": "gulp watch --bundle"
   },
