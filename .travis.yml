@@ -12,7 +12,9 @@ addons:
       - g++-4.8
 before_script:
   - npm run lint
+  - phantomjs examplesToPng.js
   - npm install gulp
 script:
   - gulp
   - npm test
+  - ./magick.sh
