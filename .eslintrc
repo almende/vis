@@ -19,6 +19,16 @@
     "no-unreachable": 1,
     "no-useless-escape": 0,
     "no-console": 0,
+    "require-jsdoc": ["error", {
+        "require": {
+            "FunctionDeclaration": true,
+            "MethodDefinition": false,
+            "ClassDeclaration": false,
+            "ArrowFunctionExpression": false
+        }
+
+    }],
+    //    "valid-jsdoc": 2
     // To flag presence of console.log without breaking linting:
     //"no-console": ["warn", { allow: ["warn", "error"] }],
   }
