@@ -193,7 +193,7 @@ exports.Timeline = require('./lib/timeline/Timeline');
 Then create a custom bundle using browserify, like:
 
     $ browserify custom.js -t [ babelify --presets [es2015] ] -o dist/vis-custom.js -s vis
-    
+
 This will generate a custom bundle *vis-custom.js*, which exposes the namespace `vis` containing only `DataSet` and `Timeline`. The generated bundle can be minified using uglifyjs:
 
     $ uglifyjs dist/vis-custom.js -o dist/vis-custom.min.js
@@ -288,35 +288,39 @@ And loaded into a webpage:
 #### Example 4: Integrate vis.js components directly in your webpack build
 
 You can integrate e.g. the timeline component directly in you webpack build.
-Therefor you just import the component-files from root direcory (starting with "index-").
+Therefor you can e.g. import the component-files from root direcory (starting with "index-").
 
 ```js
-var visTimeline = require('vis/index-timeline-graph2d');
+import { DataSet, Timeline } from 'vis/index-timeline-graph2d';
 
 var container = document.getElementById('visualization');
 var data = new DataSet();
 var timeline = new Timeline(container, data, {});
 ```
 
-To get this to work you'll need to add the some babel-loader-setting:
+To get this to work you'll need to add some babel-loader-setting to your webpack-config:
 
 ```js
 module: {
-	loaders: [{
-		test: /node_modules[\\\/]vis[\\\/].*\.js$/,
-		loader: 'babel',
-		query: {
-			cacheDirectory: true,
-			presets: ["es2015"],
-			plugins: [
-				"transform-es3-property-literals",
-				"transform-es3-member-expression-literals",
-				"transform-runtime"
-			]
-		}
-	}]
+  module: {
+    rules: [{
+      test: /node_modules[\\\/]vis[\\\/].*\.js$/,
+      loader: 'babel-loader',
+      query: {
+        cacheDirectory: true,
+        presets: [ "babel-preset-es2015" ].map(require.resolve),
+        plugins: [
+          "transform-es3-property-literals", // #2452
+          "transform-es3-member-expression-literals", // #2566
+          "transform-runtime" // #2566
+        ]
+      }
+    }]
+  }
 }
 ```
+
+There is also an [demo-project](https://github.com/mojoaxel/vis-webpack-demo) showing the integration of vis.js using webpack.
 
 ## Test
 

@@ -22,18 +22,19 @@
     "require-jsdoc": ["error", {
         "require": {
             "FunctionDeclaration": true,
-            "MethodDefinition": false,
-            "ClassDeclaration": false,
-            "ArrowFunctionExpression": false
+            "MethodDefinition": true,
+            "ClassDeclaration": true,
+            "ArrowFunctionExpression": true
         }
-    }]
-//    "valid-jsdoc": [2, {
-//      "requireReturnDescription": false,
-//      "requireReturn": false,
-//      "requireParamDescription": false,
-//      "requireReturnType": false
-//      }],
+    }],
+    "valid-jsdoc": [2, {
+      "requireReturnDescription": false,
+      "requireReturn": false,
+      "requireParamDescription": false,
+      "requireReturnType": true
+      }],
     }
     // To flag presence of console.log without breaking linting:
     //"no-console": ["warn", { allow: ["warn", "error"] }],
 }
+

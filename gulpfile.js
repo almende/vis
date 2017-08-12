@@ -1,6 +1,7 @@
 var fs = require('fs');
 var async = require('async');
 var gulp = require('gulp');
+var eslint = require('gulp-eslint');
 var gutil = require('gulp-util');
 var concat = require('gulp-concat');
 var cleanCSS = require('gulp-clean-css');
@@ -12,7 +13,7 @@ var argv = require('yargs').argv;
 
 var ENTRY             = './index.js';
 var HEADER            = './lib/header.js';
-var DIST              = './dist';
+var DIST              = __dirname + '/dist';
 var VIS_JS            = 'vis.js';
 var VIS_MAP           = 'vis.map';
 var VIS_MIN_JS        = 'vis.min.js';
@@ -38,7 +39,8 @@ function createBanner() {
       .replace('@@version', version);
 }
 
-var bannerPlugin = new webpack.BannerPlugin(createBanner(), {
+var bannerPlugin = new webpack.BannerPlugin({
+  banner: createBanner(),
   entryOnly: true,
   raw: true
 });
@@ -214,6 +216,21 @@ else {
 gulp.task('watch', watchTasks, function () {
   gulp.watch(['index.js', 'lib/**/*'], watchTasks);
 });
+
+
+//
+// Linting usage:
+//
+//    > gulp lint
+// or > npm run lint
+//
+gulp.task('lint', function () {
+  return gulp.src(['lib/**/*.js', '!node_modules/**'])
+    .pipe(eslint())
+    .pipe(eslint.format())
+    .pipe(eslint.failAfterError());
+});
+
 
 // The default task (called when you run `gulp`)
 gulp.task('default', ['clean', 'bundle', 'minify']);
