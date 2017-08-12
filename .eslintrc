@@ -37,4 +37,3 @@
     // To flag presence of console.log without breaking linting:
     //"no-console": ["warn", { allow: ["warn", "error"] }],
 }
-
