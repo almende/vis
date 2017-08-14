@@ -26,13 +26,13 @@
             "ClassDeclaration": false,
             "ArrowFunctionExpression": false
         }
-    }]
-//    "valid-jsdoc": [2, {
-//      "requireReturnDescription": false,
-//      "requireReturn": false,
-//      "requireParamDescription": false,
-//      "requireReturnType": false
-//      }],
+    }],
+    "valid-jsdoc": [2, {
+      "requireReturnDescription": false,
+      "requireReturn": false,
+      "requireParamDescription": false,
+      "requireReturnType": false
+      }],
     }
     // To flag presence of console.log without breaking linting:
     //"no-console": ["warn", { allow: ["warn", "error"] }],
