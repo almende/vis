@@ -26,6 +26,15 @@ var nodes = [
  {'id': 'cfg_0x00405a5f', 'size': 150, 'label': "0x00405a5f:\nadd    esp, 0x04\n", 'color': "#FFCFCF", 'shape': 'box', 'font': {'face': 'monospace', 'align': 'left'}},
 ];
 
+
+//
+// Note: there are a couple of node id's present here which do not exist
+// - cfg_0x00417563 
+// - cfg_0x00403489
+// - cfg_0x0042f03f
+//
+// The edges with these id's will not load into the Network instance.
+//
 var edges = [
 {'from': "cfg_0x00405a2e", 'to': "cfg_0x00405a39", 'arrows': 'to', 'physics': false, 'smooth': {'type': 'cubicBezier'}},
 {'from': "cfg_0x00405a2e", 'to': "cfg_0x00405a49", 'arrows': 'to', 'physics': false, 'smooth': {'type': 'cubicBezier'}},
