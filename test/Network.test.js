@@ -236,6 +236,7 @@ describe('Network', function () {
       },
       clusterNodeProperties: {id:"c1", label:'c1'}
     }
+
     network.cluster(clusterOptionsByData);
     numNodes += 1;                                    // new cluster node
     assertNumNodes(network, numNodes, numNodes - 3);  // 3 clustered nodes
@@ -273,6 +274,7 @@ describe('on node.js', function () {
 
 
 describe('runs example ', function () {
+
   function loadExample(path, noPhysics) {
     include(path, this);
     var container = document.getElementById('mynetwork');
