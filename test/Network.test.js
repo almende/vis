@@ -12,6 +12,34 @@ var Validator = require("./../lib/shared/Validator").default;
 
 
 /**
+ * Merge all options of object b into object b
+ * @param {Object} a
+ * @param {Object} b
+ * @return {Object} a
+ *
+ * Adapted merge() in dotparser.js
+ */
+function merge (a, b) {
+  if (!a) {
+    a = {};
+  }
+
+  if (b) {
+    for (var name in b) {
+      if (b.hasOwnProperty(name)) {
+        if (typeof b[name] === 'object') {
+          a[name] = merge(a[name], b[name]);
+        } else {
+          a[name] = b[name];
+        }
+      }
+    }
+  }
+  return a;
+}
+
+
+/**
  * Load legacy-style (i.e. not module) javascript files into the given context.
  */
 function include(list, context) {
@@ -35,7 +63,7 @@ function include(list, context) {
  *
  * For reference, this is the sample network of issue #1218
  */
-function createSampleNetwork() {
+function createSampleNetwork(options) {
   var NumInitialNodes = 8;
   var NumInitialEdges = 6;
 
@@ -65,7 +93,7 @@ function createSampleNetwork() {
       edges: edges
   };
 
-  var options = {
+  var defaultOptions = {
     layout: {
       randomSeed: 8
     },
@@ -75,6 +103,9 @@ function createSampleNetwork() {
       }
     }
   };
+
+  options = merge(defaultOptions, options);
+  //console.log(options);
 
   var network = new vis.Network(container, data, options);
 
@@ -259,6 +290,136 @@ describe('Network', function () {
 
 		//log(network);
   });
+
+
+/////////////////////////////////////////////////////
+// Local helper methods for Edge and Node testing
+/////////////////////////////////////////////////////
+
+  /**
+   * Simplify network creation for local tests
+   */
+  function createNetwork(options) {
+    var [network, data, numNodes, numEdges] = createSampleNetwork(options);
+
+    return network;
+  }
+
+
+  function firstNode(network) {
+    for (var id in network.body.nodes) {
+      return network.body.nodes[id];
+    }
+
+    return undefined;
+  }
+
+  function firstEdge(network) {
+    for (var id in network.body.edges) {
+      return network.body.edges[id];
+    }
+
+    return undefined;
+  }
+
+
+  function checkChooserValues(item, chooser, labelChooser) {
+    if (chooser === 'function') {
+      assert.equal(typeof item.chooser, 'function');
+    } else {
+      assert.equal(item.chooser, chooser);
+    }
+
+    if (labelChooser === 'function') {
+      assert.equal(typeof item.labelModule.fontOptions.chooser, 'function');
+    } else {
+      assert.equal(item.labelModule.fontOptions.chooser, labelChooser);
+    }
+  }
+
+
+describe('Node', function () {
+
+  /**
+   * NOTE: choosify tests of Node and Edge are parallel
+   * TODO: consolidate this is necessary
+   */
+  it('properly handles choosify input', function () {
+    // check defaults
+    var options = {};
+    var network = createNetwork(options);
+    checkChooserValues(firstNode(network), true, true);
+
+    // There's no point in checking invalid values here; these are detected by the options parser
+    // and subsequently handled as missing input, thus assigned defaults
+
+    // check various combinations of valid input
+
+    options = {nodes: {chosen: false}};
+    network = createNetwork(options);
+    checkChooserValues(firstNode(network), false, false);
+
+    options = {nodes: {chosen: { node:true, label:false}}};
+    network = createNetwork(options);
+    checkChooserValues(firstNode(network), true, false);
+
+    options = {nodes: {chosen: {
+      node:true,
+      label: function(value, id, selected, hovering) {}
+    }}};
+    network = createNetwork(options);
+    checkChooserValues(firstNode(network), true, 'function');
+
+    options = {nodes: {chosen: {
+      node: function(value, id, selected, hovering) {},
+      label:false,
+    }}};
+    network = createNetwork(options);
+    checkChooserValues(firstNode(network), 'function', false);
+  });
+});  // Node
+
+
+describe('Edge', function () {
+
+  /**
+   * NOTE: choosify tests of Node and Edge are parallel
+   * TODO: consolidate this is necessary
+   */
+  it('properly handles choosify input', function () {
+    // check defaults
+    var options = {};
+    var network = createNetwork(options);
+    checkChooserValues(firstEdge(network), true, true);
+
+    // There's no point in checking invalid values here; these are detected by the options parser
+    // and subsequently handled as missing input, thus assigned defaults
+
+    // check various combinations of valid input
+
+    options = {edges: {chosen: false}};
+    network = createNetwork(options);
+    checkChooserValues(firstEdge(network), false, false);
+
+    options = {edges: {chosen: { edge:true, label:false}}};
+    network = createNetwork(options);
+    checkChooserValues(firstEdge(network), true, false);
+
+    options = {edges: {chosen: {
+      edge:true,
+      label: function(value, id, selected, hovering) {}
+    }}};
+    network = createNetwork(options);
+    checkChooserValues(firstEdge(network), true, 'function');
+
+    options = {edges: {chosen: {
+      edge: function(value, id, selected, hovering) {},
+      label:false,
+    }}};
+    network = createNetwork(options);
+    checkChooserValues(firstEdge(network), 'function', false);
+  });
+});  // Edge
 
 
 describe('on node.js', function () {
