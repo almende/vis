@@ -31,7 +31,7 @@
       "requireReturnDescription": false,
       "requireReturn": false,
       "requireParamDescription": false,
-      "requireReturnType": false
+      "requireReturnType": true
       }],
     }
     // To flag presence of console.log without breaking linting:
