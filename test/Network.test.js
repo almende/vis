@@ -453,7 +453,7 @@ describe('Edge', function () {
    * The issue is that changing color options is not registered in the nodes.
    * We test the updates the color options in the general edges options here.
    */
-  it('correctly sets inherit color option for edges on call to Network.setOptions()', function () {
+  it('sets inherit color option for edges on call to Network.setOptions()', function () {
     var container = document.getElementById('mynetwork');
     var data =  createDataforColorChange();
 
@@ -464,27 +464,34 @@ describe('Edge', function () {
     // Test passing options on init.
     var network = new vis.Network(container, data, options);
     var edges = network.body.edges;
-    assert.equal(edges[1].options.color.inherit, 'to');  // new default
-    assert.equal(edges[2].options.color.inherit, 'to');  // set in edge
-    assert.equal(edges[3].options.color.inherit, 'to');  // new default
+    assert.equal(edges[1].options.color.inherit, 'to');   // new default
+    assert.equal(edges[2].options.color.inherit, 'to');   // set in edge
+    assert.equal(edges[3].options.color.inherit, false);  // has explicit color
     assert.equal(edges[4].options.color.inherit, 'from'); // set in edge
 
     // Sanity check: colors should still be defaults
     assert.equal(edges[1].options.color.color, network.edgesHandler.options.color.color);
+
+    // Override the color value - inherit returns to default
+    network.setOptions({ edges:{color: {}}});
+    assert.equal(edges[1].options.color.inherit, 'from');  // default
+    assert.equal(edges[2].options.color.inherit, 'to');    // set in edge
+    assert.equal(edges[3].options.color.inherit, false);   // has explicit color
+    assert.equal(edges[4].options.color.inherit, 'from');  // set in edge
 
     // Check no options
     network = new vis.Network(container, data, {});
     edges = network.body.edges;
     assert.equal(edges[1].options.color.inherit, 'from');  // default
     assert.equal(edges[2].options.color.inherit, 'to');    // set in edge
-    assert.equal(edges[3].options.color.inherit, 'from');  // default
+    assert.equal(edges[3].options.color.inherit, false);   // has explicit color
     assert.equal(edges[4].options.color.inherit, 'from');  // set in edge
 
     // Set new value
     network.setOptions(options);
     assert.equal(edges[1].options.color.inherit, 'to');
     assert.equal(edges[2].options.color.inherit, 'to');    // set in edge
-    assert.equal(edges[3].options.color.inherit, 'to');
+    assert.equal(edges[3].options.color.inherit, false);   // has explicit color
     assert.equal(edges[4].options.color.inherit, 'from');  // set in edge
 
 /*
@@ -499,7 +506,7 @@ describe('Edge', function () {
   });
 
 
-  it('correctly sets inherit color option for specific edge', function () {
+  it('sets inherit color option for specific edge', function () {
     var container = document.getElementById('mynetwork');
     var data =  createDataforColorChange();
 
@@ -508,23 +515,28 @@ describe('Edge', function () {
     var edges = network.body.edges;
     assert.equal(edges[1].options.color.inherit, 'from');  // default
     assert.equal(edges[2].options.color.inherit, 'to');    // set in edge
-    assert.equal(edges[3].options.color.inherit, 'from');  // default
+    assert.equal(edges[3].options.color.inherit, false);   // has explicit color
     assert.equal(edges[4].options.color.inherit, 'from');  // set in edge
 
     // Set new value
     data.edges.update({id: 1, color: { inherit: 'to'}});
     assert.equal(edges[1].options.color.inherit, 'to');  // Only this changed
     assert.equal(edges[2].options.color.inherit, 'to');
-    assert.equal(edges[3].options.color.inherit, 'from');
+    assert.equal(edges[3].options.color.inherit, false);   // has explicit color
     assert.equal(edges[4].options.color.inherit, 'from');
   });
 
 
-  it('correctly sets color value for edges on call to Network.setOptions()', function () {
+  /**
+   * Perhaps TODO: add unit test for passing string value for color option
+   */
+  it('sets color value for edges on call to Network.setOptions()', function () {
     var container = document.getElementById('mynetwork');
     var data =  createDataforColorChange();
 
+    var defaultColor = '#848484';  // From defaults
     var color = '#FF0000';
+
     var options = {
       "edges" : { "color" : { "color" : color } },
     };
@@ -533,27 +545,38 @@ describe('Edge', function () {
     var network = new vis.Network(container, data, options);
     var edges = network.body.edges;
     assert.equal(edges[1].options.color.color, color);
+    assert.equal(edges[1].options.color.inherit, false);  // Explicit color, so no inherit
     assert.equal(edges[2].options.color.color, color);
+    assert.equal(edges[2].options.color.inherit, 'to');   // Local value overrides! (bug according to docs)
     assert.notEqual(edges[3].options.color.color, color); // Has own value
+    assert.equal(edges[3].options.color.inherit, false);  // Explicit color, so no inherit
     assert.equal(edges[4].options.color.color, color);
-    assert.equal(edges[1].options.color.inherit, false); // Explicit color, so no inherit
-    assert.equal(edges[1].options.color.color, network.edgesHandler.options.color.color); // colors should be same as options edgeHandler
+
+    // Override the color value - all should return to default
+    network.setOptions({ edges:{color: {}}});
+    assert.equal(edges[1].options.color.color, defaultColor);
+    assert.equal(edges[1].options.color.inherit, 'from');
+    assert.equal(edges[2].options.color.color, defaultColor);
+    assert.notEqual(edges[3].options.color.color, color); // Has own value
+    assert.equal(edges[4].options.color.color, defaultColor);
 
     // Check no options
     network = new vis.Network(container, data, {});
     edges = network.body.edges;
     // At this point, color has not changed yet
-    assert.notEqual(edges[1].options.color.color, color);
-    assert.notEqual(edges[3].options.color.color, color); // Has own value
+    assert.equal(edges[1].options.color.color, defaultColor);
+    assert.equal(edges[1].options.color.highlight, defaultColor);
     assert.equal(edges[1].options.color.inherit, 'from');
+    assert.notEqual(edges[3].options.color.color, color); // Has own value
 
     // Set new Value
     network.setOptions(options);
     assert.equal(edges[1].options.color.color, color);
+    assert.equal(edges[1].options.color.highlight, defaultColor); // Should not be changed
+    assert.equal(edges[1].options.color.inherit, false); // Explicit color, so no inherit
     assert.equal(edges[2].options.color.color, color);
     assert.notEqual(edges[3].options.color.color, color); // Has own value
     assert.equal(edges[4].options.color.color, color);
-    assert.equal(edges[1].options.color.inherit, false); // Explicit color, so no inherit
   });
 });  // Edge
 
