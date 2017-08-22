@@ -22,7 +22,7 @@
     "require-jsdoc": ["error", {
         "require": {
             "FunctionDeclaration": true,
-            "MethodDefinition": false,
+            "MethodDefinition": true,
             "ClassDeclaration": true,
             "ArrowFunctionExpression": false
         }
