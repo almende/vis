@@ -12,6 +12,34 @@ var Validator = require("./../lib/shared/Validator").default;
 
 
 /**
+ * Merge all options of object b into object b
+ * @param {Object} a
+ * @param {Object} b
+ * @return {Object} a
+ *
+ * Adapted merge() in dotparser.js
+ */
+function merge (a, b) {
+  if (!a) {
+    a = {};
+  }
+
+  if (b) {
+    for (var name in b) {
+      if (b.hasOwnProperty(name)) {
+        if (typeof b[name] === 'object') {
+          a[name] = merge(a[name], b[name]);
+        } else {
+          a[name] = b[name];
+        }
+      }
+    }
+  }
+  return a;
+}
+
+
+/**
  * Load legacy-style (i.e. not module) javascript files into the given context.
  */
 function include(list, context) {
@@ -19,11 +47,11 @@ function include(list, context) {
     list = [list];
   }
 
-	for (var n in list) {
-  	var path = list[n];
-  	var arr = [fs.readFileSync(path) + ''];
-  	eval.apply(context, arr);
-	}
+  for (var n in list) {
+    var path = list[n];
+    var arr = [fs.readFileSync(path) + ''];
+    eval.apply(context, arr);
+  }
 }
 
 
@@ -35,7 +63,7 @@ function include(list, context) {
  *
  * For reference, this is the sample network of issue #1218
  */
-function createSampleNetwork() {
+function createSampleNetwork(options) {
   var NumInitialNodes = 8;
   var NumInitialEdges = 6;
 
@@ -65,7 +93,7 @@ function createSampleNetwork() {
       edges: edges
   };
 
-  var options = {
+  var defaultOptions = {
     layout: {
       randomSeed: 8
     },
@@ -75,6 +103,8 @@ function createSampleNetwork() {
       }
     }
   };
+
+  options = merge(defaultOptions, options);
 
   var network = new vis.Network(container, data, options);
 
@@ -94,7 +124,6 @@ function createSampleNetwork() {
  * a cluster is made of two nodes, each from one of the sub-networks.
  */
 function createCluster(network) {
-  //console.log("clustering 1 and 11")
   var clusterOptionsByData = {
     joinCondition: function(node) {
       if (node.id == 1 || node.id == 11) return true;
@@ -177,7 +206,7 @@ describe('Network', function () {
     //console.log("Creating edge 21 pointing to 1");
     // '1' is part of the cluster so should
     // connect to cluster instead
-	  data.edges.update([{from: 21, to: 1}]);
+    data.edges.update([{from: 21, to: 1}]);
     assertNumNodes(network, numNodes, numNodes - 2);  // nodes unchanged
     numEdges += 2;                                    // A new clustering edge is hiding a new edge
     assertNumEdges(network, numEdges, numEdges - 3);
@@ -213,7 +242,7 @@ describe('Network', function () {
     numEdges -= 3;                                    // clustering edge c1-12 and 2 edges of 12 gone
     assertNumEdges(network, numEdges, numEdges - 1);
 
-		//console.log("Unclustering c1");
+    //console.log("Unclustering c1");
     network.openCluster("c1");
     numNodes -= 1;                                    // cluster node removed, one less node
     assertNumNodes(network, numNodes, numNodes);      // all are visible again
@@ -243,22 +272,313 @@ describe('Network', function () {
     numEdges += 1;                                    // 1 cluster edge expected
     assertNumEdges(network, numEdges, numEdges - 3);  // 3 edges hidden
 
-		//console.log("removing node 2, which is inside the cluster");
+    //console.log("removing node 2, which is inside the cluster");
     data.nodes.remove(2);
     numNodes -= 1;                                    // clustered node removed
     assertNumNodes(network, numNodes, numNodes - 2);  // view doesn't change
     numEdges -= 2;                                    // edges removed hidden in cluster
     assertNumEdges(network, numEdges, numEdges - 1);  // view doesn't change
 
-		//console.log("Unclustering c1");
+    //console.log("Unclustering c1");
     network.openCluster("c1")
     numNodes -= 1;                                    // cluster node gone
     assertNumNodes(network, numNodes, numNodes);      // all visible
     numEdges -= 1;                                    // cluster edge gone
     assertNumEdges(network, numEdges, numEdges);      // all visible
 
-		//log(network);
+    //log(network);
   });
+
+
+/////////////////////////////////////////////////////
+// Local helper methods for Edge and Node testing
+/////////////////////////////////////////////////////
+
+  /**
+   * Simplify network creation for local tests
+   */
+  function createNetwork(options) {
+    var [network, data, numNodes, numEdges] = createSampleNetwork(options);
+
+    return network;
+  }
+
+
+  function firstNode(network) {
+    for (var id in network.body.nodes) {
+      return network.body.nodes[id];
+    }
+
+    return undefined;
+  }
+
+  function firstEdge(network) {
+    for (var id in network.body.edges) {
+      return network.body.edges[id];
+    }
+
+    return undefined;
+  }
+
+
+  function checkChooserValues(item, chooser, labelChooser) {
+    if (chooser === 'function') {
+      assert.equal(typeof item.chooser, 'function');
+    } else {
+      assert.equal(item.chooser, chooser);
+    }
+
+    if (labelChooser === 'function') {
+      assert.equal(typeof item.labelModule.fontOptions.chooser, 'function');
+    } else {
+      assert.equal(item.labelModule.fontOptions.chooser, labelChooser);
+    }
+  }
+
+
+describe('Node', function () {
+
+  /**
+   * NOTE: choosify tests of Node and Edge are parallel
+   * TODO: consolidate this is necessary
+   */
+  it('properly handles choosify input', function () {
+    // check defaults
+    var options = {};
+    var network = createNetwork(options);
+    checkChooserValues(firstNode(network), true, true);
+
+    // There's no point in checking invalid values here; these are detected by the options parser
+    // and subsequently handled as missing input, thus assigned defaults
+
+    // check various combinations of valid input
+
+    options = {nodes: {chosen: false}};
+    network = createNetwork(options);
+    checkChooserValues(firstNode(network), false, false);
+
+    options = {nodes: {chosen: { node:true, label:false}}};
+    network = createNetwork(options);
+    checkChooserValues(firstNode(network), true, false);
+
+    options = {nodes: {chosen: {
+      node:true,
+      label: function(value, id, selected, hovering) {}
+    }}};
+    network = createNetwork(options);
+    checkChooserValues(firstNode(network), true, 'function');
+
+    options = {nodes: {chosen: {
+      node: function(value, id, selected, hovering) {},
+      label:false,
+    }}};
+    network = createNetwork(options);
+    checkChooserValues(firstNode(network), 'function', false);
+  });
+});  // Node
+
+
+describe('Edge', function () {
+
+  /**
+   * NOTE: choosify tests of Node and Edge are parallel
+   * TODO: consolidate this is necessary
+   */
+  it('properly handles choosify input', function () {
+    // check defaults
+    var options = {};
+    var network = createNetwork(options);
+    checkChooserValues(firstEdge(network), true, true);
+
+    // There's no point in checking invalid values here; these are detected by the options parser
+    // and subsequently handled as missing input, thus assigned defaults
+
+    // check various combinations of valid input
+
+    options = {edges: {chosen: false}};
+    network = createNetwork(options);
+    checkChooserValues(firstEdge(network), false, false);
+
+    options = {edges: {chosen: { edge:true, label:false}}};
+    network = createNetwork(options);
+    checkChooserValues(firstEdge(network), true, false);
+
+    options = {edges: {chosen: {
+      edge:true,
+      label: function(value, id, selected, hovering) {}
+    }}};
+    network = createNetwork(options);
+    checkChooserValues(firstEdge(network), true, 'function');
+
+    options = {edges: {chosen: {
+      edge: function(value, id, selected, hovering) {},
+      label:false,
+    }}};
+    network = createNetwork(options);
+    checkChooserValues(firstEdge(network), 'function', false);
+  });
+
+
+  /**
+   * Support routine for next unit test
+   */
+  function createDataforColorChange() {
+    var nodes = new vis.DataSet([
+      {id: 1, label: 'Node 1' }, // group:'Group1'},
+      {id: 2, label: 'Node 2', group:'Group2'},
+      {id: 3, label: 'Node 3'},
+    ]);
+
+    // create an array with edges
+    var edges = new vis.DataSet([
+      {id: 1, from: 1, to: 2},
+      {id: 2, from: 1, to: 3, color: { inherit: 'to'}},
+      {id: 3, from: 3, to: 3, color: { color: '#00FF00'}},
+      {id: 4, from: 2, to: 3, color: { inherit: 'from'}},
+    ]);
+
+
+    var data = {
+      nodes: nodes,
+      edges: edges
+    };
+
+    return data;
+  }
+
+
+  /**
+   * Unit test for fix of #3350
+   *
+   * The issue is that changing color options is not registered in the nodes.
+   * We test the updates the color options in the general edges options here.
+   */
+  it('sets inherit color option for edges on call to Network.setOptions()', function () {
+    var container = document.getElementById('mynetwork');
+    var data =  createDataforColorChange();
+
+    var options = {
+      "edges" : { "color" : { "inherit" : "to" } },
+    };
+
+    // Test passing options on init.
+    var network = new vis.Network(container, data, options);
+    var edges = network.body.edges;
+    assert.equal(edges[1].options.color.inherit, 'to');   // new default
+    assert.equal(edges[2].options.color.inherit, 'to');   // set in edge
+    assert.equal(edges[3].options.color.inherit, false);  // has explicit color
+    assert.equal(edges[4].options.color.inherit, 'from'); // set in edge
+
+    // Sanity check: colors should still be defaults
+    assert.equal(edges[1].options.color.color, network.edgesHandler.options.color.color);
+
+    // Override the color value - inherit returns to default
+    network.setOptions({ edges:{color: {}}});
+    assert.equal(edges[1].options.color.inherit, 'from');  // default
+    assert.equal(edges[2].options.color.inherit, 'to');    // set in edge
+    assert.equal(edges[3].options.color.inherit, false);   // has explicit color
+    assert.equal(edges[4].options.color.inherit, 'from');  // set in edge
+
+    // Check no options
+    network = new vis.Network(container, data, {});
+    edges = network.body.edges;
+    assert.equal(edges[1].options.color.inherit, 'from');  // default
+    assert.equal(edges[2].options.color.inherit, 'to');    // set in edge
+    assert.equal(edges[3].options.color.inherit, false);   // has explicit color
+    assert.equal(edges[4].options.color.inherit, 'from');  // set in edge
+
+    // Set new value
+    network.setOptions(options);
+    assert.equal(edges[1].options.color.inherit, 'to');
+    assert.equal(edges[2].options.color.inherit, 'to');    // set in edge
+    assert.equal(edges[3].options.color.inherit, false);   // has explicit color
+    assert.equal(edges[4].options.color.inherit, 'from');  // set in edge
+
+/*
+    // Useful for debugging
+    console.log('===================================');
+    console.log(edges[1].options.color);
+    console.log(edges[1].options.color.__proto__);
+    console.log(edges[1].options);
+    console.log(edges[1].options.__proto__);
+    console.log(edges[1].edgeOptions);
+*/
+  });
+
+
+  it('sets inherit color option for specific edge', function () {
+    var container = document.getElementById('mynetwork');
+    var data =  createDataforColorChange();
+
+    // Check no options
+    var network = new vis.Network(container, data, {});
+    var edges = network.body.edges;
+    assert.equal(edges[1].options.color.inherit, 'from');  // default
+    assert.equal(edges[2].options.color.inherit, 'to');    // set in edge
+    assert.equal(edges[3].options.color.inherit, false);   // has explicit color
+    assert.equal(edges[4].options.color.inherit, 'from');  // set in edge
+
+    // Set new value
+    data.edges.update({id: 1, color: { inherit: 'to'}});
+    assert.equal(edges[1].options.color.inherit, 'to');  // Only this changed
+    assert.equal(edges[2].options.color.inherit, 'to');
+    assert.equal(edges[3].options.color.inherit, false);   // has explicit color
+    assert.equal(edges[4].options.color.inherit, 'from');
+  });
+
+
+  /**
+   * Perhaps TODO: add unit test for passing string value for color option
+   */
+  it('sets color value for edges on call to Network.setOptions()', function () {
+    var container = document.getElementById('mynetwork');
+    var data =  createDataforColorChange();
+
+    var defaultColor = '#848484';  // From defaults
+    var color = '#FF0000';
+
+    var options = {
+      "edges" : { "color" : { "color" : color } },
+    };
+
+    // Test passing options on init.
+    var network = new vis.Network(container, data, options);
+    var edges = network.body.edges;
+    assert.equal(edges[1].options.color.color, color);
+    assert.equal(edges[1].options.color.inherit, false);  // Explicit color, so no inherit
+    assert.equal(edges[2].options.color.color, color);
+    assert.equal(edges[2].options.color.inherit, 'to');   // Local value overrides! (bug according to docs)
+    assert.notEqual(edges[3].options.color.color, color); // Has own value
+    assert.equal(edges[3].options.color.inherit, false);  // Explicit color, so no inherit
+    assert.equal(edges[4].options.color.color, color);
+
+    // Override the color value - all should return to default
+    network.setOptions({ edges:{color: {}}});
+    assert.equal(edges[1].options.color.color, defaultColor);
+    assert.equal(edges[1].options.color.inherit, 'from');
+    assert.equal(edges[2].options.color.color, defaultColor);
+    assert.notEqual(edges[3].options.color.color, color); // Has own value
+    assert.equal(edges[4].options.color.color, defaultColor);
+
+    // Check no options
+    network = new vis.Network(container, data, {});
+    edges = network.body.edges;
+    // At this point, color has not changed yet
+    assert.equal(edges[1].options.color.color, defaultColor);
+    assert.equal(edges[1].options.color.highlight, defaultColor);
+    assert.equal(edges[1].options.color.inherit, 'from');
+    assert.notEqual(edges[3].options.color.color, color); // Has own value
+
+    // Set new Value
+    network.setOptions(options);
+    assert.equal(edges[1].options.color.color, color);
+    assert.equal(edges[1].options.color.highlight, defaultColor); // Should not be changed
+    assert.equal(edges[1].options.color.inherit, false); // Explicit color, so no inherit
+    assert.equal(edges[2].options.color.color, color);
+    assert.notEqual(edges[3].options.color.color, color); // Has own value
+    assert.equal(edges[4].options.color.color, color);
+  });
+});  // Edge
 
 
 describe('on node.js', function () {
