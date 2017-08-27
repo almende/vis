@@ -290,6 +290,152 @@ describe('Network', function () {
   });
 
 
+  /**
+   * Helper function for clustering
+   */
+  function clusterTo(network, clusterId, nodeList) {  
+    var clusterOptionsByData = {
+      joinCondition: function(node) {
+        return nodeList.indexOf(node.id) !== -1;
+      },
+      clusterNodeProperties: {id: clusterId, label: clusterId}
+    }
+    network.cluster(clusterOptionsByData);
+  }
+
+
+  ///////////////////////////////////////////////////////////////
+  // Automatic opening of clusters due to dynamic data change
+  ///////////////////////////////////////////////////////////////
+
+  it('opens clusters automatically when clustered nodes deleted', function () {
+    var [network, data, numNodes, numEdges] = createSampleNetwork();
+
+    // Simple case: cluster of two nodes, delete one node
+    clusterTo(network, 'c1', [3,4]);  
+    numNodes += 1;                                    // new cluster node
+    assertNumNodes(network, numNodes, numNodes - 2);  // 2 clustered nodes
+    numEdges += 1;                                    // 1 cluster edge expected
+    assertNumEdges(network, numEdges, numEdges - 2);  // 2 edges hidden
+
+    data.nodes.remove(4);
+    numNodes -= 2;                                    // deleting clustered node also removes cluster node
+    assertNumNodes(network, numNodes, numNodes);
+    numEdges -= 2;                                    // cluster edge should also be removed
+    assertNumEdges(network, numEdges, numEdges);
+
+    // nested nodes, three deep. Should all open when node at lowest level deleted
+    [network, data, numNodes, numEdges] = createSampleNetwork();
+    clusterTo(network, 'c1', [3,4]);  
+    numNodes += 1;                                    // new cluster node
+    assertNumNodes(network, numNodes, numNodes - 2);  // 2 clustered nodes
+    numEdges += 1;                                    // 1 cluster edge expected
+    assertNumEdges(network, numEdges, numEdges - 2);  // 2 edges hidden
+
+    clusterTo(network, 'c2', [2,'c1']);  
+    numNodes += 1;                                    // new cluster node
+    assertNumNodes(network, numNodes, numNodes - 4);  // 4 clustered nodes, including c1
+    numEdges += 1;                                    // 2 cluster edges expected
+    assertNumEdges(network, numEdges, numEdges - 4);  // 4 edges hidden, including edge for c1
+
+    clusterTo(network, 'c3', [1,'c2']);  
+    numNodes += 1;                                    // new cluster node
+    assertNumNodes(network, numNodes, numNodes - 6);  // 6 clustered nodes, including c1 and c2
+    numEdges += 0;                                    // No new cluster edge expected
+    assertNumEdges(network, numEdges, numEdges - 5);  // 5 edges hidden, including edges for c1 and c2
+
+    data.nodes.remove(4);
+    numNodes -= 4;                                    // node removed, all cluster nodes disappear
+    assertNumNodes(network, numNodes, numNodes);
+    numEdges -= 3;                                    // no cluster edges expected
+    assertNumEdges(network, numEdges, numEdges);
+  });
+
+
+  ///////////////////////////////////////////////////////////////
+  // Opening of clusters at various clustering depths
+  ///////////////////////////////////////////////////////////////
+
+  /**
+   * Check correct opening of single-level cluster.
+   * This is the 'simple' case.
+   */
+  it('properly opens top-level clusters', function () {
+    var [network, data, numNodes, numEdges] = createSampleNetwork();
+
+    // Pedantic: make a cluster of everything
+    clusterTo(network, 'c1', [1,2,3,4,11, 12, 13, 14]);
+    // c1(14-13-12-11 1-2-3-4)
+    numNodes += 1;
+    assertNumNodes(network, numNodes, 1); // Just the clustering node visible
+    assertNumEdges(network, numEdges, 0); // No extra edges!
+
+    network.clustering.openCluster('c1', {});
+    numNodes -= 1;
+    assertNumNodes(network, numNodes, numNodes); // Expecting same as original
+    assertNumEdges(network, numEdges, numEdges);
+
+    // One external connection
+    [network, data, numNodes, numEdges] = createSampleNetwork();
+    // 14-13-12-11 1-2-3-4
+    clusterTo(network, 'c1', [3,4]);  
+    network.clustering.openCluster('c1', {});
+    assertNumNodes(network, numNodes, numNodes); // Expecting same as original
+    assertNumEdges(network, numEdges, numEdges);
+
+    // Two external connections
+    clusterTo(network, 'c1', [2,3]);  
+    network.clustering.openCluster('c1', {});
+    assertNumNodes(network, numNodes, numNodes); // Expecting same as original
+    assertNumEdges(network, numEdges, numEdges);
+
+    // One external connection to cluster
+    clusterTo(network, 'c1', [1,2]);  
+    clusterTo(network, 'c2', [3,4]);  
+    // 14-13-12-11 c1(1-2-)-c2(-3-4)
+    network.clustering.openCluster('c1', {});
+    // 14-13-12-11 1-2-c2(-3-4)
+    numNodes += 1;
+    numEdges += 1;
+    assertNumNodes(network, numNodes, numNodes - 2);
+    assertNumEdges(network, numEdges, numEdges - 2);
+
+    // two external connections to clusters
+    [network, data, numNodes, numEdges] = createSampleNetwork();
+    data.edges.update({
+      from: 1,
+      to: 11,
+    });
+    numEdges += 1;
+    assertNumNodes(network, numNodes, numNodes);
+    assertNumEdges(network, numEdges, numEdges);
+
+    clusterTo(network, 'c1', [1,2]);  
+    // 14-13-12-11-c1(-1-2-)-3-4
+    numNodes += 1;
+    numEdges += 2;
+    clusterTo(network, 'c2', [3,4]);  
+    // 14-13-12-11-c1(-1-2-)-c2(-3-4)
+    // NOTE: clustering edges are hidden by clustering here!
+    numNodes += 1;
+    numEdges += 1;
+    clusterTo(network, 'c3', [11,12]);  
+    // 14-13-c3(-12-11-)-c1(-1-2-)-c2(-3-4)
+    numNodes += 1;
+    numEdges += 2;
+    assertNumNodes(network, numNodes, numNodes - 6);
+    assertNumEdges(network, numEdges, numEdges - 8); // 6 regular edges hidden; also 2 clustering!!!!!
+
+    network.clustering.openCluster('c1', {});
+    numNodes -= 1;
+    numEdges -= 2;
+    //console.log("numNodes: " + numNodes + "; numEdges: " + numEdges);
+    // 14-13-c3(-12-11-)-1-2-c2(-3-4)
+    assertNumNodes(network, numNodes, numNodes - 4);
+    assertNumEdges(network, numEdges, numEdges - 5);
+  });
+
+
 /////////////////////////////////////////////////////
 // Local helper methods for Edge and Node testing
 /////////////////////////////////////////////////////
