@@ -153,8 +153,59 @@ describe('Queue', function () {
     assert.equal(obj.count, 2);
   });
 
-  // TODO: test Queue.setOptions
+  it('set options in constructor', function () {
+    var queue = new Queue({delay: 3, max: 5});
+    assert.equal(queue.delay, 3);
+    assert.equal(queue.max, 5);
+  });
 
-  // TODO: test Queue.destroy
+  it('set options explicitly', function () {
+    var queue = new Queue();
+    queue.setOptions({delay: 3, max: 5});
+    assert.equal(queue.delay, 3);
+    assert.equal(queue.max, 5);
+  });
+
+  it('set option delay', function () {
+    var queue = new Queue();
+    queue.setOptions({delay: 3});
+    assert.equal(queue.delay, 3);
+    assert.equal(queue.max, Infinity);
+  });
+
+  it('set option max', function () {
+    var queue = new Queue();
+    queue.setOptions({max: 5});
+    assert.equal(queue.delay, null);
+    assert.equal(queue.max, 5);
+  });
+
+  it('destroy flushes the queue', function () {
+    var queue = new Queue({max: 4});
+
+    var count = 0;
+    function inc() {
+      count++;
+    }
+    queue.queue(inc);
+    queue.destroy();
+    assert.equal(count, 1)
+  });
+
+  it('destroy removes extensions', function () {
+    var obj = {
+      count: 0,
+      add: function (value) {
+        this.count += value;
+      },
+      subtract: function (value) {
+        this.count -= value;
+      }
+    };
+
+    var queue = Queue.extend(obj, {replace: ['add', 'subtract']});
+    queue.destroy();
+    assert.equal(queue._extended, null);
+  });
 
 });
