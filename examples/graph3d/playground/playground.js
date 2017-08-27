@@ -304,7 +304,7 @@ function getDataType() {
 /**
  * Retrieve the datatable from the entered contents of the csv text
  * @param {boolean} [skipValue] | if true, the 4th element is a filter value
- * @return {vis DataSet}
+ * @return {vis.DataSet}
  */
 function getDataCsv() {
   var csv = document.getElementById("csvTextarea").value;
@@ -366,7 +366,7 @@ function trim(text) {
 
 /**
  * Retrieve the datatable from the entered contents of the javascript text
- * @return {vis Dataset}
+ * @return {vis.DataSet}
  */
 function getDataJson() {
   var json = document.getElementById("jsonTextarea").value;
@@ -378,7 +378,7 @@ function getDataJson() {
 
 /**
  * Retrieve the datatable from the entered contents of the javascript text
- * @return {vis Dataset}
+ * @return {vis.DataSet}
  */
 function getDataJavascript() {
   var js = document.getElementById("javascriptTextarea").value;
@@ -391,7 +391,7 @@ function getDataJavascript() {
 
 /**
  * Retrieve the datatable from the entered contents of the datasource text
- * @return {vis Dataset}
+ * @return {vis.DataSet}
  */
 function getDataDatasource() {
 }
