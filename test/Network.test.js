@@ -164,8 +164,8 @@ function assertNumNodes(network, expectedPresent, expectedVisible) {
 function assertNumEdges(network, expectedPresent, expectedVisible) {
   if (expectedVisible === undefined) expectedVisible = expectedPresent;
 
-  assert.equal(Object.keys(network.body.edges).length, expectedPresent);
-  assert.equal(network.body.edgeIndices.length, expectedVisible);
+  assert.equal(Object.keys(network.body.edges).length, expectedPresent, "Total number of edges does not match");
+  assert.equal(network.body.edgeIndices.length, expectedVisible, "Number of visible edges does not match");
 };
 
 
@@ -933,6 +933,75 @@ describe('Clustering', function () {
     numEdges -= 1;
     assertNumNodes(network, numNodes, numNodes - 5);
     assertNumEdges(network, numEdges, numEdges - 5);
+
+    // Same, with external connection to cluster
+    var [network, data, numNodes, numEdges] = createSampleNetwork();
+		data.edges.update({from: 1, to: 11,});
+		data.edges.update({from: 2, to: 12,});
+    numEdges += 2;
+    // 14-13-12-11-1-2-3-4
+    //        |------|
+    assertNumNodes(network, numNodes);
+    assertNumEdges(network, numEdges);
+
+
+		clusterTo(network, 'c0', [11,12]);	
+		clusterTo(network, 'c1', [3,4]);	
+		clusterTo(network, 'c2', [2,'c1']);	
+		clusterTo(network, 'c3', [1,'c2']);
+    //                 +----------------+
+    //                 |     c3         |
+    //                 |   +----------+ |
+    //                 |   |   c2     | |
+    //       +-------+ |   |   +----+ | |
+    //       |   c0  | |   |   | c1 | | |
+    // 14-13-|-12-11-|-|-1-|-2-|-3-4| | |
+    //       |  |    | |   | | +----+ | |
+    //       +-------+ |   | |        | |
+    //          |      |   +----------+ |
+    //          |      |     |          |
+    //          |      +----------------+
+    //          |------------|
+    //              (I)
+    numNodes += 4;
+    numEdges = 15;
+    assertNumNodes(network, numNodes, 4);
+    assertNumEdges(network, numEdges, 3);  // (I) link 2-12 is combined into cluster edge for 11-1
+
+    // Open the middle cluster
+    network.clustering.openCluster('c2', {});
+    //                 +--------------+
+    //                 |    c3        |
+    //                 |              |
+    //       +-------+ |      +----+  |
+    //       |   c0  | |      | c1 |  |
+    // 14-13-|-12-11-|-|-1--2-|-3-4|  |
+    //       |  |    | |    | +----+  |
+    //       +-------+ |    |         |
+    //          |      |    |         |
+    //          |      +--------------+
+    //          |-----------|
+    //              (I)
+    numNodes -= 1;
+    numEdges -= 2;
+    assertNumNodes(network, numNodes, 4);  // visibility doesn't change, cluster opened within cluster
+    assertNumEdges(network, numEdges, 3);  // (I)
+
+    // Open the top cluster
+    network.clustering.openCluster('c3', {});
+    //                             
+    //       +-------+     +----+
+    //       |   c0  |     | c1 |
+    // 14-13-|-12-11-|-1-2-|-3-4|
+    //       |  |    |   | +----+
+    //       +-------+   |       
+    //          |        |       
+    //          |--------|
+    //              (II)
+    numNodes -= 1;
+    numEdges  = 12;
+    assertNumNodes(network, numNodes, 6);  // visibility doesn't change, cluster opened within cluster
+    assertNumEdges(network, numEdges, 6);  // (II) link 2-12 visible again
   });
 });  // Clustering
 
