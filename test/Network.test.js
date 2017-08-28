@@ -903,10 +903,10 @@ describe('Clustering', function () {
 
 
   /**
-   * Check correct opening of multiple clusters of clusters.
+   * Check correct opening of nested clusters.
    * The test uses clustering three levels deep and opens the middle one.
    */
-  it('properly opens multi-level clusters', function () {
+  it('properly opens clustered clusters', function () {
     var [network, data, numNodes, numEdges] = createSampleNetwork();
 		data.edges.update({from: 1, to: 11,});
     numEdges += 1;
@@ -934,7 +934,9 @@ describe('Clustering', function () {
     assertNumNodes(network, numNodes, numNodes - 5);
     assertNumEdges(network, numEdges, numEdges - 5);
 
-    // Same, with external connection to cluster
+    //
+    // Same, with one external connection to cluster
+    //
     var [network, data, numNodes, numEdges] = createSampleNetwork();
 		data.edges.update({from: 1, to: 11,});
 		data.edges.update({from: 2, to: 12,});
