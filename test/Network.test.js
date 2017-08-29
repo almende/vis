@@ -1,3 +1,15 @@
+/**
+ *
+ * Useful during debugging
+ * =======================
+ *
+ * console.log(JSON.stringify(output, null, 2));
+ *
+ *   for (let i in network.body.edges) {
+ *     let edge = network.body.edges[i];
+ *     console.log("" + i + ": from: " + edge.fromId + ", to: " + edge.toId);
+ *   }
+ */
 var fs = require('fs');
 var assert = require('assert');
 var vis = require('../dist/vis');
@@ -6,9 +18,6 @@ var jsdom_global = require('jsdom-global');
 var stdout = require('test-console').stdout;
 var Validator = require("./../lib/shared/Validator").default;
 //var {printStyle} = require('./../lib/shared/Validator');
-
-// Useful during debugging:
-//  console.log(JSON.stringify(output, null, 2));
 
 
 /**
@@ -537,15 +546,37 @@ describe('Clustering', function () {
     assertNumEdges(network, numEdges, 5);
 
     data.nodes.remove(12);
-    for (let i in network.body.edges) {
-      let edge = network.body.edges[i];
-      console.log("" + i + ": from: " + edge.fromId + ", to: " + edge.toId);
-    }
     assert(network.body.nodes['c3'] !== undefined);  // Cluster should still be present
     numNodes -= 1;                                   // removed node 
     numEdges -= 3;                                   // cluster edge C3-13 should be removed
     assertNumNodes(network, numNodes, 6);
     assertNumEdges(network, numEdges, 4);
+  });
+
+
+  it('removes nested clusters with allowSingleNodeCluster === true', function() {
+    var [network, data, numNodes, numEdges] = createSampleNetwork();
+    // Create a chain of nested clusters, three deep
+		clusterTo(network, 'c1', [4], true);	
+		clusterTo(network, 'c2', ['c1'], true);	
+		clusterTo(network, 'c3', ['c2'], true);	
+    numNodes += 3;
+    numEdges += 3;
+    assertNumNodes(network, numNodes, numNodes - 3);
+    assertNumEdges(network, numEdges, numEdges - 3);
+    assert(network.body.nodes['c1'] !== undefined);
+    assert(network.body.nodes['c2'] !== undefined);
+    assert(network.body.nodes['c3'] !== undefined);
+
+    // The whole chain should be removed when the bottom-most node is deleted
+    data.nodes.remove(4);
+    numNodes -= 4;
+    numEdges -= 4;
+    assertNumNodes(network, numNodes);
+    assertNumEdges(network, numEdges);
+    assert(network.body.nodes['c1'] === undefined);
+    assert(network.body.nodes['c2'] === undefined);
+    assert(network.body.nodes['c3'] === undefined);
   });
 
 
