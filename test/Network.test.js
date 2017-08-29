@@ -481,15 +481,72 @@ describe('Clustering', function () {
   /**
    * Helper function for clustering
    */
-  function clusterTo(network, clusterId, nodeList) {  
-    var clusterOptionsByData = {
+  function clusterTo(network, clusterId, nodeList, allowSingle) {  
+    var options = {
       joinCondition: function(node) {
         return nodeList.indexOf(node.id) !== -1;
       },
-      clusterNodeProperties: {id: clusterId, label: clusterId}
+      clusterNodeProperties: {
+        id: clusterId,
+        label: clusterId
+      }
     }
-    network.cluster(clusterOptionsByData);
+
+    if (allowSingle === true) {
+      options.clusterNodeProperties.allowSingleNodeCluster = true
+    }
+
+    network.cluster(options);
   }
+
+
+  it('properly handles options allowSingleNodeCluster', function() {
+    var [network, data, numNodes, numEdges] = createSampleNetwork();
+		data.edges.update({from: 1, to: 11,});
+    numEdges += 1;
+    assertNumNodes(network, numNodes);
+    assertNumEdges(network, numEdges);
+
+    clusterTo(network, 'c1', [3,4]);  
+    numNodes += 1;                                    // A clustering node is now hiding two nodes
+    numEdges += 1;                                    // One clustering edges now hiding two edges
+    assertNumNodes(network, numNodes, numNodes - 2);
+    assertNumEdges(network, numEdges, numEdges - 2);
+
+    // Cluster of single node should fail, because by default allowSingleNodeCluster == false
+    clusterTo(network, 'c2', [14]);  
+    assertNumNodes(network, numNodes, numNodes - 2);  // Nothing changed
+    assertNumEdges(network, numEdges, numEdges - 2);
+    assert(network.body.nodes['c2'] === undefined);  // Cluster not created
+
+    // Redo with allowSingleNodeCluster == true
+    clusterTo(network, 'c2', [14], true);  
+    numNodes += 1;
+    numEdges += 1;
+    assertNumNodes(network, numNodes, numNodes - 3);
+    assertNumEdges(network, numEdges, numEdges - 3);
+    assert(network.body.nodes['c2'] !== undefined);  // Cluster created
+
+
+    // allowSingleNodeCluster: true with two nodes
+    // removing one clustered node should retain cluster
+    clusterTo(network, 'c3', [11, 12], true);  
+    numNodes += 1;                                   // Added cluster
+    numEdges += 2;
+    assertNumNodes(network, numNodes, 6);
+    assertNumEdges(network, numEdges, 5);
+
+    data.nodes.remove(12);
+    for (let i in network.body.edges) {
+      let edge = network.body.edges[i];
+      console.log("" + i + ": from: " + edge.fromId + ", to: " + edge.toId);
+    }
+    assert(network.body.nodes['c3'] !== undefined);  // Cluster should still be present
+    numNodes -= 1;                                   // removed node 
+    numEdges -= 3;                                   // cluster edge C3-13 should be removed
+    assertNumNodes(network, numNodes, 6);
+    assertNumEdges(network, numEdges, 4);
+  });
 
 
   /**
@@ -500,8 +557,8 @@ describe('Clustering', function () {
 
     createCluster(network);
     numNodes += 1;                                    // A clustering node is now hiding two nodes
-    assertNumNodes(network, numNodes, numNodes - 2);
     numEdges += 2;                                    // Two clustering edges now hide two edges
+    assertNumNodes(network, numNodes, numNodes - 2);
     assertNumEdges(network, numEdges, numEdges - 2);
 
     //console.log("Creating node 21")
@@ -514,8 +571,8 @@ describe('Clustering', function () {
     // '1' is part of the cluster so should
     // connect to cluster instead
     data.edges.update([{from: 21, to: 1}]);
-    assertNumNodes(network, numNodes, numNodes - 2);  // nodes unchanged
     numEdges += 2;                                    // A new clustering edge is hiding a new edge
+    assertNumNodes(network, numNodes, numNodes - 2);  // nodes unchanged
     assertNumEdges(network, numEdges, numEdges - 3);
   });
 
@@ -529,8 +586,8 @@ describe('Clustering', function () {
 
     createCluster(network);
     numNodes += 1;                                    // A clustering node is now hiding two nodes
-    assertNumNodes(network, numNodes, numNodes - 2);
     numEdges += 2;                                    // Two clustering edges now hide two edges
+    assertNumNodes(network, numNodes, numNodes - 2);
     assertNumEdges(network, numEdges, numEdges - 2);
     // End block same as previous test
 
@@ -545,15 +602,15 @@ describe('Clustering', function () {
 
     // 12 was connected to 11, which is clustered
     numNodes -= 1;                                    // 12 removed, one less node
-    assertNumNodes(network, numNodes, numNodes - 2);
     numEdges -= 3;                                    // clustering edge c1-12 and 2 edges of 12 gone
+    assertNumNodes(network, numNodes, numNodes - 2);
     assertNumEdges(network, numEdges, numEdges - 1);
 
     //console.log("Unclustering c1");
     network.openCluster("c1");
     numNodes -= 1;                                    // cluster node removed, one less node
-    assertNumNodes(network, numNodes, numNodes);      // all are visible again
     numEdges -= 1;                                    // clustering edge gone, regular edge visible
+    assertNumNodes(network, numNodes, numNodes);      // all are visible again
     assertNumEdges(network, numEdges, numEdges);      // all are visible again
 
   });
@@ -575,22 +632,22 @@ describe('Clustering', function () {
 
     network.cluster(clusterOptionsByData);
     numNodes += 1;                                    // new cluster node
-    assertNumNodes(network, numNodes, numNodes - 3);  // 3 clustered nodes
     numEdges += 1;                                    // 1 cluster edge expected
+    assertNumNodes(network, numNodes, numNodes - 3);  // 3 clustered nodes
     assertNumEdges(network, numEdges, numEdges - 3);  // 3 edges hidden
 
     //console.log("removing node 2, which is inside the cluster");
     data.nodes.remove(2);
     numNodes -= 1;                                    // clustered node removed
-    assertNumNodes(network, numNodes, numNodes - 2);  // view doesn't change
     numEdges -= 2;                                    // edges removed hidden in cluster
+    assertNumNodes(network, numNodes, numNodes - 2);  // view doesn't change
     assertNumEdges(network, numEdges, numEdges - 1);  // view doesn't change
 
     //console.log("Unclustering c1");
     network.openCluster("c1")
     numNodes -= 1;                                    // cluster node gone
-    assertNumNodes(network, numNodes, numNodes);      // all visible
     numEdges -= 1;                                    // cluster edge gone
+    assertNumNodes(network, numNodes, numNodes);      // all visible
     assertNumEdges(network, numEdges, numEdges);      // all visible
 
     //log(network);
