@@ -17,3 +17,4 @@ If you have shown some commitment to the project you can ask [@ludost](//github.
 * [@eymiha](//github.com/eymiha)
 * [@bradh](//github.com/bradh)
 * [@wimrijnders](//github.com/wimrijnders)
+* [@macleodbroad-wf](//github.com/macleodbroad-wf)
