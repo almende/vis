@@ -1150,7 +1150,7 @@ describe('runs example ', function () {
   });
 
 
-  it('WorlCup2014', function () {
+  it('WorlCup2014', function (done) {
     // This is a huge example (which is why it's tested here!), so it takes a long time to load.
     this.timeout(10000);
 
@@ -1159,6 +1159,7 @@ describe('runs example ', function () {
     // Count in following also contains the helper nodes for dynamic edges
     assert.equal(Object.keys(network.body.nodes).length, 9964);
     assert.equal(Object.keys(network.body.edges).length, 9228);
+    done();
   });
 
 
