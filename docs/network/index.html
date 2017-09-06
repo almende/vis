@@ -1333,10 +1333,10 @@ This is the structure common to all events. Specifically for the click event, th
 
 Where the click items can be:
 <pre class="prettyprint lang-js">
-  {nodeId:number}            // node with given id clicked on
-  {nodeId:number labelId:0}  // label of node with given id clicked on
-  {edgeId:number}            // edge with given id clicked on
-  {edge:number, labelId:0}   // label of edge with given id clicked on
+  {nodeId:NodeId}            // node with given id clicked on
+  {nodeId:NodeId labelId:0}  // label of node with given id clicked on
+  {edgeId:EdgeId}            // edge with given id clicked on
+  {edge:EdgeId, labelId:0}   // label of edge with given id clicked on
 </pre>
 
 The order of the <code>items</code> array is descending in z-order.
