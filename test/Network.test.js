@@ -190,7 +190,15 @@ describe('Network', function () {
 
 
   after(function() {
-    this.jsdom_global();
+    try {
+      this.jsdom_global();
+    } catch(e) {
+      if (e.message() === 'window is undefined') {
+        console.warning("'" + e.message() + "' happened again");
+      } else {
+        throw e;
+      }
+    }
   });
 
 
