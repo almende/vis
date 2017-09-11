@@ -27,7 +27,7 @@ describe('extend routines', function () {
   /**
    * Check if values have been copied over from b to a as intended
    */
-  function baseTestFillIfDefined(a, b) {
+  function baseTestFillIfDefined(a, b, checkCopyTarget = false) {
     var result = {
       color: 'green',
       sub: {
@@ -40,22 +40,34 @@ describe('extend routines', function () {
 
     assert(a.color !== undefined && a.color === result.color);
     assert(a.notInSource === true);
-    assert(a.notInTarget === undefined);
+    if (checkCopyTarget) {
+      assert(a.notInTarget === true);
+    } else {
+      assert(a.notInTarget === undefined);
+    }
 
     var sub = a.sub;
     assert(sub !== undefined);
     assert(sub.enabled !== undefined && sub.enabled === result.sub.enabled);
     assert(sub.notInSource === true);
-    assert(sub.notInTarget === undefined);
+    if (checkCopyTarget) {
+      assert(sub.notInTarget === true);
+    } else {
+      assert(sub.notInTarget === undefined);
+    }
 
     sub = a.sub.sub2;
     assert(sub !== undefined);
     assert(sub !== undefined && sub.font !== undefined && sub.font === result.sub.sub2.font);
     assert(sub.notInSource === true);
-    assert(sub.notInTarget === undefined);
-
     assert(a.subNotInSource !== undefined);
-    assert(a.subNotInTarget === undefined);
+    if (checkCopyTarget) {
+      assert(a.subNotInTarget.enabled === true);
+      assert(sub.notInTarget === true);
+    } else {
+      assert(a.subNotInTarget === undefined);
+      assert(sub.notInTarget === undefined);
+    }
   }
 
 
@@ -81,8 +93,8 @@ describe('extend routines', function () {
   }
 
 
-  beforeEach(function() {
-    this.a = {
+  function initA() {
+    return {
       color: 'red',
       notInSource: true,
       sub: {
@@ -102,6 +114,11 @@ describe('extend routines', function () {
         enabled: true,
       },
     };
+  }
+
+
+  beforeEach(function() {
+    this.a = initA();
 
     this.b = {
       color: 'green',
@@ -139,12 +156,11 @@ describe('extend routines', function () {
   });
 
 
-  it('performs fillIfDefined() as advertized with allowDeletion enabled', function () {
+  it('performs fillIfDefined() as advertized with deletion', function () {
     var a = this.a;
     var b = this.b;
 
-    // allowDeletion enabled
-    util.fillIfDefined(a, b, true);
+    util.fillIfDefined(a, b, true);  //  thrid param: allowDeletion
     baseTestFillIfDefined(a, b);
 
     // Following should be removed now
@@ -206,11 +222,11 @@ describe('extend routines', function () {
   });
 
 
-  it('performs selectiveDeepExtend() as advertized with allowDeletion enabled', function () {
+  it('performs selectiveDeepExtend() as advertized with deletion', function () {
     var a = this.a;
     var b = this.b;
 
-    // Test expected differences only here with test allowDeletion === false
+    // Only test expected differences here with test allowDeletion === false
 
     // Copy object property with properties to be deleted
     var sub = a.sub;
@@ -234,6 +250,35 @@ describe('extend routines', function () {
     assert(a.deleteThis === undefined);       // should be deleted
     assert(a.subDeleteThis === undefined);    // should be deleted
   });
+
+
+  it('performs selectiveNotDeepExtend() as advertized', function () {
+    var a = this.a;
+    var b = this.b;
+
+    // Exclude all properties, nothing copied
+    util.selectiveNotDeepExtend(Object.keys(b), a, b);
+    testAUnchanged(a);
+
+    // Exclude nothing, everything copied
+    util.selectiveNotDeepExtend([], a, b);
+    baseTestFillIfDefined(a, b, true);
+
+    // Exclude some
+    a = initA();
+    assert(a.notInTarget === undefined);     // pre
+    assert(a.subNotInTarget === undefined);  // pre
+console.log(Object.keys(a));
+console.log(a);
+console.log('------------------');
+    util.selectiveNotDeepExtend(['notInTarget', 'subNotInTarget'], a, b);
+console.log(Object.keys(a));
+console.log(a);
+    assert(a.notInTarget === undefined);     // not copied
+    assert(a.subNotInTarget === undefined);  // not copied
+    assert(a.sub.notInTarget === true);      // copied!
+  });
+
 
 });  // extend routines
 
