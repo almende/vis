@@ -17,6 +17,7 @@ var Network = vis.network;
 var jsdom_global = require('jsdom-global');
 var stdout = require('test-console').stdout;
 var Validator = require("./../lib/shared/Validator").default;
+var {allOptions, configureOptions} = require('./../lib/network/options.js');
 //var {printStyle} = require('./../lib/shared/Validator');
 
 
@@ -178,6 +179,49 @@ function assertNumEdges(network, expectedPresent, expectedVisible) {
 };
 
 
+/**
+ * Check if the font options haven't changed.
+ *
+ * This is to guard against future code changes; a lot of the code deals with particular properties of
+ * the font options.
+ * If any assertion fails here, all code in Network handling fonts should be checked.
+ */
+function checkFontProperties(fontItem, checkStrict = true) {
+  var knownProperties = [
+    'color',
+    'size',
+    'face',
+    'background',
+    'strokeWidth',
+    'strokeColor',
+    'align',
+    'multi',
+    'vadjust',
+    'bold',
+    'boldital',
+    'ital',
+    'mono',
+  ];
+
+  // All properties in fontItem should be known
+  for (var prop in fontItem) {
+    if (prop === '__type__') continue;  // Skip special field in options definition
+    if (!fontItem.hasOwnProperty(prop)) continue;
+    assert(knownProperties.indexOf(prop) !== -1, "Unknown font option '" + prop + "'");
+  }
+
+  if (!checkStrict) return;
+
+  // All known properties should be present
+  var keys = Object.keys(fontItem);
+  for (var n in knownProperties) {
+    var prop = knownProperties[n];
+    assert(keys.indexOf(prop) !== -1, "Missing known font option '" + prop + "'");
+  }
+}
+
+
+
 describe('Network', function () {
 
   before(function() {
@@ -250,6 +294,13 @@ describe('Network', function () {
 
 describe('Node', function () {
 
+  it('has known font options', function () {
+    var network = createNetwork({});
+    checkFontProperties(network.nodesHandler.defaultOptions.font);
+    checkFontProperties(allOptions.nodes.font);
+    checkFontProperties(configureOptions.nodes.font, false);
+  });
+
 
   /**
    * NOTE: choosify tests of Node and Edge are parallel
@@ -292,6 +343,14 @@ describe('Node', function () {
 
 
 describe('Edge', function () {
+
+  it('has known font options', function () {
+    var network = createNetwork({});
+    checkFontProperties(network.edgesHandler.defaultOptions.font);
+    checkFontProperties(allOptions.edges.font);
+    checkFontProperties(configureOptions.edges.font, false);
+  });
+
 
   /**
    * NOTE: choosify tests of Node and Edge are parallel
