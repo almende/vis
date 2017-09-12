@@ -27,7 +27,7 @@ describe('extend routines', function () {
   /**
    * Check if values have been copied over from b to a as intended
    */
-  function baseTestFillIfDefined(a, b, checkCopyTarget = false) {
+  function checkExtended(a, b, checkCopyTarget = false) {
     var result = {
       color: 'green',
       sub: {
@@ -146,7 +146,7 @@ describe('extend routines', function () {
     var b = this.b;
 
     util.fillIfDefined(a, b);
-    baseTestFillIfDefined(a, b);
+    checkExtended(a, b);
 
     // NOTE: if allowDeletion === false, null values are copied over!
     //       This is due to existing logic; it might not be the intention and hence a bug
@@ -161,7 +161,7 @@ describe('extend routines', function () {
     var b = this.b;
 
     util.fillIfDefined(a, b, true);  //  thrid param: allowDeletion
-    baseTestFillIfDefined(a, b);
+    checkExtended(a, b);
 
     // Following should be removed now
     assert(a.sub.deleteThis === undefined);
@@ -241,7 +241,6 @@ describe('extend routines', function () {
     assert(sub.notInSource === true);
     assert(sub.notInTarget === true);
 
-
     // Copy null objects
     assert(a.deleteThis === true);            // pre
     assert(a.subDeleteThis !== undefined);    // pre
@@ -262,24 +261,79 @@ describe('extend routines', function () {
 
     // Exclude nothing, everything copied
     util.selectiveNotDeepExtend([], a, b);
-    baseTestFillIfDefined(a, b, true);
+    checkExtended(a, b, true);
 
     // Exclude some
     a = initA();
     assert(a.notInTarget === undefined);     // pre
     assert(a.subNotInTarget === undefined);  // pre
-console.log(Object.keys(a));
-console.log(a);
-console.log('------------------');
     util.selectiveNotDeepExtend(['notInTarget', 'subNotInTarget'], a, b);
-console.log(Object.keys(a));
-console.log(a);
     assert(a.notInTarget === undefined);     // not copied
     assert(a.subNotInTarget === undefined);  // not copied
     assert(a.sub.notInTarget === true);      // copied!
   });
 
 
+  it('performs selectiveNotDeepExtend() as advertized with deletion', function () {
+    var a = this.a;
+    var b = this.b;
+
+    // Exclude all properties, nothing copied
+    util.selectiveNotDeepExtend(Object.keys(b), a, b, true);
+    testAUnchanged(a);
+
+    // Exclude nothing, everything copied and some deleted
+    util.selectiveNotDeepExtend([], a, b, true);
+    checkExtended(a, b, true);
+
+    // Exclude some
+    a = initA();
+    assert(a.notInTarget === undefined);      // pre
+    assert(a.subNotInTarget === undefined);   // pre
+    assert(a.deleteThis === true);            // pre
+    assert(a.subDeleteThis !== undefined);    // pre
+    assert(a.sub.deleteThis === true);        // pre
+    assert(a.subDeleteThis.enabled === true); // pre
+    util.selectiveNotDeepExtend(['notInTarget', 'subNotInTarget'], a, b, true);
+    assert(a.deleteThis === undefined);       // should be deleted
+    assert(a.sub.deleteThis !== undefined);   // not deleted! Original logic, could be a bug
+    assert(a.subDeleteThis === undefined);    // should be deleted
+    // Spot check: following should be same as allowDeletion === false
+    assert(a.notInTarget === undefined);      // not copied
+    assert(a.subNotInTarget === undefined);   // not copied
+    assert(a.sub.notInTarget === true);       // copied!
+  });
+
+
+  /**
+   * NOTE: parameter `protoExtend` not tested here!
+   */
+  it('performs deepExtend() as advertized', function () {
+    var a = this.a;
+    var b = this.b;
+
+    util.deepExtend(a, b);
+    checkExtended(a, b, true);
+  });
+
+
+  /**
+   * NOTE: parameter `protoExtend` not tested here!
+   */
+  it('performs deepExtend() as advertized with delete', function () {
+    var a = this.a;
+    var b = this.b;
+
+    // Copy null objects
+    assert(a.deleteThis === true);            // pre
+    assert(a.subDeleteThis !== undefined);    // pre
+    assert(a.subDeleteThis.enabled === true); // pre
+    util.deepExtend(a, b, false, true);
+    checkExtended(a, b, true);                // Normal copy should be good
+    assert(a.deleteThis === undefined);       // should be deleted
+    assert(a.subDeleteThis === undefined);    // should be deleted
+    assert(a.sub.deleteThis !== undefined);   // not deleted!!! Original logic, could be a bug
+  });
 });  // extend routines
 
 
