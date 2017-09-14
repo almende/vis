@@ -480,7 +480,10 @@ describe('Network Label', function() {
     assert.equal(modBold(3).color, 'green');    // Local value overrides default
     assert.equal(modBold(4).color, 'green');    // Local value overrides group
 
+
+    //
     // Change some values dynamically
+    //
     data.nodes.update(
       {id: 1, group: 'group2'},
       {id: 4, font: { bold: { color: 'orange'}}},
