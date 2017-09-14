@@ -250,6 +250,7 @@ describe('Network', function () {
 
 describe('Node', function () {
 
+
   /**
    * NOTE: choosify tests of Node and Edge are parallel
    * TODO: consolidate this is necessary
@@ -1152,7 +1153,7 @@ describe('runs example ', function () {
 
   it('WorlCup2014', function (done) {
     // This is a huge example (which is why it's tested here!), so it takes a long time to load.
-    this.timeout(10000);
+    this.timeout(15000);
 
     var network = loadExample('./examples/network/datasources/WorldCup2014.js', true);
 
