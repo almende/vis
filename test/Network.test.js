@@ -1160,7 +1160,7 @@ describe('runs example ', function () {
     // Count in following also contains the helper nodes for dynamic edges
     assert.equal(Object.keys(network.body.nodes).length, 9964);
     assert.equal(Object.keys(network.body.edges).length, 9228);
-		done();
+    done();
   });
 
 
