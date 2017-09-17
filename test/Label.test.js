@@ -516,7 +516,6 @@ describe('Network Label', function() {
     });
 
 
-    //console.log(fontOption(2));
     assert.equal(modBold(0).color, '#343434');  // unchanged
     assert.equal(modBold(1).color, 'white');    // Unchanged
     assert.equal(modBold(2).color, 'brown');    // New group values
@@ -528,6 +527,7 @@ describe('Network Label', function() {
   Following does not work as expected; it overrides the group values
   This also doesn't work when groups are also changed in the same setOptions() call.
   TODO: Examine why this is so.
+*/
 
     network.setOptions({
       nodes: {
@@ -541,12 +541,16 @@ describe('Network Label', function() {
     });
 
 
+    var tmpNodes = network.body.nodes;
+    var tmpVal = tmpNodes[0].labelModule.fontOptions;
+		console.log(tmpVal);
+
+    console.log(fontOption(1));
     assert.equal(modBold(0).color, 'black');    // nodes default
     assert.equal(modBold(1).color, 'white');    // FAILS!!! But it's properly displayed in view
     assert.equal(modBold(2).color, 'brown');    // FAILS!!! Value not picked up
     assert.equal(modBold(3).color, 'green');    // unchanged
     assert.equal(modBold(4).color, 'orange');   // unchanged
-*/
 
 
     //
