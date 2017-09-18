@@ -282,7 +282,120 @@ describe('DataSet', function () {
       {id: 3, content: 'Item 3'},
       {id: 4, content: 'Item 4'}
     ]);
-
   });
 
+  describe('add', function () {
+    it('adds nothing for an empty array', function () {
+      var dataset = new DataSet([]);
+      var dataItems = [];
+      assert.equal(dataset.add(dataItems).length, 0)
+    });
+
+    it('adds items of an array', function () {
+      var dataset = new DataSet([]);
+      var dataItems = [
+        {_id: 1, content: 'Item 1', start: new Date(now.valueOf())},
+        {_id: 2, content: 'Item 2', start: new Date(now.valueOf())}
+      ];
+      assert.equal(dataset.add(dataItems).length, 2)
+    });
+
+    it('adds a single object', function () {
+      var dataset = new DataSet([]);
+      var dataItem = {_id: 1, content: 'Item 1', start: new Date(now.valueOf())};
+      assert.equal(dataset.add(dataItem).length, 1)
+    });
+
+    it('throws an error when passed bad datatypes', function () {
+      var dataset = new DataSet([]);
+      assert.throws(function () { dataset.add(null) }, Error, "null type throws error");
+      assert.throws(function () { dataset.add(undefined) }, Error, "undefined type throws error");
+    });
+  });
+
+  describe('setOptions', function () {
+    var dataset = new DataSet([
+      {_id: 1, content: 'Item 1', start: new Date(now.valueOf())}
+    ], {queue: true});
+
+    it('does not update queue when passed an undefined queue', function () {
+      var dataset = new DataSet([], {queue: true});
+      dataset.setOptions({queue: undefined});
+      assert.notEqual(dataset._queue, undefined)
+    });
+
+    it('destroys the queue when queue set to false', function () {
+      var dataset = new DataSet([]);
+      dataset.setOptions({queue: false});
+      assert.equal(dataset._queue, undefined)
+    });
+
+    it('udpates queue options', function () {
+      var dataset = new DataSet([]);
+      dataset.setOptions({queue: {max: 5, delay: 3}});
+      assert.equal(dataset._queue.max, 5);
+      assert.equal(dataset._queue.delay, 3);
+    });
+
+    it('creates new queue given if none is set', function () {
+      var dataset = new DataSet([], {queue: true});
+      dataset._queue.destroy();
+      dataset._queue = null;
+      dataset.setOptions({queue: {max: 5, delay: 3}});
+      assert.equal(dataset._queue.max, 5);
+      assert.equal(dataset._queue.delay, 3);
+    });
+  });
+
+  describe('on / off', function () {
+    var dataset = new DataSet([
+      {_id: 1, content: 'Item 1', start: new Date(now.valueOf())}
+    ]);
+    var count = 0;
+    function inc() {count++;}
+
+    it('fires for put', function () {
+      var dataset = new DataSet([]);
+      count = 0;
+      // on
+      dataset.on('add', inc);
+      dataset.add({_id: 1, content: 'Item 1', start: new Date(now.valueOf())});
+      assert.equal(count, 1);
+      // off
+      dataset.off('add', inc);
+      dataset.add({_id: 2, content: 'Item 2', start: new Date(now.valueOf())});
+      assert.equal(count, 1);
+    });
+
+    it('fires for remove', function () {
+      var dataset = new DataSet([]);
+      count = 0;
+      // on
+      dataset.on('remove', inc);
+      var id = dataset.add({_id: 1, content: 'Item 1', start: new Date(now.valueOf())});
+      dataset.remove(id);
+      assert.equal(count, 1);
+      // off
+      dataset.off('remove', inc);
+      id = dataset.add({_id: 1, content: 'Item 1', start: new Date(now.valueOf())});
+      dataset.remove(id);
+      assert.equal(count, 1);
+
+    });
+
+    it('fires for update', function () {
+      var dataset = new DataSet([]);
+      count = 0;
+      // on
+      dataset.on('update', inc);
+      var id = dataset.add({_id: 1, content: 'Item 1', start: new Date(now.valueOf())});
+      dataset.update({id: id, content: 'beep boop'});
+      assert.equal(count, 1);
+      // off
+      dataset.off('update', inc);
+      id = dataset.add({_id: 1, content: 'Item 1', start: new Date(now.valueOf())});
+      dataset.update({id: id, content: 'beep boop'});
+      assert.equal(count, 1);
+    });
+  });
 });
