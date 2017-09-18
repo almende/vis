@@ -527,7 +527,6 @@ describe('Network Label', function() {
   Following does not work as expected; it overrides the group values
   This also doesn't work when groups are also changed in the same setOptions() call.
   TODO: Examine why this is so.
-*/
 
     network.setOptions({
       nodes: {
@@ -551,6 +550,7 @@ describe('Network Label', function() {
     assert.equal(modBold(2).color, 'brown');    // FAILS!!! Value not picked up
     assert.equal(modBold(3).color, 'green');    // unchanged
     assert.equal(modBold(4).color, 'orange');   // unchanged
+*/
 
 
     //
