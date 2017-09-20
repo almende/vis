@@ -462,6 +462,7 @@ describe('Network Label', function() {
   });
 
 
+/*
   it('parses end of line followed by space and empty lines', function (done) {
     var options = getOptions(options);
     options.font.maxWdt = 300;
@@ -511,4 +512,5 @@ describe('Network Label', function() {
     checkProcessedLabels(label, text, expected_no_multiline);
     done();
   });
+*/
 });
