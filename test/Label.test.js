@@ -400,4 +400,115 @@ describe('Network Label', function() {
 
     done();
   });
+
+
+  it('compresses spaces in multifont', function (done) {
+    var options = getOptions(options);
+
+    var text = [
+      "Too  many    spaces     here!",
+      "This thing:\n  - could be\n  - a kind\n  - of list",  // multifont: 2 spaces at start line reduced to 1
+    ];
+
+
+    //
+    // multifont disabled: spaces are preserved
+    //
+    var label = new Label({}, options);
+
+    var expected_no_multiline = [{
+      lines: [{
+        blocks: [{text: "Too  many    spaces     here!"}],
+      }]
+    }, { 
+      lines: [{
+        blocks: [{text: "This thing:"}],
+      }, {
+        blocks: [{text: "  - could be"}],
+      }, {
+        blocks: [{text: "  - a kind"}],
+      }, {
+        blocks: [{text: "  - of list"}],
+      }]
+    }];
+
+    checkProcessedLabels(label, text, expected_no_multiline);
+
+
+    //
+    // multifont enabled: spaces are compressed
+    //
+    options.font.multi = true;
+    var label = new Label({}, options);
+
+    var expected_multiline = [{
+      lines: [{
+        blocks: [{text: "Too many spaces here!"}],
+      }]
+    }, { 
+      lines: [{
+        blocks: [{text: "This thing:"}],
+      }, {
+        blocks: [{text: " - could be"}],
+      }, {
+        blocks: [{text: " - a kind"}],
+      }, {
+        blocks: [{text: " - of list"}],
+      }]
+    }];
+    checkProcessedLabels(label, text, expected_multiline);
+
+    done();
+  });
+
+
+  it('parses end of line followed by space and empty lines', function (done) {
+    var options = getOptions(options);
+    options.font.maxWdt = 300;
+    assert.equal(options.font.multi, false);
+
+    var label = new Label({}, options);
+    var longWord = "asd;lkfja;lfkdj;alkjfd;alskfj";
+
+    var text = [
+      "Mind the space!\n " + longWord,
+      "Mind the empty line!\n\n" + longWord,
+      "Mind the dos empty line!\r\n\r\n" + longWord
+    ];
+
+    var expected_no_multiline = [{
+      lines: [{
+        blocks: [{text: "Mind the space!"}]
+      }, {
+        blocks: [{text: " "}]  // space retained!
+      }, {
+        blocks: [{text: "asd;lkfja;lfkdj;alkjfd;als"}]
+      }, {
+        blocks: [{text: "kfj"}]
+      }]
+    }, {
+      lines: [{
+        blocks: [{text: "Mind the empty line!"}]  // Note that empty line disappears
+      }, {
+        blocks: [{text: ""}]  // empty line!
+      }, {
+        blocks: [{text: "asd;lkfja;lfkdj;alkjfd;als"}]
+      }, {
+        blocks: [{text: "kfj"}]
+      }]
+    }, {
+      lines: [{
+        blocks: [{text: "Mind the dos empty line!"}]  // This should succeed; empty line  disappears
+      }, {
+        blocks: [{text: ""}]  // empty line!
+      }, {
+        blocks: [{text: "asd;lkfja;lfkdj;alkjfd;als"}]
+      }, {
+        blocks: [{text: "kfj"}]
+      }]
+    }];
+
+    checkProcessedLabels(label, text, expected_no_multiline);
+    done();
+  });
 });
