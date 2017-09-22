@@ -183,9 +183,11 @@ describe('Network Label', function() {
     }]
   }, {
     lines: [{
-      blocks: [{text: "One really long sentence"}]
+      blocks: [{text: "One really long"}]
     }, {
-      blocks: [{text: "that should go over"}]
+      blocks: [{text: "sentence that should"}]
+    }, {
+      blocks: [{text: "go over"}]
     }, {
       blocks: [{text: "widthConstraint.maximum"}]
     }, {
@@ -224,7 +226,9 @@ describe('Network Label', function() {
     }, {
       blocks: [{text: "<code>some</code>"}]
     }, {
-      blocks: [{text: "<i>multi <b>tags</b></i>"}]
+      blocks: [{text: "<i>multi"}]
+    }, {
+      blocks: [{text: "<b>tags</b></i>"}]
     }]
   }, {
     lines: [{
@@ -232,7 +236,9 @@ describe('Network Label', function() {
     }, {
       blocks: [{text: "<code>some</code> "}]
     }, {
-      blocks: [{text: " <i>multi <b>tags</b></i>"}]
+      blocks: [{text: " <i>multi"}]
+    }, {
+      blocks: [{text: "<b>tags</b></i>"}]
     }, {
       blocks: [{text: " and newlines"}]
     }]
@@ -254,7 +260,7 @@ describe('Network Label', function() {
   }];
 
 
-  var markdown_widthConstraint_expected = [{
+  var markdown_widthConstraint_expected= [{
     lines: [{
       blocks: [{text: "label *with* `some`"}]
     }, {
@@ -366,6 +372,11 @@ describe('Network Label', function() {
 
     checkProcessedLabels(label, normal_text  , normal_widthConstraint_expected);
     checkProcessedLabels(label, html_text    , html_widthConstraint_unchanged);    // html unchanged
+
+    // Following is an unlucky selection, because the first line broken on the final character (space)
+    // So we cheat a bit here
+    options.font.maxWdt = 320;
+    label = new Label({}, options);
     checkProcessedLabels(label, markdown_text, markdown_widthConstraint_expected); // markdown unchanged
 
     done();
@@ -381,6 +392,11 @@ describe('Network Label', function() {
 
     checkProcessedLabels(label, normal_text  , normal_widthConstraint_expected);
     checkProcessedLabels(label, html_text    , multi_expected); 
+
+    // Following is an unlucky selection, because the first line broken on the final character (space)
+    // So we cheat a bit here
+    options.font.maxWdt = 320;
+    label = new Label({}, options);
     checkProcessedLabels(label, markdown_text, markdown_widthConstraint_expected);
 
     done();
@@ -398,6 +414,225 @@ describe('Network Label', function() {
     checkProcessedLabels(label, html_text    , html_widthConstraint_unchanged); 
     checkProcessedLabels(label, markdown_text, multi_expected);
 
+    done();
+  });
+
+
+  it('compresses spaces in multifont', function (done) {
+    var options = getOptions(options);
+
+    var text = [
+      "Too  many    spaces     here!",
+      "one two  three   four    five     six      .",
+      "This thing:\n  - could be\n  - a kind\n  - of list",  // multifont: 2 spaces at start line reduced to 1
+    ];
+
+
+    //
+    // multifont disabled: spaces are preserved
+    //
+    var label = new Label({}, options);
+
+    var expected = [{
+      lines: [{
+        blocks: [{text: "Too  many    spaces     here!"}],
+      }]
+    }, { 
+      lines: [{
+        blocks: [{text: "one two  three   four    five     six      ."}],
+      }]
+    }, { 
+      lines: [{
+        blocks: [{text: "This thing:"}],
+      }, {
+        blocks: [{text: "  - could be"}],
+      }, {
+        blocks: [{text: "  - a kind"}],
+      }, {
+        blocks: [{text: "  - of list"}],
+      }]
+    }];
+
+    checkProcessedLabels(label, text, expected);
+
+
+    //
+    // multifont disabled width maxwidth: spaces are preserved
+    //
+    options.font.maxWdt = 300;
+    var label = new Label({}, options);
+
+    var expected_maxwidth = [{
+      lines: [{
+          blocks: [{text: "Too  many    spaces"}],
+        }, {
+          blocks: [{text: "     here!"}],
+      }]
+    }, { 
+      lines: [{
+          blocks: [{text: "one two  three   "}],
+        }, {
+          blocks: [{text: "four    five     six"}],
+        }, {
+          blocks: [{text: "      ."}],
+      }]
+    }, { 
+      lines: [{
+        blocks: [{text: "This thing:"}],
+      }, {
+        blocks: [{text: "  - could be"}],
+      }, {
+        blocks: [{text: "  - a kind"}],
+      }, {
+        blocks: [{text: "  - of list"}],
+      }]
+    }];
+
+    checkProcessedLabels(label, text, expected_maxwidth);
+
+
+    //
+    // multifont enabled: spaces are compressed
+    //
+    options = getOptions(options);
+    options.font.multi = true;
+    var label = new Label({}, options);
+
+    var expected_multifont = [{
+      lines: [{
+        blocks: [{text: "Too many spaces here!"}],
+      }]
+    }, { 
+      lines: [{
+        blocks: [{text: "one two three four five six ."}],
+      }]
+    }, { 
+      lines: [{
+        blocks: [{text: "This thing:"}],
+      }, {
+        blocks: [{text: " - could be"}],
+      }, {
+        blocks: [{text: " - a kind"}],
+      }, {
+        blocks: [{text: " - of list"}],
+      }]
+    }];
+
+    checkProcessedLabels(label, text, expected_multifont);
+
+
+    //
+    // multifont enabled with max width: spaces are compressed
+    //
+    options.font.maxWdt = 300;
+    var label = new Label({}, options);
+
+    var expected_multifont_maxwidth = [{
+      lines: [{
+        blocks: [{text: "Too many spaces"}],
+      }, {
+        blocks: [{text: "here!"}],
+      }]
+    }, { 
+      lines: [{
+        blocks: [{text: "one two three four"}],
+      }, {
+        blocks: [{text: "five six ."}],
+      }]
+    }, { 
+      lines: [{
+        blocks: [{text: "This thing:"}],
+      }, {
+        blocks: [{text: " - could be"}],
+      }, {
+        blocks: [{text: " - a kind"}],
+      }, {
+        blocks: [{text: " - of list"}],
+      }]
+    }];
+
+    checkProcessedLabels(label, text, expected_multifont_maxwidth);
+
+    done();
+  });
+
+
+  it('parses single huge word on line with preceding whitespace when max width set', function (done) {
+    var options = getOptions(options);
+    options.font.maxWdt = 300;
+    assert.equal(options.font.multi, false);
+
+    /**
+     * Allows negative indexing, counting from back (ruby style)
+     */
+/*
+ TODO: Use when the actual bug is fixed and tests pass.
+
+    let splitAt = (text, pos, getFirst) => {
+      if (pos < 0) { pos = text.length + pos;
+
+      if (getFirst) {
+        return text.substring(0, pos));
+      } else {
+        return text.substring(pos));
+      }
+    }
+*/
+
+    var label = new Label({}, options);
+    var longWord = "asd;lkfja;lfkdj;alkjfd;alskfj";
+
+    var text = [
+      "Mind the space!\n " + longWord,
+      "Mind the empty line!\n\n" + longWord,
+      "Mind the dos empty line!\r\n\r\n" + longWord
+    ];
+
+    var expected = [{
+      lines: [{
+        blocks: [{text: "Mind the space!"}]
+      }, {
+        blocks: [{text: ""}]
+      }, {
+        blocks: [{text: "asd;lkfja;lfkdj;alkjfd;als"}]
+      }, {
+        blocks: [{text: "kfj"}]
+      }]
+    }, {
+      lines: [{
+        blocks: [{text: "Mind the empty"}]
+      }, {
+        blocks: [{text: "line!"}]
+      }, {
+        blocks: [{text: ""}]
+      }, {
+        blocks: [{text: "asd;lkfja;lfkdj;alkjfd;als"}]
+      }, {
+        blocks: [{text: "kfj"}]
+      }]
+    }, {
+      lines: [{
+        blocks: [{text: "Mind the dos empty"}]
+      }, {
+        blocks: [{text: "line!"}]
+      }, {
+        blocks: [{text: ""}]
+      }, {
+        blocks: [{text: "asd;lkfja;lfkdj;alkjfd;als"}]
+      }, {
+        blocks: [{text: "kfj"}]
+      }]
+    }];
+
+    checkProcessedLabels(label, text, expected);
+
+
+    //
+    // Multi font enabled. For current case, output should be identical to no multi font
+    //
+    options.font.multi = true;
+    var label = new Label({}, options);
+    checkProcessedLabels(label, text, expected);
     done();
   });
 });
