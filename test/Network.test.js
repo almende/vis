@@ -319,19 +319,26 @@ describe('Network', function () {
   }
 
 
+  /**
+   * At time of writing, this test detected 22 out of 33 'illegal' loops.
+   * The real deterrent is eslint rule 'guard-for-in`.
+   */
   it('can deal with added fields in Array.prototype', function (done) {
-    // At time of writing, this caught 16 out of 33 'illegal' loops.
-    // The real deterrent is eslint rule 'guard-for-in`.
-
     Array.prototype.foo = 1;  // Just add anything to the prototype
     Object.prototype.bar = 2; // Let's screw up hashes as well
 
     // The network should just run without throwing errors
     try {
       var [network, data, numNodes, numEdges] = createSampleNetwork({});
-      clusterTo(network, 'c1', [1,2,3]);  // Trigger more errors
-      //data.nodes.remove(1);
-      //network.openCluster('c1');
+
+      // Do some stuff to trigger more errors
+      clusterTo(network, 'c1', [1,2,3]);
+      data.nodes.remove(1);
+      network.openCluster('c1');
+		  clusterTo(network, 'c1', [4], true);	
+		  clusterTo(network, 'c2', ['c1'], true);	
+		  clusterTo(network, 'c3', ['c2'], true);	
+      data.nodes.remove(4);
       
     } catch(e) {
       delete Array.prototype.foo;  // Remove it again so as not to confuse other tests.
