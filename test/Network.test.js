@@ -292,6 +292,66 @@ describe('Network', function () {
   }
 
 
+/////////////////////////////////////////////////////
+// End Local helper methods for Edge and Node testing
+/////////////////////////////////////////////////////
+
+
+  /**
+   * Helper function for clustering
+   */
+  function clusterTo(network, clusterId, nodeList, allowSingle) {  
+    var options = {
+      joinCondition: function(node) {
+        return nodeList.indexOf(node.id) !== -1;
+      },
+      clusterNodeProperties: {
+        id: clusterId,
+        label: clusterId
+      }
+    }
+
+    if (allowSingle === true) {
+      options.clusterNodeProperties.allowSingleNodeCluster = true
+    }
+
+    network.cluster(options);
+  }
+
+
+  /**
+   * At time of writing, this test detected 22 out of 33 'illegal' loops.
+   * The real deterrent is eslint rule 'guard-for-in`.
+   */
+  it('can deal with added fields in Array.prototype', function (done) {
+    Array.prototype.foo = 1;  // Just add anything to the prototype
+    Object.prototype.bar = 2; // Let's screw up hashes as well
+
+    // The network should just run without throwing errors
+    try {
+      var [network, data, numNodes, numEdges] = createSampleNetwork({});
+
+      // Do some stuff to trigger more errors
+      clusterTo(network, 'c1', [1,2,3]);
+      data.nodes.remove(1);
+      network.openCluster('c1');
+		  clusterTo(network, 'c1', [4], true);	
+		  clusterTo(network, 'c2', ['c1'], true);	
+		  clusterTo(network, 'c3', ['c2'], true);	
+      data.nodes.remove(4);
+      
+    } catch(e) {
+      delete Array.prototype.foo;  // Remove it again so as not to confuse other tests.
+      delete Object.prototype.bar;
+      assert(false, "Got exception:\n" + e.stack);
+    }
+
+    delete Array.prototype.foo; // Remove it again so as not to confuse other tests.
+    delete Object.prototype.bar;
+    done();
+  });
+
+
 describe('Node', function () {
 
   it('has known font options', function () {
@@ -554,27 +614,6 @@ describe('Edge', function () {
 
 
 describe('Clustering', function () {
-
-  /**
-   * Helper function for clustering
-   */
-  function clusterTo(network, clusterId, nodeList, allowSingle) {  
-    var options = {
-      joinCondition: function(node) {
-        return nodeList.indexOf(node.id) !== -1;
-      },
-      clusterNodeProperties: {
-        id: clusterId,
-        label: clusterId
-      }
-    }
-
-    if (allowSingle === true) {
-      options.clusterNodeProperties.allowSingleNodeCluster = true
-    }
-
-    network.cluster(options);
-  }
 
 
   it('properly handles options allowSingleNodeCluster', function() {
