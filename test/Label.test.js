@@ -420,10 +420,31 @@ describe('Network Label', function() {
   });
 
 
+  /**
+   * Check that setting options for multi-font works as expected
+   *
+   * - Testing node labels only here, because edge labels work in the same way.
+   * - using multi-font 'bold' for test, the rest should work analogously
+   * - using multi-font option 'color' for test, the rest should work analogously
+   */
   it('sets the multi-font options according to precedence', function (done) {
-    // Testing nodes only here, because edge labels work in the same way
-    // using multi-font 'bold' for test, the rest should work analogously
-    // using multi-font option 'color' for test, the rest should work analogously
+
+    /**
+     * Helper function for easily accessing font options in a node
+     */
+    var fontOption = (index) => {
+      var nodes = network.body.nodes;
+      return nodes[index].labelModule.fontOptions;
+    };
+
+
+    /**
+     * Helper function for easily accessing bold options in a node
+     */
+    var modBold = (index) => {
+      return fontOption(index).bold;
+    };
+
 
     var dataNodes = [
       {id: 0, label: '<b>0</b>'},
@@ -467,22 +488,6 @@ describe('Network Label', function() {
     var network = new vis.Network(container, data, options);
 
 
-    /**
-     * Helper function for easily accessing font options in a node
-     */
-    var fontOption = (index) => {
-      var nodes = network.body.nodes;
-      return nodes[index].labelModule.fontOptions;
-    };
-
-    /**
-     * Helper function for easily accessing bold options in a node
-     */
-    var modBold = (index) => {
-      return fontOption(index).bold;
-    };
-
-
     assert.equal(modBold(0).color, '#343434');  // Default value
     assert.equal(modBold(1).color, '#343434');  // Default value
     assert.equal(modBold(2).color, 'red');      // Group value overrides default
@@ -490,11 +495,10 @@ describe('Network Label', function() {
     assert.equal(modBold(4).color, 'green');    // Local value overrides group
 
 
-
     //
-    // Change some values dynamically
+    // Change some node values dynamically
     //
-    data.nodes.update([  // Grumbl don't forget array braces
+    data.nodes.update([
       {id: 1, group: 'group2'},
       {id: 4, font: { bold: { color: 'orange'}}},
     ]);
@@ -505,7 +509,7 @@ describe('Network Label', function() {
     assert.equal(modBold(4).color, 'orange');   // new local value
 
     //
-    // Change options dynamically
+    // Change group options dynamically
     //
     network.setOptions({
       groups: {
@@ -523,11 +527,6 @@ describe('Network Label', function() {
     assert.equal(modBold(4).color, 'orange');   // unchanged
 
 
-/**
-  Following does not work as expected; it overrides the group values
-  This also doesn't work when groups are also changed in the same setOptions() call.
-  TODO: Examine why this is so.
-
     network.setOptions({
       nodes: {
         font: {
@@ -544,13 +543,26 @@ describe('Network Label', function() {
     var tmpVal = tmpNodes[0].labelModule.fontOptions;
 		console.log(tmpVal);
 
-    console.log(fontOption(1));
     assert.equal(modBold(0).color, 'black');    // nodes default
-    assert.equal(modBold(1).color, 'white');    // FAILS!!! But it's properly displayed in view
-    assert.equal(modBold(2).color, 'brown');    // FAILS!!! Value not picked up
+    assert.equal(modBold(1).color, 'black');    // more specific bold value overrides group value
+    assert.equal(modBold(2).color, 'black');    // idem
     assert.equal(modBold(3).color, 'green');    // unchanged
     assert.equal(modBold(4).color, 'orange');   // unchanged
-*/
+
+
+    network.setOptions({
+      groups: {
+        group1: {
+          font: { bold: {color: 'brown'} },
+        },
+      },
+    });
+
+    assert.equal(modBold(0).color, 'black');    // nodes default
+    assert.equal(modBold(1).color, 'black');    // more specific bold value overrides group value
+    assert.equal(modBold(2).color, 'brown');    // bold group value overrides bold node value
+    assert.equal(modBold(3).color, 'green');    // unchanged
+    assert.equal(modBold(4).color, 'orange');   // unchanged
 
 
     //
@@ -571,12 +583,21 @@ describe('Network Label', function() {
     // Same initialization as previous with a color in the node options,
     // this should override the default *and* the font value
     //
-    options.nodes.font.bold = { color: 'yellow' };
+    options.nodes.font.bold = { color: 'yellow'};
+    options.groups.group1  = {font: { bold: { color: 'red' }}};
+
+    // console.log(options);
+    // console.log("==============");
+    // console.log(options.nodes.font);
+    // console.log("==============");
+
+    assert(options.nodes.font.multi);
     network = new vis.Network(container, data, options);
 
+    //console.log(fontOption(2));
     assert.equal(modBold(0).color, 'yellow');   // bold value
     assert.equal(modBold(1).color, 'yellow');   // bold value
-    //assert.equal(modBold(2).color, 'red');      // FAILS!!!! Group value overrides nodes
+    assert.equal(modBold(2).color, 'red');      // Group value overrides nodes
     assert.equal(modBold(3).color, 'green');    // Local value overrides all
     assert.equal(modBold(4).color, 'green');    // Idem
 
