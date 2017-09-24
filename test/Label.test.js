@@ -538,11 +538,6 @@ describe('Network Label', function() {
       },
     });
 
-
-    var tmpNodes = network.body.nodes;
-    var tmpVal = tmpNodes[0].labelModule.fontOptions;
-		console.log(tmpVal);
-
     assert.equal(modBold(0).color, 'black');    // nodes default
     assert.equal(modBold(1).color, 'black');    // more specific bold value overrides group value
     assert.equal(modBold(2).color, 'black');    // idem
