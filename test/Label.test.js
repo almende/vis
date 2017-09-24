@@ -437,11 +437,10 @@ describe('Network Label', function() {
   /**
    * Check that setting options for multi-font works as expected
    *
-   * - Testing node labels only here, because edge labels work in the same way.
    * - using multi-font 'bold' for test, the rest should work analogously
    * - using multi-font option 'color' for test, the rest should work analogously
    */
-  it('sets the multi-font options according to precedence', function (done) {
+  it('sets the multi-font options according to precedence for node labels', function (done) {
 
     /**
      * Helper function for easily accessing font options in a node
@@ -614,6 +613,118 @@ describe('Network Label', function() {
   });
 
 
+  /**
+   * Check that setting options for multi-font works as expected
+   *
+   * - using multi-font 'bold' for test, the rest should work analogously
+   * - using multi-font option 'color' for test, the rest should work analogously
+   * - edges have no groups
+   */
+  it('sets the multi-font options according to precedence for edge labels', function (done) {
+
+    /**
+     * Helper function for easily accessing font options in an edge
+     */
+    var fontOption = (index) => {
+      var edge = network.body.edges;
+      return edge[index].labelModule.fontOptions;
+    };
+
+
+    /**
+     * Helper function for easily accessing bold options in an edge
+     */
+    var modBold = (index) => {
+      return fontOption(index).bold;
+    };
+
+
+    var dataNodes = [
+      {id: 1, label: '1'},
+      {id: 2, label: '2'},
+      {id: 3, label: '3'},
+      {id: 4, label: '4'},
+    ];
+
+    var dataEdges = [
+      {id: 1, from: 1, to: 2, label: '<b>1</b>'},
+      {id: 2, from: 1, to: 4, label: '<b>2</b>',
+        font: {
+          bold: { color: 'green' },
+        }
+      },
+      {id: 3, from: 2, to: 3, label: '<b>3</b>',
+        font: {
+          bold: { color: 'green' },
+        }
+      },
+    ];
+  
+    // create a network
+    var container = document.getElementById('mynetwork');
+    var data = {
+        nodes: new vis.DataSet(dataNodes),
+        edges: new vis.DataSet(dataEdges),
+    };
+  
+    var options = {
+      edges: {
+        font: {
+          multi: true
+        }
+      },
+    };
+  
+    var network = new vis.Network(container, data, options);
+
+    assert.equal(modBold(1).color, '#343434');  // Default value
+    assert.equal(modBold(2).color, 'green');    // Local value overrides default
+    assert.equal(modBold(3).color, 'green');    // Local value overrides group
+
+
+    //
+    // Change edge node values dynamically
+    //
+    data.edges.update([
+      {id: 3, font: { bold: { color: 'orange'}}},
+    ]);
+
+    assert.equal(modBold(1).color, '#343434');  // unchanged
+    assert.equal(modBold(2).color, 'green');    // unchanged
+    assert.equal(modBold(3).color, 'orange');   // new local value
+
+
+    network.setOptions({
+      edges: {
+        font: {
+          multi: true,
+          bold: {
+            color: 'black'
+          }
+        }
+      },
+    });
+
+    assert.equal(modBold(1).color, 'black');    // more specific bold value overrides group value
+    assert.equal(modBold(2).color, 'green');    // unchanged
+    assert.equal(modBold(3).color, 'orange');   // unchanged
+
+
+    //
+    // Same initialization as previous with a color set for the default node font
+    //
+    data.edges = new vis.DataSet(dataEdges);  // Need to reset nodes, changed in previous
+    options.edges.font.color = 'purple';
+    network = new vis.Network(container, data, options);
+
+    assert.equal(modBold(1).color, 'purple');   // Nodes value
+    assert.equal(modBold(2).color, 'green');    // Local value overrides all
+    assert.equal(modBold(3).color, 'green');    // Idem
+
+    done();
+  });
+
+
   it('sets and uses font.multi in group options', function (done) {
 
     /**
@@ -704,7 +815,10 @@ describe('Network Label', function() {
       },
     });
 
-    assert.equal(modBold(1).color, 'brown');  // New value
+    assert.equal(modBold(1).color, 'brown'); // New value
+    assert(fontOption(1).multi);             // Group value
+    assert.equal(modBold(6).color, 'blue');  // unchanged
+    assert(fontOption(6).multi);             // unchanged
 
 
     network.setOptions({
@@ -718,7 +832,10 @@ describe('Network Label', function() {
     // console.log("===============");
     // console.log(fontOption(1));
 
-    assert.equal(modBold(1).color, '#343434');  // Revert to default 
+    assert.equal(modBold(1).color, '#343434');  // Reverts to default 
+    assert(!fontOption(1).multi);               // idem 
+    assert.equal(modBold(6).color, 'blue');     // unchanged
+    assert(fontOption(6).multi);                // unchanged
 
     done();
   });
@@ -869,21 +986,19 @@ describe('Network Label', function() {
     assert.equal(options.font.multi, false);
 
     /**
+     * Split a string at the given location, return either first or last part
+     *
      * Allows negative indexing, counting from back (ruby style)
      */
-/*
- TODO: Use when the actual bug is fixed and tests pass.
-
     let splitAt = (text, pos, getFirst) => {
-      if (pos < 0) { pos = text.length + pos;
+      if (pos < 0) pos = text.length + pos;
 
       if (getFirst) {
-        return text.substring(0, pos));
+        return text.substring(0, pos);
       } else {
-        return text.substring(pos));
+        return text.substring(pos);
       }
-    }
-*/
+    };
 
     var label = new Label({}, options);
     var longWord = "asd;lkfja;lfkdj;alkjfd;alskfj";
@@ -900,9 +1015,9 @@ describe('Network Label', function() {
       }, {
         blocks: [{text: ""}]
       }, {
-        blocks: [{text: "asd;lkfja;lfkdj;alkjfd;als"}]
+        blocks: [{text: splitAt(longWord, -3, true)}]
       }, {
-        blocks: [{text: "kfj"}]
+        blocks: [{text: splitAt(longWord, -3, false)}]
       }]
     }, {
       lines: [{
@@ -912,9 +1027,9 @@ describe('Network Label', function() {
       }, {
         blocks: [{text: ""}]
       }, {
-        blocks: [{text: "asd;lkfja;lfkdj;alkjfd;als"}]
+        blocks: [{text: splitAt(longWord, -3, true)}]
       }, {
-        blocks: [{text: "kfj"}]
+        blocks: [{text: splitAt(longWord, -3, false)}]
       }]
     }, {
       lines: [{
@@ -924,9 +1039,9 @@ describe('Network Label', function() {
       }, {
         blocks: [{text: ""}]
       }, {
-        blocks: [{text: "asd;lkfja;lfkdj;alkjfd;als"}]
+        blocks: [{text: splitAt(longWord, -3, true)}]
       }, {
-        blocks: [{text: "kfj"}]
+        blocks: [{text: splitAt(longWord, -3, false)}]
       }]
     }];
 
