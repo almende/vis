@@ -614,6 +614,116 @@ describe('Network Label', function() {
   });
 
 
+  it('sets and uses font.multi in group options', function (done) {
+
+    /**
+     * Helper function for easily accessing font options in a node
+     */
+    var fontOption = (index) => {
+      var nodes = network.body.nodes;
+      return nodes[index].labelModule.fontOptions;
+    };
+
+
+    /**
+     * Helper function for easily accessing bold options in a node
+     */
+    var modBold = (index) => {
+      return fontOption(index).bold;
+    };
+
+
+    var dataNodes = [
+      {id: 1, label: '<b>1</b>', group: 'group1'},
+      {
+        // From example 1 in #3408
+        id: 6, 
+        label: '<i>\uf286</i> <b>\uf2cd</b> colored glyph icon',
+        shape: 'icon',
+        group: 'colored',
+        icon : { color: 'blue' },
+        font:
+        {
+          bold : { color : 'blue' },
+          ital : { color : 'green' }
+        }
+      },
+    ];
+  
+    // create a network
+    var container = document.getElementById('mynetwork');
+    var data = {
+        nodes: new vis.DataSet(dataNodes),
+        edges: []
+    };
+  
+    var options = {
+      groups: {
+        group1: {
+          font: {
+            multi: true,
+            color: 'red'
+          },
+        },
+        colored :
+        {
+          // From example 1 in 3408
+          icon :
+          {
+            face : 'FontAwesome',
+            code : '\uf2b5',
+          },
+          font:
+          {
+            face : 'FontAwesome',
+            multi: true,
+            bold : { mod : '' },
+            ital : { mod : '' }
+          }
+        },
+      },
+    };
+  
+    var network = new vis.Network(container, data, options);
+
+    assert.equal(modBold(1).color, 'red');  // Group value
+    assert(fontOption(1).multi);            // Group value
+    assert.equal(modBold(6).color, 'blue'); // node instance value
+    assert(fontOption(6).multi);            // Group value
+
+
+    network.setOptions({
+      groups: {
+        group1: {
+          //font: { color: 'brown' },  // Can not just change one field, entire font object is reset
+          font: {
+            multi: true,
+            color: 'brown'
+          },
+        },
+      },
+    });
+
+    assert.equal(modBold(1).color, 'brown');  // New value
+
+
+    network.setOptions({
+      groups: {
+        group1: {
+          font: null,   // Remove font from group
+        },
+      },
+    });
+
+    // console.log("===============");
+    // console.log(fontOption(1));
+
+    assert.equal(modBold(1).color, '#343434');  // Revert to default 
+
+    done();
+  });
+
+
   it('compresses spaces in multifont', function (done) {
     var options = getOptions(options);
 
