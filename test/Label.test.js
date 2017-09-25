@@ -8,6 +8,7 @@
 var assert = require('assert')
 var Label = require('../lib/network/modules/components/shared/Label').default;
 var NodesHandler = require('../lib/network/modules/NodesHandler').default;
+var util = require('../lib/util');
 var jsdom_global = require('jsdom-global');
 var vis = require('../dist/vis');
 var Network = vis.network;
@@ -721,6 +722,158 @@ describe('Network Label', function() {
     assert.equal(modBold(2).color, 'green');    // Local value overrides all
     assert.equal(modBold(3).color, 'green');    // Idem
 
+    done();
+  });
+
+
+  /**
+   * TODO: Unit test for bad font shorthands.
+   *       Currently, only "size[px] name color" is valid, always 3 items with this exact spacing.
+   *       All other combinations should either be rejected as error or handled gracefully.
+   */
+  it('handles shorthand string fonts correctly', function (done) {
+    /**
+     * Helper function for easily accessing font options
+     */
+    var fontOption = (index) => {
+      var node = network.body.nodes;
+      return node[index].labelModule.fontOptions;
+    };
+
+
+    /**
+     * Helper function for easily accessing bold options
+     */
+    var modBold = (index) => {
+      return fontOption(index).bold;
+    };
+
+
+    var dataNodes = [
+      {id: 1, label: '1'},
+      {id: 2, label: '2', group: 'group1'},
+      {id: 3, label: '3', group: 'group2'},
+    ];
+
+    var dataEdges = [];
+
+    // create a network
+    var container = document.getElementById('mynetwork');
+    var data = {
+        nodes: new vis.DataSet(dataNodes),
+        edges: new vis.DataSet(dataEdges),
+    };
+
+
+    var options = {
+      nodes: {
+        font: {
+          multi: true,
+          bold: '1 Font1 #010101',
+          ital: '2 Font2 #020202',
+        }
+      },
+      groups: {
+        group1: {
+          font: '3 Font3 #030303'
+        },
+        group2: {
+          font: {
+            bold: '4 Font4 #040404'
+          }
+        }
+      }
+    };
+  
+    var network = new vis.Network(container, data, options);
+
+    var testFonts = {
+      'default': {color: '#343434', face: 'arial'    , size: 14},
+      'monodef': {color: '#343434', face: 'monospace', size: 15},
+      'font1'  : {color: '#010101', face: 'Font1'    , size:  1},
+      'font2'  : {color: '#020202', face: 'Font2'    , size:  2},
+      'font3'  : {color: '#030303', face: 'Font3'    , size:  3},
+      'font4'  : {color: '#040404', face: 'Font4'    , size:  4},
+    }
+
+    var checkFont = (opt, expectedLabel) => {
+      var expected = testFonts[expectedLabel];
+   
+      util.forEach(expected, (item, key) => {
+        assert.equal(opt[key], item);
+      } );
+    };
+ 
+    // console.log(fontOption(2));
+
+    var opt = fontOption(1); 
+    checkFont(opt, 'default');
+    checkFont(opt.bold, 'font1');
+    checkFont(opt.ital, 'font2');
+    checkFont(opt.mono, 'monodef'); // Mono should have defaults
+
+    // Node 2 should be using group1 options
+    opt = fontOption(2); 
+    checkFont(opt, 'font3');
+    checkFont(opt.bold, 'font1'); // bold retains nodes default options
+    checkFont(opt.ital, 'font2'); // ital retains nodes default options
+
+    assert.equal(opt.mono.color, '#030303');  // New color
+    assert.equal(opt.mono.face, 'monospace'); // own global default font
+    assert.equal(opt.mono.size, 15);          // Own global default size
+
+    // Node 3 should be using group2 options
+    opt = fontOption(3); 
+    checkFont(opt, 'default');
+    checkFont(opt.bold, 'font4');
+    checkFont(opt.ital, 'font2');
+    checkFont(opt.mono, 'monodef'); // Mono should have defaults
+
+
+   // TODO: test dynamic change of shorthand fonts here!!!!
+
+//////////////////////////////////
+/*
+
+    //
+    // Change edge node values dynamically
+    //
+    data.edges.update([
+      {id: 3, font: { bold: { color: 'orange'}}},
+    ]);
+
+    assert.equal(modBold(1).color, '#343434');  // unchanged
+    assert.equal(modBold(2).color, 'green');    // unchanged
+    assert.equal(modBold(3).color, 'orange');   // new local value
+
+
+    network.setOptions({
+      edges: {
+        font: {
+          multi: true,
+          bold: {
+            color: 'black'
+          }
+        }
+      },
+    });
+
+    assert.equal(modBold(1).color, 'black');    // more specific bold value overrides group value
+    assert.equal(modBold(2).color, 'green');    // unchanged
+    assert.equal(modBold(3).color, 'orange');   // unchanged
+
+
+    //
+    // Same initialization as previous with a color set for the default node font
+    //
+    data.edges = new vis.DataSet(dataEdges);  // Need to reset nodes, changed in previous
+    options.edges.font.color = 'purple';
+    network = new vis.Network(container, data, options);
+
+    assert.equal(modBold(1).color, 'purple');   // Nodes value
+    assert.equal(modBold(2).color, 'green');    // Local value overrides all
+    assert.equal(modBold(3).color, 'green');    // Idem
+*/
     done();
   });
 
