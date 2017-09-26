@@ -1,0 +1,78 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+  <title>Timeline | Performance example</title>
+  <script src="http://cdnjs.cloudflare.com/ajax/libs/moment.js/2.8.4/moment.min.js"></script>
+  <script src="../../dist/vis.js"></script>
+  <link href="../../dist/vis-timeline-graph2d.min.css" rel="stylesheet" type="text/css" />
+  
+</head>
+<body>
+    <div id="visualization"></div>
+</body>
+
+
+<script>
+    var now = moment();
+    var groupCount = 20;
+    var itemCount = 400;
+
+    function genName(length) {
+        var chars = [];
+        for (var i = 0; i<= length; i++) {
+        chars.push(String.fromCharCode(65 + (Math.random()*26)));
+        }
+        return chars.join('');
+    }
+
+    // create a data set with groups
+    var groups = new vis.DataSet();
+    for (var g = 0; g < groupCount; g++) {
+        groups.add({
+        id: g, 
+        content: genName(8)
+        });
+    }
+
+    var types = ['point', 'range', 'box', 'background']
+    // create a dataset with items
+    var items = new vis.DataSet();
+    for (var i = 0; i < itemCount; i++) {
+        var start = now.clone().add(Math.random() * 180, 'days');
+        var end = start.clone().add(Math.random() * 30, 'days');
+        var group = Math.floor(Math.random() * groupCount);
+        items.add({
+        id: i,
+        type: types[Math.floor(Math.random()*types.length)],
+        group: group,
+        content: ''+i,
+        start: start,
+        end: end
+        });
+    }
+
+    // create visualization
+    var container = document.getElementById('visualization');
+    var options = {
+        width: '100%',
+        //autoResize: true,
+        /*
+        margin: {
+        axis: 0,
+        item: 2
+        },
+        */
+        showCurrentTime: false,
+        //locale: 'en',
+        stack: true,
+        selectable: true,
+        editable: true,
+        //groupOrder: 'content',
+    };
+
+    var timeline = new vis.Timeline(container);
+    timeline.setOptions(options);
+    timeline.setGroups(groups);
+    timeline.setItems(items);
+  </script>
+</html>
