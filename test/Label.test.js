@@ -753,6 +753,7 @@ describe('Network Label', function() {
       {id: 1, label: '1'},
       {id: 2, label: '2', group: 'group1'},
       {id: 3, label: '3', group: 'group2'},
+      {id: 4, label: '4', font: '5px Font5 #050505'},
     ];
 
     var dataEdges = [];
@@ -763,7 +764,6 @@ describe('Network Label', function() {
         nodes: new vis.DataSet(dataNodes),
         edges: new vis.DataSet(dataEdges),
     };
-
 
     var options = {
       nodes: {
@@ -794,6 +794,9 @@ describe('Network Label', function() {
       'font2'  : {color: '#020202', face: 'Font2'    , size:  2},
       'font3'  : {color: '#030303', face: 'Font3'    , size:  3},
       'font4'  : {color: '#040404', face: 'Font4'    , size:  4},
+      'font5'  : {color: '#050505', face: 'Font5'    , size:  5},
+      'font6'  : {color: '#060606', face: 'Font6'    , size:  6},
+      'font7'  : {color: '#070707', face: 'Font7'    , size:  7},
     }
 
     var checkFont = (opt, expectedLabel) => {
@@ -803,21 +806,21 @@ describe('Network Label', function() {
         assert.equal(opt[key], item);
       } );
     };
- 
-    // console.log(fontOption(2));
+
+    // NOTE: 'mono' has its own global default font and size, which will
+    //       trump any other font values set.
 
     var opt = fontOption(1); 
     checkFont(opt, 'default');
     checkFont(opt.bold, 'font1');
     checkFont(opt.ital, 'font2');
-    checkFont(opt.mono, 'monodef'); // Mono should have defaults
+    checkFont(opt.mono, 'monodef');           // Mono should have defaults
 
     // Node 2 should be using group1 options
     opt = fontOption(2); 
     checkFont(opt, 'font3');
-    checkFont(opt.bold, 'font1'); // bold retains nodes default options
-    checkFont(opt.ital, 'font2'); // ital retains nodes default options
-
+    checkFont(opt.bold, 'font1');             // bold retains nodes default options
+    checkFont(opt.ital, 'font2');             // ital retains nodes default options
     assert.equal(opt.mono.color, '#030303');  // New color
     assert.equal(opt.mono.face, 'monospace'); // own global default font
     assert.equal(opt.mono.size, 15);          // Own global default size
@@ -829,51 +832,169 @@ describe('Network Label', function() {
     checkFont(opt.ital, 'font2');
     checkFont(opt.mono, 'monodef'); // Mono should have defaults
 
+    // Node 4 has its own base font definition
+    opt = fontOption(4); 
+    checkFont(opt, 'font5');
+    checkFont(opt.bold, 'font1');
+    checkFont(opt.ital, 'font2');
+    assert.equal(opt.mono.color, '#050505');  // New color
+    assert.equal(opt.mono.face, 'monospace');
+    assert.equal(opt.mono.size, 15);
 
-   // TODO: test dynamic change of shorthand fonts here!!!!
-
-//////////////////////////////////
-/*
 
     //
-    // Change edge node values dynamically
+    // Dynamic update: add new shorthand at every level
     //
-    data.edges.update([
-      {id: 3, font: { bold: { color: 'orange'}}},
+    data.nodes.update([
+      {id: 1, font: '5 Font5 #050505'},
+      {id: 4, font: { bold: '6 Font6 #060606'} },  // kills node instance base font
     ]);
 
-    assert.equal(modBold(1).color, '#343434');  // unchanged
-    assert.equal(modBold(2).color, 'green');    // unchanged
-    assert.equal(modBold(3).color, 'orange');   // new local value
-
-
     network.setOptions({
-      edges: {
+      nodes: {
         font: {
           multi: true,
-          bold: {
-            color: 'black'
+          ital: '4 Font4 #040404',
+        }
+      },
+      groups: {
+        group1: {
+          font: {
+            bold: '7 Font7 #070707'  // Kills node instance base font
           }
+        },
+        group2: {
+          font: '6 Font6 #060606'  // Note: 'bold' removed by this
+        }
+      }
+    });
+
+    //console.log(fontOption(1));
+    opt = fontOption(1); 
+    checkFont(opt, 'font5');                  // New base font
+    checkFont(opt.bold, 'font1');
+    checkFont(opt.ital, 'font4');             // New global node default
+    assert.equal(opt.mono.color, '#050505');  // New color
+    assert.equal(opt.mono.face, 'monospace');
+    assert.equal(opt.mono.size, 15);
+
+    opt = fontOption(2); 
+    checkFont(opt, 'default');
+    checkFont(opt.bold, 'font7');
+    checkFont(opt.ital, 'font4');             // New global node default
+    checkFont(opt.mono, 'monodef');           // Mono should have defaults again
+
+    opt = fontOption(3); 
+    checkFont(opt, 'font6');                  // New base font
+    checkFont(opt.bold, 'font1');             // group bold option removed, using global default node
+    checkFont(opt.ital, 'font4');             // New global node default
+    assert.equal(opt.mono.color, '#060606');  // New color
+    assert.equal(opt.mono.face, 'monospace');
+    assert.equal(opt.mono.size, 15);
+
+    opt = fontOption(4); 
+    checkFont(opt, 'default');
+    checkFont(opt.bold, 'font6');
+    checkFont(opt.ital, 'font4');
+    assert.equal(opt.mono.face, 'monospace');
+    assert.equal(opt.mono.size, 15);
+
+     
+    // Dynamic change of global node default
+    // Doing it separate, otherwise we couldn't test the global node multi-font settings
+    network.setOptions({
+      nodes: {
+        font: '7 Font7 #070707'  // Note: this kills the font.multi, bold and ital settings!
+      }
+    });
+
+    opt = fontOption(1); 
+    checkFont(opt, 'font5');                  // Node instance value
+    checkFont(opt.bold, 'font5');             // bold def removed from global default node 
+    checkFont(opt.ital, 'font5');             // idem
+    assert.equal(opt.mono.color, '#050505');  // New color
+    assert.equal(opt.mono.face, 'monospace');
+    assert.equal(opt.mono.size, 15);
+
+    opt = fontOption(2); 
+    checkFont(opt, 'font7');                  // global node default applies for all settings
+    checkFont(opt.bold, 'font7');
+    checkFont(opt.ital, 'font7');
+    assert.equal(opt.mono.color, '#070707');
+    assert.equal(opt.mono.face, 'monospace');
+    assert.equal(opt.mono.size, 15);
+
+    opt = fontOption(3); 
+    checkFont(opt, 'font6');                  // Group base font
+    checkFont(opt.bold, 'font6');             // idem
+    checkFont(opt.ital, 'font6');             // idem
+    assert.equal(opt.mono.color, '#060606');  // idem
+    assert.equal(opt.mono.face, 'monospace');
+    assert.equal(opt.mono.size, 15);
+
+    opt = fontOption(4); 
+    checkFont(opt, 'font7');                  // global node default
+    checkFont(opt.bold, 'font6');             // node instance bold
+    checkFont(opt.ital, 'font7');             // global node default
+    assert.equal(opt.mono.color, '#070707');  // idem
+    assert.equal(opt.mono.face, 'monospace');
+    assert.equal(opt.mono.size, 15);
+
+
+    //
+    // Dynamic update: remove or delete shorthand at every level
+    //
+    data.nodes.update([
+      {id: 1, font: null},
+      {id: 4, font: { bold: null}},
+    ]);
+
+
+/*
+    // Interesting: following flagged as error in options parsing, avoiding it for that reason
+    network.setOptions({
+      nodes: {
+        font: {
+          multi: true,
+          ital: null,
         }
       },
     });
-
-    assert.equal(modBold(1).color, 'black');    // more specific bold value overrides group value
-    assert.equal(modBold(2).color, 'green');    // unchanged
-    assert.equal(modBold(3).color, 'orange');   // unchanged
-
-
-    //
-    // Same initialization as previous with a color set for the default node font
-    //
-    data.edges = new vis.DataSet(dataEdges);  // Need to reset nodes, changed in previous
-    options.edges.font.color = 'purple';
-    network = new vis.Network(container, data, options);
-
-    assert.equal(modBold(1).color, 'purple');   // Nodes value
-    assert.equal(modBold(2).color, 'green');    // Local value overrides all
-    assert.equal(modBold(3).color, 'green');    // Idem
 */
+
+    network.setOptions({
+      groups: {
+        group1: {
+          font: {
+            bold: null
+          }
+        },
+        group2: {
+          font: null
+        }
+      }
+    });
+
+    // global defaults for all
+    for (let n = 1; n <= 4; ++ n) { 
+      opt = fontOption(n); 
+      checkFont(opt, 'font7');
+      checkFont(opt.bold, 'font7');
+      checkFont(opt.ital, 'font7');
+      assert.equal(opt.mono.color, '#070707');
+      assert.equal(opt.mono.face, 'monospace');
+      assert.equal(opt.mono.size, 15);
+    }
+
+/*
+    // Not testing following because it is an error in options parsing
+    network.setOptions({
+      nodes: {
+        font: null
+      },
+    });
+*/
+
     done();
   });
 
