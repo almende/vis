@@ -4,6 +4,9 @@
  *
  * - html unclosed or unopened tags
  * - html tag combinations with no font defined (e.g. bold within mono) 
+ * - Unit tests for bad font shorthands.
+ *   Currently, only "size[px] name color" is valid, always 3 items with this exact spacing.
+ *   All other combinations should either be rejected as error or handled gracefully.
  */
 var assert = require('assert')
 var Label = require('../lib/network/modules/components/shared/Label').default;
@@ -131,11 +134,9 @@ describe('Network Label', function() {
   ];
 
 
-
 /**************************************************************
  * Expected Results
  **************************************************************/
-
 
   var normal_expected = [{
     // In first item, width/height kept in for reference
@@ -435,31 +436,26 @@ describe('Network Label', function() {
   });
 
 
-  /**
-   * Check that setting options for multi-font works as expected
-   *
-   * - using multi-font 'bold' for test, the rest should work analogously
-   * - using multi-font option 'color' for test, the rest should work analogously
-   */
-  it('sets the multi-font options according to precedence for node labels', function (done) {
+describe('Multi-Fonts', function() {
 
-    /**
-     * Helper function for easily accessing font options in a node
-     */
-    var fontOption = (index) => {
-      var nodes = network.body.nodes;
-      return nodes[index].labelModule.fontOptions;
+  class HelperNode {
+    constructor(network) {
+      this.nodes = network.body.nodes;
+    }
+
+    fontOption(index) {
+      return this.nodes[index].labelModule.fontOptions;
     };
 
-
-    /**
-     * Helper function for easily accessing bold options in a node
-     */
-    var modBold = (index) => {
-      return fontOption(index).bold;
+    modBold(index) {
+      return this.fontOption(index).bold;
     };
+  }
 
 
+describe('Node Labels', function() {
+
+  function createNodeNetwork(newOptions) {
     var dataNodes = [
       {id: 0, label: '<b>0</b>'},
       {id: 1, label: '<b>1</b>'},
@@ -498,16 +494,39 @@ describe('Network Label', function() {
         },
       },
     };
+
+    if (newOptions !== undefined) {
+      util.deepExtend(options, newOptions);
+    }
   
     var network = new vis.Network(container, data, options);
+    return [network, data, options];
+  }
 
 
-    assert.equal(modBold(0).color, '#343434');  // Default value
-    assert.equal(modBold(1).color, '#343434');  // Default value
-    assert.equal(modBold(2).color, 'red');      // Group value overrides default
-    assert.equal(modBold(3).color, 'green');    // Local value overrides default
-    assert.equal(modBold(4).color, 'green');    // Local value overrides group
+  /**
+   * Check that setting options for multi-font works as expected
+   *
+   * - using multi-font 'bold' for test, the rest should work analogously
+   * - using multi-font option 'color' for test, the rest should work analogously
+   */
+  it('respects the font option precedence', function (done) {
+    var [network, data, options] = createNodeNetwork();
+    var h = new HelperNode(network);
 
+    assert.equal(h.modBold(0).color, '#343434');  // Default value
+    assert.equal(h.modBold(1).color, '#343434');  // Default value
+    assert.equal(h.modBold(2).color, 'red');      // Group value overrides default
+    assert.equal(h.modBold(3).color, 'green');    // Local value overrides default
+    assert.equal(h.modBold(4).color, 'green');    // Local value overrides group
+
+    done();
+  });
+
+
+  it('handles dynamic data and option updates', function (done) {
+    var [network, data, options] = createNodeNetwork();
+    var h = new HelperNode(network);
 
     //
     // Change some node values dynamically
@@ -517,10 +536,11 @@ describe('Network Label', function() {
       {id: 4, font: { bold: { color: 'orange'}}},
     ]);
 
-    assert.equal(modBold(0).color, '#343434');  // unchanged
-    assert.equal(modBold(1).color, 'white');    // new group value
-    assert.equal(modBold(3).color, 'green');    // unchanged
-    assert.equal(modBold(4).color, 'orange');   // new local value
+    assert.equal(h.modBold(0).color, '#343434');  // unchanged
+    assert.equal(h.modBold(1).color, 'white');    // new group value
+    assert.equal(h.modBold(3).color, 'green');    // unchanged
+    assert.equal(h.modBold(4).color, 'orange');   // new local value
+
 
     //
     // Change group options dynamically
@@ -533,12 +553,11 @@ describe('Network Label', function() {
       },
     });
 
-
-    assert.equal(modBold(0).color, '#343434');  // unchanged
-    assert.equal(modBold(1).color, 'white');    // Unchanged
-    assert.equal(modBold(2).color, 'brown');    // New group values
-    assert.equal(modBold(3).color, 'green');    // unchanged
-    assert.equal(modBold(4).color, 'orange');   // unchanged
+    assert.equal(h.modBold(0).color, '#343434');  // unchanged
+    assert.equal(h.modBold(1).color, 'white');    // Unchanged
+    assert.equal(h.modBold(2).color, 'brown');    // New group values
+    assert.equal(h.modBold(3).color, 'green');    // unchanged
+    assert.equal(h.modBold(4).color, 'orange');   // unchanged
 
 
     network.setOptions({
@@ -552,11 +571,11 @@ describe('Network Label', function() {
       },
     });
 
-    assert.equal(modBold(0).color, 'black');    // nodes default
-    assert.equal(modBold(1).color, 'black');    // more specific bold value overrides group value
-    assert.equal(modBold(2).color, 'black');    // idem
-    assert.equal(modBold(3).color, 'green');    // unchanged
-    assert.equal(modBold(4).color, 'orange');   // unchanged
+    assert.equal(h.modBold(0).color, 'black');    // nodes default
+    assert.equal(h.modBold(1).color, 'black');    // more specific bold value overrides group value
+    assert.equal(h.modBold(2).color, 'black');    // idem
+    assert.equal(h.modBold(3).color, 'green');    // unchanged
+    assert.equal(h.modBold(4).color, 'orange');   // unchanged
 
 
     network.setOptions({
@@ -567,79 +586,72 @@ describe('Network Label', function() {
       },
     });
 
-    assert.equal(modBold(0).color, 'black');    // nodes default
-    assert.equal(modBold(1).color, 'black');    // more specific bold value overrides group value
-    assert.equal(modBold(2).color, 'brown');    // bold group value overrides bold node value
-    assert.equal(modBold(3).color, 'green');    // unchanged
-    assert.equal(modBold(4).color, 'orange');   // unchanged
-
-
-    //
-    // Same initialization as previous with a color set for the default node font
-    //
-    data.nodes = new vis.DataSet(dataNodes);  // Need to reset nodes, changed in previous
-    options.nodes.font.color = 'purple';
-    network = new vis.Network(container, data, options);
-
-    assert.equal(modBold(0).color, 'purple');   // Nodes value
-    assert.equal(modBold(1).color, 'purple');   // Nodes value
-    assert.equal(modBold(2).color, 'red');      // Group value overrides nodes
-    assert.equal(modBold(3).color, 'green');    // Local value overrides all
-    assert.equal(modBold(4).color, 'green');    // Idem
-
-
-    //
-    // Same initialization as previous with a color in the node options,
-    // this should override the default *and* the font value
-    //
-    options.nodes.font.bold = { color: 'yellow'};
-    options.groups.group1  = {font: { bold: { color: 'red' }}};
-
-    // console.log(options);
-    // console.log("==============");
-    // console.log(options.nodes.font);
-    // console.log("==============");
-
-    assert(options.nodes.font.multi);
-    network = new vis.Network(container, data, options);
-
-    //console.log(fontOption(2));
-    assert.equal(modBold(0).color, 'yellow');   // bold value
-    assert.equal(modBold(1).color, 'yellow');   // bold value
-    assert.equal(modBold(2).color, 'red');      // Group value overrides nodes
-    assert.equal(modBold(3).color, 'green');    // Local value overrides all
-    assert.equal(modBold(4).color, 'green');    // Idem
+    assert.equal(h.modBold(0).color, 'black');    // nodes default
+    assert.equal(h.modBold(1).color, 'black');    // more specific bold value overrides group value
+    assert.equal(h.modBold(2).color, 'brown');    // bold group value overrides bold node value
+    assert.equal(h.modBold(3).color, 'green');    // unchanged
+    assert.equal(h.modBold(4).color, 'orange');   // unchanged
 
     done();
   });
 
 
-  /**
-   * Check that setting options for multi-font works as expected
-   *
-   * - using multi-font 'bold' for test, the rest should work analogously
-   * - using multi-font option 'color' for test, the rest should work analogously
-   * - edges have no groups
-   */
-  it('sets the multi-font options according to precedence for edge labels', function (done) {
+  it('handles normal font values in default options', function (done) {
+    var newOptions = {
+      nodes: {
+        font: {
+          color: 'purple'  // Override the default value
+        }
+      },
+    };
+    var [network, data, options] = createNodeNetwork(newOptions);
+    var h = new HelperNode(network);
 
-    /**
-     * Helper function for easily accessing font options in an edge
-     */
-    var fontOption = (index) => {
-      var edge = network.body.edges;
-      return edge[index].labelModule.fontOptions;
+    assert.equal(h.modBold(0).color, 'purple');   // Nodes value
+    assert.equal(h.modBold(1).color, 'purple');   // Nodes value
+    assert.equal(h.modBold(2).color, 'red');      // Group value overrides nodes
+    assert.equal(h.modBold(3).color, 'green');    // Local value overrides all
+    assert.equal(h.modBold(4).color, 'green');    // Idem
+
+    done();
+  });
+
+
+  it('handles multi-font values in default options/groups', function (done) {
+    var newOptions = {
+      nodes: {
+        font: {
+          color: 'purple'  // This set value should be overridden
+        }
+      },
     };
 
-
-    /**
-     * Helper function for easily accessing bold options in an edge
-     */
-    var modBold = (index) => {
-      return fontOption(index).bold;
+    newOptions.nodes.font.bold = { color: 'yellow'};
+    newOptions.groups = {
+      group1: {
+        font: { bold: { color: 'red'}}
+      }
     };
 
+    var [network, data, options] = createNodeNetwork(newOptions);
+    var h = new HelperNode(network);
+    assert(options.nodes.font.multi);
 
+    assert.equal(h.modBold(0).color, 'yellow');   // bold value
+    assert.equal(h.modBold(1).color, 'yellow');   // bold value
+    assert.equal(h.modBold(2).color, 'red');      // Group value overrides nodes
+    assert.equal(h.modBold(3).color, 'green');    // Local value overrides all
+    assert.equal(h.modBold(4).color, 'green');    // Idem
+
+    done();
+  });
+
+});  // Node Labels
+
+
+describe('Edge Labels', function() {
+
+  function createEdgeNetwork(newOptions) {
     var dataNodes = [
       {id: 1, label: '1'},
       {id: 2, label: '2'},
@@ -675,24 +687,61 @@ describe('Network Label', function() {
         }
       },
     };
+
+    if (newOptions !== undefined) {
+      util.deepExtend(options, newOptions);
+    }
   
     var network = new vis.Network(container, data, options);
-
-    assert.equal(modBold(1).color, '#343434');  // Default value
-    assert.equal(modBold(2).color, 'green');    // Local value overrides default
-    assert.equal(modBold(3).color, 'green');    // Local value overrides group
+    return [network, data, options];
+  }
 
 
-    //
-    // Change edge node values dynamically
-    //
+  class HelperEdge {
+    constructor(network) {
+      this.edges = network.body.edges;
+    }
+
+    fontOption(index) {
+      return this.edges[index].labelModule.fontOptions;
+    };
+
+    modBold(index) {
+      return this.fontOption(index).bold;
+    };
+  }
+
+
+  /**
+   * Check that setting options for multi-font works as expected
+   *
+   * - using multi-font 'bold' for test, the rest should work analogously
+   * - using multi-font option 'color' for test, the rest should work analogously
+   * - edges have no groups
+   */
+  it('respects the font option precedence', function (done) {
+    var [network, data, options] = createEdgeNetwork();
+    var h = new HelperEdge(network);
+
+    assert.equal(h.modBold(1).color, '#343434');  // Default value
+    assert.equal(h.modBold(2).color, 'green');    // Local value overrides default
+    assert.equal(h.modBold(3).color, 'green');    // Local value overrides group
+
+    done();
+  });
+
+
+  it('handles dynamic data and option updates', function (done) {
+    var [network, data, options] = createEdgeNetwork();
+    var h = new HelperEdge(network);
+
     data.edges.update([
       {id: 3, font: { bold: { color: 'orange'}}},
     ]);
 
-    assert.equal(modBold(1).color, '#343434');  // unchanged
-    assert.equal(modBold(2).color, 'green');    // unchanged
-    assert.equal(modBold(3).color, 'orange');   // new local value
+    assert.equal(h.modBold(1).color, '#343434');  // unchanged
+    assert.equal(h.modBold(2).color, 'green');    // unchanged
+    assert.equal(h.modBold(3).color, 'orange');   // new local value
 
 
     network.setOptions({
@@ -706,49 +755,60 @@ describe('Network Label', function() {
       },
     });
 
-    assert.equal(modBold(1).color, 'black');    // more specific bold value overrides group value
-    assert.equal(modBold(2).color, 'green');    // unchanged
-    assert.equal(modBold(3).color, 'orange');   // unchanged
-
-
-    //
-    // Same initialization as previous with a color set for the default node font
-    //
-    data.edges = new vis.DataSet(dataEdges);  // Need to reset nodes, changed in previous
-    options.edges.font.color = 'purple';
-    network = new vis.Network(container, data, options);
-
-    assert.equal(modBold(1).color, 'purple');   // Nodes value
-    assert.equal(modBold(2).color, 'green');    // Local value overrides all
-    assert.equal(modBold(3).color, 'green');    // Idem
+    assert.equal(h.modBold(1).color, 'black');    // more specific bold value overrides group value
+    assert.equal(h.modBold(2).color, 'green');    // unchanged
+    assert.equal(h.modBold(3).color, 'orange');   // unchanged
 
     done();
   });
 
 
-  /**
-   * TODO: Unit test for bad font shorthands.
-   *       Currently, only "size[px] name color" is valid, always 3 items with this exact spacing.
-   *       All other combinations should either be rejected as error or handled gracefully.
-   */
-  it('handles shorthand string fonts correctly', function (done) {
-    /**
-     * Helper function for easily accessing font options
-     */
-    var fontOption = (index) => {
-      var node = network.body.nodes;
-      return node[index].labelModule.fontOptions;
+  it('handles font values in default options', function (done) {
+    var newOptions = {
+      edges: {
+        font: {
+          color: 'purple'  // Override the default value
+        }
+      },
     };
+    var [network, data, options] = createEdgeNetwork(newOptions);
+    var h = new HelperEdge(network);
+
+    assert.equal(h.modBold(1).color, 'purple');   // Nodes value
+    assert.equal(h.modBold(2).color, 'green');    // Local value overrides all
+    assert.equal(h.modBold(3).color, 'green');    // Idem
+
+    done();
+  });
+
+});  // Edge Labels
 
 
-    /**
-     * Helper function for easily accessing bold options
-     */
-    var modBold = (index) => {
-      return fontOption(index).bold;
-    };
+describe('Shorthand Font Options', function() {
+
+  var testFonts = {
+    'default': {color: '#343434', face: 'arial'    , size: 14},
+    'monodef': {color: '#343434', face: 'monospace', size: 15},
+    'font1'  : {color: '#010101', face: 'Font1'    , size:  1},
+    'font2'  : {color: '#020202', face: 'Font2'    , size:  2},
+    'font3'  : {color: '#030303', face: 'Font3'    , size:  3},
+    'font4'  : {color: '#040404', face: 'Font4'    , size:  4},
+    'font5'  : {color: '#050505', face: 'Font5'    , size:  5},
+    'font6'  : {color: '#060606', face: 'Font6'    , size:  6},
+    'font7'  : {color: '#070707', face: 'Font7'    , size:  7},
+  };
 
 
+  function checkFont(opt, expectedLabel) {
+    var expected = testFonts[expectedLabel];
+ 
+    util.forEach(expected, (item, key) => {
+      assert.equal(opt[key], item);
+    });
+  };
+
+
+  function createNetwork() {
     var dataNodes = [
       {id: 1, label: '1'},
       {id: 2, label: '2', group: 'group1'},
@@ -786,38 +846,25 @@ describe('Network Label', function() {
     };
   
     var network = new vis.Network(container, data, options);
+    return [network, data];
+  }
 
-    var testFonts = {
-      'default': {color: '#343434', face: 'arial'    , size: 14},
-      'monodef': {color: '#343434', face: 'monospace', size: 15},
-      'font1'  : {color: '#010101', face: 'Font1'    , size:  1},
-      'font2'  : {color: '#020202', face: 'Font2'    , size:  2},
-      'font3'  : {color: '#030303', face: 'Font3'    , size:  3},
-      'font4'  : {color: '#040404', face: 'Font4'    , size:  4},
-      'font5'  : {color: '#050505', face: 'Font5'    , size:  5},
-      'font6'  : {color: '#060606', face: 'Font6'    , size:  6},
-      'font7'  : {color: '#070707', face: 'Font7'    , size:  7},
-    }
 
-    var checkFont = (opt, expectedLabel) => {
-      var expected = testFonts[expectedLabel];
-   
-      util.forEach(expected, (item, key) => {
-        assert.equal(opt[key], item);
-      } );
-    };
+  it('handles shorthand options correctly', function (done) {
+    var [network, data] = createNetwork();
+    var h = new HelperNode(network);
 
     // NOTE: 'mono' has its own global default font and size, which will
     //       trump any other font values set.
 
-    var opt = fontOption(1); 
+    var opt = h.fontOption(1); 
     checkFont(opt, 'default');
     checkFont(opt.bold, 'font1');
     checkFont(opt.ital, 'font2');
     checkFont(opt.mono, 'monodef');           // Mono should have defaults
 
     // Node 2 should be using group1 options
-    opt = fontOption(2); 
+    opt = h.fontOption(2); 
     checkFont(opt, 'font3');
     checkFont(opt.bold, 'font1');             // bold retains nodes default options
     checkFont(opt.ital, 'font2');             // ital retains nodes default options
@@ -826,14 +873,14 @@ describe('Network Label', function() {
     assert.equal(opt.mono.size, 15);          // Own global default size
 
     // Node 3 should be using group2 options
-    opt = fontOption(3); 
+    opt = h.fontOption(3); 
     checkFont(opt, 'default');
     checkFont(opt.bold, 'font4');
     checkFont(opt.ital, 'font2');
     checkFont(opt.mono, 'monodef'); // Mono should have defaults
 
     // Node 4 has its own base font definition
-    opt = fontOption(4); 
+    opt = h.fontOption(4); 
     checkFont(opt, 'font5');
     checkFont(opt.bold, 'font1');
     checkFont(opt.ital, 'font2');
@@ -841,10 +888,12 @@ describe('Network Label', function() {
     assert.equal(opt.mono.face, 'monospace');
     assert.equal(opt.mono.size, 15);
 
+    done();
+  });
 
-    //
-    // Dynamic update: add new shorthand at every level
-    //
+
+  function dynamicAdd1(network, data) {
+    // Add new shorthand at every level
     data.nodes.update([
       {id: 1, font: '5 Font5 #050505'},
       {id: 4, font: { bold: '6 Font6 #060606'} },  // kills node instance base font
@@ -868,9 +917,24 @@ describe('Network Label', function() {
         }
       }
     });
+	}
 
-    //console.log(fontOption(1));
-    opt = fontOption(1); 
+
+  function dynamicAdd2(network, data) {
+    network.setOptions({
+      nodes: {
+        font: '7 Font7 #070707'  // Note: this kills the font.multi, bold and ital settings!
+      }
+    });
+	}
+
+
+  it('deals with dynamic data and option updates for shorthand', function (done) {
+    var [network, data] = createNetwork();
+    var h = new HelperNode(network);
+    dynamicAdd1(network, data);
+
+    var opt = h.fontOption(1); 
     checkFont(opt, 'font5');                  // New base font
     checkFont(opt.bold, 'font1');
     checkFont(opt.ital, 'font4');             // New global node default
@@ -878,13 +942,13 @@ describe('Network Label', function() {
     assert.equal(opt.mono.face, 'monospace');
     assert.equal(opt.mono.size, 15);
 
-    opt = fontOption(2); 
+    opt = h.fontOption(2); 
     checkFont(opt, 'default');
     checkFont(opt.bold, 'font7');
     checkFont(opt.ital, 'font4');             // New global node default
     checkFont(opt.mono, 'monodef');           // Mono should have defaults again
 
-    opt = fontOption(3); 
+    opt = h.fontOption(3); 
     checkFont(opt, 'font6');                  // New base font
     checkFont(opt.bold, 'font1');             // group bold option removed, using global default node
     checkFont(opt.ital, 'font4');             // New global node default
@@ -892,23 +956,24 @@ describe('Network Label', function() {
     assert.equal(opt.mono.face, 'monospace');
     assert.equal(opt.mono.size, 15);
 
-    opt = fontOption(4); 
+    opt = h.fontOption(4); 
     checkFont(opt, 'default');
     checkFont(opt.bold, 'font6');
     checkFont(opt.ital, 'font4');
     assert.equal(opt.mono.face, 'monospace');
     assert.equal(opt.mono.size, 15);
 
-     
-    // Dynamic change of global node default
-    // Doing it separate, otherwise we couldn't test the global node multi-font settings
-    network.setOptions({
-      nodes: {
-        font: '7 Font7 #070707'  // Note: this kills the font.multi, bold and ital settings!
-      }
-    });
+    done();
+  });
 
-    opt = fontOption(1); 
+     
+  it('deals with dynamic change of global node default', function (done) {
+    var [network, data] = createNetwork();
+    var h = new HelperNode(network);
+    dynamicAdd1(network, data);  // Accumulate data of dynamic add
+    dynamicAdd2(network, data);
+
+    var opt = h.fontOption(1); 
     checkFont(opt, 'font5');                  // Node instance value
     checkFont(opt.bold, 'font5');             // bold def removed from global default node 
     checkFont(opt.ital, 'font5');             // idem
@@ -916,7 +981,7 @@ describe('Network Label', function() {
     assert.equal(opt.mono.face, 'monospace');
     assert.equal(opt.mono.size, 15);
 
-    opt = fontOption(2); 
+    opt = h.fontOption(2); 
     checkFont(opt, 'font7');                  // global node default applies for all settings
     checkFont(opt.bold, 'font7');
     checkFont(opt.ital, 'font7');
@@ -924,7 +989,7 @@ describe('Network Label', function() {
     assert.equal(opt.mono.face, 'monospace');
     assert.equal(opt.mono.size, 15);
 
-    opt = fontOption(3); 
+    opt = h.fontOption(3); 
     checkFont(opt, 'font6');                  // Group base font
     checkFont(opt.bold, 'font6');             // idem
     checkFont(opt.ital, 'font6');             // idem
@@ -932,7 +997,7 @@ describe('Network Label', function() {
     assert.equal(opt.mono.face, 'monospace');
     assert.equal(opt.mono.size, 15);
 
-    opt = fontOption(4); 
+    opt = h.fontOption(4); 
     checkFont(opt, 'font7');                  // global node default
     checkFont(opt.bold, 'font6');             // node instance bold
     checkFont(opt.ital, 'font7');             // global node default
@@ -940,15 +1005,22 @@ describe('Network Label', function() {
     assert.equal(opt.mono.face, 'monospace');
     assert.equal(opt.mono.size, 15);
 
+    done();
+  });
 
-    //
-    // Dynamic update: remove or delete shorthand at every level
-    //
+     
+  it('deals with dynamic delete of shorthand options', function (done) {
+    var [network, data] = createNetwork();
+    var h = new HelperNode(network);
+    dynamicAdd1(network, data);  // Accumulate data of previous dynamic steps
+    dynamicAdd2(network, data);  // idem 
+
     data.nodes.update([
       {id: 1, font: null},
       {id: 4, font: { bold: null}},
     ]);
 
+    var opt;
 
 /*
     // Interesting: following flagged as error in options parsing, avoiding it for that reason
@@ -977,7 +1049,7 @@ describe('Network Label', function() {
 
     // global defaults for all
     for (let n = 1; n <= 4; ++ n) { 
-      opt = fontOption(n); 
+      opt = h.fontOption(n); 
       checkFont(opt, 'font7');
       checkFont(opt.bold, 'font7');
       checkFont(opt.ital, 'font7');
@@ -997,6 +1069,8 @@ describe('Network Label', function() {
 
     done();
   });
+
+});  // Shorthand Font Options
 
 
   it('sets and uses font.multi in group options', function (done) {
@@ -1115,7 +1189,7 @@ describe('Network Label', function() {
   });
 
 
-  it('compresses spaces in multifont', function (done) {
+  it('compresses spaces for Multi-Font', function (done) {
     var options = getOptions(options);
 
     var text = [
@@ -1252,6 +1326,8 @@ describe('Network Label', function() {
 
     done();
   });
+
+});  // Multi-Fonts
 
 
   it('parses single huge word on line with preceding whitespace when max width set', function (done) {
