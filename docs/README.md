@@ -1,15 +1,15 @@
-# Usage
+# Command line usage example
 
 ```
-jsdoc -c jsdoc.json -r -t docs -d gen ../github/vis/lib
+jsdoc -c jsdoc.json -r -t docs -d gen/docs lib
 
 ```
 
 - `-c`: use this config file for `jsdoc`
-- `-r`: Recurse into source directory `../github/vis/lib`
+- `-r`: Recurse into subdirectories of the specified source directories
 - `-t`: Use template in path `docs`
-- `-d`: Generated html files put in `gen`
-- Source files to parse by `jsdoc` taken from `../github/vis/lib`
+- `-d`: Generated html files put in `gen/docs`
+- Source files to parse are taken from directory `lib`
 
 
 ## Notes
@@ -19,9 +19,6 @@ The template generation is set up so that:
 - Files ending in `.tmpl` are skipped
 - All non-html files are plain copied
 - html-files *can* contain `<?js ?>` tags, but this is not required
-
-The only file that has been changed is `docs/data/dataSet.html`.
-In here, partials have been added to illustrate how common page elements can be DRY'd.
 
 
 ## Intention
@@ -38,6 +35,10 @@ code into the documentation.
 ----
 
 # Usage of and Notes on Source Code
+
+This section contains notes on the usage of `jsdoc` functionality, to aid with the handling
+of its generated data.
+
 
   ## Parameters of `publish()`
 
