@@ -10,6 +10,7 @@ var webpack = require('webpack');
 var uglify = require('uglify-js');
 var rimraf = require('rimraf');
 var argv = require('yargs').argv;
+var child_exec = require('child_process').exec;
 
 var ENTRY             = './index.js';
 var HEADER            = './lib/header.js';
@@ -231,6 +232,28 @@ gulp.task('lint', function () {
     .pipe(eslint.failAfterError());
 });
 
+
+// Generate the documentation files
+gulp.task('docs', function(cb) {
+  var targetDir = 'gen/docs';
+
+  // Not sure if this is the best way to handle 'cb'; at least it works.
+  var hasError = false;
+  var onError = function(error) {
+    if (error !== undefined && error !== null) {
+      console.error('Error while running task: ' + error);
+      hasError = true;
+      cb();
+    }
+  }
+
+  rimraf(__dirname + '/' + targetDir, onError);  // Clean up previous generation
+
+  if (!hasError) {
+    var params = '-c ./jsdoc.json -r -t docs -d ' + targetDir;
+    child_exec('node ./node_modules/jsdoc/jsdoc.js ' + params + ' lib', undefined, cb);
+  };
+});
 
 // The default task (called when you run `gulp`)
 gulp.task('default', ['clean', 'bundle', 'minify']);
