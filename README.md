@@ -31,6 +31,12 @@ Install via bower:
 
     $ bower install vis
 
+Link via jsDelivr CDN:
+
+```
+<script src="https://cdn.jsdelivr.net/npm/vis@4/dist/vis.min.js"></script>
+```
+
 Link via cdnjs: http://cdnjs.com
 
 Or download the library from the github project:
