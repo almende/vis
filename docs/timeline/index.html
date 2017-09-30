@@ -896,6 +896,14 @@ function (option, path) {
     </tr>
 
     <tr>
+        <td>onDropObjectOnItem</td>
+        <td>function</td>
+        <td>none</td>
+        <td>Callback function triggered when an object containing <code>target:'item'</code> in its' drag data is dropped in to a timeline item.
+        </td>
+      </tr>
+
+    <tr>
       <td>onUpdate</td>
       <td>function</td>
       <td>none</td>
@@ -1805,6 +1813,7 @@ var items = new vis.DataSet([
   <ul>
     <li><code>onAdd(item, callback)</code> Fired when a new item is about to be added. If not implemented, the item will be added with default text contents.</li>
     <li><code>onUpdate(item, callback)</code> Fired when an item is about to be updated. This function typically has to show a dialog where the user change the item. If not implemented, nothing happens.</li>
+    <li><code>onDropObjectOnItem(objectData, item)</code> Fired when an object is dropped in to an existing timeline item.</li>
     <li><code>onMove(item, callback)</code> Fired when an item has been moved. If not implemented, the move action will be accepted.</li>
     <li><code>onMoving(item, callback)</code> Fired repeatedly while an item is being moved (dragged). Can be used to adjust the items start, end, and/or group to allowed regions.</li>
     <li><code>onRemove(item, callback)</code> Fired when an item is about to be deleted. If not implemented, the item will be always removed.</li>
