@@ -16,42 +16,35 @@ jsdoc -c jsdoc.json -r -t docs -d gen/docs lib
 
 The template generation is set up so that:
 
-- Files ending in `.tmpl` are skipped
-- All non-html files are plain copied
-- html-files *can* contain `<?js ?>` tags, but this is not required
+  - Files ending in `.tmpl` are skipped
+  - All non-html files are plain copied
+  - html-files *can* contain `<?js ?>` tags, but this is not required
 
 
 ## Intention
 
-The `docs` directory is treated as a `jsdoc` template, in which the html-files are the template files.
-This allows for a gradual adaptation of the html-files to templates; unchanged html-files will pass 
-through `jsdoc` unchanged.
+The `docs` directory is treated as a `jsdoc` template, in which the html-files are the template files. This allows for a gradual adaptation of the html-files to templates; unchanged html-files will pass through `jsdoc` unchanged.
 
-The added value of using `jsdoc` for documentation generation, is that
-the complete documentation information, as collected by `jsdoc` from the source, is
-available for usage. This way, it's possible to insert technical notes from the source
-code into the documentation.
+The added value of using `jsdoc` for documentation generation, is that the complete documentation information, as collected by `jsdoc` from the source, is available for usage. This way, it's possible to insert technical notes from the source code into the documentation.
 
 ----
 
 # Usage of and Notes on Source Code
 
-This section contains notes on the usage of `jsdoc` functionality, to aid with the handling
-of its generated data.
+This section contains notes on the usage of `jsdoc` functionality, to aid with the handling of its generated data.
 
 
-  ## Parameters of `publish()`
+## Parameters of `publish()`
 
-  ### Parameter `taffyData`
+### Parameter `taffyData`
 
-  A table containing *all* data collected from the source code, related to jsdoc generation.
-  See below for more info and example outputs.
+  A table containing *all* data collected from the source code, related to jsdoc generation. See below for more info and example outputs.
 
-  ### Parameter `opt`
+### Parameter `opt`
 
-  Example of `opt` variable:
+Example of `opt` variable:
 
-```
+```js
 {
   "_":["../github/vis/lib/network/"],
   "configure":"jsdoc.json",
@@ -62,13 +55,13 @@ of its generated data.
 }
 ```
 
-  ### Parameter `tutorial`
+### Parameter `tutorial`
 
-  This does not appear to be of use for the generation of `vis.js` documentation.
+This does not appear to be of use for the generation of `vis.js` documentation.
 
-  Example of `tutorial` variable:
+Example of `tutorial` variable:
 
-```
+```js
 {
   "longname":"",
   "name":"",
@@ -80,11 +73,11 @@ of its generated data.
 }
 ```
 
-  ## Global variable `env`
+## Global variable `env`
 
-  This contains addition info for the current execution of `jsdoc`. Example of `env` variable:
+This contains addition info for the current execution of `jsdoc`. Example of `env` variable:
 
-```
+```js
 {
   "run":{"start":"2017-09-16T05:06:45.621Z","finish":null},
   "args":["-c","jsdoc.json","-r","-t","default","../github/vis/lib/network/"],
@@ -105,26 +98,24 @@ of its generated data.
 ```
 
 
-  ## taffyData
+## taffyData
 
-  This is a parameter to `publish()`. It's a table containing *all* data collected from the
-  source code, related to jsdoc generation.
+This is a parameter to `publish()`. It's a table containing *all* data collected from the source code, related to jsdoc generation.
 
-  I can't find any way to return a list of fields for the data items in the taffyDB docs,
-  therefore below there are examples of items, for better understanding of usage.
+I can't find any way to return a list of fields for the data items in the taffyDB docs, therefore below there are examples of items, for better understanding of usage.
 
-  Example usage:
+Example usage:
 
-```
-    var data = taffyData;
-    var tmp = data().filter({name:'Label'}).get();
+```js
+  var data = taffyData;
+  var tmp = data().filter({name:'Label'}).get();
 ```
 
-  Returns an array with all items with `name === 'Label'`.
-  Example output of one of these items, for a class:
+Returns an array with all items with `name === 'Label'`. Example output of one of these items, for a class:
 
-*In these examples, ending block comments redacted to ' * /'*
-```
+*In these examples, ending block are comments redacted to ' * /'*
+
+```js
 {
   "comment":"/**\n * A Label to be used for Nodes or Edges.\n * /",
   "meta":{
@@ -158,15 +149,15 @@ A Label to be used for Nodes or Edges.
 }
 ```
 
-  Example of item for an instance method.
+Example of item for an instance method:
 
-```
-    var tmp = data().filter({name:'_drawText'}).get();
+```js
+  var tmp = data().filter({name:'_drawText'}).get();
 ```
 
-  Full output returned:
+Full output returned:
 
-```
+```js
 [{
   "comment":"/**\n *\n * @param {CanvasRenderingContext2D} ctx\n * @param {boolean} selected\n * @param {boolean} hover\n * @param {number} x\n * @param {number} y\n * @param {string} [baseline='middle']\n * @private\n * /",
   "meta":{
@@ -202,39 +193,40 @@ A Label to be used for Nodes or Edges.
 }]
 ```
 
-  ## `jsdoc` template rendering
+## `jsdoc` template rendering
 
-  See `function createRenderer(fromDir, data)` in code for usage.
+See `function createRenderer(fromDir, data)` in code for usage.
 
-  There are two calls for rendering templates:
+There are two calls for rendering templates:
  
   - `var html = renderer.render(inFile, docData);`
   - `var html = renderer.partial(inFile, docData);`
  
-  The difference is that `render()` will use a default layout template, if present, which
-  will encapsulate all html. This can be set by:
+The difference is that `render()` will use a default layout template, if present, which will encapsulate all html. This can be set by:
  
-  ```
-    renderer.layout = 'path/to/default/layout.tmpl'; 
-  ```
+```js
+  renderer.layout = 'path/to/default/layout.tmpl'; 
+```
  
-  Parameter `docData` is a hash which is used to pass parameters into a template.
-  The standard way of using this appear to be:
-  ```
-  <?js
-    var data = obj;   // Whatever docData is
-    var self = this;
-  ?>
-  ```
+Parameter `docData` is a hash which is used to pass parameters into a template. The standard way of using this appear to be:
+
+```
+<?js
+  var data = obj;   // Whatever docData is
+  var self = this;
+?>
+```
  
-  But it also appear to be possible to use the elements of docData directly:
-  ```
-  var docData = {
-    myTitle: 'Hello, pussycat!'
-  };
-  ```
+But it also appear to be possible to use the elements of docData directly:
+
+```js
+var docData = {
+  myTitle: 'Hello, pussycat!'
+};
+```
  
-  Within the template:
-  ```
-    <?js= myTitle ?>
-  ```
+Within the template:
+
+```
+  <?js= myTitle ?>
+```
