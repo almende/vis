@@ -90,8 +90,8 @@ This contains addition info for the current execution of `jsdoc`. Example of `en
   },
   "dirname":"/usr/lib/node_modules/jsdoc",
   "pwd":"/home/wim/projects/jsdoc",
-  "opts":{ <pre><<same as parameter 'opt' above>></pre> },
-  "sourceFiles":[ <pre><<list of full path names of all js-source files used as input>></pre> ],
+  "opts":{ <<same as parameter 'opt' above>> },
+  "sourceFiles":[ <<list of full path names of all js-source files used as input>> ],
   "version":{"number":"3.5.4","revision":"Fri, 04 Aug 2017 22:05:27 GMT"}
 }
 ```
