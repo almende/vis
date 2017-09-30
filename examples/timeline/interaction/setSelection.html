@@ -27,10 +27,14 @@
 <div id="visualization"></div>
 
 <br/>
-<p>Focusing on items will also cause the timeline to scroll vertically. If focusing on multiple items only the first item will be scrolled to.</p>
-<button id="prevFocus">Select Previous</button>
-<button id="nextFocus">Select Next</button>
+<p>If the height of the timeline is limited some items may be vertically offscreen. This demo uses <code>Timeline.setSelection(ids, {focus: true})</code> and demonstrates that focusing on an item will 
+cause the timeline to scroll vertically to the item that is being focused on. You can use the buttons below select a random item either above or below the currently selected item.
+</p>
+<button id="prevFocus">Select Item Above</button>
+<button id="nextFocus">Select Item Below</button>
+<br/>
 
+<p>If focusing on multiple items only the first item will be scrolled to. Try entering several ids and hitting <em>select</em>.</p>
 <p>
 Select item(s): <input type="text" id="selectionVertical" value="g1_5, g2_3"><input type="button" id="selectVertical" value="Select"><br>
 </p>
@@ -160,6 +164,11 @@ Select item(s): <input type="text" id="selectionVertical" value="g1_5, g2_3"><in
   prevFocus.onclick = function() {
     moveToItem(-1);
   };
+
+  // Set the initial focus
+  setTimeout(function() {
+    moveToItem(0);
+  }, 500);
 </script>
 </body>
 </html>
