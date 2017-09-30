@@ -1313,7 +1313,7 @@ var options = {
                 </td>
                 <td>Fired when the user clicks the mouse or taps on a touchscreen device. Passes an object with properties structured as:
 
-                <pre class="prettyprint lang-js">{
+<pre class="prettyprint lang-js">{
   nodes: [Array of selected nodeIds],
   edges: [Array of selected edgeIds],
   event: [Object] original click event,
@@ -1323,6 +1323,24 @@ var options = {
   }
 }
 </pre>
+
+This is the structure common to all events. Specifically for the click event, the following property is added:
+
+<pre class="prettyprint lang-js">{
+...
+  items: [Array of click items],
+}</pre>
+
+Where the click items can be:
+<pre class="prettyprint lang-js">
+  {nodeId:NodeId}            // node with given id clicked on
+  {nodeId:NodeId labelId:0}  // label of node with given id clicked on
+  {edgeId:EdgeId}            // edge with given id clicked on
+  {edge:EdgeId, labelId:0}   // label of edge with given id clicked on
+</pre>
+
+The order of the <code>items</code> array is descending in z-order.
+Thus, to get the topmost item, get the value at index 0.
                 </td>
             </tr>
             <tr><td id="event_doubleClick">doubleClick</td>
