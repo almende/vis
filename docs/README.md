@@ -2,7 +2,6 @@
 
 ```
 jsdoc -c jsdoc.json -r -t docs -d gen/docs lib
-
 ```
 
 - `-c`: use this config file for `jsdoc`
@@ -91,8 +90,8 @@ This contains addition info for the current execution of `jsdoc`. Example of `en
   },
   "dirname":"/usr/lib/node_modules/jsdoc",
   "pwd":"/home/wim/projects/jsdoc",
-  "opts":{ <same as parameter 'opt' above> },
-  "sourceFiles":[ <list of full path names of all js-source files used as input> ],
+  "opts":{ <pre><<same as parameter 'opt' above>></pre> },
+  "sourceFiles":[ <pre><<list of full path names of all js-source files used as input>></pre> ],
   "version":{"number":"3.5.4","revision":"Fri, 04 Aug 2017 22:05:27 GMT"}
 }
 ```
@@ -113,7 +112,7 @@ Example usage:
 
 Returns an array with all items with `name === 'Label'`. Example output of one of these items, for a class:
 
-*In these examples, ending block are comments redacted to ' * /'*
+*In these examples, block comment endings are redacted to ' * /'*
 
 ```js
 {
