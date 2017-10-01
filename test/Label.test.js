@@ -1412,19 +1412,34 @@ describe('Shorthand Font Options', function() {
     var ctx = new DummyContext();
     var options = getOptions({});
 
+    var checkHandling = (label, index, text) => {
+      assert.doesNotThrow(() => {label.getTextSize(ctx, false, false)}, "Unexpected throw for " + text + " " + index);
+      //label.getTextSize(ctx, false, false);  // Use this to determine the error thrown
+
+      // There should not be a label for any of the cases
+      // 
+      let labelVal = label.elementOptions.label;
+      let validLabel = (typeof labelVal === 'string' && labelVal !== '');
+      assert(!validLabel, "Unexpected label value '" + labelVal+ "' for " + text +" " + index);
+    };
+
     var nodes = [
-      {id:1},
-      {id:2, label: null},
-      {id:3, label: undefined},
-      {id:4, label: {a: 42}},
-      {id:5, label: [ 'an', 'array']},
+      {id: 1},
+      {id: 2, label: null},
+      {id: 3, label: undefined},
+      {id: 4, label: {a: 42}},
+      {id: 5, label: [ 'an', 'array']},
+      {id: 6, label: true},
+      {id: 7, label: 3.419},
     ];
 
     var edges = [
       {from: 1, to: 2, label: null},
       {from: 1, to: 3, label: undefined},
       {from: 1, to: 4, label: {a: 42}},
-      {from: 1, to: 4, label: ['an', 'array']},
+      {from: 1, to: 5, label: ['an', 'array']},
+      {from: 1, to: 6, label: false},
+      {from: 1, to: 7, label: 2.71828},
     ];
 
     // Isolate the specific call where a problem with null-label was detected
@@ -1434,28 +1449,14 @@ describe('Shorthand Font Options', function() {
     // Node labels
     for (let i = 0; i < nodes.length; ++i) {
       let label = new Label(null, nodes[i], false);
-      assert.doesNotThrow(() => {label.getTextSize(ctx, false, false)}, "Unexpected throw for node " + i);
-      //label.getTextSize(ctx, false, false);  // Use this to determine the error thrown
-
-      // There should not be a label for any of the cases
-      // 
-      let labelVal = label.elementOptions.label;
-      let notEmptyLabel = (typeof labelVal === 'string' && labelVal !== '');
-      assert(!notEmptyLabel, "Unexpected label value '" + labelVal+ "' for node " + i);
+      checkHandling(label, i, 'node');
     }
 
 
     // Edge labels
     for (let i = 0; i < edges.length; ++i) {
       let label = new Label(null, edges[i], true);
-      assert.doesNotThrow(() => {label.getTextSize(ctx, false, false)}, "Unexpected throw for edge " + i);
-      //label.getTextSize(ctx, false, false);  // Use this to determine the error thrown
-
-      // There should not be a label for any of the cases
-      // 
-      let labelVal = label.elementOptions.label;
-      let notEmptyLabel = (typeof labelVal === 'string' && labelVal !== '');
-      assert(!notEmptyLabel, "Unexpected label value '" + labelVal+ "' for edge " + i);
+      checkHandling(label, i, 'edge');
     }
 
 
