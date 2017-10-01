@@ -1326,7 +1326,6 @@ describe('Shorthand Font Options', function() {
 
     done();
   });
-
 });  // Multi-Fonts
 
 
@@ -1404,6 +1403,76 @@ describe('Shorthand Font Options', function() {
     options.font.multi = true;
     var label = new Label({}, options);
     checkProcessedLabels(label, text, expected);
+
+    done();
+  });
+
+
+  it('deals with null labels and other awkward values', function (done) {
+    var ctx = new DummyContext();
+    var options = getOptions({});
+
+    var nodes = [
+      {id:1},
+      {id:2, label: null},
+      {id:3, label: undefined},
+      {id:4, label: {a: 42}},
+      {id:5, label: [ 'an', 'array']},
+    ];
+
+    var edges = [
+      {from: 1, to: 2, label: null},
+      {from: 1, to: 3, label: undefined},
+      {from: 1, to: 4, label: {a: 42}},
+      {from: 1, to: 4, label: ['an', 'array']},
+    ];
+
+    // Isolate the specific call where a problem with null-label was detected
+    // Following loops should plain not throw
+
+
+    // Node labels
+    for (let i = 0; i < nodes.length; ++i) {
+      let label = new Label(null, nodes[i], false);
+      assert.doesNotThrow(() => {label.getTextSize(ctx, false, false)}, "Unexpected throw for node " + i);
+      //label.getTextSize(ctx, false, false);  // Use this to determine the error thrown
+
+      // There should not be a label for any of the cases
+      // 
+      let labelVal = label.elementOptions.label;
+      let notEmptyLabel = (typeof labelVal === 'string' && labelVal !== '');
+      assert(!notEmptyLabel, "Unexpected label value '" + labelVal+ "' for node " + i);
+    }
+
+
+    // Edge labels
+    for (let i = 0; i < edges.length; ++i) {
+      let label = new Label(null, edges[i], true);
+      assert.doesNotThrow(() => {label.getTextSize(ctx, false, false)}, "Unexpected throw for edge " + i);
+      //label.getTextSize(ctx, false, false);  // Use this to determine the error thrown
+
+      // There should not be a label for any of the cases
+      // 
+      let labelVal = label.elementOptions.label;
+      let notEmptyLabel = (typeof labelVal === 'string' && labelVal !== '');
+      assert(!notEmptyLabel, "Unexpected label value '" + labelVal+ "' for edge " + i);
+    }
+
+
+    //
+    // Following extracted from example 'nodeLegend', where the problem was detected.
+    // 
+    // In the example, only `label:null` was present. The weird thing is that it fails
+    // in the example, but succeeds in the unit tests.
+    // Kept in for regression testing.
+    var container = document.getElementById('mynetwork');
+    var data = {
+      nodes: new vis.DataSet(nodes),
+      edges: new vis.DataSet(edges)
+    };
+
+    var options = {};
+    var network = new vis.Network(container, data, options);
 
     done();
   });
