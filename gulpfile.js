@@ -30,7 +30,12 @@ var INDIVIDUAL_CSS_BUNDLES = [
   {entry: ['./lib/shared/**/*.css', './lib/network/**/*.css'], filename: 'vis-network.min.css'}
 ];
 
-// generate banner with today's date and correct version
+
+/**
+ * Generate banner with today's date and correct version
+ *
+ * @returns {string} banner text
+ */
 function createBanner() {
   var today = gutil.date(new Date(), 'yyyy-mm-dd'); // today, formatted as yyyy-mm-dd
   var version = require('./package.json').version;
@@ -39,6 +44,7 @@ function createBanner() {
       .replace('@@date', today)
       .replace('@@version', version);
 }
+
 
 var bannerPlugin = new webpack.BannerPlugin({
   banner: createBanner(),
@@ -93,6 +99,12 @@ var uglifyConfig = {
 // create a single instance of the compiler to allow caching
 var compiler = webpack(webpackConfig);
 
+/**
+ * Callback for handling errors for a compiler run
+ *
+ * @param {object} err
+ * @param {objects} stats
+ */
 function handleCompilerCallback (err, stats) {
   if (err) {
     gutil.log(err.toString());
@@ -252,7 +264,7 @@ gulp.task('docs', function(cb) {
   if (!hasError) {
     var params = '-c ./jsdoc.json -r -t docs -d ' + targetDir;
     child_exec('node ./node_modules/jsdoc/jsdoc.js ' + params + ' lib', undefined, cb);
-  };
+  }
 });
 
 // The default task (called when you run `gulp`)
