@@ -50,14 +50,24 @@ function createRenderer(fromDir, data) {
   */
 
   /**
-   * Example helper, which retrieves jsdoc info.
-   * /
-  renderer.helper2 = function() {
-    var tmp = data().filter({name:'_drawText'}).get();
-	  return JSON.stringify(tmp);
+   * Retrieves jsdoc info for the passed instance method.
+   */
+  renderer.getComment = function(methodName) {
+    var tmp = data().filter({longname: methodName}).get()[0];
+	  //console.log(JSON.stringify(tmp));
+
+    // Some restructuring, to adapt it to the docs layout
+    // This needs some work to make it handle 0 and > 1 parameters
+    var param = tmp.params[0];
+    var prototype = tmp.name + '(<code>' + param.type.names.join('|') + ' ' + param.name  + '</code>)';
+    var returns = tmp.returns[0].type.names;
+
+    return {
+      prototype: prototype,
+      returns: returns,
+      description: tmp.description
+    }
 	};
-  */
-  
 
   return renderer;
 }
