@@ -119,8 +119,6 @@ function createSampleNetwork(options) {
 
   options = merge(defaultOptions, options);
 
-debugger;
-
   var network = new vis.Network(container, data, options);
 
   assertNumNodes(network, NumInitialNodes);
@@ -332,7 +330,6 @@ describe('Network', function () {
    * The real deterrent is eslint rule 'guard-for-in`.
    */
   it('can deal with added fields in Array.prototype', function (done) {
-debugger;
     var canvas = window.document.createElement('canvas');
     Array.prototype.foo = 1;  // Just add anything to the prototype
     Object.prototype.bar = 2; // Let's screw up hashes as well

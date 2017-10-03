@@ -38,7 +38,6 @@ function replaceCanvasContext (el) {
       //
       // Following added for vis.js unit tests
       //
-//			webkitBackingStorePixelRatio: function(){},
 
       measureText: function(text) {
         return {
@@ -76,8 +75,6 @@ function mockify(window) {
   }
 
   window.document.createElement = function(param) {
-    debugger;
-
     if (param === 'canvas') {
       if (myHackedInCanvas === undefined) {
         myHackedInCanvas = f.call(d, 'canvas');
