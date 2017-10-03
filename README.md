@@ -322,6 +322,31 @@ module: {
 
 There is also an [demo-project](https://github.com/mojoaxel/vis-webpack-demo) showing the integration of vis.js using webpack.
 
+
+## Using module `canvas`
+
+The unit tests use a mock object for canvas, which is severely limited in its functionality. It might be preferable
+to use module `canvas` supplies a canvas object for usage with `node.js`. This has a functional implementation of the 2D context.
+
+Reasons to use `canvas:
+
+- You want to run the `mocha` tests as complete as possible
+- You want to run `Network` or `Graph3D` on `node.js` only, e.g. server-side.
+
+The unit tests will only use a mock object for canvas, if there is no `canvas` element already supplied. So, if the `canvas` module is installed, that will take precedence.
+
+
+The issue with `canvas` is that it has an external dependency to `cairo`. This needs to be installed outside of the regular install as done by `npm`.
+
+  - In order to fully install `canvas` on Windows, follow [these instructions](https://github.com/Automattic/node-canvas/wiki/Installation---Windows).
+  - To install on linux, you will need to do something along the lines of the following:
+  
+    > sudo apt-get install libcairo2-dev libjpeg8-dev libpango1.0-dev libgif-dev build-essential g++
+    > sudo npm -g install canvas
+    
+  - To install on OSX, [These instructions](https://github.com/Automattic/node-canvas/wiki/Installation---OSX) look the most promising.
+
+
 ## Test
 
 To test the library, install the project dependencies once:

@@ -14,11 +14,14 @@ var fs = require('fs');
 var assert = require('assert');
 var vis = require('../dist/vis');
 var Network = vis.network;
-var jsdom_global = require('jsdom-global');
 var stdout = require('test-console').stdout;
 var Validator = require("./../lib/shared/Validator").default;
+var jsdom_global = require('jsdom-global');
+var canvasMockify = require('./canvas-mock');
 var {allOptions, configureOptions} = require('./../lib/network/options.js');
 //var {printStyle} = require('./../lib/shared/Validator');
+
+
 
 
 /**
@@ -115,6 +118,8 @@ function createSampleNetwork(options) {
   };
 
   options = merge(defaultOptions, options);
+
+debugger;
 
   var network = new vis.Network(container, data, options);
 
@@ -222,6 +227,8 @@ function checkFontProperties(fontItem, checkStrict = true) {
 
 
 
+
+
 describe('Network', function () {
 
   before(function() {
@@ -229,6 +236,7 @@ describe('Network', function () {
       "<div id='mynetwork'></div>",
       { skipWindowCheck: true}
     );
+    canvasMockify(window);
     this.container = document.getElementById('mynetwork');
   });
 
@@ -324,6 +332,8 @@ describe('Network', function () {
    * The real deterrent is eslint rule 'guard-for-in`.
    */
   it('can deal with added fields in Array.prototype', function (done) {
+debugger;
+    var canvas = window.document.createElement('canvas');
     Array.prototype.foo = 1;  // Just add anything to the prototype
     Object.prototype.bar = 2; // Let's screw up hashes as well
 
@@ -353,6 +363,9 @@ describe('Network', function () {
 
 
 describe('Node', function () {
+  before(function() {
+//    if (!this.canvasPresent) this.skip();
+  });
 
   it('has known font options', function () {
     var network = createNetwork({});
@@ -403,6 +416,9 @@ describe('Node', function () {
 
 
 describe('Edge', function () {
+  before(function() {
+//    if (!this.canvasPresent) this.skip();
+  });
 
   it('has known font options', function () {
     var network = createNetwork({});
@@ -614,6 +630,9 @@ describe('Edge', function () {
 
 
 describe('Clustering', function () {
+  before(function() {
+//    if (!this.canvasPresent) this.skip();
+  });
 
 
   it('properly handles options allowSingleNodeCluster', function() {
@@ -1204,6 +1223,9 @@ describe('Clustering', function () {
 
 
 describe('on node.js', function () {
+  before(function() {
+//    if (!this.canvasPresent) this.skip();
+  });
 
   it('should be running', function () {
     assert(this.container !== null, 'Container div not found');
@@ -1217,6 +1239,9 @@ describe('on node.js', function () {
 
 
 describe('runs example ', function () {
+  before(function() {
+//    if (!this.canvasPresent) this.skip();
+  });
 
   function loadExample(path, noPhysics) {
     include(path, this);

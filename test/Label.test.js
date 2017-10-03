@@ -13,6 +13,7 @@ var Label = require('../lib/network/modules/components/shared/Label').default;
 var NodesHandler = require('../lib/network/modules/NodesHandler').default;
 var util = require('../lib/util');
 var jsdom_global = require('jsdom-global');
+var canvasMockify = require('./canvas-mock');
 var vis = require('../dist/vis');
 var Network = vis.network;
 
@@ -324,6 +325,7 @@ describe('Network Label', function() {
       "<div id='mynetwork'></div>",
       { skipWindowCheck: true}
     );
+    canvasMockify(window);
     this.container = document.getElementById('mynetwork');
   });
 

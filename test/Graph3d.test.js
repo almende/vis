@@ -2,6 +2,7 @@ var assert = require('assert');
 var vis = require('../dist/vis');
 var Graph3d = vis.Graph3d;
 var jsdom_global = require('jsdom-global');
+var canvasMockify = require('./canvas-mock');
 var stdout = require('test-console').stdout;
 var Validator = require("./../lib/shared/Validator").default;
 //var {printStyle} = require('./../lib/shared/Validator');
@@ -16,6 +17,7 @@ describe('Graph3d', function () {
       "<div id='mygraph'></div>",
       { skipWindowCheck: true}
     );
+    canvasMockify(window);
     this.container = document.getElementById('mygraph');
   });
 
