@@ -1407,4 +1407,178 @@ describe('Shorthand Font Options', function() {
 
     done();
   });
+
+
+  /**
+   * 
+   * The test network is taken verbatim from example `network/nodeStyles/widthHeight.html`,
+   * where the associated issue (i.e. widthConstraint values not copied) was most poignant.
+   *
+   * If you want to be really pedantically paranoid about it, widthConstraint should also 
+   * be tested when set in groups. perhaps TODO.
+   *
+   * perhaps TODO: check boolean shorthand values for widthConstraint.
+   * perhaps TODO: check shorthand values for heightConstraint.
+   */
+  it('Sets the width/height constraints in the font label options', function (done) {
+    var nodes = [
+      { id: 100, label: 'This node has no fixed, minimum or maximum width or height', x: -50, y: -300 },
+      { id: 210, widthConstraint: { minimum: 120 }, label: 'This node has a mimimum width', x: -400, y: -200 },
+      { id: 211, widthConstraint: { minimum: 120 }, label: '...so does this', x: -500, y: -50 },
+      { id: 220, widthConstraint: { maximum: 170 }, label: 'This node has a maximum width and breaks have been automatically inserted into the label', x: -150, y: -150 },
+      { id: 221, widthConstraint: { maximum: 170 }, label: '...this too', x: -100, y: 0 },
+      { id: 200, font: { multi: true }, widthConstraint: 150, label: '<b>This</b> node has a fixed width and breaks have been automatically inserted into the label', x: -300, y: 50 },
+      { id: 201, widthConstraint: 150, label: '...this as well', x: -300, y: 200 },
+      { id: 300, heightConstraint: { minimum: 70 }, label: 'This node\nhas a\nminimum\nheight', x: 100, y: -150 },
+      { id: 301, heightConstraint: { minimum: 70 }, label: '...this one here too', x: 100, y: 0 },
+      { id: 400, heightConstraint: { minimum: 100, valign: 'top' }, label: 'Minimum height\nvertical alignment\nmay be top', x: 300, y: -200 },
+      { id: 401, heightConstraint: { minimum: 100, valign: 'middle' }, label: 'Minimum height\nvertical alignment\nmay be middle\n(default)', x: 300, y: 0 },
+      { id: 402, heightConstraint: { minimum: 100, valign: 'bottom' }, label: 'Minimum height\nvertical alignment\nmay be bottom', x: 300, y: 200 }
+    ];
+  
+    var edges = [
+      { from: 100, to: 210, label: "unconstrained to minimum width"},
+      { from: 210, to: 211, label: "more minimum width"},
+      { from: 100, to: 220, label: "unconstrained to maximum width"},
+      { from: 220, to: 221, label: "more maximum width"},
+      { from: 210, to: 200, label: "minimum width to fixed width"},
+      { from: 220, to: 200, label: "maximum width to fixed width"},
+      { from: 200, to: 201, label: "more fixed width"},
+      { from: 100, to: 300, label: "unconstrained to minimum height"},
+      { from: 300, to: 301, label: "more minimum height"},
+      { from: 100, to: 400, label: "unconstrained to top valign"},
+      { from: 400, to: 401, label: "top valign to middle valign"},
+      { from: 401, to: 402, widthConstraint: { maximum: 150 }, label: "middle valign to bottom valign"},
+    ];
+  
+    var container = document.getElementById('mynetwork');
+    var data = {
+      nodes: nodes,
+      edges: edges
+    };
+    var options = {
+      edges: {
+        font: {
+          size: 12
+        },
+        widthConstraint: {
+          maximum: 90
+        }
+      },
+      nodes: {
+        shape: 'box',
+        margin: 10,
+        widthConstraint: {
+          maximum: 200
+        }
+      },
+      physics: {
+        enabled: false
+      }
+    };
+    var network = new vis.Network(container, data, options);
+
+    //
+    // Check the internal constraint values
+    //
+
+    let assertConstraints = (item, fontOptions, expectedMaxWidthDefault) => {
+      if (item.widthConstraint === undefined) {
+        assert.equal(fontOptions.minWdt, -1);
+        assert.equal(fontOptions.maxWdt, expectedMaxWidthDefault);
+      } else {
+        let constraint = item.widthConstraint;
+
+        // Check shorthand
+        if (typeof constraint === 'number') {
+          assert.equal(fontOptions.minWdt, constraint);
+          assert.equal(fontOptions.maxWdt, constraint);
+          return;
+        }
+
+        // check max value
+        if (constraint.maximum !== undefined) {
+          assert.equal(fontOptions.maxWdt, constraint.maximum);
+        } else {
+          // Check the global default
+          assert.equal(fontOptions.maxWdt, expectedMaxWidthDefault);
+        }
+
+        // check min value
+        if (constraint.minimum !== undefined) {
+          assert.equal(fontOptions.minWdt, constraint.minimum);
+        } else {
+          // Check the global default - there is none defined, so it should be default -1
+          assert.equal(fontOptions.minWdt, -1);
+        }
+      }
+
+
+      if (item.heightConstraint === undefined) {
+        assert.equal(fontOptions.minHgt, -1);       // No value set for this test
+        assert.equal(fontOptions.valign, 'middle');
+      } else {
+        let constraint = item.heightConstraint;
+
+        // Check shorthand
+        if (typeof constraint === 'number') {
+          assert.equal(fontOptions.maxWdt, constraint);
+          assert.equal(fontOptions.valign, 'middle');   // Default for shorthand
+          return;
+        }
+
+        // NOTE: there is no max value for heightConstraint
+
+        // check min value
+        if (constraint.minimum !== undefined) {
+          assert.equal(fontOptions.minHgt, constraint.minimum);
+        } else {
+          // Check the global default - there is none defined, so it should be default -1
+          assert.equal(fontOptions.minHgt, -1);
+        }
+
+        // check valign value
+        if (constraint.valign !== undefined) {
+          assert.equal(fontOptions.valign, constraint.valign);
+        } else {
+          // Check the global default - there is none defined so should be 'middle'
+          assert.equal(fontOptions.valign, 'middle');
+        }
+
+      }
+
+    };
+
+
+    // Check nodes
+    util.forEach(nodes, function(node) {
+      let networkNode = network.body.nodes[node.id];
+      assert(networkNode !== undefined && networkNode !== null);
+      let fontOptions = networkNode.labelModule.fontOptions;
+      assertConstraints(node, fontOptions, 200);
+    });
+
+
+    // Check edges
+    util.forEach(edges, function(edge) {
+      // No id's defined, search network edge by from/to
+      let networkEdge;
+      let findCount = 0;
+      util.forEach(network.body.edges, function(inEdge) {
+        //console.log(inEdge);
+        if (inEdge.from.id === edge.from && inEdge.to.id === edge.to) {
+          networkEdge = inEdge;
+          findCount++;
+        } 
+      });
+      assert(networkEdge !== undefined);
+      assert(findCount === 1, "Expecting exactly one match for edge search");
+
+      let fontOptions = networkEdge.labelModule.fontOptions;
+
+      assertConstraints(edge, fontOptions, 90);
+    });
+
+    done();
+  });
 });
