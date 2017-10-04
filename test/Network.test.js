@@ -22,8 +22,6 @@ var {allOptions, configureOptions} = require('./../lib/network/options.js');
 //var {printStyle} = require('./../lib/shared/Validator');
 
 
-
-
 /**
  * Merge all options of object b into object b
  * @param {Object} a
@@ -360,9 +358,6 @@ describe('Network', function () {
 
 
 describe('Node', function () {
-  before(function() {
-//    if (!this.canvasPresent) this.skip();
-  });
 
   it('has known font options', function () {
     var network = createNetwork({});
@@ -413,9 +408,6 @@ describe('Node', function () {
 
 
 describe('Edge', function () {
-  before(function() {
-//    if (!this.canvasPresent) this.skip();
-  });
 
   it('has known font options', function () {
     var network = createNetwork({});
@@ -627,10 +619,6 @@ describe('Edge', function () {
 
 
 describe('Clustering', function () {
-  before(function() {
-//    if (!this.canvasPresent) this.skip();
-  });
-
 
   it('properly handles options allowSingleNodeCluster', function() {
     var [network, data, numNodes, numEdges] = createSampleNetwork();
@@ -1220,9 +1208,6 @@ describe('Clustering', function () {
 
 
 describe('on node.js', function () {
-  before(function() {
-//    if (!this.canvasPresent) this.skip();
-  });
 
   it('should be running', function () {
     assert(this.container !== null, 'Container div not found');
@@ -1236,9 +1221,6 @@ describe('on node.js', function () {
 
 
 describe('runs example ', function () {
-  before(function() {
-//    if (!this.canvasPresent) this.skip();
-  });
 
   function loadExample(path, noPhysics) {
     include(path, this);

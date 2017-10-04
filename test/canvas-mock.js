@@ -4,36 +4,36 @@
  * Adapted from: https://github.com/Cristy94/canvas-mock
  */
 
-var myHackedInCanvas;    // Use one global canvas instance for all calls to createElement('canvas');
+var canvasMock;  // Use one canvas instance for all calls to createElement('canvas');
 
 
 function replaceCanvasContext (el) {
-	el.getContext = function() {
-		return {
-			fillRect: function() {},
-			clearRect: function(){},
-			getImageData: function(x, y, w, h) {
-				return  {
-					data: new Array(w*h*4)
-				};
-			},
-			putImageData: function() {},
-			createImageData: function(){ return []},
-			setTransform: function(){},
-			drawImage: function(){},
-			save: function(){},
-			fillText: function(){},
-			restore: function(){},
-			beginPath: function(){},
-			moveTo: function(){},
-			lineTo: function(){},
-			closePath: function(){},
-			stroke: function(){},
-			translate: function(){},
-			scale: function(){},
-			rotate: function(){},
-			arc: function(){},
-			fill: function(){},
+  el.getContext = function() {
+    return {
+      fillRect: function() {},
+      clearRect: function(){},
+      getImageData: function(x, y, w, h) {
+        return  {
+          data: new Array(w*h*4)
+        };
+      },
+      putImageData: function() {},
+      createImageData: function(){ return []},
+      setTransform: function(){},
+      drawImage: function(){},
+      save: function(){},
+      fillText: function(){},
+      restore: function(){},
+      beginPath: function(){},
+      moveTo: function(){},
+      lineTo: function(){},
+      closePath: function(){},
+      stroke: function(){},
+      translate: function(){},
+      scale: function(){},
+      rotate: function(){},
+      arc: function(){},
+      fill: function(){},
 
       //
       // Following added for vis.js unit tests
@@ -41,12 +41,12 @@ function replaceCanvasContext (el) {
 
       measureText: function(text) {
         return {
-          width:  12*text.length,
+          width: 12*text.length,
           height: 14
         };
       },
-		};
-	}
+    };
+  }
 };
 
 
@@ -76,11 +76,11 @@ function mockify(window) {
 
   window.document.createElement = function(param) {
     if (param === 'canvas') {
-      if (myHackedInCanvas === undefined) {
-        myHackedInCanvas = f.call(d, 'canvas');
-        replaceCanvasContext(myHackedInCanvas);
+      if (canvasMock === undefined) {
+        canvasMock = f.call(d, 'canvas');
+        replaceCanvasContext(canvasMock);
       }
-      return myHackedInCanvas;
+      return canvasMock;
     } else {
       return f.call(d, param);
     }
