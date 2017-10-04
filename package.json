@@ -33,7 +33,6 @@
     "watch-dev": "gulp watch --bundle"
   },
   "dependencies": {
-    "canvas": "^1.6.7",
     "emitter-component": "^1.1.1",
     "hammerjs": "^2.0.8",
     "keycharm": "^0.2.0",
