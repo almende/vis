@@ -1414,7 +1414,6 @@ describe('Shorthand Font Options', function() {
    * where the associated issue (i.e. widthConstraint values not copied) was most poignant.
    *
    * NOTE: boolean shorthand values for widthConstraint and heightConstraint do nothing.
-   * perhaps TODO: check shorthand values for heightConstraint.
    */
   it('Sets the width/height constraints in the font label options', function (done) {
     var nodes = [
