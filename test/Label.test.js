@@ -32,7 +32,7 @@ class DummyContext {
 
 
 class DummyLayoutEngine {
-	positionInitially() {}
+  positionInitially() {}
 }
 
 /**************************************************************
@@ -72,7 +72,7 @@ describe('Network Label', function() {
     let showBlocks = () => {
       return '\nreturned: ' + JSON.stringify(returned, null, 2) + '\n' +
                'expected: ' + JSON.stringify(expected, null, 2);
-		}
+    }
 
     assert.equal(expected.lines.length, returned.lines.length, 'Number of lines does not match, ' + showBlocks());
 
@@ -121,7 +121,7 @@ describe('Network Label', function() {
     "OnereallylongwordthatshouldgooverwidthConstraint.maximumifdefined",
     "One really long sentence that should go over widthConstraint.maximum if defined",
     "Reallyoneenormouslylargelabel withtwobigwordsgoingoverwayovermax"
-	]
+  ]
 
   var html_text = [
     "label <b>with</b> <code>some</code> <i>multi <b>tags</b></i>",
@@ -917,7 +917,7 @@ describe('Shorthand Font Options', function() {
         }
       }
     });
-	}
+  }
 
 
   function dynamicAdd2(network, data) {
@@ -926,7 +926,7 @@ describe('Shorthand Font Options', function() {
         font: '7 Font7 #070707'  // Note: this kills the font.multi, bold and ital settings!
       }
     });
-	}
+  }
 
 
   it('deals with dynamic data and option updates for shorthand', function (done) {
@@ -1477,105 +1477,80 @@ describe('Shorthand Font Options', function() {
     };
     var network = new vis.Network(container, data, options);
 
+    var nodes_expected = [
+      { nodeId: 100, minWdt:  -1, maxWdt: 200, minHgt:  -1, valign: 'middle'},
+      { nodeId: 210, minWdt: 120, maxWdt: 200, minHgt:  -1, valign: 'middle'},
+      { nodeId: 211, minWdt: 120, maxWdt: 200, minHgt:  -1, valign: 'middle'},
+      { nodeId: 220, minWdt:  -1, maxWdt: 170, minHgt:  -1, valign: 'middle'},
+      { nodeId: 221, minWdt:  -1, maxWdt: 170, minHgt:  -1, valign: 'middle'},
+      { nodeId: 200, minWdt: 150, maxWdt: 150, minHgt:  -1, valign: 'middle'},
+      { nodeId: 201, minWdt: 150, maxWdt: 150, minHgt:  -1, valign: 'middle'},
+      { nodeId: 300, minWdt:  -1, maxWdt: 200, minHgt:  70, valign: 'middle'},
+      { nodeId: 301, minWdt:  -1, maxWdt: 200, minHgt:  70, valign: 'middle'},
+      { nodeId: 400, minWdt:  -1, maxWdt: 200, minHgt: 100, valign: 'top'},
+      { nodeId: 401, minWdt:  -1, maxWdt: 200, minHgt: 100, valign: 'middle'},
+      { nodeId: 402, minWdt:  -1, maxWdt: 200, minHgt: 100, valign: 'bottom'},
+    ];
+
+
+    // For edge labels, only maxWdt is set. We check the rest anyway, be it for
+    // checking incorrect settings or for future code changes.
     //
-    // Check the internal constraint values
-    //
-
-    let assertConstraints = (item, fontOptions, expectedMaxWidthDefault) => {
-      if (item.widthConstraint === undefined) {
-        assert.equal(fontOptions.minWdt, -1);
-        assert.equal(fontOptions.maxWdt, expectedMaxWidthDefault);
-      } else {
-        let constraint = item.widthConstraint;
-
-        // Check shorthand
-        if (typeof constraint === 'number') {
-          assert.equal(fontOptions.minWdt, constraint);
-          assert.equal(fontOptions.maxWdt, constraint);
-          return;
-        }
-
-        // check max value
-        if (constraint.maximum !== undefined) {
-          assert.equal(fontOptions.maxWdt, constraint.maximum);
-        } else {
-          // Check the global default
-          assert.equal(fontOptions.maxWdt, expectedMaxWidthDefault);
-        }
-
-        // check min value
-        if (constraint.minimum !== undefined) {
-          assert.equal(fontOptions.minWdt, constraint.minimum);
-        } else {
-          // Check the global default - there is none defined, so it should be default -1
-          assert.equal(fontOptions.minWdt, -1);
-        }
-      }
+    // There is a lot of repetitiveness here. Perhaps using a direct copy of the
+    // example should be let go.
+    var edges_expected = [
+      { from: 100, to: 210, minWdt: -1, maxWdt:  90, minHgt: -1, valign: 'middle'},
+      { from: 210, to: 211, minWdt: -1, maxWdt:  90, minHgt: -1, valign: 'middle'},
+      { from: 100, to: 220, minWdt: -1, maxWdt:  90, minHgt: -1, valign: 'middle'},
+      { from: 220, to: 221, minWdt: -1, maxWdt:  90, minHgt: -1, valign: 'middle'},
+      { from: 210, to: 200, minWdt: -1, maxWdt:  90, minHgt: -1, valign: 'middle'},
+      { from: 220, to: 200, minWdt: -1, maxWdt:  90, minHgt: -1, valign: 'middle'},
+      { from: 100, to: 300, minWdt: -1, maxWdt:  90, minHgt: -1, valign: 'middle'},
+      { from: 300, to: 301, minWdt: -1, maxWdt:  90, minHgt: -1, valign: 'middle'},
+      { from: 100, to: 400, minWdt: -1, maxWdt:  90, minHgt: -1, valign: 'middle'},
+      { from: 400, to: 401, minWdt: -1, maxWdt:  90, minHgt: -1, valign: 'middle'},
+      { from: 401, to: 402, minWdt: -1, maxWdt: 150, minHgt: -1, valign: 'middle'},
+    ];
 
 
-      if (item.heightConstraint === undefined) {
-        assert.equal(fontOptions.minHgt, -1);       // No value set for this test
-        assert.equal(fontOptions.valign, 'middle');
-      } else {
-        let constraint = item.heightConstraint;
-
-        // Check shorthand
-        if (typeof constraint === 'number') {
-          assert.equal(fontOptions.maxWdt, constraint);
-          assert.equal(fontOptions.valign, 'middle');   // Default for shorthand
-          return;
-        }
-
-        // NOTE: there is no max value for heightConstraint
-
-        // check min value
-        if (constraint.minimum !== undefined) {
-          assert.equal(fontOptions.minHgt, constraint.minimum);
-        } else {
-          // Check the global default - there is none defined, so it should be default -1
-          assert.equal(fontOptions.minHgt, -1);
-        }
-
-        // check valign value
-        if (constraint.valign !== undefined) {
-          assert.equal(fontOptions.valign, constraint.valign);
-        } else {
-          // Check the global default - there is none defined so should be 'middle'
-          assert.equal(fontOptions.valign, 'middle');
-        }
-
-      }
-
-    };
+    let assertConstraints = (expected, fontOptions, label) => {
+      assert.equal(expected.minWdt, fontOptions.minWdt, 'Incorrect min width' + label);
+      assert.equal(expected.maxWdt, fontOptions.maxWdt, 'Incorrect max width' + label);
+      assert.equal(expected.minHgt, fontOptions.minHgt, 'Incorrect min height' + label);
+      assert.equal(expected.valign, fontOptions.valign, 'Incorrect valign' + label);
+    }
 
 
     // Check nodes
-    util.forEach(nodes, function(node) {
-      let networkNode = network.body.nodes[node.id];
+    util.forEach(nodes_expected, function(expected) {
+      let networkNode = network.body.nodes[expected.nodeId];
       assert(networkNode !== undefined && networkNode !== null);
       let fontOptions = networkNode.labelModule.fontOptions;
-      assertConstraints(node, fontOptions, 200);
+
+      var label = ' for node id: ' + expected.nodeId;
+      assertConstraints(expected, fontOptions, label);
     });
 
 
     // Check edges
-    util.forEach(edges, function(edge) {
+    util.forEach(edges_expected, function(expected) {
       // No id's defined, search network edge by from/to
       let networkEdge;
       let findCount = 0;
-      util.forEach(network.body.edges, function(inEdge) {
+      util.forEach(network.body.edges, function(edge) {
         //console.log(inEdge);
-        if (inEdge.from.id === edge.from && inEdge.to.id === edge.to) {
-          networkEdge = inEdge;
+        if (expected.from === edge.from.id && expected.to === edge.to.id) {
+          networkEdge = edge;
           findCount++;
         } 
       });
-      assert(networkEdge !== undefined);
+
+      var label = ' for edge from: ' + expected.from + ', to: ' + expected.to;
+      assert(networkEdge !== undefined, 'Edge not found' + label);
       assert(findCount === 1, "Expecting exactly one match for edge search");
 
       let fontOptions = networkEdge.labelModule.fontOptions;
-
-      assertConstraints(edge, fontOptions, 90);
+      assertConstraints(expected, fontOptions, label);
     });
 
     done();
