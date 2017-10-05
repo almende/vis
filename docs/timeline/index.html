@@ -342,6 +342,14 @@ var items = new vis.DataSet([
         Types 'box' and 'point' need a start date, the types 'range' and 'background' needs both a start and end date.
       </td>
     </tr>
+    <tr>
+      <td>limitSize</td>
+      <td>Boolean</td>
+      <td>no</td>
+      <td>Some browsers cannot handle very large DIVs so by default range DIVs can be truncated outside the visible area.
+        Setting this to <code>false</code> will cause the creation of full-size DIVs.
+      </td>
+    </tr>
     <tr class='toggle collapsible' onclick="toggleTable('itemOptionTable', 'itemEditable', this);">
       <td><span parent="itemEditable" class="right-caret"></span> editable</td>
       <td>Boolean or Object</td>
