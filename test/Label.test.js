@@ -1410,44 +1410,37 @@ describe('Shorthand Font Options', function() {
 
   /**
    * 
-   * The test network is taken verbatim from example `network/nodeStyles/widthHeight.html`,
+   * The test network is derived from example `network/nodeStyles/widthHeight.html`,
    * where the associated issue (i.e. widthConstraint values not copied) was most poignant.
    *
-   * If you want to be really pedantically paranoid about it, widthConstraint should also 
-   * be tested when set in groups. perhaps TODO.
-   *
-   * perhaps TODO: check boolean shorthand values for widthConstraint.
+   * NOTE: boolean shorthand values for widthConstraint and heightConstraint do nothing.
    * perhaps TODO: check shorthand values for heightConstraint.
    */
   it('Sets the width/height constraints in the font label options', function (done) {
     var nodes = [
-      { id: 100, label: 'This node has no fixed, minimum or maximum width or height', x: -50, y: -300 },
-      { id: 210, widthConstraint: { minimum: 120 }, label: 'This node has a mimimum width', x: -400, y: -200 },
-      { id: 211, widthConstraint: { minimum: 120 }, label: '...so does this', x: -500, y: -50 },
-      { id: 220, widthConstraint: { maximum: 170 }, label: 'This node has a maximum width and breaks have been automatically inserted into the label', x: -150, y: -150 },
-      { id: 221, widthConstraint: { maximum: 170 }, label: '...this too', x: -100, y: 0 },
-      { id: 200, font: { multi: true }, widthConstraint: 150, label: '<b>This</b> node has a fixed width and breaks have been automatically inserted into the label', x: -300, y: 50 },
-      { id: 201, widthConstraint: 150, label: '...this as well', x: -300, y: 200 },
-      { id: 300, heightConstraint: { minimum: 70 }, label: 'This node\nhas a\nminimum\nheight', x: 100, y: -150 },
-      { id: 301, heightConstraint: { minimum: 70 }, label: '...this one here too', x: 100, y: 0 },
-      { id: 400, heightConstraint: { minimum: 100, valign: 'top' }, label: 'Minimum height\nvertical alignment\nmay be top', x: 300, y: -200 },
-      { id: 401, heightConstraint: { minimum: 100, valign: 'middle' }, label: 'Minimum height\nvertical alignment\nmay be middle\n(default)', x: 300, y: 0 },
-      { id: 402, heightConstraint: { minimum: 100, valign: 'bottom' }, label: 'Minimum height\nvertical alignment\nmay be bottom', x: 300, y: 200 }
+      { id: 100, label: 'node 100'},
+      { id: 210, group: 'group1', label: 'node 210'},
+      { id: 211, widthConstraint: { minimum: 120 }, label: 'node 211'},
+      { id: 212, widthConstraint: { minimum: 120, maximum: 140 }, group: 'group1', label: 'node 212'},  // group override
+      { id: 220, widthConstraint: { maximum: 170 }, label: 'node 220'},
+      { id: 221, widthConstraint: { maximum: 170 }, label: 'node 221'},
+      { id: 200, font: { multi: true }, widthConstraint: 150, label: 'node <b>200</b>'},
+      { id: 201, widthConstraint: 150, label: 'node 201'},
+      { id: 202, group: 'group2', label: 'node 202'},
+      { id: 203, heightConstraint: { minimum: 75, valign: 'bottom'}, group: 'group2', label: 'node 203'},  // group override
+      { id: 204, heightConstraint: 80, group: 'group2', label: 'node 204'}, // group override
+      { id: 300, heightConstraint: { minimum: 70 }, label: 'node 300'},
+      { id: 301, heightConstraint: { minimum: 70 }, label: 'node 301'},
+      { id: 400, heightConstraint: { minimum: 100, valign: 'top' }, label: 'node 400'},
+      { id: 401, heightConstraint: { minimum: 100, valign: 'middle' }, label: 'node 401'},
+      { id: 402, heightConstraint: { minimum: 100, valign: 'bottom' }, label: 'node 402'}
     ];
   
     var edges = [
-      { from: 100, to: 210, label: "unconstrained to minimum width"},
-      { from: 210, to: 211, label: "more minimum width"},
-      { from: 100, to: 220, label: "unconstrained to maximum width"},
-      { from: 220, to: 221, label: "more maximum width"},
-      { from: 210, to: 200, label: "minimum width to fixed width"},
-      { from: 220, to: 200, label: "maximum width to fixed width"},
-      { from: 200, to: 201, label: "more fixed width"},
-      { from: 100, to: 300, label: "unconstrained to minimum height"},
-      { from: 300, to: 301, label: "more minimum height"},
-      { from: 100, to: 400, label: "unconstrained to top valign"},
-      { from: 400, to: 401, label: "top valign to middle valign"},
-      { from: 401, to: 402, widthConstraint: { maximum: 150 }, label: "middle valign to bottom valign"},
+      { id: 1, from: 100, to: 210, label: "edge 1"},
+      { id: 2, widthConstraint: 80, from: 210, to: 211, label: "edge 2"},
+      { id: 3, heightConstraint: 90, from: 100, to: 220, label: "edge 3"},
+      { id: 4, from: 401, to: 402, widthConstraint: { maximum: 150 }, label: "edge 12"},
     ];
   
     var container = document.getElementById('mynetwork');
@@ -1471,6 +1464,26 @@ describe('Shorthand Font Options', function() {
           maximum: 200
         }
       },
+      groups: {
+        group1: {
+          shape: 'dot',
+          widthConstraint: {
+            maximum: 130
+          }
+        },
+        // Following group serves to test all font options
+        group2: {
+          shape: 'dot',
+          widthConstraint: {
+            minimum: 150,
+            maximum: 180,
+          },
+          heightConstraint: {
+            minimum: 210,
+            valign: 'top',
+          }
+        },
+      },
       physics: {
         enabled: false
       }
@@ -1479,12 +1492,16 @@ describe('Shorthand Font Options', function() {
 
     var nodes_expected = [
       { nodeId: 100, minWdt:  -1, maxWdt: 200, minHgt:  -1, valign: 'middle'},
-      { nodeId: 210, minWdt: 120, maxWdt: 200, minHgt:  -1, valign: 'middle'},
+      { nodeId: 210, minWdt:  -1, maxWdt: 130, minHgt:  -1, valign: 'middle'},
       { nodeId: 211, minWdt: 120, maxWdt: 200, minHgt:  -1, valign: 'middle'},
+      { nodeId: 212, minWdt: 120, maxWdt: 140, minHgt:  -1, valign: 'middle'},
       { nodeId: 220, minWdt:  -1, maxWdt: 170, minHgt:  -1, valign: 'middle'},
       { nodeId: 221, minWdt:  -1, maxWdt: 170, minHgt:  -1, valign: 'middle'},
       { nodeId: 200, minWdt: 150, maxWdt: 150, minHgt:  -1, valign: 'middle'},
       { nodeId: 201, minWdt: 150, maxWdt: 150, minHgt:  -1, valign: 'middle'},
+      { nodeId: 202, minWdt: 150, maxWdt: 180, minHgt: 210, valign: 'top'},
+      { nodeId: 203, minWdt: 150, maxWdt: 180, minHgt:  75, valign: 'bottom'},
+      { nodeId: 204, minWdt: 150, maxWdt: 180, minHgt:  80, valign: 'middle'},
       { nodeId: 300, minWdt:  -1, maxWdt: 200, minHgt:  70, valign: 'middle'},
       { nodeId: 301, minWdt:  -1, maxWdt: 200, minHgt:  70, valign: 'middle'},
       { nodeId: 400, minWdt:  -1, maxWdt: 200, minHgt: 100, valign: 'top'},
@@ -1499,17 +1516,10 @@ describe('Shorthand Font Options', function() {
     // There is a lot of repetitiveness here. Perhaps using a direct copy of the
     // example should be let go.
     var edges_expected = [
-      { from: 100, to: 210, minWdt: -1, maxWdt:  90, minHgt: -1, valign: 'middle'},
-      { from: 210, to: 211, minWdt: -1, maxWdt:  90, minHgt: -1, valign: 'middle'},
-      { from: 100, to: 220, minWdt: -1, maxWdt:  90, minHgt: -1, valign: 'middle'},
-      { from: 220, to: 221, minWdt: -1, maxWdt:  90, minHgt: -1, valign: 'middle'},
-      { from: 210, to: 200, minWdt: -1, maxWdt:  90, minHgt: -1, valign: 'middle'},
-      { from: 220, to: 200, minWdt: -1, maxWdt:  90, minHgt: -1, valign: 'middle'},
-      { from: 100, to: 300, minWdt: -1, maxWdt:  90, minHgt: -1, valign: 'middle'},
-      { from: 300, to: 301, minWdt: -1, maxWdt:  90, minHgt: -1, valign: 'middle'},
-      { from: 100, to: 400, minWdt: -1, maxWdt:  90, minHgt: -1, valign: 'middle'},
-      { from: 400, to: 401, minWdt: -1, maxWdt:  90, minHgt: -1, valign: 'middle'},
-      { from: 401, to: 402, minWdt: -1, maxWdt: 150, minHgt: -1, valign: 'middle'},
+      { id: 1, minWdt: -1, maxWdt:  90, minHgt: -1, valign: 'middle'},
+      { id: 2, minWdt: 80, maxWdt:  80, minHgt: -1, valign: 'middle'},
+      { id: 3, minWdt: -1, maxWdt:  90, minHgt: 90, valign: 'middle'},
+      { id: 4, minWdt: -1, maxWdt: 150, minHgt: -1, valign: 'middle'},
     ];
 
 
@@ -1524,7 +1534,7 @@ describe('Shorthand Font Options', function() {
     // Check nodes
     util.forEach(nodes_expected, function(expected) {
       let networkNode = network.body.nodes[expected.nodeId];
-      assert(networkNode !== undefined && networkNode !== null);
+      assert(networkNode !== undefined && networkNode !== null, 'node not found for id: ' + expected.nodeId);
       let fontOptions = networkNode.labelModule.fontOptions;
 
       var label = ' for node id: ' + expected.nodeId;
@@ -1534,20 +1544,10 @@ describe('Shorthand Font Options', function() {
 
     // Check edges
     util.forEach(edges_expected, function(expected) {
-      // No id's defined, search network edge by from/to
-      let networkEdge;
-      let findCount = 0;
-      util.forEach(network.body.edges, function(edge) {
-        //console.log(inEdge);
-        if (expected.from === edge.from.id && expected.to === edge.to.id) {
-          networkEdge = edge;
-          findCount++;
-        } 
-      });
+      let networkEdge = network.body.edges[expected.id];
 
-      var label = ' for edge from: ' + expected.from + ', to: ' + expected.to;
+      var label = ' for edge id: ' + expected.id;
       assert(networkEdge !== undefined, 'Edge not found' + label);
-      assert(findCount === 1, "Expecting exactly one match for edge search");
 
       let fontOptions = networkEdge.labelModule.fontOptions;
       assertConstraints(expected, fontOptions, label);
