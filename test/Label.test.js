@@ -1422,14 +1422,12 @@ describe('Shorthand Font Options', function() {
       { id: 211, widthConstraint: { minimum: 120 }, label: 'node 211'},
       { id: 212, widthConstraint: { minimum: 120, maximum: 140 }, group: 'group1', label: 'node 212'},  // group override
       { id: 220, widthConstraint: { maximum: 170 }, label: 'node 220'},
-      { id: 221, widthConstraint: { maximum: 170 }, label: 'node 221'},
       { id: 200, font: { multi: true }, widthConstraint: 150, label: 'node <b>200</b>'},
       { id: 201, widthConstraint: 150, label: 'node 201'},
       { id: 202, group: 'group2', label: 'node 202'},
       { id: 203, heightConstraint: { minimum: 75, valign: 'bottom'}, group: 'group2', label: 'node 203'},  // group override
       { id: 204, heightConstraint: 80, group: 'group2', label: 'node 204'}, // group override
       { id: 300, heightConstraint: { minimum: 70 }, label: 'node 300'},
-      { id: 301, heightConstraint: { minimum: 70 }, label: 'node 301'},
       { id: 400, heightConstraint: { minimum: 100, valign: 'top' }, label: 'node 400'},
       { id: 401, heightConstraint: { minimum: 100, valign: 'middle' }, label: 'node 401'},
       { id: 402, heightConstraint: { minimum: 100, valign: 'bottom' }, label: 'node 402'}
@@ -1495,14 +1493,12 @@ describe('Shorthand Font Options', function() {
       { nodeId: 211, minWdt: 120, maxWdt: 200, minHgt:  -1, valign: 'middle'},
       { nodeId: 212, minWdt: 120, maxWdt: 140, minHgt:  -1, valign: 'middle'},
       { nodeId: 220, minWdt:  -1, maxWdt: 170, minHgt:  -1, valign: 'middle'},
-      { nodeId: 221, minWdt:  -1, maxWdt: 170, minHgt:  -1, valign: 'middle'},
       { nodeId: 200, minWdt: 150, maxWdt: 150, minHgt:  -1, valign: 'middle'},
       { nodeId: 201, minWdt: 150, maxWdt: 150, minHgt:  -1, valign: 'middle'},
       { nodeId: 202, minWdt: 150, maxWdt: 180, minHgt: 210, valign: 'top'},
       { nodeId: 203, minWdt: 150, maxWdt: 180, minHgt:  75, valign: 'bottom'},
       { nodeId: 204, minWdt: 150, maxWdt: 180, minHgt:  80, valign: 'middle'},
       { nodeId: 300, minWdt:  -1, maxWdt: 200, minHgt:  70, valign: 'middle'},
-      { nodeId: 301, minWdt:  -1, maxWdt: 200, minHgt:  70, valign: 'middle'},
       { nodeId: 400, minWdt:  -1, maxWdt: 200, minHgt: 100, valign: 'top'},
       { nodeId: 401, minWdt:  -1, maxWdt: 200, minHgt: 100, valign: 'middle'},
       { nodeId: 402, minWdt:  -1, maxWdt: 200, minHgt: 100, valign: 'bottom'},
