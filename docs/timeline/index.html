@@ -342,6 +342,14 @@ var items = new vis.DataSet([
         Types 'box' and 'point' need a start date, the types 'range' and 'background' needs both a start and end date.
       </td>
     </tr>
+    <tr>
+      <td>limitSize</td>
+      <td>Boolean</td>
+      <td>no</td>
+      <td>Some browsers cannot handle very large DIVs so by default range DIVs can be truncated outside the visible area.
+        Setting this to <code>false</code> will cause the creation of full-size DIVs.
+      </td>
+    </tr>
     <tr class='toggle collapsible' onclick="toggleTable('itemOptionTable', 'itemEditable', this);">
       <td><span parent="itemEditable" class="right-caret"></span> editable</td>
       <td>Boolean or Object</td>
@@ -452,6 +460,16 @@ var groups = [
       <td>none</td>
       <td>Order the subgroups by a field name or custom sort function.
         By default, groups are ordered by first-come, first-show.
+      </td>
+    </tr>
+    <tr>
+      <td>subgroupStack</td>
+      <td>Object or Boolean</td>
+      <td>none</td>
+      <td>Enables stacking within individual subgroups. Example: <code>{'subgroup0': true, 'subgroup1': false, 'subgroup2': true}</code> 
+          For each subgroup where stacking is enabled, items will be stacked on top of each other within that subgroup such that they do no overlap.
+          If set to <code>true</code> all subgroups will be stacked.
+          If a value was specified for the <code>order</code> parameter in the options, that ordering will be used when stacking the items.
       </td>
     </tr>
     <tr>
@@ -895,6 +913,14 @@ function (option, path) {
       </td>
     </tr>
     
+    <tr>
+        <td>onDropObjectOnItem</td>
+        <td>function</td>
+        <td>none</td>
+        <td>Callback function triggered when an object containing <code>target:'item'</code> in its drag data is dropped in to a timeline item.
+        </td>
+    </tr>
+
     <tr>
       <td>onInitialDrawComplete</td>
       <td>function</td>
@@ -1813,6 +1839,7 @@ var items = new vis.DataSet([
   <ul>
     <li><code>onAdd(item, callback)</code> Fired when a new item is about to be added. If not implemented, the item will be added with default text contents.</li>
     <li><code>onUpdate(item, callback)</code> Fired when an item is about to be updated. This function typically has to show a dialog where the user change the item. If not implemented, nothing happens.</li>
+    <li><code>onDropObjectOnItem(objectData, item)</code> Fired when an object is dropped in to an existing timeline item.</li>
     <li><code>onMove(item, callback)</code> Fired when an item has been moved. If not implemented, the move action will be accepted.</li>
     <li><code>onMoving(item, callback)</code> Fired repeatedly while an item is being moved (dragged). Can be used to adjust the items start, end, and/or group to allowed regions.</li>
     <li><code>onRemove(item, callback)</code> Fired when an item is about to be deleted. If not implemented, the item will be always removed.</li>
