@@ -132,7 +132,8 @@
     editable: true,
     orientation: 'top',
     onDropObjectOnItem: function(objectData, item, callback) {
-      alert('dropped object with content: "' + objectData.content + '" to item: "' + item.content + '"')
+      if (!objectData) { return; }
+      alert('dropped object with content: "' + objectData.content + '" to item: "' + item.content + '"');
     }
   };
 
@@ -170,7 +171,6 @@
     };
     event.dataTransfer.setData("text", JSON.stringify(objectItem));
   }
-
 
   var items = document.querySelectorAll('.items .item');
 
