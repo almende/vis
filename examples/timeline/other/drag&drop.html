@@ -132,7 +132,7 @@
     editable: true,
     orientation: 'top',
     onDropObjectOnItem: function(objectData, item, callback) {
-      if (!objectData) { return; }
+      if (!item) { return; }
       alert('dropped object with content: "' + objectData.content + '" to item: "' + item.content + '"');
     }
   };
