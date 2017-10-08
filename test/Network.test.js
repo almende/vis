@@ -610,6 +610,41 @@ describe('Edge', function () {
     assert.notEqual(edges[3].options.color.color, color); // Has own value
     assert.equal(edges[4].options.color.color, color);
   });
+
+  /**
+   * Unit test for fix of #3500
+   * Checking to make sure edges that become unconnected due to node removal get reconnected
+  */  
+  it('has reconnected edges', function () {
+    var node1 = {id:1, label:"test1"};
+    var node2 = {id:2, label:"test2"};
+    var nodes = new vis.DataSet([node1, node2]);
+  
+    var edge = {id:1, from: 1, to:2};
+    var edges = new vis.DataSet([edge]);
+
+    var data = {
+        nodes: nodes,
+        edges: edges
+    };    
+
+    var container = document.getElementById('mynetwork');
+    var network = new vis.Network(container, data);
+
+    //remove node causing edge to become disconnected
+    nodes.remove(node2.id);
+    
+    var foundEdge = network.body.edges[edge.id];
+
+    assert.ok(foundEdge===undefined, "edge is still in state cache");
+
+    //add node back reconnecting edge
+    nodes.add(node2);
+    
+    foundEdge = network.body.edges[edge.id];
+    
+    assert.ok(foundEdge!==undefined, "edge is missing from state cache");
+  });
 });  // Edge
 
 

@@ -342,6 +342,14 @@ var items = new vis.DataSet([
         Types 'box' and 'point' need a start date, the types 'range' and 'background' needs both a start and end date.
       </td>
     </tr>
+    <tr>
+      <td>limitSize</td>
+      <td>Boolean</td>
+      <td>no</td>
+      <td>Some browsers cannot handle very large DIVs so by default range DIVs can be truncated outside the visible area.
+        Setting this to <code>false</code> will cause the creation of full-size DIVs.
+      </td>
+    </tr>
     <tr class='toggle collapsible' onclick="toggleTable('itemOptionTable', 'itemEditable', this);">
       <td><span parent="itemEditable" class="right-caret"></span> editable</td>
       <td>Boolean or Object</td>
@@ -455,6 +463,16 @@ var groups = [
       </td>
     </tr>
     <tr>
+      <td>subgroupStack</td>
+      <td>Object or Boolean</td>
+      <td>none</td>
+      <td>Enables stacking within individual subgroups. Example: <code>{'subgroup0': true, 'subgroup1': false, 'subgroup2': true}</code> 
+          For each subgroup where stacking is enabled, items will be stacked on top of each other within that subgroup such that they do no overlap.
+          If set to <code>true</code> all subgroups will be stacked.
+          If a value was specified for the <code>order</code> parameter in the options, that ordering will be used when stacking the items.
+      </td>
+    </tr>
+    <tr>
       <td>title</td>
       <td>String</td>
       <td>none</td>
@@ -561,7 +579,7 @@ function (option, path) {
       <td><span parent="editable" class="right-caret"></span> editable</td>
       <td>boolean or Object</td>
       <td><code>false</code></td>
-      <td>If true, the items in the timeline can be manipulated. Only applicable when option <code>selectable</code> is <code><code>true</code></code>. See also the callbacks <code>onAdd</code>, <code>onUpdate</code>, <code>onMove</code>, and <code>onRemove</code>. When <code>editable</code> is an object, one can enable or disable individual manipulation actions.
+      <td>If true, the items in the timeline can be manipulated. Only applicable when option <code>selectable</code> is <code>true</code>. See also the callbacks <code>onAdd</code>, <code>onUpdate</code>, <code>onMove</code>, and <code>onRemove</code>. When <code>editable</code> is an object, one can enable or disable individual manipulation actions.
         See section <a href="#Editing_Items">Editing Items</a> for a detailed explanation.
       </td>
     </tr>
@@ -883,10 +901,10 @@ function (option, path) {
       <td>onAdd</td>
       <td>function</td>
       <td>none</td>
-      <td>Callback function triggered when an item is about to be added: when the user double taps an empty space in the Timeline. See section <a href="#Editing_Items">Editing Items</a> for more information. Only applicable when both options <code>selectable</code> and <code>editable.add</code> are set <code><code>true</code></code>.
+      <td>Callback function triggered when an item is about to be added: when the user double taps an empty space in the Timeline. See section <a href="#Editing_Items">Editing Items</a> for more information. Only applicable when both options <code>selectable</code> and <code>editable.add</code> are set <code>true</code>.
       </td>
     </tr>
-
+    
     <tr>
       <td>onAddGroup</td>
       <td>function</td>
@@ -894,23 +912,31 @@ function (option, path) {
       <td>Callback function triggered when a group is about to be added. The signature and semantics are the same as for <code>onAdd</code>.
       </td>
     </tr>
-
+    
     <tr>
-      <td>onUpdate</td>
-      <td>function</td>
-      <td>none</td>
-      <td>Callback function triggered when an item is about to be updated, when the user double taps an item in the Timeline. See section <a href="#Editing_Items">Editing Items</a> for more information. Only applicable when both options <code>selectable</code> and <code>editable.updateTime</code> or <code>editable.updateGroup</code> are set <code><code>true</code></code>.
-      </td>
+        <td>onDropObjectOnItem</td>
+        <td>function</td>
+        <td>none</td>
+        <td>Callback function triggered when an object containing <code>target:'item'</code> in its drag data is dropped in to a timeline item.
+        </td>
     </tr>
 
+    <tr>
+      <td>onInitialDrawComplete</td>
+      <td>function</td>
+      <td>none</td>
+      <td>Callback function triggered when the timeline is initially drawn. This function fires once per timeline creation.
+      </td>
+    </tr>
+    
     <tr>
       <td>onMove</td>
       <td>function</td>
       <td>none</td>
-      <td>Callback function triggered when an item has been moved: after the user has dragged the item to an other position. See section <a href="#Editing_Items">Editing Items</a> for more information. Only applicable when both options <code>selectable</code> and <code>editable.updateTime</code> or <code>editable.updateGroup</code> are set <code><code>true</code></code>.
+      <td>Callback function triggered when an item has been moved: after the user has dragged the item to an other position. See section <a href="#Editing_Items">Editing Items</a> for more information. Only applicable when both options <code>selectable</code> and <code>editable.updateTime</code> or <code>editable.updateGroup</code> are set <code>true</code>.
       </td>
     </tr>
-
+    
     <tr>
       <td>onMoveGroup</td>
       <td>function</td>
@@ -918,23 +944,23 @@ function (option, path) {
       <td>Callback function triggered when a group has been moved: after the user has dragged the group to an other position. The signature and semantics are the same as for <code>onMove</code>.
       </td>
     </tr>
-
+    
     <tr>
       <td>onMoving</td>
       <td>function</td>
       <td>none</td>
-      <td>Callback function triggered repeatedly when an item is being moved. See section <a href="#Editing_Items">Editing Items</a> for more information. Only applicable when both options <code>selectable</code> and <code>editable.updateTime</code> or <code>editable.updateGroup</code> are set <code><code>true</code></code>.
+      <td>Callback function triggered repeatedly when an item is being moved. See section <a href="#Editing_Items">Editing Items</a> for more information. Only applicable when both options <code>selectable</code> and <code>editable.updateTime</code> or <code>editable.updateGroup</code> are set <code>true</code>.
       </td>
     </tr>
-
+    
     <tr>
       <td>onRemove</td>
       <td>function</td>
       <td>none</td>
-      <td>Callback function triggered when an item is about to be removed: when the user tapped the delete button on the top right of a selected item. See section <a href="#Editing_Items">Editing Items</a> for more information. Only applicable when both options <code>selectable</code> and <code>editable.remove</code> are set <code><code>true</code></code>.
+      <td>Callback function triggered when an item is about to be removed: when the user tapped the delete button on the top right of a selected item. See section <a href="#Editing_Items">Editing Items</a> for more information. Only applicable when both options <code>selectable</code> and <code>editable.remove</code> are set <code>true</code>.
       </td>
     </tr>
-
+    
     <tr>
       <td>onRemoveGroup</td>
       <td>function</td>
@@ -942,7 +968,15 @@ function (option, path) {
       <td>Callback function triggered when a group is about to be removed. The signature and semantics are the same as for <code>onRemove</code>.
       </td>
     </tr>
-
+    
+    <tr>
+      <td>onUpdate</td>
+      <td>function</td>
+      <td>none</td>
+      <td>Callback function triggered when an item is about to be updated, when the user double taps an item in the Timeline. See section <a href="#Editing_Items">Editing Items</a> for more information. Only applicable when both options <code>selectable</code> and <code>editable.updateTime</code> or <code>editable.updateGroup</code> are set <code>true</code>.
+      </td>
+    </tr>
+    
     <tr>
       <td>onInitialDrawComplete</td>
       <td>function</td>
@@ -1036,7 +1070,7 @@ function (option, path) {
       <td>By default, the timeline shows both minor and major date labels on the
         time axis.
         For example the minor labels show minutes and the major labels show hours.
-        When <code>showMajorLabels</code> is <code><code>false</code></code>, no major labels
+        When <code>showMajorLabels</code> is <code>false</code>, no major labels
         are shown.</td>
     </tr>
 
@@ -1047,7 +1081,7 @@ function (option, path) {
       <td>By default, the timeline shows both minor and major date labels on the
         time axis.
         For example the minor labels show minutes and the major labels show hours.
-        When <code>showMinorLabels</code> is <code><code>false</code></code>, no minor labels
+        When <code>showMinorLabels</code> is <code>false</code>, no minor labels
         are shown. When both <code>showMajorLabels</code> and
         <code>showMinorLabels</code> are false, no horizontal axis will be
         visible.</td>
@@ -1207,7 +1241,7 @@ function (option, path) {
       <td><code>true</code></td>
       <td>
         Specifies whether the Timeline can be zoomed by pinching or scrolling in the window.
-        Only applicable when option <code>moveable</code> is set <code><code>true</code></code>.
+        Only applicable when option <code>moveable</code> is set <code>true</code>.
       </td>
     </tr>
 
@@ -1217,7 +1251,7 @@ function (option, path) {
       <td><code>''</code></td>
       <td>Specifies whether the Timeline is only zoomed when an additional key is down.
       	Available values are '' (does not apply), 'altKey', 'ctrlKey', or 'metaKey'.
-        Only applicable when option <code>moveable</code> is set <code><code>true</code></code>.
+        Only applicable when option <code>moveable</code> is set <code>true</code>.
       </td>
     </tr>
 
@@ -1758,7 +1792,7 @@ timeline.off('select', onSelect);
 
   <h2 id="Editing_Items">Editing Items</h2>
   <p>
-    When the Timeline is configured to be editable (both options <code>selectable</code> and <code>editable</code> are <code><code>true</code></code>), the user can:
+    When the Timeline is configured to be editable (both options <code>selectable</code> and <code>editable</code> are <code>true</code>), the user can:
   </p>
   <ul>
     <li>Select an item by clicking it, and use ctrl+click to or shift+click to select multiple items (when <code>multiselect: true</code>).</li>
@@ -1813,6 +1847,7 @@ var items = new vis.DataSet([
   <ul>
     <li><code>onAdd(item, callback)</code> Fired when a new item is about to be added. If not implemented, the item will be added with default text contents.</li>
     <li><code>onUpdate(item, callback)</code> Fired when an item is about to be updated. This function typically has to show a dialog where the user change the item. If not implemented, nothing happens.</li>
+    <li><code>onDropObjectOnItem(objectData, item)</code> Fired when an object is dropped in to an existing timeline item.</li>
     <li><code>onMove(item, callback)</code> Fired when an item has been moved. If not implemented, the move action will be accepted.</li>
     <li><code>onMoving(item, callback)</code> Fired repeatedly while an item is being moved (dragged). Can be used to adjust the items start, end, and/or group to allowed regions.</li>
     <li><code>onRemove(item, callback)</code> Fired when an item is about to be deleted. If not implemented, the item will be always removed.</li>
