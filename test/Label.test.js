@@ -32,7 +32,7 @@ class DummyContext {
 
 
 class DummyLayoutEngine {
-	positionInitially() {}
+  positionInitially() {}
 }
 
 /**************************************************************
@@ -72,7 +72,7 @@ describe('Network Label', function() {
     let showBlocks = () => {
       return '\nreturned: ' + JSON.stringify(returned, null, 2) + '\n' +
                'expected: ' + JSON.stringify(expected, null, 2);
-		}
+    }
 
     assert.equal(expected.lines.length, returned.lines.length, 'Number of lines does not match, ' + showBlocks());
 
@@ -121,7 +121,7 @@ describe('Network Label', function() {
     "OnereallylongwordthatshouldgooverwidthConstraint.maximumifdefined",
     "One really long sentence that should go over widthConstraint.maximum if defined",
     "Reallyoneenormouslylargelabel withtwobigwordsgoingoverwayovermax"
-	]
+  ]
 
   var html_text = [
     "label <b>with</b> <code>some</code> <i>multi <b>tags</b></i>",
@@ -917,7 +917,7 @@ describe('Shorthand Font Options', function() {
         }
       }
     });
-	}
+  }
 
 
   function dynamicAdd2(network, data) {
@@ -926,7 +926,7 @@ describe('Shorthand Font Options', function() {
         font: '7 Font7 #070707'  // Note: this kills the font.multi, bold and ital settings!
       }
     });
-	}
+  }
 
 
   it('deals with dynamic data and option updates for shorthand', function (done) {
@@ -1403,6 +1403,150 @@ describe('Shorthand Font Options', function() {
     options.font.multi = true;
     var label = new Label({}, options);
     checkProcessedLabels(label, text, expected);
+
+    done();
+  });
+
+
+  /**
+   * 
+   * The test network is derived from example `network/nodeStyles/widthHeight.html`,
+   * where the associated issue (i.e. widthConstraint values not copied) was most poignant.
+   *
+   * NOTE: boolean shorthand values for widthConstraint and heightConstraint do nothing.
+   */
+  it('Sets the width/height constraints in the font label options', function (done) {
+    var nodes = [
+      { id: 100, label: 'node 100'},
+      { id: 210, group: 'group1', label: 'node 210'},
+      { id: 211, widthConstraint: { minimum: 120 }, label: 'node 211'},
+      { id: 212, widthConstraint: { minimum: 120, maximum: 140 }, group: 'group1', label: 'node 212'},  // group override
+      { id: 220, widthConstraint: { maximum: 170 }, label: 'node 220'},
+      { id: 200, font: { multi: true }, widthConstraint: 150, label: 'node <b>200</b>'},
+      { id: 201, widthConstraint: 150, label: 'node 201'},
+      { id: 202, group: 'group2', label: 'node 202'},
+      { id: 203, heightConstraint: { minimum: 75, valign: 'bottom'}, group: 'group2', label: 'node 203'},  // group override
+      { id: 204, heightConstraint: 80, group: 'group2', label: 'node 204'}, // group override
+      { id: 300, heightConstraint: { minimum: 70 }, label: 'node 300'},
+      { id: 400, heightConstraint: { minimum: 100, valign: 'top' }, label: 'node 400'},
+      { id: 401, heightConstraint: { minimum: 100, valign: 'middle' }, label: 'node 401'},
+      { id: 402, heightConstraint: { minimum: 100, valign: 'bottom' }, label: 'node 402'}
+    ];
+  
+    var edges = [
+      { id: 1, from: 100, to: 210, label: "edge 1"},
+      { id: 2, widthConstraint: 80, from: 210, to: 211, label: "edge 2"},
+      { id: 3, heightConstraint: 90, from: 100, to: 220, label: "edge 3"},
+      { id: 4, from: 401, to: 402, widthConstraint: { maximum: 150 }, label: "edge 12"},
+    ];
+  
+    var container = document.getElementById('mynetwork');
+    var data = {
+      nodes: nodes,
+      edges: edges
+    };
+    var options = {
+      edges: {
+        font: {
+          size: 12
+        },
+        widthConstraint: {
+          maximum: 90
+        }
+      },
+      nodes: {
+        shape: 'box',
+        margin: 10,
+        widthConstraint: {
+          maximum: 200
+        }
+      },
+      groups: {
+        group1: {
+          shape: 'dot',
+          widthConstraint: {
+            maximum: 130
+          }
+        },
+        // Following group serves to test all font options
+        group2: {
+          shape: 'dot',
+          widthConstraint: {
+            minimum: 150,
+            maximum: 180,
+          },
+          heightConstraint: {
+            minimum: 210,
+            valign: 'top',
+          }
+        },
+      },
+      physics: {
+        enabled: false
+      }
+    };
+    var network = new vis.Network(container, data, options);
+
+    var nodes_expected = [
+      { nodeId: 100, minWdt:  -1, maxWdt: 200, minHgt:  -1, valign: 'middle'},
+      { nodeId: 210, minWdt:  -1, maxWdt: 130, minHgt:  -1, valign: 'middle'},
+      { nodeId: 211, minWdt: 120, maxWdt: 200, minHgt:  -1, valign: 'middle'},
+      { nodeId: 212, minWdt: 120, maxWdt: 140, minHgt:  -1, valign: 'middle'},
+      { nodeId: 220, minWdt:  -1, maxWdt: 170, minHgt:  -1, valign: 'middle'},
+      { nodeId: 200, minWdt: 150, maxWdt: 150, minHgt:  -1, valign: 'middle'},
+      { nodeId: 201, minWdt: 150, maxWdt: 150, minHgt:  -1, valign: 'middle'},
+      { nodeId: 202, minWdt: 150, maxWdt: 180, minHgt: 210, valign: 'top'},
+      { nodeId: 203, minWdt: 150, maxWdt: 180, minHgt:  75, valign: 'bottom'},
+      { nodeId: 204, minWdt: 150, maxWdt: 180, minHgt:  80, valign: 'middle'},
+      { nodeId: 300, minWdt:  -1, maxWdt: 200, minHgt:  70, valign: 'middle'},
+      { nodeId: 400, minWdt:  -1, maxWdt: 200, minHgt: 100, valign: 'top'},
+      { nodeId: 401, minWdt:  -1, maxWdt: 200, minHgt: 100, valign: 'middle'},
+      { nodeId: 402, minWdt:  -1, maxWdt: 200, minHgt: 100, valign: 'bottom'},
+    ];
+
+
+    // For edge labels, only maxWdt is set. We check the rest anyway, be it for
+    // checking incorrect settings or for future code changes.
+    //
+    // There is a lot of repetitiveness here. Perhaps using a direct copy of the
+    // example should be let go.
+    var edges_expected = [
+      { id: 1, minWdt: -1, maxWdt:  90, minHgt: -1, valign: 'middle'},
+      { id: 2, minWdt: 80, maxWdt:  80, minHgt: -1, valign: 'middle'},
+      { id: 3, minWdt: -1, maxWdt:  90, minHgt: 90, valign: 'middle'},
+      { id: 4, minWdt: -1, maxWdt: 150, minHgt: -1, valign: 'middle'},
+    ];
+
+
+    let assertConstraints = (expected, fontOptions, label) => {
+      assert.equal(expected.minWdt, fontOptions.minWdt, 'Incorrect min width' + label);
+      assert.equal(expected.maxWdt, fontOptions.maxWdt, 'Incorrect max width' + label);
+      assert.equal(expected.minHgt, fontOptions.minHgt, 'Incorrect min height' + label);
+      assert.equal(expected.valign, fontOptions.valign, 'Incorrect valign' + label);
+    }
+
+
+    // Check nodes
+    util.forEach(nodes_expected, function(expected) {
+      let networkNode = network.body.nodes[expected.nodeId];
+      assert(networkNode !== undefined && networkNode !== null, 'node not found for id: ' + expected.nodeId);
+      let fontOptions = networkNode.labelModule.fontOptions;
+
+      var label = ' for node id: ' + expected.nodeId;
+      assertConstraints(expected, fontOptions, label);
+    });
+
+
+    // Check edges
+    util.forEach(edges_expected, function(expected) {
+      let networkEdge = network.body.edges[expected.id];
+
+      var label = ' for edge id: ' + expected.id;
+      assert(networkEdge !== undefined, 'Edge not found' + label);
+
+      let fontOptions = networkEdge.labelModule.fontOptions;
+      assertConstraints(expected, fontOptions, label);
+    });
 
     done();
   });
