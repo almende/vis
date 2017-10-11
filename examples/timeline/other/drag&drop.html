@@ -27,6 +27,27 @@
       font-size: inherit;
       cursor: move;
     }
+    li.object-item {
+      list-style: none;
+      width: 150px;
+      color: #1A1A1A;
+      background-color: #D5DDF6;
+      border: 1px solid #97B0F8;
+      border-radius: 2px;
+      margin-bottom: 5px;
+      padding: 5px 12px;
+    }
+    li.object-item:before {
+      content: "≣";
+      font-family: Arial, sans-serif;
+      display: inline-block;
+      font-size: inherit;
+      cursor: move;
+    }
+    .items-panel {
+      display: flex;
+      justify-content: space-around;
+    }
   </style>
 </head>
 
@@ -37,23 +58,33 @@
 <p>For this to work, you will have to define your own <code>'dragstart'</code> eventListener on each item in your list of items (make sure that any new item added to the list is attached to this eventListener 'dragstart' handler). This 'dragstart' handler must set <code>dataTransfer</code> - notice you can set  the item's information as you want this way.</p>
 
 <div id="mytimeline" ></div>
-<div>
-  <h3>Items:</h3>
-  <ul class="items">
-    <li draggable="true" class="item">
-      item 1 - box
+
+<div class='items-panel'>
+  <div class='side'>
+    <h3>Items:</h3>
+    <ul class="items">
+      <li draggable="true" class="item">
+        item 1 - box
+      </li>
+      <li draggable="true" class="item">
+        item 2 - point
+      </li>
+      <li draggable="true" class="item">
+        item 3 - range
+      </li>
+      <li draggable="true" class="item">
+        item 3 - range - fixed times - <br>
+        (start: now, end: now + 10 min)
+      </li>
+    </ul>
+  </div>
+
+  <div class='side'>
+    <h3>Object with "target:'item'":</h3>
+    <li draggable="true" class="object-item">
+      object with target:'item'
     </li>
-    <li draggable="true" class="item">
-      item 2 - point
-    </li>
-    <li draggable="true" class="item">
-      item 3 - range
-    </li>
-    <li draggable="true" class="item">
-      item 3 - range - fixed times - <br>
-      (start: now, end: now + 10 min)
-    </li>
-  </ul>
+  </div>
 </div>
 
 <script>
@@ -99,7 +130,11 @@
     start: new Date(),
     end: new Date(1000*60*60*24 + (new Date()).valueOf()),
     editable: true,
-    orientation: 'top'
+    orientation: 'top',
+    onDropObjectOnItem: function(objectData, item, callback) {
+      if (!item) { return; }
+      alert('dropped object with content: "' + objectData.content + '" to item: "' + item.content + '"');
+    }
   };
 
   // create a Timeline
@@ -107,7 +142,7 @@
   timeline1 = new vis.Timeline(container, items, groups, options);
 
   function handleDragStart(event) {
-    dragSrcEl = event.target;
+    var dragSrcEl = event.target;
 
     event.dataTransfer.effectAllowed = 'move';
     var itemType = event.target.innerHTML.split('-')[1].trim();
@@ -122,15 +157,32 @@
       item.start = new Date();
       item.end = new Date(1000*60*10 + (new Date()).valueOf());
     }
-
     event.dataTransfer.setData("text", JSON.stringify(item));
+  }
+
+  function handleObjectItemDragStart(event) {
+    var dragSrcEl = event.target;
+    
+    event.dataTransfer.effectAllowed = 'move';
+    var objectItem = {
+      content: 'objectItemData',
+      target: 'item'
+    };
+    event.dataTransfer.setData("text", JSON.stringify(objectItem));
   }
 
   var items = document.querySelectorAll('.items .item');
 
+  var objectItems = document.querySelectorAll('.object-item');
+
   for (var i = items.length - 1; i >= 0; i--) {
     var item = items[i];
     item.addEventListener('dragstart', handleDragStart.bind(this), false);
+  }
+
+  for (var i = objectItems.length - 1; i >= 0; i--) {
+    var objectItem = objectItems[i];
+    objectItem.addEventListener('dragstart', handleObjectItemDragStart.bind(this), false);
   }
 
 </script>
