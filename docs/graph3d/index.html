@@ -442,6 +442,24 @@ var options = {
     </tr>
 
     <tr>
+      <td>onclick</td>
+      <td>function</td>
+      <td>none</td>
+      <td>Event handler for a click event with signature <code>function onclick(point)</code>.<br>
+        Parameter <code>point</code> contains data for the nearest graph element relative to the click in
+        the line of sight. It is an object with the fields:
+        <ul>
+        <li><code>id   </code> - id of nearest node to the click</li>
+        <li><code>x    </code> - x-coordinate in graph units</li>
+        <li><code>y    </code> - y-coordinate in graph units</li>
+        <li><code>z    </code> - z-coordinate in graph units</li>
+        <li><code>style</code> - if present, the data value for this point</li>
+        </ul>
+        
+        </td>
+    </tr>
+
+    <tr>
       <td>showAnimationControls</td>
       <td>boolean</td>
       <td>true</td>

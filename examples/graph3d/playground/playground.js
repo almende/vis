@@ -304,7 +304,7 @@ function getDataType() {
 /**
  * Retrieve the datatable from the entered contents of the csv text
  * @param {boolean} [skipValue] | if true, the 4th element is a filter value
- * @return {vis DataSet}
+ * @return {vis.DataSet}
  */
 function getDataCsv() {
   var csv = document.getElementById("csvTextarea").value;
@@ -366,7 +366,7 @@ function trim(text) {
 
 /**
  * Retrieve the datatable from the entered contents of the javascript text
- * @return {vis Dataset}
+ * @return {vis.DataSet}
  */
 function getDataJson() {
   var json = document.getElementById("jsonTextarea").value;
@@ -378,7 +378,7 @@ function getDataJson() {
 
 /**
  * Retrieve the datatable from the entered contents of the javascript text
- * @return {vis Dataset}
+ * @return {vis.DataSet}
  */
 function getDataJavascript() {
   var js = document.getElementById("javascriptTextarea").value;
@@ -391,7 +391,7 @@ function getDataJavascript() {
 
 /**
  * Retrieve the datatable from the entered contents of the datasource text
- * @return {vis Dataset}
+ * @return {vis.DataSet}
  */
 function getDataDatasource() {
 }
@@ -400,7 +400,7 @@ function getDataDatasource() {
  * Retrieve a JSON object with all options
  */
 function getOptions() {
-  return {
+  var options = {
     width:              document.getElementById("width").value,
     height:             document.getElementById("height").value,
     style:              document.getElementById("style").value,
@@ -413,8 +413,8 @@ function getOptions() {
     showLegend:        (document.getElementById("showLegend").checked != false),
     showShadow:        (document.getElementById("showShadow").checked != false),
     keepAspectRatio:   (document.getElementById("keepAspectRatio").checked != false),
-    verticalRatio:      document.getElementById("verticalRatio").value,
-    animationInterval:  document.getElementById("animationInterval").value,
+    verticalRatio:      Number(document.getElementById("verticalRatio").value) || undefined,
+    animationInterval:  Number(document.getElementById("animationInterval").value) || undefined,
     xLabel:             document.getElementById("xLabel").value,
     yLabel:             document.getElementById("yLabel").value,
     zLabel:             document.getElementById("zLabel").value,
@@ -423,8 +423,8 @@ function getOptions() {
     animationPreload:  (document.getElementById("animationPreload").checked != false),
     animationAutoStart:(document.getElementById("animationAutoStart").checked != false),
 
-    xCenter:           Number(document.getElementById("xCenter").value) || undefined,
-    yCenter:           Number(document.getElementById("yCenter").value) || undefined,
+    xCenter:           document.getElementById("xCenter").value,
+    yCenter:           document.getElementById("yCenter").value,
 
     xMin:              Number(document.getElementById("xMin").value) || undefined,
     xMax:              Number(document.getElementById("xMax").value) || undefined,
@@ -442,6 +442,8 @@ function getOptions() {
     xBarWidth:         Number(document.getElementById("xBarWidth").value) || undefined,
     yBarWidth:         Number(document.getElementById("yBarWidth").value) || undefined
   };
+
+  return options;
 }
 
 /**

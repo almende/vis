@@ -1200,7 +1200,7 @@ function (option, path) {
             <td>none</td>
             <td>Move the window such that given time is centered on screen. Parameter <code>time</code> can be a <code>Date</code>, <code>Number</code>, or <code>String</code>. Available options:
                 <ul>
-                    <li><code>animate: boolean or number</code><br>If true (default), the range is animated smoothly to the new window. If a number, the number is taken as duration for the animation. Default duration is 500 ms.</li>
+                    <li><code>animation: boolean | {duration: number, easingFunction: string}</code><br>If true (default), the range is animated smoothly to the new window. An object can be provided to specify duration and easing function. Default duration is 500 ms, and default easing function is 'easeInOutQuad'.</li>
                 </ul>
             </td>
         </tr>

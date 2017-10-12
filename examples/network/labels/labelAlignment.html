@@ -9,7 +9,7 @@
   <style type="text/css">
     #mynetwork {
       width: 600px;
-      height: 600px;
+      height: 400px;
       border: 1px solid lightgray;
     }
     p {
@@ -25,8 +25,12 @@
 <p>Text-alignment within node labels can be 'left' or 'center', other font alignments not implemented.</p>
 <p>Label alignment (placement of label &quot;box&quot;) for nodes (top, bottom, left, right, inside) is
 planned but not in vis yet.</p>
+<p>The click event is captured and displayed to illustrate how the clicking on labels works.
+You can drag the nodes over each other to see how this influences the click event values.
+</p>
 
 <div id="mynetwork"></div>
+<pre id="eventSpan"></pre>
 
 <script type="text/javascript">
   // create an array with nodes
@@ -53,8 +57,13 @@ planned but not in vis yet.</p>
     nodes: nodes,
     edges: edges
   };
-  var options = {};
+  var options = {physics:false};
   var network = new vis.Network(container, data, options);
+
+    network.on("click", function (params) {
+        params.event = "[original event]";
+        document.getElementById('eventSpan').innerHTML = '<h2>Click event:</h2>' + JSON.stringify(params, null, 4);
+    });
 </script>
 
 </body>
