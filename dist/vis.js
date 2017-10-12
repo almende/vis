@@ -4,7 +4,7 @@
  *
  * A dynamic, browser-based visualization library.
  *
- * @version 4.20.1-SNAPSHOT
+ * @version 4.21.0
  * @date    2017-10-12
  *
  * @license
@@ -51009,6 +51009,20 @@ var ClusterEngine = function () {
     value: function _cluster(childNodesObj, childEdgesObj, options) {
       var refreshData = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : true;
 
+      // Remove nodes which are already clustered
+      var tmpNodesToRemove = [];
+      for (var _nodeId in childNodesObj) {
+        if (childNodesObj.hasOwnProperty(_nodeId)) {
+          if (this.clusteredNodes[_nodeId] !== undefined) {
+            tmpNodesToRemove.push(_nodeId);
+          }
+        }
+      }
+
+      for (var n = 0; n < tmpNodesToRemove.length; ++n) {
+        delete childNodesObj[tmpNodesToRemove[n]];
+      }
+
       // kill condition: no nodes don't bother
       if ((0, _keys2['default'])(childNodesObj).length == 0) {
         return;
@@ -51017,15 +51031,6 @@ var ClusterEngine = function () {
       // allow clusters of 1 if options allow
       if ((0, _keys2['default'])(childNodesObj).length == 1 && options.clusterNodeProperties.allowSingleNodeCluster != true) {
         return;
-      }
-
-      // check if this cluster call is not trying to cluster anything that is in another cluster.
-      for (var _nodeId in childNodesObj) {
-        if (childNodesObj.hasOwnProperty(_nodeId)) {
-          if (this.clusteredNodes[_nodeId] !== undefined) {
-            return;
-          }
-        }
       }
 
       var clusterNodeProperties = util.deepExtend({}, options.clusterNodeProperties);
