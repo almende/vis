@@ -28,6 +28,7 @@
  - Keep the order of the commits. Older commits are lower newers are higher.
  - Bug-Fixes start with `FIX #issue:`
  - New Features start with `FEAT #issue:`
+ - Refactors start with `REFA #PR:`
 
 ## Commit
 - [ ] Commit the new version: `git commit -am "Release vX.Y.Z"`

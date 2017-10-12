@@ -2,6 +2,97 @@
 http://visjs.org
 
 
+## 2017-10-12, version 4.21.0
+
+### General
+- Added #3394: Adds unit tests for add, setOptions and on/off DataSet
+- FIX #3406: Eliminate possibility of 'window is undefined' during travis test
+- Added #3402: added @macleodbroad-wf to the support team
+- FIX #3392: Addresses TODOs in Queue unit test by adding unit tests for setOptions and destroy
+- Added #3354: Adds missing jsdoc and adds lint rule require-jsdoc to build process
+- Added #3331 - Enable linting for Travis
+- Added #3312, #3311, #3310, #3309, #3308, #3304 - Add lint
+- Added #3230 - Enable 'eslint'
+- Added #3262 - Upgrade packages and tools for Travis unit testing
+- Added #3287: Update module versions to latest stable
+- Added #3295: Update the webpack example
+
+### Network
+- FIX #3554: Relax clustering condition for adding already clustered nodes to cluster
+- FIX #3517: Retain constraint values in label font handling
+- REFA #3507: Cleanup and refactoring PhysicsEngine 
+- FIX #3500: re-adds edges if they are now connected and add does not add invalid edges
+- FIX #3486: Add extra check on null value during label handling
+- FEAT #824: Network detect clicks on labels
+- FIX #3474: Adjust documentation for arrows.middle.scaleFactor
+- FIX #3483: Prevent image loading for hidden cluster nodes
+- FIX #3408, #2677: Fix handling of multi-fonts
+- FIX #3425: IE performance improvements
+- FIX #3356 and #3297: IE11 svg image fixes
+- FIX #3474: Make negative scaleFactor reverse middle arrow correctly 
+- FIX #3464: Fix handling of space before huge word in label text
+- FIX #3467: Adjust for-in loops so they can deal with added properties in Array and Object prototypes
+- REFA #3442: Strapping down of Extend-routines in util.js
+- FEAT #3412: Add endpoint 'bar' to Network
+- FIX #3403: Fixes sorting on Layout, refactoring
+- FIX #3421: Added default sizes for nodes without labels
+- FEAT #3418: Added new Hexagon shape in the Network
+- FEAT #3368: Cluster node handling due to dynamic data change
+- FIX #3395: Allow for multiline titles
+- FIX #3367: Network Clustering fixes on usage joinCondition for clusterOutliers()
+- FIX #3350: Fix setting of edge color options via Network.setOptions()
+- FEAT #3348: Add edge styles support for DOT lib
+- FIX #2839: Re-words documentation to reflect symmetrical input/output of get() when passed multiple ids
+- FIX #3316: Updates network documentation to account for edge
+- FIX  #1218, #1291, #1315: Dynamically adjust clustering when data changes
+- FIX #2311: Block recalculation of level in LayoutEngine._determineLevelsDirected()
+- FIX #3280: Cleanup mergeOptions() and fix missing ref on globalOptions in mergeOptions()
+- FEAT #3131: Added dragStart event for adding edges
+- FIX #3171 and #3185: Fix infinite loop on drawing of large labels
+- FIX #3220: Update hierarchy when node level changes
+- FIX #3245: Multiple base edges in clustered edge
+- FEAT #1222: Add pointer data to hover events
+- REFA #3106: Refactoring and unit testing of Validator module
+- REFA #3227: Refactor LayoutEngine for further work
+- FIX #3164: make 'hidden' and 'clustered' play nice together
+- FIX #2579: Allow DOM elements for node titles
+- FIX #2856: Fix manipulation examples for Network
+
+### Graph2D
+- FIX #1852: Correct documentation for graph2d’s moveTo function
+
+### Graph3D
+- FIX #3467: Adjust for-in loops so they can deal with added properties in Array and Object prototypes
+- FEAT #3099: Add option definitions and validation to Graph3d
+- REFA #3159: move Filter into DataGroup
+- FEAT #3255: Add unit tests for Graph3D issue
+- FIX #3251: Graph3d put guards before unsubscription in DataGroup
+- FIX #3255: Fix missing reference to Graph3D instance in DataGroup
+
+### Timeline
+- FEAT #3529: On timeline loaded
+- FEAT #3505: Drag object in to item
+- FEAT #3050: Allow disabling of RangeItem limitSize
+- FIX #3475: Item Redraw Performance - Bug Fix
+- FIX #3504: Fixing a bug with the timing of the final setting of the vertical scroll position
+- FIX #3509: Added describe sections to PointItem unit tests
+- FIX #2851: Vertical focus
+- FEAT #620: Subgroup stacking
+- FIX #3475: Improve Item redraw and initial draw performance 
+- FIX #3409: Group redraw performance
+- FEAT #3428: Adds locale for Chinese (cn)
+- FIX #3405: fix orientation option
+- FIX #3360: Add performance tips to timeline docs
+- FIX #3378: Add item with ctrlKey/metaKey when dagging on a selected item
+- FIX #3126: Nested groups order logic
+- FIX #3246: Fix issue when showMajorLabels == false is used with a weekly scale and weekly scale minor label fix
+- FIX #3342: Bug fix for null parent
+- FIX #2123: Disable the default handling of the pinch event when handling it
+- FIX #3169: add parenthesis around ternary
+- FIX #3249: Only draw non-visible items once when they are loaded, instead of continuously every frame
+- FEAT #3162: Bidirectional scrolling in timeline - make horizontalScroll and verticalScroll work together
+
+
 ## 2017-07-01, version 4.20.1
 
 ### General
