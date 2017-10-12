@@ -8,6 +8,7 @@ http://visjs.org
 - Added #3394: Adds unit tests for add, setOptions and on/off DataSet
 - FIX #3406: Eliminate possibility of 'window is undefined' during travis test
 - Added #3402: added @macleodbroad-wf to the support team
+- REFA #3442: Strapping down of Extend-routines in util.js
 - FIX #3392: Addresses TODOs in Queue unit test by adding unit tests for setOptions and destroy
 - Added #3354: Adds missing jsdoc and adds lint rule require-jsdoc to build process
 - Added #3331 - Enable linting for Travis
@@ -31,8 +32,7 @@ http://visjs.org
 - FIX #3356 and #3297: IE11 svg image fixes
 - FIX #3474: Make negative scaleFactor reverse middle arrow correctly 
 - FIX #3464: Fix handling of space before huge word in label text
-- FIX #3467: Adjust for-in loops so they can deal with added properties in Array and Object prototypes
-- REFA #3442: Strapping down of Extend-routines in util.js
+- FIX #3467: Adjust for-in loops so they can deal with added properties in Array and Object prototype 
 - FEAT #3412: Add endpoint 'bar' to Network
 - FIX #3403: Fixes sorting on Layout, refactoring
 - FIX #3421: Added default sizes for nodes without labels
