@@ -369,6 +369,27 @@ describe('Network', function () {
   });
 
 
+  it('does not crash when dataChanged is triggered when setting options on first initialization ', function() {
+    // The init should succeed without an error thrown.
+    var options = {
+      nodes: {
+        physics: false   // any value here triggered the error 
+      }
+    };
+    createSampleNetwork(options);
+
+    // Do the other values as well that can cause this./
+    // 'any values' applies here as well, expecting no throw
+    options = {edges: {physics: false}};
+    createSampleNetwork(options);
+
+    options = {nodes: {hidden: false}};
+    createSampleNetwork(options);
+
+    options = {edges: {hidden: false}};
+    createSampleNetwork(options);
+  });
+
 describe('Node', function () {
 
   it('has known font options', function () {
