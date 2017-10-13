@@ -352,6 +352,23 @@ describe('Network', function () {
   });
 
 
+  /**
+   * This is a fix on one issue (#3543), but in fact **all* options for all API calls should
+   * remain unchanged.
+   * TODO: extend test for all API calls with options, see #3548
+   */
+  it('does not change the options object passed to fit()', function() {
+    var [network, data, numNodes, numEdges] = createSampleNetwork({});
+    var options = {};
+    network.fit(options);
+
+    // options should still be empty
+    for (var prop in options) {
+      assert(!options.hasOwnProperty(prop), 'No properties should be present in options, detected property: ' + prop);
+    }
+  });
+
+
 describe('Node', function () {
 
   it('has known font options', function () {
