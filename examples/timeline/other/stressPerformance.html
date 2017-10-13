@@ -18,7 +18,7 @@
 
 <script>
   var now = moment();
-  var groupCount = 20;
+  var groupCount = 1;
   var itemCount = 400;
 
   // create a data set with groups
@@ -55,6 +55,19 @@
     stack: true,
     selectable: true,
     editable: true,
+    onTimeout: {
+      timeoutMs: 1000,
+      callback: function(callback) {
+        var didUserCancel;
+        var r = confirm("Too many items loaded! Would you like to continue rendering (this might take a while)?");
+        if (r == true) {
+          didUserCancel = true;
+        } else {
+          didUserCancel = false;
+        }
+        callback(didUserCancel)
+      },
+    }
   };
 
   var timeline = new vis.Timeline(container);
