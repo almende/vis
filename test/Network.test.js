@@ -14,9 +14,10 @@ var fs = require('fs');
 var assert = require('assert');
 var vis = require('../dist/vis');
 var Network = vis.network;
-var jsdom_global = require('jsdom-global');
 var stdout = require('test-console').stdout;
 var Validator = require("./../lib/shared/Validator").default;
+var jsdom_global = require('jsdom-global');
+var canvasMockify = require('./canvas-mock');
 var {allOptions, configureOptions} = require('./../lib/network/options.js');
 //var {printStyle} = require('./../lib/shared/Validator');
 
@@ -222,6 +223,8 @@ function checkFontProperties(fontItem, checkStrict = true) {
 
 
 
+
+
 describe('Network', function () {
 
   before(function() {
@@ -229,6 +232,7 @@ describe('Network', function () {
       "<div id='mynetwork'></div>",
       { skipWindowCheck: true}
     );
+    canvasMockify(window);
     this.container = document.getElementById('mynetwork');
   });
 
@@ -324,6 +328,7 @@ describe('Network', function () {
    * The real deterrent is eslint rule 'guard-for-in`.
    */
   it('can deal with added fields in Array.prototype', function (done) {
+    var canvas = window.document.createElement('canvas');
     Array.prototype.foo = 1;  // Just add anything to the prototype
     Object.prototype.bar = 2; // Let's screw up hashes as well
 
@@ -687,7 +692,6 @@ describe('Edge', function () {
 
 
 describe('Clustering', function () {
-
 
   it('properly handles options allowSingleNodeCluster', function() {
     var [network, data, numNodes, numEdges] = createSampleNetwork();
