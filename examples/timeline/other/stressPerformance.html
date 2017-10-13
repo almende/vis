@@ -18,7 +18,7 @@
 
 <script>
   var now = moment();
-  var groupCount = 1;
+  var groupCount = 2;
   var itemCount = 400;
 
   // create a data set with groups
@@ -56,15 +56,10 @@
     selectable: true,
     editable: true,
     onTimeout: {
-      timeoutMs: 1000,
+      timeoutMs: 500,
       callback: function(callback) {
         var didUserCancel;
-        var r = confirm("Too many items loaded! Would you like to continue rendering (this might take a while)?");
-        if (r == true) {
-          didUserCancel = true;
-        } else {
-          didUserCancel = false;
-        }
+        var didUserCancel = confirm("Too many items loaded! Would you like to continue rendering (this might take a while)?");
         callback(didUserCancel)
       },
     }

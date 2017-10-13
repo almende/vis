@@ -830,7 +830,15 @@ SAoRGF0ZSByZWZlcnJlZCk8L2E+IiwidGl0bGUiOiJCZWNreSAoRGF0ZSByZWZlcnJlZCkiLCJncm91c
             },
             min: "2017-01-31",
             max: "2017-02-26",
-            orientation: {axis: "both"}
+            orientation: {axis: "both"},
+            onTimeout: {
+                timeoutMs: 5000,
+                callback: function(callback) {
+                    var didUserCancel;
+                    var didUserCancel = confirm("Too many items loaded! Would you like to continue rendering (this might take a while)?");
+                    callback(didUserCancel)
+                },
+            }
         };
 
         var timeline = new vis.Timeline(container, items, options); 
