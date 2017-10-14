@@ -395,6 +395,25 @@ describe('Network', function () {
     createSampleNetwork(options);
   });
 
+
+  it('can deal with null data', function() {
+    // While we're at it, try out other silly values as well
+    // All the following are wrong, but none should lead to a crash
+    var awkwardData = [
+      null,
+      [1,2,3],
+      42,
+      'meow'
+    ];
+
+    var container = document.getElementById('mynetwork');
+
+    for (var n = 0; n < awkwardData.length; ++n) {
+      var network = new vis.Network(container, awkwardData[n], {});  // Should not throw
+    }
+  });
+
+
 describe('Node', function () {
 
   it('has known font options', function () {
