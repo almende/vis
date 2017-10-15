@@ -1,6 +1,5 @@
 var assert = require('assert');
-var vis = require('../dist/vis');
-var Graph3d = vis.Graph3d;
+var Graph3d = require('../lib/graph3d/Graph3d');
 var jsdom_global = require('jsdom-global');
 var canvasMockify = require('./canvas-mock');
 var stdout = require('test-console').stdout;
@@ -56,7 +55,7 @@ describe('Graph3d', function () {
       style: 'dot'
     };
 
-    var graph = new vis.Graph3d(this.container, data, options);
+    var graph = new Graph3d(this.container, data, options);
     assert.equal(graph.style, DOT_STYLE, "Style not set to expected 'dot'");
 
     graph.setOptions({ style: 'bar'});  // Call should just work, no exception thrown
