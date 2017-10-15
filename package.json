@@ -26,7 +26,8 @@
   ],
   "main": "./dist/vis.js",
   "scripts": {
-    "test": "mocha --compilers js:babel-core/register",
+    "test": "nyc mocha --compilers js:babel-core/register",
+    "test-cov": "nyc --reporter=html mocha --compilers js:babel-core/register",
     "build": "gulp",
     "lint": "gulp lint",
     "watch": "gulp watch",
@@ -63,6 +64,7 @@
     "merge-stream": "^1.0.1",
     "mocha": "^3.4.2",
     "mocha-jsdom": "^1.1.0",
+    "nyc": "^11.2.1",
     "rimraf": "^2.6.1",
     "test-console": "^1.0.0",
     "uglify-js": "^2.8.29",
