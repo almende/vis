@@ -1,4 +1,5 @@
 var assert = require('assert');
+var vis = require('../dist/vis');
 
 describe('Timeline ItemSet', function () {
   before(function () {
