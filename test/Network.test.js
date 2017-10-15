@@ -14,9 +14,10 @@ var fs = require('fs');
 var assert = require('assert');
 var vis = require('../dist/vis');
 var Network = vis.network;
-var jsdom_global = require('jsdom-global');
 var stdout = require('test-console').stdout;
 var Validator = require("./../lib/shared/Validator").default;
+var jsdom_global = require('jsdom-global');
+var canvasMockify = require('./canvas-mock');
 var {allOptions, configureOptions} = require('./../lib/network/options.js');
 //var {printStyle} = require('./../lib/shared/Validator');
 
@@ -222,6 +223,8 @@ function checkFontProperties(fontItem, checkStrict = true) {
 
 
 
+
+
 describe('Network', function () {
 
   before(function() {
@@ -229,6 +232,7 @@ describe('Network', function () {
       "<div id='mynetwork'></div>",
       { skipWindowCheck: true}
     );
+    canvasMockify(window);
     this.container = document.getElementById('mynetwork');
   });
 
@@ -324,6 +328,7 @@ describe('Network', function () {
    * The real deterrent is eslint rule 'guard-for-in`.
    */
   it('can deal with added fields in Array.prototype', function (done) {
+    var canvas = window.document.createElement('canvas');
     Array.prototype.foo = 1;  // Just add anything to the prototype
     Object.prototype.bar = 2; // Let's screw up hashes as well
 
@@ -351,6 +356,44 @@ describe('Network', function () {
     done();
   });
 
+
+  /**
+   * This is a fix on one issue (#3543), but in fact **all* options for all API calls should
+   * remain unchanged.
+   * TODO: extend test for all API calls with options, see #3548
+   */
+  it('does not change the options object passed to fit()', function() {
+    var [network, data, numNodes, numEdges] = createSampleNetwork({});
+    var options = {};
+    network.fit(options);
+
+    // options should still be empty
+    for (var prop in options) {
+      assert(!options.hasOwnProperty(prop), 'No properties should be present in options, detected property: ' + prop);
+    }
+  });
+
+
+  it('does not crash when dataChanged is triggered when setting options on first initialization ', function() {
+    // The init should succeed without an error thrown.
+    var options = {
+      nodes: {
+        physics: false   // any value here triggered the error 
+      }
+    };
+    createSampleNetwork(options);
+
+    // Do the other values as well that can cause this./
+    // 'any values' applies here as well, expecting no throw
+    options = {edges: {physics: false}};
+    createSampleNetwork(options);
+
+    options = {nodes: {hidden: false}};
+    createSampleNetwork(options);
+
+    options = {edges: {hidden: false}};
+    createSampleNetwork(options);
+  });
 
 describe('Node', function () {
 
@@ -649,7 +692,6 @@ describe('Edge', function () {
 
 
 describe('Clustering', function () {
-
 
   it('properly handles options allowSingleNodeCluster', function() {
     var [network, data, numNodes, numEdges] = createSampleNetwork();
