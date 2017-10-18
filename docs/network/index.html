@@ -1487,7 +1487,7 @@ Thus, to get the topmost item, get the value at index 0.
                 </td>
             <tr><td id="event_stabilized">stabilized</td>
                 <td>Object</td>
-                <td>Fired when the network has stabilized or when the <code>stopSimulation()</code> has been called. The amount of iterations it took could be used to tweak the maximum amount of iterations needed to stabilize the network. Passes an object with properties structured as:
+                <td>Fired when the network has stabilized, when the amount of iterations defined in the options has been reached, or when the <code>stopSimulation()</code> has been called. The amount of iterations it took could be used to tweak the maximum amount of iterations needed to stabilize the network. Passes an object with properties structured as:
 <pre class="prettyprint lang-js">{
   iterations: Number // iterations it took
 }</pre>
