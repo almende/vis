@@ -79,3 +79,19 @@
   bottom: -1px;
   left: 0;
 }
+
+.panningZoneLeft, .panningZoneRight{
+  width: 3%;
+  height: 100%;
+  z-index: 99;
+  position: absolute
+}
+
+.panningZoneLeft{
+  left: 0;
+
+}
+
+.panningZoneRight{
+  right: 0;
+}
