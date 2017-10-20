@@ -2,6 +2,7 @@
  * TODO - add tests for:
  * ====
  *
+ * - html entities
  * - html unclosed or unopened tags
  * - html tag combinations with no font defined (e.g. bold within mono) 
  * - Unit tests for bad font shorthands.
