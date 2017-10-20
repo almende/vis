@@ -12,8 +12,8 @@
  */
 var fs = require('fs');
 var assert = require('assert');
-var vis = require('../dist/vis');
-var Network = vis.network;
+var DataSet = require('../lib/DataSet');
+var Network = require('../lib/network/Network');
 var stdout = require('test-console').stdout;
 var Validator = require("./../lib/shared/Validator").default;
 var jsdom_global = require('jsdom-global');
@@ -78,7 +78,7 @@ function createSampleNetwork(options) {
   var NumInitialNodes = 8;
   var NumInitialEdges = 6;
 
-  var nodes = new vis.DataSet([
+  var nodes = new DataSet([
       {id: 1, label: '1'},
       {id: 2, label: '2'},
       {id: 3, label: '3'},
@@ -88,7 +88,7 @@ function createSampleNetwork(options) {
       {id: 13, label: '13'},
       {id: 14, label: '14'},
   ]);
-  var edges = new vis.DataSet([
+  var edges = new DataSet([
       {from: 1, to: 2},
       {from: 2, to: 3},
       {from: 3, to: 4},
@@ -117,7 +117,7 @@ function createSampleNetwork(options) {
 
   options = merge(defaultOptions, options);
 
-  var network = new vis.Network(container, data, options);
+  var network = new Network(container, data, options);
 
   assertNumNodes(network, NumInitialNodes);
   assertNumEdges(network, NumInitialEdges);
@@ -409,7 +409,7 @@ describe('Network', function () {
     var container = document.getElementById('mynetwork');
 
     for (var n = 0; n < awkwardData.length; ++n) {
-      var network = new vis.Network(container, awkwardData[n], {});  // Should not throw
+      var network = new Network(container, awkwardData[n], {});  // Should not throw
     }
   });
 
@@ -517,14 +517,14 @@ describe('Edge', function () {
    * Support routine for next unit test
    */
   function createDataforColorChange() {
-    var nodes = new vis.DataSet([
+    var nodes = new DataSet([
       {id: 1, label: 'Node 1' }, // group:'Group1'},
       {id: 2, label: 'Node 2', group:'Group2'},
       {id: 3, label: 'Node 3'},
     ]);
 
     // create an array with edges
-    var edges = new vis.DataSet([
+    var edges = new DataSet([
       {id: 1, from: 1, to: 2},
       {id: 2, from: 1, to: 3, color: { inherit: 'to'}},
       {id: 3, from: 3, to: 3, color: { color: '#00FF00'}},
@@ -556,7 +556,7 @@ describe('Edge', function () {
     };
 
     // Test passing options on init.
-    var network = new vis.Network(container, data, options);
+    var network = new Network(container, data, options);
     var edges = network.body.edges;
     assert.equal(edges[1].options.color.inherit, 'to');   // new default
     assert.equal(edges[2].options.color.inherit, 'to');   // set in edge
@@ -574,7 +574,7 @@ describe('Edge', function () {
     assert.equal(edges[4].options.color.inherit, 'from');  // set in edge
 
     // Check no options
-    network = new vis.Network(container, data, {});
+    network = new Network(container, data, {});
     edges = network.body.edges;
     assert.equal(edges[1].options.color.inherit, 'from');  // default
     assert.equal(edges[2].options.color.inherit, 'to');    // set in edge
@@ -605,7 +605,7 @@ describe('Edge', function () {
     var data =  createDataforColorChange();
 
     // Check no options
-    var network = new vis.Network(container, data, {});
+    var network = new Network(container, data, {});
     var edges = network.body.edges;
     assert.equal(edges[1].options.color.inherit, 'from');  // default
     assert.equal(edges[2].options.color.inherit, 'to');    // set in edge
@@ -636,7 +636,7 @@ describe('Edge', function () {
     };
 
     // Test passing options on init.
-    var network = new vis.Network(container, data, options);
+    var network = new Network(container, data, options);
     var edges = network.body.edges;
     assert.equal(edges[1].options.color.color, color);
     assert.equal(edges[1].options.color.inherit, false);  // Explicit color, so no inherit
@@ -655,7 +655,7 @@ describe('Edge', function () {
     assert.equal(edges[4].options.color.color, defaultColor);
 
     // Check no options
-    network = new vis.Network(container, data, {});
+    network = new Network(container, data, {});
     edges = network.body.edges;
     // At this point, color has not changed yet
     assert.equal(edges[1].options.color.color, defaultColor);
@@ -680,10 +680,10 @@ describe('Edge', function () {
   it('has reconnected edges', function () {
     var node1 = {id:1, label:"test1"};
     var node2 = {id:2, label:"test2"};
-    var nodes = new vis.DataSet([node1, node2]);
+    var nodes = new DataSet([node1, node2]);
   
     var edge = {id:1, from: 1, to:2};
-    var edges = new vis.DataSet([edge]);
+    var edges = new DataSet([edge]);
 
     var data = {
         nodes: nodes,
@@ -691,7 +691,7 @@ describe('Edge', function () {
     };    
 
     var container = document.getElementById('mynetwork');
-    var network = new vis.Network(container, data);
+    var network = new Network(container, data);
 
     //remove node causing edge to become disconnected
     nodes.remove(node2.id);
@@ -893,7 +893,7 @@ describe('Clustering', function () {
    */
   function createOutlierGraph() {
     // create an array with nodes
-    var nodes = new vis.DataSet([
+    var nodes = new DataSet([
       {id: 1, label: '1', group:'Group1'},
       {id: 2, label: '2', group:'Group2'},
       {id: 3, label: '3', group:'Group3'},
@@ -902,7 +902,7 @@ describe('Clustering', function () {
     ]);
 
     // create an array with edges
-    var edges = new vis.DataSet([
+    var edges = new DataSet([
       {from: 1, to: 3},
       {from: 1, to: 2},
       {from: 2, to: 4},
@@ -924,7 +924,7 @@ describe('Clustering', function () {
       }
     };
 
-    var network = new vis.Network (container, data, options);
+    var network = new Network (container, data, options);
 
     return network;
   }
@@ -1320,8 +1320,8 @@ describe('runs example ', function () {
 
     // create a network
     var data = {
-      nodes: new vis.DataSet(nodes),
-      edges: new vis.DataSet(edges)
+      nodes: new DataSet(nodes),
+      edges: new DataSet(edges)
     };
 
     if (noPhysics) {
@@ -1330,7 +1330,7 @@ describe('runs example ', function () {
       options.physics = false;
     }
 
-    var network = new vis.Network(container, data, options);
+    var network = new Network(container, data, options);
     return network;
   };
 
