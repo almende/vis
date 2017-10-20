@@ -1,3 +1,6 @@
+<?js
+  var self = this;
+?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -609,6 +612,21 @@ var locales = {
                     The options object is explained in full <a data-scroll="" data-options="{ &quot;easing&quot;: &quot;easeInCubic&quot; }" href="#optionsObject">below</a>.
                 </td>
             </tr>
+
+<?js
+  var comment = self.getComment("Network#findNode");
+?>
+            <tr class="collapsible toggle" onclick="toggleTable('methodTable','findNodeNew', this);">
+                <td colspan="2"><span parent="findNode" class="right-caret" id="method_findNodeNew"></span> 
+                    <?js= comment.prototype ?>  <b>This comes from the source!</b>
+            </tr>
+            <tr class="hidden" parent="findNodeNew">
+                <td class="midMethods">Returns: <?js= comment.returns ?></td>
+                <td>
+                   <?js= comment.description ?>
+                </td>
+            </tr>
+
             <tr class="collapsible toggle" onclick="toggleTable('methodTable','findNode', this);">
                 <td colspan="2"><span parent="findNode" class="right-caret" id="method_findNode"></span> findNode(
                     <code>String/Number nodeId</code>)

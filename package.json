@@ -59,6 +59,7 @@
     "gulp-eslint": "^4.0.0",
     "gulp-rename": "^1.2.2",
     "gulp-util": "^3.0.8",
+    "jsdoc": "^3.5.5",
     "jsdom": "9.12.0",
     "jsdom-global": "^2.1.1",
     "merge-stream": "^1.0.1",
