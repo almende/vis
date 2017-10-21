@@ -49,7 +49,17 @@
 
   // create visualization
   var container = document.getElementById('visualization');
-  var options = {};
+  var options = {
+    stack: true,
+    onTimeout: {
+      timeoutMs: 500,
+      callback: function(callback) {
+        var didUserCancel;
+        var didUserCancel = confirm("Too many items loaded! Would you like to continue rendering (this might take a while)?");
+        callback(didUserCancel)
+      },
+    }
+  };
 
   var timeline = new vis.Timeline(container, items, groups, options);
 </script>
