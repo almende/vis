@@ -1,8 +1,8 @@
 var assert = require('assert');
-var vis = require('../dist/vis');
-var moment = vis.moment;
-var DataSet = vis.DataSet;
-var Queue = vis.Queue;
+
+var DataSet = require('../lib/DataSet');
+var Queue = require('../lib/Queue');
+
 // TODO: test the source code immediately, but this is ES6
 
 var now = new Date();

@@ -1,9 +1,7 @@
 var assert = require('assert');
-var vis = require('../dist/vis');
-var jsdom = require('mocha-jsdom')
-var moment = vis.moment;
-var timeline = vis.timeline;
-var TimeStep = timeline.TimeStep;
+var jsdom = require('mocha-jsdom');
+var moment = require('../lib/module/moment');
+var TimeStep = require('../lib/timeline/TimeStep');
 var TestSupport = require('./TestSupport');
 
 describe('TimeStep', function () {
