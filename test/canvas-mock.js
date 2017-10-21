@@ -22,6 +22,7 @@ function replaceCanvasContext (el) {
       setTransform: function(){},
       drawImage: function(){},
       save: function(){},
+      text: function(){},
       fillText: function(){},
       restore: function(){},
       beginPath: function(){},
@@ -32,6 +33,7 @@ function replaceCanvasContext (el) {
       translate: function(){},
       scale: function(){},
       rotate: function(){},
+      circle: function(){},
       arc: function(){},
       fill: function(){},
 
@@ -44,10 +46,10 @@ function replaceCanvasContext (el) {
           width: 12*text.length,
           height: 14
         };
-      },
+      }
     };
   }
-};
+}
 
 
 /**
@@ -59,7 +61,7 @@ function replaceCanvasContext (el) {
  * The override is only done if there is no 2D context already present.
  * This allows for normal running in a browser, and for node.js the usage of 'canvas'.
  *
- * @param {object} the current global window object. This can possible come from module 'jsdom',
+ * @param {object} window - current global window object. This can possible come from module 'jsdom',
  *                 when running under node.js.
  */
 function mockify(window) {

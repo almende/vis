@@ -57,7 +57,7 @@ describe('Popup', function () {
       assert(isNaN(popup.y));
     });
 
-    it('handles null with NaN', function () {
+    it('handles undefined with NaN', function () {
       var popup = new Popup(this.container);
       popup.setPosition(undefined, undefined);
       assert(isNaN(popup.x));

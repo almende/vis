@@ -114,10 +114,87 @@ describe('ColorPicker', function () {
       assert.deepEqual(colorPicker.color, { r: 255, g: 255, b: 255, a: 1 });
     });
 
-    it('handles null', function () {
+    it('throws error when color is null', function () {
       var colorPicker = new ColorPicker();
-      colorPicker.setColor('none');
+      assert.throws(function () {colorPicker.setColor(null);}, Error, null);
+    });
+
+    it('handles html color string', function () {
+      var colorPicker = new ColorPicker();
+      colorPicker.setColor('black');
+      assert.deepEqual(colorPicker.color, { r: 0, g: 0, b: 0, a: 1 });
+    });
+
+    it('handles hex string', function () {
+      var colorPicker = new ColorPicker();
+      colorPicker.setColor('#ffff00');
+      assert.deepEqual(colorPicker.color, { r: 255, g: 255, b: 0, a: 1 });
+    });
+
+    it('handles rgb string', function () {
+      var colorPicker = new ColorPicker();
+      colorPicker.setColor('rgb(255,255,255)');
       assert.deepEqual(colorPicker.color, { r: 255, g: 255, b: 255, a: 1 });
+    });
+
+    it('handles rgba string', function () {
+      var colorPicker = new ColorPicker();
+      colorPicker.setColor('rgba(255,255,255,1)');
+      assert.deepEqual(colorPicker.color, { r: 255, g: 255, b: 255, a: 1 });
+    });
+
+    it('handles rgb object', function () {
+      var colorPicker = new ColorPicker();
+      colorPicker.setColor({r:255,g:255,b:255});
+      assert.deepEqual(colorPicker.color, { r: 255, g: 255, b: 255, a: 1 });
+    });
+
+    it('handles rgba object', function () {
+      var colorPicker = new ColorPicker();
+      colorPicker.setColor({r:255,g:255,b:255,a:1});
+      assert.deepEqual(colorPicker.color, { r: 255, g: 255, b: 255, a: 1 });
+    });
+  });
+
+  describe('show', function () {
+
+    it('calls closeCallback', function () {
+      var colorPicker = new ColorPicker();
+      var callback = sinon.spy();
+      colorPicker.setCloseCallback(callback);
+      colorPicker.show();
+      assert(callback.called);
+      assert(callback.calledOnce);
+    });
+
+    it('resets applied state and frame display style to `block`', function () {
+      var colorPicker = new ColorPicker();
+      colorPicker.show();
+      assert.equal(colorPicker.applied, false);
+      assert.equal(colorPicker.frame.style.display, 'block');
+    });
+  });
+  describe('_save', function () {
+
+    it('triggers updateCallback', function () {
+      var colorPicker = new ColorPicker();
+      var callback = sinon.spy();
+      colorPicker.setUpdateCallback(callback);
+      colorPicker._save();
+      assert(callback.called);
+      assert(callback.calledOnce);
+    });
+  });
+
+  describe('_apply', function () {
+
+    it('triggers updateCallback', function () {
+      var colorPicker = new ColorPicker();
+      var callback = sinon.spy();
+      colorPicker.setUpdateCallback(callback);
+      colorPicker._apply();
+      assert(callback.called);
+      assert(callback.calledOnce);
     });
   });
 });

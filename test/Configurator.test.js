@@ -38,11 +38,11 @@ describe('Configurator', function () {
       assert.equal(JSON.stringify(config.options), JSON.stringify(config.defaultOptions));
     });
 
-    it('with undefined will set enabled to true', function () {
+    it('with undefined will set enabled to false', function () {
       var config = new Configurator(Network, this.container);
       config.options.enabled = false;
       config.setOptions();
-      assert.equal(JSON.stringify(config.options), JSON.stringify(config.defaultOptions));
+      assert.equal(config.options.enabled, false);
     });
 
     it('with string sets filter and set enabled to true', function () {
