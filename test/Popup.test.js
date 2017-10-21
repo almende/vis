@@ -6,7 +6,7 @@ var Popup = require('../lib/shared/Popup').default;
 
 
 describe('Popup', function () {
-  before(function() {
+  beforeEach(function() {
     this.jsdom_global = jsdom_global(
       "<div id='mynetwork'></div>",
       { skipWindowCheck: true}
@@ -15,8 +15,10 @@ describe('Popup', function () {
     this.container = document.getElementById('mynetwork');
   });
 
-  after(function() {
+  afterEach(function() {
     this.jsdom_global();
+    this.container.remove();
+    this.container = undefined;
   });
 
   describe('constructor', function () {
@@ -134,10 +136,9 @@ describe('Popup', function () {
   describe('destroy', function () {
 
     it('removes frame from container', function () {
-      var numChildrenBeforePopup = this.container.children.length;
       var popup = new Popup(this.container);
       popup.destroy();
-      assert.equal(this.container.children.length, numChildrenBeforePopup);
+      assert.equal(this.container.children.length, 0);
     });
   });
 });
