@@ -38,7 +38,8 @@
     "hammerjs": "^2.0.8",
     "keycharm": "^0.2.0",
     "moment": "^2.18.1",
-    "propagating-hammerjs": "^1.4.6"
+    "propagating-hammerjs": "^1.4.6",
+    "timsort": "^0.3.0"
   },
   "devDependencies": {
     "async": "^2.5.0",
@@ -59,6 +60,7 @@
     "gulp-eslint": "^4.0.0",
     "gulp-rename": "^1.2.2",
     "gulp-util": "^3.0.8",
+    "jsdoc": "^3.5.5",
     "jsdom": "9.12.0",
     "jsdom-global": "^2.1.1",
     "merge-stream": "^1.0.1",

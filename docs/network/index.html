@@ -1,3 +1,6 @@
+<?js
+  var self = this;
+?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -609,6 +612,21 @@ var locales = {
                     The options object is explained in full <a data-scroll="" data-options="{ &quot;easing&quot;: &quot;easeInCubic&quot; }" href="#optionsObject">below</a>.
                 </td>
             </tr>
+
+<?js
+  var comment = self.getComment("Network#findNode");
+?>
+            <tr class="collapsible toggle" onclick="toggleTable('methodTable','findNodeNew', this);">
+                <td colspan="2"><span parent="findNode" class="right-caret" id="method_findNodeNew"></span> 
+                    <?js= comment.prototype ?>  <b>This comes from the source!</b>
+            </tr>
+            <tr class="hidden" parent="findNodeNew">
+                <td class="midMethods">Returns: <?js= comment.returns ?></td>
+                <td>
+                   <?js= comment.description ?>
+                </td>
+            </tr>
+
             <tr class="collapsible toggle" onclick="toggleTable('methodTable','findNode', this);">
                 <td colspan="2"><span parent="findNode" class="right-caret" id="method_findNode"></span> findNode(
                     <code>String/Number nodeId</code>)
@@ -1487,7 +1505,7 @@ Thus, to get the topmost item, get the value at index 0.
                 </td>
             <tr><td id="event_stabilized">stabilized</td>
                 <td>Object</td>
-                <td>Fired when the network has stabilized or when the <code>stopSimulation()</code> has been called. The amount of iterations it took could be used to tweak the maximum amount of iterations needed to stabilize the network. Passes an object with properties structured as:
+                <td>Fired when the network has stabilized, when the amount of iterations defined in the options has been reached, or when the <code>stopSimulation()</code> has been called. The amount of iterations it took could be used to tweak the maximum amount of iterations needed to stabilize the network. Passes an object with properties structured as:
 <pre class="prettyprint lang-js">{
   iterations: Number // iterations it took
 }</pre>
