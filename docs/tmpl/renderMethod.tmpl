@@ -1,0 +1,18 @@
+<?js
+  //
+  // Output the HTML for showing a method description in a method table.
+  //
+  var methodName = obj;
+  var self = this;
+  var comment = self.getComment(methodName);
+?>
+            <tr class="collapsible toggle" onclick="toggleTable('methodTable','<?js= comment.name ?>', this);">
+                <td colspan="2"><span parent="<?js= comment.name ?>" class="right-caret" id="method_<?js= comment.name ?>"></span> 
+                    <?js= comment.prototype ?>
+            </tr>
+            <tr class="hidden" parent="<?js= comment.name ?>">
+                <td class="midMethods">Returns: <?js= comment.returns ?></td>
+                <td>
+                   <?js= comment.description ?>
+                </td>
+            </tr>

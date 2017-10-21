@@ -54,15 +54,34 @@ function createRenderer(fromDir, data) {
    */
   renderer.getComment = function(methodName) {
     var tmp = data().filter({longname: methodName}).get()[0];
-	  //console.log(JSON.stringify(tmp));
+
+    if (tmp === undefined) {
+      throw new Error('Could not find jsdoc for: ' + methodName);
+    }
+
+    // NOTE: Following does not show up with `gulp docs`, need to do call directly
+	  // console.log(JSON.stringify(tmp, null, 2));
 
     // Some restructuring, to adapt it to the docs layout
     // This needs some work to make it handle 0 and > 1 parameters
-    var param = tmp.params[0];
-    var prototype = tmp.name + '(<code>' + param.type.names.join('|') + ' ' + param.name  + '</code>)';
-    var returns = tmp.returns[0].type.names;
+    var paramText = "";
+    if (tmp.params !== undefined && tmp.params.length > 0) {
+      let param = tmp.params[0];
+      let tmpText = param.type.names.join('|') + ' ' + param.name;
+      if (param.optional === true) {
+        tmpText = '[' + tmpText + ']';
+      }
+      paramText = '<code>' + tmpText + '</code>';
+    }
+    var prototype = tmp.name + '(' + paramText + ')';
+
+    var returns = 'none';
+    if (tmp.returns !== undefined && tmp.returns.length > 0) {
+      returns = tmp.returns[0].type.names;
+    }
 
     return {
+      name: tmp.name,
       prototype: prototype,
       returns: returns,
       description: tmp.description
