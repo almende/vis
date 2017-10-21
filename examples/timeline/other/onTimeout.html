@@ -18,29 +18,17 @@
 
 <script>
   var now = moment();
-  var groupCount = 2;
-  var itemCount = 400;
+  var itemCount = 500;
 
-  // create a data set with groups
-  var groups = new vis.DataSet();
-  for (var g = 0; g < groupCount; g++) {
-    groups.add({
-      id: g,
-      content: "group " + g
-    });
-  }
-
-  var types = ['point', 'range', 'box', 'background']
+  var types = ['point', 'range', 'box']
   // create a dataset with items
   var items = new vis.DataSet();
   for (var i = 0; i < itemCount; i++) {
     var start = now.clone().add(Math.random() * 180, 'days');
     var end = start.clone().add(Math.random() * 30, 'days');
-    var group = Math.floor(Math.random() * groupCount);
     items.add({
       id: i,
       type: types[Math.floor(Math.random() * types.length)],
-      group: group,
       content: '' + i,
       start: start,
       end: end
@@ -52,7 +40,7 @@
   var options = {
     stack: true,
     onTimeout: {
-      timeoutMs: 500,
+      timeoutMs: 1000,
       callback: function(callback) {
         var didUserCancel;
         var didUserCancel = confirm("Too many items loaded! Would you like to continue rendering (this might take a while)?");
@@ -61,7 +49,7 @@
     }
   };
 
-  var timeline = new vis.Timeline(container, items, groups, options);
+  var timeline = new vis.Timeline(container, items, options);
 </script>
 
 </html>
