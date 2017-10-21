@@ -77,7 +77,10 @@ function createRenderer(fromDir, data) {
 
     var returns = 'none';
     if (tmp.returns !== undefined && tmp.returns.length > 0) {
-      returns = tmp.returns[0].type.names;
+      let name = tmp.returns[0].type.names[0];
+      if (name !== "undefined") {
+        returns = name;
+      }
     }
 
     return {
