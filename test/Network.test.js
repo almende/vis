@@ -16,6 +16,7 @@ var DataSet = require('../lib/DataSet');
 var Network = require('../lib/network/Network');
 var stdout = require('test-console').stdout;
 var Validator = require("./../lib/shared/Validator").default;
+var jsdom = require('jsdom');
 var jsdom_global = require('jsdom-global');
 var canvasMockify = require('./canvas-mock');
 var {allOptions, configureOptions} = require('./../lib/network/options.js');
@@ -228,9 +229,28 @@ function checkFontProperties(fontItem, checkStrict = true) {
 describe('Network', function () {
 
   before(function() {
+console.error('before');
+    const virtualConsole = new jsdom.VirtualConsole();
+
+    // Couldn't get the [event handlers](https://github.com/tmpvar/jsdom/#virtual-consoles)
+    // for `jsdom` to work, so using the global catch instead.
+    let myConsole = {
+      error: (msg) => {
+
+if (msg.indexOf('Error: Not implemented: HTMLCanvasElement.prototype.getContext (without installing the canvas npm package)') === 0) {
+  console.error('all is well');
+} else {
+  console.error(msg);
+}
+
+      }
+    };
+
+		virtualConsole.sendTo(myConsole);
+
     this.jsdom_global = jsdom_global(
       "<div id='mynetwork'></div>",
-      { skipWindowCheck: true}
+      { skipWindowCheck: true, virtualConsole: virtualConsole}
     );
     canvasMockify(window);
     this.container = document.getElementById('mynetwork');

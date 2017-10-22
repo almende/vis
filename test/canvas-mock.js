@@ -65,10 +65,15 @@ function replaceCanvasContext (el) {
 function mockify(window) {
   var d = window.document;
   var f = window.document.createElement;
+	var ctx;
 
   // Check if 2D context already present. That happens either when running in a browser,
   // or this is node.js with 'canvas' installed. 
-  var ctx = d.createElement('canvas').getContext('2d');
+try {
+  ctx = d.createElement('canvas').getContext('2d');
+} catch(e) {
+	console.log("got Exception:", e.message);
+}
   if (ctx !== null && ctx !== undefined) {
     //console.log('2D context is present, no need to override');
     return;
