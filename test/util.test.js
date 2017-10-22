@@ -1,6 +1,8 @@
+var jsdom_global = require('jsdom-global');
 var assert = require('assert');
 var util = require('../lib/util');
-
+var moment = require('../lib//module/moment');
+var ASPDateRegex = /^\/?Date\((\-?\d+)/i;
 
 describe('util', function () {
 
@@ -468,4 +470,210 @@ describe('mergeOptions', function () {
   });
 
 });  // mergeOptions
-});  // util
+
+  describe('recursiveDOMDelete', function () {
+    beforeEach(function() {
+      this.jsdom_global = jsdom_global();
+    });
+
+    afterEach(function() {
+      this.jsdom_global();
+    });
+
+    it('removes children', function () {
+      var root = document.createElement("div");
+      // Create children for root
+      var parent = document.createElement("div");
+      var parentSibiling = document.createElement("div");
+      // Attach parents to root
+      root.appendChild(parent);
+      root.appendChild(parentSibiling);
+      // Create children for the respective parents
+      var child = document.createElement("div");
+      var childSibling = document.createElement("div");
+      // Attach children to parents
+      parent.appendChild(child);
+      parentSibiling.appendChild(childSibling);
+
+      util.recursiveDOMDelete(root);
+      assert.equal(root.children.length, 0);
+      assert.equal(parent.children.length, 0);
+      assert.equal(parentSibiling.children.length, 0);
+      assert.equal(child.children.length, 0);
+      assert.equal(childSibling.children.length, 0);
+    });
+  });
+
+  describe('isDate', function () {
+    it('identifies a Date', function () {
+      assert(util.isDate(new Date()));
+    });
+
+    it('identifies an ASPDate as String', function () {
+      assert(util.isDate('Date(1198908717056)'));
+    });
+
+    it('identifies a date string', function () {
+      assert(util.isDate('1995-01-01'));
+    });
+
+    it('identifies a date string', function () {
+      assert.equal(util.isDate(''), false);
+    });
+  });
+
+  describe('convert', function () {
+    it('handles null', function () {
+      assert.equal(util.convert(null), null);
+    });
+
+    it('handles undefined', function () {
+      assert.equal(util.convert(undefined), undefined);
+    });
+
+    it('undefined type returns original object', function () {
+      assert.deepEqual(util.convert({}), {});
+    });
+
+    it('non-string type throws', function () {
+      assert.throws(function () {util.convert({}, {});}, Error, null);
+    });
+
+    it('converts to boolean', function () {
+      assert(util.convert({}, 'boolean'));
+    });
+
+    it('converts to number', function () {
+      assert.equal(typeof util.convert('1198908717056', 'number'), "number");
+    });
+
+    it('converts to String', function () {
+      assert.equal(typeof util.convert({}, 'string'), "string");
+    });
+
+    it('converts to Date from Number', function () {
+      assert(util.convert(1198908717056, 'Date') instanceof Date);
+    });
+
+    it('converts to Date from String', function () {
+      assert(util.convert('1198908717056', 'Date') instanceof Date);
+    });
+
+    it('converts to Date from Moment', function () {
+      assert(util.convert(new moment(), 'Date') instanceof Date);
+    });
+
+    it('throws when converting unknown object to Date', function () {
+      assert.throws(function () {util.convert({}, 'Date');}, Error, null);
+    });
+
+    xit('converts to Moment from Numbern - Throws a deprecation warning', function () {
+      assert(util.convert(1198908717056, 'Moment') instanceof moment);
+    });
+
+    it('converts to Moment from String', function () {
+      assert(util.convert('1198908717056', 'Moment') instanceof moment);
+    });
+
+    it('converts to Moment from Date', function () {
+      assert(util.convert(new Date(), 'Moment') instanceof moment);
+    });
+
+    it('converts to Moment from Moment', function () {
+      assert(util.convert(new moment(), 'Moment') instanceof moment);
+    });
+
+    it('throws when converting unknown object to Moment', function () {
+      assert.throws(function () {util.convert({}, 'Moment');}, Error, null);
+    });
+
+    it('converts to ISODate from Number', function () {
+      assert(util.convert(1198908717056, 'ISODate') instanceof Date);
+    });
+
+    it('converts to ISODate from String', function () {
+      assert.equal(typeof util.convert('1995-01-01', 'ISODate'), 'string');
+    });
+
+    it('converts to ISODate from Date - Throws a deprecation warning', function () {
+      assert.equal(typeof util.convert(new Date(), 'ISODate'), 'string');
+    });
+
+    it('converts to ISODate from Moment', function () {
+      assert.equal(typeof util.convert(new moment(), 'ISODate'), 'string');
+    });
+
+    it('throws when converting unknown object to ISODate', function () {
+      assert.throws(function () {util.convert({}, 'ISODate');}, Error, null);
+    });
+
+    it('converts to ASPDate from Number', function () {
+      assert(ASPDateRegex.test(util.convert(1198908717056, 'ASPDate')));
+    });
+
+    it('converts to ASPDate from String', function () {
+      assert(ASPDateRegex.test(util.convert('1995-01-01', 'ASPDate')));
+    });
+
+    it('converts to ASPDate from Date', function () {
+      assert(ASPDateRegex.test(util.convert(new Date(), 'ASPDate')));
+    });
+
+    it('converts to ASPDate from ASPDate', function () {
+      assert(ASPDateRegex.test(util.convert('/Date(12344444)/', 'ASPDate')));
+    });
+
+    xit('converts to ASPDate from Moment - skipped, because it fails', function () {
+      assert(ASPDateRegex.test(util.convert(new moment(), 'ASPDate')));
+    });
+
+    it('throws when converting unknown object to ASPDate', function () {
+      assert.throws(function () {util.convert({}, 'ASPDate');}, Error, null);
+    });
+
+    it('throws when converting unknown type', function () {
+      assert.throws(function () {util.convert({}, 'UnknownType');}, Error, null);
+    });
+  });
+  describe('getType', function () {
+    it('of object null is null', function () {
+      assert.equal(util.getType(null), 'null');
+    });
+    it('of object Boolean is Boolean', function () {
+      function Tester () {}
+      Tester.prototype = Object.create(Boolean.prototype);
+      assert.equal(util.getType(new Tester('true')), 'Boolean');
+    });
+    it('of object Number is Number', function () {
+      function Tester () {}
+      Tester.prototype = Object.create(Number.prototype);
+      assert.equal(util.getType(new Tester(1)), 'Number');
+    });
+    it('of object String is String', function () {
+      function Tester () {}
+      Tester.prototype = Object.create(String.prototype);
+      assert.equal(util.getType(new Tester('stringy!')), 'String');
+    });
+    it('of object Array is Array', function () {
+      assert.equal(util.getType(new Array([])), 'Array');
+    });
+    it('of object Date is Date', function () {
+      assert.equal(util.getType(new Date()), 'Date');
+    });
+    it('of object any other type is Object', function () {
+      assert.equal(util.getType({}), 'Object');
+    });
+    it('of number is Number', function () {
+      assert.equal(util.getType(1), 'Number');
+    });
+    it('of boolean is Boolean', function () {
+      assert.equal(util.getType(true), 'Boolean');
+    });
+    it('of string is String', function () {
+      assert.equal(util.getType('string'), 'String');
+    });
+    it('of undefined is undefined', function () {
+      assert.equal(util.getType(), 'undefined');
+    });
+  });
+});
