@@ -1,3 +1,6 @@
+<?js
+  var self = this;
+?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -120,6 +123,7 @@ var options = {
       from:   {enabled: false, scaleFactor:1, type:'arrow'}
     },
     arrowStrikethrough: true,
+    chosen: true,
     color: {
       color:'#848484',
       highlight:'#848484',
@@ -135,7 +139,37 @@ var options = {
       background: 'none',
       strokeWidth: 2, // px
       strokeColor: '#ffffff',
-      align:'horizontal'
+      align: 'horizontal',
+      multi: false,
+      vadjust: 0,
+      bold: {
+        color: '#343434',
+        size: 14, // px
+        face: 'arial',
+        vadjust: 0,
+        mod: 'bold'
+      },
+      ital: {
+        color: '#343434',
+        size: 14, // px
+        face: 'arial',
+        vadjust: 0,
+        mod: 'italic',
+      },
+      boldital: {
+        color: '#343434',
+        size: 14, // px
+        face: 'arial',
+        vadjust: 0,
+        mod: 'bold italic'
+      },
+      mono: {
+        color: '#343434',
+        size: 15, // px
+        face: 'courier new',
+        vadjust: 2,
+        mod: ''
+      }
     },
     hidden: false,
     hoverWidth: 1.5,
@@ -178,8 +212,9 @@ var options = {
       roundness: 0.5
     },
     title:undefined,
+    value: undefined,
     width: 1,
-    value: undefined
+    widthConstraint: false
   }
 }
 
@@ -247,13 +282,13 @@ network.setOptions(options);
             <td class="indent2">arrows.to.type</td>
             <td>String</td>
             <td><code>arrow</code></td>
-            <td>The type of endpoint. Default is <code>arrow</code>. Also possible is <code>circle</code>.</td>
+            <td>The type of endpoint. Possible values are: <code>arrow</code>, <code>bar</code>, <code>circle</code>. The default is <code>arrow</code>.
         </tr>
         <tr parent="arrows" class="hidden">
             <td class="indent">arrows.middle</td>
             <td>Object or Boolean</td>
             <td><code>Object</code></td>
-            <td>Exactly the same as the to object but with an arrowhead in the center of the edge.</td>
+            <td>Similar to the 'to' object, but with an arrowhead in the center of the edge. The direction of the arrow can be flipped by using a negative value for <code>arrows.middle.scaleFactor</code>.</td>
         </tr>
         <tr parent="arrows" class="hidden">
             <td class="indent">arrows.from</td>
@@ -266,6 +301,101 @@ network.setOptions(options);
             <td>Boolean</td>
             <td><code>true</code></td>
             <td>When false, the edge stops at the arrow. This can be useful if you have thick lines and you want the arrow to end in a point. Middle arrows are not affected by this.</td>
+        </tr>
+        <tr class='toggle collapsible' onclick="toggleTable('optionTable','chosen', this);">
+            <td><span parent="chosen" class="right-caret"></span> chosen</td>
+            <td>Object or Boolean</td>
+            <td><code>true</code></td>
+            <td>
+              When true, selecting or hovering on an edge will change it and its label's characteristics according the default.
+              When false, no change to the edge or its label will occur when the edge is chosen.
+              If an object is supplied, finer-grained adjustment of edge and label characteristics is available when an edge is chosen.
+            </td>
+        </tr>
+        <tr parent="chosen" class="hidden">
+            <td class="indent">chosen.edge</td>
+            <td>Function or Boolean</td>
+            <td>undefined</td>
+            <td>
+              When true, selecting or hovering on an edge will change its characteristics according the default.
+              When false, no change to the edge will occur when the edge is chosen.
+              <p>
+                If a function is supplied, it is called when the edge is chosen.
+                <pre class="code">
+  function(values, id, selected, hovering) {
+    values.<i>property</i> = <i>chosenValue</i>;
+  }</pre>
+              </p>
+              <p>
+                Any of the incoming arguments may be used to determine characteristic changes.
+                If a property is not specifically assigned by the supplied function, it will be left unchanged.
+                A specific function may be assigned to each particular edge in its options, or to all in the network's <code>edges</code> options.
+              </p>
+              <p>
+                The properties define the characteristics that can be changed as follows:
+              </p>
+              <table>
+                <tr><th>Property</th><th>Edge Reference</th></tr>
+                <tr><td>dashes</td><td>see dashes</td></tr>
+                <tr><td>toArrow</td><td>see arrows.to.enabled</td></tr>
+                <tr><td>toArrowScale</td><td>see arrows.to.scaleFactor</td></tr>
+                <tr><td>toArrowType</td><td>see arrows.to.type</td></tr>
+                <tr><td>middleArrow</td><td>see arrows.middle.enabled</td></tr>
+                <tr><td>middleArrowScale</td><td>see arrows.middle.scaleFactor</td></tr>
+                <tr><td>middleArrowType</td><td>see arrows.middle.type</td></tr>
+                <tr><td>fromArrow</td><td>see arrows.from.enabled</td></tr>
+                <tr><td>fromArrowScale</td><td>see arrows.from.scaleFactor</td></tr>
+                <tr><td>fromArrowType</td><td>see arrows.from.type</td></tr>
+                <tr><td>arrowStrikethrough</td><td>see arrowStrikethrough</td></tr>
+                <tr><td>color</td><td>see color.color</td></tr>
+                <tr><td>inheritsColor</td><td>see color.inherit</td></tr>
+                <tr><td>opacity</td><td>see color.opacity</td></tr>
+                <tr><td>hidden</td><td>see hidden</td></tr>
+                <tr><td>length</td><td>see length</td></tr>
+                <tr><td>shadow</td><td>see shadow.enabled</td></tr>
+                <tr><td>shadowColor</td><td>see shadow.color</td></tr>
+                <tr><td>shadowSize</td><td>see shadow.size</td></tr>
+                <tr><td>shadowX</td><td>see shadow.x</td></tr>
+                <tr><td>shadowY</td><td>see shadow.y</td></tr>
+                <tr><td>width</td><td>see width</td></tr>
+              </table>
+              <br/>
+            </td>
+        </tr>
+        <tr parent="chosen" class="hidden">
+            <td class="indent">chosen.label</td>
+            <td>Function or Boolean</td>
+            <td>undefined</td>
+            <td>
+              When true, selecting or hovering on an edge will change its label's characteristics according the default.
+              When false, no change to the edge's label will occur when the edge is chosen.
+              <p>
+                If a function is supplied, it is called when the edge is chosen.
+                <pre class="code">
+  function(values, id, selected, hovering) {
+    values.<i>property</i> = <i>chosenValue</i>;
+  }</pre>
+              </p>
+              <p>
+                Any of the incoming arguments may be used to determine characteristic changes.
+                If a property is not specifically assigned by the supplied function, it will be left unchanged.
+                A specific function may be assigned to each particular edge in its options, or to all in the network's <code>edges</code> options.
+              </p>
+              <p>
+                The properties define the characteristics that can be changed as follows:
+              </p>
+              <table>
+                <tr><th>Property</th><th>Edge Reference</th></tr>
+                <tr><td>color</td><td>see font.color</td></tr>
+                <tr><td>size</td><td>see font.size</td></tr>
+                <tr><td>face</td><td>see font.face</td></tr>
+                <tr><td>mod</td><td>font modifier ('bold', 'italic', etc.)</td></tr>
+                <tr><td>vadjust</td><td>see font.vadjust</td></tr>
+                <tr><td>strokeWidth</td><td>see font.strokeWidth</td></tr>
+                <tr><td>strokeColor</td><td>see font.strokeColor</td></tr>
+              </table>
+              <br/>
+            </td>
         </tr>
         <tr class='toggle collapsible' onclick="toggleTable('optionTable','color', this);">
             <td><span parent="color" class="right-caret"></span> color</td>
@@ -280,7 +410,7 @@ network.setOptions(options);
             <td class="indent">color.color</td>
             <td>String</td>
             <td><code>'#848484'</code></td>
-            <td>The color of the border of the node when it is not selected or hovered over <i>(assuming hover is
+            <td>The color of the edge when it is not selected or hovered over <i>(assuming hover is
                 enabled in the interaction module)</i>.
             </td>
         </tr>
@@ -389,6 +519,171 @@ network.setOptions(options);
                 regardless of the orientation of the edge. When an option other than <code>horizontal</code> is chosen,
                 the label will align itself according to the edge.
             </td>
+        </tr>
+        <tr parent="font" class="hidden">
+            <td class="indent">font.vadjust</td>
+            <td>String</td>
+            <td><code>0</code></td>
+            <td>A font-specific correction to the vertical positioning of the base font in the label text. (Positive is down.)</td>
+        </tr>
+        <tr parent="font" class="hidden">
+            <td class="indent">font.multi</td>
+            <td>Boolean or String</td>
+            <td><code>false</code></td>
+            <td>If <code>false</code>, the label is treated as pure text drawn with the base font. If <code>true</code> or <code>'html'</code> the label may be multifonted, with bold, italic and code markup, interpreted as html. If the value is <code>'markdown'</code> or <code>'md'</code> the label may be multifonted, with bold, italic and code markup, interpreted as markdown.
+              The bold, italic, bold-italic and monospaced fonts may be set up under in the font.bold, font.ital, font.boldital and font.mono properties, respectively.</td>
+        </tr>
+        <tr parent="font" class='hidden toggle collapsible' onclick="toggleTable('optionTable','bold', this);">
+            <td><span parent="bold" class="right-caret"></span> font.bold</td>
+            <td>Object or String</td>
+            <td><code>false</code></td>
+            <td>This object defines the details of the bold font in the label. A shorthand is also supported in the form <code>'size face
+                color'</code> for example: <code>'14px arial red'</code>.
+            </td>
+        </tr>
+        <tr parent="bold" class="hidden">
+            <td class="indent">font.bold.color</td>
+            <td>String</td>
+            <td><code>'#343434'</code></td>
+            <td>Color of the bold font in the label text. Defaults to the base font's color.</td>
+        </tr>
+        <tr parent="bold" class="hidden">
+            <td class="indent">font.bold.size</td>
+            <td>Number</td>
+            <td><code>14</code></td>
+            <td>Size of the bold font in the label text. Defaults to the base font's size.</td>
+        </tr>
+        <tr parent="bold" class="hidden">
+            <td class="indent">font.bold.face</td>
+            <td>String</td>
+            <td><code>'arial'</code></td>
+            <td>Font face (or font family) of the bold font in the label text. Defaults to the base font's face.</td>
+        </tr>
+        <tr parent="bold" class="hidden">
+            <td class="indent">font.bold.mod</td>
+            <td>String</td>
+            <td><code>'bold'</code></td>
+            <td>A string added to the face and size when determining the bold font in the label text.</td>
+        </tr>
+        <tr parent="bold" class="hidden">
+            <td class="indent">font.bold.vadjust</td>
+            <td>String</td>
+            <td><code>0</code></td>
+            <td>A font-specific correction to the vertical positioning of the bold italic font in the label text. (Positive is down.) Defaults to the base font's valign.</td>
+        </tr>
+        <tr parent="font" class='hidden toggle collapsible' onclick="toggleTable('optionTable','ital', this);">
+            <td><span parent="ital" class="right-caret"></span> font.ital</td>
+            <td>Object or String</td>
+            <td><code>false</code></td>
+            <td>This object defines the details of the italic font in the label. A shorthand is also supported in the form <code>'size face
+                color'</code> for example: <code>'14px arial red'</code>.
+            </td>
+        </tr>
+        <tr parent="ital" class="hidden">
+            <td class="indent">font.ital.color</td>
+            <td>String</td>
+            <td><code>'#343434'</code></td>
+            <td>Color of the italic font in the label text. Defaults to the base font's color.</td>
+        </tr>
+        <tr parent="ital" class="hidden">
+            <td class="indent">font.ital.size</td>
+            <td>Number</td>
+            <td><code>14</code></td>
+            <td>Size of the italic font in the label text. Defaults to the base font's size.</td>
+        </tr>
+        <tr parent="ital" class="hidden">
+            <td class="indent">font.ital.face</td>
+            <td>String</td>
+            <td><code>'arial'</code></td>
+            <td>Font face (or font family) of the italic font in the label text. Defaults to the base font's face.</td>
+        </tr>
+        <tr parent="ital" class="hidden">
+            <td class="indent">font.ital.mod</td>
+            <td>String</td>
+            <td><code>'italic'</code></td>
+            <td>A string added to the face and size when determining the italic font in the label text.</td>
+        </tr>
+        <tr parent="ital" class="hidden">
+            <td class="indent">font.ital.vadjust</td>
+            <td>String</td>
+            <td><code>0</code></td>
+            <td>A font-specific correction to the vertical positioning of the italic font in the label text. (Positive is down.) Defaults to the base font's valign.</td>
+        </tr>
+        <tr parent="font" class='hidden toggle collapsible' onclick="toggleTable('optionTable','boldital', this);">
+            <td><span parent="boldital" class="right-caret"></span> font.boldital</td>
+            <td>Object or String</td>
+            <td><code>false</code></td>
+            <td>This object defines the details of the bold italic font in the label. A shorthand is also supported in the form <code>'size face
+                color'</code> for example: <code>'14px arial red'</code>.
+            </td>
+        </tr>
+        <tr parent="boldital" class="hidden">
+            <td class="indent">font.boldital.color</td>
+            <td>String</td>
+            <td><code>'#343434'</code></td>
+            <td>Color of the bold italic font in the label text. Defaults to the base font's color.</td>
+        </tr>
+        <tr parent="boldital" class="hidden">
+            <td class="indent">font.boldital.size</td>
+            <td>Number</td>
+            <td><code>14</code></td>
+            <td>Size of the bold italic font in the label text. Defaults to the base font's size.</td>
+        </tr>
+        <tr parent="boldital" class="hidden">
+            <td class="indent">font.boldital.face</td>
+            <td>String</td>
+            <td><code>'arial'</code></td>
+            <td>Font face (or font family) of the bold italic font in the label text. Defaults to the base font's face.</td>
+        </tr>
+        <tr parent="boldital" class="hidden">
+            <td class="indent">font.boldital.mod</td>
+            <td>String</td>
+            <td><code>'bold'</code></td>
+            <td>A string added to the face and size when determining the bold italic font in the label text.</td>
+        </tr>
+        <tr parent="boldital" class="hidden">
+            <td class="indent">font.boldital.vadjust</td>
+            <td>String</td>
+            <td><code>0</code></td>
+            <td>A font-specific correction to the vertical positioning of the bold italic font in the label text. (Positive is down.) Defaults to the base font's valign.</td>
+        </tr>
+        <tr parent="font" class='hidden toggle collapsible' onclick="toggleTable('optionTable','mono', this);">
+            <td><span parent="mono" class="right-caret"></span> font.mono</td>
+            <td>Object or String</td>
+            <td><code>false</code></td>
+            <td>This object defines the details of the monospaced font in the label. A shorthand is also supported in the form <code>'size face
+                color'</code> for example: <code>'15px courier red'</code>.
+            </td>
+        </tr>
+        <tr parent="mono" class="hidden">
+            <td class="indent">font.mono.color</td>
+            <td>String</td>
+            <td><code>'#343434'</code></td>
+            <td>Color of the monospaced font in the label text. Defaults to the base font's color.</td>
+        </tr>
+        <tr parent="mono" class="hidden">
+            <td class="indent">font.mono.size</td>
+            <td>Number</td>
+            <td><code>15</code></td>
+            <td>Size of the monospaced font in the label text. Defaults to the base font's size.</td>
+        </tr>
+        <tr parent="mono" class="hidden">
+            <td class="indent">font.mono.face</td>
+            <td>String</td>
+            <td><code>'courier new'</code></td>
+            <td>Font face (or font family) of the monospaced font in the label text.</td>
+        </tr>
+        <tr parent="mono" class="hidden">
+            <td class="indent">font.mono.mod</td>
+            <td>String</td>
+            <td><code>''</code></td>
+            <td>A string added to the face and size when determining the monospaced font in the label text.</td>
+        </tr>
+        <tr parent="mono" class="hidden">
+            <td class="indent">font.mono.vadjust</td>
+            <td>String</td>
+            <td><code>2</code></td>
+            <td>A font-specific correction to the vertical positioning of the monospaced font in the label text. (Positive is down.) Defaults to the base font's valign.</td>
         </tr>
         <tr>
             <td>from</td>
@@ -643,7 +938,7 @@ var options: {
             <td>String</td>
             <td><code>'dynamic'</code></td>
             <td>Possible options: <code>'dynamic', 'continuous', 'discrete', 'diagonalCross', 'straightCross', 'horizontal',
-                'vertical', 'curvedCW', 'curvedCCW', 'cubicBezier'</code>. Take a look at our example 26 to see what these look like
+                'vertical', 'curvedCW', 'curvedCCW', 'cubicBezier'</code>. Take a look at <a href="http://visjs.org/examples/network/edgeStyles/smooth.html">this example</a> to see what these look like
                 and pick the one that you like best!
                 <br><br>
                 When using dynamic, the edges will have an invisible support node guiding the shape. This node is part of the
@@ -691,22 +986,20 @@ var options: {
             <td><code>1</code></td>
             <td>The width of the edge. If value is set, this is not used.</td>
         </tr>
+        <tr class='toggle collapsible' onclick="toggleTable('optionTable','widthConstraint', this);">
+            <td><span parent="widthConstraint" class="right-caret"></span> widthConstraint</td>
+            <td>Number, Boolean or Object</td>
+            <td><code>false</code></td>
+            <td>If false, no widthConstraint is applied. If a number is specified, the maximum width of the edge's label is set to the value. The edge's label's lines will be broken on spaces to stay below the maximum.</td>
+        </tr>
+        <tr parent="widthConstraint" class="hidden">
+            <td class="indent">widthConstraint.maximum</td>
+            <td>Number</td>
+            <td><code>undefined</code></td>
+            <td>If a number is specified, the maximum width of the edge's label is set to the value. The edge's label's lines will be broken on spaces to stay below the maximum.</td>
+        </tr>
     </table>
 
 </div>
 
-<!-- Bootstrap core JavaScript
-================================================== -->
-<!-- Placed at the end of the document so the pages load faster -->
-<script src="../js/jquery.min.js"></script>
-<script src="../js/bootstrap.min.js"></script>
-<!-- IE10 viewport hack for Surface/desktop Windows 8 bug -->
-<script src="../js/ie10-viewport-bug-workaround.js"></script>
-<!-- jquery extensions -->
-<script src="../js/jquery.highlight.js"></script>
-<script src="../js/jquery.url.min.js"></script>
-<!-- Tipue vendor js -->
-<script src="../js/tipuesearch.config.js"></script>
-<script src="../js/tipuesearch.js"></script>
-<!-- controller -->
-<script src="../js/main.js"></script>
+<?js= self.partial('tmpl/html-foot.tmpl') ?>

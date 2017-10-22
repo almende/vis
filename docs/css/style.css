@@ -106,6 +106,8 @@ table.events td:nth-child(2) {
 
 pre {
     margin: 20px 0;
+    white-space: pre-wrap;
+    max-width: 100%;
 }
 
 a code {
@@ -128,6 +130,13 @@ tr.visible {
     fadeIn 250ms ease-in;
 }
 
+tr.depricated td {
+    color: #AAA;
+    text-decoration: line-through;
+}
+tr.depricated td:last-child {
+    text-decoration: none;
+}
 
 @-webkit-keyframes fadeIn {
     0% {

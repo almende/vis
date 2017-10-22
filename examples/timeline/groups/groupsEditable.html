@@ -24,11 +24,12 @@
 
   <script src="../../../dist/vis.js"></script>
   <link href="../../../dist/vis-timeline-graph2d.min.css" rel="stylesheet" type="text/css" />
-<!--   <script src="../../googleAnalytics.js"></script> -->
+<!--    -->
 </head>
 <body>
 <p>
-  This example demonstrates editable groups (for now only reordering).
+  This example demonstrates editable groups (reordering and hiding).
+  <button onclick="showAllGroups()">Restore Hidden</button>
 </p>
 <div id="visualization"></div>
 
@@ -55,7 +56,14 @@
 	{"content": "WEC", "id": "WEC", "value": 18, className:'endurance'},
 	{"content": "GP2", "id": "GP2", "value": 19, className:'openwheel'}
   ]);
-  
+
+  // function to make all groups visible again
+  function showAllGroups(){
+    groups.forEach(function(group){
+      groups.update({id: group.id, visible: true});
+    })
+  };
+
   // create a dataset with items
   // note that months are zero-based in the JavaScript Date object, so month 3 is April
   var items = new vis.DataSet([
@@ -298,6 +306,20 @@
     	var v = a.value;
     	a.value = b.value;
     	b.value = v;
+    },
+    groupTemplate: function(group){
+      var container = document.createElement('div');
+      var label = document.createElement('span');
+      label.innerHTML = group.content + ' ';
+      container.insertAdjacentElement('afterBegin',label);
+      var hide = document.createElement('button');
+      hide.innerHTML = 'hide';
+      hide.style.fontSize = 'small';
+      hide.addEventListener('click',function(){
+        groups.update({id: group.id, visible: false});
+      });
+      container.insertAdjacentElement('beforeEnd',hide);
+      return container;
     },
     orientation: 'both',
     editable: true,

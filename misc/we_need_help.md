@@ -13,3 +13,8 @@ If you have shown some commitment to the project you can ask [@ludost](//github.
 * [@ludost](//github.com/ludost) (almende maintainer)
 * [@mojoaxel](//github.com/mojoaxel)
 * [@yotamberk](//github.com/yotamberk)
+* [@Tooa](//github.com/Tooa)
+* [@eymiha](//github.com/eymiha)
+* [@bradh](//github.com/bradh)
+* [@wimrijnders](//github.com/wimrijnders)
+* [@macleodbroad-wf](//github.com/macleodbroad-wf)

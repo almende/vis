@@ -88,10 +88,12 @@
             end: new Date(1000*60*60*24 + (new Date()).valueOf()),
             editable: true,
             template: function (item, element) {
+                if (!item) { return }
                 ReactDOM.unmountComponentAtNode(element);
                 return ReactDOM.render(<ItemTemplate item={item} />, element);
             },
             groupTemplate: function (group, element) {
+                if (!group) { return }
                 ReactDOM.unmountComponentAtNode(element);
                 return ReactDOM.render(<GroupTemplate group={group} />, element);
             }

@@ -1,3 +1,6 @@
+<?js
+  var self = this;
+?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -297,7 +300,13 @@ var items = [
             <td>label</td>
             <td>Object</td>
             <td>no</td>
-            <td>A label object which will be displayed near to the item. A label object has one requirement - a <b> content </b> property. In addition you can set the <b> xOffset, yOffset and className </b> for further appearance customisations </td>
+            <td>A label object which will be displayed near to the item. A label object has one requirement - a <b> content </b> property. In addition you can set the <b> xOffset, yOffset and className </b> for further appearance customisations.</td>
+        </tr>
+         <tr>
+            <td>end</td>
+            <td>Date</td>
+            <td>no</td>
+            <td>A location on the x-axis that when supplied will have the bar stretch to the end point and ignore the barChart.width property.</td>
         </tr>
     </table>
 
@@ -1162,7 +1171,7 @@ function (option, path) {
                     <li><code>x</code> (Number): relative horizontal position of the click event.</li>
                     <li><code>y</code> (Number): relative vertical position of the click event.</li>
                     <li><code>time</code> (Date): Date of the clicked event.</li>
-                    <li><code>value</code> (Number[]): The data value of the click event. The array contains one value when there is one data axis visible, and two values when there are two visible data axes.</li>
+                    <li><code>value</code> (Number[]): The data value of the click event. The array contains one value when there is one data axis visible, and two values when there are two visible data axes. It is empty when no data is provided.</li>
                     <li><code>what</code> (String or null): name of the clicked thing: <code>background</code>, <code>axis</code>, <code>dat-axis</code>, <code>custom-time</code>, or <code>current-time</code>, <code>legend</code>.</li>
                     <li><code>event</code> (Object): the original click event.</li>
                 </ul>
@@ -1194,7 +1203,7 @@ function (option, path) {
             <td>none</td>
             <td>Move the window such that given time is centered on screen. Parameter <code>time</code> can be a <code>Date</code>, <code>Number</code>, or <code>String</code>. Available options:
                 <ul>
-                    <li><code>animate: boolean or number</code><br>If true (default), the range is animated smoothly to the new window. If a number, the number is taken as duration for the animation. Default duration is 500 ms.</li>
+                    <li><code>animation: boolean | {duration: number, easingFunction: string}</code><br>If true (default), the range is animated smoothly to the new window. An object can be provided to specify duration and easing function. Default duration is 500 ms, and default easing function is 'easeInOutQuad'.</li>
                 </ul>
             </td>
         </tr>
@@ -1494,18 +1503,4 @@ var options = {
 
 </div>
 
-<!-- Bootstrap core JavaScript
-================================================== -->
-<!-- Placed at the end of the document so the pages load faster -->
-<script src="../js/jquery.min.js"></script>
-<script src="../js/bootstrap.min.js"></script>
-<!-- IE10 viewport hack for Surface/desktop Windows 8 bug -->
-<script src="../js/ie10-viewport-bug-workaround.js"></script>
-<!-- jquery extensions -->
-<script src="../js/jquery.highlight.js"></script>
-<script src="../js/jquery.url.min.js"></script>
-<!-- Tipue vendor js -->
-<script src="../js/tipuesearch.config.js"></script>
-<script src="../js/tipuesearch.js"></script>
-<!-- controller -->
-<script src="../js/main.js"></script>
+<?js= self.partial('tmpl/html-foot.tmpl') ?>

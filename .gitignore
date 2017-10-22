@@ -1,5 +1,5 @@
 # vis.js files
-test/
+dist/
 
 # npm files
 node_modules
@@ -13,5 +13,7 @@ npm-debug.log
 .settings/
 .directory
 
-# vim temporary files
+# temporary files
 .*.sw[op]
+.commits.tmp
+gen/

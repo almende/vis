@@ -2,10 +2,11 @@
 <head>
   <title>Timeline | Vertical Scroll Option</title>
 
+  <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.10.1/jquery.min.js"></script>
   <script src="../../../dist/vis.js"></script>
   <link href="../../../dist/vis.css" rel="stylesheet" type="text/css" />
 
-  <script src="../../googleAnalytics.js"></script>
+  
 </head>
 
 <body>
@@ -52,12 +53,13 @@ zoomKey: 'ctrlKey'</code>
       date.setHours(date.getHours() + 2 + Math.floor(Math.random()*4));
       var end = new Date(date);
 
+      var orderIndex = order + itemsPerGroup * truck
       items.add({
-        id: order + itemsPerGroup * truck,
+        id: orderIndex,
         group: truck,
         start: start,
         end: end,
-        content: 'Order ' + order
+        content: 'Order ' + orderIndex
       });
     }
   }
@@ -70,20 +72,15 @@ zoomKey: 'ctrlKey'</code>
     maxHeight: 200,
     start: new Date(),
     end: new Date(1000*60*60*24 + (new Date()).valueOf()),
-    editable: true,
-    margin: {
-      item: 10, // minimal margin between items
-      axis: 5   // minimal margin between items and the axis
-    },
-    orientation: 'top'
   };
 
   // create a Timeline
-  options1 = Object.assign({}, options)
+
+  options1 = jQuery.extend(options, {});
   var container1 = document.getElementById('mytimeline1');
   timeline1 = new vis.Timeline(container1, items, groups, options1);
 
-  options2 = Object.assign({horizontalScroll: true}, options)
+  options2 = jQuery.extend(options, {horizontalScroll: true});
   var container2 = document.getElementById('mytimeline2');
   timeline2 = new vis.Timeline(container2, items, groups, options2);
 

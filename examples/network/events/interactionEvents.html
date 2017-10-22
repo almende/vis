@@ -24,6 +24,7 @@
 <pre id="eventSpan"></pre>
 
 <script type="text/javascript">
+
     // create an array with nodes
     var nodes = new vis.DataSet([
         {id: 1, label: 'Node 1', title: 'I have a popup!'},
@@ -47,12 +48,20 @@
         nodes: nodes,
         edges: edges
     };
-    var options = {interaction:{hover:true}};
+
+    var options = {
+			interaction:{hover:true},
+			manipulation: {
+				enabled: true
+			}
+		};
+
     var network = new vis.Network(container, data, options);
 
     network.on("click", function (params) {
         params.event = "[original event]";
         document.getElementById('eventSpan').innerHTML = '<h2>Click event:</h2>' + JSON.stringify(params, null, 4);
+        console.log('click event, getNodeAt returns: ' + this.getNodeAt(params.pointer.DOM));
     });
     network.on("doubleClick", function (params) {
         params.event = "[original event]";
@@ -63,8 +72,10 @@
         document.getElementById('eventSpan').innerHTML = '<h2>oncontext (right click) event:</h2>' + JSON.stringify(params, null, 4);
     });
     network.on("dragStart", function (params) {
+        // There's no point in displaying this event on screen, it gets immediately overwritten
         params.event = "[original event]";
-        document.getElementById('eventSpan').innerHTML = '<h2>dragStart event:</h2>' + JSON.stringify(params, null, 4);
+        console.log('dragStart Event:', params);
+        console.log('dragStart event, getNodeAt returns: ' + this.getNodeAt(params.pointer.DOM));
     });
     network.on("dragging", function (params) {
         params.event = "[original event]";
@@ -73,6 +84,8 @@
     network.on("dragEnd", function (params) {
         params.event = "[original event]";
         document.getElementById('eventSpan').innerHTML = '<h2>dragEnd event:</h2>' + JSON.stringify(params, null, 4);
+        console.log('dragEnd Event:', params);
+        console.log('dragEnd event, getNodeAt returns: ' + this.getNodeAt(params.pointer.DOM));
     });
     network.on("zoom", function (params) {
         document.getElementById('eventSpan').innerHTML = '<h2>zoom event:</h2>' + JSON.stringify(params, null, 4);
@@ -114,6 +127,6 @@
 
 </script>
 
-<script src="../../googleAnalytics.js"></script>
+
 </body>
 </html>

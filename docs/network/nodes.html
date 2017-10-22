@@ -1,3 +1,6 @@
+<?js
+  var self = this;
+?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -110,6 +113,7 @@ var options = {
     borderWidth: 1,
     borderWidthSelected: 2,
     brokenImage:undefined,
+    chosen: true,
     color: {
       border: '#2B7CE9',
       background: '#97C2FC',
@@ -133,9 +137,40 @@ var options = {
       background: 'none',
       strokeWidth: 0, // px
       strokeColor: '#ffffff',
-      align: 'center'
+      align: 'center',
+      multi: false,
+      vadjust: 0,
+      bold: {
+        color: '#343434',
+        size: 14, // px
+        face: 'arial',
+        vadjust: 0,
+        mod: 'bold'
+      },
+      ital: {
+        color: '#343434',
+        size: 14, // px
+        face: 'arial',
+        vadjust: 0,
+        mod: 'italic',
+      },
+      boldital: {
+        color: '#343434',
+        size: 14, // px
+        face: 'arial',
+        vadjust: 0,
+        mod: 'bold italic'
+      },
+      mono: {
+        color: '#343434',
+        size: 15, // px
+        face: 'courier new',
+        vadjust: 2,
+        mod: ''
+      }
     },
     group: undefined,
+    heightConstraint: false,
     hidden: false,
     icon: {
       face: 'FontAwesome',
@@ -187,6 +222,7 @@ var options = {
     size: 25,
     title: undefined,
     value: undefined,
+    widthConstraint: false,
     x: undefined,
     y: undefined
   }
@@ -237,6 +273,90 @@ network.setOptions(options);
             <td><code>undefined</code></td>
             <td>When the shape is set to <code>image</code> or <code>circularImage</code>, this option can be an URL to
                 a backup image in case the URL supplied in the image option cannot be resolved.
+            </td>
+        </tr>
+        <tr class='toggle collapsible' onclick="toggleTable('optionTable','chosen', this);">
+            <td><span parent="chosen" class="right-caret"></span> chosen</td>
+            <td>Object or Boolean</td>
+            <td><code>true</code></td>
+            <td>
+              When true, selecting or hovering on a node will change it and its label's characteristics according the default.
+              When false, no change to the node or its label will occur when the node is chosen.
+              If an object is supplied, finer-grained adjustment of node and label characteristics is available when a node is chosen.
+            </td>
+        </tr>
+        <tr parent="chosen" class="hidden">
+            <td class="indent">chosen.node</td>
+            <td>Function or Boolean</td>
+            <td>undefined</td>
+            <td>
+              When true, selecting or hovering on a node will change its characteristics according the default.
+              When false, no change to the node will occur when the node is chosen.
+              <p>
+                If a function is supplied, it is called when the node is chosen.
+                <pre class="code">
+  function(values, id, selected, hovering) {
+    values.<i>property</i> = <i>chosenValue</i>;
+  }</pre>
+              </p>
+              <p>
+                Any of the incoming arguments may be used to determine characteristic changes.
+                If a property is not specifically assigned by the supplied function, it will be left unchanged.
+                A specific function may be assigned to each particular node in its options, or to all in the network's <code>nodes</code> options.
+              </p>
+              <p>
+                The properties define the characteristics that can be changed as follows:
+              </p>
+              <table>
+                <tr><th>Property</th><th>Node Reference</th></tr>
+                <tr><td>color</td><td>see color.background</td></tr>
+                <tr><td>borderWidth</td><td>see borderWidth</td></tr>
+                <tr><td>borderColor</td><td>see color.border</td></tr>
+                <tr><td>size</td><td>see size</td></tr>
+                <tr><td>borderDashes</td><td>see shapeProperties.borderDashes</td></tr>
+                <tr><td>borderRadius</td><td>see shapeProperties.borderRadius</td></tr>
+                <tr><td>shadow</td><td>see shadow.enabled</td></tr>
+                <tr><td>shadowColor</td><td>see shadow.color</td></tr>
+                <tr><td>shadowSize</td><td>see shadow.size</td></tr>
+                <tr><td>shadowX</td><td>see shadow.x</td></tr>
+                <tr><td>shadowY</td><td>see shadow.y</td></tr>
+              </table>
+              <br/>
+            </td>
+        </tr>
+        <tr parent="chosen" class="hidden">
+            <td class="indent">chosen.label</td>
+            <td>Function or Boolean</td>
+            <td>undefined</td>
+            <td>
+              When true, selecting or hovering on a node will change its label's characteristics according the default.
+              When false, no change to the node's label will occur when the node is chosen.
+              <p>
+                If a function is supplied, it is called when the node is chosen.
+                <pre class="code">
+  function(values, id, selected, hovering) {
+    values.<i>property</i> = <i>chosenValue</i>;
+  }</pre>
+              </p>
+              <p>
+                Any of the incoming arguments may be used to determine characteristic changes.
+                If a property is not specifically assigned by the supplied function, it will be left unchanged.
+                A specific function may be assigned to each particular node in its options, or to all in the network's <code>nodes</code> options.
+              </p>
+              <p>
+                The properties define the characteristics that can be changed as follows:
+              </p>
+              <table>
+                <tr><th>Property</th><th>Node Reference</th></tr>
+                <tr><td>color</td><td>see font.color</td></tr>
+                <tr><td>size</td><td>see font.size</td></tr>
+                <tr><td>face</td><td>see font.face</td></tr>
+                <tr><td>mod</td><td>font modifier ('bold', 'italic', etc.)</td></tr>
+                <tr><td>vadjust</td><td>see font.vadjust</td></tr>
+                <tr><td>strokeWidth</td><td>see font.strokeWidth</td></tr>
+                <tr><td>strokeColor</td><td>see font.strokeColor</td></tr>
+              </table>
+              <br/>
             </td>
         </tr>
         <tr class='toggle collapsible' onclick="toggleTable('optionTable','color', this);">
@@ -381,13 +501,197 @@ network.setOptions(options);
             <td>This can be set to 'left' to make the label left-aligned. Otherwise,
                 defaults to 'center'.</td>
         </tr>
+        <tr parent="font" class="hidden">
+            <td class="indent">font.vadjust</td>
+            <td>String</td>
+            <td><code>0</code></td>
+            <td>A font-specific correction to the vertical positioning of the base font in the label text. (Positive is down.)</td>
+        </tr>
+        <tr parent="font" class="hidden">
+            <td class="indent">font.multi</td>
+            <td>Boolean or String</td>
+            <td><code>false</code></td>
+            <td>If <code>false</code>, the label is treated as pure text drawn with the base font. If <code>true</code> or <code>'html'</code> the label may be multifonted, with bold, italic and code markup, interpreted as html. If the value is <code>'markdown'</code> or <code>'md'</code> the label may be multifonted, with bold, italic and code markup, interpreted as markdown.
+              The bold, italic, bold-italic and monospaced fonts may be set up under in the font.bold, font.ital, font.boldital and font.mono properties, respectively.</td>
+        </tr>
+        <tr parent="font" class='hidden toggle collapsible' onclick="toggleTable('optionTable','bold', this);">
+            <td><span parent="bold" class="right-caret"></span> font.bold</td>
+            <td>Object or String</td>
+            <td><code>false</code></td>
+            <td>This object defines the details of the bold font in the label. A shorthand is also supported in the form <code>'size face
+                color'</code> for example: <code>'14px arial red'</code>.
+            </td>
+        </tr>
+        <tr parent="bold" class="hidden">
+            <td class="indent">font.bold.color</td>
+            <td>String</td>
+            <td><code>'#343434'</code></td>
+            <td>Color of the bold font in the label text. Defaults to the base font's color.</td>
+        </tr>
+        <tr parent="bold" class="hidden">
+            <td class="indent">font.bold.size</td>
+            <td>Number</td>
+            <td><code>14</code></td>
+            <td>Size of the bold font in the label text. Defaults to the base font's size.</td>
+        </tr>
+        <tr parent="bold" class="hidden">
+            <td class="indent">font.bold.face</td>
+            <td>String</td>
+            <td><code>'arial'</code></td>
+            <td>Font face (or font family) of the bold font in the label text. Defaults to the base font's face.</td>
+        </tr>
+        <tr parent="bold" class="hidden">
+            <td class="indent">font.bold.mod</td>
+            <td>String</td>
+            <td><code>'bold'</code></td>
+            <td>A string added to the face and size when determining the bold font in the label text.</td>
+        </tr>
+        <tr parent="bold" class="hidden">
+            <td class="indent">font.bold.vadjust</td>
+            <td>String</td>
+            <td><code>0</code></td>
+            <td>A font-specific correction to the vertical positioning of the bold italic font in the label text. (Positive is down.) Defaults to the base font's valign.</td>
+        </tr>
+        <tr parent="font" class='hidden toggle collapsible' onclick="toggleTable('optionTable','ital', this);">
+            <td><span parent="ital" class="right-caret"></span> font.ital</td>
+            <td>Object or String</td>
+            <td><code>false</code></td>
+            <td>This object defines the details of the italic font in the label. A shorthand is also supported in the form <code>'size face
+                color'</code> for example: <code>'14px arial red'</code>.
+            </td>
+        </tr>
+        <tr parent="ital" class="hidden">
+            <td class="indent">font.ital.color</td>
+            <td>String</td>
+            <td><code>'#343434'</code></td>
+            <td>Color of the italic font in the label text. Defaults to the base font's color.</td>
+        </tr>
+        <tr parent="ital" class="hidden">
+            <td class="indent">font.ital.size</td>
+            <td>Number</td>
+            <td><code>14</code></td>
+            <td>Size of the italic font in the label text. Defaults to the base font's size.</td>
+        </tr>
+        <tr parent="ital" class="hidden">
+            <td class="indent">font.ital.face</td>
+            <td>String</td>
+            <td><code>'arial'</code></td>
+            <td>Font face (or font family) of the italic font in the label text. Defaults to the base font's face.</td>
+        </tr>
+        <tr parent="ital" class="hidden">
+            <td class="indent">font.ital.mod</td>
+            <td>String</td>
+            <td><code>'italic'</code></td>
+            <td>A string added to the face and size when determining the italic font in the label text.</td>
+        </tr>
+        <tr parent="ital" class="hidden">
+            <td class="indent">font.ital.vadjust</td>
+            <td>String</td>
+            <td><code>0</code></td>
+            <td>A font-specific correction to the vertical positioning of the italic font in the label text. (Positive is down.) Defaults to the base font's valign.</td>
+        </tr>
+        <tr parent="font" class='hidden toggle collapsible' onclick="toggleTable('optionTable','boldital', this);">
+            <td><span parent="boldital" class="right-caret"></span> font.boldital</td>
+            <td>Object or String</td>
+            <td><code>false</code></td>
+            <td>This object defines the details of the bold italic font in the label. A shorthand is also supported in the form <code>'size face
+                color'</code> for example: <code>'14px arial red'</code>.
+            </td>
+        </tr>
+        <tr parent="boldital" class="hidden">
+            <td class="indent">font.boldital.color</td>
+            <td>String</td>
+            <td><code>'#343434'</code></td>
+            <td>Color of the bold italic font in the label text. Defaults to the base font's color.</td>
+        </tr>
+        <tr parent="boldital" class="hidden">
+            <td class="indent">font.boldital.size</td>
+            <td>Number</td>
+            <td><code>14</code></td>
+            <td>Size of the bold italic font in the label text. Defaults to the base font's size.</td>
+        </tr>
+        <tr parent="boldital" class="hidden">
+            <td class="indent">font.boldital.face</td>
+            <td>String</td>
+            <td><code>'arial'</code></td>
+            <td>Font face (or font family) of the bold italic font in the label text. Defaults to the base font's face.</td>
+        </tr>
+        <tr parent="boldital" class="hidden">
+            <td class="indent">font.boldital.mod</td>
+            <td>String</td>
+            <td><code>'bold'</code></td>
+            <td>A string added to the face and size when determining the bold italic font in the label text.</td>
+        </tr>
+        <tr parent="boldital" class="hidden">
+            <td class="indent">font.boldital.vadjust</td>
+            <td>String</td>
+            <td><code>0</code></td>
+            <td>A font-specific correction to the vertical positioning of the bold italic font in the label text. (Positive is down.) Defaults to the base font's valign.</td>
+        </tr>
+        <tr parent="font" class='hidden toggle collapsible' onclick="toggleTable('optionTable','mono', this);">
+            <td><span parent="mono" class="right-caret"></span> font.mono</td>
+            <td>Object or String</td>
+            <td><code>false</code></td>
+            <td>This object defines the details of the monospaced font in the label. A shorthand is also supported in the form <code>'size face
+                color'</code> for example: <code>'15px courier red'</code>.
+            </td>
+        </tr>
+        <tr parent="mono" class="hidden">
+            <td class="indent">font.mono.color</td>
+            <td>String</td>
+            <td><code>'#343434'</code></td>
+            <td>Color of the monospaced font in the label text. Defaults to the base font's color.</td>
+        </tr>
+        <tr parent="mono" class="hidden">
+            <td class="indent">font.mono.size</td>
+            <td>Number</td>
+            <td><code>15</code></td>
+            <td>Size of the monospaced font in the label text. Defaults to the base font's size.</td>
+        </tr>
+        <tr parent="mono" class="hidden">
+            <td class="indent">font.mono.face</td>
+            <td>String</td>
+            <td><code>'courier new'</code></td>
+            <td>Font face (or font family) of the monospaced font in the label text.</td>
+        </tr>
+        <tr parent="mono" class="hidden">
+            <td class="indent">font.mono.mod</td>
+            <td>String</td>
+            <td><code>''</code></td>
+            <td>A string added to the face and size when determining the monospaced font in the label text.</td>
+        </tr>
+        <tr parent="mono" class="hidden">
+            <td class="indent">font.mono.vadjust</td>
+            <td>String</td>
+            <td><code>2</code></td>
+            <td>A font-specific correction to the vertical positioning of the monospaced font in the label text. (Positive is down.) Defaults to the base font's valign.</td>
+        </tr>
         <tr>
             <td>group</td>
             <td>String</td>
             <td><code>undefined</code></td>
             <td>When not <code>undefined</code>, the node will belong to the defined group. Styling information of
-                that group will apply to this node. Node specific styling overrides group styling. 
+                that group will apply to this node. Node specific styling overrides group styling.
             </td>
+        </tr>
+        <tr class='toggle collapsible' onclick="toggleTable('optionTable','heightConstraint', this);">
+            <td><span parent="heightConstraint" class="right-caret"></span> heightConstraint</td>
+            <td>Number, Boolean or Object</td>
+            <td><code>false</code></td>
+            <td>If false, no heightConstraint is applied. If a number is specified, the value is used as the minimum height of the node. The node's height will be be set to the minimum if less than the value.</td>
+        </tr>
+        <tr parent="heightConstraint" class="hidden">
+            <td class="indent">heightConstraint.minimum</td>
+            <td>Number</td>
+            <td><code>undefined</code></td>
+            <td>If a number is specified, the value is used as the minimum height of the node. The node's height will be be set to the minimum if less than the value.</td>
+        </tr>
+        <tr parent="heightConstraint" class="hidden">
+            <td class="indent">heightConstraint.valign</td>
+            <td>String</td>
+            <td><code>'middle'</code></td>
+            <td>Valid values are <code>'top'</code>, <code>'middle'</code>, and <code>'bottom'</code>.
+               When specified, if the height of the label text is less than the minimum (including any top or bottom margins), it will be offset vertically to the designated position.</td>
         </tr>
         <tr>
             <td>hidden</td>
@@ -433,12 +737,26 @@ network.setOptions(options);
             <td><code>undefined</code></td>
             <td>The id of the node. The id is mandatory for nodes and they have to be unique. This should obviously be set per node, not globally.</td>
         </tr>
-        <tr>
-            <td>image</td>
-            <td>String</td>
+        <tr class='toggle collapsible' onclick="toggleTable('optionTable','image', this);">
+            <td><span parent="image" class="right-caret"></span> image</td>
+            <td>Object or String</td>
             <td><code>undefined</code></td>
             <td>When the shape is set to <code>image</code> or <code>circularImage</code>, this option should be the URL
                 to an image. If the image cannot be found, the brokenImage option can be used.
+            </td>
+        </tr>
+        <tr parent="image" class="hidden">
+            <td class="indent">image.unselected</td>
+            <td>String</td>
+            <td><code>undefined</code></td>
+            <td>Unselected (default) image URL.
+            </td>
+        </tr>
+        <tr parent="image" class="hidden">
+            <td class="indent">image.selected</td>
+            <td>String</td>
+            <td><code>undefined</code></td>
+            <td>Selected image URL.
             </td>
         </tr>
         <tr>
@@ -459,12 +777,45 @@ network.setOptions(options);
             <td><code>undefined</code></td>
             <td>When using the hierarchical layout, the level determines where the node is going to be positioned.</td>
         </tr>
+        <tr class='toggle collapsible' onclick="toggleTable('optionTable','margin', this);">
+            <td><span parent="margin" class="right-caret"></span> margin</td>
+            <td>Object or Number</td>
+            <td><code>5</code></td>
+            <td>If a number is specified, the margins of the label are set to that value on all sides. These options are only used when the shape is set to <code>box</code>, <code>circle</code>, <code>database</code>, <code>icon</code> or <code>text</code>.</td>
+        </tr>
+        <tr parent="margin" class="hidden">
+            <td class="indent">margin.top</td>
+            <td>Number</td>
+            <td><code>5</code></td>
+            <td>The top margin of the label is set to this value.</td>
+        </tr>
+        <tr parent="margin" class="hidden">
+            <td class="indent">margin.right</td>
+            <td>Number</td>
+            <td><code>5</code></td>
+            <td>The right margin of the label is set to this value.</td>
+        </tr>
+        <tr parent="margin" class="hidden">
+            <td class="indent">margin.bottom</td>
+            <td>Number</td>
+            <td><code>5</code></td>
+            <td>The bottom margin of the label is set to this value.</td>
+        </tr>
+        <tr parent="margin" class="hidden">
+            <td class="indent">margin.left</td>
+            <td>Number</td>
+            <td><code>5</code></td>
+            <td>The left margin of the label is set to this value.</td>
+        </tr>
         <tr>
             <td>mass</td>
             <td>Number</td>
             <td><code>1</code></td>
             <td>The barnesHut physics model (which is enabled by default) is based on an inverted gravity model. By
-                increasing the mass of a node, you increase it's repulsion. Values lower than 1 are not recommended.
+                increasing the mass of a node, you increase it's repulsion.
+                <br><br>
+                Values between 0 and 1 are not recommended.<br>
+                Negative or zero values are not allowed. These will generate a console error and will be set to 1.
             </td>
         </tr>
         <tr>
@@ -486,7 +837,7 @@ network.setOptions(options);
                 <code>ellipse</code>, <code>circle</code>, <code>database</code>, <code>box</code>, <code>text</code>.
                 Always scalable are:
                 <code>image</code>, <code>circularImage</code>, <code>diamond</code>, <code>dot</code>,
-                <code>star</code>, <code>triangle</code>, <code>triangleDown</code>, <code>square</code> and
+                <code>star</code>, <code>triangle</code>, <code>triangleDown</code>, <code>hexagon</code>, <code>square</code> and
                 <code>icon</code>. Keep in mind that when using scaling, the <code>size</code> option is neglected.
             </td>
         </tr>
@@ -627,7 +978,7 @@ mySize = minSize + diff * scale;
                 <code>ellipse</code>, <code>circle</code>, <code>database</code>, <code>box</code>, <code>text</code>.
                 The ones with the label outside of it are: <code>image</code>, <code>circularImage</code>,
                 <code>diamond</code>, <code>dot</code>, <code>star</code>, <code>triangle</code>,
-                <code>triangleDown</code>, <code>square</code> and <code>icon</code>.
+                <code>triangleDown</code>, <code>hexagon</code>, <code>square</code> and <code>icon</code>.
             </td>
         </tr>
         <tr class='toggle collapsible' onclick="toggleTable('optionTable','shapeProperties', this);">
@@ -683,7 +1034,7 @@ mySize = minSize + diff * scale;
             <td><code>25</code></td>
             <td>The size is used to determine the size of node shapes that do not have the label inside of them. These
                 shapes are: <code>image</code>, <code>circularImage</code>, <code>diamond</code>, <code>dot</code>,
-                <code>star</code>, <code>triangle</code>, <code>triangleDown</code>, <code>square</code> and
+                <code>star</code>, <code>triangle</code>, <code>triangleDown</code>, <code>hexagon</code>, <code>square</code> and
                 <code>icon</code></td>
         </tr>
         <tr>
@@ -700,6 +1051,24 @@ mySize = minSize + diff * scale;
             <td><code>undefined</code></td>
             <td>When a value is set, the nodes will be scaled using the options in the scaling object defined above.
             </td>
+        </tr>
+        <tr class='toggle collapsible' onclick="toggleTable('optionTable','widthConstraint', this);">
+            <td><span parent="widthConstraint" class="right-caret"></span> widthConstraint</td>
+            <td>Number, Boolean or Object</td>
+            <td><code>false</code></td>
+            <td>If false, no widthConstraint is applied. If a number is specified, the minimum and maximum widths of the node are set to the value. The node's label's lines will be broken on spaces to stay below the maximum and the node's width will be set to the minimum if less than the value.</td>
+        </tr>
+        <tr parent="widthConstraint" class="hidden">
+            <td class="indent">widthConstraint.minimum</td>
+            <td>Number</td>
+            <td><code>undefined</code></td>
+            <td>If a number is specified, the minimum width of the node is set to the value. The node's width will be set to the minimum if less than the value.</td>
+        </tr>
+        <tr parent="widthConstraint" class="hidden">
+            <td class="indent">widthConstraint.maximum</td>
+            <td>Number</td>
+            <td><code>undefined</code></td>
+            <td>If a number is specified, the maximum width of the node is set to the value. The node's label's lines will be broken on spaces to stay below the maximum.</td>
         </tr>
         <tr>
             <td>x</td>
@@ -725,18 +1094,4 @@ mySize = minSize + diff * scale;
 
 </div>
 
-<!-- Bootstrap core JavaScript
-================================================== -->
-<!-- Placed at the end of the document so the pages load faster -->
-<script src="../js/jquery.min.js"></script>
-<script src="../js/bootstrap.min.js"></script>
-<!-- IE10 viewport hack for Surface/desktop Windows 8 bug -->
-<script src="../js/ie10-viewport-bug-workaround.js"></script>
-<!-- jquery extensions -->
-<script src="../js/jquery.highlight.js"></script>
-<script src="../js/jquery.url.min.js"></script>
-<!-- Tipue vendor js -->
-<script src="../js/tipuesearch.config.js"></script>
-<script src="../js/tipuesearch.js"></script>
-<!-- controller -->
-<script src="../js/main.js"></script>
+<?js= self.partial('tmpl/html-foot.tmpl') ?>

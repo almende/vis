@@ -1,3 +1,6 @@
+<?js
+  var self = this;
+?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -609,15 +612,35 @@ var locales = {
                     The options object is explained in full <a data-scroll="" data-options="{ &quot;easing&quot;: &quot;easeInCubic&quot; }" href="#optionsObject">below</a>.
                 </td>
             </tr>
+
+<?js
+  var comment = self.getComment("Network#findNode");
+?>
+            <tr class="collapsible toggle" onclick="toggleTable('methodTable','findNodeNew', this);">
+                <td colspan="2"><span parent="findNode" class="right-caret" id="method_findNodeNew"></span> 
+                    <?js= comment.prototype ?>  <b>This comes from the source!</b>
+            </tr>
+            <tr class="hidden" parent="findNodeNew">
+                <td class="midMethods">Returns: <?js= comment.returns ?></td>
+                <td>
+                   <?js= comment.description ?>
+                </td>
+            </tr>
+
             <tr class="collapsible toggle" onclick="toggleTable('methodTable','findNode', this);">
                 <td colspan="2"><span parent="findNode" class="right-caret" id="method_findNode"></span> findNode(
-                    <code>String nodeId</code>)
+                    <code>String/Number nodeId</code>)
             </tr>
             <tr class="hidden" parent="findNode">
                 <td class="midMethods">Returns: Array</td>
                 <td>Nodes can be in clusters. Clusters can also be in clusters. This function returns and array of
-                    nodeIds
-                    showing where the node is. <br><br> Example:
+                    nodeIds showing where the node is.
+
+                    <br><br>
+                    If any nodeId in the chain, especially the first passed in as a parameter, is not present in
+                    the current nodes list, an empty array is returned.
+
+                    <br><br> Example:
                     cluster 'A' contains cluster 'B',
                     cluster 'B' contains cluster 'C',
                     cluster 'C' contains node 'fred'.
@@ -640,7 +663,20 @@ var locales = {
             <tr class="hidden" parent="getBaseEdge">
                 <td class="midMethods">Returns: Value</td>
                 <td>When a clusteredEdgeId is available, this method will return the original baseEdgeId provided in <code>data.edges</code><br/>
-                    ie. After clustering the 'SelectEdge' event is fired but provides only the clustered edge. This method can then be used to return the baseEdgeId.
+                    ie. After clustering the 'SelectEdge' event is fired but provides only the clustered edge. This method can then be used to return the baseEdgeId.<br><br>
+                    <b>This method is deprecated. Please use <code>getBaseEdges()</code> instead.</b>
+                </td>
+            </tr>
+            <tr class="collapsible toggle" onclick="toggleTable('methodTable','getBaseEdges', this);">
+                <td colspan="2"><span parent="getBaseEdges" class="right-caret" id="method_getBaseEdges"></span>
+                  getBaseEdges(<code>String clusteredEdgeId</code>)
+                </td>
+            </tr>
+            <tr class="hidden" parent="getBaseEdges">
+                <td class="midMethods">Returns: Array</td>
+                <td>For the given <code>clusteredEdgeId</code>, this method will return all the original base edge id's provided in <code>data.edges</code>.
+                    For a non-clustered (i.e. 'base') edge, <code>clusteredEdgeId</code> is returned.<br/><br/>
+                    Only the base edge id's are returned. All clustered edges id's under <code>clusteredEdgeId</code> are skipped, but scanned recursively to return their base id's.<br/>
                 </td>
             </tr>
             <tr class="collapsible toggle" onclick="toggleTable('methodTable','updateEdge', this);">
@@ -866,13 +902,19 @@ function releaseFunction (clusterPosition, containedNodesPositions) {
             </tr>
             <tr class="collapsible toggle" onclick="toggleTable('methodTable','getConnectedNodes', this);">
                 <td colspan="2"><span parent="getConnectedNodes" class="right-caret" id="method_getConnectedNodes"></span> getConnectedNodes(<code><i>String
-                    nodeId or edgeId</i></code>)
+                    nodeId or edgeId, [String direction]</i></code>)
                 </td>
             </tr>
             <tr class="hidden" parent="getConnectedNodes">
                 <td class="midMethods">Returns: Array</td>
-                <td>Returns an array of nodeIds of the all the nodes that are directly connected to this node. If you supply an edgeId,
-                vis will first match the id to nodes. If no match is found, it will search in the edgelist and return an array: <code>[fromId, toId]</code>.</td>
+                <td>Returns an array of nodeIds of all the nodes that are directly connected to this node or edge.<br><br>
+                For a node id, returns an array with the id's of the connected nodes.<br>
+                If optional parameter <code>direction</code> is set to string <i>'from'</i>, only parent nodes are returned.<br>
+                If <code>direction</code> is set to <i>'to'</i>, only child nodes are returned.<br>
+                Any other value or <code>undefined</code> returns both parent and child nodes.
+                <br><br>
+                For an edge id, returns an array: <code>[fromId, toId]</code>.
+                Parameter <i>direction</i> is ignored for edges.</td>
             </tr>
             <tr class="collapsible toggle" onclick="toggleTable('methodTable','getConnectedEdges', this);">
                 <td colspan="2"><span parent="getConnectedEdges" class="right-caret" id="method_getConnectedEdges"></span> getConnectedEdges(<code><i>String
@@ -1169,9 +1211,11 @@ function releaseFunction (clusterPosition, containedNodesPositions) {
                 <th>Type</th>
                 <th>Description</th>
             </tr>
-            <tr><td>joinCondition(<br>&nbsp;&nbsp;<code>nodeOptions:&nbsp;Object</code><br>)</td>
+            <tr><td>joinCondition(<br>&nbsp;&nbsp;<code>nodeOptions:&nbsp;Object</code><br>)<br>or<br>joinCondition(<br>&nbsp;&nbsp;<code>parentNodeOptions:&nbsp;Object,</code><br>&nbsp;&nbsp;<code>childNodeOptions:&nbsp;Object</code><br>)</td>
                 <td>Function</td>
-                <td><i>Optional for all but the cluster method. </i> The cluster module loops over all nodes that are
+                <td><i>Optional for all but the cluster method. </i> <br>
+                    <code>clusterByConnection</code> is the only function that will pass 2 nodeOptions objects as arguments to the joinCondition callback.<br>
+                    The cluster module loops over all nodes that are
                     selected to be in the cluster and calls this function with their data as argument.
                     If this function returns true, this node will be added to the cluster. You have access to all
                     options
@@ -1195,6 +1239,7 @@ var options = {
 
 network.clustering.cluster(options);
 </pre>
+                    <code>clusterByConnection</code><b> will pass 2 nodeOptions objects as arguments to the joinCondition callback.</b>
                 </td>
             </tr>
             <tr><td>processProperties(<br>&nbsp;&nbsp;<code>clusterOptions:&nbsp;Object</code>,<br>
@@ -1286,7 +1331,7 @@ var options = {
                 </td>
                 <td>Fired when the user clicks the mouse or taps on a touchscreen device. Passes an object with properties structured as:
 
-                <pre class="prettyprint lang-js">{
+<pre class="prettyprint lang-js">{
   nodes: [Array of selected nodeIds],
   edges: [Array of selected edgeIds],
   event: [Object] original click event,
@@ -1296,6 +1341,24 @@ var options = {
   }
 }
 </pre>
+
+This is the structure common to all events. Specifically for the click event, the following property is added:
+
+<pre class="prettyprint lang-js">{
+...
+  items: [Array of click items],
+}</pre>
+
+Where the click items can be:
+<pre class="prettyprint lang-js">
+  {nodeId:NodeId}            // node with given id clicked on
+  {nodeId:NodeId labelId:0}  // label of node with given id clicked on
+  {edgeId:EdgeId}            // edge with given id clicked on
+  {edge:EdgeId, labelId:0}   // label of edge with given id clicked on
+</pre>
+
+The order of the <code>items</code> array is descending in z-order.
+Thus, to get the topmost item, get the value at index 0.
                 </td>
             </tr>
             <tr><td id="event_doubleClick">doubleClick</td>
@@ -1400,8 +1463,14 @@ var options = {
                 <td>Fired if the option <code>interaction:{hover:true}</code> is enabled and the mouse moved away from an edge it was hovering over before.</td>
             </tr>
             <tr><td id="event_zoom">zoom</td>
-                <td><code>{direction:'+'/'-', scale: Number}</code></td>
-                <td>Fired when the user zooms in or out. The properties tell you which direction the zoom is in. The scale is a number greater than 0, which is the same that you get with network.getScale().</td>
+                <td>Object</td>
+                <td>Fired when the user zooms in or out. The properties tell you which direction the zoom is in. The scale is a number greater than 0, which is the same that you get with network.getScale(). When fired by clicking the zoom in or zoom out navigation buttons, the pointer property of the object passed will be null.  Passes an object with properties structured as:
+<pre class="prettyprint lang-js">{
+  direction: '+'/'-',
+  scale: Number,
+  pointer: {x:pointer_x, y:pointer_y}
+}
+</pre></td>
             </tr>
             <tr><td id="event_showPopup">showPopup</td>
                 <td><code>id of item corresponding to popup</code></td>
@@ -1436,7 +1505,7 @@ var options = {
                 </td>
             <tr><td id="event_stabilized">stabilized</td>
                 <td>Object</td>
-                <td>Fired when the network has stabilized or when the <code>stopSimulation()</code> has been called. The amount of iterations it took could be used to tweak the maximum amount of iterations needed to stabilize the network. Passes an object with properties structured as:
+                <td>Fired when the network has stabilized, when the amount of iterations defined in the options has been reached, or when the <code>stopSimulation()</code> has been called. The amount of iterations it took could be used to tweak the maximum amount of iterations needed to stabilize the network. Passes an object with properties structured as:
 <pre class="prettyprint lang-js">{
   iterations: Number // iterations it took
 }</pre>
@@ -1627,18 +1696,4 @@ var network = new vis.Network(container, data, options);
 
 </div>
 
-<!-- Bootstrap core JavaScript
-================================================== -->
-<!-- Placed at the end of the document so the pages load faster -->
-<script src="../js/jquery.min.js"></script>
-<script src="../js/bootstrap.min.js"></script>
-<!-- IE10 viewport hack for Surface/desktop Windows 8 bug -->
-<script src="../js/ie10-viewport-bug-workaround.js"></script>
-<!-- jquery extensions -->
-<script src="../js/jquery.highlight.js"></script>
-<script src="../js/jquery.url.min.js"></script>
-<!-- Tipue vendor js -->
-<script src="../js/tipuesearch.config.js"></script>
-<script src="../js/tipuesearch.js"></script>
-<!-- controller -->
-<script src="../js/main.js"></script>
+<?js= self.partial('tmpl/html-foot.tmpl') ?>

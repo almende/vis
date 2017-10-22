@@ -1,0 +1,66 @@
+<!doctype html>
+<html>
+<head>
+  <title>Maximum Width Edge Case Test</title>
+
+  <script src="../../dist/vis-network.min.js" type="text/javascript"></script>
+  <link href="../../dist/vis-network.min.css" rel="stylesheet" type="text/css" />
+
+  <style type="text/css">
+    #mynetwork {
+      width: 600px;
+      height: 400px;
+      border: 1px solid lightgray;
+    }
+  </style>
+  <script src="../../googleAnalytics.js"></script>
+</head>
+
+<body>
+
+<p>A word in a label that's wider than the maximum width will be forced onto a line. We can't do better without breaking the word into pieces, and even then the pieces could still be too wide.</p>
+
+<p>Avoid the problem. Don't set ridiculously small maximum widths.</p>
+
+<div id="mynetwork"></div>
+
+<script type="text/javascript">
+  var nodes = new vis.DataSet([
+      { id: 1, label: 'Node 1', widthConstraint : { maximum : 30 } }
+  ]);
+
+  var edges = [];
+
+  var container = document.getElementById('mynetwork');
+  var data = {
+    nodes: nodes,
+    edges: edges
+  };
+  var options = {
+    edges: {
+      font: {
+        size: 12
+      },
+      widthConstraint: {
+        maximum: 90
+      }
+    },
+    nodes: {
+      shape: 'box',
+      margin: 10,
+      font: {
+        multi: true
+      },
+      widthConstraint: {
+        maximum: 200
+      }
+    },
+    physics: {
+      enabled: false
+    }
+  };
+  var network = new vis.Network(container, data, options);
+</script>
+
+</body>
+</html>
