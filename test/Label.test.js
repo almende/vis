@@ -13,7 +13,6 @@ var assert = require('assert');
 var Label = require('../lib/network/modules/components/shared/Label').default;
 var NodesHandler = require('../lib/network/modules/NodesHandler').default;
 var util = require('../lib/util');
-var jsdom_global = require('jsdom-global');
 var canvasMockify = require('./canvas-mock');
 var DataSet = require('../lib/DataSet');
 var Network = require('../lib/network/Network');
@@ -322,11 +321,7 @@ describe('Network Label', function() {
  **************************************************************/
 
   before(function() {
-    this.jsdom_global = jsdom_global(
-      "<div id='mynetwork'></div>",
-      { skipWindowCheck: true}
-    );
-    canvasMockify(window);
+    this.jsdom_global = canvasMockify("<div id='mynetwork'></div>");
     this.container = document.getElementById('mynetwork');
   });
 

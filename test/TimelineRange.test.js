@@ -1,5 +1,4 @@
 var assert = require('assert');
-//var jsdom = require('mocha-jsdom');
 var jsdom_global = require('jsdom-global');
 var moment = require('../lib/module/moment');
 var Range = require('../lib/timeline/Range');
@@ -7,11 +6,9 @@ var TestSupport = require('./TestSupport');
 
 describe('Timeline Range', function () {
   
-  //jsdom();
   before(function() {
     this.jsdom_global = jsdom_global();
   });
-
 
   after(function() {
       this.jsdom_global();
