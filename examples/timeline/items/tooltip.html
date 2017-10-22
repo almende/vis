@@ -12,7 +12,7 @@
 
   <script src="../../../dist/vis.js"></script>
   <link href="../../../dist/vis-timeline-graph2d.min.css" rel="stylesheet" type="text/css" />
-  <script src="../../googleAnalytics.js"></script>
+
 </head>
 <body>
 
@@ -37,6 +37,12 @@
 </p>
 
 <div id="tooltips-cap"></div>
+
+<p>
+  Disable item tooltips.
+</p>
+
+<div id="tooltips-hide"></div>
 
 <script type="text/javascript">
   // Create a DataSet (allows two way data-binding)
@@ -78,6 +84,15 @@
 
   var timelineCap = new vis.Timeline(document.getElementById('tooltips-cap'),
       items, cap_options);
+
+  // Hide options
+  var hide_options = {
+    showTooltips: false
+  }
+
+  var timelineHide = new vis.Timeline(document.getElementById('tooltips-hide'),
+      items, hide_options);
+
 </script>
 
 </body>

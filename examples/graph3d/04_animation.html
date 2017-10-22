@@ -51,8 +51,7 @@
         keepAspectRatio: true,
         verticalRatio: 0.5,
         animationInterval: 100, // milliseconds
-        animationPreload: true,
-        filterValue: 'time'
+        animationPreload: true
       };
 
       // create our graph
@@ -60,7 +59,7 @@
       graph = new vis.Graph3d(container, data, options);
     }
   </script>
-  <script src="../googleAnalytics.js"></script>
+  
 </head>
 
 <body onload="drawVisualization();">

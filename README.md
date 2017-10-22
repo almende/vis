@@ -36,6 +36,16 @@ Link via cdnjs: http://cdnjs.com
 Or download the library from the github project:
 [https://github.com/almende/vis.git](https://github.com/almende/vis.git).
 
+
+### Installing module `canvas`
+
+Module `canvas` is only required if you need to run `vis.js` on `node.js` and require actual output. It is not required for regular usage in a browser.
+
+Currently, the unit tests use a mock object for canvas which has limited but adequate functionality. If `canvas` is installed, that will be used silently in place of the mock object.
+
+The issue with `canvas` is that it has an external dependency to `cairo`. This needs to be installed outside of the regular install as done by `npm`. Please consult [`node-canvas` github page](https://github.com/Automattic/node-canvas/wiki#desktop) for the correct installation procecure your platform
+
+
 ## Load
 
 To use a component, include the javascript and css files of vis in your web page:
@@ -192,7 +202,7 @@ exports.Timeline = require('./lib/timeline/Timeline');
 
 Then create a custom bundle using browserify, like:
 
-    $ browserify custom.js -t babelify -o dist/vis-custom.js -s vis
+    $ browserify custom.js -t [ babelify --presets [es2015] ] -o dist/vis-custom.js -s vis
 
 This will generate a custom bundle *vis-custom.js*, which exposes the namespace `vis` containing only `DataSet` and `Timeline`. The generated bundle can be minified using uglifyjs:
 
@@ -217,7 +227,7 @@ The custom bundle can now be loaded like:
 
 The default bundle `vis.js` is standalone and includes external dependencies such as *hammer.js* and *moment.js*. When these libraries are already loaded by the application, vis.js does not need to include these dependencies itself too. To build a custom bundle of vis.js excluding *moment.js* and *hammer.js*, run browserify in the root of the project:
 
-    $ browserify index.js -t babelify -o dist/vis-custom.js -s vis -x moment -x hammerjs
+    $ browserify index.js -t [ babelify --presets [es2015] ] -o dist/vis-custom.js -s vis -x moment -x hammerjs
 
 This will generate a custom bundle *vis-custom.js*, which exposes the namespace `vis`, and has *moment.js* and *hammer.js* excluded. The generated bundle can be minified with uglifyjs:
 
@@ -265,10 +275,6 @@ var options = {};
 var timeline = new Timeline(container, data, options);
 ```
 
-Install the application dependencies via npm:
-
-    $ npm install vis moment
-
 The application can be bundled and minified:
 
     $ browserify app.js -o dist/app-bundle.js -t babelify
@@ -289,6 +295,46 @@ And loaded into a webpage:
 </html>
 ```
 
+#### Example 4: Integrate vis.js components directly in your webpack build
+
+You can integrate e.g. the timeline component directly in you webpack build.
+Therefor you can e.g. import the component-files from root direcory (starting with "index-").
+
+```js
+import { DataSet, Timeline } from 'vis/index-timeline-graph2d';
+
+var container = document.getElementById('visualization');
+var data = new DataSet();
+var timeline = new Timeline(container, data, {});
+```
+
+To get this to work you'll need to add some babel-loader-setting to your webpack-config:
+
+```js
+module: {
+  module: {
+    rules: [{
+      test: /node_modules[\\\/]vis[\\\/].*\.js$/,
+      loader: 'babel-loader',
+      query: {
+        cacheDirectory: true,
+        presets: [ "babel-preset-es2015" ].map(require.resolve),
+        plugins: [
+          "transform-es3-property-literals", // #2452
+          "transform-es3-member-expression-literals", // #2566
+          "transform-runtime" // #2566
+        ]
+      }
+    }]
+  }
+}
+```
+
+There is also an [demo-project](https://github.com/mojoaxel/vis-webpack-demo) showing the integration of vis.js using webpack.
+
+
+
+
 ## Test
 
 To test the library, install the project dependencies once:
@@ -301,7 +347,7 @@ Then run the tests:
 
 ## License
 
-Copyright (C) 2010-2016 Almende B.V. and Contributors
+Copyright (C) 2010-2017 Almende B.V. and Contributors
 
 Vis.js is dual licensed under both
 

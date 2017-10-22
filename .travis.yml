@@ -1,5 +1,18 @@
 language: node_js
-node_js: "6"
+node_js:
+  - "6"
+env:
+  - CXX=g++-4.8
+addons:
+  apt:
+    sources:
+      - ubuntu-toolchain-r-test
+    packages:
+      - libgif-dev
+      - g++-4.8
 before_script:
-  - npm install -g gulp
-script: gulp
+  - npm run lint
+  - npm install gulp
+script:
+  - gulp
+  - npm test

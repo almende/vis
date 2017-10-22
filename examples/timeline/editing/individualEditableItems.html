@@ -25,7 +25,7 @@
 
   <script src="../../../dist/vis.js"></script>
   <link href="../../../dist/vis-timeline-graph2d.min.css" rel="stylesheet" type="text/css" />
-  <script src="../../googleAnalytics.js"></script>
+  
 </head>
 <body>
 
@@ -34,7 +34,7 @@
 <div id="visualization"></div>
 
 <script>
-  // create groups to highligh groupUpdate
+  // create groups to highlight groupUpdate
   var groups = new vis.DataSet([
     {id: 1, content: 'Group 1'},
     {id: 2, content: 'Group 2'}
@@ -45,9 +45,9 @@
     {id: 2, content: 'Editable', editable: true, start: '2010-08-23T23:00:00', group: 2},
     {id: 3, content: 'Read-only', editable: false, start: '2010-08-24T16:00:00', group: 1},
     {id: 4, content: 'Read-only', editable: false, start: '2010-08-26', end: '2010-09-02', group: 2},
-    {id: 5, content: 'Edit Time Only', editable: { updateTime: true }, start: '2010-08-28', group: 1},
-    {id: 6, content: 'Edit Group Only', editable: { updateGroup: true }, start: '2010-08-29', group: 2},
-    {id: 7, content: 'Remove Only', editable: { remove: true }, start: '2010-08-31', end: '2010-09-03', group: 1},
+    {id: 5, content: 'Edit Time Only', editable: { updateTime: true, updateGroup: false, remove: false }, start: '2010-08-28', group: 1},
+    {id: 6, content: 'Edit Group Only', editable: { updateTime: false, updateGroup: true, remove: false }, start: '2010-08-29', group: 2},
+    {id: 7, content: 'Remove Only', editable: { updateTime: false, updateGroup: false, remove: true }, start: '2010-08-31', end: '2010-09-03', group: 1},
     {id: 8, content: 'Default', start: '2010-09-04T12:00:00', group: 2}
   ]);
 

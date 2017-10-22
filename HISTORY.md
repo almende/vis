@@ -2,6 +2,295 @@
 http://visjs.org
 
 
+## 2017-10-12, version 4.21.0
+
+### General
+- Added #3394: Adds unit tests for add, setOptions and on/off DataSet
+- FIX #3406: Eliminate possibility of 'window is undefined' during travis test
+- Added #3402: added @macleodbroad-wf to the support team
+- REFA #3442: Strapping down of Extend-routines in util.js
+- FIX #3392: Addresses TODOs in Queue unit test by adding unit tests for setOptions and destroy
+- Added #3354: Adds missing jsdoc and adds lint rule require-jsdoc to build process
+- Added #3331 - Enable linting for Travis
+- Added #3312, #3311, #3310, #3309, #3308, #3304 - Add lint
+- Added #3230 - Enable 'eslint'
+- Added #3262 - Upgrade packages and tools for Travis unit testing
+- Added #3287: Update module versions to latest stable
+- Added #3295: Update the webpack example
+
+### Network
+- FIX #3554: Relax clustering condition for adding already clustered nodes to cluster
+- FIX #3517: Retain constraint values in label font handling
+- REFA #3507: Cleanup and refactoring PhysicsEngine 
+- FIX #3500: re-adds edges if they are now connected and add does not add invalid edges
+- FIX #3486: Add extra check on null value during label handling
+- FEAT #824: Network detect clicks on labels
+- FIX #3474: Adjust documentation for arrows.middle.scaleFactor
+- FIX #3483: Prevent image loading for hidden cluster nodes
+- FIX #3408, #2677: Fix handling of multi-fonts
+- FIX #3425: IE performance improvements
+- FIX #3356 and #3297: IE11 svg image fixes
+- FIX #3474: Make negative scaleFactor reverse middle arrow correctly 
+- FIX #3464: Fix handling of space before huge word in label text
+- FIX #3467: Adjust for-in loops so they can deal with added properties in Array and Object prototype 
+- FEAT #3412: Add endpoint 'bar' to Network
+- FIX #3403: Fixes sorting on Layout, refactoring
+- FIX #3421: Added default sizes for nodes without labels
+- FEAT #3418: Added new Hexagon shape in the Network
+- FEAT #3368: Cluster node handling due to dynamic data change
+- FIX #3395: Allow for multiline titles
+- FIX #3367: Network Clustering fixes on usage joinCondition for clusterOutliers()
+- FIX #3350: Fix setting of edge color options via Network.setOptions()
+- FEAT #3348: Add edge styles support for DOT lib
+- FIX #2839: Re-words documentation to reflect symmetrical input/output of get() when passed multiple ids
+- FIX #3316: Updates network documentation to account for edge
+- FIX  #1218, #1291, #1315: Dynamically adjust clustering when data changes
+- FIX #2311: Block recalculation of level in LayoutEngine._determineLevelsDirected()
+- FIX #3280: Cleanup mergeOptions() and fix missing ref on globalOptions in mergeOptions()
+- FEAT #3131: Added dragStart event for adding edges
+- FIX #3171 and #3185: Fix infinite loop on drawing of large labels
+- FIX #3220: Update hierarchy when node level changes
+- FIX #3245: Multiple base edges in clustered edge
+- FEAT #1222: Add pointer data to hover events
+- REFA #3106: Refactoring and unit testing of Validator module
+- REFA #3227: Refactor LayoutEngine for further work
+- FIX #3164: make 'hidden' and 'clustered' play nice together
+- FIX #2579: Allow DOM elements for node titles
+- FIX #2856: Fix manipulation examples for Network
+
+### Graph2D
+- FIX #1852: Correct documentation for graph2d’s moveTo function
+
+### Graph3D
+- FIX #3467: Adjust for-in loops so they can deal with added properties in Array and Object prototypes
+- FEAT #3099: Add option definitions and validation to Graph3d
+- REFA #3159: move Filter into DataGroup
+- FEAT #3255: Add unit tests for Graph3D issue
+- FIX #3251: Graph3d put guards before unsubscription in DataGroup
+- FIX #3255: Fix missing reference to Graph3D instance in DataGroup
+
+### Timeline
+- FEAT #3529: On timeline loaded
+- FEAT #3505: Drag object in to item
+- FEAT #3050: Allow disabling of RangeItem limitSize
+- FIX #3475: Item Redraw Performance - Bug Fix
+- FIX #3504: Fixing a bug with the timing of the final setting of the vertical scroll position
+- FIX #3509: Added describe sections to PointItem unit tests
+- FIX #2851: Vertical focus
+- FEAT #620: Subgroup stacking
+- FIX #3475: Improve Item redraw and initial draw performance 
+- FIX #3409: Group redraw performance
+- FEAT #3428: Adds locale for Chinese (cn)
+- FIX #3405: fix orientation option
+- FIX #3360: Add performance tips to timeline docs
+- FIX #3378: Add item with ctrlKey/metaKey when dagging on a selected item
+- FIX #3126: Nested groups order logic
+- FIX #3246: Fix issue when showMajorLabels == false is used with a weekly scale and weekly scale minor label fix
+- FIX #3342: Bug fix for null parent
+- FIX #2123: Disable the default handling of the pinch event when handling it
+- FIX #3169: add parenthesis around ternary
+- FIX #3249: Only draw non-visible items once when they are loaded, instead of continuously every frame
+- FEAT #3162: Bidirectional scrolling in timeline - make horizontalScroll and verticalScroll work together
+
+
+## 2017-07-01, version 4.20.1
+
+### General
+- Added Release checklist 
+- Added collapsible items for objects in graph3d doc
+
+### Network
+- FIX #3203: Set dimensions properly of images on initialization
+- FIX #3170: Refactoring of Node Drawing 
+- FIX #3108: Reverse nodes returned with 'from' and 'to' directions
+- FIX #3122: Refactored line drawing for Bezier edges
+- FIX #3121: Refactoring of `BezierEdgeStatic._getViaCoordinates()` 
+- FIX #3088: Consolidate code for determining the pixel ratio
+- FIX #3036: Smooth type 'dynamic' adjusted for node-specific option in hierarchical
+- FIX #1105: Fix usage of clustering with hierarchical networks
+- FIX #3133: Protect Network from zero and negative mass values
+- FIX #3163: Prevent crashes from invalid id's in `Clustering.findNode()`
+- FIX #3106: Ensure start and end of stabilization progress events is sent
+- FIX #3015: Properly handle newline escape sequences in strings for DOT
+- FIX: Refactoring of LayoutEngine (#3110)
+- FIX #2990: Edge labels turn bold on select and hover
+- FIX #2959: Changed order of (de)select events for network
+- FIX #3091: Added param 'direction' to Network.getConnectedNodes()
+- FIX #3085: Add prefix  to cancelAnimationFrame()
+
+### Graph3D
+- FIX #3198: Small fix on ref usage in DataGroup
+- FIX #2804: Add data group class to Graph3d
+
+### Timeline
+- FIX #3172: Fix stacking when setting option
+- FIX #3183: Fixes a race condition that set an item's group to be set to undefined
+- FEAT #3154: Caching to Range getMillisecondsPerPixel function
+- FIX #3105: Adjusting timeline TimeStep.roundToMinor
+- FEAT #3107: Allow overriding `align` per item
+
+## 2017-05-21, version 4.20.0
+
+### General
+
+- FIX #2934: Replacing all ES6 imports with CJS require calls (#3063)
+- Add command line options to mocha for running tests (#3064)
+- Added documentation on how labels are used (#2873)
+- FIX: Fix typo in PR template (#2908)
+- FIX #2912: updated moment.js (#2925)
+- Added @wimrijnders to the support team (#2886)
+
+### Network
+
+- FIX: Fixes for loading images into image nodes (#2964)
+- FIX #3025: Added check on mission var 'options', refactoring. (#3055)
+- FIX #3057: Use get() to get data from DataSet/View instead of directly accessing member \_data. (#3069)
+- FIX #3065: Avoid overriding standard context method ellipse() (#3072)
+- FIX #2922: bold label for selected ShapeBase classes (#2924)
+- FIX #2952: Pre-render node images for interpolation (#3010)
+- FIX #1735: Fix for exploding directed network, first working version; refactored hierarchical state in LayoutEngine.(#3017)
+- Refactoring of Label.propagateFonts() (#3052)
+- FIX #2894: Set CircleImageBase.imageObjAlt always when options change (#3053)
+- FIX #3047: Label.getFormattingValues() fix option fallback to main font for mod-fonts (#3054)
+- FIX #2938: Fix handling of node id's in saveAndLoad example (#2943)
+- FIX: Refactoring in Canvas.js (#3030)
+- FIX #2968: Fix placement label for dot shape (#3018)
+- FIX #2994: select edge with id zero (#2996)
+- FIX #1847, #2436: Network: use separate refresh indicator in NodeBase, instead of width… (#2885)
+- Fix #2914: Use option edges.chosen if present in global options (#2917)
+- FIX #2940: Gephi consolidate double assignment of node title (#2962)
+- FIX 2936: Fix check for nodes not present in EdgesHandler (#2963)
+- FEAT: Reduce the time-complexity of the network initial positioning (#2759)
+
+### Timeline / Graph2D
+
+- FEAT: Add support for multiple class names in utils add/remove class methods (#3079)
+- FEAT: Adds 'showTooltips' option to override popups displayed for items with titles (#3046)
+- FIX #2818: LineGraph: Add an existingItemsMap to check if items are new or not before skipping (#3075)
+- FEAT #2835: Improve timeline stack performance (#2848, #3078)
+- FIX #3032: mouseup and mousedown events (#3059)
+- FIX #2421: Fix click and doubleclick events on items (#2988)
+- FEAT #1405, #1715, #3002: Implementation of a week scale feature (#3009)
+- FIX #397: Eliminate repeatedly fired `rangechanged` events on mousewheel (#2989)
+- FIX #2939: Add check for parent existence when changing group in Item.setData (#2985)
+- FIX #2877: Add check for empty groupIds array and get full list from data set (#2986)
+- FIX #2614: Timeline docs border overlaps (#2992)
+- FIX: Doubleclick add (#2987)
+- FIX #2679: Cannot read property 'hasOwnProperty' of null (#2973)
+- FEAT #2863: Drag and drop custom fields (#2872)
+- FEAT #2834: Control over the drop event (#2974)
+- FIX #2918: Remove usages of elementsCensor (#2947)
+- FEAT #2948: Rolling mode offset (#2950)
+- FEAT #2805: Add callback functions to moveTo, zoomIn, zoomOut and setWindow (#2870)
+- FIX: Do not corrupt class names at high zoom levels (#2909)
+- FIX #2888: Fix error in class names (#2911)
+- FIX #2835: Visible items bug (#2878)
+
+### Graph3D
+
+- FEAT: Configurable minimum and maximum sizes for dot-size graphs (#2849)
+
+
+## 2017-03-19, version 4.19.1
+
+### General
+
+* FIX: #2685 Fixed babel dependencies (#2875)
+
+### Timeline / Graph2D
+
+* FIX #2809: Fix docs typo in "showNested" (#2879)
+* FIX #2594: Fixes for removing and adding items to subgroups (#2821)
+* FIX: Allow nested groups to be removed (#2852)
+
+
+## 2017-03-18, version 4.19.0
+
+### General
+
+- FIX: Fix eslint problem on Travis. (#2744)
+- added support for eslint (#2695)
+- Trivial typo fix in how_to_help doc. (#2714)
+- add link to a mentioned example (#2709)
+- FEAT: use babel preset2015 for custom builds (#2678)
+- FIX: use babel version compatible with webpack@1.14 (#2693)
+- FEAT: run mocha tests in travis ci (#2687)
+- Add note that PRs should be submitted against the `develop` branch (#2623)
+- FIX: Fixes instanceof Object statements for objects from other windows and iFrames. (#2631)
+- removed google-analytics from all examples (#2670)
+- do not ignore test folder (#2648)
+- updated dependencies and devDependencies (#2649)
+- general improvements (#2652)
+
+### Network
+
+- FEAT: Improve the performance of the network layout engine (#2729)
+- FEAT: Allow for image nodes to have a selected or broken image (#2601)
+
+### Timeline / Graph2D
+
+- FIX #2842: Prevent redirect to blank after drag and drop in FF (#2871)
+- FIX #2810: Nested groups do not use "groupOrder" (#2817)
+- FIX #2795: fix date for custom format function (#2826)
+- FIX #2689: Add animation options for zoomIn/zoomOut funtions (#2830)
+- FIX #2800: Removed all "Object.assign" from examples (#2829)
+- FIX #2725: Background items positioning when orientation: top (#2831)
+- FEAT: Added data as argument to the template function (#2802)
+- FIX #2827: Update "progress bar" example to reflect values (#2828)
+- FIX #2672: Item events original event (#2704)
+- FIX #2696: Update serialization example to use ISOString dates (#2789)
+- FIX #2790: Update examples to use ISOString format (#2791)
+- FEAT: Added support to supply an end-time to bar charts to have them scale (#2760)
+- FIX #1982, #1417: Modify redraw logic to treat scroll as needing restack (#2774)
+- FEAT: Initial tests for timeline ItemSet (#2750)
+- FIX #2720: Problems with option editable (#2743, #2796, #2806)
+- FIX: Range.js "event" is undeclared (#2749)
+- FEAT: added new locales for french and espanol (#2723)
+- FIX: fixes timestep next issue (#2732)
+- FEAT: #2647 Dynamic rolling mode option (#2705)
+- FIX #2679: TypeError: Cannot read property 'hasOwnProperty' of null (#2735)
+- Add initial tests for Timeline PointItem (#2716)
+- FIX #778: Tooltip does not work with background items in timeline (#2703)
+- FIX #2598: Flickering onUpdateTimeTooltip (#2702)
+- FEAT: refactor tooltip to only use one dom-element (#2662)
+- FEAT: Change setCustomTimeTitle title parameter to be a string or a function (#2611)
+
+### Graph3D
+
+- FEAT #2769: Graph3d tooltip styling (#2780)
+- FEAT #2540: Adjusted graph3d doc for autoscaling (#2812)
+- FIX #2536: 3d bar graph data array unsorted (#2803)
+- FEAT: Added showX(YZ)Axis options to Graph3d (#2686)
+
+
+## 2017-01-29, version 4.18.1
+
+### General
+
+- updated dependencies
+- FIX: moved babel plugins from devDependencies to dependencies (#2629)
+
+### Network
+
+- FIX #2604: Handle label composition for long words (#2650)
+- FIX #2640: Network manipulation styles together with Bootstrap styles (#2654)
+- FIX #2494: Fix tree collision in hierarchical layout (#2625)
+- FIX #2589: Vertically center label in network circle node (#2593)
+- FIX #2591: Self reference edge should now appear in all cases (#2595)
+- FIX #2613: Fixed return value for zoom in/out callback (#2615)
+- FIX #2609: Values should be passed to check values.borderDashes (#2599)
+
+### Timeline / Graph2D
+
+- FIX: Fixed htmlContents example (#2651)
+- FIX #2590: Min zoom bug (#2646)
+- FIX #2597: Zoom while dragging (#2645)
+- FIX: Minor cleanups in Timeline Range. (#2633)
+- FIX #2458: Allow graph2D options to be undefined (#2634)
+- FIX: Fix typo (#2622)
+- FIX #2585: Fixed React example  (#2587)
+
+
 ## 2017-01-15, version 4.18.0
 
 ### General

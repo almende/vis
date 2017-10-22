@@ -11,7 +11,7 @@
 
   <script src="../../../dist/vis.js"></script>
   <link href="../../../dist/vis-timeline-graph2d.min.css" rel="stylesheet" type="text/css" />
-  <script src="../../googleAnalytics.js"></script>
+  
 </head>
 <body>
   <p>
@@ -34,16 +34,19 @@
 
     var container = document.getElementById('visualization');
     var options = {
-      editable: true
+      editable: true,
+      onInitialDrawComplete: function() { logEvent('Timeline initial draw completed', {}); },
     };
     var timeline = new vis.Timeline(container, items, options);
 
     timeline.on('rangechange', function (properties) {
       logEvent('rangechange', properties);
     });
+
     timeline.on('rangechanged', function (properties) {
       logEvent('rangechanged', properties);
     });
+
     timeline.on('select', function (properties) {
       logEvent('select', properties);
     });
@@ -52,6 +55,7 @@
       logEvent('itemover', properties);
       setHoveredItem(properties.item);
     });
+    
     timeline.on('itemout', function (properties) {
       logEvent('itemout', properties);
       setHoveredItem('none');
@@ -69,6 +73,14 @@
       logEvent('contextmenu', properties);
     });
 
+    timeline.on('mouseDown', function (properties) {
+        logEvent('mouseDown', properties);
+    });
+
+    timeline.on('mouseUp', function (properties) {
+        logEvent('mouseUp', properties);
+    });
+
     // other possible events:
 
     // timeline.on('mouseOver', function (properties) {
@@ -83,11 +95,23 @@
       logEvent(event, properties);
     });
 
+    function stringifyObject (object) {
+      if (!object) return;
+      var replacer = function(key, value) {
+        if (value && value.tagName) {
+          return "DOM Element";
+        } else {
+          return value;
+        }
+      }
+      return JSON.stringify(object, replacer)
+    }
+
     function logEvent(event, properties) {
       var log = document.getElementById('log');
       var msg = document.createElement('div');
       msg.innerHTML = 'event=' + JSON.stringify(event) + ', ' +
-          'properties=' + JSON.stringify(properties);
+          'properties=' + stringifyObject(properties);
       log.firstChild ? log.insertBefore(msg, log.firstChild) : log.appendChild(msg);
     }
 
