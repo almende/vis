@@ -252,6 +252,44 @@ network.setOptions(options);
             <td><code>true</code></td>
             <td>When false, the edge stops at the arrow. This can be useful if you have thick lines and you want the arrow to end in a point. Middle arrows are not affected by this.</td>
         </tr>
+        <tr class='toggle collapsible' onclick="toggleTable('optionTable','background', this);">
+            <td><span parent="background" class="right-caret"></span> background</td>
+            <td>Object or Boolean</td>
+            <td><code>Object</code></td>
+            <td>When true, a background will be under the edge using the default settings. This can be further defined by supplying
+              an object.
+            </td>
+          </tr>
+          <tr parent="background" class="hidden">
+            <td class="indent">background.enabled</td>
+            <td>Boolean</td>
+            <td><code>false</code></td>
+            <td>Toggle the display of backgrounds. If this option is not defined, it is set to true if any of the properties
+              in this object are defined.
+            </td>
+          </tr>
+          <tr parent="background" class="hidden">
+            <td class="indent">background.color</td>
+            <td>String</td>
+            <td><code>'rgba(111,111,111,0.5)'</code></td>
+            <td>The color size of the background as a string. Supported formats are 'rgb(255,255,255)', 'rgba(255,255,255,1)' and '#FFFFFF'.</td>
+          </tr>
+          <tr parent="background" class="hidden">
+            <td class="indent">background.size</td>
+            <td>Number</td>
+            <td><code>10</code></td>
+            <td>The blur size of the background.</td>
+          </tr>
+          <tr parent="background" class="hidden">
+            <td class="indent">background.dashes</td>
+            <td>Array or Boolean</td>
+            <td><code>false</code></td>
+            <td>When true, the background will be drawn as a dashed line. You can customize the dashes by supplying an Array.
+              Array formart: Array of numbers, gap length, dash length, gap length, dash length, ... etc. The array is
+              repeated until the distance is filled.
+              <i>When using dashed lines in IE versions older than 11, the line will be drawn straight, not smooth</i>.
+            </td>
+        </tr>
         <tr class='toggle collapsible' onclick="toggleTable('optionTable','chosen', this);">
             <td><span parent="chosen" class="right-caret"></span> chosen</td>
             <td>Object or Boolean</td>
