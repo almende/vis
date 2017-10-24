@@ -132,6 +132,7 @@ var options = {
       size: 14, // px
       face: 'arial',
       background: 'none',
+      padding: 0, // px
       strokeWidth: 0, // px
       strokeColor: '#ffffff',
       align: 'center',
@@ -497,6 +498,12 @@ network.setOptions(options);
             <td><code>'center'</code></td>
             <td>This can be set to 'left' to make the label left-aligned. Otherwise,
                 defaults to 'center'.</td>
+        </tr>
+        <tr parent="font" class="hidden">
+            <td class="indent">font.padding</td>
+            <td>Number</td>
+            <td><code>0</code></td>
+            <td>Adds padding to the drawn background around the label. Only used when font.background is <code>undefined</code> but a <b>color string</b>.</td>
         </tr>
         <tr parent="font" class="hidden">
             <td class="indent">font.vadjust</td>
