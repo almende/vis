@@ -94,39 +94,33 @@ function overrideCreateElement(window) {
 /**
  * Initialize the mock, jsdom and jsdom_global for unit test usage.
  *
- * In particular, this takes care of a 'helpful' message about support of `getContext()`, which in
- * practice is a complete eyesore. It's not a problem in our case, because right here we're using
- * our own canvas mock to deal with it.
- * The unit test run fine with or without this message, it just gets in the way.
+ * Suppresses a warning from `jsdom` on usage of `getContext()`. A mock definition is added for 
+ * it, so the message is not relevant.
  *
  * @param {string} [html='']  html definitions which should be added to the jsdom definition
  * @returns {function}  function to call in after(), to clean up for `jsdom_global`
  */
 function mockify(html = '') {
-  // Start of message that we want to override.
+  // Start of message that we want to suppress.
   let msg = 'Error: Not implemented: HTMLCanvasElement.prototype.getContext'
     + ' (without installing the canvas npm package)';
 
-  // jsdom uses a virtual console to output its messages. The default virtual console is
-  // overridden here so that we can (selectively) suppress output.
+  // Override default virtual console of jsdom 
   const virtualConsole = new jsdom.VirtualConsole();
 
-  // This defines a simple 'mock' console output.
-  // Only 'error' is overridden which for current purposes is fine. The other calls we'll deal
-  // with when they crash, in the event that they get used.
+  // Set up a simple 'mock' console output. Only 'error' needs to be overridden
   let myConsole = {
     error: (msg) => {
       if (msg.indexOf(msg) === 0) {
         //console.error('all is well');
       } else {
-        // All other messages we pass through
+        // All other messages pass through
         console.error(msg);
       }
     }
   };
 
-  // Couldn't get the [event handlers](https://github.com/tmpvar/jsdom/#virtual-consoles)
-  // for `jsdom` to work, so using the global catch instead.
+  // Using the global catch instead of specific event handler, because I couldn't get them to work
 	virtualConsole.sendTo(myConsole);
 
   let cleanupFunction = jsdom_global(
