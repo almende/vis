@@ -26,7 +26,7 @@ describe('Configurator', function () {
 
     it('sets extends options with default options', function () {
       var config = new Configurator();
-      assert.equal(JSON.stringify(config.options), JSON.stringify(config.defaultOptions));
+      assert.deepEqual(config.options, config.defaultOptions);
     });
   });
 
@@ -35,7 +35,7 @@ describe('Configurator', function () {
     it('with undefined will not modify defaults', function () {
       var config = new Configurator(Network, this.container);
       config.setOptions();
-      assert.equal(JSON.stringify(config.options), JSON.stringify(config.defaultOptions));
+      assert.deepEqual(config.options, config.defaultOptions);
     });
 
     it('with undefined will set enabled to false', function () {

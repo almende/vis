@@ -635,49 +635,62 @@ describe('mergeOptions', function () {
       assert.throws(function () {util.convert({}, 'UnknownType');}, Error, null);
     });
   });
+
   describe('getType', function () {
+
     it('of object null is null', function () {
       assert.equal(util.getType(null), 'null');
     });
+
     it('of object Boolean is Boolean', function () {
       function Tester () {}
       Tester.prototype = Object.create(Boolean.prototype);
       assert.equal(util.getType(new Tester('true')), 'Boolean');
     });
+
     it('of object Number is Number', function () {
       function Tester () {}
       Tester.prototype = Object.create(Number.prototype);
       assert.equal(util.getType(new Tester(1)), 'Number');
     });
+
     it('of object String is String', function () {
       function Tester () {}
       Tester.prototype = Object.create(String.prototype);
       assert.equal(util.getType(new Tester('stringy!')), 'String');
     });
+
     it('of object Array is Array', function () {
       assert.equal(util.getType(new Array([])), 'Array');
     });
+
     it('of object Date is Date', function () {
       assert.equal(util.getType(new Date()), 'Date');
     });
+
     it('of object any other type is Object', function () {
       assert.equal(util.getType({}), 'Object');
     });
+
     it('of number is Number', function () {
       assert.equal(util.getType(1), 'Number');
     });
+
     it('of boolean is Boolean', function () {
       assert.equal(util.getType(true), 'Boolean');
     });
+
     it('of string is String', function () {
       assert.equal(util.getType('string'), 'String');
     });
+
     it('of undefined is undefined', function () {
       assert.equal(util.getType(), 'undefined');
     });
   });
 
   describe('easingFunctions', function () {
+
     it('take a number and output a number', function () {
       for (var key in util.easingFunctions) {
         if (util.easingFunctions.hasOwnProperty(key)) {
@@ -689,30 +702,38 @@ describe('mergeOptions', function () {
   });
 
   describe('getScrollBarWidth', function () {
+
     beforeEach(function() {
       this.jsdom_global = jsdom_global();
     });
+
     afterEach(function() {
       this.jsdom_global();
     });
+
     it('returns 0 when there is no content', function () {
       assert.equal(util.getScrollBarWidth(), 0);
     });
   });
 
   describe('equalArray', function () {
+
     it('arrays of different lengths are not equal', function () {
       assert.equal(util.equalArray([1, 2, 3], [1, 2]), false)
     });
+
     it('arrays with different content are not equal', function () {
       assert.equal(util.equalArray([1, 2, 3], [3, 2, 1]), false)
     });
+
     it('same content arrays are equal', function () {
       assert(util.equalArray([1, 2, 3], [1, 2, 3]))
     });
+
     it('empty arrays are equal', function () {
       assert(util.equalArray([], []))
     });
+
     it('the same array is equal', function () {
       var arr = [1, 2, 3];
       assert(util.equalArray(arr, arr))
@@ -720,96 +741,121 @@ describe('mergeOptions', function () {
   });
 
   describe('asBoolean', function () {
+
     it('resolves value from a function', function () {
       assert(util.option.asBoolean(function () {return true}, false));
     });
+
     it('returns default value for null', function () {
       assert(util.option.asBoolean(null, true));
     });
+
     it('returns true for other types', function () {
       assert(util.option.asBoolean('should be true', false));
     });
+
     it('returns null for undefined', function () {
       assert.equal(util.option.asBoolean(), null);
     });
   });
 
   describe('asNumber', function () {
+
     it('resolves value from a function', function () {
       assert.equal(util.option.asNumber(function () {return 777}, 13), 777);
     });
+
     it('returns default value for null', function () {
       assert.equal(util.option.asNumber(null, 13), 13);
     });
+
     it('returns number for other types', function () {
       assert.equal(util.option.asNumber('777', 13), 777);
     });
+
     it('returns default for NaN', function () {
       assert.equal(util.option.asNumber(NaN, 13), 13);
     });
+
     it('returns null for undefined', function () {
       assert.equal(util.option.asNumber(), null);
     });
   });
 
   describe('asString', function () {
+
     it('resolves value from a function', function () {
       assert.equal(util.option.asString(function () {return 'entered'}, 'default'), 'entered');
     });
+
     it('returns default value for null', function () {
       assert.equal(util.option.asString(null, 'default'), 'default');
     });
+
     it('returns string for other types', function () {
       assert.equal(util.option.asString(777, 'default'), '777');
     });
+
     it('returns default for undefined', function () {
       assert.equal(util.option.asString(undefined, 'default'), 'default');
     });
+
     it('returns null for undefined', function () {
       assert.equal(util.option.asString(), null);
     });
   });
 
   describe('asSize', function () {
+
     it('resolves value from a function', function () {
       assert.equal(util.option.asSize(function () {return '100px'}, '50px'), '100px');
     });
+
     it('returns default value for null', function () {
       assert.equal(util.option.asSize(null, '50px'), '50px');
     });
+
     it('returns string with px for other number', function () {
       assert.equal(util.option.asSize(100, '50px'), '100px');
     });
+
     it('returns default for undefined', function () {
       assert.equal(util.option.asSize(undefined, '50px'), '50px');
     });
+
     it('returns null for undefined', function () {
       assert.equal(util.option.asSize(), null);
     });
   });
 
   describe('asElement', function () {
+
     before(function() {
       this.jsdom_global = jsdom_global();
       this.value  = document.createElement("div");
       this.defaultValue  = document.createElement("div");
     });
+
     it('resolves value from a function', function () {
       var me = this;
       assert.equal(util.option.asElement(function () {return me.value}, this.defaultValue), this.value);
     });
+
     it('returns Element', function () {
       assert.equal(util.option.asElement(this.value, this.defaultValue), this.value);
     });
+
     it('returns default value for null', function () {
       assert.equal(util.option.asElement(null, this.defaultValue), this.defaultValue);
     });
+
     it('returns null for undefined', function () {
       assert.equal(util.option.asElement(), null);
     });
   });
 
   describe('binarySearchValue', function () {
+
     it('Finds center target on odd sized array', function () {
       assert.equal(
         util.binarySearchValue(
@@ -820,6 +866,7 @@ describe('mergeOptions', function () {
         1
       );
     });
+
     it('Finds target on odd sized array', function () {
       assert.equal(
         util.binarySearchValue(
@@ -830,6 +877,7 @@ describe('mergeOptions', function () {
         2
       );
     });
+
     it('Cannot find target', function () {
       assert.equal(
         util.binarySearchValue(

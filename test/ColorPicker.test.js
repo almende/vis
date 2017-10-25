@@ -59,6 +59,11 @@ describe('ColorPicker', function () {
     it('prevents non-functions from being set as callback', function () {
       var colorPicker = new ColorPicker();
       assert.throws(function () {colorPicker.setUpdateCallback(null);}, Error, null);
+      assert.throws(function () {colorPicker.setUpdateCallback(undefined);}, Error, null);
+      assert.throws(function () {colorPicker.setUpdateCallback([1, 2, 3]);}, Error, null);
+      assert.throws(function () {colorPicker.setUpdateCallback({a: 42});}, Error, null);
+      assert.throws(function () {colorPicker.setUpdateCallback(42);}, Error, null);
+      assert.throws(function () {colorPicker.setUpdateCallback('meow');}, Error, null);
     });
   });
 
@@ -67,6 +72,11 @@ describe('ColorPicker', function () {
     it('prevents non-functions from being set as callback', function () {
       var colorPicker = new ColorPicker();
       assert.throws(function () {colorPicker.setCloseCallback(null);}, Error, null);
+      assert.throws(function () {colorPicker.setCloseCallback(undefined);}, Error, null);
+      assert.throws(function () {colorPicker.setCloseCallback([1, 2, 3]);}, Error, null);
+      assert.throws(function () {colorPicker.setCloseCallback({a: 42});}, Error, null);
+      assert.throws(function () {colorPicker.setCloseCallback(42);}, Error, null);
+      assert.throws(function () {colorPicker.setCloseCallback('meow');}, Error, null);
     });
   });
 
@@ -75,19 +85,29 @@ describe('ColorPicker', function () {
     it('runs updateCallback when applied', function () {
       var callback = sinon.spy();
       var colorPicker = new ColorPicker();
+      var colorBeforeHide = colorPicker.color;
       colorPicker.setUpdateCallback(callback);
       colorPicker.applied = true;
       colorPicker._hide();
       assert.equal(callback.callCount, 1);
+      assert.deepEqual(colorBeforeHide, colorPicker.previousColor);
     });
 
     it('does not run updateCallback when not applied', function () {
       var callback = sinon.spy();
       var colorPicker = new ColorPicker();
+      var colorBeforeHide = colorPicker.color;
       colorPicker.setUpdateCallback(callback);
       colorPicker.applied = false;
       colorPicker._hide();
       assert.equal(callback.callCount, 0);
+      assert.deepEqual(colorBeforeHide, colorPicker.previousColor);
+    });
+
+    it('does not set previous color when storePrevious is false', function () {
+      var colorPicker = new ColorPicker();
+      colorPicker._hide(false);
+      assert.deepEqual(colorPicker.previousColor, undefined);
     });
   });
 
@@ -114,9 +134,14 @@ describe('ColorPicker', function () {
       assert.deepEqual(colorPicker.color, { r: 255, g: 255, b: 255, a: 1 });
     });
 
-    it('throws error when color is null', function () {
+    it('throws error when color is a bad value', function () {
       var colorPicker = new ColorPicker();
       assert.throws(function () {colorPicker.setColor(null);}, Error, null);
+      assert.throws(function () {colorPicker.setColor(undefined);}, Error, null);
+      assert.throws(function () {colorPicker.setColor([1, 2, 3]);}, Error, null);
+      assert.throws(function () {colorPicker.setColor({a: 42});}, Error, null);
+      assert.throws(function () {colorPicker.setColor(42);}, Error, null);
+      assert.throws(function () {colorPicker.setColor('meow');}, Error, null);
     });
 
     it('handles html color string', function () {
@@ -165,6 +190,7 @@ describe('ColorPicker', function () {
       colorPicker.show();
       assert(callback.called);
       assert(callback.calledOnce);
+      assert(colorPicker.generated)
     });
 
     it('resets applied state and frame display style to `block`', function () {
@@ -172,8 +198,10 @@ describe('ColorPicker', function () {
       colorPicker.show();
       assert.equal(colorPicker.applied, false);
       assert.equal(colorPicker.frame.style.display, 'block');
+      assert(colorPicker.generated)
     });
   });
+
   describe('_save', function () {
 
     it('triggers updateCallback', function () {

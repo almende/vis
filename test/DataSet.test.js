@@ -418,7 +418,7 @@ describe('DataSet', function () {
       assert.equal(minValue, null);
     });
 
-    it('ignores undefined values', function () {
+    it('handles undefined values', function () {
       var dataset = new DataSet([{id: undefined}, {id: 1}, {id: 2}, {id: 3}]);
       var minValue = dataset.min('id');
       assert.deepEqual(minValue, {id: 1});
@@ -429,14 +429,9 @@ describe('DataSet', function () {
       var minValue = dataset.min('id');
       assert.deepEqual(minValue, {id: 10000000000000001});
     });
-
-    xit('handles big values - but not really, because of javascript number handling', function () {
-      var dataset = new DataSet([{id: -10000000000000001}, {id: -10000000000000002}, {id: -10000000000000003}]);
-      var minValue = dataset.min('id');
-      assert.deepEqual(minValue, {id: -10000000000000003});
-      assert.equal('' + minValue.id, '-10000000000000003')
-    });
   });
+
+
   describe('max', function () {
 
     it('finds the maximum value', function () {
@@ -451,23 +446,10 @@ describe('DataSet', function () {
       assert.equal(maxValue, null);
     });
 
-    it('ignores undefined values', function () {
+    it('handles undefined values', function () {
       var dataset = new DataSet([{id: undefined}, {id: 1}, {id: 2}, {id: 3}]);
       var maxValue = dataset.max('id');
       assert.deepEqual(maxValue, {id: 3});
-    });
-
-    xit('handles big values - but not really, because of javascript number handling', function () {
-      var dataset = new DataSet([{id: 10000000000000001}, {id: 10000000000000002}, {id: 10000000000000003}]);
-      var maxValue = dataset.max('id');
-      assert.deepEqual(maxValue, {id: 10000000000000003});
-      assert.equal('' + maxValue.id, '10000000000000003')
-    });
-
-    xit('handles negative values - This does not work because of javascript', function () {
-      var dataset = new DataSet([{id: -10000000000000001}, {id: -10000000000000002}, {id: -10000000000000003}]);
-      var maxValue = dataset.max('id');
-      assert.deepEqual(maxValue, {id: -10000000000000001});
     });
   });
 
@@ -485,22 +467,16 @@ describe('DataSet', function () {
       assert.deepEqual(distinctValues, []);
     });
 
-    it('ignores undefined values', function () {
+    it('handles undefined values', function () {
       var dataset = new DataSet([{val: undefined}, {val: 1}, {val: 2}, {val: 3}]);
       var distinctValues = dataset.distinct('val');
       assert.deepEqual(distinctValues, [1, 2, 3]);
     });
 
-    xit('handles big values - but not really, because of javascript number handling', function () {
-      var dataset = new DataSet([{val: 10000000000000001}, {val: 10000000000000002}, {val: 10000000000000003}, {val: 10000000000000004}]);
+    it('handles undefined values', function () {
+      var dataset = new DataSet([{val: 1}, {val: 1}, {val: 2}, {val: 3}]);
       var distinctValues = dataset.distinct('val');
-      assert.deepEqual(distinctValues, [ 10000000000000000, 10000000000000002, 10000000000000003, 10000000000000004]);
-    });
-
-    xit('handles negative values - This does not work because of javascript', function () {
-      var dataset = new DataSet([{val: -10000000000000001}, {val: -10000000000000002}, {val: -10000000000000003}, {val: -10000000000000004}]);
-      var distinctValues = dataset.distinct('val');
-      assert.deepEqual(distinctValues, [ -10000000000000000, -10000000000000002, -10000000000000003, -10000000000000004]);
+      assert.deepEqual(distinctValues, [1, 2, 3]);
     });
   });
 
