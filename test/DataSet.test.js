@@ -473,7 +473,7 @@ describe('DataSet', function () {
       assert.deepEqual(distinctValues, [1, 2, 3]);
     });
 
-    it('handles undefined values', function () {
+    it('handles duplicate values', function () {
       var dataset = new DataSet([{val: 1}, {val: 1}, {val: 2}, {val: 3}]);
       var distinctValues = dataset.distinct('val');
       assert.deepEqual(distinctValues, [1, 2, 3]);
