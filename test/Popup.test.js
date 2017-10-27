@@ -136,7 +136,9 @@ describe('Popup', function () {
   describe('destroy', function () {
 
     it('removes frame from container', function () {
+      assert.equal(this.container.children.length, 0);
       var popup = new Popup(this.container);
+      assert.equal(this.container.children.length, 1);
       popup.destroy();
       assert.equal(this.container.children.length, 0);
     });
