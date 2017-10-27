@@ -520,6 +520,15 @@ describe('mergeOptions', function () {
     it('identifies a date string', function () {
       assert.equal(util.isDate(''), false);
     });
+
+    it('identifies non-dates', function () {
+      assert.equal(util.isDate(null), false);
+      assert.equal(util.isDate(undefined), false);
+      assert.equal(util.isDate([1, 2, 3]), false);
+      assert.equal(util.isDate({a: 42}), false);
+      assert.equal(util.isDate(42), false);
+      assert.equal(util.isDate('meow'), false);
+    });
   });
 
   describe('convert', function () {
