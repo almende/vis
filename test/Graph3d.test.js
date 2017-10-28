@@ -11,13 +11,13 @@ var now = new Date();
 
 describe('Graph3d', function () {
   before(function() {
-    //console.log('before!');
-    this.jsdom_global = jsdom_global(
-      "<div id='mygraph'></div>",
-      { skipWindowCheck: true}
-    );
-    canvasMockify(window);
+    this.jsdom_global = canvasMockify("<div id='mygraph'></div>");
     this.container = document.getElementById('mygraph');
+  });
+
+
+  after(function() {
+    this.jsdom_global();
   });
 
 
@@ -60,11 +60,5 @@ describe('Graph3d', function () {
 
     graph.setOptions({ style: 'bar'});  // Call should just work, no exception thrown
     assert.equal(graph.style, BAR_STYLE, "Style not set to expected 'bar'");
-  });
-
-
-  after(function() {
-    //console.log('after!');
-    this.jsdom_global();
   });
 });
