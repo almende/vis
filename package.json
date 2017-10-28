@@ -27,7 +27,7 @@
   "main": "./dist/vis.js",
   "scripts": {
     "test": "nyc mocha --compilers js:babel-core/register",
-    "test-cov": "nyc --reporter=html mocha --compilers js:babel-core/register",
+    "test-cov": "nyc --reporter=lcov mocha --compilers js:babel-core/register",
     "build": "gulp",
     "lint": "gulp lint",
     "watch": "gulp watch",
