@@ -16,7 +16,6 @@ var DataSet = require('../lib/DataSet');
 var Network = require('../lib/network/Network');
 var stdout = require('test-console').stdout;
 var Validator = require("./../lib/shared/Validator").default;
-var jsdom_global = require('jsdom-global');
 var canvasMockify = require('./canvas-mock');
 var {allOptions, configureOptions} = require('./../lib/network/options.js');
 //var {printStyle} = require('./../lib/shared/Validator');
@@ -222,31 +221,16 @@ function checkFontProperties(fontItem, checkStrict = true) {
 }
 
 
-
-
-
 describe('Network', function () {
 
   before(function() {
-    this.jsdom_global = jsdom_global(
-      "<div id='mynetwork'></div>",
-      { skipWindowCheck: true}
-    );
-    canvasMockify(window);
+    this.jsdom_global = canvasMockify("<div id='mynetwork'></div>");
     this.container = document.getElementById('mynetwork');
   });
 
 
   after(function() {
-    try {
-      this.jsdom_global();
-    } catch(e) {
-      if (e.message() === 'window is undefined') {
-        console.warning("'" + e.message() + "' happened again");
-      } else {
-        throw e;
-      }
-    }
+    this.jsdom_global();
   });
 
 
