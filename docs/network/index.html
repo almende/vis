@@ -552,51 +552,10 @@ var locales = {
                     The options object is described for <code>clusterByConnection</code> and does the same here.
                 </td>
             </tr>
-            <tr class="collapsible toggle" onclick="toggleTable('methodTable','clusterOutliers', this);">
-                <td colspan="2"><span parent="clusterOutliers" class="right-caret" id="method_clusterOutliers"></span> clusterOutliers(
-                    <code>[Object options]</code>)
-            </tr>
-            <tr class="hidden" parent="clusterOutliers">
-                <td class="midMethods">Returns: none</td>
-                <td>This method will cluster all nodes with 1 edge with their respective connected node.
-                    The options object is explained in full <a data-scroll="" data-options="{ &quot;easing&quot;: &quot;easeInCubic&quot; }" href="#optionsObject">below</a>.
-                </td>
-            </tr>
 
-<?js
-  var comment = self.getComment("Network#findNode");
-?>
-            <tr class="collapsible toggle" onclick="toggleTable('methodTable','findNodeNew', this);">
-                <td colspan="2"><span parent="findNode" class="right-caret" id="method_findNodeNew"></span> 
-                    <?js= comment.prototype ?>  <b>This comes from the source!</b>
-            </tr>
-            <tr class="hidden" parent="findNodeNew">
-                <td class="midMethods">Returns: <?js= comment.returns ?></td>
-                <td>
-                   <?js= comment.description ?>
-                </td>
-            </tr>
+<?js= self.partial('tmpl/renderMethod.tmpl', "Network#clusterOutliers") ?>
+<?js= self.partial('tmpl/renderMethod.tmpl', "Network#findNode") ?>
 
-            <tr class="collapsible toggle" onclick="toggleTable('methodTable','findNode', this);">
-                <td colspan="2"><span parent="findNode" class="right-caret" id="method_findNode"></span> findNode(
-                    <code>String/Number nodeId</code>)
-            </tr>
-            <tr class="hidden" parent="findNode">
-                <td class="midMethods">Returns: Array</td>
-                <td>Nodes can be in clusters. Clusters can also be in clusters. This function returns and array of
-                    nodeIds showing where the node is.
-
-                    <br><br>
-                    If any nodeId in the chain, especially the first passed in as a parameter, is not present in
-                    the current nodes list, an empty array is returned.
-
-                    <br><br> Example:
-                    cluster 'A' contains cluster 'B',
-                    cluster 'B' contains cluster 'C',
-                    cluster 'C' contains node 'fred'.
-                    <code>network.clustering.findNode('fred')</code> will return <code>['A','B','C','fred']</code>.
-                </td>
-            </tr>
             <tr class="collapsible toggle" onclick="toggleTable('methodTable','getClusteredEdges', this);">
                 <td colspan="2"><span parent="getClusteredEdges" class="right-caret" id="method_getClusteredEdges"></span> getClusteredEdges(
                     <code>String baseEdgeId</code>)
