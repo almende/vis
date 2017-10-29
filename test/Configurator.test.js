@@ -8,11 +8,7 @@ var {allOptions, configureOptions} = require('../lib/network/options.js');
 
 describe('Configurator', function () {
   beforeEach(function() {
-    this.jsdom_global = jsdom_global(
-      "<div id='mynetwork'></div><div id='other'></div>",
-      { skipWindowCheck: true}
-    );
-    canvasMockify(window);
+    this.jsdom_global = canvasMockify("<div id='mynetwork'></div><div id='other'></div>");
     this.container = document.getElementById('mynetwork');
   });
 

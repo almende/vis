@@ -1,6 +1,8 @@
 var assert = require('assert');
 var sinon = require('sinon');
+var jsdom = require('jsdom');
 var jsdom_global = require('jsdom-global');
+
 
 var canvasMockify = require('./canvas-mock');
 var Activator = require('../lib/shared/Activator');
@@ -8,11 +10,7 @@ var Activator = require('../lib/shared/Activator');
 
 describe('Activator', function () {
   beforeEach(function() {
-    this.jsdom_global = jsdom_global(
-      "<div id='mynetwork'></div>",
-      { skipWindowCheck: true}
-    );
-    canvasMockify(window);
+    this.jsdom_global = canvasMockify("<div id='mynetwork'></div>");
     this.container = document.getElementById('mynetwork');
   });
 

@@ -7,11 +7,7 @@ var Popup = require('../lib/shared/Popup').default;
 
 describe('Popup', function () {
   beforeEach(function() {
-    this.jsdom_global = jsdom_global(
-      "<div id='mynetwork'></div>",
-      { skipWindowCheck: true}
-    );
-    canvasMockify(window);
+    this.jsdom_global = canvasMockify("<div id='mynetwork'></div>");
     this.container = document.getElementById('mynetwork');
   });
 
