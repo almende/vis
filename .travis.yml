@@ -11,9 +11,17 @@ addons:
     packages:
       - libgif-dev
       - g++-4.8
+  code_climate:
+    repo_token: 07de009e5f4d0a43c51b18f3443b2fe7ddcf3fea206e75c3a81b1c4030657f69
+cache:
+  directories:
+    - node_modules
 before_script:
   - npm run lint
   - npm install gulp
 script:
   - gulp
-  - npm test
+  - npm run-script test-cov
+after_script:
+  - npm install -g codeclimate-test-reporter
+  - codeclimate-test-reporter < ./coverage/lcov.info
