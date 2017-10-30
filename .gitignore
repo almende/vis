@@ -13,3 +13,4 @@ npm-debug.log
 # temporary files
 .*.sw[op]
 .commits.tmp
+gen/
