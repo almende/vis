@@ -1,5 +1,6 @@
-vis.js
-==================
+# vis.js
+
+[![Join the chat at https://gitter.im/vis-js/Lobby](https://badges.gitter.im/vis-js/Lobby.svg)](https://gitter.im/vis-js/Lobby?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
 <a href="https://github.com/almende/vis/blob/develop/misc/we_need_help.md">
   <img align="right" src="https://raw.githubusercontent.com/almende/vis/master/misc/we_need_help.png">
@@ -21,6 +22,24 @@ The library consists of the following components:
 
 The vis.js library was initially developed by [Almende B.V](http://almende.com).
 
+## Badges
+
+[![NPM](https://nodei.co/npm/vis.png?downloads=true&downloadRank=true)](https://nodei.co/npm/vis/)
+
+[![Dependency Status](https://david-dm.org/almende/vis/status.svg)](https://david-dm.org/almende/vis)
+[![devDependency Status](https://david-dm.org/almende/vis/dev-status.svg)](https://david-dm.org/almende/vis?type=dev)
+
+[![last version on CDNJS](https://img.shields.io/cdnjs/v/vis.svg)](https://cdnjs.com/libraries/vis)
+[![GitHub contributors](https://img.shields.io/github/contributors/almende/vis.svg)](https://github.com/almende/vis/graphs/contributors)
+[![GitHub stars](https://img.shields.io/github/stars/almende/vis.svg)](https://github.com/almende/vis/stargazers)
+
+[![GitHub issues](https://img.shields.io/github/issues/almende/vis.svg)](https://github.com/almende/vis/issues)
+[![Percentage of issues still open](http://isitmaintained.com/badge/open/almende/vis.svg)](http://isitmaintained.com/project/almende/vis "Percentage of issues still open")
+[![Average time to resolve an issue](http://isitmaintained.com/badge/resolution/almende/vis.svg)](http://isitmaintained.com/project/almende/vis "Average time to resolve an issue")
+[![Pending Pull-Requests](http://githubbadges.herokuapp.com/almende/vis/pulls.svg)](https://github.com/almende/vis/pulls)
+
+[![Code Climate](https://codeclimate.com/github/almende/vis/badges/gpa.svg)](https://codeclimate.com/github/almende/vis) 
+
 ## Install
 
 Install via npm:
@@ -35,16 +54,6 @@ Link via cdnjs: http://cdnjs.com
 
 Or download the library from the github project:
 [https://github.com/almende/vis.git](https://github.com/almende/vis.git).
-
-
-### Installing module `canvas`
-
-Module `canvas` is only required if you need to run `vis.js` on `node.js` and require actual output. It is not required for regular usage in a browser.
-
-Currently, the unit tests use a mock object for canvas which has limited but adequate functionality. If `canvas` is installed, that will be used silently in place of the mock object.
-
-The issue with `canvas` is that it has an external dependency to `cairo`. This needs to be installed outside of the regular install as done by `npm`. Please consult [`node-canvas` github page](https://github.com/Automattic/node-canvas/wiki#desktop) for the correct installation procecure your platform
-
 
 ## Load
 
@@ -331,9 +340,6 @@ module: {
 ```
 
 There is also an [demo-project](https://github.com/mojoaxel/vis-webpack-demo) showing the integration of vis.js using webpack.
-
-
-
 
 ## Test
 
