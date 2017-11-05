@@ -6,8 +6,7 @@ var DataAxis = require('../lib/timeline/component/DataAxis');
 
 describe('DataAxis', function () {
   beforeEach(function() {
-    this.jsdom_global = canvasMockify("<div id='mygraph'></div><svg id='svg'></svg>");
-    this.container = document.getElementById('mygraph');
+    this.jsdom_global = canvasMockify("<svg id='svg'></svg>");
     this.svg = this.container = document.getElementById('svg');
     this.body = {
       functions: {},
@@ -19,8 +18,6 @@ describe('DataAxis', function () {
 
   afterEach(function() {
     this.jsdom_global();
-    this.container.remove();
-    this.container = undefined;
     this.svg.remove();
     this.svg = undefined;
   });
