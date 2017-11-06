@@ -54,7 +54,7 @@ describe('Network Label', function() {
       emitter: {
         on: function() {}
       }
-    }
+    };
 
     var nodesHandler = new NodesHandler(body, {}, options, new DummyLayoutEngine() );
     //console.log(JSON.stringify(nodesHandler.options, null, 2));
