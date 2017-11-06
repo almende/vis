@@ -1,4 +1,3 @@
-
 Please make sure to **read the following list** before creating a new issue:
 
 * This issue tracker is not supposed to be used for questions on how to use visjs. It is intended to be used for bug reports and feature requests! In case you face yourself with a usage question, then post your question e.g. on [stackoverflow](https://stackoverflow.com/questions/tagged/vis.js) tagged with "vis.js".
@@ -8,3 +7,6 @@ Please make sure to **read the following list** before creating a new issue:
 * Make sure to mention which browser and OS you are using when creating a bug report.
 * Please provide a minimal code example that demonstrates your issue. We recommend using [jsbin](jsbin.com) for that.
 * Delete this list from the actual issue.
+
+<!-- Love vis? Please consider supporting our collective:
+👉  https://opencollective.com/vis/donate -->
