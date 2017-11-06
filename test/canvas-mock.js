@@ -92,6 +92,29 @@ function overrideCreateElement(window) {
   };
 }
 
+/**
+ * The override is only done if there is no 2D context already present.
+ * This allows for normal running in a browser, and for node.js the usage of 'style'
+ * property on a newly created svg element.
+ *
+ * @param {object} window - current global window object. This can possibly come from module 'jsdom',
+ *                 when running under node.js.
+ * @private
+ */
+function overrideCreateElementNS(window) {
+  var d = window.document;
+  var f = window.document.createElementNS;
+
+  window.document.createElementNS = function(namespaceURI, qualifiedName) {
+    if (namespaceURI === 'http://www.w3.org/2000/svg') {
+      var result = f.call(d, namespaceURI, qualifiedName);
+      if (result.style == undefined) {
+        result.style = {};
+        return result;
+      }
+    }
+  };
+}
 
 /**
  * Initialize the mock, jsdom and jsdom_global for unit test usage.
@@ -131,6 +154,8 @@ function mockify(html = '') {
   );
 
   overrideCreateElement(window);   // The actual initialization of canvas-mock
+
+  overrideCreateElementNS(window);
 
   return cleanupFunction;
 }
