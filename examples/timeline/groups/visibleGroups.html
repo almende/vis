@@ -1,0 +1,78 @@
+<html>
+
+<head>
+    <title>Timeline | A lot of grouped data</title>
+
+    <script src="../../../docs/js/jquery.min.js"></script>
+    <script src="../../../dist/vis.js"></script>
+    <link href="../../../dist/vis-timeline-graph2d.min.css" rel="stylesheet" type="text/css" />
+
+    <style type="text/css">
+        body {
+            color: #4D4D4D;
+            font: 10pt arial;
+        }
+    </style>
+
+</head>
+
+<body>
+    <h1>Timeline visible Groups</h1>
+
+    <button onclick="showVisibleGroups()">Show current visible items</button>
+    <div>
+        <h2>visible groups:</h2>
+        <h3 id="visibleGroupsContainer"></h3>
+    </div>
+
+    <div id="mytimeline"></div>
+    <br>
+
+    <script>
+        function showVisibleGroups() {
+            var a = timeline.getVisibleGroups();
+            console.log(a);
+            document.getElementById("visibleGroupsContainer").innerHTML = ""
+            document.getElementById("visibleGroupsContainer").innerHTML += a;
+        };
+
+        var now = Date.now()
+
+        var options = {
+            stack: true,
+            maxHeight: 400,
+            start: now,
+            end: start + 1000 * 60 * 60 * 24 * 3,
+        };
+        var groups = new vis.DataSet();
+        var items = new vis.DataSet();
+
+        var count = 300;
+
+        var order = 1;
+
+        for (var i = 0; i < count; i++) {
+            var start = now + 1000*60*60*24 * (i + Math.floor(Math.random() * 7))
+            var end = start + 1000*60*60*24 * (1 + Math.floor(Math.random() * 5))
+
+            items.add({
+                id: order,
+                group: truck,
+                start: start,
+                end: end,
+                type: type,
+                content: 'Order ' + order
+            });
+        }
+
+        // create a Timeline
+        var container = document.getElementById('mytimeline');
+        timeline = new vis.Timeline(container, null, options);
+        timeline.setGroups(groups);
+        timeline.setItems(items);
+
+    </script>
+
+</body>
+
+</html>
