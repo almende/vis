@@ -70,7 +70,8 @@ var options = {
     selectable: true,
     selectConnectedEdges: true,
     tooltipDelay: 300,
-    zoomView: true
+    zoomView: true,
+    zoomSpeed: 1
   }
 }
 
@@ -109,6 +110,7 @@ network.setOptions(options);
         <tr><td>selectConnectedEdges</td>   <td>Boolean</td><td><code>true</code></td><td>When true, on selecting a node, its connecting edges are highlighted.</td></tr>
         <tr><td>tooltipDelay</td>           <td>Number</td>             <td><code>300</code></td>        <td>When nodes or edges have a defined <code>'title'</code> field, this can be shown as a pop-up tooltip. The tooltip itself is an HTML element that can be fully styled using CSS. The delay is the amount of time in milliseconds it takes before the tooltip is shown.</td></tr>
         <tr><td>zoomView</td>               <td>Boolean</td>            <td><code>true</code></td>      <td>When true, the user can zoom in.</td></tr>
+        <tr><td>zoomSpeed</td>              <td>Number</td>             <td><code>1</code></td>         <td>The default speed of "1" (arbitrary unit) is moderately fast. Speed changes apply only to manual zooming (e.g. with mouse scroll wheel).</td></tr>
     </table>
 
 </div>
