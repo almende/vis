@@ -5,7 +5,7 @@
  * A dynamic, browser-based visualization library.
  *
  * @version 4.21.0
- * @date    2017-10-12
+ * @date    2017-11-15
  *
  * @license
  * Copyright (C) 2011-2017 Almende B.V, http://almende.com
@@ -10068,6 +10068,14 @@ Core.prototype.getVisibleItems = function () {
 };
 
 /**
+ * Get the id's of the currently visible groups.
+ * @returns {Array} The ids of the visible groups
+ */
+Core.prototype.getVisibleGroups = function () {
+  return this.itemSet && this.itemSet.getVisibleGroups() || [];
+};
+
+/**
  * Set Core window such that it fits all items
  * @param {Object} [options]  Available options:
  *                                `animation: boolean | {duration: number, easingFunction: string}`
@@ -18048,6 +18056,25 @@ ItemSet.prototype.getVisibleItems = function () {
             ids.push(item.id);
           }
         }
+      }
+    }
+  }
+
+  return ids;
+};
+
+/**
+ * Get the id's of the currently visible groups.
+ * @returns {Array} The ids of the visible groups
+ */
+ItemSet.prototype.getVisibleGroups = function () {
+  var ids = [];
+
+  for (var groupId in this.groups) {
+    if (this.groups.hasOwnProperty(groupId)) {
+      var group = this.groups[groupId];
+      if (group.isVisible) {
+        ids.push(groupId);
       }
     }
   }
@@ -29664,7 +29691,7 @@ __webpack_require__(62)('observable');
 /***/ (function(module, exports, __webpack_require__) {
 
 /* WEBPACK VAR INJECTION */(function(module) {var require;//! moment.js
-//! version : 2.19.1
+//! version : 2.19.2
 //! authors : Tim Wood, Iskren Chernev, Moment.js contributors
 //! license : MIT
 //! momentjs.com
@@ -30479,7 +30506,7 @@ function get (mom, unit) {
 
 function set$1 (mom, unit, value) {
     if (mom.isValid() && !isNaN(value)) {
-        if (unit === 'FullYear' && isLeapYear(mom.year())) {
+        if (unit === 'FullYear' && isLeapYear(mom.year()) && mom.month() === 1 && mom.date() === 29) {
             mom._d['set' + (mom._isUTC ? 'UTC' : '') + unit](value, mom.month(), daysInMonth(value, mom.month()));
         }
         else {
@@ -31585,10 +31612,11 @@ function defineLocale (name, config) {
 
 function updateLocale(name, config) {
     if (config != null) {
-        var locale, parentConfig = baseConfig;
+        var locale, tmpLocale, parentConfig = baseConfig;
         // MERGE
-        if (locales[name] != null) {
-            parentConfig = locales[name]._config;
+        tmpLocale = loadLocale(name);
+        if (tmpLocale != null) {
+            parentConfig = tmpLocale._config;
         }
         config = mergeConfigs(parentConfig, config);
         locale = new Locale(config);
@@ -34142,7 +34170,7 @@ addParseToken('x', function (input, array, config) {
 // Side effect imports
 
 
-hooks.version = '2.19.1';
+hooks.version = '2.19.2';
 
 setHookCallback(createLocal);
 
