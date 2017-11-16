@@ -1,5 +1,4 @@
-var vis = require('../dist/vis');
-var DataSet = vis.DataSet;
+var DataSet = require('../lib/DataSet');
 
 module.exports = {
   buildMockItemSet: function() {
@@ -35,8 +34,8 @@ module.exports = {
       },
       hiddenDates: [],
       util: {}
-    }
-    body.dom.rollingModeBtn = document.createElement('div')
+    };
+    body.dom.rollingModeBtn = document.createElement('div');
     return body
   }
-}
+};

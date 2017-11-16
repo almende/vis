@@ -26,7 +26,21 @@
     of moment.js including locales.</p>
 <p>To set a locale for the timeline, specify the option
     <code>{locale: STRING}</code>.</p>
-<p>To set the scale to use week numbers, use for example <code>{scale: 'week', step: 1}</code>.</p>
+<p>
+  To set the scale to use week numbers, use the following options:
+  <code>
+    {
+      timeAxis: {
+        scale: 'week',
+        step: 1
+      },
+      format: {
+        minorLabels: {week: 'w'}
+      }
+    }
+  </code>
+</p>
+
 <p>The following timeline is initialized with the 'de' locale and items are added with locally localized moment.js
     objects. The timeline locale can be switched to another locale at runtime. If you choose the 'en' locale, the week
     numbers will be calculated according to the US week calendar numbering scheme.</p>
@@ -93,7 +107,16 @@
     }
 
     // Configuration for the Timeline
-    var options = {timeAxis: {scale: 'week', step: 1}, locale: 'de'};
+    var options = {
+      locale: 'de',
+      timeAxis: {
+        scale: 'week',
+        step: 1
+      },
+      format: {
+        minorLabels: {week: 'w'}
+      }
+    };
 
     // Create a Timeline
     var timeline = new vis.Timeline(container, items, groups, options);

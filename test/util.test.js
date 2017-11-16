@@ -1,6 +1,8 @@
+var jsdom_global = require('jsdom-global');
 var assert = require('assert');
 var util = require('../lib/util');
-
+var moment = require('../lib//module/moment');
+var ASPDateRegex = /^\/?Date\((\-?\d+)/i;
 
 describe('util', function () {
 
@@ -468,4 +470,432 @@ describe('mergeOptions', function () {
   });
 
 });  // mergeOptions
-});  // util
+
+  describe('recursiveDOMDelete', function () {
+    beforeEach(function() {
+      this.jsdom_global = jsdom_global();
+    });
+
+    afterEach(function() {
+      this.jsdom_global();
+    });
+
+    it('removes children', function () {
+      var root = document.createElement("div");
+      // Create children for root
+      var parent = document.createElement("div");
+      var parentSibiling = document.createElement("div");
+      // Attach parents to root
+      root.appendChild(parent);
+      root.appendChild(parentSibiling);
+      // Create children for the respective parents
+      var child = document.createElement("div");
+      var childSibling = document.createElement("div");
+      // Attach children to parents
+      parent.appendChild(child);
+      parentSibiling.appendChild(childSibling);
+
+      util.recursiveDOMDelete(root);
+      assert.equal(root.children.length, 0);
+      assert.equal(parent.children.length, 0);
+      assert.equal(parentSibiling.children.length, 0);
+      assert.equal(child.children.length, 0);
+      assert.equal(childSibling.children.length, 0);
+    });
+  });
+
+  describe('isDate', function () {
+    it('identifies a Date', function () {
+      assert(util.isDate(new Date()));
+    });
+
+    it('identifies an ASPDate as String', function () {
+      assert(util.isDate('Date(1198908717056)'));
+    });
+
+    it('identifies a date string', function () {
+      assert(util.isDate('1995-01-01'));
+    });
+
+    it('identifies a date string', function () {
+      assert.equal(util.isDate(''), false);
+    });
+
+    it('identifies non-dates', function () {
+      assert.equal(util.isDate(null), false);
+      assert.equal(util.isDate(undefined), false);
+      assert.equal(util.isDate([1, 2, 3]), false);
+      assert.equal(util.isDate({a: 42}), false);
+      assert.equal(util.isDate(42), false);
+      assert.equal(util.isDate('meow'), false);
+    });
+  });
+
+  describe('convert', function () {
+    it('handles null', function () {
+      assert.equal(util.convert(null), null);
+    });
+
+    it('handles undefined', function () {
+      assert.equal(util.convert(undefined), undefined);
+    });
+
+    it('undefined type returns original object', function () {
+      assert.deepEqual(util.convert({}), {});
+    });
+
+    it('non-string type throws', function () {
+      assert.throws(function () {util.convert({}, {});}, Error, null);
+    });
+
+    it('converts to boolean', function () {
+      assert(util.convert({}, 'boolean'));
+    });
+
+    it('converts to number', function () {
+      assert.equal(typeof util.convert('1198908717056', 'number'), "number");
+    });
+
+    it('converts to String', function () {
+      assert.equal(typeof util.convert({}, 'string'), "string");
+    });
+
+    it('converts to Date from Number', function () {
+      assert(util.convert(1198908717056, 'Date') instanceof Date);
+    });
+
+    it('converts to Date from String', function () {
+      assert(util.convert('1198908717056', 'Date') instanceof Date);
+    });
+
+    it('converts to Date from Moment', function () {
+      assert(util.convert(new moment(), 'Date') instanceof Date);
+    });
+
+    it('throws when converting unknown object to Date', function () {
+      assert.throws(function () {util.convert({}, 'Date');}, Error, null);
+    });
+
+    xit('converts to Moment from Numbern - Throws a deprecation warning', function () {
+      assert(util.convert(1198908717056, 'Moment') instanceof moment);
+    });
+
+    it('converts to Moment from String', function () {
+      assert(util.convert('1198908717056', 'Moment') instanceof moment);
+    });
+
+    it('converts to Moment from Date', function () {
+      assert(util.convert(new Date(), 'Moment') instanceof moment);
+    });
+
+    it('converts to Moment from Moment', function () {
+      assert(util.convert(new moment(), 'Moment') instanceof moment);
+    });
+
+    it('throws when converting unknown object to Moment', function () {
+      assert.throws(function () {util.convert({}, 'Moment');}, Error, null);
+    });
+
+    it('converts to ISODate from Number', function () {
+      assert(util.convert(1198908717056, 'ISODate') instanceof Date);
+    });
+
+    it('converts to ISODate from String', function () {
+      assert.equal(typeof util.convert('1995-01-01', 'ISODate'), 'string');
+    });
+
+    it('converts to ISODate from Date - Throws a deprecation warning', function () {
+      assert.equal(typeof util.convert(new Date(), 'ISODate'), 'string');
+    });
+
+    it('converts to ISODate from Moment', function () {
+      assert.equal(typeof util.convert(new moment(), 'ISODate'), 'string');
+    });
+
+    it('throws when converting unknown object to ISODate', function () {
+      assert.throws(function () {util.convert({}, 'ISODate');}, Error, null);
+    });
+
+    it('converts to ASPDate from Number', function () {
+      assert(ASPDateRegex.test(util.convert(1198908717056, 'ASPDate')));
+    });
+
+    it('converts to ASPDate from String', function () {
+      assert(ASPDateRegex.test(util.convert('1995-01-01', 'ASPDate')));
+    });
+
+    it('converts to ASPDate from Date', function () {
+      assert(ASPDateRegex.test(util.convert(new Date(), 'ASPDate')));
+    });
+
+    it('converts to ASPDate from ASPDate', function () {
+      assert(ASPDateRegex.test(util.convert('/Date(12344444)/', 'ASPDate')));
+    });
+
+    xit('converts to ASPDate from Moment - skipped, because it fails', function () {
+      assert(ASPDateRegex.test(util.convert(new moment(), 'ASPDate')));
+    });
+
+    it('throws when converting unknown object to ASPDate', function () {
+      assert.throws(function () {util.convert({}, 'ASPDate');}, Error, null);
+    });
+
+    it('throws when converting unknown type', function () {
+      assert.throws(function () {util.convert({}, 'UnknownType');}, Error, null);
+    });
+  });
+
+  describe('getType', function () {
+
+    it('of object null is null', function () {
+      assert.equal(util.getType(null), 'null');
+    });
+
+    it('of object Boolean is Boolean', function () {
+      function Tester () {}
+      Tester.prototype = Object.create(Boolean.prototype);
+      assert.equal(util.getType(new Tester('true')), 'Boolean');
+    });
+
+    it('of object Number is Number', function () {
+      function Tester () {}
+      Tester.prototype = Object.create(Number.prototype);
+      assert.equal(util.getType(new Tester(1)), 'Number');
+    });
+
+    it('of object String is String', function () {
+      function Tester () {}
+      Tester.prototype = Object.create(String.prototype);
+      assert.equal(util.getType(new Tester('stringy!')), 'String');
+    });
+
+    it('of object Array is Array', function () {
+      assert.equal(util.getType(new Array([])), 'Array');
+    });
+
+    it('of object Date is Date', function () {
+      assert.equal(util.getType(new Date()), 'Date');
+    });
+
+    it('of object any other type is Object', function () {
+      assert.equal(util.getType({}), 'Object');
+    });
+
+    it('of number is Number', function () {
+      assert.equal(util.getType(1), 'Number');
+    });
+
+    it('of boolean is Boolean', function () {
+      assert.equal(util.getType(true), 'Boolean');
+    });
+
+    it('of string is String', function () {
+      assert.equal(util.getType('string'), 'String');
+    });
+
+    it('of undefined is undefined', function () {
+      assert.equal(util.getType(), 'undefined');
+    });
+  });
+
+  describe('easingFunctions', function () {
+
+    it('take a number and output a number', function () {
+      for (var key in util.easingFunctions) {
+        if (util.easingFunctions.hasOwnProperty(key)) {
+          assert.equal(typeof util.easingFunctions[key](1), 'number');
+          assert.equal(typeof util.easingFunctions[key](0.2), 'number');
+        }
+      }
+    });
+  });
+
+  describe('getScrollBarWidth', function () {
+
+    beforeEach(function() {
+      this.jsdom_global = jsdom_global();
+    });
+
+    afterEach(function() {
+      this.jsdom_global();
+    });
+
+    it('returns 0 when there is no content', function () {
+      assert.equal(util.getScrollBarWidth(), 0);
+    });
+  });
+
+  describe('equalArray', function () {
+
+    it('arrays of different lengths are not equal', function () {
+      assert.equal(util.equalArray([1, 2, 3], [1, 2]), false)
+    });
+
+    it('arrays with different content are not equal', function () {
+      assert.equal(util.equalArray([1, 2, 3], [3, 2, 1]), false)
+    });
+
+    it('same content arrays are equal', function () {
+      assert(util.equalArray([1, 2, 3], [1, 2, 3]))
+    });
+
+    it('empty arrays are equal', function () {
+      assert(util.equalArray([], []))
+    });
+
+    it('the same array is equal', function () {
+      var arr = [1, 2, 3];
+      assert(util.equalArray(arr, arr))
+    });
+  });
+
+  describe('asBoolean', function () {
+
+    it('resolves value from a function', function () {
+      assert(util.option.asBoolean(function () {return true}, false));
+    });
+
+    it('returns default value for null', function () {
+      assert(util.option.asBoolean(null, true));
+    });
+
+    it('returns true for other types', function () {
+      assert(util.option.asBoolean('should be true', false));
+    });
+
+    it('returns null for undefined', function () {
+      assert.equal(util.option.asBoolean(), null);
+    });
+  });
+
+  describe('asNumber', function () {
+
+    it('resolves value from a function', function () {
+      assert.equal(util.option.asNumber(function () {return 777}, 13), 777);
+    });
+
+    it('returns default value for null', function () {
+      assert.equal(util.option.asNumber(null, 13), 13);
+    });
+
+    it('returns number for other types', function () {
+      assert.equal(util.option.asNumber('777', 13), 777);
+    });
+
+    it('returns default for NaN', function () {
+      assert.equal(util.option.asNumber(NaN, 13), 13);
+    });
+
+    it('returns null for undefined', function () {
+      assert.equal(util.option.asNumber(), null);
+    });
+  });
+
+  describe('asString', function () {
+
+    it('resolves value from a function', function () {
+      assert.equal(util.option.asString(function () {return 'entered'}, 'default'), 'entered');
+    });
+
+    it('returns default value for null', function () {
+      assert.equal(util.option.asString(null, 'default'), 'default');
+    });
+
+    it('returns string for other types', function () {
+      assert.equal(util.option.asString(777, 'default'), '777');
+    });
+
+    it('returns default for undefined', function () {
+      assert.equal(util.option.asString(undefined, 'default'), 'default');
+    });
+
+    it('returns null for undefined', function () {
+      assert.equal(util.option.asString(), null);
+    });
+  });
+
+  describe('asSize', function () {
+
+    it('resolves value from a function', function () {
+      assert.equal(util.option.asSize(function () {return '100px'}, '50px'), '100px');
+    });
+
+    it('returns default value for null', function () {
+      assert.equal(util.option.asSize(null, '50px'), '50px');
+    });
+
+    it('returns string with px for other number', function () {
+      assert.equal(util.option.asSize(100, '50px'), '100px');
+    });
+
+    it('returns default for undefined', function () {
+      assert.equal(util.option.asSize(undefined, '50px'), '50px');
+    });
+
+    it('returns null for undefined', function () {
+      assert.equal(util.option.asSize(), null);
+    });
+  });
+
+  describe('asElement', function () {
+
+    before(function() {
+      this.jsdom_global = jsdom_global();
+      this.value  = document.createElement("div");
+      this.defaultValue  = document.createElement("div");
+    });
+
+    it('resolves value from a function', function () {
+      var me = this;
+      assert.equal(util.option.asElement(function () {return me.value}, this.defaultValue), this.value);
+    });
+
+    it('returns Element', function () {
+      assert.equal(util.option.asElement(this.value, this.defaultValue), this.value);
+    });
+
+    it('returns default value for null', function () {
+      assert.equal(util.option.asElement(null, this.defaultValue), this.defaultValue);
+    });
+
+    it('returns null for undefined', function () {
+      assert.equal(util.option.asElement(), null);
+    });
+  });
+
+  describe('binarySearchValue', function () {
+
+    it('Finds center target on odd sized array', function () {
+      assert.equal(
+        util.binarySearchValue(
+          [{id: 'a', val: 0}, {id: 'b', val: 1}, {id: 'c', val: 2}],
+          1,
+          'val'
+        ),
+        1
+      );
+    });
+
+    it('Finds target on odd sized array', function () {
+      assert.equal(
+        util.binarySearchValue(
+          [{id: 'a', val: 0}, {id: 'b', val: 1}, {id: 'c', val: 2}],
+          2,
+          'val'
+        ),
+        2
+      );
+    });
+
+    it('Cannot find target', function () {
+      assert.equal(
+        util.binarySearchValue(
+          [{id: 'a', val: 0}, {id: 'b', val: 1}, {id: 'c', val: 2}],
+          7,
+          'val'
+        ),
+        -1
+      );
+    });
+  });
+});

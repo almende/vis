@@ -66,7 +66,8 @@ If we would merge the development branch would overwrite this. To solve this we 
 ## Update website
 - [ ] update the gh-pages branch: `git checkout gh-pages && git pull && git checkout -b "gh-pages_vX.Y.Z"`
 - [ ] Copy the `dist` folder from the `master` branch to the `github-pages` branch in another directory, overwriting existing files: `cp -rf ../vis_vX.Y.Z/vis/dist .`
-- [ ] Copy the `docs` folder from the `master` branch to the `github-pages` branch in another directory, overwriting existing files: `cp -rf ../vis_vX.Y.Z/vis/docs .`
+- [ ] Generate the documentation: `gulp docs`
+- [ ] Copy the `gen/docs` folder from the `master` branch to the `github-pages` branch in another directory, overwriting existing files: `cp -rf ../vis_vX.Y.Z/vis/gen/docs .`
 - [ ] Copy the `examples` folder from the `master` branch to the `github-pages` branch in another directory, overwriting existing files: `cp -rf ../vis_vX.Y.Z/vis/examples .`
 - [ ] Check if there are new or updated examples, and update the gallery screenshots accordingly.
 - [ ] Update the library version number in the `index.html` page.
