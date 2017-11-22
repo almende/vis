@@ -49,18 +49,9 @@
 
   // create visualization
   var container = document.getElementById('visualization');
-  var options = {
-    width: '100%',
-    showCurrentTime: false,
-    stack: true,
-    selectable: true,
-    editable: true,
-  };
+  var options = {};
 
-  var timeline = new vis.Timeline(container);
-  timeline.setOptions(options);
-  timeline.setGroups(groups);
-  timeline.setItems(items);
+  var timeline = new vis.Timeline(container, items, groups, options);
 </script>
 
 </html>
