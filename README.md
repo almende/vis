@@ -1,6 +1,8 @@
 # vis.js
 
+
 [![Backers on Open Collective](https://opencollective.com/vis/backers/badge.svg)](#backers) [![Sponsors on Open Collective](https://opencollective.com/vis/sponsors/badge.svg)](#sponsors) [![Join the chat at https://gitter.im/vis-js/Lobby](https://badges.gitter.im/vis-js/Lobby.svg)](https://gitter.im/vis-js/Lobby?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+[![Join the chat at https://gitter.im/vis-js/Lobby](https://badges.gitter.im/vis-js/Lobby.svg)](https://gitter.im/vis-js/Lobby?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
 <a href="https://github.com/almende/vis/blob/develop/misc/we_need_help.md">
   <img align="right" src="https://raw.githubusercontent.com/almende/vis/master/misc/we_need_help.png">
@@ -37,6 +39,7 @@ The vis.js library was initially developed by [Almende B.V](http://almende.com).
 [![Percentage of issues still open](http://isitmaintained.com/badge/open/almende/vis.svg)](http://isitmaintained.com/project/almende/vis "Percentage of issues still open")
 [![Average time to resolve an issue](http://isitmaintained.com/badge/resolution/almende/vis.svg)](http://isitmaintained.com/project/almende/vis "Average time to resolve an issue")
 [![Pending Pull-Requests](http://githubbadges.herokuapp.com/almende/vis/pulls.svg)](https://github.com/almende/vis/pulls)
+
 
 [![Test Coverage](https://codeclimate.com/github/almende/vis/badges/coverage.svg)](https://codeclimate.com/github/almende/vis/coverage)
 [![Code Climate](https://codeclimate.com/github/almende/vis/badges/gpa.svg)](https://codeclimate.com/github/almende/vis) 

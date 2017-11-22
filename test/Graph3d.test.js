@@ -1,7 +1,7 @@
 var assert = require('assert');
-var vis = require('../dist/vis');
-var Graph3d = vis.Graph3d;
+var Graph3d = require('../lib/graph3d/Graph3d');
 var jsdom_global = require('jsdom-global');
+var canvasMockify = require('./canvas-mock');
 var stdout = require('test-console').stdout;
 var Validator = require("./../lib/shared/Validator").default;
 //var {printStyle} = require('./../lib/shared/Validator');
@@ -11,12 +11,13 @@ var now = new Date();
 
 describe('Graph3d', function () {
   before(function() {
-    //console.log('before!');
-    this.jsdom_global = jsdom_global(
-      "<div id='mygraph'></div>",
-      { skipWindowCheck: true}
-    );
+    this.jsdom_global = canvasMockify("<div id='mygraph'></div>");
     this.container = document.getElementById('mygraph');
+  });
+
+
+  after(function() {
+    this.jsdom_global();
   });
 
 
@@ -54,16 +55,10 @@ describe('Graph3d', function () {
       style: 'dot'
     };
 
-    var graph = new vis.Graph3d(this.container, data, options);
+    var graph = new Graph3d(this.container, data, options);
     assert.equal(graph.style, DOT_STYLE, "Style not set to expected 'dot'");
 
     graph.setOptions({ style: 'bar'});  // Call should just work, no exception thrown
     assert.equal(graph.style, BAR_STYLE, "Style not set to expected 'bar'");
-  });
-
-
-  after(function() {
-    //console.log('after!');
-    this.jsdom_global();
   });
 });

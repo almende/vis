@@ -1,14 +1,18 @@
 var assert = require('assert');
-var vis = require('../dist/vis');
-var jsdom = require('mocha-jsdom')
-var moment = vis.moment;
-var timeline = vis.timeline;
-var Range = timeline.Range;
+var jsdom_global = require('jsdom-global');
+var moment = require('../lib/module/moment');
+var Range = require('../lib/timeline/Range');
 var TestSupport = require('./TestSupport');
 
 describe('Timeline Range', function () {
   
-  jsdom();
+  before(function() {
+    this.jsdom_global = jsdom_global();
+  });
+
+  after(function() {
+      this.jsdom_global();
+  });
 
   it('should have start default before now', function () {
     var now = moment().hours(0).minutes(0).seconds(0).milliseconds(0).valueOf();

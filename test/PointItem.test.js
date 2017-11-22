@@ -1,16 +1,21 @@
 var assert = require('assert');
-var vis = require('../dist/vis');
-var jsdom = require('mocha-jsdom');
-var moment = vis.moment;
-var timeline = vis.timeline;
+var jsdom_global = require('jsdom-global');
+var moment = require('../lib/module/moment');
 var PointItem = require("../lib/timeline/component/item/PointItem");
-var Range = timeline.Range;
+var Range = require('../lib/timeline/Range');
 var TestSupport = require('./TestSupport');
 
 describe('Timeline PointItem', function () {
   
-  jsdom();
   var now = moment();
+
+  before(function() {
+    this.jsdom_global = jsdom_global();
+  });
+
+  after(function() {
+    this.jsdom_global();
+  });
 
   it('should initialize with minimal data', function() {
     var pointItem = new PointItem({start: now.toDate()}, null, null);
