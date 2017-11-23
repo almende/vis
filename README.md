@@ -38,7 +38,7 @@ The vis.js library was initially developed by [Almende B.V](http://almende.com).
 [![Average time to resolve an issue](http://isitmaintained.com/badge/resolution/almende/vis.svg)](http://isitmaintained.com/project/almende/vis "Average time to resolve an issue")
 [![Pending Pull-Requests](http://githubbadges.herokuapp.com/almende/vis/pulls.svg)](https://github.com/almende/vis/pulls)
 
-[![Code Climate](https://codeclimate.com/github/almende/vis/badges/gpa.svg)](https://codeclimate.com/github/almende/vis) 
+[![Code Climate](https://codeclimate.com/github/almende/vis/badges/gpa.svg)](https://codeclimate.com/github/almende/vis)
 
 ## Install
 
@@ -351,20 +351,22 @@ Then run the tests:
 
     $ npm run test
 
-## Contributors
+## Contribute
 
-This project exists thanks to all the people who contribute. [[Contribute]](CONTRIBUTING.md).
+[Contributions](//github.com/almende/vis/blob/master/misc/how_to_help.md) to the vis.js library are very welcome! [We can't do this alone](//github.com/almende/vis/blob/master/misc/we_need_help.md).
+
+### Contributors
+
+This project exists thanks to all the people who already contributed.
 <a href="graphs/contributors"><img src="https://opencollective.com/vis/contributors.svg?width=890" /></a>
 
-
-## Backers
+### Backers
 
 Thank you to all our backers! 🙏 [[Become a backer](https://opencollective.com/vis#backer)]
 
 <a href="https://opencollective.com/vis#backers" target="_blank"><img src="https://opencollective.com/vis/backers.svg?width=890"></a>
 
-
-## Sponsors
+### Sponsors
 
 Support this project by becoming a sponsor. Your logo will show up here with a link to your website. [[Become a sponsor](https://opencollective.com/vis#sponsor)]
 
@@ -378,8 +380,6 @@ Support this project by becoming a sponsor. Your logo will show up here with a l
 <a href="https://opencollective.com/vis/sponsor/7/website" target="_blank"><img src="https://opencollective.com/vis/sponsor/7/avatar.svg"></a>
 <a href="https://opencollective.com/vis/sponsor/8/website" target="_blank"><img src="https://opencollective.com/vis/sponsor/8/avatar.svg"></a>
 <a href="https://opencollective.com/vis/sponsor/9/website" target="_blank"><img src="https://opencollective.com/vis/sponsor/9/avatar.svg"></a>
-
-
 
 ## License
 
