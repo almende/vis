@@ -1,0 +1,113 @@
+<html>
+
+<head>
+    <title>Timeline | A lot of grouped data</title>
+
+    <script src="../../../docs/js/jquery.min.js"></script>
+    <script src="../../../dist/vis.js"></script>
+    <link href="../../../dist/vis-timeline-graph2d.min.css" rel="stylesheet" type="text/css" />
+
+    <style type="text/css">
+        body {
+            color: #4D4D4D;
+            font: 10pt arial;
+        }
+    </style>
+
+</head>
+
+<body>
+    <h1>Timeline visible Groups</h1>
+
+    <button onclick="showVisibleGroups()">Show current visible items</button>
+    <div>
+        <h2>visible groups:</h2>
+        <h3 id="visibleGroupsContainer"></h3>
+        <h2>(Scroll with the mouse and see the items being focus automatically on the timeline)</h2>
+    </div>
+
+    <div id="mytimeline"></div>
+    <br>
+
+    <script>
+        function showVisibleGroups() {
+            var a = timeline.getVisibleGroups();
+            document.getElementById("visibleGroupsContainer").innerHTML = ""
+            document.getElementById("visibleGroupsContainer").innerHTML += a;
+        };
+
+        var now = Date.now()
+
+        var options = {
+            stack: true,
+            maxHeight: 640,
+            horizontalScroll: false,
+            verticalScroll: true,
+            zoomKey: "ctrlKey",
+            start: Date.now() - 1000 * 60 * 60 * 24 * 3, // minus 3 days
+            end: Date.now() + 1000 * 60 * 60 * 24 * 21, // plus 1 months aprox.
+            orientation: {
+                axis: "both",
+                item: "top"
+            },
+        };
+        var groups = new vis.DataSet();
+        var items = new vis.DataSet();
+
+        var count = 300;
+
+        for (var i = 0; i < count; i++) {
+            var start = now + 1000 * 60 * 60 * 24 * (i + Math.floor(Math.random() * 7))
+            var end = start + 1000 * 60 * 60 * 24 * (1 + Math.floor(Math.random() * 5))
+
+            groups.add({
+                id: i,
+                content: 'Task ' + i,
+                order: i
+            })
+
+            items.add({
+                id: i,
+                group: i,
+                start: start,
+                end: end,
+                type: 'range',
+                content: 'Item ' + i
+            });
+        }
+
+        // create a Timeline
+        var container = document.getElementById('mytimeline');
+        timeline = new vis.Timeline(container, null, options);
+        timeline.setGroups(groups);
+        timeline.setItems(items);
+
+        function debounce(func, wait = 100) {
+            let timeout;
+            return function (...args) {
+                clearTimeout(timeout);
+                timeout = setTimeout(() => {
+                    func.apply(this, args);
+                }, wait);
+            };
+        }
+
+        let groupFocus = (e) => {
+            let vGroups = timeline.getVisibleGroups()
+            let vItems = vGroups.reduce((res, groupId) => {
+                let group = timeline.itemSet.groups[groupId]
+                if (group.items) {
+                    res = res.concat(Object.keys(group.items))
+                }
+                return res
+            }, [])
+            timeline.focus(vItems)
+        }
+        this.timeline.on("scroll", debounce(groupFocus, 200))
+        // Enabling the next line leads to a continuous since calling focus might scroll vertically even if it shouldn't
+        // this.timeline.on("scrollSide", debounce(groupFocus, 200))
+    </script>
+
+</body>
+
+</html>
