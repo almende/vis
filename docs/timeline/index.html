@@ -946,6 +946,29 @@ function (option, path) {
       <td>Callback function triggered when a group is about to be removed. The signature and semantics are the same as for <code>onRemove</code>.
       </td>
     </tr>
+
+    <tr class='toggle collapsible' onclick="toggleTable('optionTable','onTimeout', this);">
+      <td><span parent="onTimeout" class="right-caret"></span> onTimeout</td>
+      <td>Object</td>
+      <td><code>Object</code></td>
+      <td>Specify timeline bailing options when a specified timeout is reached.</td>
+    </tr>
+    <tr parent="onTimeout" class="hidden">
+      <td class="indent">onTimeout.timeoutMs</td>
+      <td>number</td>
+      <td>none</td>
+      <td>Number of milliseconds until the callback function should be called. 
+        The callback will not be called if the timeline gets drawn completely before the timeoutMs limit.</td>
+    </tr>
+
+    <tr parent="onTimeout" class="hidden">
+      <td class="indent">onTimeout.callback</td>
+      <td>function</td>
+      <td>none</td>
+      <td>
+        A callback function called when <code>timeoutMs</code> milliseconds pass and the timeline has yet to be fully drawn initially.
+      </td>
+    </tr>
     
     <tr>
       <td>onUpdate</td>
