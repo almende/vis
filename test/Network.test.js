@@ -122,7 +122,7 @@ function createSampleNetwork(options) {
   assertNumEdges(network, NumInitialEdges);
 
   return [network, data, NumInitialNodes, NumInitialEdges];
-};
+}
 
 
 /**
@@ -136,11 +136,10 @@ function createSampleNetwork(options) {
 function createCluster(network) {
   var clusterOptionsByData = {
     joinCondition: function(node) {
-      if (node.id == 1 || node.id == 11) return true;
-      return false;
+      return (node.id == 1 || node.id == 11);
     },
     clusterNodeProperties: {id:"c1", label:'c1'}
-  }
+  };
   network.cluster(clusterOptionsByData);
 }
 
@@ -153,7 +152,7 @@ function log(network) {
   console.log(network.body.nodeIndices);
   console.log(Object.keys(network.body.edges));
   console.log(network.body.edgeIndices);
-};
+}
 
 
 /**
@@ -165,9 +164,7 @@ function assertNumNodes(network, expectedPresent, expectedVisible) {
 
   assert.equal(Object.keys(network.body.nodes).length, expectedPresent, "Total number of nodes does not match");
   assert.equal(network.body.nodeIndices.length, expectedVisible, "Number of visible nodes does not match");
-};
-
-
+}
 /**
  * Comment at assertNumNodes() also applies.
  */
@@ -176,9 +173,7 @@ function assertNumEdges(network, expectedPresent, expectedVisible) {
 
   assert.equal(Object.keys(network.body.edges).length, expectedPresent, "Total number of edges does not match");
   assert.equal(network.body.edgeIndices.length, expectedVisible, "Number of visible edges does not match");
-};
-
-
+}
 /**
  * Check if the font options haven't changed.
  *
@@ -297,7 +292,7 @@ describe('Network', function () {
         id: clusterId,
         label: clusterId
       }
-    }
+    };
 
     if (allowSingle === true) {
       options.clusterNodeProperties.allowSingleNodeCluster = true
@@ -698,7 +693,7 @@ describe('Clustering', function () {
 
   it('properly handles options allowSingleNodeCluster', function() {
     var [network, data, numNodes, numEdges] = createSampleNetwork();
-		data.edges.update({from: 1, to: 11,});
+		data.edges.update({from: 1, to: 11});
     numEdges += 1;
     assertNumNodes(network, numNodes);
     assertNumEdges(network, numEdges);
@@ -846,7 +841,7 @@ describe('Clustering', function () {
         return false;
       },
       clusterNodeProperties: {id:"c1", label:'c1'}
-    }
+    };
 
     network.cluster(clusterOptionsByData);
     numNodes += 1;                                    // new cluster node
@@ -862,7 +857,7 @@ describe('Clustering', function () {
     assertNumEdges(network, numEdges, numEdges - 1);  // view doesn't change
 
     //console.log("Unclustering c1");
-    network.openCluster("c1")
+    network.openCluster("c1");
     numNodes -= 1;                                    // cluster node gone
     numEdges -= 1;                                    // cluster edge gone
     assertNumNodes(network, numNodes, numNodes);      // all visible
@@ -913,6 +908,41 @@ describe('Clustering', function () {
     return network;
   }
 
+  /**
+   * Check on fix for #3682
+   */
+  it('correctly handles bidirectional edges when folding into cluster', function () {
+    // create an array with nodes
+    var nodes = new DataSet([
+      {id: 1, label: 'Node 1', cid:2},
+      {id: 2, label: 'Node 2', cid:2},
+      {id: 3, label: 'Node 3'}
+    ]);
+
+    // create an array with edges
+    var edges = new DataSet([
+      {id: '1->3', from: 1, to: 3, arrows: 'to'},
+      {id: '1-2', from: 1, to: 2},
+      {id: '3->1', from: 3, to: 1, arrows: 'to'},
+      {id: '3->2', from: 3, to: 2, arrows: 'to'}
+    ]);
+
+    // create a network
+    var container = document.getElementById('mynetwork');
+    var data = {nodes: nodes, edges: edges};
+    var options = {physics:{enabled:false}};
+    var network = new Network(container, data, options);
+
+    var clusterOptionsByData = {
+        joinCondition:function(childOptions) {
+            return childOptions.cid == 2;
+        },
+        clusterNodeProperties: {id:'cidCluster'}
+    };
+    network.cluster(clusterOptionsByData);
+    assert.equal(network.body.nodeIndices.length, 2, "Node 3 and cidCluster");
+    assert.equal(network.body.edgeIndices.length, 2, "2 edges between 3 and cidCluster");
+  });
 
   /**
    * Check on fix for #3367
@@ -943,7 +973,7 @@ describe('Clustering', function () {
       }
 
       return clusters;
-    }
+    };
 
 
     /**
@@ -972,7 +1002,7 @@ describe('Clustering', function () {
       }
 
       return true;
-    }
+    };
 
 
     var assertJoinCondition = function(joinCondition, expected) {
@@ -988,13 +1018,13 @@ describe('Clustering', function () {
 
 
     // Should cluster 3,4,5:
-    var joinAll_   = function(n) { return true ; }
+    var joinAll_   = function(n) { return true ; };
 
     // Should cluster none:
-    var joinNone_  = function(n) { return false ; }
+    var joinNone_  = function(n) { return false ; };
 
     // Should cluster 4 & 5:
-    var joinLevel_ = function(n) { return n.level > 3 ; }
+    var joinLevel_ = function(n) { return n.level > 3 ; };
 
     assertJoinCondition(undefined  , [[1,3],[2,4,5]]);
     assertJoinCondition(null       , [[1,3],[2,4,5]]);
@@ -1283,76 +1313,73 @@ describe('Clustering', function () {
 });  // Clustering
 
 
-describe('on node.js', function () {
+  describe('on node.js', function () {
 
-  it('should be running', function () {
-    assert(this.container !== null, 'Container div not found');
+    it('should be running', function () {
+      assert(this.container !== null, 'Container div not found');
 
-    // The following should now just plain succeed
-    var [network, data] = createSampleNetwork();
+      // The following should now just plain succeed
+      var [network, data] = createSampleNetwork();
 
-    assert.equal(Object.keys(network.body.nodes).length, 8);
-    assert.equal(Object.keys(network.body.edges).length, 6);
-  });
-
-
-describe('runs example ', function () {
-
-  function loadExample(path, noPhysics) {
-    include(path, this);
-    var container = document.getElementById('mynetwork');
-
-    // create a network
-    var data = {
-      nodes: new DataSet(nodes),
-      edges: new DataSet(edges)
-    };
-
-    if (noPhysics) {
-      // Avoid excessive processor time due to load.
-      // We're just interested that the load itself is good
-      options.physics = false;
-    }
-
-    var network = new Network(container, data, options);
-    return network;
-  };
+      assert.equal(Object.keys(network.body.nodes).length, 8);
+      assert.equal(Object.keys(network.body.edges).length, 6);
+    });
 
 
-  it('basicUsage', function () {
-    var network = loadExample('./test/network/basicUsage.js');
-    //console.log(Object.keys(network.body.edges));
+    describe('runs example ', function () {
 
-    // Count in following also contains the helper nodes for dynamic edges
-    assert.equal(Object.keys(network.body.nodes).length, 10);
-    assert.equal(Object.keys(network.body.edges).length, 5);
-  });
+      function loadExample(path, noPhysics) {
+        include(path, this);
+        var container = document.getElementById('mynetwork');
+
+        // create a network
+        var data = {
+          nodes: new DataSet(nodes),
+          edges: new DataSet(edges)
+        };
+
+        if (noPhysics) {
+          // Avoid excessive processor time due to load.
+          // We're just interested that the load itself is good
+          options.physics = false;
+        }
+
+        var network = new Network(container, data, options);
+        return network;
+      }
+      it('basicUsage', function () {
+        var network = loadExample('./test/network/basicUsage.js');
+        //console.log(Object.keys(network.body.edges));
+
+        // Count in following also contains the helper nodes for dynamic edges
+        assert.equal(Object.keys(network.body.nodes).length, 10);
+        assert.equal(Object.keys(network.body.edges).length, 5);
+      });
 
 
-  it('WorlCup2014', function (done) {
-    // This is a huge example (which is why it's tested here!), so it takes a long time to load.
-    this.timeout(15000);
+      it('WorlCup2014', function (done) {
+        // This is a huge example (which is why it's tested here!), so it takes a long time to load.
+        this.timeout(15000);
 
-    var network = loadExample('./examples/network/datasources/WorldCup2014.js', true);
+        var network = loadExample('./examples/network/datasources/WorldCup2014.js', true);
 
-    // Count in following also contains the helper nodes for dynamic edges
-    assert.equal(Object.keys(network.body.nodes).length, 9964);
-    assert.equal(Object.keys(network.body.edges).length, 9228);
-    done();
-  });
+        // Count in following also contains the helper nodes for dynamic edges
+        assert.equal(Object.keys(network.body.nodes).length, 9964);
+        assert.equal(Object.keys(network.body.edges).length, 9228);
+        done();
+      });
 
 
-  // This actually failed to load, added for this reason
-  it('disassemblerExample', function () {
-    var network = loadExample('./examples/network/exampleApplications/disassemblerExample.js');
-    // console.log(Object.keys(network.body.nodes));
-    // console.log(Object.keys(network.body.edges));
+      // This actually failed to load, added for this reason
+      it('disassemblerExample', function () {
+        var network = loadExample('./examples/network/exampleApplications/disassemblerExample.js');
+        // console.log(Object.keys(network.body.nodes));
+        // console.log(Object.keys(network.body.edges));
 
-    // Count in following also contains the helper nodes for dynamic edges
-    assert.equal(Object.keys(network.body.nodes).length,  9);
-    assert.equal(Object.keys(network.body.edges).length, 14 - 3);  // NB 3 edges in data not displayed
-  });
-
-});  // runs example
-});  // on node.js
+        // Count in following also contains the helper nodes for dynamic edges
+        assert.equal(Object.keys(network.body.nodes).length,  9);
+        assert.equal(Object.keys(network.body.edges).length, 14 - 3);  // NB 3 edges in data not displayed
+      });
+    });  // runs example
+  });  // on node.js
 });  // Network
