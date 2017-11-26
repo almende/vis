@@ -921,10 +921,10 @@ describe('Clustering', function () {
 
     // create an array with edges
     var edges = new DataSet([
-      {from: 1, to: 3, arrows: 'to'},
-      {from: 1, to: 2},
-      {from: 3, to: 1, arrows: 'to'},
-      {from: 3, to: 2, arrows: 'to'}
+      {id: '1->3', from: 1, to: 3, arrows: 'to'},
+      {id: '1-2', from: 1, to: 2},
+      {id: '3->1', from: 3, to: 1, arrows: 'to'},
+      {id: '3->2', from: 3, to: 2, arrows: 'to'}
     ]);
 
     // create a network
@@ -940,8 +940,8 @@ describe('Clustering', function () {
         clusterNodeProperties: {id:'cidCluster'}
     };
     network.cluster(clusterOptionsByData);
-    assert.equal(network.body.nodeIndices.length, 2);  // Expect Node 3 and cidCluster
-    assert.equal(network.body.edgeIndices.length, 2);  // Expect 2 edges between 3 and cidCluster
+    assert.equal(network.body.nodeIndices.length, 2, "Node 3 and cidCluster");
+    assert.equal(network.body.edgeIndices.length, 2, "2 edges between 3 and cidCluster");
   });
 
   /**
