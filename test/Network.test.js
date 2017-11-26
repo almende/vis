@@ -930,7 +930,7 @@ describe('Clustering', function () {
     // create a network
     var container = document.getElementById('mynetwork');
     var data = {nodes: nodes, edges: edges};
-    var options = {physics:{enabled:true}};
+    var options = {physics:{enabled:false}};
     var network = new Network(container, data, options);
 
     var clusterOptionsByData = {
