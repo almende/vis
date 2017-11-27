@@ -2,19 +2,20 @@
  * TODO - add tests for:
  * ====
  *
+ * - html entities
  * - html unclosed or unopened tags
  * - html tag combinations with no font defined (e.g. bold within mono) 
  * - Unit tests for bad font shorthands.
  *   Currently, only "size[px] name color" is valid, always 3 items with this exact spacing.
  *   All other combinations should either be rejected as error or handled gracefully.
  */
-var assert = require('assert')
+var assert = require('assert');
 var Label = require('../lib/network/modules/components/shared/Label').default;
 var NodesHandler = require('../lib/network/modules/NodesHandler').default;
 var util = require('../lib/util');
-var jsdom_global = require('jsdom-global');
-var vis = require('../dist/vis');
-var Network = vis.network;
+var canvasMockify = require('./canvas-mock');
+var DataSet = require('../lib/DataSet');
+var Network = require('../lib/network/Network');
 
 
 /**************************************************************
@@ -53,7 +54,7 @@ describe('Network Label', function() {
       emitter: {
         on: function() {}
       }
-    }
+    };
 
     var nodesHandler = new NodesHandler(body, {}, options, new DummyLayoutEngine() );
     //console.log(JSON.stringify(nodesHandler.options, null, 2));
@@ -320,10 +321,7 @@ describe('Network Label', function() {
  **************************************************************/
 
   before(function() {
-    this.jsdom_global = jsdom_global(
-      "<div id='mynetwork'></div>",
-      { skipWindowCheck: true}
-    );
+    this.jsdom_global = canvasMockify("<div id='mynetwork'></div>");
     this.container = document.getElementById('mynetwork');
   });
 
@@ -475,7 +473,7 @@ describe('Node Labels', function() {
     // create a network
     var container = document.getElementById('mynetwork');
     var data = {
-        nodes: new vis.DataSet(dataNodes),
+        nodes: new DataSet(dataNodes),
         edges: []
     };
   
@@ -499,7 +497,7 @@ describe('Node Labels', function() {
       util.deepExtend(options, newOptions);
     }
   
-    var network = new vis.Network(container, data, options);
+    var network = new Network(container, data, options);
     return [network, data, options];
   }
 
@@ -676,8 +674,8 @@ describe('Edge Labels', function() {
     // create a network
     var container = document.getElementById('mynetwork');
     var data = {
-        nodes: new vis.DataSet(dataNodes),
-        edges: new vis.DataSet(dataEdges),
+        nodes: new DataSet(dataNodes),
+        edges: new DataSet(dataEdges),
     };
   
     var options = {
@@ -692,7 +690,7 @@ describe('Edge Labels', function() {
       util.deepExtend(options, newOptions);
     }
   
-    var network = new vis.Network(container, data, options);
+    var network = new Network(container, data, options);
     return [network, data, options];
   }
 
@@ -821,8 +819,8 @@ describe('Shorthand Font Options', function() {
     // create a network
     var container = document.getElementById('mynetwork');
     var data = {
-        nodes: new vis.DataSet(dataNodes),
-        edges: new vis.DataSet(dataEdges),
+        nodes: new DataSet(dataNodes),
+        edges: new DataSet(dataEdges),
     };
 
     var options = {
@@ -845,7 +843,7 @@ describe('Shorthand Font Options', function() {
       }
     };
   
-    var network = new vis.Network(container, data, options);
+    var network = new Network(container, data, options);
     return [network, data];
   }
 
@@ -1112,7 +1110,7 @@ describe('Shorthand Font Options', function() {
     // create a network
     var container = document.getElementById('mynetwork');
     var data = {
-        nodes: new vis.DataSet(dataNodes),
+        nodes: new DataSet(dataNodes),
         edges: []
     };
   
@@ -1143,7 +1141,7 @@ describe('Shorthand Font Options', function() {
       },
     };
   
-    var network = new vis.Network(container, data, options);
+    var network = new Network(container, data, options);
 
     assert.equal(modBold(1).color, 'red');  // Group value
     assert(fontOption(1).multi);            // Group value
@@ -1485,7 +1483,7 @@ describe('Shorthand Font Options', function() {
         enabled: false
       }
     };
-    var network = new vis.Network(container, data, options);
+    var network = new Network(container, data, options);
 
     var nodes_expected = [
       { nodeId: 100, minWdt:  -1, maxWdt: 200, minHgt:  -1, valign: 'middle'},
@@ -1612,12 +1610,12 @@ describe('Shorthand Font Options', function() {
     // Kept in for regression testing.
     var container = document.getElementById('mynetwork');
     var data = {
-      nodes: new vis.DataSet(nodes),
-      edges: new vis.DataSet(edges)
+      nodes: new DataSet(nodes),
+      edges: new DataSet(edges)
     };
 
     var options = {};
-    var network = new vis.Network(container, data, options);
+    var network = new Network(container, data, options);
 
     done();
   });

@@ -8,3 +8,6 @@ Please make sure to **read the following list** before creating a new issue:
 * Make sure to mention which browser and OS you are using when creating a bug report.
 * Please provide a minimal code example that demonstrates your issue. We recommend using [jsbin](jsbin.com) for that.
 * Delete this list from the actual issue.
+
+<!-- Love vis? Please consider supporting our collective:
+👉  https://opencollective.com/vis/donate -->

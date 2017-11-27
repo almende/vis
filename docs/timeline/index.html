@@ -1,3 +1,6 @@
+<?js
+  var self = this;
+?>
 <!DOCTYPE html>
 <html lang="en"><head>
   <meta charset="utf-8">
@@ -41,39 +44,7 @@
   <script type="text/javascript" src="../js/toggleTable.js"></script>
 </head>
 <body onload="prettyPrint();">
-
-
-<div class="navbar-wrapper">
-  <div class="container">
-    <nav class="navbar navbar-inverse navbar-static-top" role="navigation">
-      <div class="container">
-        <div class="navbar-header">
-          <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar"
-                  aria-expanded="false" aria-controls="navbar">
-            <span class="sr-only">Toggle navigation</span>
-            <span class="icon-bar"></span>
-            <span class="icon-bar"></span>
-            <span class="icon-bar"></span>
-          </button>
-          <a class="navbar-brand hidden-sm" href="./index.html">vis.js</a>
-        </div>
-        <div id="navbar" class="navbar-collapse collapse">
-          <ul class="nav navbar-nav">
-            <li><a href="http://www.visjs.org/index.html#modules">Modules</a></li>
-            <li><a href="http://www.visjs.org/blog.html">Blog</a></li>
-            <li><a href="http://www.visjs.org/index.html#download_install">Download</a></li>
-            <li><a href="http://www.visjs.org/showcase/index.html">Showcase</a></li>
-            <li><a href="http://www.visjs.org/index.html#contribute">Contribute</a></li>
-            <li><a href="http://www.visjs.org/featureRequests.html">Feature requests</a></li>
-            <li><a href="http://www.visjs.org/index.html#licenses">License</a></li>
-          </ul>
-        </div>
-      </div>
-    </nav>
-  </div>
-</div>
-
-<a href="https://github.com/almende/vis" class="hidden-xs hidden-sm hidden-md"><img style="position: absolute; top: 0; right: 0; border: 0;" src="https://camo.githubusercontent.com/38ef81f8aca64bb9a64448d0d70f1308ef5341ab/68747470733a2f2f73332e616d617a6f6e6177732e636f6d2f6769746875622f726962626f6e732f666f726b6d655f72696768745f6461726b626c75655f3132313632312e706e67" alt="Fork me on GitHub" data-canonical-src="https://s3.amazonaws.com/github/ribbons/forkme_right_darkblue_121621.png"></a>
+<?js= self.partial('tmpl/navbar.tmpl') ?>
 <div class="container full">
   <h1>Timeline</h1>
 
@@ -774,6 +745,13 @@ function (option, path) {
     </tr>
 
     <tr>
+      <td>loadingScreenTemplate</td>
+      <td>function</td>
+      <td>none</td>
+      <td>A template function used to generate the timeline initial loading screen. See section <a href="#Templates">Templates</a> for a detailed explanation.</td>
+    </tr>
+
+    <tr>
       <td>locale</td>
       <td>String</td>
       <td>none</td>
@@ -966,6 +944,29 @@ function (option, path) {
       <td>function</td>
       <td>none</td>
       <td>Callback function triggered when a group is about to be removed. The signature and semantics are the same as for <code>onRemove</code>.
+      </td>
+    </tr>
+
+    <tr class='toggle collapsible' onclick="toggleTable('optionTable','onTimeout', this);">
+      <td><span parent="onTimeout" class="right-caret"></span> onTimeout</td>
+      <td>Object</td>
+      <td><code>Object</code></td>
+      <td>Specify timeline bailing options when a specified timeout is reached.</td>
+    </tr>
+    <tr parent="onTimeout" class="hidden">
+      <td class="indent">onTimeout.timeoutMs</td>
+      <td>number</td>
+      <td>none</td>
+      <td>Number of milliseconds until the callback function should be called. 
+        The callback will not be called if the timeline gets drawn completely before the timeoutMs limit.</td>
+    </tr>
+
+    <tr parent="onTimeout" class="hidden">
+      <td class="indent">onTimeout.callback</td>
+      <td>function</td>
+      <td>none</td>
+      <td>
+        A callback function called when <code>timeoutMs</code> milliseconds pass and the timeline has yet to be fully drawn initially.
       </td>
     </tr>
     
@@ -1590,6 +1591,7 @@ timeline.off('select', onSelect);
 
     <tr>
       <td>currentTimeTick</td>
+      <td>Has no properties</td>
       <td>Fired when the current time bar redraws. The rate depends on the zoom level.</td>
     </tr>
 
@@ -2159,18 +2161,4 @@ var options = {
  </ul>
 </div>
 
-<!-- Bootstrap core JavaScript
-================================================== -->
-<!-- Placed at the end of the document so the pages load faster -->
-<script src="../js/jquery.min.js"></script>
-<script src="../js/bootstrap.min.js"></script>
-<!-- IE10 viewport hack for Surface/desktop Windows 8 bug -->
-<script src="../js/ie10-viewport-bug-workaround.js"></script>
-<!-- jquery extensions -->
-<script src="../js/jquery.highlight.js"></script>
-<script src="../js/jquery.url.min.js"></script>
-<!-- Tipue vendor js -->
-<script src="../js/tipuesearch.config.js"></script>
-<script src="../js/tipuesearch.js"></script>
-<!-- controller -->
-<script src="../js/main.js"></script>
+<?js= self.partial('tmpl/html-foot.tmpl') ?>
