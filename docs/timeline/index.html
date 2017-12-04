@@ -1388,6 +1388,12 @@ document.getElementById('myTimeline').onclick = function (event) {
     </tr>
 
     <tr>
+      <td>isActive()</td>
+      <td>Boolean</td>
+      <td>Denotes whether the timeline is currently active. This method only returns <code>false</code> if the timline has the <code>{clickToUse:true}</code> option enabled and the timeline is currently unselected.</td>
+    </tr>
+	  
+    <tr>
       <td>moveTo(time [, options, callback])</td>
       <td>none</td>
       <td>Move the window such that given time is centered on screen. Parameter <code>time</code> can be a <code>Date</code>, <code>Number</code>, or <code>String</code>. Available options:
