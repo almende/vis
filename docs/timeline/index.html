@@ -469,6 +469,12 @@ var groups = [
       <td>no</td>
       <td>Assuming the group has nested groups, this will set the initial state of the group - shown or collapsed. The <code>showNested</code> is defaulted to <code>true</code>.</td>
     </tr>
+    <tr>
+      <td>heightMode</td>
+      <td>String</td>
+      <td>no</td>
+      <td>This field is optional. Can be 'auto' (default) or 'fixed'. If set this overrides the global <code>groupHeightMode</code> configuration option for this group.</td>
+    </tr>
   </table>
 
 
@@ -662,6 +668,13 @@ function (option, path) {
       <td>boolean</td>
       <td><code>false</code></td>
       <td>If true, groups can be dragged to change their order. Only applicable when the Timeline has groups. For this option to work properly the groupOrder and groupOrderSwap options have to be set as well.</td>
+    </tr>
+
+    <tr>
+      <td>groupHeightMode</td>
+      <td>String</td>
+      <td>'auto'</td>
+      <td>Specifies how the height of a group is calculated. Choose from 'auto' and 'fixed'. If it is set to 'auto' the height will be calculated based on the visible items. While if it is set to 'fixed' the group will keep the same height even if there are no visible items in the window.</td>
     </tr>
 
     <tr>
@@ -1387,6 +1400,12 @@ document.getElementById('myTimeline').onclick = function (event) {
       <td>Get the current visible window. Returns an object with properties <code>start: Date</code> and <code>end: Date</code>.</td>
     </tr>
 
+    <tr>
+      <td>isActive()</td>
+      <td>Boolean</td>
+      <td>Denotes whether the timeline is currently active. This method only returns <code>false</code> if the timline has the <code>{clickToUse:true}</code> option enabled and the timeline is currently unselected.</td>
+    </tr>
+	  
     <tr>
       <td>moveTo(time [, options, callback])</td>
       <td>none</td>
