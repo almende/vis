@@ -55,6 +55,15 @@ describe('TimeStep', function () {
     assert.equal(timestep.getCurrent().unix(), moment("2018-01-01T00:00:00.000").unix(), "should have the right value after a step");
   });
 
+  it('should perform the step with a specified scale (1 quarter)', function () {
+    var timestep = new TimeStep(new Date(2017, 3, 3), new Date(2017, 3, 5));
+    timestep.setScale({ scale: 'quarter', step: 1 });
+    timestep.start();
+    assert.equal(timestep.getCurrent().unix(), moment("2017-01-01T00:00:00.000").unix(), "should have the right initial value");
+    timestep.next();
+    assert.equal(timestep.getCurrent().unix(), moment("2017-04-01T00:00:00.000").unix(), "should have the right value after a step");
+  });  
+
   it('should perform the step with a specified scale (1 month)', function () {
     var timestep = new TimeStep(new Date(2017, 3, 3), new Date(2017, 3, 5));
     timestep.setScale({ scale: 'month', step: 1 });
