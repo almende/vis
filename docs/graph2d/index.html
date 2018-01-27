@@ -841,6 +841,7 @@ function (option, path) {
     weekday:    'ddd D',
     day:        'D',
     month:      'MMM',
+    quarter:    '[Q]Q',
     year:       'YYYY'
   },
   majorLabels: {
@@ -851,6 +852,7 @@ function (option, path) {
     weekday:    'MMMM YYYY',
     day:        'MMMM YYYY',
     month:      'YYYY',
+    quarter:    'YYYY',
     year:       ''
   }
 }</pre>
@@ -1009,7 +1011,7 @@ function (option, path) {
             <td class="indent">timeAxis.scale</td>
             <td>String</td>
             <td>none</td>
-            <td>Set a fixed scale for the time axis of the Timeline. Choose from <code>'millisecond'</code>, <code>'second'</code>, <code>'minute'</code>, <code>'hour'</code>, <code>'weekday'</code>, <code>'day'</code>, <code>'month'</code>, <code>'year'</code>. Example usage:
+            <td>Set a fixed scale for the time axis of the Timeline. Choose from <code>'millisecond'</code>, <code>'second'</code>, <code>'minute'</code>, <code>'hour'</code>, <code>'weekday'</code>, <code>'day'</code>, <code>'month'</code>, <code>'quarter'</code>, <code>'year'</code>. Example usage:
   <pre class="prettyprint lang-js options">var options = {
   timeAxis: {scale: 'minute', step: 5}
 }</pre>

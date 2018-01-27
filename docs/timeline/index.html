@@ -623,6 +623,7 @@ function (option, path) {
     day:        'D',
     week:       'w',
     month:      'MMM',
+    quarter:    '[Q]Q',
     year:       'YYYY'
   },
   majorLabels: {
@@ -634,6 +635,7 @@ function (option, path) {
     day:        'MMMM YYYY',
     week:       'MMMM YYYY',
     month:      'YYYY',
+    quarter:    'YYYY',
     year:       ''
   }
 }</pre>
@@ -1127,7 +1129,7 @@ function (option, path) {
       <td>function</td>
       <td>When moving items on the Timeline, they will be snapped to nice dates like full hours or days, depending on the current scale. The <code>snap</code> function can be replaced with a custom function, or can be set to <code>null</code> to disable snapping. The signature of the snap function is:
         <pre class="prettyprint lang-js">function snap(date: Date, scale: string, step: number) : Date or number</pre>
-        The parameter <code>scale</code> can be can be 'millisecond', 'second', 'minute', 'hour', 'weekday, 'week', 'day, 'month, or 'year'. The parameter <code>step</code> is a number like 1, 2, 4, 5.
+        The parameter <code>scale</code> can be can be 'millisecond', 'second', 'minute', 'hour', 'weekday, 'week', 'day', 'month', 'quarter' or 'year'. The parameter <code>step</code> is a number like 1, 2, 4, 5.
       </td>
     </tr>
 
@@ -1171,7 +1173,7 @@ function (option, path) {
       <td class="indent">timeAxis.scale</td>
       <td>String</td>
       <td>none</td>
-      <td>Set a fixed scale for the time axis of the Timeline. Choose from <code>'millisecond'</code>, <code>'second'</code>, <code>'minute'</code>, <code>'hour'</code>, <code>'weekday'</code>, <code>'week'</code>, <code>'day'</code>, <code>'month'</code>, <code>'year'</code>. Example usage:
+      <td>Set a fixed scale for the time axis of the Timeline. Choose from <code>'millisecond'</code>, <code>'second'</code>, <code>'minute'</code>, <code>'hour'</code>, <code>'weekday'</code>, <code>'week'</code>, <code>'day'</code>, <code>'month'</code>, <code>'quarter'</code>, <code>'year'</code>. Example usage:
   <pre class="prettyprint lang-js">var options = {
   timeAxis: {scale: 'minute', step: 5}
 }</pre>
@@ -2153,7 +2155,7 @@ var options = {
     </tr>
   </table>
   <p>
-    Note: the 'week' scale is not included in the automatic zoom levels as its scale is not a direct logical successor of 'days' nor a logical predecessor of 'months'
+    Note: the 'week' scale is not included in the automatic zoom levels as its scale is not a direct logical successor of 'days' nor a logical predecessor of 'months'. Same goes for the 'quarter' scale which is not a direct logical successor of 'months' nor a logical predecessor of 'years'.
   </p>
 
   <p>Examples:</p>
