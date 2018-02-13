@@ -22,6 +22,8 @@
 <p>
   <input type="button" id="add" value="Add custom vertical bar">
   <input type="text" id="barId" placeholder="custom bar ID">
+  <input type="checkbox" id="isEdit" placeholder="user can edit time" checked>
+  <label for="isEdit">Editable: User can change time.</label>
 </p>
 <p>
   <input type="button" id="remove" value="Remove custom vertical bar">
@@ -58,7 +60,8 @@
     try {
       customDate = new Date(customDate.getFullYear(), customDate.getMonth(), customDate.getDate() + 1);
       var barId = document.getElementById('barId').value || undefined;
-      timeline.addCustomTime(customDate, barId);
+      var usereditable = document.getElementById('isEdit').checked || false;
+      timeline.addCustomTime(customDate, barId, { editable: usereditable });
         timeline.setCustomTimeTitle(function(time){
             return "I'm "+barId+"!";
         }, barId);
