@@ -1312,13 +1312,17 @@ function (option, path) {
     </tr>
 
     <tr>
-      <td>addCustomTime([time] [, id])</td>
+      <td>addCustomTime([time] [, id] [, options])</td>
       <td>number or String</td>
       <td>
-        Add new vertical bar representing a custom time that can be dragged by the user.
-        Parameter <code>time</code> can be a Date, Number, or String, and is <code>new Date()</code> by default.
+        Add new vertical bar representing a custom time that can be optionally dragged by the user.<br>
+        Parameter <code>time</code> can be a Date, Number, or String, and is <code>new Date()</code> by default.<br>
         Parameter <code>id</code> can be Number or String and is <code>undefined</code> by default.
-        The <code>id</code>code> is added as CSS class name of the custom time bar, allowing to style multiple time bars differently.
+        The <code>id</code> is added as CSS class name of the custom time bar, allowing to style multiple time bars differently.<br>
+        Parameter <code>options</code> can be an Object of available options. <em>At present these options cannot be altered after the custom time bar is created.</em>:
+        <ul>
+          <li><code>editable: boolean </code><br>If true (default) the custom time bar can be dragged by the user. If false the time bar is fixed and can only be modified in code.</li>
+        </ul>
         The method returns id of the created bar.
       </td>
     </tr>
