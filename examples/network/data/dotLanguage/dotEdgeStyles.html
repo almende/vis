@@ -91,13 +91,14 @@
 
   <div>
     <p>
-      Example of edge styles support
+      Example of edge styles support.
     </p>
 
     <ul>
       <li> label: text displayed on the edge</li>
       <li> color: edge color</li>
       <li> style: edge style is solid(default), dashed or dotted</li>
+      <li> arrowhead: arrow style is dot or tee(bar)</li>
     </ul>
   </div>
 
@@ -124,6 +125,7 @@
     " Parent -> C2[label=\"solid pink\", color=\"pink\"];\n" +
     " Parent -> C3[label=\"dashed green\", style=\"dashed\", color=\"green\"];\n" +
     " Parent -> C4[label=\"dotted purple\", style=\"dotted\", color=\"purple\"];\n" +
+    " Parent -> C5[label=\"solid dot-arrow red\", color=\"red\", arrowhead=dot];\n" +
     "}";
 
   // create a network
