@@ -36,8 +36,6 @@
 
     #left, #right {
       position: absolute;
-      width: 50%;
-      height: 100%;
       margin: 0;
       padding: 10px;
       box-sizing: border-box;
@@ -45,11 +43,15 @@
     }
 
     #left {
+      width: 40%;
+      height: 80%;
       top: 0;
       left: 0;
     }
 
     #right {
+      width: 60%;
+      height: 100%;
       top: 0;
       right: 0;
     }
@@ -82,7 +84,7 @@
     }
 
   </style>
-  
+
 </head>
 <body>
 
@@ -91,27 +93,43 @@
 
   <div>
     <p>
-      Example of edge styles support
+      Example of edge styles support.
     </p>
 
-    <ul>
-      <li> label: text displayed on the edge</li>
-      <li> color: edge color</li>
-      <li> style: edge style is solid(default), dashed or dotted</li>
-    </ul>
+    <table border=1>
+      <tr>
+        <th>Attributes</th><th>Desriptions</th>
+      </tr>
+      <tr>
+        <td align="center">label</td><td>Text displayed on the edge</td>
+      </tr>
+      <tr>
+        <td align="center">color</td><td>Edge color</td>
+      </tr>
+      <tr>
+        <td align="center">style</td>
+        <td>Edge style (solid, dashed, dotted)</td>
+      </tr>
+      <tr>
+        <td align="center">arrowhead</td>
+        <td>Arrow style (dot, box, crow, curve, icurve, normal, inv, diamond, tee, vee)</td>
+      </tr>
+    </table>
   </div>
 
-  <div>
-    <button id="draw" title="Draw the DOT graph (Ctrl+Enter)">Draw</button>
-    <button id="reset" title="Reset the DOT graph">Reset</button>
-    <span id="error"></span>
-  </div>
 </div>
 
 <div id="contents">
   <div id="left">
     <textarea id="data">
     </textarea>
+    <div>
+      <button id="draw" title="Draw the DOT graph (Ctrl+Enter)">Draw</button>
+      <button id="reset" title="Reset the DOT graph">Reset</button>
+    </div>
+    <div>
+      <span id="error"></span>
+    </div>
   </div>
   <div id="right">
     <div id="mynetwork"></div>
@@ -119,12 +137,28 @@
 </div>
 
 <script type="text/javascript">
-  var dotDefault = "digraph {\n" +
-    " Parent -> C1[label=\"default\"];  // Default style is solid \n" +
-    " Parent -> C2[label=\"solid pink\", color=\"pink\"];\n" +
-    " Parent -> C3[label=\"dashed green\", style=\"dashed\", color=\"green\"];\n" +
-    " Parent -> C4[label=\"dotted purple\", style=\"dotted\", color=\"purple\"];\n" +
-    "}";
+  var dotDefault = 'digraph {\n' +
+    ' // Parent nodes\n' +
+    ' lines[label="LINES"]; \n' +
+    ' ahs[label="ARROW HEADS"]; \n' +
+    '\n' +
+    ' // Line styles\n' +
+    ' lines -- solid[label="solid pink", color="pink"]; \n' +
+    ' lines -- dashed[label="dashed green", style="dashed", color="green"]; \n' +
+    ' lines -- dotted[label="dotted purple", style="dotted", color="purple"]; \n' +
+    '\n' +
+    ' // Arrowhead styles\n' +
+    ' ahs -> dot[label="dot", arrowhead=dot]; \n' +
+    ' ahs -> box[label="box", arrowhead=box]; \n' +
+    ' ahs -> crow[label="crow", arrowhead=crow]; \n' +
+    ' ahs -> curve[label="curve", arrowhead=curve]; \n' +
+    ' ahs -> icurve[label="icurve", arrowhead=icurve]; \n' +
+    ' ahs -> normal[label="normal", arrowhead=normal]; \n' +
+    ' ahs -> inv[label="inv", arrowhead=inv]; \n' +
+    ' ahs -> diamond[label="diamond", arrowhead=diamond]; \n' +
+    ' ahs -> tee[label="tee", arrowhead=tee]; \n' +
+    ' ahs -> vee[label="vee", arrowhead=vee]; \n' +
+    '}';
 
   // create a network
   var container = document.getElementById('mynetwork');

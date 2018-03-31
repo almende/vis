@@ -9,7 +9,7 @@
   <style type="text/css">
     #mynetwork {
       width: 600px;
-      height: 400px;
+      height: 540px;
       border: 1px solid lightgray;
     }
   </style>
@@ -17,37 +17,58 @@
 <body>
 
 <p>
-  The types of endpoints are: <code>'arrow' 'circle' 'bar'</code>.
+  The types of endpoints.
   The default is <code>'arrow'</code>.
 </p>
+<p id="arrow_type_list"></p>
 
 <div id="mynetwork"></div>
 
 <script type="text/javascript">
+  var arrow_types = [
+    'arrow', 'bar', 'circle', 'box', 'crow', 'curve', 'inv_curve',
+    'diamond', 'triangle', 'inv_triangle', 'vee'
+  ];
+
+  // update list of arrow types in html body
+  var nof_types = arrow_types.length;
+  var list_contents = [];
+  for(var i = 0; i < nof_types; i++) {
+    list_contents.push("<code>'" + arrow_types[i] + "'</code>");
+  }
+  var mylist = document.getElementById("arrow_type_list");
+  mylist.innerHTML = list_contents.join(", ");
+
   // create an array with nodes
-  var nodes = new vis.DataSet([
-    {id: 1, label: 'A'},
-    {id: 2, label: 'B'},
-    {id: 3, label: 'C'},
-    {id: 4, label: 'D'}
-  ]);
+  var node_attrs = new Array();
+  var nodes = arrow_types.slice();
+  nodes.push("end");
+  console.log(nodes);
+  var nof_nodes = nodes.length;
+  for(var i = 0; i < nof_nodes; i++) {
+    node_attrs[i] = {
+      id: i+1,
+      label: nodes[i]
+    };
+  }
+    
+  var nodes = new vis.DataSet(node_attrs);
 
   // create an array with edges
-  var edges = new vis.DataSet([
-    {from: 1, to: 2, arrows:'to'},
-    {from: 2, to: 3, arrows:{
-      to: {
-        enabled: true,
-        type: 'circle'
+  var edge_attrs = new Array();
+  var nof_edges = nof_nodes - 1;
+  for(var i = 0; i < nof_edges; i++) {
+    edge_attrs[i] = {
+      from: i+1, to: i+2, arrows: {
+        to: {
+          enabled: true,
+          type: arrow_types[i]
+        }
       }
-    }},
-    {from: 3, to: 4, arrows:{
-      to: {
-        enabled: true,
-        type: 'bar'
-      }
-    }},
-  ]);
+    }
+  }
+
+  var edges = new vis.DataSet(edge_attrs);
 
   // create a network
   var container = document.getElementById('mynetwork');
