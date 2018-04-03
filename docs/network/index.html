@@ -622,11 +622,13 @@ var locales = {
             </tr>
             <tr class="collapsible toggle" onclick="toggleTable('methodTable','getNodesInCluster', this);">
                 <td colspan="2"><span parent="getNodesInCluster" class="right-caret" id="method_getNodesInCluster"></span> getNodesInCluster(
-                    <code>String clusterNodeId</code>)
+                    <code>String clusterNodeId, [Boolean recursive]</code>)
             </tr>
             <tr class="hidden" parent="getNodesInCluster">
                 <td class="midMethods">Returns: Array</td>
-                <td>Returns an array of all nodeIds of the nodes that would be released if you open the cluster.
+                <td>Returns an array of all nodeIds of the nodes that would be released if you open the cluster. If the recursive parameter is false or 
+                    undefined and the cluster contains other clusters, this method will return nodeIds of clusters. If the recursive parameter is true
+                    and the cluster contains other clusters, this method will recursively get the nodeIds of the unclustered nodes.
                 </td>
             </tr>
             <tr class="collapsible toggle" onclick="toggleTable('methodTable','openCluster', this);">
