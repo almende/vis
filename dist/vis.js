@@ -1913,7 +1913,7 @@ if (typeof window !== 'undefined') {
   var propagating = __webpack_require__(175);
   var Hammer = window['Hammer'] || __webpack_require__(176);
   module.exports = propagating(Hammer, {
-    preventDefault: 'mouse'
+      // preventDefault: 'mouse'
   });
 } else {
   module.exports = function () {
