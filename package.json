@@ -6,10 +6,10 @@
   "license": "(Apache-2.0 OR MIT)",
   "repository": {
     "type": "git",
-    "url": "git://github.com/almende/vis.git"
+    "url": "git://github.com/PantheonTechnologies/vis.git"
   },
   "bugs": {
-    "url": "https://github.com/almende/vis/issues"
+    "url": "https://github.com/PantheonTechnologies/vis/issues"
   },
   "keywords": [
     "vis",
