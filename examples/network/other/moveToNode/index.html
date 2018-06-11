@@ -1,0 +1,41 @@
+<!doctype html>
+<html>
+
+<head>
+  <title>Network | Move to Node</title>
+
+  <script type="text/javascript" src="exampleUtil.js"></script>
+  <script type="text/javascript" src="vis.js"></script>
+  <link href="vis-network.min.css" rel="stylesheet" type="text/css" />
+  <link href="styles.css" rel="stylesheet" type="text/css" />
+  <script type="text/javascript" src="draw.js"></script>
+
+</head>
+
+<body onload="draw();">
+  <div class="top">
+      <div class="top-left">
+        <form id='nodeIdForm'>
+          <div class="form-elements">
+            <label for="nodeId">nodeId</label>
+            <input type="text" id="nodeId" name="nodeId">
+            <div class="button">
+              <button type="submit">focus</button>
+            </div>
+          </div>
+        </form>
+      </div>
+      <div class="top-right">
+        <span id="statusUpdate"></span>
+      </div>
+  </div>
+
+  <div class="bottom">
+    <div id="mynetwork"></div>
+    <p id="selection"></p>
+    <p id="stabilization"></p>
+  </div>
+  
+</body>
+
+</html>
