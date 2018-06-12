@@ -5,32 +5,28 @@ div.vis-tooltip {
   border-radius: 4px;
   border: none;
   overflow: hidden;
-  //opacity: 0;
   font-weight: 500;
-  font-size: $tooltip-fontsize-sm;
+  font-size: 14px;
   white-space: nowrap;
   text-overflow: ellipsis;
-  //height: $tooltip-height-sm;
-  //line-height: $tooltip-height-sm;
   padding: 0;
-  color:white;
-  background-color: rgb(97, 97, 97);
-
-  &.vis-show-add {
-    transform: scale(0);
-  }
-  &.vis-show {
-    transition: $swift-ease-out;
-    transition-property: transform, opacity;
-    transition-duration: 250ms;
-    transform: scale(1);
-    opacity: 0.9;
-  }
-  &.vis-hide {
-    transition: $swift-ease-in;
-    transition-property: transform, opacity;
-    transition-duration: 150ms;
-    transform: scale(0);
-    opacity: 0;
-  }
+  color: white;
+  background-color: #616161;
+}
+div.vis-tooltip.vis-show-add {
+  transform: scale(0);
+}
+div.vis-tooltip.vis-show {
+  transition: all 0.4s cubic-bezier(0.25, 0.8, 0.25, 1);
+  transition-property: transform, opacity;
+  transition-duration: 250ms;
+  transform: scale(1);
+  opacity: 0.9;
+}
+div.vis-tooltip.vis-hide {
+  transition: all 0.3s cubic-bezier(0.55, 0, 0.55, 0.2);
+  transition-property: transform, opacity;
+  transition-duration: 150ms;
+  transform: scale(0);
+  opacity: 0;
 }
