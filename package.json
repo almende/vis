@@ -24,7 +24,7 @@
     "network",
     "browser"
   ],
-  "main": "./dist/vis.js",
+  "main": "./dist/vis.min.js",
   "scripts": {
     "test": "mocha --compilers js:babel-core/register",
     "test-cov": "nyc --reporter=lcov mocha --compilers js:babel-core/register",

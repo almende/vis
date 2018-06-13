@@ -5,7 +5,7 @@
  * A dynamic, browser-based visualization library.
  *
  * @version 4.21.1
- * @date    2018-06-12
+ * @date    2018-06-13
  *
  * @license
  * Copyright (C) 2011-2017 Almende B.V, http://almende.com
@@ -21102,6 +21102,8 @@ var Popup = function () {
     value: function hide() {
       this.frame.className = 'vis-tooltip vis-hide';
       this.hidden = true;
+      this.frame.style.left = "0";
+      this.frame.style.top = "0";
       this.frame.style.visibility = "hidden";
     }
 
