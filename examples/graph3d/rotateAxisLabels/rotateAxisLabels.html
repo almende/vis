@@ -1,0 +1,154 @@
+<!doctype html>
+<html>
+<head>
+<!--
+This example combines multiple data sets (indexes) with multiple countries by plotting them onto a 3D bar chart.
+Rotating the chart on to the Z-axis can transform it into a heat mapped 2D chart. The goal for rotating axis
+labels is to assist with readability of long axis label names.
+
+Known issues:
+rotateAxisLabels:true - requires showXAxis, showYAxis, showZAxis to also be true. Otherwise, it will not rotate correctly.
+
+Data sources:
+https://www.numbeo.com/quality-of-life/rankings_by_country.jsp?title=2018-mid&region=019
+https://en.wikipedia.org/wiki/List_of_countries_by_GDP_(nominal)
+https://en.wikipedia.org/wiki/Estimated_number_of_civilian_guns_per_capita_by_country
+https://en.wikipedia.org/wiki/List_of_countries_by_alcohol_consumption_per_capita
+https://knoema.com/nwnfkne/world-gdp-ranking-2017-gdp-by-country-data-and-charts
+-->
+  <title>WORLD INDEXES BY COUNTRY 2018 MID-YEAR</title>
+  <style>
+    body {font: 10pt arial;}
+    div#info {
+      width     : 500px;
+      text-align: center;
+      margin-top: 2em;
+      font-size : 1.2em; }
+    span#graphHead, span#updateTime, span#startTime, span#endTime{
+      font: 10pt arial;
+      font-weight: bold;
+      text-align: center; }
+  </style>
+<script type="text/javascript" src="vis.js.v4-21-0-rotateAxisLabels.js?'+Math.random()+'"></script>
+<script type="text/javascript">
+var graph = null;
+
+function drawVisualization() {
+    var style = document.getElementById('style').value;
+    var withValue = ['bar-color', 'bar-size', 'dot-size', 'dot-color'].indexOf(style) != -1;
+
+    // Create and populate a data table.
+    var data = new vis.DataSet();
+    var extra_content = [];
+    data.add( {id:"c57621e7d6cfb81", x:0, y:-1, z:0, extra:extra_content[0]} );
+    var axis_x = {};
+    var axis_y = {};
+    var file1   = 'world_index_data_small.json?nocache='+Math.random();
+    var _width  = '1000px';
+    var _height = '1000px';
+
+    var request = new XMLHttpRequest();
+    request.open('GET', file1, true);
+
+    function axisLoad(axis_obj, callback) {
+        Object.keys(axis_obj).forEach(function(field, i) {
+            callback(axis_obj[field], i);
+        });
+    };
+
+    request.onload = function() {
+        if (request.status >= 200 && request.status < 400) {
+            var result = JSON.parse(request.responseText);
+            axisLoad(result.graph3d, function(object, i) {data.add(object)});
+            axisLoad(result.axis_x,  function(object, i) {axis_x[i] = object});
+            axisLoad(result.axis_y,  function(object, i) {axis_y[i] = object});
+            data.remove("c57621e7d6cfb81");
+        } else {console.log("ERR: request.onload");}
+    };
+    request.onerror = function() {console.log("ERR: Connection request")};
+    request.send();
+
+    var options = {
+        width:  _width,
+        height: _height,
+        style: style,
+        showPerspective: false,
+        showLegend: true,
+        showGrid: true,
+        showShadow: true,
+        xLabel: 'COUNTRY',
+        yLabel: 'INDEX',
+        zLabel: 'PERCENT',
+        legendLabel: 'value',
+        rotateAxisLabels: true,
+        axisColor: '#41413C',
+        axisFontType: 'courier',
+        axisFontSize: 30,
+        gridColor: '#5590CC',
+        backgroundColor: 'white',
+        dataColor: {
+            fill: 'green',
+            stroke: 'green',
+            strokeWidth: 2,
+        },
+        cameraPosition: {
+            horizontal: 0,
+            vertical: 2,
+            distance: 2.3
+        },
+        tooltip: function (point) {
+            return 'value: <b>'+ point.z +'%</b><br>'+ axis_x[point.x] +'</b><br>'+ axis_y[point.y];;
+        },
+        tooltipDelay: 0,
+        tooltipStyle: {
+            content: {
+                background    : 'rgba(255, 255, 255, 0.7)',
+                padding       : '10px',
+                borderRadius  : '10px'
+            },
+            line: {
+                borderLeft    : '1px dotted rgba(0, 0, 0, 0.5)'
+            },
+            dot: {
+                border        : '5px solid rgba(0, 0, 0, 0.5)'
+            },
+        },
+        keepAspectRatio: false,
+        verticalRatio: 0.5,
+        xBarWidth: 1,
+        yBarWidth: 1,
+        xStep: 1,
+        yStep: 1,
+        xCenter: '50%',
+        yCenter: '25%',
+        xValueLabel: function(value) {return ""+ axis_x[value.toString()];},
+        yValueLabel: function(value) {return ""+ axis_y[value.toString()];},
+        zValueLabel: function(value) {return value + '%';},
+    };
+    var camera = graph ? graph.getCameraPosition() : null;
+    var container = document.getElementById('mygraph');
+    graph = new vis.Graph3d(container, data, options);
+    if (camera) graph.setCameraPosition(camera);
+    document.getElementById('style').onchange = drawVisualization;
+}
+</script>
+</head>
+<body onload="drawVisualization()">
+<p>
+  <label for="style"> Style:
+    <select id="style">
+      <option value="bar">bar</option>
+      <option value="dot">dot</option>
+      <option value="dot-line">dot-line</option>
+    </select>
+  </label>
+</p>
+<div style="text-align: center; width: 1024px;">
+<span id="graphHead">WORLD INDEXES BY COUNTRY 2018 MID-YEAR</span><br>
+<span id="updateTime"></span><br>
+<span id="startTime"></span><br>
+<span id="endTime"></span><br>
+<div id="mygraph" height="470px"></div>
+<div id="info">Hover the mouse cursor over the graph to see tooltips.</div></div>
+</body>
+</html>
