@@ -189,14 +189,14 @@ gulp.task('bundle-css-individual', function (cb) {
   }, cb);
 });
 
-gulp.task('copy', ['clean'], function () {
+gulp.task('copy', gulp.series('clean', function () {
     var network = gulp.src('./lib/network/img/**/*')
       .pipe(gulp.dest(DIST + '/img/network'));
 
     return network;
-});
+}));
 
-gulp.task('minify', ['bundle-js'], function (cb) {
+gulp.task('minify', gulp.series('bundle-js', function (cb) {
   var result = uglify.minify([DIST + '/' + VIS_JS], uglifyConfig);
 
   // note: we add a newline '\n' to the end of the minified file to prevent
@@ -206,9 +206,9 @@ gulp.task('minify', ['bundle-js'], function (cb) {
   fs.writeFileSync(DIST + '/' + VIS_MAP, result.map.replace(/"\.\/dist\//g, '"'));
 
   cb();
-});
+}));
 
-gulp.task('bundle', ['bundle-js', 'bundle-js-individual', 'bundle-css', 'bundle-css-individual', 'copy']);
+gulp.task('bundle', gulp.series(['bundle-js', 'bundle-js-individual', 'bundle-css', 'bundle-css-individual', 'copy']));
 
 // read command line arguments --bundle and --minify
 var bundle = 'bundle' in argv;
@@ -226,9 +226,9 @@ else {
 }
 
 // The watch task (to automatically rebuild when the source code changes)
-gulp.task('watch', watchTasks, function () {
+gulp.task('watch', gulp.series(watchTasks, function () {
   gulp.watch(['index.js', 'lib/**/*'], watchTasks);
-});
+}));
 
 
 //
@@ -268,4 +268,4 @@ gulp.task('docs', function(cb) {
 });
 
 // The default task (called when you run `gulp`)
-gulp.task('default', ['clean', 'bundle', 'minify']);
+gulp.task('default', gulp.series(['clean', 'bundle', 'minify']));
