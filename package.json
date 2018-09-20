@@ -26,7 +26,7 @@
   ],
   "main": "./dist/vis.js",
   "scripts": {
-    "test": "mocha --compilers js:babel-core/register",
+    "test": "mocha --exit --compilers js:babel-core/register",
     "test-cov": "nyc --reporter=lcov mocha --compilers js:babel-core/register",
     "build": "gulp",
     "lint": "gulp lint",
@@ -66,7 +66,7 @@
     "jsdom": "11.3.0",
     "jsdom-global": "^3.0.2",
     "merge-stream": "^1.0.1",
-    "mocha": "^3.4.2",
+    "mocha": "^4.0.0",
     "nyc": "^11.2.1",
     "rimraf": "^2.6.1",
     "sinon": "^4.0.1",
