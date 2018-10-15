@@ -7133,7 +7133,7 @@ CustomTime.prototype = new Component();
 CustomTime.prototype.setOptions = function (options) {
   if (options) {
     // copy all options that we know
-    util.selectiveExtend(['moment', 'locale', 'locales', 'id'], this.options, options);
+    util.selectiveExtend(['moment', 'locale', 'locales', 'id', 'rtl'], this.options, options);
   }
 };
 
@@ -7153,7 +7153,7 @@ CustomTime.prototype._create = function () {
   var drag = document.createElement('div');
   drag.style.position = 'relative';
   drag.style.top = '0px';
-  drag.style.left = '-10px';
+  this.options.rtl ? drag.style.right = '-10px' : drag.style.left = '-10px';;
   drag.style.height = '100%';
   drag.style.width = '20px';
 
@@ -7230,7 +7230,7 @@ CustomTime.prototype.redraw = function () {
     title = title.call(this.customTime);
   }
 
-  this.bar.style.left = x + 'px';
+  this.options.rtl ?  this.bar.style.right = x + 'px' : this.bar.style.left = x + 'px'  ;
   this.bar.title = title;
 
   return false;
@@ -7291,7 +7291,12 @@ CustomTime.prototype._onDragStart = function (event) {
 CustomTime.prototype._onDrag = function (event) {
   if (!this.eventParams.dragging) return;
 
-  var x = this.body.util.toScreen(this.eventParams.customTime) + event.deltaX;
+  var deltaX = event.deltaX;
+  if(this.options.rtl){
+    deltaX = deltaX * (-1);
+  }
+
+  var x = this.body.util.toScreen(this.eventParams.customTime) + deltaX;
   var time = this.body.util.toTime(x);
 
   this.setCustomTime(time);
