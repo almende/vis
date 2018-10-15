@@ -13,6 +13,7 @@
 
   <script type="text/javascript" src="../../../dist/vis.js"></script>
   <link href="../../../dist/vis-network.min.css" rel="stylesheet" type="text/css" />
+  <link rel="stylesheet" href="http://maxcdn.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.min.css">
 
   <script type="text/javascript">
     var nodes = null;
@@ -32,6 +33,7 @@
         {id: 9,  label: 'triangleDown', shape: 'triangleDown'},
         {id: 10, label: 'text',    shape: 'text'},
         {id: 11, label: 'star',    shape: 'star'},
+        {id: 12, label: 'hexagon', shape: 'hexagon'},
         {id: 21, font:{size:30},          label: 'big circle',  shape: 'circle' },
         {id: 22, font:{size:30},          label: 'big ellipse', shape: 'ellipse'},
         {id: 23, font:{size:30},          label: 'ellipse with a long label text', shape: 'ellipse'},
@@ -43,7 +45,10 @@
         {id: 29, font:{size:30}, size:40, label: 'big triangle',shape: 'triangle'},
         {id: 30, font:{size:30}, size:40, label: 'big triangleDown', shape: 'triangleDown'},
         {id: 31, font:{size:30},          label: 'big text',    shape: 'text'},
-        {id: 32, font:{size:30}, size:40, label: 'big star',    shape: 'star'}
+        {id: 32, font:{size:30}, size:40, label: 'big star',    shape: 'star'},
+        {id: 33, font:{size:30}, size:40, label: 'big hexagon', shape: 'hexagon'},
+        {id: 34, font:{size:30},          label: 'icon square', shape: 'square', icon: {code:'\uf164'} },
+        {id: 35, font:{size:30},          label: 'icon dot',    shape: 'dot',    icon: {code:'\uf165'} },        
       ];
 
       edges = [

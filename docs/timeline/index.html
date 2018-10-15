@@ -1,3 +1,6 @@
+<?js
+  var self = this;
+?>
 <!DOCTYPE html>
 <html lang="en"><head>
   <meta charset="utf-8">
@@ -41,39 +44,7 @@
   <script type="text/javascript" src="../js/toggleTable.js"></script>
 </head>
 <body onload="prettyPrint();">
-
-
-<div class="navbar-wrapper">
-  <div class="container">
-    <nav class="navbar navbar-inverse navbar-static-top" role="navigation">
-      <div class="container">
-        <div class="navbar-header">
-          <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar"
-                  aria-expanded="false" aria-controls="navbar">
-            <span class="sr-only">Toggle navigation</span>
-            <span class="icon-bar"></span>
-            <span class="icon-bar"></span>
-            <span class="icon-bar"></span>
-          </button>
-          <a class="navbar-brand hidden-sm" href="./index.html">vis.js</a>
-        </div>
-        <div id="navbar" class="navbar-collapse collapse">
-          <ul class="nav navbar-nav">
-            <li><a href="http://www.visjs.org/index.html#modules">Modules</a></li>
-            <li><a href="http://www.visjs.org/blog.html">Blog</a></li>
-            <li><a href="http://www.visjs.org/index.html#download_install">Download</a></li>
-            <li><a href="http://www.visjs.org/showcase/index.html">Showcase</a></li>
-            <li><a href="http://www.visjs.org/index.html#contribute">Contribute</a></li>
-            <li><a href="http://www.visjs.org/featureRequests.html">Feature requests</a></li>
-            <li><a href="http://www.visjs.org/index.html#licenses">License</a></li>
-          </ul>
-        </div>
-      </div>
-    </nav>
-  </div>
-</div>
-
-<a href="https://github.com/almende/vis" class="hidden-xs hidden-sm hidden-md"><img style="position: absolute; top: 0; right: 0; border: 0;" src="https://camo.githubusercontent.com/38ef81f8aca64bb9a64448d0d70f1308ef5341ab/68747470733a2f2f73332e616d617a6f6e6177732e636f6d2f6769746875622f726962626f6e732f666f726b6d655f72696768745f6461726b626c75655f3132313632312e706e67" alt="Fork me on GitHub" data-canonical-src="https://s3.amazonaws.com/github/ribbons/forkme_right_darkblue_121621.png"></a>
+<?js= self.partial('tmpl/navbar.tmpl') ?>
 <div class="container full">
   <h1>Timeline</h1>
 
@@ -498,6 +469,12 @@ var groups = [
       <td>no</td>
       <td>Assuming the group has nested groups, this will set the initial state of the group - shown or collapsed. The <code>showNested</code> is defaulted to <code>true</code>.</td>
     </tr>
+    <tr>
+      <td>heightMode</td>
+      <td>String</td>
+      <td>no</td>
+      <td>This field is optional. Can be 'auto' (default) or 'fixed'. If set this overrides the global <code>groupHeightMode</code> configuration option for this group.</td>
+    </tr>
   </table>
 
 
@@ -536,6 +513,13 @@ var options = {
       <td>String</td>
       <td><code>'center'</code></td>
       <td>Alignment of items with type 'box', 'range', and 'background'. Available values are 'auto' (default), 'center', 'left', or 'right'. For 'box' items, the 'auto' alignment is 'center'. For 'range' items, the auto alignment is dynamic: positioned left and shifted such that the contents is always visible on screen.</td>
+    </tr>
+
+    <tr>
+      <td>alignCurrentTime</td>
+      <td>String</td>
+      <td>none</td>
+      <td>If set, the current time bar will be aligned to the start of the chosen unit of time. Available values are 'year', 'month', 'quarter', 'week', 'isoWeek', 'day', 'date', 'hour', 'minute' or 'second'. If not provided, the current time bar will be updated at every tick.</td>
     </tr>
 
     <tr>
@@ -639,6 +623,7 @@ function (option, path) {
     day:        'D',
     week:       'w',
     month:      'MMM',
+    quarter:    '[Q]Q',
     year:       'YYYY'
   },
   majorLabels: {
@@ -650,6 +635,7 @@ function (option, path) {
     day:        'MMMM YYYY',
     week:       'MMMM YYYY',
     month:      'YYYY',
+    quarter:    'YYYY',
     year:       ''
   }
 }</pre>
@@ -691,6 +677,20 @@ function (option, path) {
       <td>boolean</td>
       <td><code>false</code></td>
       <td>If true, groups can be dragged to change their order. Only applicable when the Timeline has groups. For this option to work properly the groupOrder and groupOrderSwap options have to be set as well.</td>
+    </tr>
+
+    <tr>
+      <td>groupHeightMode</td>
+      <td>String</td>
+      <td>'auto'</td>
+      <td>Specifies how the height of a group is calculated. Choose from 'auto' and 'fixed'. If it is set to 'auto' the height will be calculated based on the visible items. While if it is set to 'fixed' the group will keep the same height even if there are no visible items in the window.</td>
+    </tr>
+
+    <tr>
+      <td>groupLabelDirection</td>
+      <td>String</td>
+      <td>'horizontal'</td>
+      <td>Set the text direction of group labels. The possible values are 'horizontal' and 'vertical'.</td>
     </tr>
 
     <tr>
@@ -771,6 +771,13 @@ function (option, path) {
       <td>boolean</td>
       <td><code>false</code></td>
       <td>If true, range of all items in the Timeline is draggable without being selected. If false, range is only draggable for the selected item(s). Only applicable when option <code>itemsAlwaysDraggable.item</code> is set <code>true</code>. </td>
+    </tr>
+
+    <tr>
+      <td>loadingScreenTemplate</td>
+      <td>function</td>
+      <td>none</td>
+      <td>A template function used to generate the timeline initial loading screen. See section <a href="#Templates">Templates</a> for a detailed explanation.</td>
     </tr>
 
     <tr>
@@ -968,6 +975,29 @@ function (option, path) {
       <td>Callback function triggered when a group is about to be removed. The signature and semantics are the same as for <code>onRemove</code>.
       </td>
     </tr>
+
+    <tr class='toggle collapsible' onclick="toggleTable('optionTable','onTimeout', this);">
+      <td><span parent="onTimeout" class="right-caret"></span> onTimeout</td>
+      <td>Object</td>
+      <td><code>Object</code></td>
+      <td>Specify timeline bailing options when a specified timeout is reached.</td>
+    </tr>
+    <tr parent="onTimeout" class="hidden">
+      <td class="indent">onTimeout.timeoutMs</td>
+      <td>number</td>
+      <td>none</td>
+      <td>Number of milliseconds until the callback function should be called. 
+        The callback will not be called if the timeline gets drawn completely before the timeoutMs limit.</td>
+    </tr>
+
+    <tr parent="onTimeout" class="hidden">
+      <td class="indent">onTimeout.callback</td>
+      <td>function</td>
+      <td>none</td>
+      <td>
+        A callback function called when <code>timeoutMs</code> milliseconds pass and the timeline has yet to be fully drawn initially.
+      </td>
+    </tr>
     
     <tr>
       <td>onUpdate</td>
@@ -1106,7 +1136,7 @@ function (option, path) {
       <td>function</td>
       <td>When moving items on the Timeline, they will be snapped to nice dates like full hours or days, depending on the current scale. The <code>snap</code> function can be replaced with a custom function, or can be set to <code>null</code> to disable snapping. The signature of the snap function is:
         <pre class="prettyprint lang-js">function snap(date: Date, scale: string, step: number) : Date or number</pre>
-        The parameter <code>scale</code> can be can be 'millisecond', 'second', 'minute', 'hour', 'weekday, 'week', 'day, 'month, or 'year'. The parameter <code>step</code> is a number like 1, 2, 4, 5.
+        The parameter <code>scale</code> can be can be 'millisecond', 'second', 'minute', 'hour', 'weekday, 'week', 'day', 'month', 'quarter' or 'year'. The parameter <code>step</code> is a number like 1, 2, 4, 5.
       </td>
     </tr>
 
@@ -1150,7 +1180,7 @@ function (option, path) {
       <td class="indent">timeAxis.scale</td>
       <td>String</td>
       <td>none</td>
-      <td>Set a fixed scale for the time axis of the Timeline. Choose from <code>'millisecond'</code>, <code>'second'</code>, <code>'minute'</code>, <code>'hour'</code>, <code>'weekday'</code>, <code>'week'</code>, <code>'day'</code>, <code>'month'</code>, <code>'year'</code>. Example usage:
+      <td>Set a fixed scale for the time axis of the Timeline. Choose from <code>'millisecond'</code>, <code>'second'</code>, <code>'minute'</code>, <code>'hour'</code>, <code>'weekday'</code>, <code>'week'</code>, <code>'day'</code>, <code>'month'</code>, <code>'quarter'</code>, <code>'year'</code>. Example usage:
   <pre class="prettyprint lang-js">var options = {
   timeAxis: {scale: 'minute', step: 5}
 }</pre>
@@ -1282,13 +1312,17 @@ function (option, path) {
     </tr>
 
     <tr>
-      <td>addCustomTime([time] [, id])</td>
+      <td>addCustomTime([time] [, id] [, options])</td>
       <td>number or String</td>
       <td>
-        Add new vertical bar representing a custom time that can be dragged by the user.
-        Parameter <code>time</code> can be a Date, Number, or String, and is <code>new Date()</code> by default.
+        Add new vertical bar representing a custom time that can be optionally dragged by the user.<br>
+        Parameter <code>time</code> can be a Date, Number, or String, and is <code>new Date()</code> by default.<br>
         Parameter <code>id</code> can be Number or String and is <code>undefined</code> by default.
-        The <code>id</code>code> is added as CSS class name of the custom time bar, allowing to style multiple time bars differently.
+        The <code>id</code> is added as CSS class name of the custom time bar, allowing to style multiple time bars differently.<br>
+        Parameter <code>options</code> can be an Object of available options. <em>At present these options cannot be altered after the custom time bar is created.</em>:
+        <ul>
+          <li><code>editable: boolean </code><br>If true (default) the custom time bar can be dragged by the user. If false the time bar is fixed and can only be modified in code.</li>
+        </ul>
         The method returns id of the created bar.
       </td>
     </tr>
@@ -1386,6 +1420,12 @@ document.getElementById('myTimeline').onclick = function (event) {
       <td>Get the current visible window. Returns an object with properties <code>start: Date</code> and <code>end: Date</code>.</td>
     </tr>
 
+    <tr>
+      <td>isActive()</td>
+      <td>Boolean</td>
+      <td>Denotes whether the timeline is currently active. This method only returns <code>false</code> if the timline has the <code>{clickToUse:true}</code> option enabled and the timeline is currently unselected.</td>
+    </tr>
+	  
     <tr>
       <td>moveTo(time [, options, callback])</td>
       <td>none</td>
@@ -1590,6 +1630,7 @@ timeline.off('select', onSelect);
 
     <tr>
       <td>currentTimeTick</td>
+      <td>Has no properties</td>
       <td>Fired when the current time bar redraws. The rate depends on the zoom level.</td>
     </tr>
 
@@ -2125,7 +2166,7 @@ var options = {
     </tr>
   </table>
   <p>
-    Note: the 'week' scale is not included in the automatic zoom levels as its scale is not a direct logical successor of 'days' nor a logical predecessor of 'months'
+    Note: the 'week' scale is not included in the automatic zoom levels as its scale is not a direct logical successor of 'days' nor a logical predecessor of 'months'. Same goes for the 'quarter' scale which is not a direct logical successor of 'months' nor a logical predecessor of 'years'.
   </p>
 
   <p>Examples:</p>
@@ -2159,18 +2200,4 @@ var options = {
  </ul>
 </div>
 
-<!-- Bootstrap core JavaScript
-================================================== -->
-<!-- Placed at the end of the document so the pages load faster -->
-<script src="../js/jquery.min.js"></script>
-<script src="../js/bootstrap.min.js"></script>
-<!-- IE10 viewport hack for Surface/desktop Windows 8 bug -->
-<script src="../js/ie10-viewport-bug-workaround.js"></script>
-<!-- jquery extensions -->
-<script src="../js/jquery.highlight.js"></script>
-<script src="../js/jquery.url.min.js"></script>
-<!-- Tipue vendor js -->
-<script src="../js/tipuesearch.config.js"></script>
-<script src="../js/tipuesearch.js"></script>
-<!-- controller -->
-<script src="../js/main.js"></script>
+<?js= self.partial('tmpl/html-foot.tmpl') ?>

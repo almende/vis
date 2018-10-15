@@ -1,14 +1,18 @@
 var assert = require('assert');
-var vis = require('../dist/vis');
-var jsdom = require('mocha-jsdom')
-var moment = vis.moment;
-var timeline = vis.timeline;
-var TimeStep = timeline.TimeStep;
+var jsdom_global = require('jsdom-global');
+var moment = require('../lib/module/moment');
+var TimeStep = require('../lib/timeline/TimeStep');
 var TestSupport = require('./TestSupport');
 
 describe('TimeStep', function () {
   
-  jsdom();
+  before(function() {
+    this.jsdom_global = jsdom_global();
+  });
+
+  after(function() {
+      this.jsdom_global();
+  });
 
   it('should work with just start and end dates', function () {
     var timestep = new TimeStep(new Date(2017, 3, 3), new Date(2017, 3, 5));
@@ -50,6 +54,15 @@ describe('TimeStep', function () {
     timestep.next();
     assert.equal(timestep.getCurrent().unix(), moment("2018-01-01T00:00:00.000").unix(), "should have the right value after a step");
   });
+
+  it('should perform the step with a specified scale (1 quarter)', function () {
+    var timestep = new TimeStep(new Date(2017, 3, 3), new Date(2017, 3, 5));
+    timestep.setScale({ scale: 'quarter', step: 1 });
+    timestep.start();
+    assert.equal(timestep.getCurrent().unix(), moment("2017-01-01T00:00:00.000").unix(), "should have the right initial value");
+    timestep.next();
+    assert.equal(timestep.getCurrent().unix(), moment("2017-04-01T00:00:00.000").unix(), "should have the right value after a step");
+  });  
 
   it('should perform the step with a specified scale (1 month)', function () {
     var timestep = new TimeStep(new Date(2017, 3, 3), new Date(2017, 3, 5));

@@ -1,8 +1,7 @@
 var assert = require('assert');
-var vis = require('../dist/vis');
-var moment = vis.moment;
-var DataSet = vis.DataSet;
-var DataView = vis.DataView;
+
+var DataSet = require('../lib/DataSet');
+var DataView = require('../lib/DataView');
 // TODO: test the source code immediately, but this is ES6
 
 // TODO: improve DataView tests, split up in one test per function

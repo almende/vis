@@ -13,3 +13,7 @@ npm-debug.log
 # temporary files
 .*.sw[op]
 .commits.tmp
+gen/
+.nyc_output/
+coverage/
+package-lock.json

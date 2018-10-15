@@ -4,3 +4,7 @@
   cursor: move;
   z-index: 1;
 }
+
+.vis-custom-time.disabled {
+  cursor: inherit;
+}

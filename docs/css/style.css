@@ -191,6 +191,15 @@ td.indent2 {
     padding-left:50px !important;
 }
 
+td p:first-child {
+    margin-top: 0;
+}
+
+td p:last-child {
+    margin-bottom: 0;
+}
+
+
 pre.options {
     max-width:600px;
 }

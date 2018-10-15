@@ -1,0 +1,58 @@
+<!DOCTYPE HTML>
+<html>
+
+<head>
+  <title>Timeline | Loading screen example</title>
+  <script src="http://cdnjs.cloudflare.com/ajax/libs/moment.js/2.8.4/moment.min.js"></script>
+  <script src="../../../dist/vis.js"></script>
+  <link href="../../../dist/vis-timeline-graph2d.min.css" rel="stylesheet" type="text/css" />
+</head>
+
+<body>
+  <h1>Timeline with loading screen</h1>
+  <div id="visualization"></div>
+</body>
+
+<script>
+  var now = moment();
+  var groupCount = 20;
+  var itemCount = 400;
+
+  // create a data set with groups
+  var groups = new vis.DataSet();
+  for (var g = 0; g < groupCount; g++) {
+    groups.add({
+      id: g,
+      content: "group " + g
+    });
+  }
+
+  var types = ['point', 'range', 'box', 'background']
+  // create a dataset with items
+  var items = new vis.DataSet();
+  for (var i = 0; i < itemCount; i++) {
+    var start = now.clone().add(Math.random() * 180, 'days');
+    var end = start.clone().add(Math.random() * 30, 'days');
+    var group = Math.floor(Math.random() * groupCount);
+    items.add({
+      id: i,
+      type: types[Math.floor(Math.random() * types.length)],
+      group: group,
+      content: '' + i,
+      start: start,
+      end: end
+    });
+  }
+
+  // create visualization
+  var container = document.getElementById('visualization');
+  var options = {
+    loadingScreenTemplate: function() {
+      return '<h1>Loading...</h1>'
+    }
+  };
+
+  var timeline = new vis.Timeline(container, items, groups, options);
+</script>
+
+</html>
