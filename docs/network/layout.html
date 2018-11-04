@@ -111,7 +111,8 @@ var options = {
       edgeMinimization: true,
       parentCentralization: true,
       direction: 'UD',        // UD, DU, LR, RL
-      sortMethod: 'hubsize'   // hubsize, directed
+      sortMethod: 'hubsize',   // hubsize, directed
+      userControlsFreeAxis: false // defaults to false if not provided
     }
   }
 }
@@ -148,6 +149,20 @@ network.setOptions(options);
         <tr parent="hierarchical" class="hidden"><td class="indent">hierarchical.sortMethod</td><td>String</td><td><code>'hubsize'</code></td>  <td>The algorithm used to ascertain the levels of the nodes based on the data. The possible options are: <code>hubsize, directed</code>. <br><br>
             Hubsize takes the nodes with the most edges and puts them at the top. From that the rest of the hierarchy is evaluated. <br><br>
             Directed adheres to the to and from data of the edges. A --> B so B is a level lower than A.</td></tr>
+        <tr parent="hierarchical" class="hidden">
+            <td class="indent">hierarchical.userControlsFreeAxis</td>
+            <td>Boolean</td>
+            <td><code>false</code></td>
+            <td>Whether or not the value specified by a node's <code>Dataset</code> <code>x</code> or <code>y</code> values will affect a node's layout along its "free" axis.<br><br>
+                If the hierarchical layout <code>direction</code> is either <code>"DU"</code> or <code>"UD"</code>, vis.js will layout the node using the Node's <code>x</code> property,
+                or if <code>direction</code>is either <code>"LR"</code> or <code>"RL"</code>, vis.js will use the node's <code>y</code> property.<br><br>
+                If the property vis wants to use (e.g., the <code>x</code> or <code>y</code> property on the node within the target <code>Dataset</code>)
+                is undefined, the default behavior is invoked, as though this option were set to <code>false</code>. This provides the ability to initally utilize Vis's default layout,
+                then later call <code>Network.storePositions()</code> and have the hierarchical layout engine respect the retreived values.<br><br>
+                This option is helpful because updating a hierarchically layed-out graph will trigger a redraw, and without this option, if a node has been moved along its free axis,
+                it will be returned to its default position.<br><br>
+                This option is useful with physics disabled.</td>
+        </tr>
     </table>
 
 </div>
