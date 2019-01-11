@@ -24,7 +24,7 @@ We have [a collection of examples](//github.com/almende/vis/tree/develop/example
 
 ### Provide interesting showcases
 
-If you use vis.js to develop something beautiful feel free to create a pull-request to our show cases page in the gh-pages branch](//github.com/almende/vis/tree/gh-pages/showcase). [These showcases are displayed on our webpage](http://visjs.org/showcase/index.html) and we are always looking for new examples.
+If you use vis.js to develop something beautiful feel free to create a pull-request to our show cases page in the [gh-pages branch](//github.com/almende/vis/tree/gh-pages/showcase). [These showcases are displayed on our webpage](http://visjs.org/showcase/index.html) and we are always looking for new examples.
 
 ### Confirming and fixing bugs
 
