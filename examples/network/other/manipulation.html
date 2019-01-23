@@ -67,7 +67,6 @@
     
     function bakeLevels() {
       let direction = network.layoutEngine.options.hierarchical.direction;
-      console.log(direction);
       let levelAxis = "";
       
       //
@@ -87,8 +86,8 @@
       let nodeLevelMap = new Map();
       let uniqueLevelsInCanvasSpace = new Set();
 
-      for (nodeId of nodeIds) {
-        node = nodes[nodeId];
+      for (let nodeId of nodeIds) {
+        let node = nodes[nodeId];
         uniqueLevelsInCanvasSpace.add(node[levelAxis]);
         if (nodeLevelMap.has(node[levelAxis])) {
           nodeLevelMap.get(node[levelAxis]).push(node.id);
@@ -98,7 +97,7 @@
         }
       }
 
-      orderedUniqueLevelsInCanvasSpace = Array.from(uniqueLevelsInCanvasSpace);
+      let orderedUniqueLevelsInCanvasSpace = Array.from(uniqueLevelsInCanvasSpace);
       orderedUniqueLevelsInCanvasSpace.sort((a,b) => { return a-b; });
       canvasLevelMap = new Map();
 
@@ -106,17 +105,16 @@
         canvasLevelMap.set(orderedUniqueLevelsInCanvasSpace[i], i);
       }
 
-      updateList = []
+      let updateList = []
 
-      for (nodeId of nodeIds) {
-        node = nodes[nodeId];
+      for (let nodeId of nodeIds) {
+        let node = nodes[nodeId];
         updateList.push({
           "id": nodeId,
           "level": canvasLevelMap.get(node[levelAxis])
         });
       }
 
-      console.log(network);
       network.body.data.nodes.update(updateList);
       
     }
@@ -135,13 +133,15 @@
       let positions = network.getPositions();
       let keys = Object.getOwnPropertyNames(positions);
       let updateList = [];
-      for (key of keys) {
-        pos = positions[key];
+
+      for (let key of keys) {
+        let pos = positions[key];
         updateList.push({
           id: key,
           [freeAxis]: pos[freeAxis]
         });
       }
+
       network.body.data.nodes.update(updateList);
     }
 
@@ -224,10 +224,7 @@
       network.on("configChange", (e) => { 
         if (e.layout) {
           if (e.layout.hierarchical) {
-            if (e.layout.hierarchical === true) {
-              toggleBakeLevelsButton();
-            }
-            if (e.layout.hierarchical.enabled === false) {
+            if (e.layout.hierarchical === true || e.layout.hierarchical.enabled === false) {
               toggleBakeLevelsButton();
             }
           }
@@ -299,7 +296,7 @@
 <input disabled type="button" id="bake-levels" value="Bake hierarchical levels" onClick="bakeLevels()"
   title="
 + This will permanently set the levels assigned to each node by Vis.js' built-in hierarchical layout algorithm.
-+ This button is active when both 'layout.hierarchical' and its sub-option 'layout.hierarchical.userControlsFreeAxis' are enabled.
++ This button is active when 'layout.hierarchical' is enabled.
 + In a realworld use-case, the programmer will probably manually set each node's levels according to their own algorithm.
 + 'userControlsFreeAxis' is best used with physics disabled.
 + It is not recommended to swap between directions when the user is in control of the free axis." >
