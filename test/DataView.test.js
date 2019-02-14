@@ -24,6 +24,12 @@ describe('DataView', function () {
       }
     });
 
+//test forEach
+group2.forEach((item, id) => {
+  assert.notEqual(item,null);
+  assert.notEqual(id,null);
+});
+
 // test getting the filtered data
     assert.deepEqual(group2.get(), [
       {id: 2, content: 'Item 2', group: 2},
