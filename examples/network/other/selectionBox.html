@@ -1,0 +1,98 @@
+<!doctype html>
+<html>
+<head>
+  <title>Network | selectionBox option</title>
+
+  <style type="text/css">
+    body {
+      font: 10pt sans;
+    }
+    #mynetwork {
+      float:left;
+      width: 600px;
+      height: 600px;
+      margin:5px;
+      border: 1px solid lightgray;
+    }
+    #config {
+      float:left;
+      width: 400px;
+      height: 600px;
+    }
+
+    p {
+      font-size:16px;
+      max-width:700px;
+    }
+  </style>
+
+
+  <script type="text/javascript" src="../exampleUtil.js"></script>
+  <script type="text/javascript" src="../../../dist/vis.js"></script>
+  <link href="../../../dist/vis-network.min.css" rel="stylesheet" type="text/css" />
+
+  <script type="text/javascript">
+    var nodes = null;
+    var edges = null;
+    var network = null;
+
+    function draw() {
+      nodes = [];
+      edges = [];
+      // randomly create some nodes and edges
+      var data = getScaleFreeNetwork(25);
+
+      // create a network
+      var container = document.getElementById('mynetwork');
+
+      var options = {
+        interaction: {
+          selectConnectedEdges: false,
+          selectionBox: true
+        },
+        physics: {
+          stabilization: false
+        },
+        configure: ["interaction"]
+      };
+      network = new vis.Network(container, data, options);
+
+      network.on("configChange", function() {
+        // this will immediately fix the height of the configuration
+        // wrapper to prevent unecessary scrolls in chrome.
+        // see https://github.com/almende/vis/issues/1568
+        var div = container.getElementsByClassName('vis-configuration-wrapper')[0];
+        div.style["height"] = div.getBoundingClientRect().height + "px";
+      });
+
+    }
+  </script>
+
+</head>
+
+<body onload="draw();">
+
+<p>
+  This example shows how the selection box works. Press and hold the control key and click with your mouse on an area within the Network.
+  Drag and release to select nodes and edges within the bounds of the resulting box. Here, you can enable / disable the options (or the entire feature) in the configurator.
+  To modify the options programmatically simply call <code>Ne</code>
+</p>
+<p>
+  Options available:
+  <ul>
+    <li>"nodes": Select nodes within the box's bounds</li>
+    <li>"edges": Select edges within the box's bounds</li>
+    <li>"strokeStyle": An [RGB|RGBA] string to set the color of the box's border</li>
+    <li>"fillStyle": An RGBA string to set the color of the box's fill (you probably want this at a low opacity)</li>
+    <li>"lineWidth": Width of line, <i>roughly</i> in pixels (some aliasing occurs due to canvas scaling).</li>
+    <li>"edgeAccuracy": The number of points generated on each edge that are used to check if the edge is contaned within the box
+       The default is 25, which means for every edge, we calculate at most 25 evenly distributed points across each line.
+    </li>
+  </ul>
+</p>
+<br />
+<div id="mynetwork"></div>
+
+<p id="selection"></p>
+</body>
+</html>
