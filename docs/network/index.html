@@ -1355,6 +1355,27 @@ Thus, to get the topmost item, get the value at index 0.
                 <td>same as <code>click</code>.</td>
                 <td>Fired when the drag has finished.</td>
             </tr>
+            <tr><td id="event_controlNodeDragging">controlNodeDragging</td>
+                <td>Object</td>
+                <td>Fired when dragging control node. Control Edge is edge that is being dragged and contains ids of 'from' and 'to' nodes. If control node is not dragged over another node, 'to' field is undefined. Passes an object with properties structured as:
+
+<pre class="prettyprint lang-js">{
+    nodes: [Array of selected nodeIds],
+    edges: [Array of selected edgeIds],
+    event: [Object] original click event,
+    pointer: {
+        DOM: {x:pointer_x, y:pointer_y},
+        canvas: {x:canvas_x, y:canvas_y}
+    },    
+    controlEdge: {from:from_node_id, to:to_node_id}
+}
+</pre>
+                </td>
+            </tr>
+            <tr><td id="event_controlNodeDragEnd">controlNodeDragEnd</td>
+                <td>same as <code>controlNodeDragging</code>.</td>
+                <td>Fired when the control node drag has finished.</td>
+            </tr>
             <tr><td id="event_hoverNode">hoverNode</td>
                 <td><code>{node: nodeId}</code></td>
                 <td>Fired if the option <code>interaction:{hover:true}</code> is enabled and the mouse hovers over a node.</td>
