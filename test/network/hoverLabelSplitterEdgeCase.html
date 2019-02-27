@@ -1,0 +1,93 @@
+<!doctype html>
+<html>
+<head>
+  <title>Label Splitter Text Measurement Test</title>
+
+  <script src="../../dist/vis-network.min.js" type="text/javascript"></script>
+  <link href="../../dist/vis-network.min.css" rel="stylesheet" type="text/css">
+
+  <style type="text/css">
+    #visualization {
+      width: 600px;
+      height: 400px;
+      border: 1px solid lightgray;
+    }
+  </style>
+</head>
+
+<body>
+
+<p><a href="https://github.com/almende/vis/issues/3928" target="_blank">Bug #3928</a> meant that nodes would change size after being hovered if they had a widthConstraint specified.</p>
+<p>This was due to the context's font not being set to the correct value when the label was evaluated during edges update, so the line would be split based on incorrect measurements.</p>
+
+<div id="visualization"><div class="vis-network"></div></div>
+
+<script type="text/javascript">
+var nodes = new vis.DataSet([{
+  id: 1,
+  label: 'Short Label',
+}, {
+  id: 2,
+  label: 'This is a very long label that should wrap',
+}]);
+
+var edges = new vis.DataSet([{
+  from: 1,
+  to: 2,
+}]);
+
+var data = {
+  nodes: nodes,
+  edges: edges,
+};
+
+let options = {
+  physics: {
+      enabled: false,
+  },
+  nodes: {
+    shadow: true,
+    shape: "box",
+    color: {
+      border: "lightgray",
+      background: "white",
+      hover: {
+        background: "white",
+        border: "lightgray",
+      },
+    },
+    font: {
+      face: "tahoma",
+      size: 25,
+    },
+    labelHighlightBold: true,
+    shapeProperties: {
+      borderRadius: 2,
+    },
+    chosen: {
+      node: function(values, id, selected, hovering) {
+        if (hovering) {
+          values.borderWidth = 2;
+          values.borderColor = "gray";
+        }
+      },
+    },
+    widthConstraint: {
+      maximum: 180,
+    }
+  },
+  edges: {
+    arrows: {
+      to: {
+        enabled: true,
+      }
+    },
+    width: 3,
+  },
+};
+
+var container = document.getElementById('visualization');
+var network = new vis.Network(container, data, options);
+</script>
+</body>
+</html>
