@@ -57,6 +57,7 @@ var options = {
     dragNodes:true,
     dragView: true,
     hideEdgesOnDrag: false,
+    hideEdgesOnZoom: false,
     hideNodesOnDrag: false,
     hover: false,
     hoverConnectedEdges: true,
@@ -95,6 +96,7 @@ network.setOptions(options);
         <tr><td>dragNodes</td>              <td>Boolean</td>            <td><code>true</code></td>      <td>When true, the nodes that are not fixed can be dragged by the user.</td></tr>
         <tr><td>dragView</td>               <td>Boolean</td>            <td><code>true</code></td>      <td>When true, the view can be dragged around by the user.</td></tr>
         <tr><td>hideEdgesOnDrag</td>        <td>Boolean</td>            <td><code>false</code></td>     <td>When true, the edges are not drawn when dragging the view. This can greatly speed up responsiveness on dragging, improving user experience.</td></tr>
+        <tr><td>hideEdgesOnZoom</td>        <td>Boolean</td>            <td><code>false</code></td>     <td>When true, the edges are not drawn when zooming the view. This can greatly speed up responsiveness on zooming, improving user experience.</td></tr>
         <tr><td>hideNodesOnDrag</td>        <td>Boolean</td>            <td><code>false</code></td>     <td>When true, the nodes are not drawn when dragging the view. This can greatly speed up responsiveness on dragging, improving user experience.</td></tr>
         <tr><td>hover</td>                  <td>Boolean</td>            <td><code>false</code></td>     <td>When true, the nodes use their hover colors when the mouse moves over them.</td></tr>
         <tr><td>hoverConnectedEdges</td>     <td>Boolean</td>            <td><code>true</code></td>      <td>When true, on hovering over a node, it's connecting edges are highlighted.</td></tr>
