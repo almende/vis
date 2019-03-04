@@ -64,6 +64,97 @@
     // randomly create some nodes and edges
     var data = getScaleFreeNetwork(25);
     var seed = 2;
+    
+    function bakeLevels() {
+      let direction = network.layoutEngine.options.hierarchical.direction;
+      let levelAxis = "";
+      
+      //
+      // direction can only be "UD" | "DU" | "LR" | "RL", other values are caught as errors earlier in the program
+      // once levels are baked, they should not change even if the user alters the direction of the layout
+      //
+
+      if (direction == "UD" || direction == "DU") {
+        levelAxis = "y";
+      }
+      else {
+        levelAxis = "x";
+      }
+
+      let nodes = network.body.nodes;
+      let nodeIds = Object.getOwnPropertyNames(nodes);
+      let nodeLevelMap = new Map();
+      let uniqueLevelsInCanvasSpace = new Set();
+
+      for (let nodeId of nodeIds) {
+        let node = nodes[nodeId];
+        uniqueLevelsInCanvasSpace.add(node[levelAxis]);
+        if (nodeLevelMap.has(node[levelAxis])) {
+          nodeLevelMap.get(node[levelAxis]).push(node.id);
+        }
+        else {
+          nodeLevelMap.set(node[levelAxis], [node.id]);
+        }
+      }
+
+      let orderedUniqueLevelsInCanvasSpace = Array.from(uniqueLevelsInCanvasSpace);
+      orderedUniqueLevelsInCanvasSpace.sort((a,b) => { return a-b; });
+      canvasLevelMap = new Map();
+
+      for (let i = 0; i < orderedUniqueLevelsInCanvasSpace.length; i++) {
+        canvasLevelMap.set(orderedUniqueLevelsInCanvasSpace[i], i);
+      }
+
+      let updateList = []
+
+      for (let nodeId of nodeIds) {
+        let node = nodes[nodeId];
+        updateList.push({
+          "id": nodeId,
+          "level": canvasLevelMap.get(node[levelAxis])
+        });
+      }
+
+      network.body.data.nodes.update(updateList);
+      
+    }
+
+    function storeFreeAxisPositions() {
+      let direction = network.layoutEngine.options.hierarchical.direction;
+      let freeAxis = "";
+
+      if (direction == "UD" || direction == "DU") {
+        freeAxis = "x";
+      }
+      else {
+        freeAxis = "y";
+      }
+
+      let positions = network.getPositions();
+      let keys = Object.getOwnPropertyNames(positions);
+      let updateList = [];
+
+      for (let key of keys) {
+        let pos = positions[key];
+        updateList.push({
+          id: key,
+          [freeAxis]: pos[freeAxis]
+        });
+      }
+
+      network.body.data.nodes.update(updateList);
+    }
+
+    function toggleBakeLevelsButton() {
+      let target = document.getElementById("bake-levels");
+      let isDisabled = target.hasAttribute("disabled");
+      if (isDisabled) {
+        target.removeAttribute("disabled");
+      }
+      else {
+        target.setAttribute("disabled", "")
+      }
+    }
 
     function setDefaultLocale() {
       var defaultLocal = navigator.language;
@@ -92,7 +183,10 @@
       // create a network
       var container = document.getElementById('mynetwork');
       var options = {
-        layout: {randomSeed:seed}, // just to make sure the layout is the same when the locale is changed
+        configure: true,
+        layout: {
+          randomSeed:seed
+        }, // just to make sure the layout is the same when the locale is changed
         locale: document.getElementById('locale').value,
         manipulation: {
           addNode: function (data, callback) {
@@ -127,6 +221,18 @@
         }
       };
       network = new vis.Network(container, data, options);
+      network.on("configChange", (e) => { 
+        if (e.layout) {
+          if (e.layout.hierarchical) {
+            if (e.layout.hierarchical === true || e.layout.hierarchical.enabled === false) {
+              toggleBakeLevelsButton();
+            }
+          }
+        }
+      });
+      network.on("dragEnd", (e) => { 
+        storeFreeAxisPositions();
+      });
     }
 
     function clearPopUp() {
@@ -187,6 +293,13 @@
   <input type="button" value="cancel" id="cancelButton" />
 </div>
 <br />
+<input disabled type="button" id="bake-levels" value="Bake hierarchical levels" onClick="bakeLevels()"
+  title="
++ This will permanently set the levels assigned to each node by Vis.js' built-in hierarchical layout algorithm.
++ This button is active when 'layout.hierarchical' is enabled.
++ In a realworld use-case, the programmer will probably manually set each node's levels according to their own algorithm.
++ 'userControlsFreeAxis' is best used with physics disabled.
++ It is not recommended to swap between directions when the user is in control of the free axis." >
 <div id="mynetwork"></div>
 
 </body>
