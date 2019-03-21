@@ -15,7 +15,7 @@
   <link href="../css/bootstrap.css" rel="stylesheet">
   <!-- Tipue vendor css -->
   <link href="../css/tipuesearch.css" rel="stylesheet">
-  
+
   <link href="../css/style.css" rel="stylesheet">
 
 
@@ -194,10 +194,12 @@
     </tr>
     <tr>
       <td>style</td>
-      <td>number</td>
+      <td>number or object</td>
       <td>no</td>
       <td>The data value, required for graph styles <code>dot-color</code> and
-        <code>dot-size</code>.
+        <code>dot-size</code>.  If an object is supplied, this allows styling on
+        a per-point basis.  The object should be in the form of
+        <code>{ "fill":"red", "stroke":"#999" }</code>.
       </td>
     </tr>
     <tr>
@@ -336,7 +338,7 @@ var options = {
       <td class="indent">dataColor.fill</td>
       <td>string</td>
       <td>'#7DC1FF'</td>
-      <td>The fill color of the dots or bars. Applicable when using styles <code>dot-size</code>, <code>bar-size</code>, or <code>line</code>.</td>  
+      <td>The fill color of the dots or bars. Applicable when using styles <code>dot-size</code>, <code>bar-size</code>, or <code>line</code>.</td>
     </tr>
     <tr parent="dataColor" class="hidden">
       <td class="indent">dataColor.stroke</td>
@@ -413,7 +415,7 @@ var options = {
         <li><code>z    </code> - z-coordinate in graph units</li>
         <li><code>style</code> - if present, the data value for this point</li>
         </ul>
-        
+
         </td>
     </tr>
 
@@ -465,8 +467,8 @@ var options = {
       <td>showLegend</td>
       <td>boolean</td>
       <td>none</td>
-      <td>If true, a legend is drawn for the graph (if the graph type supports it). 
-          By default a legend is drawn for dot and dot-color style graphs. 
+      <td>If true, a legend is drawn for the graph (if the graph type supports it).
+          By default a legend is drawn for dot and dot-color style graphs.
       </td>
     </tr>
     <tr>
@@ -516,7 +518,7 @@ var options = {
       </td>
     </tr>
     <!-- Can't define separate entries for content, line and dot objects here,
-         because toggleTable() can't handle multiple levels of collapsibles --> 
+         because toggleTable() can't handle multiple levels of collapsibles -->
     <tr parent="tooltipStyle" class="hidden">
       <td class="indent">tooltipStyle.content.padding</td>
       <td>string</td>
