@@ -108,11 +108,15 @@
       </tr>
       <tr>
         <td align="center">style</td>
-        <td>Edge style (solid, dashed, dotted)</td>
+        <td>Edge style ("solid", "dashed", "dotted")</td>
       </tr>
       <tr>
-        <td align="center">arrowhead</td>
-        <td>Arrow style (dot, box, crow, curve, icurve, normal, inv, diamond, tee, vee)</td>
+        <td align="center">dir</td>
+        <td>Arrow direction ("forward", "both", "back", "none"), default is "forward"</td>
+      </tr>
+      <tr>
+        <td align="center">arrowhead, arrowtail</td>
+        <td>Arrow style ("dot", "box", "crow", "curve", "icurve", "normal", "inv", "diamond", "tee", "vee")</td>
       </tr>
     </table>
   </div>
@@ -142,22 +146,27 @@
     ' lines[label="LINES"]; \n' +
     ' ahs[label="ARROW HEADS"]; \n' +
     '\n' +
+    ' // Children nodes\n' +
+    ' dot[label="both dot"]; \n' +
+    ' vee[label="back vee"]; \n' +
+    ' diamond[label="diamond and box"]; \n' +
+    '\n' +
     ' // Line styles\n' +
     ' lines -- solid[label="solid pink", color="pink"]; \n' +
     ' lines -- dashed[label="dashed green", style="dashed", color="green"]; \n' +
     ' lines -- dotted[label="dotted purple", style="dotted", color="purple"]; \n' +
     '\n' +
     ' // Arrowhead styles\n' +
-    ' ahs -> dot[label="dot", arrowhead=dot]; \n' +
     ' ahs -> box[label="box", arrowhead=box]; \n' +
     ' ahs -> crow[label="crow", arrowhead=crow]; \n' +
     ' ahs -> curve[label="curve", arrowhead=curve]; \n' +
     ' ahs -> icurve[label="icurve", arrowhead=icurve]; \n' +
     ' ahs -> normal[label="normal", arrowhead=normal]; \n' +
     ' ahs -> inv[label="inv", arrowhead=inv]; \n' +
-    ' ahs -> diamond[label="diamond", arrowhead=diamond]; \n' +
+    ' ahs -> diamond[label="diamond and box", dir=both, arrowhead=diamond, arrowtail=box]; \n' +
+    ' ahs -> dot[label="both dot", dir=both, arrowhead=dot, arrowtail=dot]; \n' +
     ' ahs -> tee[label="tee", arrowhead=tee]; \n' +
-    ' ahs -> vee[label="vee", arrowhead=vee]; \n' +
+    ' ahs -> vee[label="back vee", dir=back, arrowtail=vee]; \n' +
     '}';
 
   // create a network
