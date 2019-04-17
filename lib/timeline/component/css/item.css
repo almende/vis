@@ -189,6 +189,10 @@
   cursor: e-resize;
 }
 
+.vis-item.vis-readonly {
+  pointer-events: none;
+}
+
 .vis-range.vis-item.vis-readonly .vis-drag-left,
 .vis-range.vis-item.vis-readonly .vis-drag-right {
   cursor: auto;
