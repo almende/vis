@@ -18,3 +18,11 @@ If you have shown some commitment to the project you can ask [@ludost](//github.
 * [@bradh](//github.com/bradh)
 * [@wimrijnders](//github.com/wimrijnders)
 * [@macleodbroad-wf](//github.com/macleodbroad-wf)
+
+## Financial help
+
+Cutting new releases is [time consuming manual process](https://github.com/almende/vis/issues/2546) that requires codebase knowledge and experience. Pre-release code review and compatibility testing becomes harder with time as more features are added. Backing the project financially allows members to [allocate time for releases](https://github.com/almende/vis/issues/4197) in the absense of company support. [[Become a backer](https://opencollective.com/vis)]
+
+---
+
+Thank you to all our supporters! 🙏
