@@ -13,3 +13,8 @@ If you really want to open a new issue:
 * If you think you found a bug please **provide a simple example** (e.g. on [jsbin](jsbin.com)) that demonstrates the problem.
 * If you want to propose a feature-request please **describe what you are looking for in detail**, ideally providing a screenshot, drawing or something similar.
 * **Close the issue later**, when the issue is no longer needed.
+
+### Triaging issues [![Open Source Helpers](https://www.codetriage.com/almende/vis/badges/users.svg)](https://www.codetriage.com/almende/vis)
+
+You can triage issues which may include reproducing bug reports or asking for vital information, such as version numbers or reproduction instructions. If you would like to start triaging issues, one easy way to get started is to [subscribe to vis on CodeTriage](https://www.codetriage.com/almende/vis).
+
