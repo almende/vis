@@ -10,4 +10,4 @@ Please make sure to **read the following list** before creating a new issue:
 * Delete this list from the actual issue.
 
 <!-- Love vis? Please consider supporting our collective:
-👉  https://opencollective.com/vis/donate -->
+👉  https://opencollective.com/visjs/donate -->
