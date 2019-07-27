@@ -1,14 +1,8 @@
-# vis.js (⚠️ deprecated!)
+# vis.js (deprecated!)
 
-<div style="background:darkorange;color:black;padding:0.1em 1em;">
-  <p>
-    <b>⚠️ This project is not maintained anymore!</b>
-    (See <a href="//github.com/almende/vis/issues/4259#issue-412107497">Issue #4259</a> for details)
-  </p>
-  <p>
-    Please use the <a href="//github.com/visjs">visjs community repositories</a> from now on.
-  </p>
-</div>
+:exclamation: **This project is not maintained anymore! (See [Issue #4259](http://github.com/almende/vis/issues/4259#issue-412107497) for details)**<br/>**We welcome you to use the libraries from the [visjs community](https://www.github.com/visjs) from now on.**
+
+---
 
 Vis.js is a dynamic, browser based visualization library.
 The library is designed to be easy to use, handle large amounts
@@ -40,7 +34,7 @@ Install via bower:
 bower install vis
 ```
 
-Link via cdnjs: http://cdnjs.com
+Link via cdnjs: https://cdnjs.com/libraries/vis
 
 Or download the library from the github project:
 [https://github.com/almende/vis.git](https://github.com/almende/vis.git).
@@ -53,8 +47,8 @@ To use a component, include the javascript and css files of vis in your web page
 <!DOCTYPE HTML>
 <html>
 <head>
-  <script src="webroot/vis/dist/vis.js"></script>
-  <link href="webroot/vis/dist/vis.css" rel="stylesheet" type="text/css" />
+  <script src="vis/dist/vis.min.js"></script>
+  <link href="vis/dist/vis.min.css" rel="stylesheet" type="text/css" />
 </head>
 <body>
   <script type="text/javascript">
@@ -98,8 +92,8 @@ of the project.
 <html>
 <head>
   <title>Timeline basic demo</title>
-  <script src="vis/dist/vis.js"></script>
-  <link href="vis/dist/vis.css" rel="stylesheet" type="text/css" />
+  <script src="vis/dist/vis.min.js"></script>
+  <link href="vis/dist/vis.min.css" rel="stylesheet" type="text/css" />
 
   <style type="text/css">
     body, html {
