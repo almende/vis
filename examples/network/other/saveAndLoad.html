@@ -71,9 +71,8 @@
                 draw();
             }
 
-            function addConnections(elem, index) {
-                // need to replace this with a tree of the network, then get child direct children of the element
-                elem.connections = network.getConnectedNodes(index);
+            function addConnections(elem) {
+                elem.connections = network.getConnectedNodes(elem.id);
             }
 
             function destroyNetwork() {
