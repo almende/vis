@@ -1,6 +1,7 @@
 # vis.js history
-http://visjs.org
 
+## 2019-06-08, End of Live
+- see #4259 for details
 
 ## 2017-10-12, version 4.21.0
 
